@@ -1,0 +1,126 @@
+{{define "member/index"}}
+{{template "header" .}}
+{{template "navbar" .}}
+
+<div class="main-body px-5 py-4">
+    <!--封面信息-->
+    <div class="info-cover">
+        <div class="d-flex">
+            <div class="me-auto">
+                <div id="page-nav"><a href="#" class="pe-3">roy chen</a></div>
+            </div>
+        </div>
+        <div class="row mt-5 mb-4">
+            <div class="col-sm-6 col-md-4 col-lg-3">
+                <div class="card card-nav-theme mb-3">
+                    <div class="card-header">个人介绍</div>
+                    <div class="card-body">
+                        <p class="card-text">用一时感悟，酿造一世的回味！</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-4 col-lg-3">
+                <div class="card card-nav-theme mb-3">
+                    <div class="card-header">目录</div>
+                    <div class="card-body">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#">
+                                    <i class="mdi mdi-book-outline"></i>
+                                    <span>最新公开日记</span>
+                                </a>
+                            </li>
+                            <li class="nav-item"> <a class="nav-link active" href="#">
+                                    <i class="mdi mdi-book-multiple"></i>
+                                    <span>加入日记本</span>
+                                </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--日记本列表-->
+    <div class="d-flex bd-highlight ps-2 mb-4">
+        <div class="p-2">日记本</div>
+        <div class="ms-auto p-2"><button type="button" class="btn btn-outline-secondary btn-sm float-right px-3"
+                data-bs-toggle="modal" data-bs-target="#daybook_add_modal"><i class="mdi mdi-plus"></i>
+                新增日记本</button></div>
+    </div>
+    <div class="row" id="daybook_list">
+        {{$isOwner := .IsOwner}}
+        {{range .Spaces}}
+        <div class="daybook-block col-sm-6 col-md-4 col-lg-3">
+            <div class="card card-diary-theme dt{{.ThemeID}}">
+                <div class="card-body">
+                    <h5>{{if gt .ViewSetting 1 }}
+                        <i class="mdi mdi-lock-outline"></i>
+                        {{end}}
+                        <a href="/daybook/{{.SpaceID}}">{{.Title}}</a>
+                    </h5>
+                    <p>{{.InfoNum}}篇
+                        {{if gt .InfoNum 0 }}
+                        - {{.LastAddTime.Format "2006-01-02 15:04" }}</p>
+                    {{end}}
+                </div>
+                {{if $isOwner }}
+                <!--owner现实编辑信息-->
+                <div class="daybook-edit-btn position-absolute bottom-0 start-50 translate-middle-x mb-2" style="display: none;">
+                    <button type="button" cd-action="daybooy-edit" cd-data-id="{{.SpaceID}}"
+                        class="ms-auto btn btn-sm btn-outline-secondary">编辑</button>
+                </div>
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+    </div>
+
+</div>
+
+<!--增加日记本modal-->
+<div class="modal fade" id="daybook_add_modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <form id="daybook_editor_form">
+        <div class="modal-dialog  modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">增加日记本</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="form_html">
+                    <div class="modal-body">正在加载中......</div>
+                </div>
+                <div class="d-theme"></div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{{template "scripts" .}}
+
+<script src="/public/js/masonry.pkgd.min.js?v=4.2.2"></script>
+
+<script src="/public/js/imagesloaded.pkgd.min.js"></script>
+
+<script>
+    $(function () {
+        var $grid = $('.grid').masonry({
+            itemSelector: '.grid-item',
+            columnWidth: 0,
+            percentPosition: true
+        });
+        $grid.imagesLoaded().progress(function () {
+            $grid.masonry('layout');
+        });
+
+        $('.daybook-block').on( "mouseenter mouseleave", function(){
+            $(this).find('.daybook-edit-btn').toggle();
+        } );
+    });
+
+
+</script>
+
+
+{{template "footer" .}}
+{{end}}

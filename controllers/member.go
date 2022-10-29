@@ -1,0 +1,40 @@
+package controllers
+
+import (
+	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+
+	"chinadiary.com/website/helpers"
+	"chinadiary.com/website/models"
+)
+
+// RenderMemberIndex : 渲染会员首页
+func RenderMemberIndex(c *gin.Context) {
+	h := helpers.DefaultH(c)
+
+	//获取url 中的 uid
+	uid, _ := strconv.ParseInt(c.Param("uid"), 10, 64)
+
+	h["Title"] = "个人主页"
+	h["Active"] = "users"
+
+	//读取用户认证信息
+	userData := h["UserData"].(models.Login)
+	spaces, _ := models.GetSpaceByUserID(uid)
+
+	//返回日记本列表
+	h["Spaces"] = spaces
+
+	//返回判断是否是日记owner
+	isOnwer := false
+
+	if userData.UserId == uid {
+		isOnwer = true
+	}
+	h["IsOwner"] = isOnwer
+
+	//h["UserData"] = c
+	c.HTML(http.StatusOK, "member/index", h)
+}

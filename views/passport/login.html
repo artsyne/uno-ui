@@ -1,0 +1,49 @@
+{{define "passport/login"}}
+{{template "header" .}}
+{{template "navbar" .}}
+
+<div class="container">
+    <div class="row justify-content-center my-5">
+        <div class="col-md-6 py-5">
+            <div class="card border-0 my-3">
+                <div class="card-body my-2">
+                    <form action="/login" method="post" name="biurenform" id="biurenform">
+                        <div class="form-floating mb-5">
+                            <input type="text" class="form-control" id="login_name" name="login_name"
+                                placeholder="用户名或注册邮箱" valid="[{type:'limit',min:4,max:20},'validname']" />
+                            <label for="login_name">用户名或注册邮箱</label>
+                        </div>
+
+                        <div class="form-floating mb-5">
+                            <input type="password" class="form-control" id="pwd" name="pwd"
+                                valid="[{type:'limit',min:6,max:30}]" placeholder="密码" />
+                            <label for="pwd">密码</label>
+                        </div>
+                        <div class="text-center">
+                            <button class="btn btn-outline-secondary w-25 btn-lg" type="button"
+                                onclick="Biuren.Passport.login()">登录
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="card-footer border-0 bg-body">
+                    <div class="d-flex">
+                        <div class="p-3 me-auto">
+                            <a href="/findpwd"><span class="mdi mdi-key-outline"></span> 忘记密码？</a>
+                        </div>
+                        <div class="p-3">
+                            <a href="/register">免费注册 <span
+                                    class="mdi mdi-account-plus-outline text-danger"></span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{template "scripts" .}}
+
+{{template "footer" .}}
+{{end}}

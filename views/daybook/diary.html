@@ -1,0 +1,142 @@
+{{define "daybook/diary"}}
+{{template "header" .}}
+{{template "navbar" .}}
+
+<div class="container my-4 ">
+    <div class="row mb-4 justify-content-center">
+        <div class="col-lg-10">
+            <div class="card card-detail-theme">
+                <img class="card-img-top" src="http://adventurethemes.com/demo/writer/html/v2/img/default-contact.jpg">
+                <div class="card-header">
+                    <div class="media">
+                        <img style="width:60px;" class="img-circle d-flex mr-4" src="/public/img/face.jpg">
+                        <div class="media-body">
+                            <h5 class="mt-0"><a href="#">张三</a> 
+                                <a class="btn btn-primary btn-sm ml-2 text-white float-right">关注</a></h5>
+                            <p class="text-muted mb-1">
+                                Operations Technology / Digital Content Manager @FirstRealtyMgt in Boston, MA.
+                                Movie/book/music reviewer @
+                            </p>
+                            <small class="text-muted">2016年12月15日 23:59</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title diary-title text-sm-center">
+                        A Red Sox Fan Explains His Love For The Cubs
+                    </h3>
+                    <p class="card-text diary-body">
+                        Tonight is Game Seven of the World Series — the Chicago Cubs are one win away from baseball
+                        salvation. I’m incredibly excited and anxious, more so than if my hometown team the Boston Red
+                        Sox were in the series. My hopes and dreams for the National League team from Chicago are so
+                        great that I’d be rooting for them even were they playing Boston. Really.
+                        So why the Cubs? It’s a question I’ve had to answer a few times.
+                        The long answer is that I’ve became a serious Cubs fan since July 31, 2004 — that’s the day that
+                        my home team and first love traded away my favorite ballplayer, Nomar Garciaparra. It is not
+                        coincidentally the last time I had a favorite player.
+                        I was sick about it. It was the end of watching baseball in the way I did as a kid. I was a
+                        grown man, old enough to not get attached to players, but the kid in me who sorted baseball
+                        cards and pored over their still had a soft spot for this young throwback ballplayer. By 2004,
+                        the cynicism of writers like the Boston Globe’s Dan Shaughnessy and the entitled whining of the
+                        city about the Sox had become overwhelming and it was becoming somewhat joyless to watch the
+                        team. Speaking with fellow fans, there was a complete lack of perspective or acknowledgment that
+                        we had long ceased to be lovable underdogs but were in fact the second richest team in the
+                        league. The bloodless attitude that had arrived in town with the new ownership and inspired by
+                        the brutally cutthroat (but effective) methods of the Patriots was frankly probably
+                        necessary — but not much fun to root for.
+
+                    </p>
+                </div>
+                <div class="card-footer">
+                            <div class="d-flex justify-content-end">
+                                <a class="mr-auto p-1"><span class="fa-stack fa-lg">
+                                      <i class="fa fa-circle fa-stack-2x"></i>
+                                      <i class="fa fa-eye fa-stack-1x fa-inverse"></i>
+                                    </span> 2.3k
+                                </a>
+                                <a class="p-1"><span class="fa-stack fa-lg">
+                                      <i class="fa fa-circle fa-stack-2x"></i>
+                                      <i class="fa fa-comment-o fa-stack-1x fa-inverse"></i>
+                                    </span> 12
+                                </a>
+                                <a class="p-1">
+                                     <span class="fa-stack fa-lg">
+                                      <i class="fa fa-circle fa-stack-2x"></i>
+                                      <i class="fa fa-heart-o fa-stack-1x fa-inverse"></i>
+                                    </span> 233
+                                </a>
+                            </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card card-comment-theme">
+                <div class="card-header">
+                    <h4 class="mb-0">留言</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="media">
+                            <img class="d-flex mr-3 img-circle"
+                                 style="width: 60px; height: 60px;"
+                                 src="/public/img/face.jpg">
+                            <div class="media-body">
+                                <h6 class="mt-0 mb-1"><a href="#">亚松</a><span class="link-spacer"></span>
+                                    <small>2016-12-15 16:35</small>
+                                </h6>
+                                Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante
+                                sollicitudin. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce
+                                condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
+                            </div>
+                        </li>
+                        <li class="media my-4">
+                            <img class="d-flex mr-3 img-circle"
+                                 style="width: 60px; height: 60px;"
+                                 src="/public/img/face.jpg">
+                            <div class="media-body">
+                                <h6 class="mt-0 mb-1"><a href="#">亚松</a><span class="link-spacer"></span>
+                                    <small>2016-12-15 16:35</small>
+                                </h6>
+                                Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante
+                                sollicitudin. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce
+                                condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
+                            </div>
+                        </li>
+                        <li class="media">
+                            <img class="d-flex mr-3 img-circle"
+                                 style="width: 60px; height: 60px;"
+                                 src="/public/img/face.jpg">
+                            <div class="media-body">
+                                <h6 class="mt-0 mb-1"><a href="#">亚松</a><span class="link-spacer"></span>
+                                    <small>2016-12-15 16:35</small>
+                                </h6>
+                                Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante
+                                sollicitudin. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce
+                                condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                <textarea class="form-control" rows="4"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">留言</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{template "scripts" .}}
+
+
+{{template "footer" .}}
+{{end}}

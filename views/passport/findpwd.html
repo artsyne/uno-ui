@@ -1,0 +1,34 @@
+{{define "passport/findpwd"}}
+{{template "header" .}}
+{{template "navbar" .}}
+
+<div class="container">
+    <div class="row justify-content-center my-5">
+        <div class="col-md-6 py-5">
+            <div class="card border-0 my-3">
+                <div class="card-body my-2">
+                    <form action="/findpwd" method="post">
+                        <div class="form-floating mb-5">
+                            <input class="form-control" type="email" id="email" name="email"
+                                valid="['required','email']" placeholder="请输入注册邮箱" />
+                            <label for="login_name">请输入注册邮箱</label>
+                            <small class="form-text text-muted">将往您注册E-mail发送一封邮件，请按邮件提示找回面。如果无法收到邮件，请与<a
+                                    href="#">管理员联系</a>寻求帮助
+                            </small>
+                        </div>
+                        <div class="text-center">
+                            <button class="btn btn-outline-secondary w-25 btn-lg" type="submit">找回密码
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{template "scripts" .}}
+
+
+{{template "footer" .}}
+{{end}}
