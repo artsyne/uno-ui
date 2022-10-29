@@ -16,9 +16,6 @@
 
 * godoc -http=:6060
 
-* brew list/install/upgrade
-ensure
-
 github.com/GeertJohan/go.rice latest
 github.com/jasonlvhit/gocron latest
 github.com/Sirupsen/logrus v1.3.0
