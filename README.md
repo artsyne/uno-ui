@@ -15,8 +15,3 @@
   go list -m all  查看当前的依赖和版本信息
 
 * godoc -http=:6060
-
-github.com/GeertJohan/go.rice latest
-github.com/jasonlvhit/gocron latest
-github.com/Sirupsen/logrus v1.3.0
-github.com/go-playground/validator v10.9.0
