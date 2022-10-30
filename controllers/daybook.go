@@ -17,16 +17,14 @@ func RenderDaybookIndex(c *gin.Context) {
 	h["Active"] = "users"
 	h["SpaceID"] = c.Param("spaceid")
 
-	
-
 	c.HTML(http.StatusOK, "daybook/index", h)
 }
 
 //增加日记本表单渲染
-func RenderDaybookForm(c *gin.Context){
-	h:= helpers.DefaultH(c)
+func RenderDaybookForm(c *gin.Context) {
+	h := helpers.DefaultH(c)
 
-	c.HTML(http.StatusOK,"form/daybook",h)
+	c.HTML(http.StatusOK, "form/daybook", h)
 }
 
 // RenderDiary : 渲染日记详细信息
@@ -46,7 +44,7 @@ func DoSpace(c *gin.Context) {
 	// 校验参数，标题必须填写，设置类型必须为1或者2，主题id必须在1-16之间
 	if err != nil || len(space.Title) < 1 || (space.ViewSetting != 1 &&
 		space.ViewSetting != 2 || space.ThemeID < 1 || space.ThemeID > 16) {
-		gobalerr.ResponeErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
+		gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
 		return
 	}
 
@@ -79,7 +77,7 @@ func DoSpace(c *gin.Context) {
 	if action, _ := c.GetPostForm("action"); action == "My.insertDaybook" {
 		spaceID, err := space.Insert() // 插入对象
 		if err != nil {
-			gobalerr.ResponeErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
+			gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
 			return
 		}
 		space.SpaceID = spaceID

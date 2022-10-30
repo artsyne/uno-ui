@@ -55,14 +55,14 @@ var EnumErrDesc = map[int]string{
 }
 
 //显示错误Json并返回
-func ResponeErr(c *gin.Context, errCode int) {
+func ResponseErr(c *gin.Context, errCode int) {
 	c.JSON(http.StatusBadRequest, gin.H{
 		"Status":  errCode,
 		"ErrDesc": EnumErrDesc[errCode],
 	})
 }
 
-func ResponeErrWithDesc(c *gin.Context, errCode int, errDesc string) {
+func ResponseErrWithDesc(c *gin.Context, errCode int, errDesc string) {
 	c.JSON(http.StatusBadRequest, gin.H{
 		"Status":  errCode,
 		"ErrDesc": errDesc,

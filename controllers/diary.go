@@ -32,7 +32,7 @@ func PostInfo(c *gin.Context) {
 	infoForm := &models.InfoForm{}
 	err := c.Bind(infoForm)
 	if err != nil {
-		gobalerr.ResponeErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
+		gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
 		return
 	}
 
@@ -44,7 +44,7 @@ func PostInfo(c *gin.Context) {
 		//判断上传文件类型是否正确
 		filetype := infoForm.CoverImgData[:strings.IndexByte(infoForm.CoverImgData, ';')]
 		if !strings.Contains(config.Upload.ImgType, filetype) {
-			gobalerr.ResponeErr(c, gobalerr.UPLOAD_FILE_TYPE_ERR)
+			gobalerr.ResponseErr(c, gobalerr.UPLOAD_FILE_TYPE_ERR)
 			return
 		}
 
@@ -58,12 +58,12 @@ func PostInfo(c *gin.Context) {
 		//图片解码
 		imgByte, err := base64.StdEncoding.DecodeString(b64data)
 		if err != nil {
-			gobalerr.ResponeErr(c, gobalerr.UPLOAD_FILE_ERR)
+			gobalerr.ResponseErr(c, gobalerr.UPLOAD_FILE_ERR)
 			return
 		}
 		err = ioutil.WriteFile(filename, imgByte, 0666)
 		if err != nil {
-			gobalerr.ResponeErr(c, gobalerr.UPLOAD_FILE_ERR)
+			gobalerr.ResponseErr(c, gobalerr.UPLOAD_FILE_ERR)
 			return
 		}
 	}

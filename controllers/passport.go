@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"chinadiary.com/website/config"
+	gobalerr "chinadiary.com/website/config"
 	"chinadiary.com/website/helpers"
 	"chinadiary.com/website/models"
 	"chinadiary.com/website/system"
@@ -106,23 +106,23 @@ func PostResetPwd(c *gin.Context) {
 	//检查确认码是否正确
 	if err != nil || len(newPwd) < system.PWD_MIN_LEN || len(newPwd) > system.PWD_MAX_LEN ||
 		len(sign) != system.VALID_CODE_LEN || userID < 0 {
-		gobalerr.ResponeErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
+		gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
 		return
 	}
 	//检查确认码是否正确
 	result, validID := models.CheckValidCode(userID, sign, system.VALID_CODE_RESET_PWD_EMAIL)
 	if result == false {
-		gobalerr.ResponeErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
+		gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
 		return
 	}
 	//修改密码
 	if rows, err := models.UpdateUserPwd(userID, helpers.Sha256(newPwd)); err != nil || rows != 1 {
-		gobalerr.ResponeErr(c, gobalerr.DB_OPERATION_ERR)
+		gobalerr.ResponseErr(c, gobalerr.DB_OPERATION_ERR)
 		return
 	}
 	//删除验证码
 	if rows, err := models.DeleteValidCode(validID); err != nil || rows != 1 {
-		gobalerr.ResponeErr(c, gobalerr.DB_OPERATION_ERR)
+		gobalerr.ResponseErr(c, gobalerr.DB_OPERATION_ERR)
 		return
 	}
 
@@ -134,20 +134,20 @@ func PostLogin(c *gin.Context) {
 	login := &models.Login{}
 	err := c.Bind(login)
 	if err != nil {
-		gobalerr.ResponeErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
+		gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
 		return
 	}
 
 	//判断参数是否到位
 	if len(login.LoginName) < 6 || len(login.Pwd) < 6 {
-		gobalerr.ResponeErr(c, gobalerr.INPUT_PARAM_ERR)
+		gobalerr.ResponseErr(c, gobalerr.INPUT_PARAM_ERR)
 		return
 	}
 	//判断用户名与密码是否正确
 	login.LoginName = strings.ToLower(login.LoginName) //登录名改为小写
 	result, user, err := CheckNameAndPwd(login.LoginName, login.Pwd)
 	if result != 0 || user == nil {
-		gobalerr.ResponeErr(c, result)
+		gobalerr.ResponseErr(c, result)
 		return
 	}
 
@@ -164,7 +164,7 @@ func PostLogin(c *gin.Context) {
 	//序列化login对象
 	ud, err := json.Marshal(login)
 	if err != nil {
-		gobalerr.ResponeErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
+		gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
 		return
 	}
 	//加密cookie
@@ -190,13 +190,13 @@ func PostRegister(c *gin.Context) {
 	user := &models.User{}
 	err := c.Bind(user)
 	if err != nil {
-		gobalerr.ResponeErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
+		gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
 		return
 	}
 
 	//判断参数是否到位
 	if len(user.UserName) < 6 || len(user.Pwd) < 6 {
-		gobalerr.ResponeErr(c, gobalerr.INPUT_PARAM_ERR)
+		gobalerr.ResponseErr(c, gobalerr.INPUT_PARAM_ERR)
 		return
 	}
 
@@ -206,7 +206,7 @@ func PostRegister(c *gin.Context) {
 
 	//判断用户名是否存在
 	if isExistName, err := models.IsExistUserName(user.UserName); err == nil && isExistName == true {
-		gobalerr.ResponeErr(c, gobalerr.REGISTER_USER_NAME_EXISTS)
+		gobalerr.ResponseErr(c, gobalerr.REGISTER_USER_NAME_EXISTS)
 		return
 	} else if err != nil {
 		gobalerr.ResponeErrWithDesc(c, gobalerr.DB_OPERATION_ERR,
@@ -216,7 +216,7 @@ func PostRegister(c *gin.Context) {
 
 	//判断邮件地址是否存在
 	if isExistEmail, err := models.IsExistsEmail(user.Email); err == nil && isExistEmail == true {
-		gobalerr.ResponeErr(c, gobalerr.REGISTER_USER_EMAIL_EXISTS)
+		gobalerr.ResponseErr(c, gobalerr.REGISTER_USER_EMAIL_EXISTS)
 		return
 	} else if err != nil {
 		gobalerr.ResponeErrWithDesc(c, gobalerr.DB_OPERATION_ERR,
@@ -258,13 +258,13 @@ func PostFindPwd(c *gin.Context) {
 
 	//判断参数是否正确
 	if regexCheck.IsEmail(email) == false {
-		gobalerr.ResponeErr(c, gobalerr.INPUT_PARAM_ERR)
+		gobalerr.ResponseErr(c, gobalerr.INPUT_PARAM_ERR)
 		return
 	}
 	//根据邮件地址获取用户信息
 	user, err := models.GetUserByEmail(email)
 	if user == nil || err != nil {
-		gobalerr.ResponeErr(c, gobalerr.USER_NOT_EXISTS)
+		gobalerr.ResponseErr(c, gobalerr.USER_NOT_EXISTS)
 		return
 	}
 
@@ -278,7 +278,7 @@ func PostFindPwd(c *gin.Context) {
 	validCode.GmtCreate = nowTime
 	validCode.ExpireTime = nowTime.AddDate(0, 0, system.FIND_PWD_EMAIL_VAILID_CODE_EXPIRE_DAY)
 	if _, err := validCode.Insert(); err != nil {
-		gobalerr.ResponeErr(c, gobalerr.INPUT_PARAM_ERR)
+		gobalerr.ResponseErr(c, gobalerr.INPUT_PARAM_ERR)
 		return
 	}
 
@@ -299,7 +299,7 @@ func PostFindPwd(c *gin.Context) {
 	jobQueue.AddTime = nowTime
 	jsonBytes, err := json.Marshal(emailTask)
 	if err != nil {
-		gobalerr.ResponeErr(c, gobalerr.PARSE_JSON_ERR)
+		gobalerr.ResponseErr(c, gobalerr.PARSE_JSON_ERR)
 		return
 	}
 	jobQueue.Body = string(jsonBytes) //插入邮件任务json
@@ -309,7 +309,7 @@ func PostFindPwd(c *gin.Context) {
 	jobQueue.Result = 1
 	_, err = jobQueue.Insert()
 	if err != nil {
-		gobalerr.ResponeErr(c, gobalerr.DB_OPERATION_ERR)
+		gobalerr.ResponseErr(c, gobalerr.DB_OPERATION_ERR)
 		return
 	}
 	h := helpers.ResponseH(c)
