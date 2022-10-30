@@ -43,7 +43,7 @@ func PostInfo(c *gin.Context) {
 
 		//判断上传文件类型是否正确
 		filetype := infoForm.CoverImgData[:strings.IndexByte(infoForm.CoverImgData, ';')]
-		if strings.Contains(config.Upload.ImgType, filetype) == false {
+		if !strings.Contains(config.Upload.ImgType, filetype) {
 			gobalerr.ResponeErr(c, gobalerr.UPLOAD_FILE_TYPE_ERR)
 			return
 		}
