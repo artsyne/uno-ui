@@ -93,7 +93,7 @@ func PostInfo(c *gin.Context) {
 	//插入数据库
 	infoID, err := info.Insert()
 	if err != nil {
-		gobalerr.ResponeErrWithDesc(c, gobalerr.DB_OPERATION_ERR,
+		gobalerr.ResponseErrWithDesc(c, gobalerr.DB_OPERATION_ERR,
 			gobalerr.EnumErrDesc[gobalerr.DB_OPERATION_ERR]+","+err.Error())
 		return
 	}

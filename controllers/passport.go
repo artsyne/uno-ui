@@ -209,7 +209,7 @@ func PostRegister(c *gin.Context) {
 		gobalerr.ResponseErr(c, gobalerr.REGISTER_USER_NAME_EXISTS)
 		return
 	} else if err != nil {
-		gobalerr.ResponeErrWithDesc(c, gobalerr.DB_OPERATION_ERR,
+		gobalerr.ResponseErrWithDesc(c, gobalerr.DB_OPERATION_ERR,
 			gobalerr.EnumErrDesc[gobalerr.DB_OPERATION_ERR]+","+err.Error())
 		return
 	}
@@ -219,7 +219,7 @@ func PostRegister(c *gin.Context) {
 		gobalerr.ResponseErr(c, gobalerr.REGISTER_USER_EMAIL_EXISTS)
 		return
 	} else if err != nil {
-		gobalerr.ResponeErrWithDesc(c, gobalerr.DB_OPERATION_ERR,
+		gobalerr.ResponseErrWithDesc(c, gobalerr.DB_OPERATION_ERR,
 			gobalerr.EnumErrDesc[gobalerr.DB_OPERATION_ERR]+","+err.Error())
 		return
 	}
@@ -237,7 +237,7 @@ func PostRegister(c *gin.Context) {
 	//插入数据库
 	id, err := user.Insert()
 	if err != nil {
-		gobalerr.ResponeErrWithDesc(c, gobalerr.DB_OPERATION_ERR,
+		gobalerr.ResponseErrWithDesc(c, gobalerr.DB_OPERATION_ERR,
 			gobalerr.EnumErrDesc[gobalerr.DB_OPERATION_ERR]+","+err.Error())
 		return
 	}
