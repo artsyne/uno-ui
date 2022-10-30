@@ -15,4 +15,4 @@
   go list -m all  查看当前的依赖和版本信息
 
 * godoc -http=:6060
-* test git connection
+* use vscode.dv commit
