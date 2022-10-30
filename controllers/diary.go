@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	gobalerr "chinadiary.com/website/config"
+	globalErr "chinadiary.com/website/config"
 	"chinadiary.com/website/helpers"
 	"chinadiary.com/website/models"
 	"chinadiary.com/website/system"
@@ -32,7 +32,7 @@ func PostInfo(c *gin.Context) {
 	infoForm := &models.InfoForm{}
 	err := c.Bind(infoForm)
 	if err != nil {
-		gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
+		globalErr.ResponseErr(c, globalErr.PARSE_INPUT_PARAM_ERR)
 		return
 	}
 
@@ -44,7 +44,7 @@ func PostInfo(c *gin.Context) {
 		//判断上传文件类型是否正确
 		filetype := infoForm.CoverImgData[:strings.IndexByte(infoForm.CoverImgData, ';')]
 		if !strings.Contains(config.Upload.ImgType, filetype) {
-			gobalerr.ResponseErr(c, gobalerr.UPLOAD_FILE_TYPE_ERR)
+			globalErr.ResponseErr(c, globalErr.UPLOAD_FILE_TYPE_ERR)
 			return
 		}
 
@@ -58,12 +58,12 @@ func PostInfo(c *gin.Context) {
 		//图片解码
 		imgByte, err := base64.StdEncoding.DecodeString(b64data)
 		if err != nil {
-			gobalerr.ResponseErr(c, gobalerr.UPLOAD_FILE_ERR)
+			globalErr.ResponseErr(c, globalErr.UPLOAD_FILE_ERR)
 			return
 		}
 		err = ioutil.WriteFile(filename, imgByte, 0666)
 		if err != nil {
-			gobalerr.ResponseErr(c, gobalerr.UPLOAD_FILE_ERR)
+			globalErr.ResponseErr(c, globalErr.UPLOAD_FILE_ERR)
 			return
 		}
 	}
@@ -93,8 +93,8 @@ func PostInfo(c *gin.Context) {
 	//插入数据库
 	infoID, err := info.Insert()
 	if err != nil {
-		gobalerr.ResponseErrWithDesc(c, gobalerr.DB_OPERATION_ERR,
-			gobalerr.EnumErrDesc[gobalerr.DB_OPERATION_ERR]+","+err.Error())
+		globalErr.ResponseErrWithDesc(c, globalErr.DB_OPERATION_ERR,
+			globalErr.EnumErrDesc[globalErr.DB_OPERATION_ERR]+","+err.Error())
 		return
 	}
 
