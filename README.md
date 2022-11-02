@@ -15,3 +15,5 @@
   go list -m all  查看当前的依赖和版本信息
 
 * godoc -http=:6060
+* 
+* update mysql.user set authentication_string=password('iloveyou') where user='root' and Host = 'localhost';
