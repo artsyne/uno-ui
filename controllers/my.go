@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"chinadiary.com/website/models"
 	"net/http"
 
-	"chinadiary.com/website/helpers"
+	"github.com/biuren/hebe/models"
+
+	"github.com/biuren/hebe/helpers"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,10 +15,10 @@ func RenderMyIndex(c *gin.Context) {
 	h["Title"] = "管理"
 	h["Active"] = "users"
 	h["IsAdminPage"] = true
-	
+
 	//读取用户认证信息
 	userData := h["UserData"].(models.Login)
-	spaces,_ := models.GetSpaceByUserID(userData.UserId)
+	spaces, _ := models.GetSpaceByUserID(userData.UserId)
 
 	h["Spaces"] = spaces
 

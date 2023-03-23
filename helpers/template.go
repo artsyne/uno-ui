@@ -5,7 +5,7 @@ import (
 	"time"
 
 	//	"../models"
-	"chinadiary.com/website/system"
+	"github.com/biuren/hebe/system"
 	"github.com/gin-gonic/gin"
 )
 

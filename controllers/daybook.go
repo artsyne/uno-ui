@@ -3,10 +3,10 @@ package controllers
 import (
 	"net/http"
 
-	"chinadiary.com/website/models"
+	"github.com/biuren/hebe/models"
 
-	gobalerr "chinadiary.com/website/config"
-	"chinadiary.com/website/helpers"
+	gobalerr "github.com/biuren/hebe/config"
+	"github.com/biuren/hebe/helpers"
 	"github.com/gin-gonic/gin"
 )
 

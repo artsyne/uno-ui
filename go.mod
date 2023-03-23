@@ -1,4 +1,4 @@
-module chinadiary.com/website
+module github.com/biuren/hebe
 
 go 1.17
 

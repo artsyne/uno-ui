@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	"chinadiary.com/website/helpers"
+	"github.com/biuren/hebe/helpers"
 	"github.com/sirupsen/logrus"
 )
 

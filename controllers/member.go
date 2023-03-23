@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"chinadiary.com/website/helpers"
-	"chinadiary.com/website/models"
+	"github.com/biuren/hebe/helpers"
+	"github.com/biuren/hebe/models"
 )
 
 // RenderMemberIndex : 渲染会员首页

@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strings"
 
-	globalErr "chinadiary.com/website/config"
-	"chinadiary.com/website/helpers"
-	"chinadiary.com/website/models"
-	"chinadiary.com/website/system"
+	globalErr "github.com/biuren/hebe/config"
+	"github.com/biuren/hebe/helpers"
+	"github.com/biuren/hebe/models"
+	"github.com/biuren/hebe/system"
 
 	"github.com/gin-gonic/gin"
 )

@@ -3,7 +3,7 @@ package site
 import (
 	"net/http"
 
-	"chinadiary.com/website/controllers"
+	"github.com/biuren/hebe/controllers"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )

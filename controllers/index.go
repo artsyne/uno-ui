@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"chinadiary.com/website/helpers"
+	"github.com/biuren/hebe/helpers"
 )
 
 // RenderIndex : 渲染网站首页

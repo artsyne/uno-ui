@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"strconv"
 
-	gobalerr "chinadiary.com/website/config"
-	"chinadiary.com/website/helpers"
-	"chinadiary.com/website/models"
-	"chinadiary.com/website/system"
+	gobalerr "github.com/biuren/hebe/config"
+	"github.com/biuren/hebe/helpers"
+	"github.com/biuren/hebe/models"
+	"github.com/biuren/hebe/system"
 )
 
 // RenderFindPwd : 渲染查找密码界面

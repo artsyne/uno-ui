@@ -7,11 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"chinadiary.com/website/controllers"
-	"chinadiary.com/website/helpers"
-	"chinadiary.com/website/models"
-	"chinadiary.com/website/site"
-	"chinadiary.com/website/system"
+	"github.com/biuren/hebe/controllers"
+	"github.com/biuren/hebe/helpers"
+	"github.com/biuren/hebe/models"
+	"github.com/biuren/hebe/site"
+	"github.com/biuren/hebe/system"
 )
 
 func init() {

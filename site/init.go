@@ -8,13 +8,13 @@ import (
 	"os"
 	"strings"
 
-	"chinadiary.com/website/task"
-	"chinadiary.com/website/helpers"
-	"chinadiary.com/website/models"
-	"chinadiary.com/website/system"
-	"github.com/GeertJohan/go.rice"
-	"github.com/sirupsen/logrus"
+	rice "github.com/GeertJohan/go.rice"
+	"github.com/biuren/hebe/helpers"
+	"github.com/biuren/hebe/models"
+	"github.com/biuren/hebe/system"
+	"github.com/biuren/hebe/task"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 //初始化站点，链接数据，设置cookie

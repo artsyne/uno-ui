@@ -1,15 +1,15 @@
 package helpers
 
 import (
-	"time"
 	"strconv"
+	"time"
 
-	"chinadiary.com/website/system"
+	"github.com/biuren/hebe/system"
 	"github.com/go-redis/redis"
 )
 
 //创建redis client
-func getRedisClient() (*redis.Client) {
+func getRedisClient() *redis.Client {
 	//获取配置信息
 	config := system.GetConfig()
 
@@ -46,7 +46,7 @@ func GetSession(name string) (string, error) {
 }
 
 //删除一个session
-func DelSession(name string) (int64,error){
+func DelSession(name string) (int64, error) {
 	//获取client
 	client := getRedisClient()
 

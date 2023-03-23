@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 
-	"chinadiary.com/website/site"
-	"chinadiary.com/website/system"
+	"github.com/biuren/hebe/site"
+	"github.com/biuren/hebe/system"
 )
 
 func main() {
