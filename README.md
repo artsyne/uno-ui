@@ -17,3 +17,6 @@
 * godoc -http=:6060
 * 
 * update mysql.user set authentication_string=password('iloveyou') where user='root' and Host = 'localhost';
+
+### icon copyring
+<a target="_blank" href="https://icons8.com/icon/jmkHXlIGZKw5/diary">Diary</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
