@@ -2,8 +2,9 @@ package controllers
 
 import (
 	"encoding/base64"
-	"io/ioutil"
+	//"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 
 	globalErr "github.com/biuren/hebe/config"
@@ -61,7 +62,8 @@ func PostInfo(c *gin.Context) {
 			globalErr.ResponseErr(c, globalErr.UPLOAD_FILE_ERR)
 			return
 		}
-		err = ioutil.WriteFile(filename, imgByte, 0666)
+		//err = ioutil.WriteFile(filename, imgByte, 0666)
+		err = os.WriteFile(filename, imgByte, 0666)
 		if err != nil {
 			globalErr.ResponseErr(c, globalErr.UPLOAD_FILE_ERR)
 			return

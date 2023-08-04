@@ -3,3 +3,4 @@
 /__debug_bin.exe
 /.vscode
 /vendor
+/public/upload
