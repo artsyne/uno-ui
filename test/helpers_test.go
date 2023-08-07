@@ -204,11 +204,11 @@ func TestCreateCode(t *testing.T) {
 }
 
 func TestCreateFileName(t *testing.T) {
-	filePath, fileName := helpers.CreateUploadImgFileName()
+	filePath, fileName := helpers.CreateUploadPathFileName()
 
 	fmt.Println(fileName)
-	fmt.Println(helpers.CreateUploadImgFileName())
-	fmt.Println(helpers.CreateUploadImgFileName())
+	fmt.Println(helpers.CreateUploadPathFileName())
+	fmt.Println(helpers.CreateUploadPathFileName())
 
 	err := os.MkdirAll("public/upload"+filePath, 777)
 

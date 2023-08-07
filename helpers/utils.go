@@ -54,7 +54,7 @@ func SendToMail(user, password, host, to, subject, body, mailtype string) error 
 	return err
 }
 
-// 创建上传文件图片路径，和文件名
+// 创建上传文件图片路径和文件名
 // 路径格式为：/年/月/日/，文件名为guid
 func CreateUploadPathFileName() (string,string){
 	nowTime := GetNowTime()
