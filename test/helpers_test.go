@@ -203,20 +203,7 @@ func TestCreateCode(t *testing.T) {
 
 }
 
-func TestCreateFileName(t *testing.T) {
-	filePath, fileName := helpers.CreateUploadPathFileName()
-
-	fmt.Println(fileName)
-	fmt.Println(helpers.CreateUploadPathFileName())
-	fmt.Println(helpers.CreateUploadPathFileName())
-
-	err := os.MkdirAll("public/upload"+filePath, 777)
-
-	fmt.Println(err)
-	fmt.Println(helpers.GetNowTime())
-}
-
-//根据表明创建struct code 代码
+// 根据表明创建struct code 代码
 func PrintTableGolangStructCode(tableName string) string {
 	columns, err := models.GetTableColumns(tableName)
 
@@ -270,4 +257,17 @@ func PrintTableGolangStructCode(tableName string) string {
 	outputCode += fmt.Sprintf("}")
 
 	return outputCode
+}
+
+
+func TestCreateFileName(t *testing.T) {
+	filePath, fileName := helpers.CreateUploadPathFileName()
+
+	fmt.Println("/public/upload" + filePath + fileName)
+
+	err := os.MkdirAll("/public/upload"+filePath, 777)
+
+	if err != nil {
+		t.Error(err)
+	}
 }
