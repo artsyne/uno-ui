@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"path"
 	"strings"
 
 	globalErr "github.com/biuren/hebe/config"
@@ -56,8 +57,8 @@ func PostInfo(c *gin.Context) {
 
 		//路径格式为：config配置路径 + /年/月/日/uid.jpg
 		filePath, fileName = helpers.CreateUploadPathFileName()
-		filePath = config.Upload.ImgSavePath + filePath
-		fileName = filePath + fileName + ".jpeg"
+		filePath = path.Join(config.Upload.ImgSavePath, filePath)
+		fileName = path.Join(filePath, fileName, ".jpeg")
 
 		//保存图片
 		err := helpers.SaveBase64Img(infoForm.CoverImgData, filePath, fileName)
