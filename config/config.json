@@ -28,9 +28,9 @@
       "redis_pwd":"woaibeijingtiananmeng"
     },
     "upload":{
-      "img_save_path":"public/upload/",
+      "img_save_path":"upload/",
       "img_type":"data:image/jpeg|data:image/jpg|data:image/gif|data:image/png",
-      "img_max_size": 1000000000
+      "img_max_size": 1048576
     }
   },
   "release": {
@@ -62,9 +62,9 @@
       "redis_pwd":"woaibeijingtiananmeng"
     },
     "upload":{
-      "img_save_path":"public/upload/",
+      "img_save_path":"upload/",
       "img_type":"data:image/jpeg|data:image/jpg|data:image/gif|data:image/png",
-      "img_max_size": 1000000000
+      "img_max_size": 1048576
     }
   }
 }

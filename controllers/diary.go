@@ -1,10 +1,7 @@
 package controllers
 
 import (
-	"encoding/base64"
-	//"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
 
 	globalErr "github.com/biuren/hebe/config"
@@ -23,7 +20,7 @@ func RenderDiaryWrite(c *gin.Context) {
 	c.HTML(http.StatusOK, "diary/write_form", h)
 }
 
-//发布日记
+// 发布日记
 func PostInfo(c *gin.Context) {
 	//获取用户登录信息
 	userSession, _ := c.Get("UserData")
@@ -38,7 +35,9 @@ func PostInfo(c *gin.Context) {
 	}
 
 	//上传图片
-	if len(infoForm.CoverImgData) > 100 {
+	filePath := ""
+	fileName := ""
+	if fileSize := len(infoForm.CoverImgData); fileSize > 100 {
 		// 获取上传文件配置信息
 		config := system.GetConfig()
 
@@ -49,21 +48,19 @@ func PostInfo(c *gin.Context) {
 			return
 		}
 
-		//图片存储路径包含文件名，不带扩展名
-		//路径格式为：路径 + /年/月/日/uid-imgfile
-		filename := config.Upload.ImgSavePath + "xxx.jpg"
-
-		//去掉,号前内容，"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYA"
-		b64data := infoForm.CoverImgData[strings.IndexByte(infoForm.CoverImgData, ',')+1:]
-
-		//图片解码
-		imgByte, err := base64.StdEncoding.DecodeString(b64data)
-		if err != nil {
-			globalErr.ResponseErr(c, globalErr.UPLOAD_FILE_ERR)
+		//判断文件大小
+		if fileSize > config.Upload.ImgMaxSize {
+			globalErr.ResponseErr(c, globalErr.UPLOAD_FILE_TOO_LARGE)
 			return
 		}
-		//err = ioutil.WriteFile(filename, imgByte, 0666)
-		err = os.WriteFile(filename, imgByte, 0666)
+
+		//路径格式为：config配置路径 + /年/月/日/uid.jpg
+		filePath, fileName = helpers.CreateUploadPathFileName()
+		filePath = config.Upload.ImgSavePath + filePath
+		fileName = filePath + fileName + ".jpeg"
+
+		//保存图片
+		err := helpers.SaveBase64Img(infoForm.CoverImgData, filePath, fileName)
 		if err != nil {
 			globalErr.ResponseErr(c, globalErr.UPLOAD_FILE_ERR)
 			return
@@ -74,8 +71,8 @@ func PostInfo(c *gin.Context) {
 	var nowTime = helpers.GetNowTime()
 	//赋值info对象
 	info.SpaceID = infoForm.SpaceID
-	info.AccessURL = ""
-	info.CoverURL = ""
+	info.AccessURL = fileName
+	info.CoverURL = fileName
 	info.CoverMidURL = ""
 	info.CoverStyle = infoForm.CoverStyle
 	info.IsTop = 0

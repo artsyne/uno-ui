@@ -200,7 +200,6 @@ func TestCreateCode(t *testing.T) {
 	for _, tableObj := range tables {
 		fmt.Println(PrintTableGolangStructCode(tableObj.TableName) + "\n\n")
 	}
-
 }
 
 // 根据表明创建struct code 代码
@@ -259,15 +258,18 @@ func PrintTableGolangStructCode(tableName string) string {
 	return outputCode
 }
 
-
 func TestCreateFileName(t *testing.T) {
 	filePath, fileName := helpers.CreateUploadPathFileName()
 
-	fmt.Println("/public/upload" + filePath + fileName)
+	filePath = "upload/" + filePath 
+	fmt.Println(filePath + fileName)
 
-	err := os.MkdirAll("/public/upload"+filePath, 777)
-
-	if err != nil {
-		t.Error(err)
-	}
+	 // 检查路径是否存在
+	 if _, err := os.Stat(filePath); os.IsNotExist(err) {
+        // 如果路径不存在，则创建目录
+        err := os.MkdirAll(filePath, os.ModePerm)
+        if err != nil {
+            t.Error(err)
+        }
+    }
 }

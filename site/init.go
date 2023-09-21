@@ -46,7 +46,9 @@ func SetRouter(router *gin.Engine) {
 	logrus.Info("初始化模板成功！")
 
 	//初始化静态文件
-	router.StaticFS("/public", http.Dir(system.PublicPath())) //better use nginx to serve assets (Cache-Control, Etag, fast gzip, etc)
+	//better use nginx to serve assets (Cache-Control, Etag, fast gzip, etc)
+	router.StaticFS("/public", http.Dir(system.PublicPath())) 
+	router.StaticFS("/upload", http.Dir(system.PublicPath()))
 	router.StaticFile("/favicon.ico", "./public/favicon.ico")
 	logrus.Info("初始化静态文件成功！")
 
