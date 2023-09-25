@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"path"
 	"strings"
@@ -35,38 +36,8 @@ func PostInfo(c *gin.Context) {
 		return
 	}
 
-	//上传图片
-	filePath := ""
-	fileName := ""
-	if fileSize := len(infoForm.CoverImgData); fileSize > 100 {
-		// 获取上传文件配置信息
-		config := system.GetConfig()
-
-		//判断上传文件类型是否正确
-		filetype := infoForm.CoverImgData[:strings.IndexByte(infoForm.CoverImgData, ';')]
-		if !strings.Contains(config.Upload.ImgType, filetype) {
-			globalErr.ResponseErr(c, globalErr.UPLOAD_FILE_TYPE_ERR)
-			return
-		}
-
-		//判断文件大小
-		if fileSize > config.Upload.ImgMaxSize {
-			globalErr.ResponseErr(c, globalErr.UPLOAD_FILE_TOO_LARGE)
-			return
-		}
-
-		//路径格式为：config配置路径 + /年/月/日/uid.jpg
-		filePath, fileName = helpers.CreateUploadPathFileName()
-		filePath = path.Join(config.Upload.ImgSavePath, filePath)
-		fileName = path.Join(filePath, fileName, ".jpeg")
-
-		//保存图片
-		err := helpers.SaveBase64Img(infoForm.CoverImgData, filePath, fileName)
-		if err != nil {
-			globalErr.ResponseErr(c, globalErr.UPLOAD_FILE_ERR)
-			return
-		}
-	}
+	//处理上传图片
+	_, fileName := uploadImage(c, infoForm.CoverImgData)
 
 	info := &models.Info{}
 	var nowTime = helpers.GetNowTime()
@@ -104,4 +75,44 @@ func PostInfo(c *gin.Context) {
 	h["Form"] = infoForm
 	h["infoId"] = infoID
 	c.JSON(http.StatusOK, h)
+}
+
+// 上传文件图片
+func uploadImage(c *gin.Context, imgBase64Data string) (filePath, fileName string) {
+
+	//判断图片是否为空
+	fileSize := len(imgBase64Data)
+	if fileSize < 100 {
+		return "", ""
+	}
+
+	// 获取上传文件配置信息
+	config := system.GetConfig()
+
+	//判断上传文件类型是否正确
+	filetype := imgBase64Data[:strings.IndexByte(imgBase64Data, ';')]
+	if !strings.Contains(config.Upload.ImgType, filetype) {
+		globalErr.ResponseErr(c, globalErr.UPLOAD_FILE_TYPE_ERR)
+		return
+	}
+
+	//判断文件大小
+	if fileSize > config.Upload.ImgMaxSize {
+		globalErr.ResponseErr(c, globalErr.UPLOAD_FILE_TOO_LARGE)
+		return
+	}
+
+	//路径格式为：config配置路径 + /年/月/日/uid.jpg
+	filePath, fileName = helpers.CreateUploadPathFileName()
+	filePath = path.Join(config.Upload.ImgSavePath, filePath)
+	fileName = fmt.Sprintf("%s/%s.jpeg", filePath, fileName)
+
+	//保存图片
+	err := helpers.SaveBase64File(imgBase64Data, filePath, fileName)
+	if err != nil {
+		globalErr.ResponseErr(c, globalErr.UPLOAD_FILE_ERR)
+		return
+	}
+
+	return filePath, fileName
 }

@@ -60,7 +60,7 @@ func SendToMail(user, password, host, to, subject, body, mailtype string) error 
 // base64Data：base64编码的图片数据
 // filePath：保存路径，路径格式为：aaa/bbb/ccc/
 // fileName：保存文件名，文件名需带路径,格式为：aaa/bbb/ccc/ddd.xxx
-func SaveBase64Img(base64Data, filePath, fileName string) error {
+func SaveBase64File(base64Data, filePath, fileName string) error {
 	//去掉,号前内容，"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYA"
 	b64data := base64Data[strings.IndexByte(base64Data, ',')+1:]
 
