@@ -4,3 +4,4 @@
 /.vscode
 /vendor
 /upload
+config/config.json
