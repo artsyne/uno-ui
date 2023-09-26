@@ -2,7 +2,6 @@ package models
 
 import (
 	"database/sql"
-	"time"
 )
 
 // info 表单对象
@@ -33,8 +32,8 @@ type Info struct {
 	AddUserID   int64     `form:"add_user_id" json:"add_user_id" db:"add_user_id"`
 	AddUserName string    `form:"add_user_name" json:"add_user_name" db:"add_user_name"`
 	AddUserIP   string    `form:"add_user_ip" json:"add_user_ip" db:"add_user_ip"`
-	AddTime     time.Time `form:"add_time" json:"add_time" db:"add_time"`
-	UpdateTime  time.Time `form:"update_time" json:"update_time" db:"update_time"`
+	AddUTCTime     int64 `form:"add_utc_time" json:"add_utc_time" db:"add_utc_time"`
+	UpdateUTCTime  int64 `form:"update_utc_time" json:"update_utc_time" db:"update_utc_time"`
 	Status      int8      `form:"status" json:"status" db:"status"`
 }
 
@@ -44,14 +43,14 @@ func (info *Info) Insert() (int64, error) {
 			INSERT INTO br_info(
 				space_id,access_url,cover_url,cover_mid_url,cover_style,is_top,
 				title,summary,body,view_num,like_num,comment_num,add_user_id,
-				add_user_name,add_user_ip,add_time,update_time,status
+				add_user_name,add_user_ip,add_utc_time,update_utc_time,status
 			)
 			VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 			`
 	res, err := db.Exec(sqlstr, info.SpaceID, info.AccessURL, info.CoverURL, info.CoverMidURL, info.CoverStyle,
 		info.IsTop, info.Title, info.Summary, info.Body, info.ViewNum, info.LikeNum,
-		info.CommentNum, info.AddUserID, info.AddUserName, info.AddUserIP, info.AddTime,
-		info.UpdateTime, info.Status)
+		info.CommentNum, info.AddUserID, info.AddUserName, info.AddUserIP, info.AddUTCTime,
+		info.UpdateUTCTime, info.Status)
 
 	if err != nil {
 		return 0, err

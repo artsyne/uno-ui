@@ -111,7 +111,7 @@ func PostResetPwd(c *gin.Context) {
 	}
 	//检查确认码是否正确
 	result, validID := models.CheckValidCode(userID, sign, system.VALID_CODE_RESET_PWD_EMAIL)
-	if result == false {
+	if !result {
 		gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
 		return
 	}
@@ -143,9 +143,9 @@ func PostLogin(c *gin.Context) {
 		gobalerr.ResponseErr(c, gobalerr.INPUT_PARAM_ERR)
 		return
 	}
-	//判断用户名与密码是否正确
+	//判断用户名与密码是否正确，login name 可以是用户名或者邮件地址
 	login.LoginName = strings.ToLower(login.LoginName) //登录名改为小写
-	result, user, err := CheckNameAndPwd(login.LoginName, login.Pwd)
+	result, user, _ := CheckNameAndPwd(login.LoginName, login.Pwd)
 	if result != 0 || user == nil {
 		gobalerr.ResponseErr(c, result)
 		return
@@ -155,7 +155,7 @@ func PostLogin(c *gin.Context) {
 	login.UserId = user.UserId
 	login.AccessUrl = user.AccessUrl
 	login.FaceSmallUrl = user.FaceSmallUrl
-	login.LoginTime = helpers.GetNowTime()
+	login.LoginUTCTime = helpers.GetNowTimeUnixMilli()
 	login.UserGroup = user.UserGroup
 	login.UserName = user.UserName
 	login.Pwd = user.Pwd
@@ -168,7 +168,8 @@ func PostLogin(c *gin.Context) {
 		return
 	}
 	//加密cookie
-	cookieUD, err := helpers.TripleDesEncrypt(string(ud), system.GetConfig().Cookie.SecretKey)
+	cookieUD, _ := helpers.TripleDesEncrypt(string(ud), system.GetConfig().Cookie.SecretKey)
+
 	//写入cookie
 	helpers.WriteCookie(c.Writer, "ud", cookieUD)
 
@@ -200,12 +201,12 @@ func PostRegister(c *gin.Context) {
 		return
 	}
 
-	//转换用户名，邮件地址为小写
-	user.UserName = strings.ToLower(user.UserName)
-	user.Email = strings.ToLower(user.Email)
+	//转换用户名，邮件地址为小写并去除空格
+	user.UserName = strings.TrimSpace(strings.ToLower(user.UserName))
+	user.Email = strings.TrimSpace(strings.ToLower(user.Email))
 
 	//判断用户名是否存在
-	if isExistName, err := models.IsExistUserName(user.UserName); err == nil && isExistName == true {
+	if isExistName, err := models.IsExistUserName(user.UserName); err == nil && isExistName {
 		gobalerr.ResponseErr(c, gobalerr.REGISTER_USER_NAME_EXISTS)
 		return
 	} else if err != nil {
@@ -215,7 +216,7 @@ func PostRegister(c *gin.Context) {
 	}
 
 	//判断邮件地址是否存在
-	if isExistEmail, err := models.IsExistsEmail(user.Email); err == nil && isExistEmail == true {
+	if isExistEmail, err := models.IsExistsEmail(user.Email); err == nil && isExistEmail {
 		gobalerr.ResponseErr(c, gobalerr.REGISTER_USER_EMAIL_EXISTS)
 		return
 	} else if err != nil {
@@ -225,12 +226,14 @@ func PostRegister(c *gin.Context) {
 	}
 
 	//初始化用户信息
-	user.Pwd = helpers.Sha256(user.Pwd)
+	//随机生成salt，保存密码为pwd+salt的sha256
+	user.PwdSalt = string(helpers.Rand(64, helpers.RAND_KIND_ALL))
+	user.Pwd = helpers.Sha256(user.Pwd + user.PwdSalt)
 	user.UserGroup = system.DEFAULT_USER_GROUP //用户分组为1,
-	nowTime := helpers.GetNowTime()
-	user.RegTime = nowTime
+	nowTime := helpers.GetNowTimeUnixMilli()
+	user.RegUTCTime = nowTime
 	user.RegIp = c.ClientIP()
-	user.LastLoginTime = nowTime
+	user.LastLoginUTCTime = nowTime
 	user.LastIp = c.ClientIP()
 	user.Status = system.USER_STATUS_WAIT_ACTIVE
 
@@ -257,7 +260,7 @@ func PostFindPwd(c *gin.Context) {
 	regexCheck := &helpers.RegexCheck{}
 
 	//判断参数是否正确
-	if regexCheck.IsEmail(email) == false {
+	if !regexCheck.IsEmail(email) {
 		gobalerr.ResponseErr(c, gobalerr.INPUT_PARAM_ERR)
 		return
 	}
@@ -275,8 +278,8 @@ func PostFindPwd(c *gin.Context) {
 	validCode.UserId = user.UserId
 	validCode.ValidTypeId = system.VALID_CODE_RESET_PWD_EMAIL
 	nowTime := helpers.GetNowTime()
-	validCode.GmtCreate = nowTime
-	validCode.ExpireTime = nowTime.AddDate(0, 0, system.FIND_PWD_EMAIL_VAILID_CODE_EXPIRE_DAY)
+	validCode.CreateUTCTime = nowTime.UnixMilli()
+	validCode.ExpireUTCTime = nowTime.AddDate(0, 0, system.FIND_PWD_EMAIL_VAILID_CODE_EXPIRE_DAY).UnixMilli()
 	if _, err := validCode.Insert(); err != nil {
 		gobalerr.ResponseErr(c, gobalerr.INPUT_PARAM_ERR)
 		return
@@ -296,7 +299,7 @@ func PostFindPwd(c *gin.Context) {
 
 	//插入邮件队列
 	jobQueue := &models.JobQueue{}
-	jobQueue.AddTime = nowTime
+	jobQueue.AddUTCTime = nowTime.UnixMilli()
 	jsonBytes, err := json.Marshal(emailTask)
 	if err != nil {
 		gobalerr.ResponseErr(c, gobalerr.PARSE_JSON_ERR)
@@ -304,7 +307,7 @@ func PostFindPwd(c *gin.Context) {
 	}
 	jobQueue.Body = string(jsonBytes) //插入邮件任务json
 	jobQueue.JobType = system.JOB_TYPE_EMAIL
-	jobQueue.PlanTime = nowTime
+	jobQueue.PlanUTCTime = nowTime.UnixMilli()
 	jobQueue.TryNum = 0
 	jobQueue.Result = 1
 	_, err = jobQueue.Insert()
@@ -324,8 +327,8 @@ func AddActivateUserEmailTask(user *models.User) error {
 	validCode.UserId = user.UserId
 	validCode.ValidTypeId = system.VALID_CODE_ACTIVE_USER_EMAIL
 	nowTime := helpers.GetNowTime()
-	validCode.GmtCreate = nowTime
-	validCode.ExpireTime = nowTime.AddDate(0, 0, system.REG_EMAIL_VAILID_CODE_EXPIRE_DAY) //增加一天过期
+	validCode.CreateUTCTime = nowTime.UnixMilli()
+	validCode.ExpireUTCTime = nowTime.AddDate(0, 0, system.REG_EMAIL_VAILID_CODE_EXPIRE_DAY).UnixMilli() //增加一天过期
 	if _, err := validCode.Insert(); err != nil {
 		return err
 	}
@@ -344,14 +347,14 @@ func AddActivateUserEmailTask(user *models.User) error {
 
 	//插入邮件队列
 	jobQueue := &models.JobQueue{}
-	jobQueue.AddTime = nowTime
+	jobQueue.AddUTCTime = nowTime.UnixMilli()
 	jsonBytes, err := json.Marshal(emailTask)
 	if err != nil {
 		return err
 	}
 	jobQueue.Body = string(jsonBytes) //插入邮件任务json
 	jobQueue.JobType = system.JOB_TYPE_EMAIL
-	jobQueue.PlanTime = nowTime
+	jobQueue.PlanUTCTime = nowTime.UnixMilli()
 	jobQueue.TryNum = 0
 	jobQueue.Result = 1
 	_, err = jobQueue.Insert()
@@ -376,8 +379,8 @@ func CheckNameAndPwd(name string, pwd string) (int, *models.User, error) {
 		}
 	}
 
-	//判断密码是否正确
-	if user.Pwd != helpers.Sha256(pwd) {
+	//判断密码是否正确,密码为pwd+salt的sha256
+	if user.Pwd != helpers.Sha256(pwd + user.PwdSalt) {
 		return gobalerr.USER_PWD_ERR, nil, nil
 	}
 
@@ -407,13 +410,13 @@ func ActiviteUser(uid string, sign string) bool {
 	return result
 }
 
-// IsLogin : 判断用户是否登录
+// 判断用户是否登录
 func IsLogin(c *gin.Context) bool {
 	isLogin, _ := c.Get("IsLogin")
 	return isLogin == true
 }
 
-// IfLoginGotoIndex : 如果登录跳转到首页
+// 如果登录跳转到首页
 func IfLoginGotoIndex(c *gin.Context) {
 	if IsLogin(c) {
 		c.Redirect(http.StatusFound, "/")

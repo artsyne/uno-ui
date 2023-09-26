@@ -2,21 +2,20 @@ package models
 
 import (
 	"database/sql"
-	"time"
 
 	"github.com/biuren/hebe/helpers"
 )
 
 type ValidCode struct {
-	ValidCodeId int64     `form:"valid_code_id" json:"valid_code_id" db:"valid_code_id"`
-	UserId      int64     `form:"user_id" json:"user_id" db:"user_id"`
-	ValidCode   string    `form:"valid_code" json:"valid_code" db:"valid_code"`
-	ValidTypeId int8      `form:"valid_type_id" json:"valid_type_id" db:"valid_type_id"`
-	ExpireTime  time.Time `form:"expire_time" json:"expire_time" db:"expire_time"`
-	GmtCreate   time.Time `form:"gmt_create" json:"gmt_create" db:"gmt_create"`
+	ValidCodeId   int64  `form:"valid_code_id" json:"valid_code_id" db:"valid_code_id"`
+	UserId        int64  `form:"user_id" json:"user_id" db:"user_id"`
+	ValidCode     string `form:"valid_code" json:"valid_code" db:"valid_code"`
+	ValidTypeId   int8   `form:"valid_type_id" json:"valid_type_id" db:"valid_type_id"`
+	ExpireUTCTime int64  `form:"expire_utc_time" json:"expire_utc_time" db:"expire_utc_time"`
+	CreateUTCTime int64  `form:"create_utc_time" json:"gmt_create" db:"create_utc_time"`
 }
 
-//插入数据
+// 插入数据
 func (validCode *ValidCode) Insert() (int64, error) {
 	//删除已存在确认码
 	_, err := db.Exec("DELETE FROM br_valid_code WHERE user_id = ? and valid_type_id=?", validCode.UserId, validCode.ValidTypeId)
@@ -29,8 +28,8 @@ func (validCode *ValidCode) Insert() (int64, error) {
                     user_id  ,
                     valid_code  ,
                     valid_type_id  ,
-                    expire_time  ,
-                    gmt_create 
+                    expire_utc_time  ,
+                    create_utc_time
                 )
                 values (
                     ?  ,
@@ -44,8 +43,8 @@ func (validCode *ValidCode) Insert() (int64, error) {
 		validCode.UserId,
 		validCode.ValidCode,
 		validCode.ValidTypeId,
-		validCode.ExpireTime,
-		validCode.GmtCreate,
+		validCode.ExpireUTCTime,
+		validCode.CreateUTCTime,
 	)
 	if err != nil {
 		return 0, err
@@ -54,7 +53,7 @@ func (validCode *ValidCode) Insert() (int64, error) {
 	return id, err
 }
 
-//删除数据
+// 删除数据
 func DeleteValidCode(id int64) (int64, error) {
 	sql := "DELETE FROM br_valid_code WHERE valid_code_id = ?"
 	res, err := db.Exec(sql, id)
@@ -66,8 +65,8 @@ func DeleteValidCode(id int64) (int64, error) {
 	return rows, err
 }
 
-//获取验证码
-//获取当前用户制定类型最新一条数据
+// 获取验证码
+// 获取当前用户制定类型最新一条数据
 func GetValidCode(userId int64, code string) (*ValidCode, error) {
 	sqlstr := "SELECT * FROM br_valid_code WHERE user_id = ? AND valid_code = ? order by valid_code_id desc limit 1"
 	validCode := &ValidCode{}
@@ -91,7 +90,7 @@ func CheckValidCode(userID int64, sign string, validType int8) (bool, int64) {
 			return false, 0
 		}
 		//判断验证码有效时间
-		if validCode.ExpireTime.Before(helpers.GetNowTime()) {
+		if validCode.ExpireUTCTime < helpers.GetNowTimeUnixMilli() {
 			return false, 0
 		}
 		result = true

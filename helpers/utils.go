@@ -9,12 +9,42 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/rs/xid"
 )
 
-// 获取当前时间
+// 获取当前UTC时间
 func GetNowTime() time.Time {
-	return time.Now()
+	return time.Now().UTC()
+}
+
+// 获取当前UTC时间，精度为毫秒ms
+func GetNowTimeUnixMilli() int64{
+	return GetNowTime().UnixMilli()
+}
+
+//降毫秒精度数据转换为时间对象
+func GetTimeFromUnixMilli(unixMilli int64) time.Time {
+	return time.Unix(0, unixMilli*int64(time.Millisecond)).UTC()
+}
+
+// 获取客户端时区
+func GetClientHeaderTimeZone(c *gin.Context) (*time.Location, error) {
+    // 获取客户端的时区
+    timezone := c.GetHeader("Time-Zone")
+
+    // 如果客户端没有发送 Time-Zone 请求头，则返回本地时区
+    if timezone == "" {
+        return time.Local, nil
+    }
+
+    // 将客户端的时区转换为 time.Location 类型的值
+    location, err := time.LoadLocation(timezone)
+    if err != nil {
+        return nil, err
+    }
+
+    return location, nil
 }
 
 const (
