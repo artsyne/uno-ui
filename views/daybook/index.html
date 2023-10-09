@@ -310,7 +310,7 @@
                     <label for="uploadImg" class="btn btn-outline-secondary">上传图片</label>
                     <input id="uploadImg" type="file" name="files" accept="image/*" style="display: none">
                     <input type="hidden" name="cover_data" id="cover_data" value="16" />
-                    <input type="hidden" name="space_id" id="space_id" value="13" />
+                    <input type="hidden" name="space_id" id="space_id" value="{{.SpaceID }}" />
                     <div>
                         <select id="cover_style" name="cover_style" class="form-control" style="display:none"
                             onchange="$('#imgShow').attr('class','img-fluid ' + $(this).val())">

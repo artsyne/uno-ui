@@ -166,7 +166,7 @@ func TestAddSpace(t *testing.T) {
 	space.Remark = "这是备注"
 	space.AccessPwd = "this is pwd"
 	space.AccessURL = "http://accessurl"
-	space.AddTime = helpers.GetNowTime()
+	space.AddUTCTime = helpers.GetNowTimeUnixMilli()
 	space.AddUserID = 123
 	space.AddUserName = "yasong"
 	space.CoverMidURL = "http://covermidurl"
