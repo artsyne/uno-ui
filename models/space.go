@@ -2,7 +2,6 @@ package models
 
 import (
 	"database/sql"
-	"time"
 )
 
 // space 结构
@@ -21,12 +20,12 @@ type Space struct {
 	IsShowComment   int8      `form:"is_show_comment" json:"is_show_comment" db:"is_show_comment"`
 	IsShowLike      int8      `form:"is_show_like" json:"is_show_like" db:"is_show_like"`
 	IsShowView      int8      `form:"is_show_view" json:"is_show_view" db:"is_show_view"`
-	AddTime         time.Time `form:"add_time" json:"add_time" db:"add_time"`
+	AddUTCTime      int64 	  `form:"add_utc_time" json:"add_utc_time" db:"add_utc_time"`
 	AddUserID       int64     `form:"add_user_id" json:"add_user_id" db:"add_user_id"`
 	AddUserName     string    `form:"add_user_name" json:"add_user_name" db:"add_user_name"`
 	Status          int8      `form:"status" json:"status" db:"status"`
 	InfoNum         int32     `form:"info_num" json:"info_num" db:"info_num"`
-	LastAddTime     time.Time `form:"last_add_time" json:"last_add_time" db:"last_add_time"`
+	LastAddUTCTime  int64 	  `form:"last_add_utc_time" json:"last_add_utc_time" db:"last_add_utc_time"`
 	LastAddUserID   int64     `form:"last_add_user_id" json:"last_add_user_id" db:"last_add_user_id"`
 	LastAddUserName string    `form:"last_add_user_name" json:"last_add_user_name" db:"last_add_user_name"`
 	ThemeID         int8      `form:"theme_id" json:"theme_id" db:"theme_id"`
@@ -50,12 +49,12 @@ func (space *Space) Insert() (int64, error) {
 			is_show_comment,
 			is_show_like,
 			is_show_view,
-			add_time,
+			add_utc_time,
 			add_user_id,
 			add_user_name,
 			status,
 			info_num,
-			last_add_time,
+			last_add_utc_time,
 			last_add_user_id,
 			last_add_user_name,
 			theme_id
@@ -90,9 +89,9 @@ func (space *Space) Insert() (int64, error) {
 		space.CoverURL, space.CoverMidURL, space.LikeNum,
 		space.MemberNum, space.ViewNum,
 		space.ViewSetting, space.AccessPwd, space.IsShowComment,
-		space.IsShowLike, space.IsShowView, space.AddTime,
+		space.IsShowLike, space.IsShowView, space.AddUTCTime,
 		space.AddUserID, space.AddUserName, space.Status, space.InfoNum,
-		space.LastAddTime, space.LastAddUserID, space.LastAddUserName, space.ThemeID)
+		space.LastAddUTCTime, space.LastAddUserID, space.LastAddUserName, space.ThemeID)
 
 	if err != nil {
 		return 0, err

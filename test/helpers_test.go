@@ -51,7 +51,7 @@ func TestCreateRand(t *testing.T) {
 }
 
 func TestSendEmail(t *testing.T) {
-	/*
+
 		user := "noreply@sinodiary.com"
 		password := "HL90rmWKeJjS92"
 		host := "smtpdm.aliyun.com:25"
@@ -75,11 +75,10 @@ func TestSendEmail(t *testing.T) {
 		} else {
 			t.Log("Send mail success!")
 		}
-	*/
 }
 
 func TestGetJobsTasks(t *testing.T) {
-	tasks, err := models.GetJobTasks(2, "email")
+	tasks, err := models.GetJobTasks(3, "email")
 	if err != nil {
 		panic(err)
 	} else {
@@ -94,8 +93,8 @@ func TestAddValidCode(t *testing.T) {
 	validCode.UserId = 35
 	validCode.ValidTypeId = system.VALID_CODE_ACTIVE_USER_EMAIL
 	nowTime := helpers.GetNowTime()
-	validCode.GmtCreate = nowTime
-	validCode.ExpireTime = nowTime.AddDate(0, 0, 1) //增加一天过期
+	validCode.CreateUTCTime = nowTime.UnixMilli()
+	validCode.ExpireUTCTime = nowTime.AddDate(0, 0, 1).UnixMilli() //增加一天过期
 
 	id, err := validCode.Insert()
 
@@ -109,7 +108,7 @@ func TestAddValidCode(t *testing.T) {
 func TestAddActivateUserEmailTask(t *testing.T) {
 	user := &models.User{}
 
-	user.Email = "biuren@gmail.com"
+	user.Email = "kupage@gmail.com"
 	user.UserId = 34
 	user.UserName = "icefire"
 
@@ -167,7 +166,7 @@ func TestAddSpace(t *testing.T) {
 	space.Remark = "这是备注"
 	space.AccessPwd = "this is pwd"
 	space.AccessURL = "http://accessurl"
-	space.AddTime = helpers.GetNowTime()
+	space.AddUTCTime = helpers.GetNowTimeUnixMilli()
 	space.AddUserID = 123
 	space.AddUserName = "yasong"
 	space.CoverMidURL = "http://covermidurl"
@@ -273,3 +272,20 @@ func TestCreateFileName(t *testing.T) {
         }
     }
 }
+
+// 测试时间韩素
+func TestUTCUnix(t *testing.T) {
+	t.Log(helpers.GetNowTime().UnixMicro())
+
+	t.Log(helpers.GetNowTimeUnixMilli())
+
+	nowTime := helpers.GetTimeFromUnixMilli(helpers.GetNowTimeUnixMilli())
+
+	t.Log(nowTime)
+
+	t.Log(helpers.GetTimeFromUnixMilli(1695711841053))
+	t.Log(helpers.GetTimeFromUnixMilli(1695798241053))
+
+	t.Log(1695798241053 > helpers.GetNowTimeUnixMilli())
+
+} 

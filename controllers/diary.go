@@ -40,7 +40,7 @@ func PostInfo(c *gin.Context) {
 	_, fileName := uploadImage(c, infoForm.CoverImgData)
 
 	info := &models.Info{}
-	var nowTime = helpers.GetNowTime()
+	var nowTime = helpers.GetNowTimeUnixMilli()
 	//赋值info对象
 	info.SpaceID = infoForm.SpaceID
 	info.AccessURL = fileName
@@ -56,9 +56,9 @@ func PostInfo(c *gin.Context) {
 	info.CommentNum = 0
 	info.AddUserID = userData.UserId
 	info.AddUserName = userData.UserName
-	info.AddTime = nowTime
+	info.AddUTCTime = nowTime
 	info.AddUserIP = c.ClientIP()
-	info.UpdateTime = nowTime
+	info.UpdateUTCTime = nowTime
 	info.Status = 1
 
 	//插入数据库

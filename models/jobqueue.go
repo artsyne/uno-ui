@@ -2,7 +2,6 @@ package models
 
 import (
 	"database/sql"
-	"time"
 
 	"github.com/biuren/hebe/helpers"
 	"github.com/sirupsen/logrus"
@@ -18,8 +17,8 @@ type JobQueue struct {
 	JobId    int64     `form:"job_id" json:"job_id" db:"job_id"`
 	JobType  string    `form:"job_type" json:"job_type" db:"job_type"`
 	Body     string    `form:"body" json:"body" db:"body"`
-	AddTime  time.Time `form:"add_time" json:"add_time" db:"add_time"`
-	PlanTime time.Time `form:"plan_time" json:"plan_time" db:"plan_time"`
+	AddUTCTime  int64 `form:"add_utc_time" json:"add_utc_time" db:"add_utc_time"`
+	PlanUTCTime int64 `form:"plan_utc_time" json:"plan_utc_time" db:"plan_utc_time"`
 	Result   int8      `form:"result" json:"result" db:"result"`
 	TryNum   int8      `form:"try_num" json:"try_num" db:"try_num"`
 }
@@ -30,8 +29,8 @@ func (jobQueue *JobQueue) Insert() (int64, error) {
                 insert into br_job_queue  (
                     job_type  ,
                     body  ,
-                    add_time  ,
-                    plan_time  ,
+                    add_utc_time  ,
+                    plan_utc_time  ,
                     result ,
                     try_num
                 )
@@ -47,8 +46,8 @@ func (jobQueue *JobQueue) Insert() (int64, error) {
 	res, err := db.Exec(sql,
 		jobQueue.JobType,
 		jobQueue.Body,
-		jobQueue.AddTime,
-		jobQueue.PlanTime,
+		jobQueue.AddUTCTime,
+		jobQueue.PlanUTCTime,
 		jobQueue.Result,
 		jobQueue.TryNum,
 	)
@@ -62,7 +61,7 @@ func (jobQueue *JobQueue) Insert() (int64, error) {
 //获取任务，获取失败小于3次的任务
 func GetJobTasks(num int, jobType string) ([]JobQueue, error) {
 	result := []JobQueue{}
-	sqlstr := `SELECT *  FROM br_job_queue WHERE job_type = ? and try_num <3
+	sqlstr := `SELECT *  FROM br_job_queue WHERE job_type = ? and try_num <4
 		ORDER BY job_id desc limit ? `
 	err := db.Select(&result, sqlstr, jobType, num)
 	if err == sql.ErrNoRows {
@@ -109,9 +108,9 @@ func (jobQueue *JobQueue) RemoveToHistory() (int64, error) {
 	jobHistory := &JobHistory{}
 	jobHistory.JobId = jobQueue.JobId
 	jobHistory.Body = jobQueue.Body
-	jobHistory.DoneTime = helpers.GetNowTime()
+	jobHistory.DoneUTCTime = helpers.GetNowTimeUnixMilli()
 	jobHistory.JobType = jobQueue.JobType
-	jobHistory.PlanTime = jobQueue.PlanTime
+	jobHistory.PlanUTCTime = jobQueue.PlanUTCTime
 	jobHistory.TryNum = jobQueue.TryNum
 	jobHistory.Result = 2
 	rows, err = jobHistory.Insert()

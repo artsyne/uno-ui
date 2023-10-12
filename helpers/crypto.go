@@ -30,7 +30,7 @@ func TripleDesEncrypt(enstr, key string) (string, error) {
 	return base64.StdEncoding.EncodeToString(crypted), nil
 }
 
-// 3DES解密,
+// 3DES解密
 func TripleDesDecrypt(crypted, key string) ([]byte, error) {
 	byteKey := []byte(key)
 	block, err := des.NewTripleDESCipher(byteKey)

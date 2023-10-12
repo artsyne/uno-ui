@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/biuren/hebe/models"
 
@@ -13,14 +15,34 @@ import (
 // RenderDaybookIndex 渲染日记本首页
 func RenderDaybookIndex(c *gin.Context) {
 	h := helpers.DefaultH(c)
+
+	//页面加载是否有异常
+	hasError := false
+	errMsg := ""
+
 	h["Title"] = "日记本"
 	h["Active"] = "users"
-	h["SpaceID"] = c.Param("spaceid")
+
+	//获取url中spaceId
+	spaceId, err := strconv.ParseInt(strings.TrimSpace(c.Param("spaceid")), 10, 64)
+	if err != nil {
+		space, _ := models.GetSpaceBySpaceID(spaceId)
+		if space != nil {
+			h["Space"] = space
+		} else {
+			hasError = true
+		}
+	} else {
+		hasError = true
+	}
+
+	h["hasError"] = hasError
+	h["essMsg"] = errMsg
 
 	c.HTML(http.StatusOK, "daybook/index", h)
 }
 
-//增加日记本表单渲染
+// 增加日记本表单渲染
 func RenderDaybookForm(c *gin.Context) {
 	h := helpers.DefaultH(c)
 
@@ -52,11 +74,11 @@ func DoSpace(c *gin.Context) {
 	userSession, _ := c.Get("UserData")
 	userData := userSession.(models.Login)
 
-	var nowTime = helpers.GetNowTime()
+	var nowTime = helpers.GetNowTimeUnixMilli()
 	//其他设置默认值
 	space.AccessPwd = ""
 	space.AccessURL = ""
-	space.AddTime = nowTime
+	space.AddUTCTime = nowTime
 	space.AddUserID = userData.UserId
 	space.AddUserName = userData.UserName
 	space.CoverMidURL = ""
@@ -69,7 +91,7 @@ func DoSpace(c *gin.Context) {
 	space.Status = 1
 	space.ViewNum = 0
 	space.InfoNum = 0
-	space.LastAddTime = nowTime
+	space.LastAddUTCTime = nowTime
 	space.LastAddUserID = userData.UserId
 	space.LastAddUserName = userData.UserName
 

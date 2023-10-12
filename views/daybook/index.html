@@ -8,8 +8,9 @@
     <div class="info-cover">
         <div class="d-flex">
             <div class="me-auto">
-                <div id="page-nav"><a href="#" class="pe-3">roy chen</a>/<label class="ps-3">私密日记本<i
-                            class="mdi mdi-lock-outline ps-1"></i></label></div>
+                <div id="page-nav"><a href="#" class="pe-3">roy chen</a>/<span class="ps-3">私密日记本<i
+                            class="mdi mdi-lock-outline ps-1"></i></span>
+                </div>
             </div>
             <div><button type="button" class="btn btn-outline-secondary btn-sm float-right px-3 me-2"><i
                         class="mdi mdi-cogs"></i> 日记本设置</button>
@@ -295,19 +296,21 @@
                         <img id="imgShow" class="img-fluid" style="display:none" alt="diary cover" />
                     </div>
                     <div class="form-floating mb-3">
-                        <input type="email" class="form-control" id="info_title" name="info_title" placeholder="标题(非必填)">
+                        <input type="email" class="form-control" id="info_title" name="info_title"
+                            placeholder="标题(非必填)">
                         <label for="info_title">标题(非必填)</label>
                     </div>
                     <div class="form-floating mb-3">
-                        <textarea class="form-control" id="info_body" name="info_body" rows="8" placeholder="日记内容" style="height: 288px;"></textarea>
-                        <label for="body">日记内容</label>
+                        <textarea class="form-control" id="info_body" name="info_body" rows="8" placeholder="日记内容"
+                            style="height: 288px;"></textarea>
+                        <label for="info_body">日记内容</label>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <label for="uploadImg" class="btn btn-outline-secondary">上传图片</label>
                     <input id="uploadImg" type="file" name="files" accept="image/*" style="display: none">
                     <input type="hidden" name="cover_data" id="cover_data" value="16" />
-                    <input type="hidden" name="space_id" id="space_id" value="13" />
+                    <input type="hidden" name="space_id" id="space_id" value="{{.SpaceID }}" />
                     <div>
                         <select id="cover_style" name="cover_style" class="form-control" style="display:none"
                             onchange="$('#imgShow').attr('class','img-fluid ' + $(this).val())">

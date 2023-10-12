@@ -22,10 +22,6 @@ func RenderMemberIndex(c *gin.Context) {
 
 	//读取用户认证信息
 	userData := h["UserData"].(models.Login)
-	spaces, _ := models.GetSpaceByUserID(uid)
-
-	//返回日记本列表
-	h["Spaces"] = spaces
 
 	//返回判断是否是日记owner
 	isOnwer := false

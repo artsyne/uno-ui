@@ -2,7 +2,6 @@ package models
 
 import (
 	"database/sql"
-	"time"
 )
 
 type Login struct {
@@ -13,7 +12,7 @@ type Login struct {
 	UserName     string    `form:"user_name" json:"user_name"`
 	UserGroup    int8      `form:"user_group" json:"user_group"`
 	FaceSmallUrl string    `form:"face_small_url" json:"face_small_url"`
-	LoginTime    time.Time `form:"login_time" json:"login_time"`
+	LoginUTCTime  int64 `form:"login_utc_time" json:"login_utc_time"`
 	Status       int8      `form:"status" json:"status"`
 }
 
@@ -22,16 +21,17 @@ type User struct {
 	UserName      string    `form:"user_name" json:"user_name" db:"user_name"`
 	UserGroup     int8      `form:"user_group" json:"user_group" db:"user_group"`
 	Pwd           string    `form:"pwd" json:"pwd" db:"pwd"`
+	PwdSalt       string    `form:"pwd_salt" json:"pwd_salt" db:"pwd_salt"`
 	AccessUrl     string    `form:"access_url" json:"access_url" db:"access_url"`
 	FaceBigUrl    string    `form:"face_big_url" json:"face_big_url" db:"face_big_url"`
 	FaceMidUrl    string    `form:"face_mid_url" json:"face_mid_url" db:"face_mid_url"`
 	FaceSmallUrl  string    `form:"face_small_url" json:"face_small_url" db:"face_small_url"`
 	Email         string    `form:"email" json:"email" db:"email"`
 	RegIp         string    `form:"reg_ip" json:"reg_ip" db:"reg_ip"`
-	RegTime       time.Time `form:"reg_time" json:"reg_time" db:"reg_time"`
+	RegUTCTime     int64 `form:"reg_utc_time" json:"reg_utc_time" db:"reg_utc_time"`
 	Remark        string    `form:"remark" json:"remark" db:"remark"`
 	LastIp        string    `form:"last_ip" json:"last_ip" db:"last_ip"`
-	LastLoginTime time.Time `form:"last_login_time" json:"last_login_time" db:"last_login_time"`
+	LastLoginUTCTime int64 `form:"last_login_utc_time" json:"last_login_utc_time" db:"last_login_utc_time"`
 	Status        int8      `form:"status" json:"status" db:"status"`
 }
 
@@ -43,16 +43,17 @@ func (user *User) Insert() (int64, error) {
                     user_name  ,
                     user_group  ,
                     pwd  ,
+					pwd_salt  ,
                     access_url  ,
                     face_big_url  ,
                     face_mid_url  ,
                     face_small_url  ,
                     email  ,
                     reg_ip  ,
-                    reg_time  ,
+                    reg_utc_time  ,
                     remark  ,
                     last_ip  ,
-                    last_login_time  ,
+                    last_login_utc_time  ,
                     status 
                 )
                 values (
@@ -60,6 +61,7 @@ func (user *User) Insert() (int64, error) {
                     ?  ,
                     ?  ,
                     ?  ,
+					?  ,
                     ?  ,
                     ?  ,
                     ?  ,
@@ -78,16 +80,17 @@ func (user *User) Insert() (int64, error) {
 		user.UserName,
 		user.UserGroup,
 		user.Pwd,
+		user.PwdSalt,
 		user.AccessUrl,
 		user.FaceBigUrl,
 		user.FaceMidUrl,
 		user.FaceSmallUrl,
 		user.Email,
 		user.RegIp,
-		user.RegTime,
+		user.RegUTCTime,
 		user.Remark,
 		user.LastIp,
-		user.LastLoginTime,
+		user.LastLoginUTCTime,
 		user.Status)
 
 	if err != nil {
@@ -106,16 +109,17 @@ func (user *User) Update() (int64, error) {
                         user_name = ?  ,
                         user_group = ?  ,
                         pwd = ?  ,
+						pwd_salt = ?  ,
                         access_url = ?  ,
                         face_big_url = ?  ,
                         face_mid_url = ?  ,
                         face_small_url = ?  ,
                         email = ?  ,
                         reg_ip = ?  ,
-                        reg_time = ?  ,                       
+                        reg_utc_time = ?  ,                       
                         remark = ?  ,
                         last_ip = ?  ,
-                        last_login_time = ?  ,
+                        last_login_utc_time = ?  ,
                         status = ? 
            `
 	res, err := db.Exec(sql,
@@ -123,16 +127,17 @@ func (user *User) Update() (int64, error) {
 		user.UserName,
 		user.UserGroup,
 		user.Pwd,
+		user.PwdSalt,
 		user.AccessUrl,
 		user.FaceBigUrl,
 		user.FaceMidUrl,
 		user.FaceSmallUrl,
 		user.Email,
 		user.RegIp,
-		user.RegTime,
+		user.RegUTCTime,
 		user.Remark,
 		user.LastIp,
-		user.LastLoginTime,
+		user.LastLoginUTCTime,
 		user.Status)
 
 	if err != nil {
