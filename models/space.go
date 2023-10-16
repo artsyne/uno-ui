@@ -97,6 +97,7 @@ func (space *Space) Insert() (int64, error) {
 		return 0, err
 	}
 	id, err := res.LastInsertId()
+
 	return id, err
 }
 
@@ -109,6 +110,20 @@ func GetSpaceByUserID(userID int64) ([]Space, error) {
 		return nil, nil
 	}
 	return spaceArray, err
+}
+
+//通过空间 ID 把空间信息数量加一
+func IncrementInfoNum(spaceId int64) (error){
+	sqlstr := "UPDATE br_space SET info_num = info_num + 1 WHERE space_id = ?"
+	_, err := db.Exec(sqlstr, spaceId)
+	return err
+}
+
+//通过空间 ID 把空间信息数量减一
+func DecrementInfoNum(spaceId int64) (error){
+	sqlstr := "UPDATE br_space SET info_num = info_num - 1 WHERE space_id = ?"
+	_, err := db.Exec(sqlstr, spaceId)
+	return err
 }
 
 //根据ID获取space对象

@@ -69,12 +69,13 @@
                     </h5>
                     <p>{{.InfoNum}}篇
                         {{if gt .InfoNum 0 }}
-                        - {{.LastAddTime.Format "2006-01-02 15:04" }}</p>
+                        - {{.LastAddUTCTime}}</p>
                     {{end}}
                 </div>
                 {{if $isOwner }}
                 <!--owner现实编辑信息-->
-                <div class="daybook-edit-btn position-absolute bottom-0 start-50 translate-middle-x mb-2" style="display: none;">
+                <div class="daybook-edit-btn position-absolute bottom-0 start-50 translate-middle-x mb-2"
+                    style="display: none;">
                     <button type="button" cd-action="daybooy-edit" cd-data-id="{{.SpaceID}}"
                         class="ms-auto btn btn-sm btn-outline-secondary">编辑</button>
                 </div>
@@ -121,9 +122,9 @@
             $grid.masonry('layout');
         });
 
-        $('.daybook-block').on( "mouseenter mouseleave", function(){
+        $('.daybook-block').on("mouseenter mouseleave", function () {
             $(this).find('.daybook-edit-btn').toggle();
-        } );
+        });
     });
 
 

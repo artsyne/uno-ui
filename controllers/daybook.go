@@ -36,8 +36,10 @@ func RenderDaybookIndex(c *gin.Context) {
 		hasError = true
 	}
 
+	h["SpaceID"] = spaceId
 	h["hasError"] = hasError
 	h["essMsg"] = errMsg
+
 
 	c.HTML(http.StatusOK, "daybook/index", h)
 }

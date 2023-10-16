@@ -17,8 +17,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//初始化站点，链接数据，设置cookie
-//返回默认gin 的router对象
+// 初始化站点，链接数据，设置cookie
+// 返回默认gin 的router对象
 func InitSite() *gin.Engine {
 	//链接数据库
 	ConnectToDB()
@@ -39,7 +39,7 @@ func InitSite() *gin.Engine {
 	return router
 }
 
-//初始化Router，加载静态文件，上下文共享数据，中间件
+// 初始化Router，加载静态文件，上下文共享数据，中间件
 func SetRouter(router *gin.Engine) {
 	//初始化模板
 	setTemplate(router)
@@ -47,7 +47,7 @@ func SetRouter(router *gin.Engine) {
 
 	//初始化静态文件
 	//better use nginx to serve assets (Cache-Control, Etag, fast gzip, etc)
-	router.StaticFS("/public", http.Dir(system.PublicPath())) 
+	router.StaticFS("/public", http.Dir(system.PublicPath()))
 	router.StaticFS("/upload", http.Dir(system.PublicPath()))
 	router.StaticFile("/favicon.ico", "./public/favicon.ico")
 	logrus.Info("初始化静态文件成功！")
@@ -56,8 +56,8 @@ func SetRouter(router *gin.Engine) {
 	router.Use(SharedData())
 }
 
-//http 中间件
-//获取用户登录信息
+// http 中间件
+// 获取用户登录信息
 func SharedData() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//获取cookie
@@ -89,7 +89,7 @@ func SharedData() gin.HandlerFunc {
 	}
 }
 
-//初始化数据库链接
+// 初始化数据库链接
 func ConnectToDB() {
 	config := system.GetConfig()
 	connection := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true&loc=Local", config.Database.User, config.Database.Password,
@@ -97,9 +97,10 @@ func ConnectToDB() {
 	models.SetDB(connection)
 }
 
-//setTemplate loads templates from rice box "views"
+// 通过rice box 加载 "views" 目录中的模版文件
 func setTemplate(router *gin.Engine) {
 	box := rice.MustFindBox("../views")
+	//注册模版函数
 	tmpl := template.New("").Funcs(template.FuncMap{})
 
 	fn := func(path string, f os.FileInfo, err error) error {

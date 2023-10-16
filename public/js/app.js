@@ -1153,7 +1153,6 @@ Biuren.Diary = {
         if (Biuren.Valid.checkError("diary_editor_form")) {
             return;
         }
-        $('#cover_data').val($('#imgShow').attr('src'));
         $.post(AJAX_URL + '/info', $("#diary_editor_form").serialize(), function (data) {
             if (data.Status == 0) {
                 

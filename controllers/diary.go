@@ -36,24 +36,15 @@ func PostInfo(c *gin.Context) {
 		return
 	}
 
-	//处理上传图片
-	_, fileName := uploadImage(c, infoForm.CoverImgData)
-
 	info := &models.Info{}
 	var nowTime = helpers.GetNowTimeUnixMilli()
 	//赋值info对象
 	info.SpaceID = infoForm.SpaceID
-	info.AccessURL = fileName
-	info.CoverURL = fileName
-	info.CoverMidURL = ""
-	info.CoverStyle = infoForm.CoverStyle
 	info.IsTop = 0
 	info.Title = infoForm.Title
 	info.Summary = ""
 	info.Body = infoForm.Body
-	info.ViewNum = 0
-	info.LikeNum = 0
-	info.CommentNum = 0
+	info.InfoType = 1
 	info.AddUserID = userData.UserId
 	info.AddUserName = userData.UserName
 	info.AddUTCTime = nowTime
@@ -69,6 +60,13 @@ func PostInfo(c *gin.Context) {
 		return
 	}
 
+	//日记本信息数量加一
+	err = models.IncrementInfoNum(info.SpaceID)
+	if err != nil {
+		globalErr.ResponseErrWithDesc(c, globalErr.DB_OPERATION_ERR,globalErr.EnumErrDesc[globalErr.DB_OPERATION_ERR])
+		return
+	}
+
 	//创建返回对象
 	h := helpers.ResponseH(c)
 	h["Data"] = info
@@ -78,6 +76,7 @@ func PostInfo(c *gin.Context) {
 }
 
 // 上传文件图片
+// 暂时废弃 @ 2023/10/12
 func uploadImage(c *gin.Context, imgBase64Data string) (filePath, fileName string) {
 
 	//判断图片是否为空

@@ -25,11 +25,15 @@ func RenderMemberIndex(c *gin.Context) {
 
 	//返回判断是否是日记owner
 	isOnwer := false
-
 	if userData.UserId == uid {
 		isOnwer = true
 	}
+
+	//获取日记本列表
+	spaces,_ := models.GetSpaceByUserID(uid)
+
 	h["IsOwner"] = isOnwer
+	h["Spaces"] = spaces
 
 	//h["UserData"] = c
 	c.HTML(http.StatusOK, "member/index", h)
