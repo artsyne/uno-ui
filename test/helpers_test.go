@@ -3,6 +3,7 @@ package test
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -52,14 +53,14 @@ func TestCreateRand(t *testing.T) {
 
 func TestSendEmail(t *testing.T) {
 
-		user := "noreply@sinodiary.com"
-		password := "HL90rmWKeJjS92"
-		host := "smtpdm.aliyun.com:25"
-		to := "biuren@gmail.com"
+	user := "noreply@sinodiary.com"
+	password := "HL90rmWKeJjS92"
+	host := "smtpdm.aliyun.com:25"
+	to := "biuren@gmail.com"
 
-		subject := "使用Golang发送邮件"
+	subject := "使用Golang发送邮件"
 
-		body := `
+	body := `
 			<html>
 			<body>
 			<h3>
@@ -68,13 +69,13 @@ func TestSendEmail(t *testing.T) {
 			</body>
 			</html>
 			`
-		fmt.Println("send email")
-		err := helpers.SendToMail(user, password, host, to, subject, body, "html")
-		if err != nil {
-			panic(err)
-		} else {
-			t.Log("Send mail success!")
-		}
+	fmt.Println("send email")
+	err := helpers.SendToMail(user, password, host, to, subject, body, "html")
+	if err != nil {
+		panic(err)
+	} else {
+		t.Log("Send mail success!")
+	}
 }
 
 func TestGetJobsTasks(t *testing.T) {
@@ -260,20 +261,20 @@ func PrintTableGolangStructCode(tableName string) string {
 func TestCreateFileName(t *testing.T) {
 	filePath, fileName := helpers.CreateUploadPathFileName()
 
-	filePath = "upload/" + filePath 
+	filePath = "upload/" + filePath
 	fmt.Println(filePath + fileName)
 
-	 // 检查路径是否存在
-	 if _, err := os.Stat(filePath); os.IsNotExist(err) {
-        // 如果路径不存在，则创建目录
-        err := os.MkdirAll(filePath, os.ModePerm)
-        if err != nil {
-            t.Error(err)
-        }
-    }
+	// 检查路径是否存在
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		// 如果路径不存在，则创建目录
+		err := os.MkdirAll(filePath, os.ModePerm)
+		if err != nil {
+			t.Error(err)
+		}
+	}
 }
 
-// 测试时间韩素
+// 测试时间函数
 func TestUTCUnix(t *testing.T) {
 	t.Log(helpers.GetNowTime().UnixMicro())
 
@@ -288,4 +289,37 @@ func TestUTCUnix(t *testing.T) {
 
 	t.Log(1695798241053 > helpers.GetNowTimeUnixMilli())
 
-} 
+}
+
+// 根据timezone字符串获取时区，显示正确的本地时间
+func TestGetTimeByTimeZone(t *testing.T) {
+	utcTime := helpers.GetNowTimeUnixMilli()
+	t.Log(utcTime)
+
+	location := "WET"
+	localTime, _ := helpers.GetLocalTimeFromUTC(utcTime, location)
+
+	t.Log(localTime.Format("2006-01-02 15:04"))
+
+	// 读取 timezone.json 文件
+	file, err := os.Open("../config/timezone.json")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	// 解析 JSON 数据
+	data, err := io.ReadAll(file)
+	if err != nil {
+		panic(err)
+	}
+	var timeZones []string
+	if err := json.Unmarshal(data, &timeZones); err != nil {
+		panic(err)
+	}
+
+	// 输出所有时区信息
+	for _, tz := range timeZones {
+		t.Log(tz)
+	}
+}

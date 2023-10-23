@@ -1105,6 +1105,18 @@ Biuren.Passport = {
         }, 'json').fail(function (res) {
             console.log(res.responseJSON);
         });
+    },
+    reg: function () {
+        if (Biuren.Valid.checkError("biurenform")) {
+            return;
+        }
+        $('#time_zone').val(Intl.DateTimeFormat().resolvedOptions().timeZone);
+        $('#lang').val(navigator.language);
+        $.post(AJAX_URL + '/register', $("#biurenform").serialize(), function (data) {
+            console.log(data);
+        }, 'json').fail(function (res) {
+            console.log(res.responseJSON);
+        });
     }
 }
 

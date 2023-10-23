@@ -93,9 +93,9 @@ func DoSpace(c *gin.Context) {
 	space.Status = 1
 	space.ViewNum = 0
 	space.InfoNum = 0
-	space.LastAddUTCTime = nowTime
-	space.LastAddUserID = userData.UserId
-	space.LastAddUserName = userData.UserName
+	space.LastActionUTCTime = nowTime
+	space.LastActionUserID = userData.UserId
+	space.LastActionUserName = userData.UserName
 
 	//保存日记本
 	if action, _ := c.GetPostForm("action"); action == "My.insertDaybook" {

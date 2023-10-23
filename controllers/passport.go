@@ -159,6 +159,8 @@ func PostLogin(c *gin.Context) {
 	login.UserGroup = user.UserGroup
 	login.UserName = user.UserName
 	login.Pwd = user.Pwd
+	login.TimeZone = user.TimeZone
+	login.Lang = user.Lang
 	login.Status = user.Status
 
 	//序列化login对象
@@ -205,6 +207,12 @@ func PostRegister(c *gin.Context) {
 	user.UserName = strings.TrimSpace(strings.ToLower(user.UserName))
 	user.Email = strings.TrimSpace(strings.ToLower(user.Email))
 
+	//判断用户时区与语言是否正确
+	if !helpers.IsTimeZone(user.TimeZone) || !helpers.IsLang(user.Lang) {
+		gobalerr.ResponseErr(c, gobalerr.INPUT_PARAM_ERR)
+		return
+	}
+
 	//判断用户名是否存在
 	if isExistName, err := models.IsExistUserName(user.UserName); err == nil && isExistName {
 		gobalerr.ResponseErr(c, gobalerr.REGISTER_USER_NAME_EXISTS)
@@ -229,7 +237,7 @@ func PostRegister(c *gin.Context) {
 	//随机生成salt，保存密码为pwd+salt的sha256
 	user.PwdSalt = string(helpers.Rand(64, helpers.RAND_KIND_ALL))
 	user.Pwd = helpers.Sha256(user.Pwd + user.PwdSalt)
-	user.UserGroup = system.DEFAULT_USER_GROUP //用户分组为1,
+	user.UserGroup = system.DEFAULT_USER_GROUP //用户分组为1
 	nowTime := helpers.GetNowTimeUnixMilli()
 	user.RegUTCTime = nowTime
 	user.RegIp = c.ClientIP()
@@ -238,8 +246,17 @@ func PostRegister(c *gin.Context) {
 	user.Status = system.USER_STATUS_WAIT_ACTIVE
 
 	//插入数据库
-	id, err := user.Insert()
+	uid, err := user.Insert()
 	if err != nil {
+		gobalerr.ResponseErrWithDesc(c, gobalerr.DB_OPERATION_ERR,
+			gobalerr.EnumErrDesc[gobalerr.DB_OPERATION_ERR]+","+err.Error())
+		return
+	}
+
+	//更新用户访问地址
+	accessUrl:= fmt.Sprintf("/u/%d", uid)
+	rows, err := models.UpdateAccessUrlByUserId(uid, accessUrl)
+	if err != nil || rows == 0 {
 		gobalerr.ResponseErrWithDesc(c, gobalerr.DB_OPERATION_ERR,
 			gobalerr.EnumErrDesc[gobalerr.DB_OPERATION_ERR]+","+err.Error())
 		return
@@ -249,7 +266,8 @@ func PostRegister(c *gin.Context) {
 	AddActivateUserEmailTask(user)
 
 	h := helpers.DefaultH(c)
-	h["user_id"] = id
+	h["UserId"] = uid
+	h["AccessUrl"] = accessUrl
 	c.JSON(http.StatusOK, h)
 }
 
@@ -380,7 +398,7 @@ func CheckNameAndPwd(name string, pwd string) (int, *models.User, error) {
 	}
 
 	//判断密码是否正确,密码为pwd+salt的sha256
-	if user.Pwd != helpers.Sha256(pwd + user.PwdSalt) {
+	if user.Pwd != helpers.Sha256(pwd+user.PwdSalt) {
 		return gobalerr.USER_PWD_ERR, nil, nil
 	}
 

@@ -101,7 +101,12 @@ func ConnectToDB() {
 func setTemplate(router *gin.Engine) {
 	box := rice.MustFindBox("../views")
 	//注册模版函数
-	tmpl := template.New("").Funcs(template.FuncMap{})
+	tmpl := template.New("").Funcs(template.FuncMap{
+		//时间显示函数
+		"formatTime": func(utc int64, layout string) string {
+            return box.Time().UTC().Format(layout)
+        },
+	})
 
 	fn := func(path string, f os.FileInfo, err error) error {
 		if f.IsDir() != true && strings.HasSuffix(f.Name(), ".html") {

@@ -28,6 +28,15 @@ func GetTimeFromUnixMilli(unixMilli int64) time.Time {
 	return time.Unix(0, unixMilli*int64(time.Millisecond)).UTC()
 }
 
+//通过时区字符串，将UTC时间转换为本地时间，精度为毫秒
+func GetLocalTimeFromUTC(utcTime int64, timeZone string) (time.Time, error) {
+	loc, err := time.LoadLocation(timeZone)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return time.Unix(0, utcTime*int64(time.Millisecond)).In(loc), nil
+}
+
 // 获取客户端时区
 func GetClientHeaderTimeZone(c *gin.Context) (*time.Location, error) {
     // 获取客户端的时区
@@ -128,4 +137,22 @@ func CreateUploadPathFileName() (string, string) {
 		nowTime.Year(), nowTime.Month(), nowTime.Day())
 
 	return filePath, guid.String()
+}
+
+// 判断时区是否正确
+func IsTimeZone(timeZone string) bool {
+	_, err := time.LoadLocation(timeZone)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+// 判断本地语言是否正确
+func IsLang(locale string) bool {
+	_, err := os.Stat(fmt.Sprintf("locale/%s/LC_MESSAGES/app.po", locale))
+	if err != nil {
+		return false
+	}
+	return true
 }

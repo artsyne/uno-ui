@@ -7,7 +7,7 @@
         <div class="col-md-6 py-5">
             <div class="card border-0 my-3">
                 <div class="card-body my-2">
-                    <form action="/register" method="post">
+                    <form action="/register" id="biurenform" name="biurenform" method="post">
                         <div class="form-floating mb-5">
                             <input class="form-control" type="text" id="user_name" name="user_name"
                                 valid="[{type:'limit',min:4,max:20},'validname']" placeholder="用户名" />
@@ -27,7 +27,9 @@
                             </small>
                         </div>
                         <div class="text-center">
-                            <button class="btn btn-outline-secondary w-25 btn-lg" type="submit">免费注册
+                            <input type="hidden" name="time_zone" id="time_zone" />
+                            <input type="hidden" name="lang" id="lang" />
+                            <button class="btn btn-outline-secondary w-25 btn-lg" type="button" onclick="Biuren.Passport.reg()">免费注册
                             </button>
                         </div>
                     </form>

@@ -69,7 +69,7 @@
                     </h5>
                     <p>{{.InfoNum}}篇
                         {{if gt .InfoNum 0 }}
-                        - {{.LastAddUTCTime}}</p>
+                        - {{formatTime .LastActionUTCTime "2006-01-02 15:04"}}</p>
                     {{end}}
                 </div>
                 {{if $isOwner }}

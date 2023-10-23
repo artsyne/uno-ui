@@ -142,7 +142,7 @@ CREATE TABLE `br_info` (
   `update_utc_time` bigint(20) unsigned NOT NULL DEFAULT '0',
   `status` tinyint(4) unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY (`info_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -181,7 +181,7 @@ CREATE TABLE `br_job_queue` (
   `plan_utc_time` bigint(20) unsigned NOT NULL,
   PRIMARY KEY (`job_id`),
   KEY `job_type` (`job_type`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -262,13 +262,13 @@ CREATE TABLE `br_space` (
   `add_user_id` bigint(20) unsigned NOT NULL,
   `add_user_name` varchar(100) NOT NULL DEFAULT '',
   `info_num` int(11) unsigned NOT NULL DEFAULT '0',
-  `last_add_utc_time` bigint(20) unsigned NOT NULL DEFAULT '0',
-  `last_add_user_id` bigint(20) unsigned NOT NULL DEFAULT '0',
-  `last_add_user_name` varchar(100) NOT NULL DEFAULT '',
+  `last_action_utc_time` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `last_action_user_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `last_action_user_name` varchar(100) NOT NULL DEFAULT '',
   `theme_id` tinyint(4) unsigned NOT NULL DEFAULT '16',
   `status` tinyint(4) unsigned NOT NULL,
   PRIMARY KEY (`space_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -327,9 +327,11 @@ CREATE TABLE `br_user` (
   `remark` varchar(1000) NOT NULL DEFAULT '',
   `last_ip` varchar(128) NOT NULL DEFAULT '',
   `last_login_utc_time` bigint(20) NOT NULL DEFAULT '0',
+  `time_zone` varchar(64) NOT NULL DEFAULT '',
+  `lang` varchar(8) NOT NULL DEFAULT '',
   `status` tinyint(4) unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -366,7 +368,7 @@ CREATE TABLE `br_valid_code` (
   `expire_utc_time` bigint(20) unsigned NOT NULL,
   `create_utc_time` bigint(20) NOT NULL,
   PRIMARY KEY (`valid_code_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=118 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=119 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -378,4 +380,4 @@ CREATE TABLE `br_valid_code` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-10-12 14:16:30
+-- Dump completed on 2023-10-23 16:09:20
