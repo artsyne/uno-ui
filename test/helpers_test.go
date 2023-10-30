@@ -324,6 +324,20 @@ func TestGetTimeByTimeZone(t *testing.T) {
 	}
 }
 
+//测试Config，反序列化输出值
+func TestConfig(t *testing.T) {
+	config := system.GetConfig()
+
+	// 将配置文件序列化为 JSON 格式的字符串
+    configJSON, err := json.Marshal(config)
+
+    if err != nil {
+        panic(err)
+    }
+	 // 输出序列化后的字符串
+	 fmt.Println(string(configJSON))
+}
+
 //测试获取用户语言
 func TestGetUserLanguage(t *testing.T) {
 	lang := "en-US"
@@ -331,6 +345,7 @@ func TestGetUserLanguage(t *testing.T) {
 
 	userLang := models.GetUserLang(lang, supportsLang)
 	t.Log(userLang)
+
 	if userLang != "en" {
 		t.Error("获取用户语言失败")
 	}

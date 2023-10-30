@@ -38,6 +38,13 @@ const (
 	VALID_CODE_INVITE_USER_JOIN_DAYBOOK int8 = 3 //邀请用户加入日记本
 )
 
+//定义支持的语言
+type SupportLangs struct {
+    Code     string `json:"code"`
+    Label      string `json:"label"`
+    LocalText string `json:"local-text"`
+}
+
 //Configs contains application configurations for all gin modes
 type Configs struct {
 	Debug   Config
@@ -50,7 +57,7 @@ type Config struct {
 	Public   string `json:"public"`
 	Domain   string `json:"domain"`
 	SitePort string `json:"site_port"`
-	SupportsLangs string `json:"support_langs"`
+	SupportLangs []SupportLangs `json:"support_langs"`
 	Database struct {
 		Host     string	`json:"host"`
 		Port     int `json:"port"`

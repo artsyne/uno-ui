@@ -3,7 +3,118 @@
     "public": "public",
     "domain": "http://127.0.0.1:8080",
     "site_port": "8081",
-    "spport_langs":"en,de,es,fr,ja,ko,ru,zh,zh-HK,ar",
+    "support_langs":[
+      {
+        "code": "ar",
+        "label": "Arabic",
+        "local-text": "Arabic"
+      },
+      {
+        "code": "cs",
+        "label": "Czech",
+        "local-text": "Čeština"
+      },
+      {
+        "code": "da",
+        "label": "Danish",
+        "local-text": "Dansk"
+      },
+      {
+        "code": "de",
+        "label": "German",
+        "local-text": "Deutsch"
+      },
+      {
+        "code": "el",
+        "label": "Greek",
+        "local-text": "Ελληνικά"
+      },
+      {
+        "code": "en",
+        "label": "English",
+        "local-text": "English"
+      },
+      {
+        "code": "es",
+        "label": "Spanish",
+        "local-text": "Español"
+      },
+      {
+        "code": "fi",
+        "label": "Finnish",
+        "local-text": "Suomi"
+      },
+      {
+        "code": "fr",
+        "label": "French",
+        "local-text": "Français"
+      },
+      {
+        "code": "hu",
+        "label": "Hungarian",
+        "local-text": "Magyar"
+      },
+      {
+        "code": "it",
+        "label": "Italian",
+        "local-text": "Italiano"
+      },
+      {
+        "code": "ja",
+        "label": "Japanese",
+        "local-text": "日本語"
+      },
+      {
+        "code": "ko",
+        "label": "Korean",
+        "local-text": "한국어"
+      },
+      {
+        "code": "nl",
+        "label": "Dutch",
+        "local-text": "Nederlands"
+      },
+      {
+        "code": "no",
+        "label": "Norwegian",
+        "local-text": "Norsk"
+      },
+      {
+        "code": "pl",
+        "label": "Polish",
+        "local-text": "Polski"
+      },
+      {
+        "code": "pt",
+        "label": "Portuguese",
+        "local-text": "Português"
+      },
+      {
+        "code": "ru",
+        "label": "Russian",
+        "local-text": "Русский"
+      },
+      {
+        "code": "sv",
+        "label": "Swedish",
+        "local-text": "Svenska"
+      },
+      {
+        "code": "tr",
+        "label": "Turkish",
+        "local-text": "Türkçe"
+      },
+      {
+        "code": "zh-cn",
+        "label": "Chinese Simplified",
+        "local-text": "简体中文"
+      },
+      {
+        "code": "zh-tw",
+        "label": "Chinese Traditional",
+        "local-text": "繁體中文"
+      }
+    ],
     "database": {
       "host": "127.0.0.1",
       "port": 3306,
@@ -23,14 +134,14 @@
       "smtp_pwd": "HL90rmWKeJjS92",
       "smtp_port": 25
     },
-    "redis":{
-      "redis_server":"127.0.0.1",
+    "redis": {
+      "redis_server": "127.0.0.1",
       "redis_port": 6379,
-      "redis_pwd":"woaibeijingtiananmeng"
+      "redis_pwd": "woaibeijingtiananmeng"
     },
-    "upload":{
-      "img_save_path":"upload/",
-      "img_type":"data:image/jpeg|data:image/jpg|data:image/gif|data:image/png",
+    "upload": {
+      "img_save_path": "upload/",
+      "img_type": "data:image/jpeg|data:image/jpg|data:image/gif|data:image/png",
       "img_max_size": 1048576
     }
   },
@@ -38,7 +149,118 @@
     "public": "path_to_public_dir",
     "domain": "http://mydomain.com",
     "site_port": "80",
-    "spport_langs":"en,de,es,fr,ja,ko,ru,zh,zh-HK,ar",
+    "support_langs": [
+      {
+        "code": "ar",
+        "label": "Arabic",
+        "local-text": "Arabic"
+      },
+      {
+        "code": "cs",
+        "label": "Czech",
+        "local-text": "Čeština"
+      },
+      {
+        "code": "da",
+        "label": "Danish",
+        "local-text": "Dansk"
+      },
+      {
+        "code": "de",
+        "label": "German",
+        "local-text": "Deutsch"
+      },
+      {
+        "code": "el",
+        "label": "Greek",
+        "local-text": "Ελληνικά"
+      },
+      {
+        "code": "en",
+        "label": "English",
+        "local-text": "English"
+      },
+      {
+        "code": "es",
+        "label": "Spanish",
+        "local-text": "Español"
+      },
+      {
+        "code": "fi",
+        "label": "Finnish",
+        "local-text": "Suomi"
+      },
+      {
+        "code": "fr",
+        "label": "French",
+        "local-text": "Français"
+      },
+      {
+        "code": "hu",
+        "label": "Hungarian",
+        "local-text": "Magyar"
+      },
+      {
+        "code": "it",
+        "label": "Italian",
+        "local-text": "Italiano"
+      },
+      {
+        "code": "ja",
+        "label": "Japanese",
+        "local-text": "日本語"
+      },
+      {
+        "code": "ko",
+        "label": "Korean",
+        "local-text": "한국어"
+      },
+      {
+        "code": "nl",
+        "label": "Dutch",
+        "local-text": "Nederlands"
+      },
+      {
+        "code": "no",
+        "label": "Norwegian",
+        "local-text": "Norsk"
+      },
+      {
+        "code": "pl",
+        "label": "Polish",
+        "local-text": "Polski"
+      },
+      {
+        "code": "pt",
+        "label": "Portuguese",
+        "local-text": "Português"
+      },
+      {
+        "code": "ru",
+        "label": "Russian",
+        "local-text": "Русский"
+      },
+      {
+        "code": "sv",
+        "label": "Swedish",
+        "local-text": "Svenska"
+      },
+      {
+        "code": "tr",
+        "label": "Turkish",
+        "local-text": "Türkçe"
+      },
+      {
+        "code": "zh-cn",
+        "label": "Chinese Simplified",
+        "local-text": "简体中文"
+      },
+      {
+        "code": "zh-tw",
+        "label": "Chinese Traditional",
+        "local-text": "繁體中文"
+      }
+    ],
     "database": {
       "host": "127.0.0.1",
       "port": 3306,
@@ -58,14 +280,14 @@
       "smtp_pwd": "HL90rmWKeJjS92",
       "smtp_port": 25
     },
-    "redis":{
-      "redis_server":"127.0.0.1",
+    "redis": {
+      "redis_server": "127.0.0.1",
       "redis_port": 6379,
-      "redis_pwd":"woaibeijingtiananmeng"
+      "redis_pwd": "woaibeijingtiananmeng"
     },
-    "upload":{
-      "img_save_path":"upload/",
-      "img_type":"data:image/jpeg|data:image/jpg|data:image/gif|data:image/png",
+    "upload": {
+      "img_save_path": "upload/",
+      "img_type": "data:image/jpeg|data:image/jpg|data:image/gif|data:image/png",
       "img_max_size": 1048576
     }
   }
