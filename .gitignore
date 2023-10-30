@@ -5,3 +5,4 @@
 /vendor
 /upload
 config/config.json
+/*.exe
