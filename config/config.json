@@ -3,6 +3,7 @@
     "public": "public",
     "domain": "http://127.0.0.1:8080",
     "site_port": "8081",
+    "spport_langs":"en,de,es,fr,ja,ko,ru,zh,zh-HK,ar",
     "database": {
       "host": "127.0.0.1",
       "port": 3306,
@@ -37,6 +38,7 @@
     "public": "path_to_public_dir",
     "domain": "http://mydomain.com",
     "site_port": "80",
+    "spport_langs":"en,de,es,fr,ja,ko,ru,zh,zh-HK,ar",
     "database": {
       "host": "127.0.0.1",
       "port": 3306,

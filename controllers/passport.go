@@ -208,7 +208,7 @@ func PostRegister(c *gin.Context) {
 	user.Email = strings.TrimSpace(strings.ToLower(user.Email))
 
 	//判断用户时区与语言是否正确
-	if !helpers.IsTimeZone(user.TimeZone) || !helpers.IsLang(user.Lang) {
+	if !helpers.IsTimeZone(user.TimeZone)  {
 		gobalerr.ResponseErr(c, gobalerr.INPUT_PARAM_ERR)
 		return
 	}

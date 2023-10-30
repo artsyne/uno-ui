@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"strings"
 )
 
 type Login struct {
@@ -291,4 +292,22 @@ func GetUserByEmail(email string) (*User, error) {
 		return nil, nil
 	}
 	return user, err
+}
+
+// lang:处理用户语言，support:传入系统支持语言，格式为：zh-CN,en-US,en，不支持默认为en
+func GetUserLang(lang string, supportLangs string) string {
+	//如果是香港、台湾本地语言，则转换为繁体中文
+	if strings.Contains(lang, "zh-HK") || strings.Contains(lang, "zh-TW") || strings.Contains(lang, "zh-Hant") {
+		return "zh-hk"
+	}
+
+	//非繁体，其他语言取出主语言，第一部分
+	lang = strings.ToLower(strings.Split(lang, "-")[0])
+
+	//判断是否支持语言，不支持范围默认为en
+	if !strings.Contains(supportLangs, lang) {
+		return "en"
+	}
+
+	return lang
 }

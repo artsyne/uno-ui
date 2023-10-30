@@ -323,3 +323,15 @@ func TestGetTimeByTimeZone(t *testing.T) {
 		t.Log(tz)
 	}
 }
+
+//测试获取用户语言
+func TestGetUserLanguage(t *testing.T) {
+	lang := "en-US"
+	supportsLang := "en,de,es,fr,ja,ko,ru,zh,zh-HK,ar"
+
+	userLang := models.GetUserLang(lang, supportsLang)
+	t.Log(userLang)
+	if userLang != "en" {
+		t.Error("获取用户语言失败")
+	}
+}

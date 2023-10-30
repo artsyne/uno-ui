@@ -50,12 +50,13 @@ type Config struct {
 	Public   string `json:"public"`
 	Domain   string `json:"domain"`
 	SitePort string `json:"site_port"`
+	SupportsLangs string `json:"support_langs"`
 	Database struct {
-		Host     string
-		Port     int
-		Name     string
-		User     string
-		Password string
+		Host     string	`json:"host"`
+		Port     int `json:"port"`
+		Name     string `json:"name"`
+		User     string `json:"user"`
+		Password string `json:"password"`
 	}
 	Cookie struct {
 		Domain     string `json:"domain"`
@@ -107,7 +108,7 @@ func LoadConfig() {
 
 //设置日志
 func SetLogger() {
-	logrus.SetFormatter(&logrus.TextFormatter{})
+	logrus.SetFormatter(&logrus.JSONFormatter{})
 	logrus.SetOutput(os.Stderr)
 	if gin.Mode() == gin.DebugMode {
 		logrus.SetLevel(logrus.DebugLevel)

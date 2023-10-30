@@ -142,17 +142,7 @@ func CreateUploadPathFileName() (string, string) {
 // 判断时区是否正确
 func IsTimeZone(timeZone string) bool {
 	_, err := time.LoadLocation(timeZone)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
-// 判断本地语言是否正确
-func IsLang(locale string) bool {
-	_, err := os.Stat(fmt.Sprintf("locale/%s/LC_MESSAGES/app.po", locale))
-	if err != nil {
-		return false
-	}
-	return true
-}
+
