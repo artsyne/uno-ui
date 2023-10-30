@@ -3,6 +3,8 @@ package models
 import (
 	"database/sql"
 	"strings"
+
+	"github.com/biuren/hebe/system"
 )
 
 type Login struct {
@@ -294,20 +296,32 @@ func GetUserByEmail(email string) (*User, error) {
 	return user, err
 }
 
-// lang:处理用户语言，support:传入系统支持语言，格式为：zh-CN,en-US,en，不支持默认为en
-func GetUserLang(lang string, supportLangs string) string {
-	//如果是香港、台湾本地语言，则转换为繁体中文
-	if strings.Contains(lang, "zh-HK") || strings.Contains(lang, "zh-TW") || strings.Contains(lang, "zh-Hant") {
-		return "zh-hk"
-	}
+// 根据浏览器支持的语言和系统支持的语言列表，返回系统支持的语言
+// 如果浏览器支持的语言是英语系列，则返回 "en"；
+// 如果浏览器支持的语言是香港、台湾本地语言，则返回 "zh-tw"；
+// 如果浏览器支持的语言在系统支持的语言列表中，则返回该语言；
+// 如果浏览器支持的语言不在系统支持的语言列表中，则返回默认语言 "en"。
+// supportLang:传入系统支持语言数组，在配置文件中
+func GetSupportedLang(language string, supportedLanguages []system.SupportLangs) string {
+    // 将语言转换为小写
+    language = strings.ToLower(language)
 
-	//非繁体，其他语言取出主语言，第一部分
-	lang = strings.ToLower(strings.Split(lang, "-")[0])
+    // 如果是英语系列，则转换为 en
+    if strings.Contains(language, "en") {
+        return "en"
+    }
 
-	//判断是否支持语言，不支持范围默认为en
-	if !strings.Contains(supportLangs, lang) {
-		return "en"
-	}
+    // 如果是香港、台湾本地语言，则转换为繁体中文
+    if strings.Contains(language, "zh-hk") || strings.Contains(language, "zh-tw") || strings.Contains(language, "zh-hant") {
+        return "zh-tw"
+    }
 
-	return lang
+    // 判断语言是否在系统支持的语言列表中，不在则返回默认语言 en
+    for _, supportedLanguage := range supportedLanguages {
+        if supportedLanguage.Code == language {
+            return language
+        }
+    }
+
+    return "en"
 }

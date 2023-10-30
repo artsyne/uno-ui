@@ -10,24 +10,9 @@
         "local-text": "Arabic"
       },
       {
-        "code": "cs",
-        "label": "Czech",
-        "local-text": "Čeština"
-      },
-      {
-        "code": "da",
-        "label": "Danish",
-        "local-text": "Dansk"
-      },
-      {
         "code": "de",
         "label": "German",
         "local-text": "Deutsch"
-      },
-      {
-        "code": "el",
-        "label": "Greek",
-        "local-text": "Ελληνικά"
       },
       {
         "code": "en",
@@ -40,24 +25,9 @@
         "local-text": "Español"
       },
       {
-        "code": "fi",
-        "label": "Finnish",
-        "local-text": "Suomi"
-      },
-      {
         "code": "fr",
         "label": "French",
         "local-text": "Français"
-      },
-      {
-        "code": "hu",
-        "label": "Hungarian",
-        "local-text": "Magyar"
-      },
-      {
-        "code": "it",
-        "label": "Italian",
-        "local-text": "Italiano"
       },
       {
         "code": "ja",
@@ -70,39 +40,9 @@
         "local-text": "한국어"
       },
       {
-        "code": "nl",
-        "label": "Dutch",
-        "local-text": "Nederlands"
-      },
-      {
-        "code": "no",
-        "label": "Norwegian",
-        "local-text": "Norsk"
-      },
-      {
-        "code": "pl",
-        "label": "Polish",
-        "local-text": "Polski"
-      },
-      {
-        "code": "pt",
-        "label": "Portuguese",
-        "local-text": "Português"
-      },
-      {
         "code": "ru",
         "label": "Russian",
         "local-text": "Русский"
-      },
-      {
-        "code": "sv",
-        "label": "Swedish",
-        "local-text": "Svenska"
-      },
-      {
-        "code": "tr",
-        "label": "Turkish",
-        "local-text": "Türkçe"
       },
       {
         "code": "zh-cn",
@@ -156,24 +96,9 @@
         "local-text": "Arabic"
       },
       {
-        "code": "cs",
-        "label": "Czech",
-        "local-text": "Čeština"
-      },
-      {
-        "code": "da",
-        "label": "Danish",
-        "local-text": "Dansk"
-      },
-      {
         "code": "de",
         "label": "German",
         "local-text": "Deutsch"
-      },
-      {
-        "code": "el",
-        "label": "Greek",
-        "local-text": "Ελληνικά"
       },
       {
         "code": "en",
@@ -186,24 +111,9 @@
         "local-text": "Español"
       },
       {
-        "code": "fi",
-        "label": "Finnish",
-        "local-text": "Suomi"
-      },
-      {
         "code": "fr",
         "label": "French",
         "local-text": "Français"
-      },
-      {
-        "code": "hu",
-        "label": "Hungarian",
-        "local-text": "Magyar"
-      },
-      {
-        "code": "it",
-        "label": "Italian",
-        "local-text": "Italiano"
       },
       {
         "code": "ja",
@@ -216,39 +126,9 @@
         "local-text": "한국어"
       },
       {
-        "code": "nl",
-        "label": "Dutch",
-        "local-text": "Nederlands"
-      },
-      {
-        "code": "no",
-        "label": "Norwegian",
-        "local-text": "Norsk"
-      },
-      {
-        "code": "pl",
-        "label": "Polish",
-        "local-text": "Polski"
-      },
-      {
-        "code": "pt",
-        "label": "Portuguese",
-        "local-text": "Português"
-      },
-      {
         "code": "ru",
         "label": "Russian",
         "local-text": "Русский"
-      },
-      {
-        "code": "sv",
-        "label": "Swedish",
-        "local-text": "Svenska"
-      },
-      {
-        "code": "tr",
-        "label": "Turkish",
-        "local-text": "Türkçe"
       },
       {
         "code": "zh-cn",

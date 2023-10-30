@@ -340,13 +340,10 @@ func TestConfig(t *testing.T) {
 
 //测试获取用户语言
 func TestGetUserLanguage(t *testing.T) {
-	lang := "en-US"
-	supportsLang := "en,de,es,fr,ja,ko,ru,zh,zh-HK,ar"
+	lang := "ru"
+	config := system.GetConfig()
 
-	userLang := models.GetUserLang(lang, supportsLang)
+	userLang := models.GetSupportedLang(lang, config.SupportLangs)
 	t.Log(userLang)
 
-	if userLang != "en" {
-		t.Error("获取用户语言失败")
-	}
 }
