@@ -1,24 +1,23 @@
-package task
+package services
 
 import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/biuren/hebe/helpers"
 	"github.com/biuren/hebe/models"
-	"github.com/biuren/hebe/system"
-
+	"github.com/biuren/hebe/settings"
+	"github.com/biuren/hebe/utils"
 	"github.com/jasonlvhit/gocron"
 	"github.com/sirupsen/logrus"
 )
 
-//定时任务设置
-func Run() {
+// 定时任务设置
+func RunTask() {
 	gocron.Every(10).Seconds().Do(EmailTask)
 	gocron.Start()
 }
 
-//发送email任务
+// 发送email任务
 func EmailTask() {
 	tasks, err := models.GetJobTasks(10, "email")
 	if err != nil {
@@ -28,7 +27,7 @@ func EmailTask() {
 	logrus.Debug(fmt.Sprintf("获取%d条邮件任务", len(tasks)))
 
 	//获取配置
-	config := system.GetConfig()
+	config := settings.GetConfig()
 
 	//循环发送邮件
 	for _, val := range tasks {
@@ -40,7 +39,7 @@ func EmailTask() {
 		}
 
 		//发送邮件
-		err = helpers.SendToMail(config.Email.SMTPUser, config.Email.SMTPPwd, config.Email.SMTPServer,
+		err = utils.SendToMail(config.Email.SMTPUser, config.Email.SMTPPwd, config.Email.SMTPServer,
 			obj.To, obj.Subject, obj.Body, "html")
 		logrus.Debug(fmt.Sprintf("邮件发送成功 to=%s subject=%s ", obj.To, obj.Subject))
 

@@ -3,7 +3,7 @@ package models
 import (
 	"database/sql"
 
-	"github.com/biuren/hebe/helpers"
+	"github.com/biuren/hebe/utils"
 )
 
 // space 结构
@@ -117,14 +117,14 @@ func GetSpaceByUserID(userID int64) ([]Space, error) {
 // 通过空间 ID 把空间信息数量加一，并更新最后动作时间
 func IncrementInfoNum(spaceId int64) error {
 	sqlstr := "UPDATE br_space SET info_num = info_num + 1,last_action_utc_time = ? WHERE space_id = ?"
-	_, err := db.Exec(sqlstr, helpers.GetNowTimeUnixMilli(), spaceId)
+	_, err := db.Exec(sqlstr, utils.GetNowTimeUnixMilli(), spaceId)
 	return err
 }
 
 // 通过空间 ID 把空间信息数量减一
 func DecrementInfoNum(spaceId int64) error {
 	sqlstr := "UPDATE br_space SET info_num = info_num - 1,last_action_utc_time = ? WHERE space_id = ?"
-	_, err := db.Exec(sqlstr, helpers.GetNowTimeUnixMilli(), spaceId)
+	_, err := db.Exec(sqlstr, utils.GetNowTimeUnixMilli(), spaceId)
 	return err
 }
 

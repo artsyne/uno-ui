@@ -3,7 +3,7 @@ package models
 import (
 	"database/sql"
 
-	"github.com/biuren/hebe/helpers"
+	"github.com/biuren/hebe/utils"
 )
 
 type ValidCode struct {
@@ -90,7 +90,7 @@ func CheckValidCode(userID int64, sign string, validType int8) (bool, int64) {
 			return false, 0
 		}
 		//判断验证码有效时间
-		if validCode.ExpireUTCTime < helpers.GetNowTimeUnixMilli() {
+		if validCode.ExpireUTCTime < utils.GetNowTimeUnixMilli() {
 			return false, 0
 		}
 		result = true

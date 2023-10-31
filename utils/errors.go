@@ -1,4 +1,4 @@
-package gobalerr
+package utils
 
 import (
 	"github.com/gin-gonic/gin"
@@ -24,6 +24,7 @@ const (
 	UPLOAD_FILE_TYPE_ERR       = 100004
 	UPLOAD_FILE_TOO_LARGE      = 100005
 	UPLOAD_FILE_ERR            = 100006
+	UPLOAD_FILE_EMPTY 		= 100007
 
 	BIZ_ERR         = 200000
 	USER_NOT_EXISTS = 200001

@@ -3,5 +3,4 @@
 /__debug_bin.exe
 /.vscode
 /vendor
-/upload
-config/config.json
+/uploads

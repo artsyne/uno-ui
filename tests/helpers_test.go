@@ -1,4 +1,4 @@
-package test
+package tests
 
 import (
 	"encoding/json"
@@ -8,23 +8,23 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/biuren/hebe/controllers"
-	"github.com/biuren/hebe/helpers"
 	"github.com/biuren/hebe/models"
-	"github.com/biuren/hebe/site"
-	"github.com/biuren/hebe/system"
+	"github.com/biuren/hebe/services"
+	"github.com/biuren/hebe/settings"
+	"github.com/biuren/hebe/utils"
 )
 
+// 初始化数据库连接
 func init() {
-	system.LoadConfig()
-	site.ConnectToDB()
+	settings.LoadConfig()
+	models.ConnectToDB()
 }
 
 func Test3Desc(t *testing.T) {
-	key := "!@#$%^&*()" + string(helpers.Rand(14, helpers.RAND_KIND_ALL))
+	key := "!@#$%^&*()" + string(utils.Rand(14, utils.RAND_KIND_ALL))
 	t.Log(string(key))
 
-	result, err := helpers.TripleDesEncrypt("polaris@studygol", key)
+	result, err := utils.TripleDesEncrypt("polaris@studygol", key)
 	if err != nil {
 		panic(err)
 	}
@@ -32,7 +32,7 @@ func Test3Desc(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	origData, err := helpers.TripleDesDecrypt(result, key)
+	origData, err := utils.TripleDesDecrypt(result, key)
 	if err != nil {
 		panic(err)
 	}
@@ -44,7 +44,7 @@ func Test3Desc(t *testing.T) {
 }
 
 func TestCreateRand(t *testing.T) {
-	num := string(helpers.Rand(14, helpers.RAND_KIND_ALL))
+	num := string(utils.Rand(14, utils.RAND_KIND_ALL))
 	if len(num) != 14 {
 		t.Error("创建随机数失败")
 	}
@@ -70,7 +70,7 @@ func TestSendEmail(t *testing.T) {
 			</html>
 			`
 	fmt.Println("send email")
-	err := helpers.SendToMail(user, password, host, to, subject, body, "html")
+	err := utils.SendToMail(user, password, host, to, subject, body, "html")
 	if err != nil {
 		panic(err)
 	} else {
@@ -90,10 +90,10 @@ func TestGetJobsTasks(t *testing.T) {
 
 func TestAddValidCode(t *testing.T) {
 	validCode := &models.ValidCode{}
-	validCode.ValidCode = string(helpers.Rand(32, helpers.RAND_KIND_ALL))
+	validCode.ValidCode = string(utils.Rand(32, utils.RAND_KIND_ALL))
 	validCode.UserId = 35
-	validCode.ValidTypeId = system.VALID_CODE_ACTIVE_USER_EMAIL
-	nowTime := helpers.GetNowTime()
+	validCode.ValidTypeId = settings.VALID_CODE_ACTIVE_USER_EMAIL
+	nowTime := utils.GetNowTime()
 	validCode.CreateUTCTime = nowTime.UnixMilli()
 	validCode.ExpireUTCTime = nowTime.AddDate(0, 0, 1).UnixMilli() //增加一天过期
 
@@ -113,15 +113,15 @@ func TestAddActivateUserEmailTask(t *testing.T) {
 	user.UserId = 34
 	user.UserName = "icefire"
 
-	if err := controllers.AddActivateUserEmailTask(user); err != nil {
+	if err := services.AddActivateUserEmailTask(user); err != nil {
 		t.Error(err)
 	}
 }
 
 func TestCreateActiveUrl(t *testing.T) {
 	//插入发送邮件队列
-	config := system.GetConfig()
-	params := system.GetParams()
+	config := settings.GetConfig()
+	params := settings.GetParams()
 	//激活链接
 	url := fmt.Sprintf("%s/activiceuser?uid=%d&sign=%s", config.Domain, 10000, "wesdfsdfwerwerwer234234")
 	t.Log(fmt.Sprintf(params["reg_email_body"], url, url))
@@ -129,12 +129,12 @@ func TestCreateActiveUrl(t *testing.T) {
 
 func TestRedis(t *testing.T) {
 
-	err := helpers.SetSession("username", "kupage12ww")
+	err := utils.SetSession("username", "kupage12ww")
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	val, err := helpers.GetSession("username")
+	val, err := utils.GetSession("username")
 
 	if err != nil {
 		fmt.Println(err)
@@ -142,7 +142,7 @@ func TestRedis(t *testing.T) {
 
 	fmt.Print(len(val))
 
-	num, err := helpers.DelSession("username")
+	num, err := utils.DelSession("username")
 
 	fmt.Println(num)
 }
@@ -167,7 +167,7 @@ func TestAddSpace(t *testing.T) {
 	space.Remark = "这是备注"
 	space.AccessPwd = "this is pwd"
 	space.AccessURL = "http://accessurl"
-	space.AddUTCTime = helpers.GetNowTimeUnixMilli()
+	space.AddUTCTime = utils.GetNowTimeUnixMilli()
 	space.AddUserID = 123
 	space.AddUserName = "yasong"
 	space.CoverMidURL = "http://covermidurl"
@@ -259,7 +259,7 @@ func PrintTableGolangStructCode(tableName string) string {
 }
 
 func TestCreateFileName(t *testing.T) {
-	filePath, fileName := helpers.CreateUploadPathFileName()
+	filePath, fileName := utils.CreateUploadPathFileName()
 
 	filePath = "upload/" + filePath
 	fmt.Println(filePath + fileName)
@@ -276,28 +276,28 @@ func TestCreateFileName(t *testing.T) {
 
 // 测试时间函数
 func TestUTCUnix(t *testing.T) {
-	t.Log(helpers.GetNowTime().UnixMicro())
+	t.Log(utils.GetNowTime().UnixMicro())
 
-	t.Log(helpers.GetNowTimeUnixMilli())
+	t.Log(utils.GetNowTimeUnixMilli())
 
-	nowTime := helpers.GetTimeFromUnixMilli(helpers.GetNowTimeUnixMilli())
+	nowTime := utils.GetTimeFromUnixMilli(utils.GetNowTimeUnixMilli())
 
 	t.Log(nowTime)
 
-	t.Log(helpers.GetTimeFromUnixMilli(1695711841053))
-	t.Log(helpers.GetTimeFromUnixMilli(1695798241053))
+	t.Log(utils.GetTimeFromUnixMilli(1695711841053))
+	t.Log(utils.GetTimeFromUnixMilli(1695798241053))
 
-	t.Log(1695798241053 > helpers.GetNowTimeUnixMilli())
+	t.Log(1695798241053 > utils.GetNowTimeUnixMilli())
 
 }
 
 // 根据timezone字符串获取时区，显示正确的本地时间
 func TestGetTimeByTimeZone(t *testing.T) {
-	utcTime := helpers.GetNowTimeUnixMilli()
+	utcTime := utils.GetNowTimeUnixMilli()
 	t.Log(utcTime)
 
 	location := "WET"
-	localTime, _ := helpers.GetLocalTimeFromUTC(utcTime, location)
+	localTime, _ := utils.GetLocalTimeFromUTC(utcTime, location)
 
 	t.Log(localTime.Format("2006-01-02 15:04"))
 
@@ -326,7 +326,7 @@ func TestGetTimeByTimeZone(t *testing.T) {
 
 //测试Config，反序列化输出值
 func TestConfig(t *testing.T) {
-	config := system.GetConfig()
+	config := settings.GetConfig()
 
 	// 将配置文件序列化为 JSON 格式的字符串
     configJSON, err := json.Marshal(config)
@@ -340,10 +340,28 @@ func TestConfig(t *testing.T) {
 
 //测试获取用户语言
 func TestGetUserLanguage(t *testing.T) {
-	lang := "ru"
-	config := system.GetConfig()
-
-	userLang := models.GetSupportedLang(lang, config.SupportLangs)
-	t.Log(userLang)
+	
+	config := settings.GetConfig()
+	
+	//测试台湾语言
+	if  services.GetSupportedLang("zh-tw", config.SupportLangs) != "zh-tw" {
+		t.Error("获取用户语言zh-tw失败")
+	}
+	//测试中文
+	if  services.GetSupportedLang("zh-cn", config.SupportLangs) != "zh-cn" {
+		t.Error("获取用户语言zh-cn失败")
+	}
+	//测试英文
+	if  services.GetSupportedLang("en-us", config.SupportLangs) != "en" {
+		t.Error("获取用户语言en-us失败")
+	}
+	//测试日文	
+	if  services.GetSupportedLang("Ja-jp", config.SupportLangs) != "ja" {
+		t.Error("获取用户语言ja-jp失败")
+	}
+	//测试默认语言
+	if  services.GetSupportedLang("pl-PL", config.SupportLangs) != "en" {
+		t.Error("获取用户语言fr-fr失败")
+	}
 
 }
