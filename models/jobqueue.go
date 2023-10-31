@@ -3,7 +3,7 @@ package models
 import (
 	"database/sql"
 
-	"github.com/biuren/hebe/helpers"
+	"github.com/biuren/hebe/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -108,7 +108,7 @@ func (jobQueue *JobQueue) RemoveToHistory() (int64, error) {
 	jobHistory := &JobHistory{}
 	jobHistory.JobId = jobQueue.JobId
 	jobHistory.Body = jobQueue.Body
-	jobHistory.DoneUTCTime = helpers.GetNowTimeUnixMilli()
+	jobHistory.DoneUTCTime = utils.GetNowTimeUnixMilli()
 	jobHistory.JobType = jobQueue.JobType
 	jobHistory.PlanUTCTime = jobQueue.PlanUTCTime
 	jobHistory.TryNum = jobQueue.TryNum

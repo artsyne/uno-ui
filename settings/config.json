@@ -1,6 +1,6 @@
 {
   "debug": {
-    "public": "public",
+    "public": "static",
     "domain": "http://127.0.0.1:8080",
     "site_port": "8081",
     "support_langs":[
@@ -86,8 +86,8 @@
     }
   },
   "release": {
-    "public": "path_to_public_dir",
-    "domain": "http://mydomain.com",
+    "public": "static",
+    "domain": "http://www.idiary.ai",
     "site_port": "80",
     "support_langs": [
       {

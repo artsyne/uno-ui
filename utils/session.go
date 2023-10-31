@@ -1,17 +1,17 @@
-package helpers
+package utils
 
 import (
 	"strconv"
 	"time"
 
-	"github.com/biuren/hebe/system"
+	"github.com/biuren/hebe/settings"
 	"github.com/go-redis/redis"
 )
 
 //创建redis client
 func getRedisClient() *redis.Client {
 	//获取配置信息
-	config := system.GetConfig()
+	config := settings.GetConfig()
 
 	// 链接redis
 	client := redis.NewClient(&redis.Options{

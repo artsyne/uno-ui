@@ -6,13 +6,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/biuren/hebe/helpers"
+	"github.com/biuren/hebe/utils"
 	"github.com/biuren/hebe/models"
 )
 
 // RenderMemberIndex : 渲染会员首页
 func RenderMemberIndex(c *gin.Context) {
-	h := helpers.DefaultH(c)
+	h := utils.DefaultH(c)
 
 	//获取url 中的 uid
 	uid, _ := strconv.ParseInt(c.Param("uid"), 10, 64)

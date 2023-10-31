@@ -1,11 +1,11 @@
-package helpers
+package utils
 
 import (
 	"fmt"
 	"time"
 
 	//	"../models"
-	"github.com/biuren/hebe/system"
+	"github.com/biuren/hebe/settings"
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,7 +38,7 @@ func DefaultH(c *gin.Context) gin.H {
 // ajax 操作返回JSON串
 func ResponseH(c *gin.Context) gin.H {
 	return gin.H{
-		"Status": system.OPS_OK,
+		"Status": settings.OPS_SUCCESS,
 		"Data":   "",
 	}
 }

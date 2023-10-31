@@ -1,8 +1,35 @@
 package models
 
 import (
+	"fmt"
+	_ "github.com/go-sql-driver/mysql"
 	"database/sql"
+	"github.com/jmoiron/sqlx"
+
+	"github.com/biuren/hebe/settings"
 )
+
+//全局变量db
+var db *sqlx.DB
+
+//SetDB establishes connection to database and saves its handler into db *sqlx.DB
+func SetDB(connection string) {
+	db = sqlx.MustConnect("mysql", connection)
+}
+
+//GetDB returns database handler
+func GetDB() *sqlx.DB {
+	return db
+}
+
+// 初始化数据库链接
+func ConnectToDB() {
+	config := settings.GetConfig()
+	connection := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true&loc=Local", config.Database.User, config.Database.Password,
+		config.Database.Host, config.Database.Name)
+	SetDB(connection)
+}
+
 
 // 创建Struct code snap
 type TableColumns struct {

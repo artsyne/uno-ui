@@ -1,4 +1,4 @@
-package system
+package settings
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ import (
 
 //构造默认返回值对象
 const (
-	OPS_OK         int = 0  // 操作成功
+	OPS_SUCCESS         int = 0  // 操作成功
 	VALID_CODE_LEN int = 64 //确认码长度
 	PWD_MIN_LEN    int = 6  //最小密码长度
 	PWD_MAX_LEN    int = 50 //最大密码长度
@@ -107,20 +107,12 @@ var params map[string]string
 
 //加载文件
 func LoadConfig() {
-	box := rice.MustFindBox("../config")
+	box := rice.MustFindBox("../settings")
 	loadConfig(box.MustBytes("config.json"))
 	loadParams(box.MustBytes("params.xml"))
 	logrus.Info("config,params 加载成功！")
 }
 
-//设置日志
-func SetLogger() {
-	logrus.SetFormatter(&logrus.JSONFormatter{})
-	logrus.SetOutput(os.Stderr)
-	if gin.Mode() == gin.DebugMode {
-		logrus.SetLevel(logrus.DebugLevel)
-	}
-}
 
 //加载key-value格式的参数
 func loadParams(data []byte) {

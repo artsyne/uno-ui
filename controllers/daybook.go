@@ -6,15 +6,13 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/models"
-
-	gobalerr "github.com/biuren/hebe/config"
-	"github.com/biuren/hebe/helpers"
+	"github.com/biuren/hebe/utils"
 	"github.com/gin-gonic/gin"
 )
 
 // RenderDaybookIndex 渲染日记本首页
 func RenderDaybookIndex(c *gin.Context) {
-	h := helpers.DefaultH(c)
+	h := utils.DefaultH(c)
 
 	//页面加载是否有异常
 	hasError := false
@@ -40,27 +38,26 @@ func RenderDaybookIndex(c *gin.Context) {
 	h["hasError"] = hasError
 	h["essMsg"] = errMsg
 
-
 	c.HTML(http.StatusOK, "daybook/index", h)
 }
 
 // 增加日记本表单渲染
 func RenderDaybookForm(c *gin.Context) {
-	h := helpers.DefaultH(c)
+	h := utils.DefaultH(c)
 
 	c.HTML(http.StatusOK, "form/daybook", h)
 }
 
 // RenderDiary : 渲染日记详细信息
 func RenderDiary(c *gin.Context) {
-	h := helpers.DefaultH(c)
+	h := utils.DefaultH(c)
 	h["Title"] = "我的日记本"
 	h["Active"] = "users"
 	c.HTML(http.StatusOK, "daybook/diary", h)
 }
 
 // 保存日记本信息
-func DoSpace(c *gin.Context) {
+func HandleSpace(c *gin.Context) {
 	// 序列化用户输入对象
 	space := &models.Space{}
 	err := c.Bind(space)
@@ -68,7 +65,7 @@ func DoSpace(c *gin.Context) {
 	// 校验参数，标题必须填写，设置类型必须为1或者2，主题id必须在1-16之间
 	if err != nil || len(space.Title) < 1 || (space.ViewSetting != 1 &&
 		space.ViewSetting != 2 || space.ThemeID < 1 || space.ThemeID > 16) {
-		gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
+			utils.ResponseErr(c, utils.PARSE_INPUT_PARAM_ERR)
 		return
 	}
 
@@ -76,7 +73,7 @@ func DoSpace(c *gin.Context) {
 	userSession, _ := c.Get("UserData")
 	userData := userSession.(models.Login)
 
-	var nowTime = helpers.GetNowTimeUnixMilli()
+	var nowTime = utils.GetNowTimeUnixMilli()
 	//其他设置默认值
 	space.AccessPwd = ""
 	space.AccessURL = ""
@@ -101,14 +98,14 @@ func DoSpace(c *gin.Context) {
 	if action, _ := c.GetPostForm("action"); action == "My.insertDaybook" {
 		spaceID, err := space.Insert() // 插入对象
 		if err != nil {
-			gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
+			utils.ResponseErr(c, utils.PARSE_INPUT_PARAM_ERR)
 			return
 		}
 		space.SpaceID = spaceID
 	}
 
 	//创建返回对象
-	h := helpers.ResponseH(c)
+	h := utils.ResponseH(c)
 	h["Data"] = space
 	c.JSON(http.StatusOK, h)
 }

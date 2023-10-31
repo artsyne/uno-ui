@@ -5,13 +5,13 @@ import (
 
 	"github.com/biuren/hebe/models"
 
-	"github.com/biuren/hebe/helpers"
+	"github.com/biuren/hebe/utils"
 	"github.com/gin-gonic/gin"
 )
 
 // RenderMyIndex 个人空间搜
 func RenderMyIndex(c *gin.Context) {
-	h := helpers.DefaultH(c)
+	h := utils.DefaultH(c)
 	h["Title"] = "管理"
 	h["Active"] = "users"
 	h["IsAdminPage"] = true
