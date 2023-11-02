@@ -1,84 +1,60 @@
 package utils
 
 import (
-	"encoding/base64"
-	"fmt"
 	"math/rand"
 	"net/smtp"
-	"os"
 	"strings"
 	"time"
-
-	"github.com/gin-gonic/gin"
-	"github.com/rs/xid"
 )
-
-// 获取当前UTC时间
-func GetNowTime() time.Time {
-	return time.Now().UTC()
-}
-
-// 获取当前UTC时间，精度为毫秒ms
-func GetNowTimeUnixMilli() int64{
-	return GetNowTime().UnixMilli()
-}
-
-//降毫秒精度数据转换为时间对象
-func GetTimeFromUnixMilli(unixMilli int64) time.Time {
-	return time.Unix(0, unixMilli*int64(time.Millisecond)).UTC()
-}
-
-//通过时区字符串，将UTC时间转换为本地时间，精度为毫秒
-func GetLocalTimeFromUTC(utcTime int64, timeZone string) (time.Time, error) {
-	loc, err := time.LoadLocation(timeZone)
-	if err != nil {
-		return time.Time{}, err
-	}
-	return time.Unix(0, utcTime*int64(time.Millisecond)).In(loc), nil
-}
-
-// 获取客户端时区
-func GetClientHeaderTimeZone(c *gin.Context) (*time.Location, error) {
-    // 获取客户端的时区
-    timezone := c.GetHeader("Time-Zone")
-
-    // 如果客户端没有发送 Time-Zone 请求头，则返回本地时区
-    if timezone == "" {
-        return time.Local, nil
-    }
-
-    // 将客户端的时区转换为 time.Location 类型的值
-    location, err := time.LoadLocation(timezone)
-    if err != nil {
-        return nil, err
-    }
-
-    return location, nil
-}
 
 const (
-	RAND_KIND_NUM   = 0 // 纯数字
-	RAND_KIND_LOWER = 1 // 小写字母
-	RAND_KIND_UPPER = 2 // 大写字母
-	RAND_KIND_ALL   = 3 // 数字、大小写字母
+    RAND_KIND_NUM = iota // 纯数字
+    RAND_KIND_LOWER      // 小写字母
+    RAND_KIND_UPPER      // 大写字母
+    RAND_KIND_ALL        // 数字、大小写字母
 )
 
-// 随机字符串
-func Rand(size int, kind int) []byte {
-	ikind, kinds, result := kind, [][]int{[]int{10, 48}, []int{26, 97}, []int{26, 65}}, make([]byte, size)
-	is_all := kind > 2 || kind < 0
-	rand.Seed(time.Now().UnixNano())
-	for i := 0; i < size; i++ {
-		if is_all { // random ikind
-			ikind = rand.Intn(3)
-		}
-		scope, base := kinds[ikind][0], kinds[ikind][1]
-		result[i] = uint8(base + rand.Intn(scope))
-	}
-	return result
+// Rand 函数生成指定长度和类型的随机字符串。
+// size 参数指定了生成的随机字符串的长度。
+// kind 参数指定了生成的随机字符串的类型，可以是 RAND_KIND_NUM、RAND_KIND_LOWER、RAND_KIND_UPPER 或 RAND_KIND_ALL。
+// 函数返回生成的随机字符串。
+func Rand(size int, kind int) string {
+    src := rand.NewSource(time.Now().UnixNano())
+    r := rand.New(src)
+    result := make([]byte, size)
+    for i := 0; i < size; i++ {
+        switch kind {
+        case RAND_KIND_NUM:
+            result[i] = '0' + uint8(r.Intn(10))
+        case RAND_KIND_LOWER:
+            result[i] = 'a' + uint8(r.Intn(26))
+        case RAND_KIND_UPPER:
+            result[i] = 'A' + uint8(r.Intn(26))
+        case RAND_KIND_ALL:
+            fallthrough
+        default:
+            switch r.Intn(3) {
+            case 0:
+                result[i] = '0' + uint8(r.Intn(10))
+            case 1:
+                result[i] = 'a' + uint8(r.Intn(26))
+            case 2:
+                result[i] = 'A' + uint8(r.Intn(26))
+            }
+        }
+    }
+    return string(result)
 }
 
-// 发送电子邮件，mailtype可以为html
+// SendToMail 函数用于发送电子邮件。
+// user 参数是发送邮件的用户的邮箱地址。
+// password 参数是发送邮件的用户的邮箱密码。
+// host 参数是发送邮件的 SMTP 服务器的主机名和端口号。
+// to 参数是接收邮件的用户的邮箱地址。
+// subject 参数是邮件的主题。
+// body 参数是邮件的正文。
+// mailtype 参数是邮件的类型，可以是 "html" 或者 "plain"。
+// 函数返回一个 error，如果发送邮件过程中没有错误发生，error 为 nil。
 func SendToMail(user, password, host, to, subject, body, mailtype string) error {
 	hp := strings.Split(host, ":")
 	auth := smtp.PlainAuth("", user, password, hp[0])
@@ -94,55 +70,4 @@ func SendToMail(user, password, host, to, subject, body, mailtype string) error 
 	err := smtp.SendMail(host, auth, user, send_to, msg)
 	return err
 }
-
-// 根据base64编码保存用户上传图片
-// base64Data：base64编码的图片数据
-// filePath：保存路径，路径格式为：aaa/bbb/ccc/
-// fileName：保存文件名，文件名需带路径,格式为：aaa/bbb/ccc/ddd.xxx
-func SaveBase64File(base64Data, filePath, fileName string) error {
-	//去掉,号前内容，"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYA"
-	b64data := base64Data[strings.IndexByte(base64Data, ',')+1:]
-
-	//图片解码
-	imgByte, err := base64.StdEncoding.DecodeString(b64data)
-	if err != nil {
-		return err
-	}
-
-	//创建文件路径
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		// 如果路径不存在，则创建目录
-		err := os.MkdirAll(filePath, os.ModePerm)
-		if err != nil {
-			return err
-		}
-	}
-
-	//文件保存
-	err = os.WriteFile(fileName, imgByte, 0666)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// 创建上传文件图片路径和文件名
-// 路径格式为：年/月/日/，文件名为guid
-func CreateUploadPathFileName() (string, string) {
-	nowTime := GetNowTime()
-	guid := xid.New()
-
-	filePath := fmt.Sprintf("%d/%d/%d/",
-		nowTime.Year(), nowTime.Month(), nowTime.Day())
-
-	return filePath, guid.String()
-}
-
-// 判断时区是否正确
-func IsTimeZone(timeZone string) bool {
-	_, err := time.LoadLocation(timeZone)
-	return err == nil
-}
-
 

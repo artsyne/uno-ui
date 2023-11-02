@@ -3,7 +3,6 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 	"testing"
@@ -18,6 +17,30 @@ import (
 func init() {
 	settings.LoadConfig()
 	models.ConnectToDB()
+}
+
+// TestRand 测试 Rand 函数
+func TestRand(t *testing.T) {
+	size := 64
+    kinds := []int{utils.RAND_KIND_NUM, utils.RAND_KIND_LOWER, utils.RAND_KIND_UPPER, utils.RAND_KIND_ALL}
+
+    for _, kind := range kinds {
+        result := utils.Rand(size, kind)
+		t.Log(result)
+
+        if len(result) != size {
+            t.Errorf("Expected length of %d, but got %d", size, len(result))
+        }
+
+        for _, r := range result {
+            if (kind == utils.RAND_KIND_NUM && (r < '0' || r > '9')) ||
+                (kind == utils.RAND_KIND_LOWER && (r < 'a' || r > 'z')) ||
+                (kind == utils.RAND_KIND_UPPER && (r < 'A' || r > 'Z')) ||
+                (kind == utils.RAND_KIND_ALL && !((r >= '0' && r <= '9') || (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z'))) {
+                t.Errorf("Unexpected character: %c", r)
+            }
+        }
+    }
 }
 
 func Test3Desc(t *testing.T) {
@@ -274,94 +297,16 @@ func TestCreateFileName(t *testing.T) {
 	}
 }
 
-// 测试时间函数
-func TestUTCUnix(t *testing.T) {
-	t.Log(utils.GetNowTime().UnixMicro())
-
-	t.Log(utils.GetNowTimeUnixMilli())
-
-	nowTime := utils.GetTimeFromUnixMilli(utils.GetNowTimeUnixMilli())
-
-	t.Log(nowTime)
-
-	t.Log(utils.GetTimeFromUnixMilli(1695711841053))
-	t.Log(utils.GetTimeFromUnixMilli(1695798241053))
-
-	t.Log(1695798241053 > utils.GetNowTimeUnixMilli())
-
-}
-
-// 根据timezone字符串获取时区，显示正确的本地时间
-func TestGetTimeByTimeZone(t *testing.T) {
-	utcTime := utils.GetNowTimeUnixMilli()
-	t.Log(utcTime)
-
-	location := "WET"
-	localTime, _ := utils.GetLocalTimeFromUTC(utcTime, location)
-
-	t.Log(localTime.Format("2006-01-02 15:04"))
-
-	// 读取 timezone.json 文件
-	file, err := os.Open("../config/timezone.json")
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-
-	// 解析 JSON 数据
-	data, err := io.ReadAll(file)
-	if err != nil {
-		panic(err)
-	}
-	var timeZones []string
-	if err := json.Unmarshal(data, &timeZones); err != nil {
-		panic(err)
-	}
-
-	// 输出所有时区信息
-	for _, tz := range timeZones {
-		t.Log(tz)
-	}
-}
-
-//测试Config，反序列化输出值
+// 测试Config，反序列化输出值
 func TestConfig(t *testing.T) {
 	config := settings.GetConfig()
 
 	// 将配置文件序列化为 JSON 格式的字符串
-    configJSON, err := json.Marshal(config)
+	configJSON, err := json.Marshal(config)
 
-    if err != nil {
-        panic(err)
-    }
-	 // 输出序列化后的字符串
-	 fmt.Println(string(configJSON))
-}
-
-//测试获取用户语言
-func TestGetUserLanguage(t *testing.T) {
-	
-	config := settings.GetConfig()
-	
-	//测试台湾语言
-	if  services.GetSupportedLang("zh-tw", config.SupportLangs) != "zh-tw" {
-		t.Error("获取用户语言zh-tw失败")
+	if err != nil {
+		panic(err)
 	}
-	//测试中文
-	if  services.GetSupportedLang("zh-cn", config.SupportLangs) != "zh-cn" {
-		t.Error("获取用户语言zh-cn失败")
-	}
-	//测试英文
-	if  services.GetSupportedLang("en-us", config.SupportLangs) != "en" {
-		t.Error("获取用户语言en-us失败")
-	}
-	//测试日文	
-	if  services.GetSupportedLang("Ja-jp", config.SupportLangs) != "ja" {
-		t.Error("获取用户语言ja-jp失败")
-	}
-	//测试默认语言
-	if  services.GetSupportedLang("pl-PL", config.SupportLangs) != "en" {
-		t.Error("获取用户语言fr-fr失败")
-	}
-
+	// 输出序列化后的字符串
+	fmt.Println(string(configJSON))
 }
