@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TODO：文件需要重构
+
 //IsActive checks uri against currently active (uri, or nil) and returns "active" if they are equal
 func IsActive(active interface{}, uri string) string {
 	if s, ok := active.(string); ok {
