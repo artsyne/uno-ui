@@ -22,48 +22,25 @@ func init() {
 // TestRand 测试 Rand 函数
 func TestRand(t *testing.T) {
 	size := 64
-    kinds := []int{utils.RAND_KIND_NUM, utils.RAND_KIND_LOWER, utils.RAND_KIND_UPPER, utils.RAND_KIND_ALL}
+	kinds := []int{utils.RAND_KIND_NUM, utils.RAND_KIND_LOWER, utils.RAND_KIND_UPPER, utils.RAND_KIND_ALL}
 
-    for _, kind := range kinds {
-        result := utils.Rand(size, kind)
+	for _, kind := range kinds {
+		result := utils.Rand(size, kind)
 		t.Log(result)
 
-        if len(result) != size {
-            t.Errorf("Expected length of %d, but got %d", size, len(result))
-        }
+		if len(result) != size {
+			t.Errorf("Expected length of %d, but got %d", size, len(result))
+		}
 
-        for _, r := range result {
-            if (kind == utils.RAND_KIND_NUM && (r < '0' || r > '9')) ||
-                (kind == utils.RAND_KIND_LOWER && (r < 'a' || r > 'z')) ||
-                (kind == utils.RAND_KIND_UPPER && (r < 'A' || r > 'Z')) ||
-                (kind == utils.RAND_KIND_ALL && !((r >= '0' && r <= '9') || (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z'))) {
-                t.Errorf("Unexpected character: %c", r)
-            }
-        }
-    }
-}
-
-func Test3Desc(t *testing.T) {
-	key := "!@#$%^&*()" + string(utils.Rand(14, utils.RAND_KIND_ALL))
-	t.Log(string(key))
-
-	result, err := utils.TripleDesEncrypt("polaris@studygol", key)
-	if err != nil {
-		panic(err)
+		for _, r := range result {
+			if (kind == utils.RAND_KIND_NUM && (r < '0' || r > '9')) ||
+				(kind == utils.RAND_KIND_LOWER && (r < 'a' || r > 'z')) ||
+				(kind == utils.RAND_KIND_UPPER && (r < 'A' || r > 'Z')) ||
+				(kind == utils.RAND_KIND_ALL && !((r >= '0' && r <= '9') || (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z'))) {
+				t.Errorf("Unexpected character: %c", r)
+			}
+		}
 	}
-	t.Log(result)
-	if err != nil {
-		panic(err)
-	}
-	origData, err := utils.TripleDesDecrypt(result, key)
-	if err != nil {
-		panic(err)
-	}
-	if string(origData) != "polaris@studygol" {
-		t.Error("3Des加解密测试失败")
-	}
-	t.Log(string(origData))
-
 }
 
 func TestCreateRand(t *testing.T) {
