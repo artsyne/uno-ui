@@ -13,9 +13,9 @@ import (
 )
 
 // 在http请求上下文中注入中间件
-func Attach(router *gin.Engine){
+func Attach(server *gin.Engine){
 	// 加载上下文共享数据，如登录数据
-	router.Use(SharedData())
+	server.Use(SharedData())
 }
 
 // 需要登录访问地址

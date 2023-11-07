@@ -8,7 +8,6 @@ import (
 	"path"
 
 	"github.com/GeertJohan/go.rice"
-	"github.com/sirupsen/logrus"
 	"github.com/gin-gonic/gin"
 )
 
@@ -110,7 +109,6 @@ func LoadConfig() {
 	box := rice.MustFindBox("../settings")
 	loadConfig(box.MustBytes("config.json"))
 	loadParams(box.MustBytes("params.xml"))
-	logrus.Info("config,params 加载成功！")
 }
 
 
