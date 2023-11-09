@@ -12,11 +12,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// 在http请求上下文中注入中间件
-func Attach(server *gin.Engine){
-	// 加载上下文共享数据，如登录数据
-	server.Use(SharedData())
-}
 
 // 需要登录访问地址
 func AuthRequired() gin.HandlerFunc {
@@ -43,7 +38,7 @@ func SharedData() gin.HandlerFunc {
 		}
 
 		//解密cookie
-		byteUserData, err := utils.TripleDesDecrypt(cookieEnUserData, settings.GetConfig().Cookie.SecretKey)
+		byteUserData, err := utils.AESDecrypt(cookieEnUserData, settings.GetConfig().Cookie.SecretKey)
 		if err != nil || byteUserData == nil {
 			return
 		}

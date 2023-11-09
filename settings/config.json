@@ -64,7 +64,7 @@
     },
     "cookie": {
       "domain": "127.0.0.1",
-      "secret_key": "!@3Aw#$3Aw%^&3AwA*()3AwA",
+      "secret_key": "2GzVloukJl9C7y44O740o59e3sD8xTzr",
       "expire_days": 7,
       "http_only": true
     },
@@ -150,7 +150,7 @@
     },
     "cookie": {
       "domain": "127.0.0.1",
-      "secret_key": "!@3Aw#$3Aw%^&3AwA*()3AwA",
+      "secret_key": "2GzVloukJl9C7y44O740o59e3sD8xTzr",
       "expire_days": 7,
       "http_only": true
     },

@@ -65,3 +65,37 @@ func Test3Desc(t *testing.T) {
 	}
 	t.Log(string(origData))
 }
+
+
+func TestAESEncryptDecrypt(t *testing.T) {
+    // 测试用例
+    testCases := []struct {
+        plainText string
+        key       string
+    }{
+        {"Hello, world!", "1234567890123456"}, // 16 字节，对应 128 位
+        {"Go is awesome!", "abcdefghijklmnopqrstuvwx"}, // 24 字节，对应 192 位
+        {"GitHub Copilot", "2GzVloukJl9C7y44O740o59e3sD8xTzr"}, // 32 字节，对应 256 位
+    }
+
+    for _, tc := range testCases {
+        // 使用 AESEncrypt 函数加密明文
+        cipherText, err :=utils.AESEncrypt(tc.plainText, tc.key)
+		t.Log(cipherText)
+        if err != nil {
+            t.Errorf("AESEncrypt(%q, %q) returned error: %v", tc.plainText, tc.key, err)
+        }
+
+        // 使用 AESDecrypt 函数解密密文
+        decryptedText, err := utils.AESDecrypt(cipherText, tc.key)
+		t.Log(string(decryptedText))
+        if err != nil {
+            t.Errorf("AESDecrypt(%q, %q) returned error: %v", cipherText, tc.key, err)
+        }
+
+        // 检查解密后的文本是否与原始明文相同
+        if string(decryptedText) != tc.plainText {
+            t.Errorf("Decrypted text %q does not match original plain text %q", decryptedText, tc.plainText)
+        }
+    }
+}

@@ -2,10 +2,12 @@ package utils
 
 import (
 	"bytes"
+	"crypto/aes"
 	"crypto/cipher"
 	"crypto/des"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 )
 
 // Sha256 函数接受一个字符串作为参数，对其进行 SHA256 哈希，
@@ -67,4 +69,57 @@ func PKCS5UnPadding(origData []byte) []byte {
 	// 去掉最后一个字节 unpadding 次
 	unpadding := int(origData[length-1])
 	return origData[:(length - unpadding)]
+}
+
+// AESEncrypt 加密明文数据，返回 base64 编码的密文。
+// 参数 plainText 是要加密的明文数据。
+// 参数 key 是用于加密的密钥，它应该是一个 16、24、32位字符串
+// 返回的结果是 base64 编码的密文。
+func AESEncrypt(plainText string, key string) (string, error) {
+    block, err := aes.NewCipher([]byte(key))
+    if err != nil {
+        return "", err
+    }
+
+    // 对明文数据进行 PKCS7 填充
+    origData := PKCS5Padding([]byte(plainText), block.BlockSize())
+    
+    // 创建一个新的分组模式 cipher.BlockMode
+    blockMode := cipher.NewCBCEncrypter(block, []byte(key)[:aes.BlockSize])
+
+    cipherText := make([]byte, len(origData))
+    blockMode.CryptBlocks(cipherText, origData)
+
+    return base64.StdEncoding.EncodeToString(cipherText), nil
+}
+
+// AESDecrypt 解密 base64 编码的密文，返回明文数据。
+// 参数 cipherTextStr 是要解密的 base64 编码的密文。
+// 参数 key 是用于解密的密钥，它应该是一个 16、24、32位字符串。
+// 返回的结果是解密后的明文数据。
+func AESDecrypt(cipherTextStr string, key string) ([]byte, error) {
+    cipherText, err := base64.StdEncoding.DecodeString(cipherTextStr)
+    if err != nil {
+        return nil, err
+    }
+
+    block, err := aes.NewCipher([]byte(key))
+    if err != nil {
+        return nil, err
+    }
+
+    if len(cipherText) < aes.BlockSize {
+        return nil, errors.New("cipherText too short")
+    }
+
+    // 创建一个新的分组模式 cipher.BlockMode
+    blockMode := cipher.NewCBCDecrypter(block, []byte(key)[:aes.BlockSize])
+
+    plainText := make([]byte, len(cipherText))
+    blockMode.CryptBlocks(plainText, cipherText)
+
+    // 移除 PKCS7 填充
+    plainText = PKCS5UnPadding(plainText)
+
+    return plainText, nil
 }

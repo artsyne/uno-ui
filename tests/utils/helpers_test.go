@@ -21,7 +21,7 @@ func init() {
 
 // TestRand 测试 Rand 函数
 func TestRand(t *testing.T) {
-	size := 64
+	size := 32
 	kinds := []int{utils.RAND_KIND_NUM, utils.RAND_KIND_LOWER, utils.RAND_KIND_UPPER, utils.RAND_KIND_ALL}
 
 	for _, kind := range kinds {

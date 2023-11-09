@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/biuren/hebe/errors"
 	"github.com/biuren/hebe/models"
 	"github.com/biuren/hebe/settings"
 	"github.com/biuren/hebe/utils"
@@ -22,22 +23,22 @@ import (
 // language: 用户的语言偏好，通常来自浏览器的 Accept-Language 头部；
 // supportedLanguages: 系统支持的语言列表，来自配置文件。
 func GetSupportedLang(language string, supportedLanguages []settings.SupportLangs) string {
-    language = strings.ToLower(language)
+	language = strings.ToLower(language)
 
-    switch {
-    case strings.Contains(language, "zh-cn"), strings.Contains(language, "zh-hans"):
-        return "zh-cn"
-    case strings.Contains(language, "zh-hk"), strings.Contains(language, "zh-tw"), strings.Contains(language, "zh-hant"):
-        return "zh-tw"
-    default:
-        language = language[0:2]
-        for _, supportedLanguage := range supportedLanguages {
-            if supportedLanguage.Code == language {
-                return language
-            }
-        }
-        return "en"
-    }
+	switch {
+	case strings.Contains(language, "zh-cn"), strings.Contains(language, "zh-hans"):
+		return "zh-cn"
+	case strings.Contains(language, "zh-hk"), strings.Contains(language, "zh-tw"), strings.Contains(language, "zh-hant"):
+		return "zh-tw"
+	default:
+		language = language[0:2]
+		for _, supportedLanguage := range supportedLanguages {
+			if supportedLanguage.Code == language {
+				return language
+			}
+		}
+		return "en"
+	}
 }
 
 // AddActivateUserEmailTask : 增加发送激活用户邮件任务
@@ -85,7 +86,7 @@ func AddActivateUserEmailTask(user *models.User) error {
 
 // 用户注册
 // 返回值：0 表示成功，非0为错误码
-func RegUser(user *models.User) (int) {
+func RegUser(user *models.User) int {
 
 	//转换用户名，邮件地址为小写并去除空格
 	user.UserName = strings.TrimSpace(strings.ToLower(user.UserName))
@@ -140,7 +141,7 @@ func RegUser(user *models.User) (int) {
 	user.UserId = uid
 
 	//更新用户访问地址
-	user.AccessUrl= fmt.Sprintf("/u/%d", user.UserId)
+	user.AccessUrl = fmt.Sprintf("/u/%d", user.UserId)
 	rows, err := models.UpdateAccessUrlByUserId(user.UserId, user.AccessUrl)
 	if err != nil || rows == 0 {
 		return gobalerr.DB_OPERATION_ERR
@@ -152,30 +153,35 @@ func RegUser(user *models.User) (int) {
 	return 0
 }
 
-
 // CheckNameAndPwd : 检查用户名与密码是否正确
-func CheckNameAndPwd(name string, pwd string) (int, *models.User, error) {
+func CheckNameAndPwd(name string, pwd string) (*models.User, error) {
 	//根据用户名获取用户信息
 	user, err := models.GetUserByUserName(name)
 
 	if err != nil {
-		return gobalerr.USER_NOT_EXISTS, nil, err
+		errors.UserNotExists.Data = err
+		errors.UserNotExists.Source = "models.GetUserByUserName"
+		return nil, errors.UserNotExists
 	}
 
 	//如果用户不存在，用邮件地址查找用户信息
 	if user == nil {
 		user, err = models.GetUserByEmail(name)
 		if err != nil || user == nil {
-			return gobalerr.USER_NOT_EXISTS, nil, err
+			errors.UserNotExists.Data = err
+			errors.UserNotExists.Source = "models.GetUserByEmail"
+			return nil, errors.UserNotExists
 		}
 	}
 
 	//判断密码是否正确,密码为pwd+salt的sha256
 	if user.Pwd != utils.Sha256(pwd+user.PwdSalt) {
-		return gobalerr.USER_PWD_ERR, nil, nil
+		errors.UserPwdErr.Data = err
+		errors.UserNotExists.Source = "models.CheckNameAndPwd"
+		return nil, errors.UserPwdErr
 	}
 
-	return 0, user, nil
+	return user, nil
 }
 
 // ActiviteUser : 激活用户

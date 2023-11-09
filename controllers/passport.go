@@ -146,9 +146,9 @@ func HandleLogin(c *gin.Context) {
 	}
 	//判断用户名与密码是否正确，login name 可以是用户名或者邮件地址
 	login.LoginName = strings.ToLower(login.LoginName) //登录名改为小写
-	result, user, _ := services.CheckNameAndPwd(login.LoginName, login.Pwd)
-	if result != 0 || user == nil {
-		gobalerr.ResponseErr(c, result)
+	user, err := services.CheckNameAndPwd(login.LoginName, login.Pwd)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
@@ -167,11 +167,11 @@ func HandleLogin(c *gin.Context) {
 	//序列化login对象
 	ud, err := json.Marshal(login)
 	if err != nil {
-		gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 	//加密cookie
-	cookieUD, _ := utils.TripleDesEncrypt(string(ud), settings.GetConfig().Cookie.SecretKey)
+	cookieUD, _ := utils.AESEncrypt(string(ud), settings.GetConfig().Cookie.SecretKey)
 
 	//写入cookie
 	utils.WriteCookie(c.Writer, "ud", cookieUD)
