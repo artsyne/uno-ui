@@ -10,11 +10,11 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/biuren/hebe/errors"
 	"github.com/biuren/hebe/models"
 	"github.com/biuren/hebe/services"
 	"github.com/biuren/hebe/settings"
 	"github.com/biuren/hebe/utils"
-	gobalerr "github.com/biuren/hebe/utils"
 )
 
 // RenderFindPwd : 渲染查找密码界面
@@ -107,23 +107,23 @@ func HandleResetPwd(c *gin.Context) {
 	//检查确认码是否正确
 	if err != nil || len(newPwd) < settings.PWD_MIN_LEN || len(newPwd) > settings.PWD_MAX_LEN ||
 		len(sign) != settings.VALID_CODE_LEN || userID < 0 {
-		gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
+		errors.ResponseErr(c, errors.InputParamErr)
 		return
 	}
 	//检查确认码是否正确
 	result, validID := models.CheckValidCode(userID, sign, settings.VALID_CODE_RESET_PWD_EMAIL)
 	if !result {
-		gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
+		errors.ResponseErr(c, errors.InputParamErr)
 		return
 	}
 	//修改密码
 	if rows, err := models.UpdateUserPwd(userID, utils.Sha256(newPwd)); err != nil || rows != 1 {
-		gobalerr.ResponseErr(c, gobalerr.DB_OPERATION_ERR)
+		errors.ResponseErr(c, errors.DbOperationErr)
 		return
 	}
 	//删除验证码
 	if rows, err := models.DeleteValidCode(validID); err != nil || rows != 1 {
-		gobalerr.ResponseErr(c, gobalerr.DB_OPERATION_ERR)
+		errors.ResponseErr(c, errors.DbOperationErr)
 		return
 	}
 
@@ -135,13 +135,13 @@ func HandleLogin(c *gin.Context) {
 	login := &models.Login{}
 	err := c.Bind(login)
 	if err != nil {
-		gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
+		errors.ResponseErr(c, errors.InputParamErr)
 		return
 	}
 
 	//判断参数是否到位
 	if len(login.LoginName) < 6 || len(login.Pwd) < 6 {
-		gobalerr.ResponseErr(c, gobalerr.INPUT_PARAM_ERR)
+		errors.ResponseErr(c, errors.InputParamErr)
 		return
 	}
 	//判断用户名与密码是否正确，login name 可以是用户名或者邮件地址
@@ -194,7 +194,7 @@ func HandleUserReg(c *gin.Context) {
 	user := &models.User{}
 	err := c.Bind(user)
 	if err != nil {
-		gobalerr.ResponseErr(c, gobalerr.PARSE_INPUT_PARAM_ERR)
+		errors.ResponseErr(c, errors.InputParamErr)
 		return
 	}
 
@@ -202,11 +202,11 @@ func HandleUserReg(c *gin.Context) {
 	user.LastIp = c.ClientIP()
 
 	// 注册用户
-	errCode := services.RegUser(user)
+	regErr := services.RegUser(user)
 
-	//判断注册是否成功
-	if errCode != 0 {
-		gobalerr.ResponseErr(c, errCode)
+	//判断注册是否成功,todo: 写regerr到日志
+	if regErr != nil {
+		errors.ResponseErr(c, errors.DbOperationErr)
 		return
 	}
 
@@ -224,13 +224,13 @@ func HandleFindPwd(c *gin.Context) {
 
 	//判断参数是否正确
 	if !regexCheck.IsEmail(email) {
-		gobalerr.ResponseErr(c, gobalerr.INPUT_PARAM_ERR)
+		errors.ResponseErr(c, errors.InputParamErr)
 		return
 	}
 	//根据邮件地址获取用户信息
 	user, err := models.GetUserByEmail(email)
 	if user == nil || err != nil {
-		gobalerr.ResponseErr(c, gobalerr.USER_NOT_EXISTS)
+		errors.ResponseErr(c, errors.UserNotExists)
 		return
 	}
 
@@ -244,7 +244,7 @@ func HandleFindPwd(c *gin.Context) {
 	validCode.CreateUTCTime = nowTime.UnixMilli()
 	validCode.ExpireUTCTime = nowTime.AddDate(0, 0, settings.FIND_PWD_EMAIL_VAILID_CODE_EXPIRE_DAY).UnixMilli()
 	if _, err := validCode.Insert(); err != nil {
-		gobalerr.ResponseErr(c, gobalerr.INPUT_PARAM_ERR)
+		errors.ResponseErr(c, errors.InputParamErr)
 		return
 	}
 
@@ -265,7 +265,7 @@ func HandleFindPwd(c *gin.Context) {
 	jobQueue.AddUTCTime = nowTime.UnixMilli()
 	jsonBytes, err := json.Marshal(emailTask)
 	if err != nil {
-		gobalerr.ResponseErr(c, gobalerr.PARSE_JSON_ERR)
+		errors.ResponseErr(c, errors.ParseJsonErr)
 		return
 	}
 	jobQueue.Body = string(jsonBytes) //插入邮件任务json
@@ -275,7 +275,7 @@ func HandleFindPwd(c *gin.Context) {
 	jobQueue.Result = 1
 	_, err = jobQueue.Insert()
 	if err != nil {
-		gobalerr.ResponseErr(c, gobalerr.DB_OPERATION_ERR)
+		errors.ResponseErr(c, errors.DbOperationErr)
 		return
 	}
 	h := utils.ResponseH(c)

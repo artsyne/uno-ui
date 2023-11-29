@@ -2,10 +2,8 @@ package middlewares
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/biuren/hebe/errors"
-	"github.com/biuren/hebe/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,9 +22,7 @@ func ErrorHandler() gin.HandlerFunc {
 					"code": e.Code,
 					"msgkey":  e.MsgKey,
 					"msg":e.MsgKey+",todo",
-					"data": e.Data,
-					"source":e.Source,
-					"timestamp": strconv.FormatInt(utils.GetNowTimeUnixMilli(), 10),
+					"data": err.Error(),
 				})
 			} else {
 				// 若非自定义错误则返回详细错误信息err.Error()
@@ -35,7 +31,6 @@ func ErrorHandler() gin.HandlerFunc {
 					"msgkey":  errors.InternalErr.MsgKey,
 					"msg":errors.InternalErr.MsgKey+",todo",
 					"data": err.Error(),
-					"timestamp": strconv.FormatInt(utils.GetNowTimeUnixMilli(), 10),
 				})
 			}
 			return // 检查一个错误就退出

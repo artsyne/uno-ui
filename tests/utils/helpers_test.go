@@ -287,3 +287,48 @@ func TestConfig(t *testing.T) {
 	// 输出序列化后的字符串
 	fmt.Println(string(configJSON))
 }
+
+// TestIsValidUserName 测试 IsValidUserName 函数
+func TestIsValidUserName(t *testing.T) {
+	// 定义测试用例
+	cases := []struct {
+		input string
+		want  bool
+	}{
+		{"valid_user", true},  // 有效的用户名
+		{"invalid user", false},  // 包含空格的用户名
+		{"short", false},  // 长度不足的用户名
+		{"thisusernameiswaytoolongtobevalid", false},  // 长度过长的用户名
+	}
+
+	// 运行测试用例
+	for _, c := range cases {
+		got := utils.IsValidUserName(c.input)
+		if got != c.want {
+			t.Errorf("IsValidUserName(%q) == %v, want %v", c.input, got, c.want)
+		}
+	}
+}
+
+// TestIsValidPassword 测试 IsValidPassword 函数
+func TestIsValidPassword(t *testing.T) {
+	// 定义测试用例
+	cases := []struct {
+		input string
+		want  bool
+	}{
+		{"validPassword1", true},  // 有效的密码
+		{"noDigit", false},  // 不包含数字的密码
+		{"short1", false},  // 长度不足的密码
+		{"thispasswordiswaytoolongtobevalid1", false},  // 长度过长的密码
+		{"noLetter1", false},  // 不包含字母的密码
+	}
+
+	// 运行测试用例
+	for _, c := range cases {
+		got := utils.IsValidPassword(c.input)
+		if got != c.want {
+			t.Errorf("IsValidPassword(%q) == %v, want %v", c.input, got, c.want)
+		}
+	}
+}

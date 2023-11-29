@@ -7,6 +7,7 @@ import (
 
 	"github.com/biuren/hebe/models"
 	"github.com/biuren/hebe/utils"
+	"github.com/biuren/hebe/errors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -65,7 +66,7 @@ func HandleSpace(c *gin.Context) {
 	// 校验参数，标题必须填写，设置类型必须为1或者2，主题id必须在1-16之间
 	if err != nil || len(space.Title) < 1 || (space.ViewSetting != 1 &&
 		space.ViewSetting != 2 || space.ThemeID < 1 || space.ThemeID > 16) {
-			utils.ResponseErr(c, utils.PARSE_INPUT_PARAM_ERR)
+			errors.ResponseErr(c, errors.ParseInputParamErr)
 		return
 	}
 
@@ -98,7 +99,7 @@ func HandleSpace(c *gin.Context) {
 	if action, _ := c.GetPostForm("action"); action == "My.insertDaybook" {
 		spaceID, err := space.Insert() // 插入对象
 		if err != nil {
-			utils.ResponseErr(c, utils.PARSE_INPUT_PARAM_ERR)
+			errors.ResponseErr(c, err)
 			return
 		}
 		space.SpaceID = spaceID

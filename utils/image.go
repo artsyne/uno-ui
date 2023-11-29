@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/settings"
+	"github.com/biuren/hebe/errors"
 	"github.com/rs/xid"
 )
 
@@ -20,12 +21,12 @@ import (
 // filePath: 保存的文件的路径。
 // fileName: 保存的文件的名称。
 // errCode: 错误代码，如果没有错误发生，此值为0。
-func UploadImage(imgBase64Data string) (filePath, fileName string, errCode int) {
+func UploadImage(imgBase64Data string) (string, string, error) {
 
 	//判断图片是否为空
 	fileSize := len(imgBase64Data)
 	if fileSize < 100 {
-		return "", "", UPLOAD_FILE_EMPTY
+		return "", "", errors.UploadFileErr 
 	}
 
 	// 获取上传文件配置信息
@@ -34,26 +35,26 @@ func UploadImage(imgBase64Data string) (filePath, fileName string, errCode int) 
 	//判断上传文件类型是否正确
 	filetype := imgBase64Data[:strings.IndexByte(imgBase64Data, ';')]
 	if !strings.Contains(config.Upload.ImgType, filetype) {
-		return "", "", UPLOAD_FILE_TYPE_ERR
+		return "", "", errors.UploadFileErr
 	}
 
 	//判断文件大小
 	if fileSize > config.Upload.ImgMaxSize {
-		return "", "", UPLOAD_FILE_TOO_LARGE
+		return "", "", errors.UploadFileTooLarge
 	}
 
 	//路径格式为：config配置路径 + /年/月/日/uid.jpg
-	filePath, fileName = CreateUploadPathFileName()
+	filePath, fileName := CreateUploadPathFileName()
 	filePath = path.Join(config.Upload.ImgSavePath, filePath)
 	fileName = fmt.Sprintf("%s/%s.jpeg", filePath, fileName)
 
 	//保存图片
 	err := SaveBase64File(imgBase64Data, filePath, fileName)
 	if err != nil {
-		return "", "", UPLOAD_FILE_ERR
+		return "", "", errors.UploadFileErr
 	}
 
-	return filePath, fileName, 0
+	return filePath, fileName, nil
 }
 
 // SaveBase64File 是一个用于处理 base64 编码的文件数据的函数。

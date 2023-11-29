@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/biuren/hebe/errors"
 	"github.com/biuren/hebe/models"
 	"github.com/biuren/hebe/utils"
 	"github.com/gin-gonic/gin"
@@ -26,7 +27,7 @@ func HandleInfo(c *gin.Context) {
 	infoForm := &models.InfoForm{}
 	err := c.Bind(infoForm)
 	if err != nil {
-		utils.ResponseErr(c, utils.PARSE_INPUT_PARAM_ERR)
+		errors.ResponseErr(c, errors.ParseInputParamErr)
 		return
 	}
 
@@ -49,15 +50,14 @@ func HandleInfo(c *gin.Context) {
 	//插入数据库
 	infoID, err := info.Insert()
 	if err != nil {
-		utils.ResponseErrWithDesc(c, utils.DB_OPERATION_ERR,
-			utils.EnumErrDesc[utils.DB_OPERATION_ERR]+","+err.Error())
+		errors.ResponseErr(c, err)
 		return
 	}
 
 	//日记本信息数量加一
 	err = models.IncrementInfoNum(info.SpaceID)
 	if err != nil {
-		utils.ResponseErrWithDesc(c, utils.DB_OPERATION_ERR, utils.EnumErrDesc[utils.DB_OPERATION_ERR])
+		errors.ResponseErr(c, err)
 		return
 	}
 
