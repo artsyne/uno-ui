@@ -1,6 +1,8 @@
 package main
 
 import (
+	"runtime/debug"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 
@@ -18,6 +20,16 @@ func main() {
 
 	//设置日志
 	utils.SetLogger()
+
+	// 捕获启动过程中的 panic 错误
+    defer func() {
+        if err := recover(); err != nil {
+            logrus.WithFields(logrus.Fields{
+                "error": err,
+                "stack": string(debug.Stack()),
+            }).Error("启动函数 panic 错误")
+        }
+    }()
 
 	//初始化配置信息
 	settings.LoadConfig()
@@ -62,5 +74,5 @@ func startServer(sitePort string) {
 // 在http请求上下文中注入中间件
 func AttachMiddleware(server *gin.Engine){
 	// 加载上下文共享数据，如登录数据
-	server.Use(middlewares.ErrorHandler(),middlewares.SharedData())
+	server.Use(middlewares.PanicHandler(),middlewares.ErrorHandler(),middlewares.SharedData())
 }
