@@ -206,7 +206,7 @@ func HandleUserReg(c *gin.Context) {
 
 	//判断注册是否成功,todo: 写regerr到日志
 	if regErr != nil {
-		errors.ResponseErr(c, errors.DbOperationErr)
+		errors.ResponseErr(c, regErr)
 		return
 	}
 
