@@ -38,3 +38,28 @@ func RenderMemberIndex(c *gin.Context) {
 	//h["UserData"] = c
 	c.HTML(http.StatusOK, "member/index", h)
 }
+
+// RenderMemberSetting: 渲染设置页面
+func RenderMemberSettings(c *gin.Context){
+	h := utils.DefaultH(c)
+
+	//获取url 中的 uid
+	uid, _ := strconv.ParseInt(c.Param("uid"), 10, 64)
+
+	h["Title"] = "设置"
+	h["Active"] = "setting"
+
+	//读取用户认证信息
+	userData := h["UserData"].(models.Login)
+
+	//返回判断是否是owner
+	isOnwer := false
+	if userData.UserId == uid {
+		isOnwer = true
+	}
+
+	h["IsOwner"] = isOnwer
+
+	//h["UserData"] = c
+	c.HTML(http.StatusOK, "member/setting", h)
+}

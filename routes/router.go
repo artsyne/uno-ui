@@ -104,12 +104,10 @@ func setPath(server *gin.Engine) {
 	server.POST("/resetpwd", controllers.HandleResetPwd)
 	server.GET("/activateuser", controllers.RenderActivateUser)
 
+	//
 	server.GET("/u/:uid", controllers.RenderMemberIndex)
+	server.GET("u/:uid/settings", controllers.RenderMemberSettings)
 
-	member := server.Group("/member")
-	{
-		member.GET("/", controllers.RenderMemberIndex)
-	}
 
 	// 日记本操作
 	server.POST("/daybook", controllers.HandleSpace)
