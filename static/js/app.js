@@ -1176,7 +1176,6 @@ Biuren.Diary = {
 $(function () {
     Biuren.Valid.init();
     Biuren.Pager.init();
-
     Biuren.Diary.init();
 
     //header fixed
