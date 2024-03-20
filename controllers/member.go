@@ -61,5 +61,5 @@ func RenderMemberSettings(c *gin.Context){
 	h["IsOwner"] = isOnwer
 
 	//h["UserData"] = c
-	c.HTML(http.StatusOK, "member/setting", h)
+	c.HTML(http.StatusOK, "member/settings", h)
 }
