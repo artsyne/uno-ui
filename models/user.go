@@ -10,6 +10,7 @@ type Login struct {
 	AccessUrl    string `form:"access_url" json:"access_url"`
 	UserId       int64  `form:"user_id" json:"user_id"`
 	UserName     string `form:"user_name" json:"user_name"`
+	FullName     string `form:"full_name" json:"full_name"`
 	UserGroup    int8   `form:"user_group" json:"user_group"`
 	FaceSmallUrl string `form:"face_small_url" json:"face_small_url"`
 	LoginUTCTime int64  `form:"login_utc_time" json:"login_utc_time"`
@@ -21,6 +22,7 @@ type Login struct {
 type User struct {
 	UserId           int64  `form:"user_id" json:"user_id" db:"user_id"`
 	UserName         string `form:"user_name" json:"user_name" db:"user_name"`
+	FullName     	 string `form:"full_name" json:"full_name" db:"full_name"`
 	UserGroup        int8   `form:"user_group" json:"user_group" db:"user_group"`
 	Pwd              string `form:"pwd" json:"pwd" db:"pwd"`
 	PwdSalt          string `form:"pwd_salt" json:"pwd_salt" db:"pwd_salt"`
@@ -60,7 +62,8 @@ func (user *User) Insert() (int64, error) {
                     last_login_utc_time  ,
                     status,
 					time_zone,
-					lang 
+					lang,
+					full_name 
                 )
                 values (
                     ?  ,
@@ -79,6 +82,7 @@ func (user *User) Insert() (int64, error) {
                     ?  ,
                     ?  ,
                     ?,
+					?,
 					?,
 					?
                 )
@@ -99,7 +103,7 @@ func (user *User) Insert() (int64, error) {
 		user.Remark,
 		user.LastIp,
 		user.LastLoginUTCTime,
-		user.Status, user.TimeZone, user.Lang)
+		user.Status, user.TimeZone, user.Lang,user.FullName)
 
 	if err != nil {
 		return 0, err
@@ -108,7 +112,7 @@ func (user *User) Insert() (int64, error) {
 	return id, err
 }
 
-// 更新数据
+// 更新数据，方法应该废弃，拆分多个方法，不能一次修改多个关键信息
 func (user *User) Update() (int64, error) {
 	sql := `
                 update br_user

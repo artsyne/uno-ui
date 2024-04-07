@@ -154,6 +154,7 @@ func HandleLogin(c *gin.Context) {
 
 	//创建用户Login数据
 	login.UserId = user.UserId
+	login.FullName = user.FullName
 	login.AccessUrl = user.AccessUrl
 	login.FaceSmallUrl = user.FaceSmallUrl
 	login.LoginUTCTime = utils.GetNowTimeUnixMilli()

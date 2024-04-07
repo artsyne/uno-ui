@@ -56,6 +56,12 @@ func RenderMemberSettings(c *gin.Context){
 	isOnwer := false
 	if userData.UserId == uid {
 		isOnwer = true
+
+		//如果是用户本人，将获取用户信息
+		userInfo, _ := models.GetUserByUserId(userData.UserId)
+		
+		//返回用户对象到模版
+		h["UserInfo"] = userInfo
 	}
 
 	h["IsOwner"] = isOnwer

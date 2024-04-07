@@ -25,7 +25,7 @@
                     <div class="mb-3">
                         <label class="form-label">Full name</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Full name">
+                            <input type="text" class="form-control" placeholder="Full name" value="{{.UserInfo.FullName}}">
                         </div>
                     </div>
                     <!-- Bio -->
@@ -51,7 +51,7 @@
                     <!-- Email -->
                     <div class="mb-3">
                         <label class="form-label">Email</label>
-                        <input class="form-control" type="email" value="loriferguson@wbs.com">
+                        <input class="form-control" type="email" value="{{.UserInfo.Email}}">
                     </div>
                     <!-- Save button -->
                     <div class="d-flex justify-content-end mt-4">
