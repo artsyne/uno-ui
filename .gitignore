@@ -1,10 +1,9 @@
 /.DS_Store
-/__debug_bin
-/__debug_bin.exe
 /.vscode
 /vendor
 /logs
 /upload
 config/config.json
 /*.exe
+/*debug_bin*
   
