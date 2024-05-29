@@ -24,10 +24,15 @@ func RenderDaybookIndex(c *gin.Context) {
 
 	//获取url中spaceId
 	spaceId, err := strconv.ParseInt(strings.TrimSpace(c.Param("spaceid")), 10, 64)
-	if err != nil {
+	if err == nil {
 		space, _ := models.GetSpaceBySpaceID(spaceId)
 		if space != nil {
 			h["Space"] = space
+			//分页显示日记列表
+			h["Diaries"], err = models.ListInfoByUserID(space.AddUserID,spaceId,1,30)
+			if err != nil{
+				hasError = true
+			}
 		} else {
 			hasError = true
 		}

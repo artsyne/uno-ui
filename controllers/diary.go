@@ -5,6 +5,7 @@ import (
 
 	"github.com/biuren/hebe/errors"
 	"github.com/biuren/hebe/models"
+	"github.com/biuren/hebe/settings"
 	"github.com/biuren/hebe/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -23,6 +24,9 @@ func HandleInfo(c *gin.Context) {
 	userSession, _ := c.Get("UserData")
 	userData := userSession.(models.Login)
 
+	//获取配置信息
+	config := settings.GetConfig()
+
 	// 序列化请求对象
 	infoForm := &models.InfoForm{}
 	err := c.Bind(infoForm)
@@ -33,11 +37,12 @@ func HandleInfo(c *gin.Context) {
 
 	info := &models.Info{}
 	var nowTime = utils.GetNowTimeUnixMilli()
+
 	//赋值info对象
 	info.SpaceID = infoForm.SpaceID
 	info.IsTop = 0
 	info.Title = infoForm.Title
-	info.Summary = ""
+	info.Summary = utils.TruncateString(infoForm.Body, config.SummaryMax, config.Suffix)
 	info.Body = infoForm.Body
 	info.InfoType = 1
 	info.AddUserID = userData.UserId

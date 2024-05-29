@@ -8,7 +8,7 @@
     <div class="info-cover">
         <div class="d-flex">
             <div class="me-auto">
-                <div id="page-nav"><a href="#" class="pe-3">roy chen</a>/<span class="ps-3">私密日记本<i
+                <div id="page-nav"><a href="#" class="pe-3">roy chen</a>/<span class="ps-3">{{.Space.Title}}<i
                             class="mdi mdi-lock-outline ps-1"></i></span>
                 </div>
             </div>
@@ -62,64 +62,33 @@
                 </div>
             </div>
         </div>
+
+        {{range .Diaries}}
         <div class="col-md-6 col-xl-4 col-xxl-3 mb-4">
             <div class="card card-blog-theme">
-                <img class="card-img-top" src="/public/img/diary/1.jpg" />
-                <div class="card-body">
+                <div class="card-body mt-5 pt-5" >
+                    {{if .Title }}
                     <h5 class="card-title">
-                        从香味到层次上的多变
+                        {{.Title}}
                     </h5>
+                    {{end}}
                     <p class="card-text text-break">
-                        这种复杂的感官体验也延续到了香味上，来自爪哇和海地的岩兰草在这里一改以往刚性的印象，变得清新柔软又不失个性——你很容易在人群里分辨出这种味道，知道有人用了一款不常见的香水。而闻起来的感觉也像是经历了一次长途跋涉，穿越潮湿的雨林采摘下一株野花，空气里十足的清新自然，然后走过一间果园嗅到成熟柑橘的蓬勃鲜香，带着树木枝干被阳光暴晒的暖意，最后则是一丝淡淡的回甘，好似结束了一段丰沛的旅程，回到院子里歇息下来，品尝新鲜甜美的蔬果。
-
-                        从香味到层次上的多变，是维堤里欧的一大特点印象。如果你喜欢这种带着植物气息又不失温暖的木质香型，也希望在一天里能有不同的香氛体验，非常推荐试试看，男女都可用。
+                        {{ .Summary}}
                     </p>
                 </div>
                 <div class="card-footer pt-0">
                     <div class="d-flex">
                         <div class="me-auto p-1">
-                            <a href="#" class="link-gray mr-2"><i class="mdi mdi-account-box"></i> 张三</a>
-                            <a href="#" class="link-gray"><i class="mdi mdi-book-outline"></i> 我的私人日记</a>
+                            <a href="#" class="link-gray mr-2"><i class="mdi mdi-account-box"></i> {{.AddUserName}}</a>
+                            <a href="#" class="link-gray"><i class="mdi mdi-book-outline"></i> {{$.Space.Title}}</a>
                         </div>
                         <div class="p-1">
                             <a href="#" class="mr-2">
-                                <i class="mdi mdi-comment-multiple-outline"></i> <span class="text-gray">54</span>
+                                <i class="mdi mdi-comment-multiple-outline"></i> <span
+                                    class="text-gray">{{.CommentNum}}</span>
                             </a>
                             <a href="#">
-                                <i class="mdi mdi-heart-outline"></i> <span class="text-gray">4</span>
-
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="blog-date">
-                    <span class="post-month">十二月</span>
-                    <span class="post-day">29</span>
-                    <span class="post-year">2019</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-xl-4 col-xxl-3 mb-4">
-            <div class="card card-blog-theme">
-                <div class="card-body mt-5 pt-5">
-                    <p class="card-text">
-                        空气里十足的清新自然，然后走过一间果园嗅到成熟柑橘的蓬勃鲜香，带着树木枝干被阳光暴晒的暖意，最后则是一丝淡淡的回甘，好似结束了一段丰沛的旅程，回到院子里歇息下来，品尝新鲜甜美的蔬果。
-                        </br></br>
-                        也希望在一天里能有不同的香氛体验，非常推荐试试看，男女都可用。
-                    </p>
-                </div>
-                <div class="card-footer pt-0">
-                    <div class="d-flex">
-                        <div class="me-auto p-1">
-                            <a href="#" class="link-gray mr-2"><i class="mdi mdi-account-box"></i> 张三</a>
-                            <a href="#" class="link-gray"><i class="mdi mdi-book-outline"></i> 我的私人日记</a>
-                        </div>
-                        <div class="p-1">
-                            <a href="#" class="mr-2">
-                                <i class="mdi mdi-comment-multiple-outline"></i> <span class="text-gray">54</span>
-                            </a>
-                            <a href="#">
-                                <i class="mdi mdi-heart-outline"></i> <span class="text-gray">4</span>
+                                <i class="mdi mdi-heart-outline"></i> <span class="text-gray">{{.LikeNum}}</span>
                             </a>
                         </div>
                     </div>
@@ -134,144 +103,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-xl-4 col-xxl-3 mb-4">
-            <div class="card card-blog-theme">
-                <img class="card-img-top" src="/public/img/diary/2.jpg" />
-                <div class="card-body">
-                    <h5 class="card-title">
-                        从香味到层次上的多变
-                    </h5>
-                    <p class="card-text">
-                        这种复杂的感官体验也延续到了香味上，来自爪哇和海地的岩兰草在这里一改以往刚性的印象，变得清新柔软又不失个性——你很容易在人群里分辨出这种味道，知道有人用了一款不常见的香水。而闻起来的感觉也像是经历了一次长途跋涉，穿越潮湿的雨林采摘下一株野花，空气里十足的清新自然，然后走过一间果园嗅到成熟柑橘的蓬勃鲜香，带着树木枝干被阳光暴晒的暖意，最后则是一丝淡淡的回甘，好似结束了一段丰沛的旅程，回到院子里歇息下来，品尝新鲜甜美的蔬果。
+        {{end}}
 
-                        从香味到层次上的多变，是维堤里欧的一大特点印象。如果你喜欢这种带着植物气息又不失温暖的木质香型，也希望在一天里能有不同的香氛体验，非常推荐试试看，男女都可用。
-                    </p>
-
-                </div>
-                <div class="card-footer pt-0">
-                    <div class="d-flex">
-                        <div class="me-auto p-1">
-                            <a href="#" class="link-gray mr-2"><i class="mdi mdi-account-box"></i> 张三</a>
-                            <a href="#" class="link-gray"><i class="mdi mdi-book-outline"></i> 我的私人日记</a>
-                        </div>
-                        <div class="p-1">
-                            <a href="#" class="mr-2">
-                                <i class="mdi mdi-comment-multiple-outline"></i> <span class="text-gray">54</span>
-                            </a>
-                            <a href="#">
-                                <i class="mdi mdi-heart-outline"></i> <span class="text-gray">4</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="blog-date">
-                    <span class="post-month">十二月</span>
-                    <span class="post-day">29</span>
-                    <span class="post-year">2019</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-xl-4 col-xxl-3 mb-4">
-            <div class="card card-blog-theme">
-                <div class="card-body  mt-5 pt-5">
-                    <p class="card-text">
-                        空气里十足的清新自然，然后走过一间果园嗅到成熟柑橘的蓬勃鲜香，带着树木枝干被阳光暴晒的暖意，最后则是一丝淡淡的回甘，好似结束了一段丰沛的旅程，回到院子里歇息下来，品尝新鲜甜美的蔬果。
-                        </br></br>
-                        也希望在一天里能有不同的香氛体验，非常推荐试试看，男女都可用。
-                    </p>
-                </div>
-                <div class="card-footer pt-0">
-                    <div class="d-flex">
-                        <div class="me-auto p-1">
-                            <a href="#" class="link-gray mr-2"><i class="mdi mdi-account-box"></i> 张三</a>
-                            <a href="#" class="link-gray"><i class="mdi mdi-book-outline"></i> 我的私人日记</a>
-                        </div>
-                        <div class="p-1">
-                            <a href="#" class="mr-2">
-                                <i class="mdi mdi-comment-multiple-outline"></i> <span class="text-gray">54</span>
-                            </a>
-                            <a href="#">
-                                <i class="mdi mdi-heart-outline"></i> <span class="text-gray">4</span>
-
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="blog-date">
-                    <span class="post-month">十二月</span>
-                    <span class="post-day">29</span>
-                    <span class="post-year">2019</span>
-                </div>
-                <div class="blog-quote-icon">
-                    <i class="mdi mdi-format-quote-close"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-xl-4 col-xxl-3 mb-4">
-            <div class="card card-blog-theme">
-                <img class="card-img-top" src="/public/img/diary/3.jpg" />
-                <div class="card-body">
-                    <h5 class="card-title">
-                        从香味到层次上的多变
-                    </h5>
-                    <p class="card-text">
-                        这种复杂的感官体验也延续到了香味上，来自爪哇和海地的岩兰草在这里一改以往刚性的印象，变得清新柔软又不失个性——你很容易在人群里分辨出这种味道，知道有人用了一款不常见的香水。而闻起来的感觉也像是经历了一次长途跋涉，穿越潮湿的雨林采摘下一株野花，空气里十足的清新自然，然后走过一间果园嗅到成熟柑橘的蓬勃鲜香，带着树木枝干被阳光暴晒的暖意，最后则是一丝淡淡的回甘，好似结束了一段丰沛的旅程，回到院子里歇息下来，品尝新鲜甜美的蔬果。
-
-                        从香味到层次上的多变，是维堤里欧的一大特点印象。如果你喜欢这种带着植物气息又不失温暖的木质香型，也希望在一天里能有不同的香氛体验，非常推荐试试看，男女都可用。
-                    </p>
-
-                </div>
-                <div class="card-footer pt-0">
-                    <div class="d-flex">
-                        <div class="me-auto p-1">
-                            <a href="#" class="link-gray mr-2"><i class="mdi mdi-account-box"></i> 张三</a>
-                            <a href="#" class="link-gray"><i class="mdi mdi-book-outline"></i> 我的私人日记</a>
-                        </div>
-                        <div class="p-1">
-                            <a href="#" class="mr-2">
-                                <i class="mdi mdi-comment-multiple-outline"></i> <span class="text-gray">54</span>
-                            </a>
-                            <a href="#">
-                                <i class="mdi mdi-heart-outline"></i> <span class="text-gray">4</span>
-
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="blog-date">
-                    <span class="post-month">十二月</span>
-                    <span class="post-day">29</span>
-                    <span class="post-year">2019</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-xl-4 col-xxl-3 mb-4">
-            <div class="card card-blog-theme">
-                <img class="card-img-top" src="/public/img/diary/4.jpg" />
-                <div class="card-footer pt-0">
-                    <div class="d-flex">
-                        <div class="me-auto p-1">
-                            <a href="#" class="link-gray mr-2"><i class="mdi mdi-account-box"></i> 张三</a>
-                            <a href="#" class="link-gray"><i class="mdi mdi-book-outline"></i> 我的私人日记</a>
-                        </div>
-                        <div class="p-1">
-                            <a href="#" class="mr-2">
-                                <i class="mdi mdi-comment-multiple-outline"></i> <span class="text-gray">54</span>
-                            </a>
-                            <a href="#">
-                                <i class="mdi mdi-heart-outline"></i> <span class="text-gray">4</span>
-
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="blog-date">
-                    <span class="post-month">十二月</span>
-                    <span class="post-day">29</span>
-                    <span class="post-year">2019</span>
-                </div>
-            </div>
-        </div>
     </div>
     <!--
     <div data-toggle="modal" data-target="#myModal">

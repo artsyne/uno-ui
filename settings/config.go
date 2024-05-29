@@ -56,6 +56,8 @@ type Config struct {
 	Public   string `json:"public"`
 	Domain   string `json:"domain"`
 	SitePort string `json:"site_port"`
+	SummaryMax int `json:"summary_max"`
+	Suffix string `json:"suffix"`
 	SupportLangs []SupportLangs `json:"support_langs"`
 	Database struct {
 		Host     string	`json:"host"`

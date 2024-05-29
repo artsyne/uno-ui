@@ -57,7 +57,7 @@ func (info *Info) Insert() (int64, error) {
 	return id, err
 }
 
-// 根据用户ID查询信息
+// 根据用户ID查询日记本信息
 func ListSpaceInfoByUserID(userID int64, sapceID int64)([]Info,error){
 	infoArray := []Info{}
 	sqlstr := 	"SELECT * FROM br_info WHERE space_id = ? AND add_user_id = ? ORDER BY info_id DESC"
@@ -66,5 +66,23 @@ func ListSpaceInfoByUserID(userID int64, sapceID int64)([]Info,error){
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
+	return infoArray, err
+}
+
+//根据用户ID，日记本ID分页查询日记信息
+func ListInfoByUserID(userID int64, sapceID int64, page, pageSize int)([]Info,error){
+	infoArray := []Info{}
+	
+	// 计算偏移量，注意：页码通常从1开始，所以需要减1
+    offset := (page - 1) * pageSize
+
+	sqlstr := 	`SELECT * FROM br_info WHERE space_id = ? AND add_user_id = ? 
+				ORDER BY info_id DESC LIMIT ? offset ? `
+	
+	err := db.Select(&infoArray, sqlstr, sapceID,userID, pageSize, offset)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
 	return infoArray, err
 }

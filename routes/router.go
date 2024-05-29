@@ -28,6 +28,7 @@ func Set(server *gin.Engine) {
 // 通过rice box 加载 "views" 目录中的模版文件
 func setTemplate(server *gin.Engine) {
 	box := rice.MustFindBox("../views")
+	
 	//注册模版函数
 	tmpl := template.New("").Funcs(template.FuncMap{
 		//TODO：加载模版函数，后期需要完善

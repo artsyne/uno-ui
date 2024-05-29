@@ -3,6 +3,8 @@
     "public": "static",
     "domain": "http://127.0.0.1:8080",
     "site_port": "8081",
+    "summary_max":300,
+    "suffix":"...",
     "support_langs":[
       {
         "code": "ar",
@@ -89,6 +91,8 @@
     "public": "static",
     "domain": "http://www.idiary.ai",
     "site_port": "80",
+    "summary_max":350,
+    "suffix":"...",
     "support_langs": [
       {
         "code": "ar",
