@@ -1,15 +1,21 @@
 {{define "daybook/index"}}
 {{template "header" .}}
 {{template "navbar" .}}
+
+{{if .hasError}}
+    {{template "error" .}}
+{{else}}
+
 <script>
-    var spaceId = {{.SpaceID }};
+    var spaceId = {{.Space.SpaceID }};
 </script>
 <div class="main-body px-5 py-4 dt8">
     <div class="info-cover">
         <div class="d-flex">
             <div class="me-auto">
-                <div id="page-nav"><a href="#" class="pe-3">roy chen</a>/<span class="ps-3">{{.Space.Title}}<i
-                            class="mdi mdi-lock-outline ps-1"></i></span>
+                <div id="page-nav"><a href="/u/{{.Space.AddUserID}}" class="pe-3">{{.Space.AddUserName}}</a>/<a
+                        href="/daybook/{{.Space.SpaceID}}" class="ps-3">{{.Space.Title}}</a><i
+                        class="mdi mdi-lock-outline ps-1"></i>
                 </div>
             </div>
             <div><button type="button" class="btn btn-outline-secondary btn-sm float-right px-3 me-2"><i
@@ -66,7 +72,7 @@
         {{range .Diaries}}
         <div class="col-md-6 col-xl-4 col-xxl-3 mb-4">
             <div class="card card-blog-theme">
-                <div class="card-body mt-5 pt-5" >
+                <div class="card-body mt-5 pt-5">
                     {{if .Title }}
                     <h5 class="card-title">
                         {{.Title}}
@@ -74,7 +80,7 @@
                     {{end}}
                     <p class="card-text text-break">
                         {{ .Summary}}
-                    </p>
+                        SELECT * FROM br_info ORDER BY info_id DESC </p>
                 </div>
                 <div class="card-footer pt-0">
                     <div class="d-flex">
@@ -145,6 +151,9 @@
         </div>
     </form>
 </div>
+
+{{end}}
+
 {{template "scripts" .}}
 <script src="/public/js/masonry.pkgd.min.js?v=4.2.2"></script>
 <script src="/public/js/imagesloaded.pkgd.min.js"></script>
@@ -159,6 +168,5 @@
         });
     });
 </script>
-
 {{template "footer" .}}
 {{end}}

@@ -35,13 +35,15 @@ func HandleInfo(c *gin.Context) {
 		return
 	}
 
-	info := &models.Info{}
 	var nowTime = utils.GetNowTimeUnixMilli()
 
 	//赋值info对象
+	info := &models.Info{}
+
 	info.SpaceID = infoForm.SpaceID
 	info.IsTop = 0
 	info.Title = infoForm.Title
+	//截取配置长度字符串，末尾增加 suffix
 	info.Summary = utils.TruncateString(infoForm.Body, config.SummaryMax, config.Suffix)
 	info.Body = infoForm.Body
 	info.InfoType = 1
