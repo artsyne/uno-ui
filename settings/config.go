@@ -35,6 +35,11 @@ const (
 	VALID_CODE_ACTIVE_USER_EMAIL        int8 = 1 //激活用户
 	VALID_CODE_RESET_PWD_EMAIL          int8 = 2 //重设密码
 	VALID_CODE_INVITE_USER_JOIN_DAYBOOK int8 = 3 //邀请用户加入日记本
+
+	//日记本权限
+	DAYBOOK_VIEW_PUBLIC  int8 = 1 //公开
+	DAYBOOK_VIEW_PRIVATE int8 = 2 //私有
+
 )
 
 //定义支持的语言

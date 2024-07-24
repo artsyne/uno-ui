@@ -7,7 +7,13 @@
     <div class="info-cover">
         <div class="d-flex">
             <div class="me-auto">
-                <div id="page-nav"><a href="#" class="pe-3">roy chen</a></div>
+                <div id="page-nav">
+                    <ul class="nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/u/{{.UserData.UserId}}">{{.UserData.UserName}}</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
         <div class="row mt-5 mb-4">

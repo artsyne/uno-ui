@@ -85,8 +85,8 @@ func setPath(server *gin.Engine) {
 	diary := server.Group("/diary")
 	{
 		diary.GET("/", controllers.RenderDiary)
-		diary.GET("/write", controllers.RenderDiaryWrite)
 	}
+	server.GET("/write", controllers.RenderDiaryWrite)
 	server.POST("/info", controllers.HandleInfo)
 
 	// my

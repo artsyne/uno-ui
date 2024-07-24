@@ -9,7 +9,7 @@
                 </a>
             </h1>
         </div>
-        <div class="top-nav d-flex align-items-center">
+        <div class="d-flex top-nav align-items-center">
         </div>
         <div class="d-flex align-items-center">
             {{if not .IsLogin }}
@@ -17,18 +17,19 @@
                 免费注册</a>
             <a class="nav-link text-black-50 fs-6" href="/login" role="button"><i class="fa fa-sign-in"></i> 登录</a>
             {{else}}
+            <a class="btn btn-outline-secondary mx-2 px-3" role="button" href="/write">
+                <i class="mdi mdi-plus"></i>写日记</a>
+
             <div class="dropdown ms-1">
                 <a id="user_drop" href="#" class="nav-link dropdown-toggle text-black-50 p-0" role="button"
                     data-bs-toggle="dropdown">
                     <img style="width:38px;" src="/public/img/face.jpg" />
                 </a>
                 <ul id="user_menu" class="dropdown-menu p-3" aria-labelledby="user_drop">
-                    <li><a href="#" class="dropdown-item nav-link"><i class="mdi mdi-home-variant-outline"></i> 我的主页</a></li>
-                    <li><a href="#" class="dropdown-item nav-link"><i class="mdi mdi-pencil-box-multiple-outline"></i>
-                            <span>草稿箱</span></a></li>
-                    <li> <a href="#" class="dropdown-item nav-link"><i class="mdi mdi-trash-can-outline"></i>
-                            <span>回收站</span></a></li>
-                    <li></li><a href="/u/{{.UserData.UserId }}/settings" class="dropdown-item nav-link"><i class="mdi mdi-cogs"></i> 用户设置</a></li>
+                    <li><a href="#" class="dropdown-item nav-link"><i class="mdi mdi-home-variant-outline"></i> 我的主页</a>
+                    </li>
+                    <li></li><a href="/u/{{.UserData.UserId }}/settings" class="dropdown-item nav-link"><i
+                            class="mdi mdi-cogs"></i> 用户设置</a></li>
                     <li> <a href="/loginout" class="dropdown-item nav-link"><i class="mdi mdi-logout"></i> 退出登录</a></li>
                 </ul>
             </div>
@@ -38,4 +39,6 @@
 </header>
 
 <div id="help"></div>
+
+
 {{end}}

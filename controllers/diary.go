@@ -12,10 +12,23 @@ import (
 
 // renderDiaryWrite ： 渲染日记编辑
 func RenderDiaryWrite(c *gin.Context) {
+	//获取用户登录信息
+	userSession, _ := c.Get("UserData")
+	userData := userSession.(models.Login)
+
+	//读取用户所有日记本
+	spaces,err := models.GetSpaceByUserID(userData.UserId)
+	if err != nil {
+		errors.ResponseErr(c, errors.ParseInputParamErr)
+		return
+	}
+
 	h := utils.DefaultH(c)
 	h["Title"] = "写日记"
 	h["Active"] = "users"
-	c.HTML(http.StatusOK, "diary/write_form", h)
+	h["UserData"] = userData
+	h["Spaces"] = spaces
+	c.HTML(http.StatusOK, "diary/write", h)
 }
 
 // 发布日记
@@ -40,13 +53,15 @@ func HandleInfo(c *gin.Context) {
 	//赋值info对象
 	info := &models.Info{}
 
+	// todo 需判断空间是否有权限发布日记
+
 	info.SpaceID = infoForm.SpaceID
 	info.IsTop = 0
 	info.Title = infoForm.Title
 	//截取配置长度字符串，末尾增加 suffix
 	info.Summary = utils.TruncateString(infoForm.Body, config.SummaryMax, config.Suffix)
 	info.Body = infoForm.Body
-	info.InfoType = 1
+	info.InfoType = 1 //默认为文本
 	info.AddUserID = userData.UserId
 	info.AddUserName = userData.UserName
 	info.AddUTCTime = nowTime
@@ -62,7 +77,7 @@ func HandleInfo(c *gin.Context) {
 	}
 
 	//日记本信息数量加一
-	err = models.IncrementInfoNum(info.SpaceID)
+	err = models.IncrementInfoNum(info.SpaceID,userData.UserId,userData.UserName,nowTime)
 	if err != nil {
 		errors.ResponseErr(c, err)
 		return

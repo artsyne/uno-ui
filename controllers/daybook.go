@@ -39,8 +39,7 @@ func RenderDaybookIndex(c *gin.Context) {
 	} else {
 		hasError = true
 	}
-hasError=true
-errMsg = "go home!!"
+
 	h["SpaceID"] = spaceId
 	h["hasError"] = hasError
 	h["errMsg"] = errMsg

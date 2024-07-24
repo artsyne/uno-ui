@@ -5,10 +5,18 @@
 <div class="main-body px-5 py-4">
     <!--封面信息-->
     <div class="info-cover">
-        <div class="d-flex">
-            <div class="me-auto">
-                <div id="page-nav"><a href="#" class="pe-3">roy chen</a> / <a href="#ss">Settings</a></div>
-            </div>
+        <div id="page-nav">
+            <ul class="nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/u/{{.UserData.UserId}}">{{.UserData.UserName}}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><span class="mdi mdi-slash-forward"></span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Settings</a>
+                </li>
+            </ul>
         </div>
     </div>
 
@@ -30,7 +38,8 @@
                     <!-- Bio -->
                     <div class="form-floating mb-3">
                         <textarea type="text" class="form-control" id="remark" name="remark" placeholder="Bio" rows="3"
-                            valid="[{type:'limit',max:250,show:true}]"  style="height: 120px;">I’ve found a way to get paid for my favorite hobby, and do so while following my dream of traveling the world.</textarea>
+                            valid="[{type:'limit',max:250,show:true}]"
+                            style="height: 120px;">I’ve found a way to get paid for my favorite hobby, and do so while following my dream of traveling the world.</textarea>
                         <label for="remark">Bio</label>
                     </div>
                     <!-- Save button -->
@@ -49,7 +58,7 @@
                     <!-- Email -->
                     <div class="form-floating mb-3">
                         <input type="email" class="form-control" id="email" name="email" placeholder="Email"
-                        type="email" value="{{.UserInfo.Email}}">
+                            type="email" value="{{.UserInfo.Email}}">
                         <label for="email">Email</label>
                     </div>
                     <!-- Save button -->
@@ -67,17 +76,20 @@
                 <div class="card-body">
 
                     <div class="form-floating mb-3">
-                        <input type="password" class="form-control" id="current_pwd" name="current_pwd" placeholder="Current password" >
+                        <input type="password" class="form-control" id="current_pwd" name="current_pwd"
+                            placeholder="Current password">
                         <label for="current_pwd">Current password</label>
                     </div>
 
                     <div class="form-floating mb-3">
-                        <input type="password" class="form-control" id="new_pwd" name="new_pwd" placeholder="New password" >
+                        <input type="password" class="form-control" id="new_pwd" name="new_pwd"
+                            placeholder="New password">
                         <label for="new_pwd">New password</label>
                     </div>
 
                     <div class="form-floating mb-3">
-                        <input type="password" class="form-control" id="confirm_pwd" name="confirm_pwd" placeholder=" Confirm new password" >
+                        <input type="password" class="form-control" id="confirm_pwd" name="confirm_pwd"
+                            placeholder=" Confirm new password">
                         <label for="confirm_pwd"> Confirm new password</label>
                     </div>
 

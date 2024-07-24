@@ -3,19 +3,33 @@
 {{template "navbar" .}}
 
 {{if .hasError}}
-    {{template "error" .}}
+{{template "error" .}}
 {{else}}
 
 <script>
     var spaceId = {{.Space.SpaceID }};
 </script>
-<div class="main-body px-5 py-4 dt8">
+<div class="main-body px-5 py-4 dt{{.Space.ThemeID}}">
     <div class="info-cover">
         <div class="d-flex">
             <div class="me-auto">
-                <div id="page-nav"><a href="/u/{{.Space.AddUserID}}" class="pe-3">{{.Space.AddUserName}}</a>/<a
-                        href="/daybook/{{.Space.SpaceID}}" class="ps-3">{{.Space.Title}}</a><i
-                        class="mdi mdi-lock-outline ps-1"></i>
+                <div id="page-nav">
+                    <ul class="nav">
+                        <li class="nav-item">
+                            <ul class="nav">
+                                <li class="nav-item"><a class="nav-link"
+                                        href="/u/{{.Space.AddUserID}}">{{.Space.AddUserName}}</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#"><span class="mdi mdi-slash-forward"></span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/daybook/{{.Space.SpaceID}}">{{.Space.Title}}</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#"><span class="mdi mdi-lock-outline ps-1"></span></a>
+                                </li>
+                            </ul>
                 </div>
             </div>
             <div><button type="button" class="btn btn-outline-secondary btn-sm float-right px-3 me-2"><i
@@ -56,19 +70,6 @@
     </div>
 
     <div class="row grid" data-masonry='{"percentPosition": true }'>
-        <div class="col-md-6 col-xl-4 col-xxl-3 mb-4">
-            <div class="card card-diary-theme dt16 my-0  bg-light">
-                <div class="card-body">
-                    <h5>
-                        <a data-toggle="modal" data-bs-toggle="modal" data-bs-target="#diary_write_modal" href="#">
-                            <i class="mdi mdi-plus"></i>
-                            <span>写日记</span>
-                        </a>
-                    </h5>
-                </div>
-            </div>
-        </div>
-
         {{range .Diaries}}
         <div class="col-md-6 col-xl-4 col-xxl-3 mb-4">
             <div class="card card-blog-theme">
@@ -80,7 +81,7 @@
                     {{end}}
                     <p class="card-text text-break">
                         {{ .Summary}}
-                        SELECT * FROM br_info ORDER BY info_id DESC </p>
+                    </p>
                 </div>
                 <div class="card-footer pt-0">
                     <div class="d-flex">
@@ -112,44 +113,6 @@
         {{end}}
 
     </div>
-    <!--
-    <div data-toggle="modal" data-target="#myModal">
-        <a href="#" id="diary_editor_btn" class="d-editor ui-btn" data-toggle="tooltip" data-placement="top"
-            title="写日记">+</a>
-    </div>-->
-</div>
-
-
-
-<!-- Modal -->
-<div class="modal fade" id="diary_write_modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <form id="diary_editor_form">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">写日记</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-floating mb-3">
-                        <input type="email" class="form-control" id="info_title" name="info_title"
-                            placeholder="标题(非必填)">
-                        <label for="info_title">标题(非必填)</label>
-                    </div>
-                    <div class="form-floating mb-3">
-                        <textarea class="form-control" id="info_body" name="info_body" rows="8" placeholder="日记内容"
-                            style="height: 288px;"></textarea>
-                        <label for="info_body">日记内容</label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <input type="hidden" name="space_id" id="space_id" value="{{.SpaceID }}" />
-                    <button type="button" class="ms-auto btn btn-secondary px-5"
-                        onclick="Biuren.Diary.postInfo()">发布</button>
-                </div>
-            </div>
-        </div>
-    </form>
 </div>
 
 {{end}}

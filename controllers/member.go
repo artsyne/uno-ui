@@ -34,6 +34,7 @@ func RenderMemberIndex(c *gin.Context) {
 
 	h["IsOwner"] = isOnwer
 	h["Spaces"] = spaces
+	h["UserData"] = userData
 
 	//h["UserData"] = c
 	c.HTML(http.StatusOK, "member/index", h)
@@ -65,6 +66,7 @@ func RenderMemberSettings(c *gin.Context){
 	}
 
 	h["IsOwner"] = isOnwer
+	h["UserData"] = userData
 
 	//h["UserData"] = c
 	c.HTML(http.StatusOK, "member/settings", h)

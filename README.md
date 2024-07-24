@@ -1,24 +1,3 @@
-## 目录结构
-* config目录：用于存放配置文件和配置相关的代码，例如数据库连接配置、日志配置等。
-
-* controllers目录：包含处理HTTP请求的控制器代码。控制器负责接收请求，处理业务逻辑，并返回响应。
-
-* middlewares目录：包含中间件代码。中间件用于在请求到达控制器之前或响应离开控制器之后执行一些操作，例如身份验证、日志记录等。
-
-* models目录：包含数据模型的结构体定义以及与数据库交互的方法。该目录可以进一步细分为不同的模块，每个模块对应一个数据表或实体。
-
-* services目录：包含业务逻辑的代码。服务层负责处理具体的业务需求，与控制器和数据模型进行交互，封装复杂的业务逻辑。
-
-* utils目录：包含通用的工具类文件。这里可以放置各种通用函数、辅助方法或者工具类，以便在整个项目中复用。
-
-* static目录：用于存放静态文件，如CSS样式表、JavaScript脚本、图片等。
-
-* tests目录：包含测试文件，用于编写单元测试和集成测试，以确保代码的质量和可靠性。
-
-* views目录：包含视图文件，通常是模板文件，用于生成动态HTML页面。
-
-* main.go：项目的入口文件，用于初始化应用程序，并启动HTTP服务器。
-
 ## 域名
 iDiary.AI
 
@@ -79,4 +58,4 @@ iDiary.AI
 20. 智能社交互动：AI可以提供用户之间的社交互动平台，让用户能够分享和交流日记内容，获得更多的反馈和支持。
 
 ## icon copyright
-<a target="_blank" href="https://icons8.com/icon/jmkHXlIGZKw5/diary">Diary</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+<a target="_blank" href="https://icons8.com/icon/jmkHXlIGZKw5/diary">Diary</a> icon by <a target="_blank" href="https://pictogrammers.github.io/@mdi/font/6.5.95/">Material Design Icons</a> 
