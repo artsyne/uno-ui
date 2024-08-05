@@ -102,7 +102,7 @@ func (space *Space) Insert() (int64, error) {
 }
 
 // 根据 userID 列出所有空间
-func GetSpaceByUserID(userID int64) ([]Space, error) {
+func ListSpacesByUserID(userID int64) ([]Space, error) {
 	spaceArray := []Space{}
 	sqlstr := "SELECT * FROM br_space WHERE add_user_id = ? ORDER BY space_id DESC"
 	err := db.Select(&spaceArray, sqlstr, userID)
@@ -113,7 +113,7 @@ func GetSpaceByUserID(userID int64) ([]Space, error) {
 }
 
 // 通过空间 ID 把空间信息数量加一，并更新最后动作时间,用户ID,用户名
-func IncrementInfoNum(spaceId int64, userID int64,userName string, actionUTCTime int64) error {
+func IncrementInfoNum(spaceId int64, userID int64, userName string, actionUTCTime int64) error {
 	sqlstr := `
 				UPDATE br_space SET info_num = info_num + 1,
 				last_action_utc_time = ?,
@@ -121,12 +121,12 @@ func IncrementInfoNum(spaceId int64, userID int64,userName string, actionUTCTime
 				last_action_user_name = ? 
 				WHERE space_id = ?
 			`
-	_, err := db.Exec(sqlstr, actionUTCTime,userID,userName, spaceId)
+	_, err := db.Exec(sqlstr, actionUTCTime, userID, userName, spaceId)
 	return err
 }
 
 // 通过空间 ID 把空间信息数量减一，并更新最后动作时间,用户ID,用户名
-func DecrementInfoNum(spaceId int64, userID int64,userName string, actionUTCTime int64) error {
+func DecrementInfoNum(spaceId int64, userID int64, userName string, actionUTCTime int64) error {
 	sqlstr := `
 				UPDATE br_space SET info_num = info_num - 1,
 				last_action_utc_time = ?,
@@ -134,7 +134,7 @@ func DecrementInfoNum(spaceId int64, userID int64,userName string, actionUTCTime
 				last_action_user_name = ? 
 				WHERE space_id = ?
 			`
-	_, err := db.Exec(sqlstr, actionUTCTime,userID,userName, spaceId)
+	_, err := db.Exec(sqlstr, actionUTCTime, userID, userName, spaceId)
 	return err
 }
 
@@ -149,10 +149,12 @@ func GetSpaceBySpaceID(spaceID int64) (*Space, error) {
 	return space, err
 }
 
-// 根据用户ID获取空间列表，依据最后更新，时间排序
-func GetSpaceListByUserID(userID int64) ([]Space, error) {
+// 根据用户ID获取空间列表，依据最后更新，时间排序日记本
+func ListSpacesForDiaryByUserID(userID int64) ([]Space, error) {
 	spaceArray := []Space{}
-	sqlstr := "SELECT * FROM br_space WHERE add_user_id = ? ORDER BY last_action_utc_time, space_id DESC"
+	sqlstr := `SELECT * FROM br_space WHERE add_user_id = ? 
+				ORDER BY last_action_utc_time DESC, space_id DESC
+				`
 	err := db.Select(&spaceArray, sqlstr, userID)
 	if err == sql.ErrNoRows {
 		return nil, nil

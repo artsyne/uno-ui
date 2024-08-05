@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/biuren/hebe/utils"
 	"github.com/biuren/hebe/models"
+	"github.com/biuren/hebe/utils"
 )
 
 // RenderMemberIndex : 渲染会员首页
@@ -30,7 +30,7 @@ func RenderMemberIndex(c *gin.Context) {
 	}
 
 	//获取日记本列表
-	spaces,_ := models.GetSpaceByUserID(uid)
+	spaces, _ := models.ListSpacesByUserID(uid)
 
 	h["IsOwner"] = isOnwer
 	h["Spaces"] = spaces
@@ -41,7 +41,7 @@ func RenderMemberIndex(c *gin.Context) {
 }
 
 // RenderMemberSetting: 渲染设置页面
-func RenderMemberSettings(c *gin.Context){
+func RenderMemberSettings(c *gin.Context) {
 	h := utils.DefaultH(c)
 
 	//获取url 中的 uid
@@ -60,7 +60,7 @@ func RenderMemberSettings(c *gin.Context){
 
 		//如果是用户本人，将获取用户信息
 		userInfo, _ := models.GetUserByUserId(userData.UserId)
-		
+
 		//返回用户对象到模版
 		h["UserInfo"] = userInfo
 	}

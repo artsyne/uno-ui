@@ -36,7 +36,7 @@ const (
 	VALID_CODE_RESET_PWD_EMAIL          int8 = 2 //重设密码
 	VALID_CODE_INVITE_USER_JOIN_DAYBOOK int8 = 3 //邀请用户加入日记本
 
-	//日记本权限
+	//日记本阅读权限
 	DAYBOOK_VIEW_PUBLIC  int8 = 1 //公开
 	DAYBOOK_VIEW_PRIVATE int8 = 2 //私有
 

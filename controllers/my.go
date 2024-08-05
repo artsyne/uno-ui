@@ -18,7 +18,7 @@ func RenderMyIndex(c *gin.Context) {
 
 	//读取用户认证信息
 	userData := h["UserData"].(models.Login)
-	spaces, _ := models.GetSpaceByUserID(userData.UserId)
+	spaces, _ := models.ListSpacesByUserID(userData.UserId)
 
 	h["Spaces"] = spaces
 

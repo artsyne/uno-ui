@@ -155,7 +155,7 @@ func TestGetSpacesByUserID(t *testing.T) {
 }
 
 func TestGetSpaceByUserID(t *testing.T) {
-	spaceArray, err := models.GetSpaceByUserID(34)
+	spaceArray, err := models.ListSpacesByUserID(34)
 	fmt.Print(err)
 	fmt.Print(len(spaceArray))
 	fmt.Print(spaceArray)
@@ -295,10 +295,10 @@ func TestIsValidUserName(t *testing.T) {
 		input string
 		want  bool
 	}{
-		{"valid_user", true},  // 有效的用户名
-		{"invalid user", false},  // 包含空格的用户名
-		{"short", false},  // 长度不足的用户名
-		{"thisusernameiswaytoolongtobevalid", false},  // 长度过长的用户名
+		{"valid_user", true},                         // 有效的用户名
+		{"invalid user", false},                      // 包含空格的用户名
+		{"short", false},                             // 长度不足的用户名
+		{"thisusernameiswaytoolongtobevalid", false}, // 长度过长的用户名
 	}
 
 	// 运行测试用例
@@ -317,11 +317,11 @@ func TestIsValidPassword(t *testing.T) {
 		input string
 		want  bool
 	}{
-		{"validPassword1", true},  // 有效的密码
-		{"noDigit", false},  // 不包含数字的密码
-		{"short1", false},  // 长度不足的密码
-		{"thispasswordiswaytoolongtobevalid1", false},  // 长度过长的密码
-		{"noLetter1", false},  // 不包含字母的密码
+		{"validPassword1", true},                      // 有效的密码
+		{"noDigit", false},                            // 不包含数字的密码
+		{"short1", false},                             // 长度不足的密码
+		{"thispasswordiswaytoolongtobevalid1", false}, // 长度过长的密码
+		{"noLetter1", false},                          // 不包含字母的密码
 	}
 
 	// 运行测试用例

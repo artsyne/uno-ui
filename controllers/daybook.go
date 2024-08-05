@@ -1,13 +1,14 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/biuren/hebe/errors"
 	"github.com/biuren/hebe/models"
 	"github.com/biuren/hebe/utils"
-	"github.com/biuren/hebe/errors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,11 +29,29 @@ func RenderDaybookIndex(c *gin.Context) {
 		space, _ := models.GetSpaceBySpaceID(spaceId)
 		if space != nil {
 			h["Space"] = space
+			//日记总数
+			diariesNum := 0
+			pageIndex := 1
+			pageSize := 5
 			//分页显示日记列表
-			h["Diaries"], err = models.ListInfoByUserID(space.AddUserID,spaceId,1,30)
-			if err != nil{
+			h["Diaries"], diariesNum, err = models.ListInfoByUserID(space.AddUserID, spaceId, pageIndex, pageSize)
+			if err != nil {
 				hasError = true
 			}
+			//初始化分页信息
+
+			listOptions := utils.ListOptions{
+				PageIndex: pageIndex,
+				PageSize:  pageSize,
+				Total:     diariesNum,
+				URL:       fmt.Sprintf("/daybook/%d/%%d",spaceId),
+				PagePrev:  "上页",
+				PageNext:  "下页",
+			}
+			pageLinks := utils.GeneratePagination(listOptions)
+			//分页导航链接
+			h["PageLinks"] = pageLinks
+
 		} else {
 			hasError = true
 		}
@@ -71,7 +90,7 @@ func HandleSpace(c *gin.Context) {
 	// 校验参数，标题必须填写，设置类型必须为1或者2，主题id必须在1-16之间
 	if err != nil || len(space.Title) < 1 || (space.ViewSetting != 1 &&
 		space.ViewSetting != 2 || space.ThemeID < 1 || space.ThemeID > 16) {
-			errors.ResponseErr(c, errors.ParseInputParamErr)
+		errors.ResponseErr(c, errors.ParseInputParamErr)
 		return
 	}
 

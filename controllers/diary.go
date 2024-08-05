@@ -10,14 +10,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// renderDiaryWrite ： 渲染日记编辑
+// renderDiaryWrite ： 渲染日记编辑界面
 func RenderDiaryWrite(c *gin.Context) {
 	//获取用户登录信息
 	userSession, _ := c.Get("UserData")
 	userData := userSession.(models.Login)
 
 	//读取用户所有日记本
-	spaces,err := models.GetSpaceByUserID(userData.UserId)
+	spaces, err := models.ListSpacesForDiaryByUserID(userData.UserId)
 	if err != nil {
 		errors.ResponseErr(c, errors.ParseInputParamErr)
 		return
@@ -77,7 +77,7 @@ func HandleInfo(c *gin.Context) {
 	}
 
 	//日记本信息数量加一
-	err = models.IncrementInfoNum(info.SpaceID,userData.UserId,userData.UserName,nowTime)
+	err = models.IncrementInfoNum(info.SpaceID, userData.UserId, userData.UserName, nowTime)
 	if err != nil {
 		errors.ResponseErr(c, err)
 		return

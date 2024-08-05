@@ -6,36 +6,36 @@ import (
 
 // info 表单对象
 type InfoForm struct {
-	InfoID       int64  `form:"info_id" json:"info_id" `
-	SpaceID      int64  `form:"space_id" json:"space_id"`
-	Title        string `form:"info_title" json:"title"`
-	InfoType	 int8   `form:"info_type" json:"info_type"`
-	Body         string `form:"info_body" json:"body"`
+	InfoID   int64  `form:"info_id" json:"info_id" `
+	SpaceID  int64  `form:"space_id" json:"space_id"`
+	Title    string `form:"info_title" json:"title"`
+	InfoType int8   `form:"info_type" json:"info_type"`
+	Body     string `form:"info_body" json:"body"`
 }
 
-//info 数据库对象
+// info 数据库对象
 type Info struct {
-	InfoID      int64     `form:"info_id" json:"info_id" db:"info_id"`
-	SpaceID     int64     `form:"space_id" json:"space_id" db:"space_id"`
-	IsTop       int8      `form:"is_top" json:"is_top" db:"is_top"`
-	Title       string    `form:"title" json:"title" db:"title"`
-	Summary     string    `form:"summary" json:"summary" db:"summary"`
-	Body        string    `form:"body" json:"body" db:"body"`
-	ViewNum     int32     `form:"view_num" json:"view_num" db:"view_num"`
-	LikeNum     int32     `form:"like_num" json:"like_num" db:"like_num"`
-	CommentNum  int32     `form:"comment_num" json:"comment_num" db:"comment_num"`
-	AddUserID   int64     `form:"add_user_id" json:"add_user_id" db:"add_user_id"`
-	AddUserName string    `form:"add_user_name" json:"add_user_name" db:"add_user_name"`
-	AddUserIP   string    `form:"add_user_ip" json:"add_user_ip" db:"add_user_ip"`
-	AddUTCTime     int64 `form:"add_utc_time" json:"add_utc_time" db:"add_utc_time"`
-	UpdateUTCTime  int64 `form:"update_utc_time" json:"update_utc_time" db:"update_utc_time"`
+	InfoID        int64  `form:"info_id" json:"info_id" db:"info_id"`
+	SpaceID       int64  `form:"space_id" json:"space_id" db:"space_id"`
+	IsTop         int8   `form:"is_top" json:"is_top" db:"is_top"`
+	Title         string `form:"title" json:"title" db:"title"`
+	Summary       string `form:"summary" json:"summary" db:"summary"`
+	Body          string `form:"body" json:"body" db:"body"`
+	ViewNum       int32  `form:"view_num" json:"view_num" db:"view_num"`
+	LikeNum       int32  `form:"like_num" json:"like_num" db:"like_num"`
+	CommentNum    int32  `form:"comment_num" json:"comment_num" db:"comment_num"`
+	AddUserID     int64  `form:"add_user_id" json:"add_user_id" db:"add_user_id"`
+	AddUserName   string `form:"add_user_name" json:"add_user_name" db:"add_user_name"`
+	AddUserIP     string `form:"add_user_ip" json:"add_user_ip" db:"add_user_ip"`
+	AddUTCTime    int64  `form:"add_utc_time" json:"add_utc_time" db:"add_utc_time"`
+	UpdateUTCTime int64  `form:"update_utc_time" json:"update_utc_time" db:"update_utc_time"`
 	// 用户状态：删除：0，邮箱待激活：1，锁定：2，正常：3
-	Status      int8      `form:"status" json:"status" db:"status"`
+	Status int8 `form:"status" json:"status" db:"status"`
 	// 信息类型参数：Text：1，Image：2，Video：3，Audio：4
-	InfoType    int8      `form:"info_type" json:"info_type" db:"info_type"`
+	InfoType int8 `form:"info_type" json:"info_type" db:"info_type"`
 }
 
-//插入日志信息
+// 插入日志信息
 func (info *Info) Insert() (int64, error) {
 	sqlstr := `
 			INSERT INTO br_info(
@@ -58,31 +58,62 @@ func (info *Info) Insert() (int64, error) {
 }
 
 // 根据用户ID查询日记本信息
-func ListSpaceInfoByUserID(userID int64, sapceID int64)([]Info,error){
+func ListSpaceInfoByUserID(userID int64, sapceID int64) ([]Info, error) {
 	infoArray := []Info{}
-	sqlstr := 	"SELECT * FROM br_info WHERE space_id = ? AND add_user_id = ? ORDER BY info_id DESC"
-	
-	err := db.Select(&infoArray, sqlstr, sapceID,userID)
+	sqlstr := "SELECT * FROM br_info WHERE space_id = ? AND add_user_id = ? ORDER BY info_id DESC"
+
+	err := db.Select(&infoArray, sqlstr, sapceID, userID)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
 	return infoArray, err
 }
 
-//根据用户ID，日记本ID分页查询日记信息
-func ListInfoByUserID(userID int64, sapceID int64, page, pageSize int)([]Info,error){
+// ListInfoByUserID 根据用户ID和日记本ID分页查询日记信息
+// 参数:
+// - userID: 用户ID
+// - spaceID: 日记本ID
+// - pageIndex: 当前页码，从1开始
+// - pageSize: 每页显示的记录数
+// 返回值:
+// - []Info: 查询到的日记信息数组
+// - totalRecords: 总记录数
+// - error: 错误信息
+func ListInfoByUserID(userID int64, spaceID int64, pageIndex, pageSize int) ([]Info, int, error) {
 	infoArray := []Info{}
-	
-	// 计算偏移量，注意：页码通常从1开始，所以需要减1
-    offset := (page - 1) * pageSize
+	totalRecords := 0
 
-	sqlstr := 	`SELECT * FROM br_info WHERE space_id = ? AND add_user_id = ? 
+	// 计算偏移量，注意：页码通常从1开始，所以需要减1
+	offset := (pageIndex - 1) * pageSize
+
+	sqlstr := `SELECT * FROM br_info WHERE space_id = ? AND add_user_id = ? 
 				ORDER BY info_id DESC LIMIT ? offset ? `
-	
-	err := db.Select(&infoArray, sqlstr, sapceID,userID, pageSize, offset)
+
+	err := db.Select(&infoArray, sqlstr, spaceID, userID, pageSize, offset)
 	if err == sql.ErrNoRows {
-		return nil, nil
+		return nil, 0, nil
 	}
 
-	return infoArray, err
+	//获取总记录数
+	totalRecords, err = GetInfoCountByUserID(userID, spaceID)
+
+	return infoArray, totalRecords, err
+}
+
+// GetInfoCountByUserID 根据用户ID和日记本ID统计信息数量
+// 参数:
+// - userID: 用户ID
+// - spaceID: 日记本ID
+// 返回值:
+// - int: 总记录数
+// - error: 错误信息
+func GetInfoCountByUserID(userID int64, sapceID int64) (int, error) {
+	var count int
+	sqlstr := "SELECT COUNT(*) FROM br_info WHERE space_id = ? AND add_user_id = ?"
+
+	err := db.Get(&count, sqlstr, sapceID, userID)
+	if err == sql.ErrNoRows {
+		return 0, nil
+	}
+	return count, err
 }
