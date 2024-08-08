@@ -46,6 +46,9 @@ func GeneratePagination(listOptions ListOptions) []PageLinks {
 		aryLinks = append(aryLinks, appendItem(listOptions.URL, pageIndex-1, pageIndex, totalPages, listOptions.PagePrev))
 	}
 
+	//省略号分割
+	dots := "dots"
+
 	// 添加起始页码链接
 	if interval[0] > 1 {
 		end := int(math.Min(2, float64(interval[0])))
@@ -53,7 +56,7 @@ func GeneratePagination(listOptions ListOptions) []PageLinks {
 			aryLinks = append(aryLinks, appendItem(listOptions.URL, i+1, pageIndex, totalPages, ""))
 		}
 		if interval[0] > 2 {
-			aryLinks = append(aryLinks, PageLinks{Text: "..."})
+			aryLinks = append(aryLinks, PageLinks{Text: dots})
 		}
 	}
 
@@ -65,7 +68,7 @@ func GeneratePagination(listOptions ListOptions) []PageLinks {
 	// 添加结束页码链接
 	if interval[1] < totalPages {
 		if totalPages-2 > interval[1] {
-			aryLinks = append(aryLinks, PageLinks{Text: "..."})
+			aryLinks = append(aryLinks, PageLinks{Text: dots})
 		}
 		begin := int(math.Max(float64(totalPages-2+1), float64(interval[1])))
 		for i := begin; i < totalPages; i++ {
@@ -88,7 +91,7 @@ func getInterval(pageIndex, pages int) []int {
 
 	var start int
 	if pageIndex > neHalf {
-		start = int(math.Max(math.Min(float64(pageIndex-neHalf), float64(upperLimit)), 0))
+		start = int(math.Max(math.Min(float64(pageIndex-neHalf), float64(upperLimit)), 1))
 	} else {
 		start = 1
 	}

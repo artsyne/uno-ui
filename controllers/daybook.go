@@ -8,6 +8,7 @@ import (
 
 	"github.com/biuren/hebe/errors"
 	"github.com/biuren/hebe/models"
+	"github.com/biuren/hebe/settings"
 	"github.com/biuren/hebe/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -16,49 +17,67 @@ import (
 func RenderDaybookIndex(c *gin.Context) {
 	h := utils.DefaultH(c)
 
-	//页面加载是否有异常
+	// 页面加载是否有异常
 	hasError := false
 	errMsg := ""
 
 	h["Title"] = "日记本"
 	h["Active"] = "users"
 
-	//获取url中spaceId
+	// 获取 URL 中的 spaceId
 	spaceId, err := strconv.ParseInt(strings.TrimSpace(c.Param("spaceid")), 10, 64)
-	if err == nil {
-		space, _ := models.GetSpaceBySpaceID(spaceId)
-		if space != nil {
-			h["Space"] = space
-			//日记总数
-			diariesNum := 0
-			pageIndex := 1
-			pageSize := 5
-			//分页显示日记列表
-			h["Diaries"], diariesNum, err = models.ListInfoByUserID(space.AddUserID, spaceId, pageIndex, pageSize)
-			if err != nil {
-				hasError = true
-			}
-			//初始化分页信息
+	if err != nil {
+		hasError = true
+		h["SpaceID"] = spaceId
+		h["hasError"] = hasError
+		h["errMsg"] = errMsg
+		c.HTML(http.StatusOK, "daybook/index", h)
+		return
+	}
 
-			listOptions := utils.ListOptions{
-				PageIndex: pageIndex,
-				PageSize:  pageSize,
-				Total:     diariesNum,
-				URL:       fmt.Sprintf("/daybook/%d/%%d",spaceId),
-				PagePrev:  "上页",
-				PageNext:  "下页",
-			}
-			pageLinks := utils.GeneratePagination(listOptions)
-			//分页导航链接
-			h["PageLinks"] = pageLinks
+	// 获取 URL 中的 pageIndex
+	pageIndex, err := strconv.Atoi(strings.TrimSpace(c.Param("pageindex")))
+	if err != nil || pageIndex <= 0 {
+		pageIndex = 1
+	}
 
-		} else {
-			hasError = true
-		}
-	} else {
+	space, _ := models.GetSpaceBySpaceID(spaceId)
+	if space == nil {
+		hasError = true
+		h["SpaceID"] = spaceId
+		h["hasError"] = hasError
+		h["errMsg"] = errMsg
+		c.HTML(http.StatusOK, "daybook/index", h)
+		return
+	}
+
+	//读取配置
+	config := settings.GetConfig()
+	
+	// 日记总数
+	diariesNum := 0
+	pageSize := config.PageSize
+
+	// 分页显示日记列表
+	h["Diaries"], diariesNum, err = models.ListInfoByUserID(space.AddUserID, spaceId, pageIndex, pageSize)
+	if err != nil {
 		hasError = true
 	}
 
+	// 初始化分页信息
+	listOptions := utils.ListOptions{
+		PageIndex: pageIndex,
+		PageSize:  pageSize,
+		Total:     diariesNum,
+		URL:       fmt.Sprintf("/daybook/%d/%%d", spaceId),
+		PagePrev:  "上页",
+		PageNext:  "下页",
+	}
+	pageLinks := utils.GeneratePagination(listOptions)
+
+	// 分页导航链接
+	h["Space"] = space
+	h["PageLinks"] = pageLinks
 	h["SpaceID"] = spaceId
 	h["hasError"] = hasError
 	h["errMsg"] = errMsg

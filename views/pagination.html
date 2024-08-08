@@ -1,0 +1,23 @@
+{{define "pagination"}}
+    <nav class="my-4">
+        <ul class="pagination justify-content-end">
+            {{range .PageLinks}}
+                {{if eq .Text "dots"}}
+                <li class="page-item"><a class="page-link" href="javascript:void(0)"><span class="mdi mdi-dots-horizontal"></span></a></li>
+                {{else}}
+                    <li  {{if .IsCurrentPage}}
+                    class="page-item current"
+                    {{else}}
+                    class="page-item"
+                    {{end}}>
+                    {{if .IsCurrentPage}}
+                        <a class="page-link" href="javascript:void(0)">{{.Text}}</a>
+                    {{else}}
+                        <a class="page-link" href="{{.URL}}">{{.Text}}</a>
+                    {{end}}
+                    </li>
+                {{end}}
+            {{end}}
+        </ul>
+    </nav>
+{{end}}

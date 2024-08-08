@@ -64,6 +64,7 @@ type Config struct {
 	SummaryMax int `json:"summary_max"`
 	Suffix string `json:"suffix"`
 	SupportLangs []SupportLangs `json:"support_langs"`
+	PageSize int `json:"page_size"`
 	Database struct {
 		Host     string	`json:"host"`
 		Port     int `json:"port"`

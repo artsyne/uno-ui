@@ -5,6 +5,7 @@
     "site_port": "8081",
     "summary_max":300,
     "suffix":"...",
+    "page_size":6,
     "support_langs":[
       {
         "code": "ar",
@@ -93,6 +94,7 @@
     "site_port": "80",
     "summary_max":350,
     "suffix":"...",
+    "page_size":6,
     "support_langs": [
       {
         "code": "ar",

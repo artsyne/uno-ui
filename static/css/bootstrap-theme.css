@@ -19,6 +19,7 @@ a,
 a:hover,
 .nav-link:hover{
     color: #dc3545;
+    text-decoration: none;
 }
 
 h1,
@@ -100,6 +101,15 @@ li {
     max-width: 100%;
     height: auto;
     border-radius: 0;
+}
+
+.current>.page-link {
+    background-color: #efefef; 
+}
+
+.page-link:hover {
+    text-decoration: none;
+    color: #dc3545;
 }
 
 /*-----------------------------------redefined bootstrap end--------------------------------------*/
@@ -346,14 +356,6 @@ a:hover {
     background-color: #ffffff;
 }
 
-
-/*----------------------------------- card theme end------------------------------*/
-
-
-/*----------------------------------- comment start------------------------------*/
-
-
-/*----------------------------------- comment end------------------------------*/
 
 
 /*----------------------------------- diary theme -------------------------------*/

@@ -112,17 +112,9 @@
         </div>
         {{end}}
     </div>
-    <div>
-        {{range .PageLinks}}
-            {{if eq .Text "..."}}
-                <span>{{.Text}}</span>
-            {{else}}
-                <a href="{{.URL}}" {{if .IsCurrentPage}}
-                class="current"
-            {{end}}>{{.Text}}</a>
-            {{end}}
-        {{end}}
-    </div>
+
+    {{template "pagination" .}}
+
 </div>
 
 {{end}}

@@ -73,6 +73,7 @@ func setPath(server *gin.Engine) {
 	daybook := server.Group("/daybook")
 	{
 		daybook.GET("/:spaceid", controllers.RenderDaybookIndex)
+		daybook.GET("/:spaceid/:pageindex", controllers.RenderDaybookIndex)
 	}
 
 	//表单渲染
