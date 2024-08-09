@@ -91,6 +91,11 @@
         {{end}}
     </div>
 
+    {{if gt .SpacesNum .PageSize }}
+        <div class="dt16">
+            {{template "pagination" .}}
+        </div>
+    {{end}}
 </div>
 
 <!--增加日记本modal-->

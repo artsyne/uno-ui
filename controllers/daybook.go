@@ -81,6 +81,8 @@ func RenderDaybookIndex(c *gin.Context) {
 	h["SpaceID"] = spaceId
 	h["hasError"] = hasError
 	h["errMsg"] = errMsg
+	h["DiariesNum"] = diariesNum
+	h["PageSize"] = pageSize
 
 	c.HTML(http.StatusOK, "daybook/index", h)
 }

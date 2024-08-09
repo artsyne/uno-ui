@@ -5,7 +5,8 @@
     "site_port": "8081",
     "summary_max":300,
     "suffix":"...",
-    "page_size":6,
+    "page_size":8,
+    "max_daybook_num":500,
     "support_langs":[
       {
         "code": "ar",
@@ -95,6 +96,7 @@
     "summary_max":350,
     "suffix":"...",
     "page_size":6,
+    "max_daybook_num":500,
     "support_langs": [
       {
         "code": "ar",

@@ -1,12 +1,15 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/biuren/hebe/models"
+	"github.com/biuren/hebe/settings"
 	"github.com/biuren/hebe/utils"
 )
 
@@ -30,13 +33,39 @@ func RenderMemberIndex(c *gin.Context) {
 	}
 
 	//获取日记本列表
-	spaces, _ := models.ListSpacesByUserID(uid)
+	// 获取 URL 中的 pageIndex
+	pageIndex, err := strconv.Atoi(strings.TrimSpace(c.Param("pageindex")))
+	if err != nil || pageIndex <= 0 {
+		pageIndex = 1
+	}
+	
+	//读取配置
+	config := settings.GetConfig()
+	
+	// 日记总数
+	spacesNum := 0
+	pageSize := config.PageSize
+
+	// 分页显示日记列表
+	h["Spaces"], spacesNum, _ = models.ListSpacesByUserID(uid, pageIndex, pageSize)
+
+	// 初始化分页信息
+	listOptions := utils.ListOptions{
+		PageIndex: pageIndex,
+		PageSize:  pageSize,
+		Total:     spacesNum,
+		URL:       fmt.Sprintf("/u/%d/%%d", uid),
+		PagePrev:  "上页",
+		PageNext:  "下页",
+	}
+	pageLinks := utils.GeneratePagination(listOptions)
 
 	h["IsOwner"] = isOnwer
-	h["Spaces"] = spaces
 	h["UserData"] = userData
-
-	//h["UserData"] = c
+	h["PageLinks"] = pageLinks
+	h["SpacesNum"] = spacesNum
+	h["PageSize"] = pageSize
+	
 	c.HTML(http.StatusOK, "member/index", h)
 }
 

@@ -101,17 +101,6 @@ func (space *Space) Insert() (int64, error) {
 	return id, err
 }
 
-// 根据 userID 列出所有空间
-func ListSpacesByUserID(userID int64) ([]Space, error) {
-	spaceArray := []Space{}
-	sqlstr := "SELECT * FROM br_space WHERE add_user_id = ? ORDER BY space_id DESC"
-	err := db.Select(&spaceArray, sqlstr, userID)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	return spaceArray, err
-}
-
 // 通过空间 ID 把空间信息数量加一，并更新最后动作时间,用户ID,用户名
 func IncrementInfoNum(spaceId int64, userID int64, userName string, actionUTCTime int64) error {
 	sqlstr := `
@@ -150,6 +139,7 @@ func GetSpaceBySpaceID(spaceID int64) (*Space, error) {
 }
 
 // 根据用户ID获取空间列表，依据最后更新，时间排序日记本
+// 用在写日记本界面
 func ListSpacesForDiaryByUserID(userID int64) ([]Space, error) {
 	spaceArray := []Space{}
 	sqlstr := `SELECT * FROM br_space WHERE add_user_id = ? 
@@ -160,4 +150,48 @@ func ListSpacesForDiaryByUserID(userID int64) ([]Space, error) {
 		return nil, nil
 	}
 	return spaceArray, err
+}
+
+// ListSpaceByUserID 根据特定用户ID检索分页的空间列表。
+// 
+// 参数:
+// - userID: 要检索其空间的用户ID。
+// - pageIndex: 要检索的页索引（从0开始）。
+// - pageSize: 每页的项目数。
+//
+// 返回值:
+// - 一个 Info 对象的切片，表示空间。
+// - 一个整数，表示可用空间的总数。
+// - 如果在检索过程中有任何问题，则返回错误。
+func ListSpacesByUserID(userID int64, pageIndex, pageSize int) ([]Space, int, error) {
+	infoArray := []Space{}
+	totalRecords := 0
+
+	// 计算偏移量，注意：页码通常从1开始，所以需要减1
+	offset := (pageIndex - 1) * pageSize
+
+	sqlstr := `SELECT * FROM br_space WHERE add_user_id = ? 
+				ORDER BY space_id DESC LIMIT ? offset ? `
+
+	err := db.Select(&infoArray, sqlstr, userID, pageSize, offset)
+	if err == sql.ErrNoRows {
+		return nil, 0, nil
+	}
+
+	//获取总记录数
+	totalRecords, err = GetSpaceCountByUserID(userID)
+
+	return infoArray, totalRecords, err
+}
+
+// 根据用户ID获取空间数量
+func GetSpaceCountByUserID(userID int64) (int, error) {
+	var count int
+	sqlstr := "SELECT COUNT(*) FROM br_space WHERE add_user_id = ?"
+
+	err := db.Get(&count, sqlstr, userID)
+	if err == sql.ErrNoRows {
+		return 0, nil
+	}
+	return count, err
 }

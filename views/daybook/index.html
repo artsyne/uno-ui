@@ -113,8 +113,9 @@
         {{end}}
     </div>
 
-    {{template "pagination" .}}
-
+    {{if gt .DiariesNum .PageSize}}
+        {{template "pagination" .}}
+    {{end}}
 </div>
 
 {{end}}

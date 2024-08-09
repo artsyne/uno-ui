@@ -90,9 +90,6 @@ func setPath(server *gin.Engine) {
 	server.GET("/write", controllers.RenderDiaryWrite)
 	server.POST("/info", controllers.HandleInfo)
 
-	// my
-	server.GET("/my", controllers.RenderMyIndex)
-
 	// passport
 	server.GET("/passport/", controllers.RenderPassport)
 	server.GET("/register", controllers.RenderRegister)
@@ -109,6 +106,7 @@ func setPath(server *gin.Engine) {
 	//
 	server.GET("/u/:uid", controllers.RenderMemberIndex)
 	server.GET("u/:uid/settings", controllers.RenderMemberSettings)
+	server.GET("/u/:uid/:pageindex", controllers.RenderMemberIndex)
 
 
 	// 日记本操作
