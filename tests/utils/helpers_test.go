@@ -148,7 +148,7 @@ func TestRedis(t *testing.T) {
 }
 
 func TestGetSpacesByUserID(t *testing.T) {
-	space, err := models.GetDaybookByDaybookID(6)
+	space, err := models.GetDiaryByDiaryID(6)
 	fmt.Print(space)
 	fmt.Print(err)
 	fmt.Print(space.Title)
@@ -162,7 +162,7 @@ func TestGetSpaceByUserID(t *testing.T) {
 }
 
 func TestAddSpace(t *testing.T) {
-	space := &models.Daybook{}
+	space := &models.Diary{}
 	space.Title = "测试日记"
 	space.Remark = "这是备注"
 	space.AccessPwd = "this is pwd"

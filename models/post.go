@@ -5,7 +5,7 @@ import (
 )
 
 // info 表单对象
-type InfoForm struct {
+type PostForm struct {
 	InfoID   int64  `form:"info_id" json:"info_id" `
 	SpaceID  int64  `form:"space_id" json:"space_id"`
 	Title    string `form:"info_title" json:"title"`
@@ -14,7 +14,7 @@ type InfoForm struct {
 }
 
 // info 数据库对象
-type Info struct {
+type Post struct {
 	InfoID        int64  `form:"info_id" json:"info_id" db:"info_id"`
 	SpaceID       int64  `form:"space_id" json:"space_id" db:"space_id"`
 	IsTop         int8   `form:"is_top" json:"is_top" db:"is_top"`
@@ -36,7 +36,7 @@ type Info struct {
 }
 
 // 插入日志信息
-func (info *Info) Insert() (int64, error) {
+func (post *Post) Insert() (int64, error) {
 	sqlstr := `
 			INSERT INTO br_info(
 				space_id,is_top,
@@ -45,10 +45,10 @@ func (info *Info) Insert() (int64, error) {
 			)
 			VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 			`
-	res, err := db.Exec(sqlstr, info.SpaceID,
-		info.IsTop, info.Title, info.Summary, info.Body, info.ViewNum, info.LikeNum,
-		info.CommentNum, info.AddUserID, info.AddUserName, info.AddUserIP, info.AddUTCTime,
-		info.UpdateUTCTime, info.Status, info.InfoType)
+	res, err := db.Exec(sqlstr, post.SpaceID,
+		post.IsTop, post.Title, post.Summary, post.Body, post.ViewNum, post.LikeNum,
+		post.CommentNum, post.AddUserID, post.AddUserName, post.AddUserIP, post.AddUTCTime,
+		post.UpdateUTCTime, post.Status, post.InfoType)
 
 	if err != nil {
 		return 0, err
@@ -58,11 +58,11 @@ func (info *Info) Insert() (int64, error) {
 }
 
 // 根据用户ID查询日记本信息
-func ListSpaceInfoByUserID(userID int64, sapceID int64) ([]Info, error) {
-	infoArray := []Info{}
+func ListPostsByUserID(userID int64, diaryID int64) ([]Post, error) {
+	infoArray := []Post{}
 	sqlstr := "SELECT * FROM br_info WHERE space_id = ? AND add_user_id = ? ORDER BY info_id DESC"
 
-	err := db.Select(&infoArray, sqlstr, sapceID, userID)
+	err := db.Select(&infoArray, sqlstr, diaryID, userID)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -79,8 +79,8 @@ func ListSpaceInfoByUserID(userID int64, sapceID int64) ([]Info, error) {
 // - []Info: 查询到的日记信息数组
 // - totalRecords: 总记录数
 // - error: 错误信息
-func ListInfoByUserID(userID int64, spaceID int64, pageIndex, pageSize int) ([]Info, int, error) {
-	infoArray := []Info{}
+func ListInfoByUserID(userID int64, diaryID int64, pageIndex, pageSize int) ([]Post, int, error) {
+	infoArray := []Post{}
 	totalRecords := 0
 
 	// 计算偏移量，注意：页码通常从1开始，所以需要减1
@@ -89,29 +89,29 @@ func ListInfoByUserID(userID int64, spaceID int64, pageIndex, pageSize int) ([]I
 	sqlstr := `SELECT * FROM br_info WHERE space_id = ? AND add_user_id = ? 
 				ORDER BY info_id DESC LIMIT ? offset ? `
 
-	err := db.Select(&infoArray, sqlstr, spaceID, userID, pageSize, offset)
+	err := db.Select(&infoArray, sqlstr, diaryID, userID, pageSize, offset)
 	if err == sql.ErrNoRows {
 		return nil, 0, nil
 	}
 
 	//获取总记录数
-	totalRecords, err = GetInfoCountByUserID(userID, spaceID)
+	totalRecords, err = GetPostCountByUserID(userID, diaryID)
 
 	return infoArray, totalRecords, err
 }
 
-// GetInfoCountByUserID 根据用户ID和日记本ID统计信息数量
+// GetPostCountByUserID 根据用户ID和日记本ID统计信息数量
 // 参数:
 // - userID: 用户ID
 // - spaceID: 日记本ID
 // 返回值:
 // - int: 总记录数
 // - error: 错误信息
-func GetInfoCountByUserID(userID int64, sapceID int64) (int, error) {
+func GetPostCountByUserID(userID int64, diaryID int64) (int, error) {
 	var count int
 	sqlstr := "SELECT COUNT(*) FROM br_info WHERE space_id = ? AND add_user_id = ?"
 
-	err := db.Get(&count, sqlstr, sapceID, userID)
+	err := db.Get(&count, sqlstr, diaryID, userID)
 	if err == sql.ErrNoRows {
 		return 0, nil
 	}

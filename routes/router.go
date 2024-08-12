@@ -28,7 +28,7 @@ func Set(server *gin.Engine) {
 // 通过rice box 加载 "views" 目录中的模版文件
 func setTemplate(server *gin.Engine) {
 	box := rice.MustFindBox("../views")
-	
+
 	//注册模版函数
 	tmpl := template.New("").Funcs(template.FuncMap{
 		//TODO：加载模版函数，后期需要完善
@@ -72,14 +72,14 @@ func setPath(server *gin.Engine) {
 	// daybook
 	daybook := server.Group("/daybook")
 	{
-		daybook.GET("/:spaceid", controllers.RenderDaybookIndex)
-		daybook.GET("/:spaceid/:pageindex", controllers.RenderDaybookIndex)
+		daybook.GET("/:spaceid", controllers.RenderDiaryIndex)
+		daybook.GET("/:spaceid/:pageindex", controllers.RenderDiaryIndex)
 	}
 
 	//表单渲染
 	form := server.Group("/form")
 	{
-		form.GET("/daybook", controllers.RenderDaybookForm)
+		form.GET("/daybook", controllers.RenderDiaryForm)
 	}
 
 	// diary
@@ -87,8 +87,8 @@ func setPath(server *gin.Engine) {
 	{
 		diary.GET("/", controllers.RenderDiary)
 	}
-	server.GET("/write", controllers.RenderDiaryWrite)
-	server.POST("/info", controllers.HandleInfo)
+	server.GET("/write", controllers.RenderPostWrite)
+	server.POST("/info", controllers.HandlePost)
 
 	// passport
 	server.GET("/passport/", controllers.RenderPassport)
@@ -108,7 +108,6 @@ func setPath(server *gin.Engine) {
 	server.GET("u/:uid/settings", controllers.RenderMemberSettings)
 	server.GET("/u/:uid/:pageindex", controllers.RenderMemberIndex)
 
-
 	// 日记本操作
-	server.POST("/daybook", controllers.HandleSpace)
+	server.POST("/daybook", controllers.HandleDiary)
 }

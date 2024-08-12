@@ -1,92 +1,152 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/biuren/hebe/errors"
 	"github.com/biuren/hebe/models"
+	"github.com/biuren/hebe/services"
 	"github.com/biuren/hebe/settings"
 	"github.com/biuren/hebe/utils"
 	"github.com/gin-gonic/gin"
 )
 
-// renderDiaryWrite ： 渲染日记编辑界面
-func RenderDiaryWrite(c *gin.Context) {
-	//获取用户登录信息
-	userSession, _ := c.Get("UserData")
-	userData := userSession.(models.Login)
+// RenderDiaryIndex 渲染日记本首页
+func RenderDiaryIndex(c *gin.Context) {
+	h := utils.DefaultH(c)
 
-	//读取用户所有日记本
-	spaces, err := models.ListDaybooksForDiaryByUserID(userData.UserId)
+	// 页面加载是否有异常
+	hasError := false
+	errMsg := ""
+
+	h["Title"] = "日记本"
+	h["Active"] = "users"
+
+	// 获取 URL 中的 diaryID
+	diaryID, err := strconv.ParseInt(strings.TrimSpace(c.Param("spaceid")), 10, 64)
 	if err != nil {
-		errors.ResponseErr(c, errors.ParseInputParamErr)
+		hasError = true
+		h["SpaceID"] = diaryID
+		h["hasError"] = hasError
+		h["errMsg"] = errMsg
+		c.HTML(http.StatusOK, "daybook/index", h)
 		return
 	}
 
-	h := utils.DefaultH(c)
-	h["Title"] = "写日记"
-	h["Active"] = "users"
-	h["UserData"] = userData
-	h["Spaces"] = spaces
-	c.HTML(http.StatusOK, "diary/write", h)
-}
+	// 获取 URL 中的 pageIndex
+	pageIndex, err := strconv.Atoi(strings.TrimSpace(c.Param("pageindex")))
+	if err != nil || pageIndex <= 0 {
+		pageIndex = 1
+	}
 
-// 发布日记
-func HandleInfo(c *gin.Context) {
-	//获取用户登录信息
-	userSession, _ := c.Get("UserData")
-	userData := userSession.(models.Login)
+	diary, _ := models.GetDiaryByDiaryID(diaryID)
+	if diary == nil {
+		hasError = true
+		h["SpaceID"] = diaryID
+		h["hasError"] = hasError
+		h["errMsg"] = errMsg
+		c.HTML(http.StatusOK, "daybook/index", h)
+		return
+	}
 
-	//获取配置信息
+	//读取配置
 	config := settings.GetConfig()
 
-	// 序列化请求对象
-	infoForm := &models.InfoForm{}
-	err := c.Bind(infoForm)
+	// 日记总数
+	diariesNum := 0
+	pageSize := config.PageSize
+
+	// 分页显示日记列表
+	h["Diaries"], diariesNum, err = models.ListInfoByUserID(diary.AddUserID, diaryID, pageIndex, pageSize)
+	if err != nil {
+		hasError = true
+	}
+
+	// 初始化分页信息
+	listOptions := utils.ListOptions{
+		PageIndex: pageIndex,
+		PageSize:  pageSize,
+		Total:     diariesNum,
+		URL:       fmt.Sprintf("/daybook/%d/%%d", diaryID),
+		PagePrev:  "上页",
+		PageNext:  "下页",
+	}
+	pageLinks := utils.GeneratePagination(listOptions)
+
+	// 分页导航链接
+	h["Space"] = diary
+	h["PageLinks"] = pageLinks
+	h["SpaceID"] = diaryID
+	h["hasError"] = hasError
+	h["errMsg"] = errMsg
+	h["DiariesNum"] = diariesNum
+	h["PageSize"] = pageSize
+
+	c.HTML(http.StatusOK, "daybook/index", h)
+}
+
+// 增加日记本表单渲染
+func RenderDiaryForm(c *gin.Context) {
+	h := utils.DefaultH(c)
+
+	c.HTML(http.StatusOK, "form/daybook", h)
+}
+
+// RenderDiary : 渲染日记详细信息
+func RenderDiary(c *gin.Context) {
+	h := utils.DefaultH(c)
+	h["Title"] = "我的日记本"
+	h["Active"] = "users"
+	c.HTML(http.StatusOK, "daybook/diary", h)
+}
+
+// 保存日记本信息
+func HandleDiary(c *gin.Context) {
+	// 序列化用户输入对象
+	diary := &models.Diary{}
+	err := c.Bind(diary)
 	if err != nil {
 		errors.ResponseErr(c, errors.ParseInputParamErr)
 		return
 	}
 
+	//获取用户登录信息
+	userSession, _ := c.Get("UserData")
+	userData := userSession.(models.Login)
+
 	var nowTime = utils.GetNowTimeUnixMilli()
+	//其他设置默认值
+	diary.AccessPwd = ""
+	diary.AccessURL = ""
+	diary.AddUTCTime = nowTime
+	diary.AddUserID = userData.UserId
+	diary.AddUserName = userData.UserName
+	diary.CoverMidURL = ""
+	diary.CoverURL = ""
+	diary.LikeNum = 0
+	diary.MemberNum = 0
+	diary.Status = 1
+	diary.ViewNum = 0
+	diary.InfoNum = 0
+	diary.LastActionUTCTime = nowTime
+	diary.LastActionUserID = userData.UserId
+	diary.LastActionUserName = userData.UserName
 
-	//赋值info对象
-	info := &models.Info{}
-
-	// todo 需判断空间是否有权限发布日记
-
-	info.SpaceID = infoForm.SpaceID
-	info.IsTop = 0
-	info.Title = infoForm.Title
-	//截取配置长度字符串，末尾增加 suffix
-	info.Summary = utils.TruncateString(infoForm.Body, config.SummaryMax, config.Suffix)
-	info.Body = infoForm.Body
-	info.InfoType = 1 //默认为文本
-	info.AddUserID = userData.UserId
-	info.AddUserName = userData.UserName
-	info.AddUTCTime = nowTime
-	info.AddUserIP = c.ClientIP()
-	info.UpdateUTCTime = nowTime
-	info.Status = 1
-
-	//插入数据库
-	infoID, err := info.Insert()
-	if err != nil {
-		errors.ResponseErr(c, err)
-		return
-	}
-
-	//日记本信息数量加一
-	err = models.IncrementInfoNum(info.SpaceID, userData.UserId, userData.UserName, nowTime)
-	if err != nil {
-		errors.ResponseErr(c, err)
-		return
+	//保存日记本
+	if action, _ := c.GetPostForm("action"); action == "My.insertDaybook" {
+		diaryID, err := services.CreateNewDiary(*diary)
+		if err != nil {
+			errors.ResponseErr(c, err)
+			return
+		}
+		diary.SpaceID = diaryID
 	}
 
 	//创建返回对象
 	h := utils.ResponseH(c)
-	h["Data"] = info
-	h["Form"] = infoForm
-	h["infoId"] = infoID
+	h["Data"] = diary
 	c.JSON(http.StatusOK, h)
 }

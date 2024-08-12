@@ -5,7 +5,7 @@ import (
 )
 
 // space 结构
-type Daybook struct {
+type Diary struct {
 	SpaceID            int64  `form:"space_id" json:"space_id" db:"space_id"`
 	Title              string `form:"title" json:"title" db:"title"`
 	Remark             string `form:"remark" json:"remark" db:"remark"`
@@ -30,7 +30,7 @@ type Daybook struct {
 }
 
 // 新增space
-func (daybook *Daybook) Insert() (int64, error) {
+func (diary *Diary) Insert() (int64, error) {
 	sql := `
 			INSERT INTO br_space
 			(
@@ -79,13 +79,13 @@ func (daybook *Daybook) Insert() (int64, error) {
 		`
 
 	res, err := db.Exec(sql,
-		daybook.Title, daybook.Remark, daybook.AccessURL,
-		daybook.CoverURL, daybook.CoverMidURL, daybook.LikeNum,
-		daybook.MemberNum, daybook.ViewNum,
-		daybook.ViewSetting, daybook.AccessPwd, daybook.SocialSetting,
-		daybook.AddUTCTime,
-		daybook.AddUserID, daybook.AddUserName, daybook.Status, daybook.InfoNum,
-		daybook.LastActionUTCTime, daybook.LastActionUserID, daybook.LastActionUserName, daybook.ThemeID)
+		diary.Title, diary.Remark, diary.AccessURL,
+		diary.CoverURL, diary.CoverMidURL, diary.LikeNum,
+		diary.MemberNum, diary.ViewNum,
+		diary.ViewSetting, diary.AccessPwd, diary.SocialSetting,
+		diary.AddUTCTime,
+		diary.AddUserID, diary.AddUserName, diary.Status, diary.InfoNum,
+		diary.LastActionUTCTime, diary.LastActionUserID, diary.LastActionUserName, diary.ThemeID)
 
 	if err != nil {
 		return 0, err
@@ -96,7 +96,7 @@ func (daybook *Daybook) Insert() (int64, error) {
 }
 
 // 通过空间 ID 把空间信息数量加一，并更新最后动作时间,用户ID,用户名
-func IncrementInfoNum(daybookID int64, userID int64, userName string, actionUTCTime int64) error {
+func IncrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
 	sqlstr := `
 				UPDATE br_space SET info_num = info_num + 1,
 				last_action_utc_time = ?,
@@ -104,12 +104,12 @@ func IncrementInfoNum(daybookID int64, userID int64, userName string, actionUTCT
 				last_action_user_name = ? 
 				WHERE space_id = ?
 			`
-	_, err := db.Exec(sqlstr, actionUTCTime, userID, userName, daybookID)
+	_, err := db.Exec(sqlstr, actionUTCTime, userID, userName, diaryID)
 	return err
 }
 
 // 通过空间 ID 把空间信息数量减一，并更新最后动作时间,用户ID,用户名
-func DecrementInfoNum(daybookID int64, userID int64, userName string, actionUTCTime int64) error {
+func DecrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
 	sqlstr := `
 				UPDATE br_space SET info_num = info_num - 1,
 				last_action_utc_time = ?,
@@ -117,33 +117,33 @@ func DecrementInfoNum(daybookID int64, userID int64, userName string, actionUTCT
 				last_action_user_name = ? 
 				WHERE space_id = ?
 			`
-	_, err := db.Exec(sqlstr, actionUTCTime, userID, userName, daybookID)
+	_, err := db.Exec(sqlstr, actionUTCTime, userID, userName, diaryID)
 	return err
 }
 
 // 根据ID获取space对象
-func GetDaybookByDaybookID(daybookID int64) (*Daybook, error) {
-	space := &Daybook{}
+func GetDiaryByDiaryID(diaryID int64) (*Diary, error) {
+	diary := &Diary{}
 	sqlstr := "SELECT * FROM br_space WHERE space_id = ?"
-	err := db.Get(space, sqlstr, daybookID)
+	err := db.Get(diary, sqlstr, diaryID)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
-	return space, err
+	return diary, err
 }
 
 // 根据用户ID获取空间列表，依据最后更新，时间排序日记本
 // 用在写日记本界面
-func ListDaybooksForDiaryByUserID(userID int64) ([]Daybook, error) {
-	spaceArray := []Daybook{}
+func ListDiariesForWriteByUserID(userID int64) ([]Diary, error) {
+	diaryArray := []Diary{}
 	sqlstr := `SELECT * FROM br_space WHERE add_user_id = ? 
 				ORDER BY last_action_utc_time DESC, space_id DESC
 				`
-	err := db.Select(&spaceArray, sqlstr, userID)
+	err := db.Select(&diaryArray, sqlstr, userID)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
-	return spaceArray, err
+	return diaryArray, err
 }
 
 // ListSpaceByUserID 根据特定用户ID检索分页的空间列表。
@@ -157,8 +157,8 @@ func ListDaybooksForDiaryByUserID(userID int64) ([]Daybook, error) {
 // - 一个 Info 对象的切片，表示空间。
 // - 一个整数，表示可用空间的总数。
 // - 如果在检索过程中有任何问题，则返回错误。
-func ListDaybooksByUserID(userID int64, pageIndex, pageSize int) ([]Daybook, int, error) {
-	infoArray := []Daybook{}
+func ListDaybooksByUserID(userID int64, pageIndex, pageSize int) ([]Diary, int, error) {
+	infoArray := []Diary{}
 	totalRecords := 0
 
 	// 计算偏移量，注意：页码通常从1开始，所以需要减1
