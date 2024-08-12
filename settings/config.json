@@ -5,7 +5,7 @@
     "site_port": "8081",
     "summary_max":300,
     "suffix":"...",
-    "page_size":8,
+    "page_size":12,
     "max_daybook_num":500,
     "support_langs":[
       {
