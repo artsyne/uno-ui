@@ -65,7 +65,7 @@ type Config struct {
 	Suffix string `json:"suffix"`
 	SupportLangs []SupportLangs `json:"support_langs"`
 	PageSize int `json:"page_size"`
-	MaxDaybookNum int `json:"max_daybook_num"`
+	MaxDaybookLimit int `json:"max_daybook_limit"`
 	Database struct {
 		Host     string	`json:"host"`
 		Port     int `json:"port"`

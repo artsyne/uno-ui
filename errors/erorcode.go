@@ -15,6 +15,7 @@ var (
     UserNotExists   = NewError(200001, "user_not_exists")
     UserPwdErr      = NewError(200002, "user_pwd_error")
     ParseJsonErr    = NewError(200003, "parse_json_error")
+    MaxDaybookLimitErr = NewError(200004, "max_daybook_limit_error")
 
     DbOperationErr  = NewError(300000, "db_operation_error")
     ExternalErr     = NewError(400000, "external_error")

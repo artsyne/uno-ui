@@ -119,6 +119,18 @@ func HandleSpace(c *gin.Context) {
 	userSession, _ := c.Get("UserData")
 	userData := userSession.(models.Login)
 
+	//判断用户增加日记本数量是否超过限制
+	spaceNum, err := models.GetSpaceCountByUserID(userData.UserId)
+	if err != nil {
+		errors.ResponseErr(c, errors.ParseInputParamErr)
+		return
+	}
+	config := settings.GetConfig()
+	if spaceNum > config.MaxDaybookLimit {
+		errors.ResponseErr(c, errors.MaxDaybookLimitErr)
+		return
+	}
+
 	var nowTime = utils.GetNowTimeUnixMilli()
 	//其他设置默认值
 	space.AccessPwd = ""
