@@ -17,7 +17,7 @@ func RenderDiaryWrite(c *gin.Context) {
 	userData := userSession.(models.Login)
 
 	//读取用户所有日记本
-	spaces, err := models.ListSpacesForDiaryByUserID(userData.UserId)
+	spaces, err := models.ListDaybooksForDiaryByUserID(userData.UserId)
 	if err != nil {
 		errors.ResponseErr(c, errors.ParseInputParamErr)
 		return

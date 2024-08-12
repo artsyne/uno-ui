@@ -38,16 +38,16 @@ func RenderMemberIndex(c *gin.Context) {
 	if err != nil || pageIndex <= 0 {
 		pageIndex = 1
 	}
-	
+
 	//读取配置
 	config := settings.GetConfig()
-	
+
 	// 日记总数
 	spacesNum := 0
 	pageSize := config.PageSize
 
 	// 分页显示日记列表
-	h["Spaces"], spacesNum, _ = models.ListSpacesByUserID(uid, pageIndex, pageSize)
+	h["Spaces"], spacesNum, _ = models.ListDaybooksByUserID(uid, pageIndex, pageSize)
 
 	// 初始化分页信息
 	listOptions := utils.ListOptions{
@@ -65,7 +65,7 @@ func RenderMemberIndex(c *gin.Context) {
 	h["PageLinks"] = pageLinks
 	h["SpacesNum"] = spacesNum
 	h["PageSize"] = pageSize
-	
+
 	c.HTML(http.StatusOK, "member/index", h)
 }
 

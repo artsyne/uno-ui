@@ -8,6 +8,7 @@ import (
 
 	"github.com/biuren/hebe/errors"
 	"github.com/biuren/hebe/models"
+	"github.com/biuren/hebe/services"
 	"github.com/biuren/hebe/settings"
 	"github.com/biuren/hebe/utils"
 	"github.com/gin-gonic/gin"
@@ -24,11 +25,11 @@ func RenderDaybookIndex(c *gin.Context) {
 	h["Title"] = "日记本"
 	h["Active"] = "users"
 
-	// 获取 URL 中的 spaceId
-	spaceId, err := strconv.ParseInt(strings.TrimSpace(c.Param("spaceid")), 10, 64)
+	// 获取 URL 中的 daybookID
+	daybookID, err := strconv.ParseInt(strings.TrimSpace(c.Param("spaceid")), 10, 64)
 	if err != nil {
 		hasError = true
-		h["SpaceID"] = spaceId
+		h["SpaceID"] = daybookID
 		h["hasError"] = hasError
 		h["errMsg"] = errMsg
 		c.HTML(http.StatusOK, "daybook/index", h)
@@ -41,10 +42,10 @@ func RenderDaybookIndex(c *gin.Context) {
 		pageIndex = 1
 	}
 
-	space, _ := models.GetSpaceBySpaceID(spaceId)
-	if space == nil {
+	daybook, _ := models.GetDaybookByDaybookID(daybookID)
+	if daybook == nil {
 		hasError = true
-		h["SpaceID"] = spaceId
+		h["SpaceID"] = daybookID
 		h["hasError"] = hasError
 		h["errMsg"] = errMsg
 		c.HTML(http.StatusOK, "daybook/index", h)
@@ -53,13 +54,13 @@ func RenderDaybookIndex(c *gin.Context) {
 
 	//读取配置
 	config := settings.GetConfig()
-	
+
 	// 日记总数
 	diariesNum := 0
 	pageSize := config.PageSize
 
 	// 分页显示日记列表
-	h["Diaries"], diariesNum, err = models.ListInfoByUserID(space.AddUserID, spaceId, pageIndex, pageSize)
+	h["Diaries"], diariesNum, err = models.ListInfoByUserID(daybook.AddUserID, daybookID, pageIndex, pageSize)
 	if err != nil {
 		hasError = true
 	}
@@ -69,16 +70,16 @@ func RenderDaybookIndex(c *gin.Context) {
 		PageIndex: pageIndex,
 		PageSize:  pageSize,
 		Total:     diariesNum,
-		URL:       fmt.Sprintf("/daybook/%d/%%d", spaceId),
+		URL:       fmt.Sprintf("/daybook/%d/%%d", daybookID),
 		PagePrev:  "上页",
 		PageNext:  "下页",
 	}
 	pageLinks := utils.GeneratePagination(listOptions)
 
 	// 分页导航链接
-	h["Space"] = space
+	h["Space"] = daybook
 	h["PageLinks"] = pageLinks
-	h["SpaceID"] = spaceId
+	h["SpaceID"] = daybookID
 	h["hasError"] = hasError
 	h["errMsg"] = errMsg
 	h["DiariesNum"] = diariesNum
@@ -105,13 +106,9 @@ func RenderDiary(c *gin.Context) {
 // 保存日记本信息
 func HandleSpace(c *gin.Context) {
 	// 序列化用户输入对象
-	space := &models.Space{}
-	err := c.Bind(space)
-
-	// 校验参数，标题必须填写，设置访问与社交类型必须为1或者2，主题id必须在1-16之间
-	if err != nil || len(space.Title) < 1 || (space.ViewSetting != 1 &&
-		space.ViewSetting != 2 || space.SocialSetting != 1 &&
-		space.SocialSetting != 2 || space.ThemeID < 1 || space.ThemeID > 16) {
+	daybook := &models.Daybook{}
+	err := c.Bind(daybook)
+	if err != nil {
 		errors.ResponseErr(c, errors.ParseInputParamErr)
 		return
 	}
@@ -120,48 +117,36 @@ func HandleSpace(c *gin.Context) {
 	userSession, _ := c.Get("UserData")
 	userData := userSession.(models.Login)
 
-	//判断用户增加日记本数量是否超过限制
-	spaceNum, err := models.GetSpaceCountByUserID(userData.UserId)
-	if err != nil {
-		errors.ResponseErr(c, errors.ParseInputParamErr)
-		return
-	}
-	config := settings.GetConfig()
-	if spaceNum > config.MaxDaybookLimit {
-		errors.ResponseErr(c, errors.MaxDaybookLimitErr)
-		return
-	}
-
 	var nowTime = utils.GetNowTimeUnixMilli()
 	//其他设置默认值
-	space.AccessPwd = ""
-	space.AccessURL = ""
-	space.AddUTCTime = nowTime
-	space.AddUserID = userData.UserId
-	space.AddUserName = userData.UserName
-	space.CoverMidURL = ""
-	space.CoverURL = ""
-	space.LikeNum = 0
-	space.MemberNum = 0
-	space.Status = 1
-	space.ViewNum = 0
-	space.InfoNum = 0
-	space.LastActionUTCTime = nowTime
-	space.LastActionUserID = userData.UserId
-	space.LastActionUserName = userData.UserName
+	daybook.AccessPwd = ""
+	daybook.AccessURL = ""
+	daybook.AddUTCTime = nowTime
+	daybook.AddUserID = userData.UserId
+	daybook.AddUserName = userData.UserName
+	daybook.CoverMidURL = ""
+	daybook.CoverURL = ""
+	daybook.LikeNum = 0
+	daybook.MemberNum = 0
+	daybook.Status = 1
+	daybook.ViewNum = 0
+	daybook.InfoNum = 0
+	daybook.LastActionUTCTime = nowTime
+	daybook.LastActionUserID = userData.UserId
+	daybook.LastActionUserName = userData.UserName
 
 	//保存日记本
 	if action, _ := c.GetPostForm("action"); action == "My.insertDaybook" {
-		spaceID, err := space.Insert() // 插入对象
+		daybookID, err := services.CreateNewDaybook(*daybook)
 		if err != nil {
 			errors.ResponseErr(c, err)
 			return
 		}
-		space.SpaceID = spaceID
+		daybook.SpaceID = daybookID
 	}
 
 	//创建返回对象
 	h := utils.ResponseH(c)
-	h["Data"] = space
+	h["Data"] = daybook
 	c.JSON(http.StatusOK, h)
 }
