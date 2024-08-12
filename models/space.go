@@ -17,9 +17,7 @@ type Space struct {
 	ViewNum            int32  `form:"view_num" json:"view_num" db:"view_num"`
 	ViewSetting        int8   `form:"view_setting" json:"view_setting" db:"view_setting"`
 	AccessPwd          string `form:"access_pwd" json:"access_pwd" db:"access_pwd"`
-	IsShowComment      int8   `form:"is_show_comment" json:"is_show_comment" db:"is_show_comment"`
-	IsShowLike         int8   `form:"is_show_like" json:"is_show_like" db:"is_show_like"`
-	IsShowView         int8   `form:"is_show_view" json:"is_show_view" db:"is_show_view"`
+	SocialSetting	  int8   `form:"social_setting" json:"social_setting" db:"social_setting"`
 	AddUTCTime         int64  `form:"add_utc_time" json:"add_utc_time" db:"add_utc_time"`
 	AddUserID          int64  `form:"add_user_id" json:"add_user_id" db:"add_user_id"`
 	AddUserName        string `form:"add_user_name" json:"add_user_name" db:"add_user_name"`
@@ -46,9 +44,7 @@ func (space *Space) Insert() (int64, error) {
 			view_num,
 			view_setting,
 			access_pwd,
-			is_show_comment,
-			is_show_like,
-			is_show_view,
+			social_setting,
 			add_utc_time,
 			add_user_id,
 			add_user_name,
@@ -88,8 +84,8 @@ func (space *Space) Insert() (int64, error) {
 		space.Title, space.Remark, space.AccessURL,
 		space.CoverURL, space.CoverMidURL, space.LikeNum,
 		space.MemberNum, space.ViewNum,
-		space.ViewSetting, space.AccessPwd, space.IsShowComment,
-		space.IsShowLike, space.IsShowView, space.AddUTCTime,
+		space.ViewSetting, space.AccessPwd, space.SocialSetting,
+		space.AddUTCTime,
 		space.AddUserID, space.AddUserName, space.Status, space.InfoNum,
 		space.LastActionUTCTime, space.LastActionUserID, space.LastActionUserName, space.ThemeID)
 

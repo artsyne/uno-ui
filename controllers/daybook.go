@@ -108,9 +108,10 @@ func HandleSpace(c *gin.Context) {
 	space := &models.Space{}
 	err := c.Bind(space)
 
-	// 校验参数，标题必须填写，设置类型必须为1或者2，主题id必须在1-16之间
+	// 校验参数，标题必须填写，设置访问与社交类型必须为1或者2，主题id必须在1-16之间
 	if err != nil || len(space.Title) < 1 || (space.ViewSetting != 1 &&
-		space.ViewSetting != 2 || space.ThemeID < 1 || space.ThemeID > 16) {
+		space.ViewSetting != 2 || space.SocialSetting != 1 &&
+		space.SocialSetting != 2 || space.ThemeID < 1 || space.ThemeID > 16) {
 		errors.ResponseErr(c, errors.ParseInputParamErr)
 		return
 	}
@@ -140,9 +141,6 @@ func HandleSpace(c *gin.Context) {
 	space.AddUserName = userData.UserName
 	space.CoverMidURL = ""
 	space.CoverURL = ""
-	space.IsShowComment = 1
-	space.IsShowLike = 1
-	space.IsShowView = 1
 	space.LikeNum = 0
 	space.MemberNum = 0
 	space.Status = 1
