@@ -27,8 +27,8 @@ func RenderPostWrite(c *gin.Context) {
 	h["Title"] = "写日记"
 	h["Active"] = "users"
 	h["UserData"] = userData
-	h["Spaces"] = diaries
-	c.HTML(http.StatusOK, "diary/write", h)
+	h["Diaries"] = diaries
+	c.HTML(http.StatusOK, "post/write", h)
 }
 
 // 发布日记
@@ -55,7 +55,7 @@ func HandlePost(c *gin.Context) {
 
 	// todo 需判断空间是否有权限发布日记
 
-	post.SpaceID = psotForm.SpaceID
+	post.DiaryID = psotForm.DiaryID
 	post.IsTop = 0
 	post.Title = psotForm.Title
 	//截取配置长度字符串，末尾增加 suffix
@@ -77,7 +77,7 @@ func HandlePost(c *gin.Context) {
 	}
 
 	//日记本信息数量加一
-	err = models.IncrementPostNum(post.SpaceID, userData.UserId, userData.UserName, nowTime)
+	err = models.IncrementPostNum(post.DiaryID, userData.UserId, userData.UserName, nowTime)
 	if err != nil {
 		errors.ResponseErr(c, err)
 		return

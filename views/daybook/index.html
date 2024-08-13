@@ -7,9 +7,9 @@
 {{else}}
 
 <script>
-    var spaceId = {{.Space.SpaceID }};
+    var spaceId = {{.Diary.DiaryID }};
 </script>
-<div class="main-body px-5 py-4 dt{{.Space.ThemeID}}">
+<div class="main-body px-5 py-4 dt{{.Diary.ThemeID}}">
     <div class="info-cover">
         <div class="d-flex">
             <div class="me-auto">
@@ -18,13 +18,13 @@
                         <li class="nav-item">
                             <ul class="nav">
                                 <li class="nav-item"><a class="nav-link"
-                                        href="/u/{{.Space.AddUserID}}">{{.Space.AddUserName}}</a>
+                                        href="/u/{{.Diary.AddUserID}}">{{.Diary.AddUserName}}</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" href="#"><span class="mdi mdi-slash-forward"></span></a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="/daybook/{{.Space.SpaceID}}">{{.Space.Title}}</a>
+                                    <a class="nav-link" href="/daybook/{{.Diary.DiaryID}}">{{.Diary.Title}}</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" href="#"><span class="mdi mdi-lock-outline ps-1"></span></a>
@@ -87,7 +87,7 @@
                     <div class="d-flex">
                         <div class="me-auto p-1">
                             <a href="#" class="link-gray mr-2"><i class="mdi mdi-account-box"></i> {{.AddUserName}}</a>
-                            <a href="#" class="link-gray"><i class="mdi mdi-book-outline"></i> {{$.Space.Title}}</a>
+                            <a href="#" class="link-gray"><i class="mdi mdi-book-outline"></i> {{$.Diary.Title}}</a>
                         </div>
                         <div class="p-1">
                             <a href="#" class="mr-2">

@@ -43,17 +43,17 @@ func RenderMemberIndex(c *gin.Context) {
 	config := settings.GetConfig()
 
 	// 日记总数
-	spacesNum := 0
+	diariesNum := 0
 	pageSize := config.PageSize
 
 	// 分页显示日记列表
-	h["Spaces"], spacesNum, _ = models.ListDaybooksByUserID(uid, pageIndex, pageSize)
+	h["Diaries"], diariesNum, _ = models.ListDiariesByUserID(uid, pageIndex, pageSize)
 
 	// 初始化分页信息
 	listOptions := utils.ListOptions{
 		PageIndex: pageIndex,
 		PageSize:  pageSize,
-		Total:     spacesNum,
+		Total:     diariesNum,
 		URL:       fmt.Sprintf("/u/%d/%%d", uid),
 		PagePrev:  "上页",
 		PageNext:  "下页",
@@ -63,7 +63,7 @@ func RenderMemberIndex(c *gin.Context) {
 	h["IsOwner"] = isOnwer
 	h["UserData"] = userData
 	h["PageLinks"] = pageLinks
-	h["SpacesNum"] = spacesNum
+	h["DiariesNum"] = diariesNum
 	h["PageSize"] = pageSize
 
 	c.HTML(http.StatusOK, "member/index", h)

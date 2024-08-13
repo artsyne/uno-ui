@@ -155,7 +155,7 @@ func TestGetSpacesByUserID(t *testing.T) {
 }
 
 func TestGetSpaceByUserID(t *testing.T) {
-	spaceArray, err := models.ListDaybooksByUserID(34)
+	spaceArray, err := models.ListDiariesByUserID(34)
 	fmt.Print(err)
 	fmt.Print(len(spaceArray))
 	fmt.Print(spaceArray)

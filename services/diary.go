@@ -17,7 +17,7 @@ func CreateNewDiary(diary models.Diary) (int64, error) {
 	}
 
 	//判断用户增加日记本数量是否超过限制
-	daybookNum, err := models.GetDaybookCountByUserID(diary.AddUserID)
+	daybookNum, err := models.GetDiariesCountByUserID(diary.AddUserID)
 	if err != nil {
 		return 0, errors.ParseInputParamErr
 	}

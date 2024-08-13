@@ -6,7 +6,7 @@ import (
 
 // space 结构
 type Diary struct {
-	SpaceID            int64  `form:"space_id" json:"space_id" db:"space_id"`
+	DiaryID            int64  `form:"diary_id" json:"diary_id" db:"diary_id"`
 	Title              string `form:"title" json:"title" db:"title"`
 	Remark             string `form:"remark" json:"remark" db:"remark"`
 	AccessURL          string `form:"access_url" json:"access_url" db:"access_url"`
@@ -32,7 +32,7 @@ type Diary struct {
 // 新增space
 func (diary *Diary) Insert() (int64, error) {
 	sql := `
-			INSERT INTO br_space
+			INSERT INTO br_diary
 			(
 			title,
 			remark,
@@ -98,11 +98,11 @@ func (diary *Diary) Insert() (int64, error) {
 // 通过空间 ID 把空间信息数量加一，并更新最后动作时间,用户ID,用户名
 func IncrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
 	sqlstr := `
-				UPDATE br_space SET info_num = info_num + 1,
+				UPDATE br_diary SET info_num = info_num + 1,
 				last_action_utc_time = ?,
 				last_action_user_id=?, 
 				last_action_user_name = ? 
-				WHERE space_id = ?
+				WHERE diary_id = ?
 			`
 	_, err := db.Exec(sqlstr, actionUTCTime, userID, userName, diaryID)
 	return err
@@ -111,11 +111,11 @@ func IncrementPostNum(diaryID int64, userID int64, userName string, actionUTCTim
 // 通过空间 ID 把空间信息数量减一，并更新最后动作时间,用户ID,用户名
 func DecrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
 	sqlstr := `
-				UPDATE br_space SET info_num = info_num - 1,
+				UPDATE br_diary SET info_num = info_num - 1,
 				last_action_utc_time = ?,
 				last_action_user_id=?, 
 				last_action_user_name = ? 
-				WHERE space_id = ?
+				WHERE diary_id = ?
 			`
 	_, err := db.Exec(sqlstr, actionUTCTime, userID, userName, diaryID)
 	return err
@@ -124,7 +124,7 @@ func DecrementPostNum(diaryID int64, userID int64, userName string, actionUTCTim
 // 根据ID获取space对象
 func GetDiaryByDiaryID(diaryID int64) (*Diary, error) {
 	diary := &Diary{}
-	sqlstr := "SELECT * FROM br_space WHERE space_id = ?"
+	sqlstr := "SELECT * FROM br_diary WHERE diary_id = ?"
 	err := db.Get(diary, sqlstr, diaryID)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -136,8 +136,8 @@ func GetDiaryByDiaryID(diaryID int64) (*Diary, error) {
 // 用在写日记本界面
 func ListDiariesForWriteByUserID(userID int64) ([]Diary, error) {
 	diaryArray := []Diary{}
-	sqlstr := `SELECT * FROM br_space WHERE add_user_id = ? 
-				ORDER BY last_action_utc_time DESC, space_id DESC
+	sqlstr := `SELECT * FROM br_diary WHERE add_user_id = ? 
+				ORDER BY last_action_utc_time DESC, diary_id DESC
 				`
 	err := db.Select(&diaryArray, sqlstr, userID)
 	if err == sql.ErrNoRows {
@@ -154,18 +154,18 @@ func ListDiariesForWriteByUserID(userID int64) ([]Diary, error) {
 // - pageSize: 每页的项目数。
 //
 // 返回值:
-// - 一个 Info 对象的切片，表示空间。
+// - 一个 diary 对象的切片，表示空间。
 // - 一个整数，表示可用空间的总数。
 // - 如果在检索过程中有任何问题，则返回错误。
-func ListDaybooksByUserID(userID int64, pageIndex, pageSize int) ([]Diary, int, error) {
+func ListDiariesByUserID(userID int64, pageIndex, pageSize int) ([]Diary, int, error) {
 	infoArray := []Diary{}
 	totalRecords := 0
 
 	// 计算偏移量，注意：页码通常从1开始，所以需要减1
 	offset := (pageIndex - 1) * pageSize
 
-	sqlstr := `SELECT * FROM br_space WHERE add_user_id = ? 
-				ORDER BY space_id DESC LIMIT ? offset ? `
+	sqlstr := `SELECT * FROM br_diary WHERE add_user_id = ? 
+				ORDER BY diary_id DESC LIMIT ? offset ? `
 
 	err := db.Select(&infoArray, sqlstr, userID, pageSize, offset)
 	if err == sql.ErrNoRows {
@@ -173,15 +173,15 @@ func ListDaybooksByUserID(userID int64, pageIndex, pageSize int) ([]Diary, int, 
 	}
 
 	//获取总记录数
-	totalRecords, err = GetDaybookCountByUserID(userID)
+	totalRecords, err = GetDiariesCountByUserID(userID)
 
 	return infoArray, totalRecords, err
 }
 
 // 根据用户ID获取空间数量
-func GetDaybookCountByUserID(userID int64) (int, error) {
+func GetDiariesCountByUserID(userID int64) (int, error) {
 	var count int
-	sqlstr := "SELECT COUNT(*) FROM br_space WHERE add_user_id = ?"
+	sqlstr := "SELECT COUNT(*) FROM br_diary WHERE add_user_id = ?"
 
 	err := db.Get(&count, sqlstr, userID)
 	if err == sql.ErrNoRows {

@@ -45,7 +45,7 @@ func RenderDiaryIndex(c *gin.Context) {
 	diary, _ := models.GetDiaryByDiaryID(diaryID)
 	if diary == nil {
 		hasError = true
-		h["SpaceID"] = diaryID
+		h["DiaryID"] = diaryID
 		h["hasError"] = hasError
 		h["errMsg"] = errMsg
 		c.HTML(http.StatusOK, "daybook/index", h)
@@ -77,9 +77,9 @@ func RenderDiaryIndex(c *gin.Context) {
 	pageLinks := utils.GeneratePagination(listOptions)
 
 	// 分页导航链接
-	h["Space"] = diary
+	h["Diary"] = diary
 	h["PageLinks"] = pageLinks
-	h["SpaceID"] = diaryID
+	h["DiaryID"] = diaryID
 	h["hasError"] = hasError
 	h["errMsg"] = errMsg
 	h["DiariesNum"] = diariesNum
@@ -142,7 +142,7 @@ func HandleDiary(c *gin.Context) {
 			errors.ResponseErr(c, err)
 			return
 		}
-		diary.SpaceID = diaryID
+		diary.DiaryID = diaryID
 	}
 
 	//创建返回对象

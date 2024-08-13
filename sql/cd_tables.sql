@@ -36,6 +36,39 @@ CREATE TABLE `br_comment` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `br_diary`
+--
+
+DROP TABLE IF EXISTS `br_diary`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `br_diary` (
+  `diary_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(100) NOT NULL DEFAULT '',
+  `remark` varchar(500) NOT NULL DEFAULT '',
+  `access_url` varchar(255) NOT NULL DEFAULT '',
+  `cover_url` varchar(255) NOT NULL DEFAULT '',
+  `cover_mid_url` varchar(255) NOT NULL DEFAULT '',
+  `like_num` int unsigned NOT NULL DEFAULT '0',
+  `member_num` int unsigned NOT NULL DEFAULT '0',
+  `view_num` int unsigned NOT NULL DEFAULT '0',
+  `view_setting` tinyint unsigned NOT NULL DEFAULT '1',
+  `access_pwd` varchar(255) NOT NULL DEFAULT '',
+  `social_setting` tinyint unsigned NOT NULL DEFAULT '1',
+  `add_utc_time` bigint unsigned NOT NULL DEFAULT '0',
+  `add_user_id` bigint unsigned NOT NULL,
+  `add_user_name` varchar(100) NOT NULL DEFAULT '',
+  `info_num` int unsigned NOT NULL DEFAULT '0',
+  `last_action_utc_time` bigint unsigned NOT NULL DEFAULT '0',
+  `last_action_user_id` bigint unsigned NOT NULL DEFAULT '0',
+  `last_action_user_name` varchar(100) NOT NULL DEFAULT '',
+  `theme_id` tinyint unsigned NOT NULL DEFAULT '16',
+  `status` tinyint unsigned NOT NULL,
+  PRIMARY KEY (`diary_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `br_feed`
 --
 
@@ -113,34 +146,6 @@ CREATE TABLE `br_inbox_stat` (
   `is_del` tinyint unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`session_id`,`user_id`,`with_user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `br_info`
---
-
-DROP TABLE IF EXISTS `br_info`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `br_info` (
-  `info_id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `space_id` bigint unsigned NOT NULL DEFAULT '0',
-  `is_top` tinyint unsigned NOT NULL DEFAULT '0',
-  `info_type` tinyint unsigned NOT NULL DEFAULT '0',
-  `title` varchar(200) NOT NULL DEFAULT '',
-  `summary` varchar(1024) NOT NULL DEFAULT '',
-  `body` text NOT NULL,
-  `view_num` int unsigned NOT NULL DEFAULT '0',
-  `like_num` int unsigned NOT NULL DEFAULT '0',
-  `comment_num` int unsigned NOT NULL DEFAULT '0',
-  `add_user_id` bigint unsigned NOT NULL DEFAULT '0',
-  `add_user_name` varchar(100) NOT NULL DEFAULT '',
-  `add_user_ip` varchar(128) NOT NULL DEFAULT '',
-  `add_utc_time` bigint unsigned NOT NULL DEFAULT '0',
-  `update_utc_time` bigint unsigned NOT NULL DEFAULT '0',
-  `status` tinyint unsigned NOT NULL DEFAULT '1',
-  PRIMARY KEY (`info_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=86 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -235,36 +240,31 @@ CREATE TABLE `br_online` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `br_space`
+-- Table structure for table `br_post`
 --
 
-DROP TABLE IF EXISTS `br_space`;
+DROP TABLE IF EXISTS `br_post`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `br_space` (
-  `space_id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `title` varchar(100) NOT NULL DEFAULT '',
-  `remark` varchar(500) NOT NULL DEFAULT '',
-  `access_url` varchar(255) NOT NULL DEFAULT '',
-  `cover_url` varchar(255) NOT NULL DEFAULT '',
-  `cover_mid_url` varchar(255) NOT NULL DEFAULT '',
-  `like_num` int unsigned NOT NULL DEFAULT '0',
-  `member_num` int unsigned NOT NULL DEFAULT '0',
+CREATE TABLE `br_post` (
+  `post_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `diary_id` bigint unsigned NOT NULL DEFAULT '0',
+  `is_top` tinyint unsigned NOT NULL DEFAULT '0',
+  `info_type` tinyint unsigned NOT NULL DEFAULT '0',
+  `title` varchar(200) NOT NULL DEFAULT '',
+  `summary` varchar(1024) NOT NULL DEFAULT '',
+  `body` text NOT NULL,
   `view_num` int unsigned NOT NULL DEFAULT '0',
-  `view_setting` tinyint unsigned NOT NULL DEFAULT '1',
-  `access_pwd` varchar(255) NOT NULL DEFAULT '',
-  `social_setting` tinyint unsigned NOT NULL DEFAULT '1',
-  `add_utc_time` bigint unsigned NOT NULL DEFAULT '0',
-  `add_user_id` bigint unsigned NOT NULL,
+  `like_num` int unsigned NOT NULL DEFAULT '0',
+  `comment_num` int unsigned NOT NULL DEFAULT '0',
+  `add_user_id` bigint unsigned NOT NULL DEFAULT '0',
   `add_user_name` varchar(100) NOT NULL DEFAULT '',
-  `info_num` int unsigned NOT NULL DEFAULT '0',
-  `last_action_utc_time` bigint unsigned NOT NULL DEFAULT '0',
-  `last_action_user_id` bigint unsigned NOT NULL DEFAULT '0',
-  `last_action_user_name` varchar(100) NOT NULL DEFAULT '',
-  `theme_id` tinyint unsigned NOT NULL DEFAULT '16',
-  `status` tinyint unsigned NOT NULL,
-  PRIMARY KEY (`space_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb3;
+  `add_user_ip` varchar(128) NOT NULL DEFAULT '',
+  `add_utc_time` bigint unsigned NOT NULL DEFAULT '0',
+  `update_utc_time` bigint unsigned NOT NULL DEFAULT '0',
+  `status` tinyint unsigned NOT NULL DEFAULT '1',
+  PRIMARY KEY (`post_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=91 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -377,4 +377,4 @@ CREATE TABLE `br_valid_code` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-08-12 14:21:35
+-- Dump completed on 2024-08-13  9:56:04

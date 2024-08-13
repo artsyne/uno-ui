@@ -64,14 +64,14 @@
     </div>
     <div class="row" id="daybook_list">
         {{$isOwner := .IsOwner}}
-        {{range .Spaces}}
+        {{range .Diaries}}
         <div class="daybook-block col-sm-6 col-md-4 col-lg-3">
             <div class="card card-diary-theme dt{{.ThemeID}}">
                 <div class="card-body">
                     <h5>{{if gt .ViewSetting 1 }}
                         <i class="mdi mdi-lock-outline"></i>
                         {{end}}
-                        <a href="/daybook/{{.SpaceID}}">{{.Title}}</a>
+                        <a href="/daybook/{{.DiaryID}}">{{.Title}}</a>
                     </h5>
                     <p>{{.InfoNum}}篇
                         {{if gt .InfoNum 0 }}
@@ -82,7 +82,7 @@
                 <!--owner现实编辑信息-->
                 <div class="daybook-edit-btn position-absolute bottom-0 start-50 translate-middle-x mb-2"
                     style="display: none;">
-                    <button type="button" cd-action="daybooy-edit" cd-data-id="{{.SpaceID}}"
+                    <button type="button" cd-action="daybooy-edit" cd-data-id="{{.DiaryID}}"
                         class="ms-auto btn btn-sm btn-outline-secondary">编辑</button>
                 </div>
                 {{end}}
@@ -91,7 +91,7 @@
         {{end}}
     </div>
 
-    {{if gt .SpacesNum .PageSize }}
+    {{if gt .DiariesNum .PageSize }}
         <div class="dt16">
             {{template "pagination" .}}
         </div>
