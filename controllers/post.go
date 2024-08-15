@@ -5,7 +5,7 @@ import (
 
 	"github.com/biuren/hebe/errors"
 	"github.com/biuren/hebe/models"
-	"github.com/biuren/hebe/settings"
+	"github.com/biuren/hebe/services"
 	"github.com/biuren/hebe/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -37,9 +37,6 @@ func HandlePost(c *gin.Context) {
 	userSession, _ := c.Get("UserData")
 	userData := userSession.(models.Login)
 
-	//获取配置信息
-	config := settings.GetConfig()
-
 	// 序列化请求对象
 	psotForm := &models.PostForm{}
 	err := c.Bind(psotForm)
@@ -47,19 +44,15 @@ func HandlePost(c *gin.Context) {
 		errors.ResponseErr(c, errors.ParseInputParamErr)
 		return
 	}
-
 	var nowTime = utils.GetNowTimeUnixMilli()
 
 	//赋值post对象
 	post := &models.Post{}
 
 	// todo 需判断空间是否有权限发布日记
-
 	post.DiaryID = psotForm.DiaryID
 	post.IsTop = 0
 	post.Title = psotForm.Title
-	//截取配置长度字符串，末尾增加 suffix
-	post.Summary = utils.TruncateString(psotForm.Body, config.SummaryMax, config.Suffix)
 	post.Body = psotForm.Body
 	post.InfoType = 1 //默认为文本
 	post.AddUserID = userData.UserId
@@ -70,14 +63,7 @@ func HandlePost(c *gin.Context) {
 	post.Status = 1
 
 	//插入数据库
-	postID, err := post.Insert()
-	if err != nil {
-		errors.ResponseErr(c, err)
-		return
-	}
-
-	//日记本信息数量加一
-	err = models.IncrementPostNum(post.DiaryID, userData.UserId, userData.UserName, nowTime)
+	postID, err := services.AddPost(post)
 	if err != nil {
 		errors.ResponseErr(c, err)
 		return

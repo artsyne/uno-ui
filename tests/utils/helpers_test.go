@@ -154,13 +154,6 @@ func TestGetSpacesByUserID(t *testing.T) {
 	fmt.Print(space.Title)
 }
 
-func TestGetSpaceByUserID(t *testing.T) {
-	spaceArray, err := models.ListDiariesByUserID(34)
-	fmt.Print(err)
-	fmt.Print(len(spaceArray))
-	fmt.Print(spaceArray)
-}
-
 func TestAddSpace(t *testing.T) {
 	space := &models.Diary{}
 	space.Title = "测试日记"
@@ -172,9 +165,6 @@ func TestAddSpace(t *testing.T) {
 	space.AddUserName = "yasong"
 	space.CoverMidURL = "http://covermidurl"
 	space.CoverURL = "http://coverurl"
-	space.IsShowComment = 1
-	space.IsShowLike = 2
-	space.IsShowView = 3
 	space.LikeNum = 5
 	space.MemberNum = 6
 	space.Status = 1
