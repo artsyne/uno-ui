@@ -12,7 +12,7 @@ import (
 	"github.com/biuren/hebe/utils"
 )
 
-// reg start
+//#region 注册新用户
 // RegUser 注册新用户
 // user: 用户信息
 // 返回值：用户ID和错误
@@ -136,8 +136,6 @@ func UpdateUserAccessUrl(user *models.User, url string) error {
 	return nil
 }
 
-//reg end
-
 // CheckNameAndPwd : 检查用户名与密码是否正确
 func CheckNameAndPwd(name string, pwd string) (*models.User, error) {
 	//根据用户名获取用户信息
@@ -190,7 +188,9 @@ func ActivateUser(uid string, sign string) bool {
 	return true
 }
 
-//#region
+//#endregion
+
+//#region 发送激活邮件任务
 // AddActivateUserEmailTask : 增加发送激活用户邮件任务
 func AddActivateUserEmailTask(user *models.User) error {
     // 插入激活码
