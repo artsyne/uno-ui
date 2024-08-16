@@ -1,6 +1,6 @@
 module github.com/biuren/hebe
 
-go 1.20
+go 1.23
 
 require (
 	github.com/GeertJohan/go.rice v1.0.3

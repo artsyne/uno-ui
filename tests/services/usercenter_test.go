@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/biuren/hebe/models"
@@ -95,3 +96,26 @@ func TestGetUserLanguage(t *testing.T) {
 		t.Error("获取用户语言fr-fr失败")
 	}
 }
+
+func Backward(s []string) func(yield func(string) bool) {
+	return func(yield func(string) bool) {
+	  for i := len(s) - 1; i >= 0; i-- {
+		yield(strings.ToUpper(s[i]))
+	  }
+	}
+  }
+ 
+
+//测试golang 1.23 新特性
+func TestGolang123(t *testing.T) {
+	//测试golang 1.23 新特性
+	t.Log("测试golang 1.23 新特性")
+
+	s := []string{"hello", "world", "golang", "GO to hall"}
+	backwardFunc := Backward(s)
+    backwardFunc(func(str string) bool {
+       t.Log(str)
+        return true
+    })
+}
+

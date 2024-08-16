@@ -70,7 +70,7 @@ func RenderDiaryIndex(c *gin.Context) {
 		PageIndex: pageIndex,
 		PageSize:  pageSize,
 		Total:     diariesNum,
-		URL:       fmt.Sprintf("/daybook/%d/%%d", diaryID),
+		URL:       fmt.Sprintf("/d/%d/%%d", diaryID),
 		PagePrev:  "上页",
 		PageNext:  "下页",
 	}
@@ -85,7 +85,7 @@ func RenderDiaryIndex(c *gin.Context) {
 	h["DiariesNum"] = diariesNum
 	h["PageSize"] = pageSize
 
-	c.HTML(http.StatusOK, "daybook/index", h)
+	c.HTML(http.StatusOK, "diary/index", h)
 }
 
 // 增加日记本表单渲染

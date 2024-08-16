@@ -65,7 +65,7 @@ CREATE TABLE `br_diary` (
   `theme_id` tinyint unsigned NOT NULL DEFAULT '16',
   `status` tinyint unsigned NOT NULL,
   PRIMARY KEY (`diary_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -264,7 +264,7 @@ CREATE TABLE `br_post` (
   `update_utc_time` bigint unsigned NOT NULL DEFAULT '0',
   `status` tinyint unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY (`post_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=91 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=94 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -377,4 +377,4 @@ CREATE TABLE `br_valid_code` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-08-13  9:56:04
+-- Dump completed on 2024-08-16 14:50:50

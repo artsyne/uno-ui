@@ -69,8 +69,8 @@ func setPath(server *gin.Engine) {
 
 	server.GET("/index", controllers.RenderIndex)
 
-	// daybook
-	daybook := server.Group("/daybook")
+	// 日记本页面即列表
+	daybook := server.Group("/d")
 	{
 		daybook.GET("/:spaceid", controllers.RenderDiaryIndex)
 		daybook.GET("/:spaceid/:pageindex", controllers.RenderDiaryIndex)

@@ -18,11 +18,12 @@ func AddDiary(diary *models.Diary) (int64, error) {
         return 0, err
     }
 
-    // 写入 daybook
+    // 新增日记本
     diaryID, err := diary.Insert()
     if err != nil {
         return 0, err
     }
+    diary.DiaryID = diaryID
 
     return diaryID, nil
 }
