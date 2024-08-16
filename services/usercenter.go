@@ -190,7 +190,7 @@ func ActivateUser(uid string, sign string) bool {
 	return true
 }
 
-// region
+//#region
 // AddActivateUserEmailTask : 增加发送激活用户邮件任务
 func AddActivateUserEmailTask(user *models.User) error {
     // 插入激活码
@@ -254,7 +254,7 @@ func insertEmailTask(user *models.User, validCode *models.ValidCode) error {
     _, err = jobQueue.Insert()
     return err
 }
-// endregion
+//#endregion
 
 // 根据用户的语言偏好和系统支持的语言列表，返回匹配的系统支持语言。
 // 该函数首先将用户的语言偏好转换为小写，然后进行以下判断：
