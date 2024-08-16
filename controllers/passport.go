@@ -75,7 +75,7 @@ func RenderActivateUser(c *gin.Context) {
 	h["Title"] = "用户激活"
 	uid, _ := c.GetQuery("uid")
 	sign, _ := c.GetQuery("sign")
-	h["IsActivated"] = services.ActiviteUser(uid, sign)
+	h["IsActivated"] = services.ActivateUser(uid, sign)
 	c.HTML(http.StatusOK, "passport/activateuser", h)
 }
 
