@@ -1203,9 +1203,11 @@ Biuren.Diary = {
             if (data.Status == 0) {
                 var html = "<div class=\"col-sm-6 col-md-4 col-lg-3\">" +
                     "<div class=\"card card-diary-theme dt" + data.Data.theme_id + "\">" +
-                    "<div class=\"card-body\">" +
-                    "<h5>" + $.HtmlEncode(data.Data.title) + "</h5>" +
-                    "<p>0篇</p></div></div></div>";
+                    "<div class=\"card-body\"><h5>";
+                if (data.Data.view_setting == 2) 
+                    html+= "<i class='mdi mdi-lock-outline'></i>"
+                html+= "<a href='/d/" + data.Data.diary_id + "'>" + $.HtmlEncode(data.Data.title) + "</a>" 
+                html+= "</h5><p>0篇</p></div></div></div>";
                 $('#daybook_list').prepend(html);
                 $('#daybook_add_modal').modal('hide');
             }
