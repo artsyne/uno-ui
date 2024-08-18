@@ -26,9 +26,11 @@
                                 <li class="nav-item">
                                     <a class="nav-link" href="/daybook/{{.Diary.DiaryID}}">{{.Diary.Title}}</a>
                                 </li>
+                                {{if eq .Diary.ViewSetting 2}}
                                 <li class="nav-item">
                                     <a class="nav-link" href="#"><span class="mdi mdi-lock-outline ps-1"></span></a>
                                 </li>
+                                {{end}}
                             </ul>
                 </div>
             </div>

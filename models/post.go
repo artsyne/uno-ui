@@ -29,9 +29,9 @@ type Post struct {
 	AddUserIP     string `form:"add_user_ip" json:"add_user_ip" db:"add_user_ip"`
 	AddUTCTime    int64  `form:"add_utc_time" json:"add_utc_time" db:"add_utc_time"`
 	UpdateUTCTime int64  `form:"update_utc_time" json:"update_utc_time" db:"update_utc_time"`
-	// 用户状态：删除：0，邮箱待激活：1，锁定：2，正常：3
+	// 用户状态：删除：0，邮箱待激活：1，锁定: 2，正常：3
 	Status int8 `form:"status" json:"status" db:"status"`
-	// 信息类型参数：Text：1，Image：2，Video：3，Audio：4
+	// 信息类型参数：Text：1，Image：2，Video: 3，Audio：4, File: 5
 	InfoType int8 `form:"info_type" json:"info_type" db:"info_type"`
 }
 
