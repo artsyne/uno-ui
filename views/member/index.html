@@ -68,10 +68,11 @@
         <div class="daybook-block col-sm-6 col-md-4 col-lg-3">
             <div class="card card-diary-theme dt{{.ThemeID}}">
                 <div class="card-body">
-                    <h5>{{if gt .ViewSetting 1 }}
+                    <h5>
+                        <a href="/d/{{.DiaryID}}">{{.Title}}</a>
+                        {{if gt .ViewSetting 1 }}
                         <i class="mdi mdi-lock-outline"></i>
                         {{end}}
-                        <a href="/d/{{.DiaryID}}">{{.Title}}</a>
                     </h5>
                     <p>{{.InfoNum}}篇
                         {{if gt .InfoNum 0 }}
