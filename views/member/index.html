@@ -5,8 +5,8 @@
 <main class="flex-1 container px-3 py-10 mx-auto">
     <section class="flex justify-between mb-10">
         <div id="page-nav">
-            <ul class="flex">
-                <li class="mr-1 text-lg">
+            <ul class="flex text-lg">
+                <li>
                     <a href="/u/{{.UserData.UserId}}">{{.UserData.UserName}}</a>
                 </li>
             </ul>
@@ -27,8 +27,8 @@
             <div class="w-1/4 mr-8">
                 <div>
                     <h1 class="h-8 mb-2 border-b border-b-gray-300">目录</h1>
-                    <div class="">
-                        <ul>
+                    <div>
+                        <ul class="text-black">
                             <li class="py-1">
                                 <a href="#">
                                     <i class="mdi mdi-book-outline"></i>
@@ -57,7 +57,7 @@
     </section>
     <section class="flex justify-between mb-10">
         <div class="text-lg">日记本</div>
-        <div><a href="#" class="border text-sm p-2 border-gray-300 hover:bg-gray-200"><i class="mdi mdi-plus"></i>
+        <div><a href="#" class="border text-sm px-4 py-2 text-black border-gray-300 hover:bg-gray-200"><i class="mdi mdi-plus"></i>
                 新增日记本</a></div>
     </section>
 

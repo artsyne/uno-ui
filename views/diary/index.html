@@ -13,20 +13,20 @@
     <section class="flex justify-between mb-10">
         <div id="page-nav">
             <ul class="flex text-lg">
-                <li class="mr-1"><a href="/u/{{.Diary.AddUserID}}">{{.Diary.AddUserName}}</a>
-                    <span class="mdi mdi-slash-forward"></span>
+                <li><a href="/u/{{.Diary.AddUserID}}">{{.Diary.AddUserName}}</a>
+                    <span class="mdi mdi-slash-forward mx-3"></span>
                 </li>
-                <li class="mr-1">
+                <li>
                     <a href="/daybook/{{.Diary.DiaryID}}">{{.Diary.Title}}</a>
                     {{if eq .Diary.ViewSetting 2}}
-                    <span class="mdi mdi-lock-outline ps-1"></span>
+                    <span class="mdi mdi-lock-outline mx-3"></span>
                     {{end}}
                 </li>
             </ul>
         </div>
         <div>
-            <button type="button" class=""><i class="mdi mdi-cogs"></i> 日记本设置</button>
-            <button type="button" class=""><i class="mdi mdi-heart-outline"></i> 点赞</button>
+            <a  class="border text-sm px-4 py-2 mr-3 text-black border-gray-300 hover:bg-gray-200" href="#"><i class="mdi mdi-cogs"></i> 日记本设置</a>
+            <a  class="border text-sm px-4 py-2 text-black border-gray-300 hover:bg-gray-200" href="#"><i class="mdi mdi-heart-outline"></i> 点赞</a>
         </div>
     </section>
 
