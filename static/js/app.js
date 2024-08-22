@@ -1233,8 +1233,8 @@ $(function () {
     //header fixed
     $(document).scroll(function () {
         if ($(document).scrollTop() > 1)
-            $('.top-nav').html($('#page-nav').html());
+            $('#top-nav').html($('#page-nav').html());
         else if ($(document).scrollTop() == 0)
-            $('.top-nav').html('');
+            $('#top-nav').html('');
     });
 });

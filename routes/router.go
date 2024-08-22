@@ -4,9 +4,10 @@ import (
 	"html/template"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
+	"time"
 
-	rice "github.com/GeertJohan/go.rice"
 	"github.com/biuren/hebe/controllers"
 	"github.com/biuren/hebe/settings"
 	"github.com/gin-gonic/gin"
@@ -16,7 +17,7 @@ import (
 func Set(server *gin.Engine) {
 
 	// 初始化 Views 模板
-	setTemplate(server)
+	setTemplate(server,"./views")
 
 	// 初始化静态文件目录
 	setStaticFs(server)
@@ -25,35 +26,38 @@ func Set(server *gin.Engine) {
 	setPath(server)
 }
 
-// 通过rice box 加载 "views" 目录中的模版文件
-func setTemplate(server *gin.Engine) {
-	box := rice.MustFindBox("../views")
+// 通过原生 Go 能力加载 "views" 目录中的模版文件
+func setTemplate(server *gin.Engine, basePath string) {
+    // 注册模版函数
+    tmpl := template.New("").Funcs(template.FuncMap{
+        // TODO：加载模版函数，后期需要完善
+        "formatTime": func(utc int64, layout string) string {
+            return time.Unix(utc, 0).Format(layout)
+        },
+    })
 
-	//注册模版函数
-	tmpl := template.New("").Funcs(template.FuncMap{
-		//TODO：加载模版函数，后期需要完善
-		"formatTime": func(utc int64, layout string) string {
-			return box.Time().UTC().Format(layout)
-		},
-	})
+    // 递归遍历 views 目录，加载所有 .html 文件
+    fn := func(path string, f os.FileInfo, err error) error {
+        if err != nil {
+            return err
+        }
+        if !f.IsDir() && strings.HasSuffix(f.Name(), ".html") {
+            var err error
+            tmpl, err = tmpl.ParseFiles(path)
+            if err != nil {
+                return err
+            }
+        }
+        return nil
+    }
 
-	fn := func(path string, f os.FileInfo, err error) error {
-		if f.IsDir() != true && strings.HasSuffix(f.Name(), ".html") {
-			var err error
-			tmpl, err = tmpl.Parse(box.MustString(path))
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-
-	err := box.Walk("", fn)
-	if err != nil {
-		panic(err)
-	}
-	server.SetHTMLTemplate(tmpl)
+    err := filepath.Walk(basePath, fn)
+    if err != nil {
+        panic(err)
+    }
+    server.SetHTMLTemplate(tmpl)
 }
+
 
 // 设置静态文件目录，存放js、css，以及上传文件目录upload
 func setStaticFs(server *gin.Engine) {

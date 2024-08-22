@@ -2,94 +2,96 @@
 {{template "header" .}}
 {{template "navbar" .}}
 
-<div class="main-body px-5 py-4">
-    <!--封面信息-->
-    <div class="info-cover">
-        <div class="d-flex">
-            <div class="me-auto">
-                <div id="page-nav">
-                    <ul class="nav">
-                        <li class="nav-item">
-                            <a class="nav-link" href="/u/{{.UserData.UserId}}">{{.UserData.UserName}}</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+<main class="flex-1 container px-3 py-10 mx-auto">
+    <section class="flex justify-between mb-10">
+        <div id="page-nav">
+            <ul class="flex">
+                <li class="mr-1 text-lg">
+                    <a href="/u/{{.UserData.UserId}}">{{.UserData.UserName}}</a>
+                </li>
+            </ul>
         </div>
-        <div class="row mt-5 mb-4">
-            <div class="col-sm-6 col-md-4 col-lg-3">
-                <div class="card card-nav-theme mb-3">
-                    <div class="card-header">个人介绍</div>
-                    <div class="card-body">
-                        <p class="card-text">用一时感悟，酿造一世的回味！</p>
+    </section>
+
+    <section class="mb-10">
+        <div class="flex">
+            <div class="w-1/4 mr-8">
+                <div>
+                    <h1 class="h-8 mb-2 border-b border-b-gray-300">个人介绍</h1>
+                    <div>
+                        用一时感悟，酿造一世的回味！
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-md-4 col-lg-3">
-                <div class="card card-nav-theme mb-3">
-                    <div class="card-header">目录</div>
-                    <div class="card-body">
-                        <ul class="nav flex-column">
-                            <li class="nav-item">
-                                <a class="nav-link active" href="#">
+
+            <div class="w-1/4 mr-8">
+                <div>
+                    <h1 class="h-8 mb-2 border-b border-b-gray-300">目录</h1>
+                    <div class="">
+                        <ul>
+                            <li class="py-1">
+                                <a href="#">
                                     <i class="mdi mdi-book-outline"></i>
                                     <span>最新公开日记</span>
                                 </a>
                             </li>
-                            <li class="nav-item"> <a class="nav-link active" href="#">
+                            <li class="py-1">
+                                <a href="#">
                                     <i class="mdi mdi-book-multiple"></i>
-                                    <span>加入日记本</span>
-                                </a></li>
+                                    <span>加入日记本</span></a>
+                            </li>
                         </ul>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-md-4 col-lg-3">
-                <div class="card card-nav-theme mb-3">
-                    <div class="card-header">我的应用</div>
-                    <div class="card-body">
-                        <p class="card-text">应用列表</p>
+
+            <div class="w-1/2">
+                <div>
+                    <h1 class="h-8 mb-2 border-b border-b-gray-300">我的应用</h1>
+                    <div>
+                        应用列表
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
+    <section class="flex justify-between mb-10">
+        <div class="text-lg">日记本</div>
+        <div><a href="#" class="border text-sm p-2 bg-gray-100 border-gray-300 hover:bg-gray-200"><i class="mdi mdi-plus"></i>
+                新增日记本</a></div>
+    </section>
 
-    <!--日记本列表-->
-    <div class="d-flex ps-2 mb-4">
-        <div class="p-2 fs-5">日记本</div>
-        <div class="ms-auto p-2"><button type="button" class="btn btn-outline-secondary btn-sm float-right px-3"
-                data-bs-toggle="modal" data-bs-target="#daybook_add_modal"><i class="mdi mdi-plus"></i>
-                新增日记本</button></div>
-    </div>
-    <div class="row" id="daybook_list">
-        {{$isOwner := .IsOwner}}
-        {{range .Diaries}}
-        <div class="daybook-block col-sm-6 col-md-4 col-lg-3">
-            <div class="card card-diary-theme dt{{.ThemeID}}">
-                <div class="card-body">
-                    <h5>
-                        <a href="/d/{{.DiaryID}}">{{.Title}}</a>
-                        {{if gt .ViewSetting 1 }}
-                        <i class="mdi mdi-lock-outline"></i>
+    <section>
+        <div class="row" id="daybook_list">
+            {{$isOwner := .IsOwner}}
+            {{range .Diaries}}
+            <div class="daybook-block col-sm-6 col-md-4 col-lg-3">
+                <div class="card card-diary-theme dt{{.ThemeID}}">
+                    <div class="card-body">
+                        <h5>
+                            <a href="/d/{{.DiaryID}}">{{.Title}}</a>
+                            {{if gt .ViewSetting 1 }}
+                            <i class="mdi mdi-lock-outline"></i>
+                            {{end}}
+                        </h5>
+                        <p>{{.InfoNum}}篇
+                            {{if gt .InfoNum 0 }}
+                            - {{formatTime .LastActionUTCTime "2006-01-02 15:04"}}</p>
                         {{end}}
-                    </h5>
-                    <p>{{.InfoNum}}篇
-                        {{if gt .InfoNum 0 }}
-                        - {{formatTime .LastActionUTCTime "2006-01-02 15:04"}}</p>
-                    {{end}}
+                    </div>
                 </div>
             </div>
+            {{end}}
         </div>
-        {{end}}
-    </div>
+    </section>
 
     {{if gt .DiariesNum .PageSize }}
-        <div class="dt16">
-            {{template "pagination" .}}
-        </div>
+    <div class="dt16">
+        {{template "pagination" .}}
+    </div>
     {{end}}
-</div>
+
+</main>
 
 <!--增加日记本modal-->
 <div class="modal fade" id="daybook_add_modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
@@ -108,8 +110,6 @@
         </div>
     </form>
 </div>
-
-{{template "scripts" .}}
 
 <script src="/public/js/masonry.pkgd.min.js?v=4.2.2"></script>
 

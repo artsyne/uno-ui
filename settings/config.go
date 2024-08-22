@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 
-	"github.com/GeertJohan/go.rice"
 	"github.com/gin-gonic/gin"
 )
 
@@ -115,9 +115,22 @@ var params map[string]string
 
 //加载文件
 func LoadConfig() {
-	box := rice.MustFindBox("../settings")
-	loadConfig(box.MustBytes("config.json"))
-	loadParams(box.MustBytes("params.xml"))
+    // 获取当前工作目录
+    dir, _ := os.Getwd()
+
+    // 构建文件路径
+    configPath := filepath.Join(dir, "./settings/config.json")
+    paramsPath := filepath.Join(dir, "./settings/params.xml")
+
+    // 读取 config.json 文件
+    configBytes, _ := os.ReadFile(configPath)
+
+    // 读取 params.xml 文件
+    paramsBytes, _ := os.ReadFile(paramsPath)
+
+    // 加载配置和参数
+    loadConfig(configBytes)
+    loadParams(paramsBytes)
 }
 
 

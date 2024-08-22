@@ -1,26 +1,24 @@
 {{define "navbar"}}
 
-<header class="sticky-top p-2 bg-light mb-4">
-    <div class="container-fluid d-flex justify-content-between ">
-        <div class="d-flex align-items-center">
-            <h1 class="fs-4 mb-0">
-                <a href="/" class="navbar-brand mr-2 text-secondary">
-                    i<font color="#dc3545">D</font>iary.ai
-                </a>
-            </h1>
+<header class="fixed top-0 left-0 right-0 z-30 mx-auto bg-slate-100">
+    <nav class="px-5 py-3 mx-auto flex justify-between">
+        <div class="tracking-wide text-xl text-neutral-600">
+            <a href="/">
+                i<span class="text-red-600">D</span>iary.ai
+            </a>
         </div>
-        <div class="d-flex top-nav align-items-center">
+        <div id="top-nav" class="text-base/loose">
         </div>
-        <div class="d-flex align-items-center">
+        <div class="text-base/loose">
             {{if not .IsLogin }}
             <a class="nav-link text-black-50 fs-6" href="/register" role="button"><i class="fa fa-id-card-o"></i>
                 免费注册</a>
             <a class="nav-link text-black-50 fs-6" href="/login" role="button"><i class="fa fa-sign-in"></i> 登录</a>
             {{else}}
-            <a class="btn btn-outline-secondary mx-2 px-3" role="button" href="/write">
+            <a class="" role="button" href="/write">
                 <i class="mdi mdi-plus"></i>写日记</a>
 
-            <div class="dropdown ms-1">
+            <div class="hidden">
                 <a id="user_drop" href="#" class="nav-link dropdown-toggle text-black-50 p-0" role="button"
                     data-bs-toggle="dropdown">
                     <img style="width:38px;" src="/public/img/face.jpg" />
@@ -35,10 +33,9 @@
             </div>
             {{end}}
         </div>
-    </div>
+    </nav>
 </header>
 
 <div id="help"></div>
-
 
 {{end}}
