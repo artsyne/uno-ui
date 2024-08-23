@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/biuren/hebe/controllers"
+	"github.com/biuren/hebe/middlewares"
 	"github.com/biuren/hebe/settings"
 	"github.com/gin-gonic/gin"
 )
@@ -55,7 +56,13 @@ func setTemplate(server *gin.Engine, basePath string) {
     if err != nil {
         panic(err)
     }
-    server.SetHTMLTemplate(tmpl)
+
+	// 设置自定义渲染器，注入全局变量
+	customHTMLRenderer := middlewares.NewCustomHTMLRender(tmpl, gin.H{
+		"CSS": settings.GetCSS(), // CSS 类名
+	}) 
+
+    server.HTMLRender = customHTMLRenderer
 }
 
 

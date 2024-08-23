@@ -27,7 +27,7 @@ func AuthRequired() gin.HandlerFunc {
 }
 
 // http 中间件
-// 获取用户登录信息
+// 在http上下中注入共享数据，如用户信息、css代码等
 func SharedData() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//获取cookie
@@ -52,9 +52,11 @@ func SharedData() gin.HandlerFunc {
 
 		//判断认证信息
 
-		//写入上下文
+		//写入上下文信息
 		c.Set("UserData", userData)
 		c.Set("IsLogin", true)
+		//css code 注入
+		c.Set("CSS", settings.GetCSS())
 		c.Next()
 	}
 }

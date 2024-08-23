@@ -55,7 +55,7 @@ func startServer(sitePort string) {
 
 	// 初始化中间件
 	// TODO: gin-csrf,gin-limit，error
-	AttachMiddleware(server)
+	attachMiddleware(server)
 	logrus.Info("成功初始化中间件")
 
 	// 初始化Router，创建gin 默认router
@@ -72,7 +72,7 @@ func startServer(sitePort string) {
 }
 
 // 在http请求上下文中注入中间件
-func AttachMiddleware(server *gin.Engine){
+func attachMiddleware(server *gin.Engine){
 	// 加载上下文共享数据，如登录数据
 	server.Use(middlewares.PanicHandler(),middlewares.ErrorHandler(),middlewares.SharedData())
 }
