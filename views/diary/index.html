@@ -9,7 +9,7 @@
 <script>
     var spaceId = {{.Diary.DiaryID }};
 </script>
-<main class="flex-1 container px-3 py-10 mx-auto dt{{.Diary.ThemeID}}">
+<main class="{{index .CSS "main"}} dt{{.Diary.ThemeID}}">
     <section class="flex justify-between mb-10">
         <div id="page-nav">
             <ul class="flex text-lg">
@@ -34,7 +34,7 @@
         <div class="flex">
             <div class="w-1/4 mr-8">
                 <div>
-                    <h1 class="h-8 mb-2 border-b border-b-gray-300">日记本介绍</h1>
+                    <h1 class="{{index .CSS "card-title"}}">日记本介绍</h1>
                     <div class="">
                         <p class="">日记本介绍，这是个人日记</p>
                     </div>
@@ -42,7 +42,7 @@
             </div>
             <div class="w-1/4 mr-8">
                 <div>
-                    <h1 class="h-8 mb-2 border-b border-b-gray-300">目录</h1>
+                    <h1 class="{{index .CSS "card-title"}}">目录</h1>
                     <div class="">
                         <ul>
                             <li class="py-1">

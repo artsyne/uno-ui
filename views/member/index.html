@@ -2,7 +2,7 @@
 {{template "header" .}}
 {{template "navbar" .}}
 
-<main class="flex-1 container px-3 py-10 mx-auto">
+<main class="{{index .CSS "main"}}">
     <section class="flex justify-between mb-10">
         <div id="page-nav">
             <ul class="flex text-lg">
@@ -17,7 +17,7 @@
         <div class="flex">
             <div class="w-1/4 mr-8">
                 <div>
-                    <h1 class="h-8 mb-2 border-b border-b-gray-300">个人介绍</h1>
+                    <h1 class="{{index .CSS " card-title"}}">个人介绍</h1>
                     <div>
                         用一时感悟，酿造一世的回味！
                     </div>
@@ -26,7 +26,7 @@
 
             <div class="w-1/4 mr-8">
                 <div>
-                    <h1 class="h-8 mb-2 border-b border-b-gray-300">目录</h1>
+                    <h1 class="{{index .CSS " card-title"}}">目录</h1>
                     <div>
                         <ul class="text-black">
                             <li class="py-1">
@@ -47,7 +47,7 @@
 
             <div class="w-1/2">
                 <div>
-                    <h1 class="h-8 mb-2 border-b border-b-gray-300">我的应用</h1>
+                    <h1 class="{{index .CSS " card-title"}}">我的应用</h1>
                     <div>
                         应用列表
                     </div>
@@ -57,17 +57,17 @@
     </section>
     <section class="flex justify-between mb-10">
         <div class="text-lg">日记本</div>
-        <div><a href="#" class="{{index .CSS "btn"}}"><i class="mdi mdi-plus"></i>
+        <div><a href="#" class="{{index .CSS " btn"}}"><i class="mdi mdi-plus"></i>
                 新增日记本</a></div>
     </section>
 
     <section>
-        <div class="row" id="daybook_list">
+        <div class="grid grid-cols-4 max-lg:grid-cols-1 gap-8" id="daybook_list">
             {{$isOwner := .IsOwner}}
             {{range .Diaries}}
-            <div class="daybook-block col-sm-6 col-md-4 col-lg-3">
-                <div class="card card-diary-theme dt{{.ThemeID}}">
-                    <div class="card-body">
+            <div class="">
+                <div class="border h-64 text-center dt{{.ThemeID}}">
+                    <div class="h-full content-center">
                         <h5>
                             <a href="/d/{{.DiaryID}}">{{.Title}}</a>
                             {{if gt .ViewSetting 1 }}
@@ -83,18 +83,18 @@
             </div>
             {{end}}
         </div>
-    </section>
 
-    {{if gt .DiariesNum .PageSize }}
-    <div class="dt16">
-        {{template "pagination" .}}
-    </div>
-    {{end}}
+        {{if gt .DiariesNum .PageSize }}
+        <div class="flex justify-end mt-10">
+            {{template "pagination" .}}
+        </div>
+        {{end}}
+    </section>
 
 </main>
 
 <!--增加日记本modal-->
-<div class="modal fade" id="daybook_add_modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal fade hidden" id="daybook_add_modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <form id="daybook_editor_form">
         <div class="modal-dialog  modal-lg" role="document">
             <div class="modal-content">
@@ -110,21 +110,9 @@
         </div>
     </form>
 </div>
-
-<script src="/public/js/masonry.pkgd.min.js?v=4.2.2"></script>
-
-<script src="/public/js/imagesloaded.pkgd.min.js"></script>
-
 <script>
     $(function () {
-        var $grid = $('.grid').masonry({
-            itemSelector: '.grid-item',
-            columnWidth: 0,
-            percentPosition: true
-        });
-        $grid.imagesLoaded().progress(function () {
-            $grid.masonry('layout');
-        });
+
 
         $('.daybook-block').on("mouseenter mouseleave", function () {
             $(this).find('.daybook-edit-btn').toggle();
