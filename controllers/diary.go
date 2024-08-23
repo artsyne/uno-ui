@@ -60,7 +60,7 @@ func RenderDiaryIndex(c *gin.Context) {
 	pageSize := config.PageSize
 
 	// 分页显示日记列表
-	h["Diaries"], diariesNum, err = models.ListInfoByUserID(diary.AddUserID, diaryID, pageIndex, pageSize)
+	h["Posts"], diariesNum, err = models.ListPostsByUserID(diary.AddUserID, diaryID, pageIndex, pageSize)
 	if err != nil {
 		hasError = true
 	}

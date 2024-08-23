@@ -1,26 +1,21 @@
-.dt1.card {
+.dt1 {
     border-color: #E53935;
 }
 
-.dt1.card,
-.dt1 #page-nav,
-.dt1 a,
-.dt1 .post-year {
-    color: #E53935 !important;
+.dt1 a
+ {
+    color: #E53935;
 }
 
 .dtf1 {
     background-color: #E53935;
 }
 
-.dt2.card {
+.dt2 {
     border-color: #EB3F79;
 }
 
-.dt2.card,
-.dt2 #page-nav,
-.dt2 a,
-.dt2 .post-year {
+.dt2 a {
     color: #EB3F79;
 }
 
@@ -28,14 +23,11 @@
     background-color: #EB3F79;
 }
 
-.dt3.card {
+.dt3 {
     border-color: #A900FF;
 }
 
-.dt3.card,
-.dt3 #page-nav,
-.dt3 a,
-.dt3 .post-year {
+.dt3 a {
     color: #A900FF;
 }
 
@@ -43,14 +35,12 @@
     background-color: #A900FF;
 }
 
-.dt4.card {
+.dt4{
     border-color: #7D56C1;
 }
 
-.dt4.card,
-.dt4 #page-nav,
-.dt4 a,
-.dt4 .post-year {
+
+.dt4 a{
     color: #7D56C1;
 }
 
@@ -58,14 +48,11 @@
     background-color: #7D56C1;
 }
 
-.dt5.card {
+.dt5 {
     border-color: #5B6ABF;
 }
 
-.dt5.card,
-.dt5 #page-nav,
-.dt5 a,
-.dt5 .post-year {
+.dt5 a{
     color: #5B6ABF;
 }
 
@@ -73,14 +60,12 @@
     background-color: #5B6ABF;
 }
 
-.dt6.card {
+.dt6 {
     border-color: #1D87E4;
 }
 
-.dt6.card,
-.dt6 #page-nav,
-.dt6 a,
-.dt6 .post-year {
+
+.dt6 a {
     color: #1D87E4;
 }
 
@@ -88,14 +73,11 @@
     background-color: #1D87E4;
 }
 
-.dt7.card {
+.dt7 {
     border-color: #029AE4;
 }
 
-.dt7.card,
-.dt7 #page-nav,
-.dt7 a,
-.dt7 .post-year {
+.dt7 a{
     color: #029AE4;
 }
 
@@ -103,14 +85,11 @@
     background-color: #029AE4;
 }
 
-.dt8.card {
+.dt8 {
     border-color: #00ABC0;
 }
 
-.dt8.card,
-.dt8 #page-nav,
-.dt8 a,
-.dt8 .post-year {
+.dt8 a{
     color: #00ABC0;
 }
 
@@ -118,14 +97,11 @@
     background-color: #00ABC0;
 }
 
-.dt9.card {
+.dt9 {
     border-color: #00887A;
 }
 
-.dt9.card,
-.dt9 #page-nav,
-.dt9 a,
-.dt9 .post-year {
+.dt9 a {
     color: #00887A;
 }
 
@@ -133,14 +109,11 @@
     background-color: #00887A;
 }
 
-.dt10.card {
+.dt10 {
     border-color: #378D3B;
 }
 
-.dt10.card,
-.dt10 #page-nav,
-.dt10 a,
-.dt10 .post-year {
+.dt10 a{
     color: #378D3B;
 }
 
@@ -148,14 +121,11 @@
     background-color: #378D3B;
 }
 
-.dt11.card {
+.dt11 {
     border-color: #679E37;
 }
 
-.dt11.card,
-.dt11 #page-nav,
-.dt11 a,
-.dt11 .post-year {
+.dt11 a {
     color: #679E37;
 }
 
@@ -163,14 +133,11 @@
     background-color: #679E37;
 }
 
-.dt12.card {
+.dt12 {
     border-color: #F8A724;
 }
 
-.dt12.card,
-.dt12 #page-nav,
-.dt12 a,
-.dt12 .post-year {
+.dt12 a {
     color: #F8A724;
 }
 
@@ -178,14 +145,11 @@
     background-color: #F8A724;
 }
 
-.dt13.card {
+.dt13 {
     border-color: #FF6F42;
 }
 
-.dt13.card,
-.dt13 #page-nav,
-.dt13 a,
-.dt13 .post-year {
+.dt13 a {
     color: #FF6F42;
 }
 
@@ -193,14 +157,11 @@
     background-color: #FF6F42;
 }
 
-.dt14.card {
+.dt14 {
     border-color: #8C6D62;
 }
 
-.dt14.card,
-.dt14 #page-nav,
-.dt14 a,
-.dt14 .post-year {
+.dt14 a {
     color: #8C6D62;
 }
 
@@ -208,14 +169,11 @@
     background-color: #8C6D62;
 }
 
-.dt15.card {
+.dt15 {
     border-color: #778F9B;
 }
 
-.dt15.card,
-.dt15 #page-nav,
-.dt15 a,
-.dt15 .post-year {
+.dt15 a{
     color: #778F9B;
 }
 
@@ -223,14 +181,11 @@
     background-color: #778F9B;
 }
 
-.dt16.card {
+.dt16 {
     border-color: #414141;
 }
 
-.dt16.card,
-.dt16 #page-nav,
-.dt16 a,
-.dt16 .post-year {
+.dt16 a{
     color: #414141;
 }
 

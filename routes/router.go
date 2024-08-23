@@ -50,9 +50,9 @@ func setTemplate(server *gin.Engine, basePath string) {
     server.HTMLRender = customHTMLRenderer
 }
 
-// formatTime 格式化时间的辅助函数
+// formatTime 格式化时间的辅助函数，utc 时间需精度到毫秒
 func formatTime(utc int64, layout string) string {
-    return time.Unix(utc, 0).Format(layout)
+    return time.Unix(utc/1000, 0).Format(layout)
 }
 
 // loadTemplates 递归遍历目录，加载所有 .html 文件

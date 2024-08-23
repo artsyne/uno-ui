@@ -2,7 +2,7 @@
 {{template "header" .}}
 {{template "navbar" .}}
 
-<main class="{{index .CSS "main"}}">
+<main class='{{index .CSS "main"}}'>
     <section class="flex justify-between mb-10">
         <div id="page-nav">
             <ul class="flex text-lg">
@@ -17,7 +17,7 @@
         <div class="flex">
             <div class="w-1/4 mr-8">
                 <div>
-                    <h1 class="{{index .CSS " card-title"}}">个人介绍</h1>
+                    <h1 class='{{index .CSS "card-title"}}'>个人介绍</h1>
                     <div>
                         用一时感悟，酿造一世的回味！
                     </div>
@@ -26,7 +26,7 @@
 
             <div class="w-1/4 mr-8">
                 <div>
-                    <h1 class="{{index .CSS " card-title"}}">目录</h1>
+                    <h1 class='{{index .CSS "card-title"}}'>目录</h1>
                     <div>
                         <ul class="text-black">
                             <li class="py-1">
@@ -47,7 +47,7 @@
 
             <div class="w-1/2">
                 <div>
-                    <h1 class="{{index .CSS " card-title"}}">我的应用</h1>
+                    <h1 class='{{index .CSS "card-title"}}'>我的应用</h1>
                     <div>
                         应用列表
                     </div>
@@ -57,7 +57,7 @@
     </section>
     <section class="flex justify-between mb-10">
         <div class="text-lg">日记本</div>
-        <div><a href="#" class="{{index .CSS " btn"}}"><i class="mdi mdi-plus"></i>
+        <div><a href="#" class='{{index .CSS "btn"}}'><i class="mdi mdi-plus"></i>
                 新增日记本</a></div>
     </section>
 
@@ -65,20 +65,18 @@
         <div class="grid grid-cols-4 max-lg:grid-cols-1 gap-8" id="daybook_list">
             {{$isOwner := .IsOwner}}
             {{range .Diaries}}
-            <div class="">
-                <div class="border h-64 text-center dt{{.ThemeID}}">
-                    <div class="h-full content-center">
-                        <h5>
-                            <a href="/d/{{.DiaryID}}">{{.Title}}</a>
-                            {{if gt .ViewSetting 1 }}
-                            <i class="mdi mdi-lock-outline"></i>
-                            {{end}}
-                        </h5>
-                        <p>{{.InfoNum}}篇
-                            {{if gt .InfoNum 0 }}
-                            - {{formatTime .LastActionUTCTime "2006-01-02 15:04"}}</p>
+            <div class="border h-64 text-center dt{{.ThemeID}}">
+                <div class="h-full content-center p-3">
+                    <h1 class="text-xl mb-2 break-words">
+                        <a href="/d/{{.DiaryID}}">{{.Title}}</a>
+                        {{if gt .ViewSetting 1 }}
+                        <i class="mdi mdi-lock-outline"></i>
                         {{end}}
-                    </div>
+                    </h1>
+                    <p>{{.InfoNum}}篇
+                        {{if gt .InfoNum 0 }}
+                        - {{formatTime .LastActionUTCTime "2006-01-02 15:04"}}</p>
+                    {{end}}
                 </div>
             </div>
             {{end}}

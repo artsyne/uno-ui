@@ -9,7 +9,7 @@
 <script>
     var spaceId = {{.Diary.DiaryID }};
 </script>
-<main class="{{index .CSS "main"}} dt{{.Diary.ThemeID}}">
+<main class='{{index .CSS "main"}} dt{{.Diary.ThemeID}}'>
     <section class="flex justify-between mb-10">
         <div id="page-nav">
             <ul class="flex text-lg">
@@ -25,24 +25,24 @@
             </ul>
         </div>
         <div>
-            <a  class="mr-3 {{index .CSS "btn"}}" href="#"><i class="mdi mdi-cogs"></i> 日记本设置</a>
-            <a  class="{{index .CSS "btn"}}" href="#"><i class="mdi mdi-heart-outline"></i> 点赞</a>
+            <a class='mr-3 {{index .CSS "btn"}}' href="#"><i class="mdi mdi-cogs"></i> 日记本设置</a>
+            <a class='{{index .CSS "btn"}}' href="#"><i class="mdi mdi-heart-outline"></i> 点赞</a>
         </div>
     </section>
 
     <section class="mb-10">
         <div class="flex">
-            <div class="w-1/4 mr-8">
+            <div class="lg:w-1/4 md:w-1/2 mr-8">
                 <div>
-                    <h1 class="{{index .CSS "card-title"}}">日记本介绍</h1>
-                    <div class="">
-                        <p class="">日记本介绍，这是个人日记</p>
+                    <h1 class='{{index .CSS " card-title"}}'>日记本介绍</h1>
+                    <div class="text-sm">
+                        <p>日记本介绍，这是个人日记</p>
                     </div>
                 </div>
             </div>
-            <div class="w-1/4 mr-8">
+            <div class="lg:w-1/4 md:w-1/2 mr-8">
                 <div>
-                    <h1 class="{{index .CSS "card-title"}}">目录</h1>
+                    <h1 class='{{index .CSS " card-title"}}'>目录</h1>
                     <div class="">
                         <ul>
                             <li class="py-1">
@@ -63,46 +63,41 @@
     </section>
 
     <section>
-        <div class="row grid" data-masonry='{"percentPosition": true }'>
-            {{range .Diaries}}
-            <div class="col-md-6 col-xl-4 col-xxl-3 mb-4">
-                <div class="card card-blog-theme">
-                    <div class="card-body mt-5 pt-5">
-                        {{if .Title }}
-                        <h5 class="card-title">
-                            {{.Title}}
-                        </h5>
-                        {{end}}
-                        <p class="card-text text-break">
-                            {{ .Summary}}
-                        </p>
+        <div class="lg:columns-3 md:columns-2 gap-6">
+            {{range .Posts}}
+            <div class="border p-3 mb-6 break-inside-avoid">
+                <div class="card-body">
+                    {{if .Title }}
+                    <h1 class="text-black break-words mb-2">
+                        {{.Title}}
+                    </h1>
+                    {{end}}
+                    <p class="break-words leading-relaxed">
+                        {{ .Summary}}
+                    </p>
+                </div>
+                <div class="my-4 flex justify-between">
+                    <div>
+                        <a href="#"><i class="mdi mdi-account-box"></i>
+                            {{.AddUserName}}</a>
+                        <a href="#"><i class="mdi mdi-book-outline"></i> {{$.Diary.Title}}</a>
                     </div>
-                    <div class="card-footer pt-0">
-                        <div class="d-flex">
-                            <div class="me-auto p-1">
-                                <a href="#" class="link-gray mr-2"><i class="mdi mdi-account-box"></i>
-                                    {{.AddUserName}}</a>
-                                <a href="#" class="link-gray"><i class="mdi mdi-book-outline"></i> {{$.Diary.Title}}</a>
-                            </div>
-                            <div class="p-1">
-                                <a href="#" class="mr-2">
-                                    <i class="mdi mdi-comment-multiple-outline"></i> <span
-                                        class="text-gray">{{.CommentNum}}</span>
-                                </a>
-                                <a href="#">
-                                    <i class="mdi mdi-heart-outline"></i> <span class="text-gray">{{.LikeNum}}</span>
-                                </a>
-                            </div>
-                        </div>
+                    <div>
+                        <a href="#">
+                            <i class="mdi mdi-comment-multiple-outline"></i> <span>{{.CommentNum}}</span>
+                        </a>
+                        <a href="#">
+                            <i class="mdi mdi-heart-outline"></i> <span>{{.LikeNum}}</span>
+                        </a>
                     </div>
-                    <div class="blog-date">
-                        <span class="post-month">十二月</span>
-                        <span class="post-day">29</span>
-                        <span class="post-year">2019</span>
-                    </div>
-                    <div class="blog-quote-icon">
-                        <i class="mdi mdi-format-quote-close"></i>
-                    </div>
+                </div>
+                <div class="blog-date">
+                    <span class="post-month">十二月</span>
+                    <span class="post-day">29</span>
+                    <span class="post-year">2019</span>
+                </div>
+                <div class="blog-quote-icon">
+                    <i class="mdi mdi-format-quote-close"></i>
                 </div>
             </div>
             {{end}}
@@ -116,19 +111,5 @@
 </main>
 
 {{end}}
-
-<script src="/public/js/masonry.pkgd.min.js?v=4.2.2"></script>
-<script src="/public/js/imagesloaded.pkgd.min.js"></script>
-<script>
-    $(function () {
-        var $grid = $('.grid').masonry({
-            columnWidth: 0,
-            percentPosition: true
-        });
-        $grid.imagesLoaded().progress(function () {
-            $grid.masonry('layout');
-        });
-    });
-</script>
 {{template "footer" .}}
 {{end}}

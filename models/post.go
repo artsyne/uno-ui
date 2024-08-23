@@ -57,19 +57,7 @@ func (post *Post) Insert() (int64, error) {
 	return id, err
 }
 
-// 根据用户ID查询日记本信息
-func ListPostsByUserID(userID int64, diaryID int64) ([]Post, error) {
-	infoArray := []Post{}
-	sqlstr := "SELECT * FROM br_post WHERE diary_id = ? AND add_user_id = ? ORDER BY post_id DESC"
-
-	err := db.Select(&infoArray, sqlstr, diaryID, userID)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	return infoArray, err
-}
-
-// ListInfoByUserID 根据用户ID和日记本ID分页查询日记信息
+// ListPostsByUserID 根据用户ID和日记本ID分页查询日记信息
 // 参数:
 // - userID: 用户ID
 // - spaceID: 日记本ID
@@ -79,7 +67,7 @@ func ListPostsByUserID(userID int64, diaryID int64) ([]Post, error) {
 // - []Info: 查询到的日记信息数组
 // - totalRecords: 总记录数
 // - error: 错误信息
-func ListInfoByUserID(userID int64, diaryID int64, pageIndex, pageSize int) ([]Post, int, error) {
+func ListPostsByUserID(userID int64, diaryID int64, pageIndex, pageSize int) ([]Post, int, error) {
 	infoArray := []Post{}
 	totalRecords := 0
 
