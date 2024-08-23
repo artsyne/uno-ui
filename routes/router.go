@@ -27,44 +27,50 @@ func Set(server *gin.Engine) {
 	setPath(server)
 }
 
+
+// #region 加载模版文件，并注入全局变量
 // 通过原生 Go 能力加载 "views" 目录中的模版文件
 func setTemplate(server *gin.Engine, basePath string) {
     // 注册模版函数
     tmpl := template.New("").Funcs(template.FuncMap{
-        // TODO：加载模版函数，后期需要完善
-        "formatTime": func(utc int64, layout string) string {
-            return time.Unix(utc, 0).Format(layout)
-        },
+        "formatTime": formatTime,
     })
 
-    // 递归遍历 views 目录，加载所有 .html 文件
-    fn := func(path string, f os.FileInfo, err error) error {
+    // 加载所有 .html 文件
+    err := loadTemplates(tmpl, basePath)
+    if err != nil {
+        panic(err)
+    }
+
+    // 设置自定义渲染器，注入全局变量
+    customHTMLRenderer := middlewares.NewCustomHTMLRender(tmpl, gin.H{
+        "CSS": settings.GetCSS(), //  tailwind 类名
+    })
+
+    server.HTMLRender = customHTMLRenderer
+}
+
+// formatTime 格式化时间的辅助函数
+func formatTime(utc int64, layout string) string {
+    return time.Unix(utc, 0).Format(layout)
+}
+
+// loadTemplates 递归遍历目录，加载所有 .html 文件
+func loadTemplates(tmpl *template.Template, basePath string) error {
+    return filepath.Walk(basePath, func(path string, f os.FileInfo, err error) error {
         if err != nil {
             return err
         }
         if !f.IsDir() && strings.HasSuffix(f.Name(), ".html") {
-            var err error
-            tmpl, err = tmpl.ParseFiles(path)
+            _, err = tmpl.ParseFiles(path)
             if err != nil {
                 return err
             }
         }
         return nil
-    }
-
-    err := filepath.Walk(basePath, fn)
-    if err != nil {
-        panic(err)
-    }
-
-	// 设置自定义渲染器，注入全局变量
-	customHTMLRenderer := middlewares.NewCustomHTMLRender(tmpl, gin.H{
-		"CSS": settings.GetCSS(), // CSS 类名
-	}) 
-
-    server.HTMLRender = customHTMLRenderer
+    })
 }
-
+// #endregion
 
 // 设置静态文件目录，存放js、css，以及上传文件目录upload
 func setStaticFs(server *gin.Engine) {
