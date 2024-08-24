@@ -17,7 +17,7 @@
                     <span class="mdi mdi-slash-forward mx-3"></span>
                 </li>
                 <li>
-                    <a href="/daybook/{{.Diary.DiaryID}}">{{.Diary.Title}}</a>
+                    <a href="/d/{{.Diary.DiaryID}}">{{.Diary.Title}}</a>
                     {{if eq .Diary.ViewSetting 2}}
                     <span class="mdi mdi-lock-outline mx-3"></span>
                     {{end}}
@@ -31,32 +31,28 @@
     </section>
 
     <section class="mb-10">
-        <div class="flex">
-            <div class="lg:w-1/4 md:w-1/2 mr-8">
-                <div>
-                    <h1 class='{{index .CSS " card-title"}}'>日记本介绍</h1>
-                    <div class="text-sm">
-                        <p>日记本介绍，这是个人日记</p>
-                    </div>
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div>
+                <h1 class='{{index .CSS "card-title"}}'>日记本介绍</h1>
+                <div class="text-sm">
+                    <p>日记本介绍，这是个人日记</p>
                 </div>
             </div>
-            <div class="lg:w-1/4 md:w-1/2 mr-8">
-                <div>
-                    <h1 class='{{index .CSS " card-title"}}'>目录</h1>
-                    <div class="">
-                        <ul>
-                            <li class="py-1">
-                                <a href="#">
-                                    <i class="mdi mdi-account-group"></i>
-                                    <span>作者列表</span>
-                                </a>
-                            </li>
-                            <li class="py-1"><a href="#">
-                                    <i class="mdi mdi-delete-outline"></i>
-                                    <span>点赞会员列表</span>
-                                </a></li>
-                        </ul>
-                    </div>
+            <div>
+                <h1 class='{{index .CSS "card-title"}}'>目录</h1>
+                <div class="">
+                    <ul>
+                        <li class="py-1">
+                            <a href="#">
+                                <i class="mdi mdi-account-group"></i>
+                                <span>作者列表</span>
+                            </a>
+                        </li>
+                        <li class="py-1"><a href="#">
+                                <i class="mdi mdi-delete-outline"></i>
+                                <span>点赞会员列表</span>
+                            </a></li>
+                    </ul>
                 </div>
             </div>
         </div>

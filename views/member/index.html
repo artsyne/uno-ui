@@ -14,8 +14,8 @@
     </section>
 
     <section class="mb-10">
-        <div class="flex">
-            <div class="w-1/4 mr-8">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div>
                 <div>
                     <h1 class='{{index .CSS "card-title"}}'>个人介绍</h1>
                     <div>
@@ -23,8 +23,7 @@
                     </div>
                 </div>
             </div>
-
-            <div class="w-1/4 mr-8">
+            <div>
                 <div>
                     <h1 class='{{index .CSS "card-title"}}'>目录</h1>
                     <div>
@@ -44,13 +43,10 @@
                     </div>
                 </div>
             </div>
-
-            <div class="w-1/2">
+            <div class="lg:col-span-2">
+                <h1 class='{{index .CSS "card-title"}}'>我的应用</h1>
                 <div>
-                    <h1 class='{{index .CSS "card-title"}}'>我的应用</h1>
-                    <div>
-                        应用列表
-                    </div>
+                    应用列表
                 </div>
             </div>
         </div>
