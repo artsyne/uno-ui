@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/biuren/hebe/controllers"
-	"github.com/biuren/hebe/middlewares"
 	"github.com/biuren/hebe/settings"
 	"github.com/gin-gonic/gin"
 )
@@ -42,12 +41,8 @@ func setTemplate(server *gin.Engine, basePath string) {
         panic(err)
     }
 
-    // 设置自定义渲染器，注入全局变量
-    customHTMLRenderer := middlewares.NewCustomHTMLRender(tmpl, gin.H{
-        "CSS": settings.GetCSS(), //  tailwind 类名
-    })
-
-    server.HTMLRender = customHTMLRenderer
+    // 设置 Gin 原生的 HTML 渲染器
+    server.SetHTMLTemplate(tmpl)
 }
 
 // formatTime 格式化时间的辅助函数，utc 时间需精度到毫秒

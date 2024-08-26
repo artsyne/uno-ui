@@ -4,11 +4,11 @@ module.exports = {
       './views/**/*.{html,tmpl,gohtml}',  // 添加 Go 模板文件路径
     ],
     theme: {
-      extend: {
-        gridTemplateColumns: {
-          'masonry': 'repeat(auto-fill, minmax(250px, 1fr))',
+      extend:{
+        fontFamily: {
+          'sans': ['Arial', 'Helvetica', 'sans-serif'], // 设置默认字体
         },
-      },
+      }
     },
     plugins: [],
   }

@@ -9,7 +9,7 @@
 <script>
     var spaceId = {{.Diary.DiaryID }};
 </script>
-<main class='{{index .CSS "main"}} dt{{.Diary.ThemeID}}'>
+<main class="main dt{{.Diary.ThemeID}}">
     <section class="flex justify-between mb-10">
         <div id="page-nav">
             <ul class="flex text-lg">
@@ -25,34 +25,36 @@
             </ul>
         </div>
         <div>
-            <a class='mr-3 {{index .CSS "btn"}}' href="#"><i class="mdi mdi-cogs"></i> 日记本设置</a>
-            <a class='{{index .CSS "btn"}}' href="#"><i class="mdi mdi-heart-outline"></i> 点赞</a>
+            <a class="mr-3 btn" href="#"><i class="mdi mdi-cogs"></i> 日记本设置</a>
+            <a class="btn" href="#"><i class="mdi mdi-heart-outline"></i> 点赞</a>
         </div>
     </section>
 
     <section class="mb-10">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div>
-                <h1 class='{{index .CSS "card-title"}}'>日记本介绍</h1>
+                <h1 class="card-title">日记本介绍</h1>
                 <div class="text-sm">
                     <p>日记本介绍，这是个人日记</p>
                 </div>
             </div>
             <div>
-                <h1 class='{{index .CSS "card-title"}}'>目录</h1>
-                <div class="">
-                    <ul>
-                        <li class="py-1">
-                            <a href="#">
-                                <i class="mdi mdi-account-group"></i>
-                                <span>作者列表</span>
-                            </a>
-                        </li>
-                        <li class="py-1"><a href="#">
-                                <i class="mdi mdi-delete-outline"></i>
-                                <span>点赞会员列表</span>
-                            </a></li>
-                    </ul>
+                <div>
+                    <h1 class="card-title">目录</h1>
+                    <div class="">
+                        <ul>
+                            <li class="py-1">
+                                <a href="#">
+                                    <i class="mdi mdi-account-group"></i>
+                                    <span>作者列表</span>
+                                </a>
+                            </li>
+                            <li class="py-1"><a href="#">
+                                    <i class="mdi mdi-delete-outline"></i>
+                                    <span>点赞会员列表</span>
+                                </a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>

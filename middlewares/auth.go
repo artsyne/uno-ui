@@ -55,8 +55,6 @@ func SharedData() gin.HandlerFunc {
 		//写入上下文信息
 		c.Set("UserData", userData)
 		c.Set("IsLogin", true)
-		//css code 注入
-		c.Set("CSS", settings.GetCSS())
 		c.Next()
 	}
 }

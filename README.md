@@ -57,5 +57,13 @@ iDiary.AI
 
 20. 智能社交互动：AI可以提供用户之间的社交互动平台，让用户能够分享和交流日记内容，获得更多的反馈和支持。
 
+## Tailwind build
+### 构建 tailwind css
+* 开发环境 css
+npm run build:css
+
+* 生产环境 css
+npm run build:css:prod
+
 ## icon copyright
 <a target="_blank" href="https://icons8.com/icon/jmkHXlIGZKw5/diary">Diary</a> icon by <a target="_blank" href="https://pictogrammers.github.io/@mdi/font/6.5.95/">Material Design Icons</a> 
