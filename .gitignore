@@ -6,4 +6,5 @@
 config/config.json
 /*.exe
 /*debug_bin*
+/node_modules
   

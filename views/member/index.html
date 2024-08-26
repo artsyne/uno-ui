@@ -1,8 +1,6 @@
-{{define "member/index"}}
-{{template "header" .}}
-{{template "navbar" .}}
+{{define "member/index"}} {{template "header" .}} {{template "navbar" .}}
 
-<main class='{{index .CSS "main"}}'>
+<main class="main">
     <section class="flex justify-between mb-10">
         <div id="page-nav">
             <ul class="flex text-lg">
@@ -17,16 +15,14 @@
         <div class="flex">
             <div class="w-1/4 mr-8">
                 <div>
-                    <h1 class='{{index .CSS "card-title"}}'>个人介绍</h1>
-                    <div>
-                        用一时感悟，酿造一世的回味！
-                    </div>
+                    <h1 class="card-title">个人介绍</h1>
+                    <div>用一时感悟，酿造一世的回味！</div>
                 </div>
             </div>
 
             <div class="w-1/4 mr-8">
                 <div>
-                    <h1 class='{{index .CSS "card-title"}}'>目录</h1>
+                    <h1 class="card-title">目录</h1>
                     <div>
                         <ul class="text-black">
                             <li class="py-1">
@@ -47,24 +43,22 @@
 
             <div class="w-1/2">
                 <div>
-                    <h1 class='{{index .CSS "card-title"}}'>我的应用</h1>
-                    <div>
-                        应用列表
-                    </div>
+                    <h1 class="card-title">我的应用</h1>
+                    <div>应用列表</div>
                 </div>
             </div>
         </div>
     </section>
     <section class="flex justify-between mb-10">
         <div class="text-lg">日记本</div>
-        <div><a href="#" class='{{index .CSS "btn"}}'><i class="mdi mdi-plus"></i>
-                新增日记本</a></div>
+        <div>
+            <a href="#" class="btn"><i class="mdi mdi-plus"></i> 新增日记本</a>
+        </div>
     </section>
 
     <section>
         <div class="grid grid-cols-4 max-lg:grid-cols-1 gap-8" id="daybook_list">
-            {{$isOwner := .IsOwner}}
-            {{range .Diaries}}
+            {{$isOwner := .IsOwner}} {{range .Diaries}}
             <div class="border h-64 text-center dt{{.ThemeID}}">
                 <div class="h-full content-center p-3">
                     <h1 class="text-xl mb-2 break-words">
@@ -73,9 +67,10 @@
                         <i class="mdi mdi-lock-outline"></i>
                         {{end}}
                     </h1>
-                    <p>{{.InfoNum}}篇
-                        {{if gt .InfoNum 0 }}
-                        - {{formatTime .LastActionUTCTime "2006-01-02 15:04"}}</p>
+                    <p>
+                        {{.InfoNum}}篇 {{if gt .InfoNum 0 }} - {{formatTime
+                        .LastActionUTCTime "2006-01-02 15:04"}}
+                    </p>
                     {{end}}
                 </div>
             </div>
@@ -83,18 +78,15 @@
         </div>
 
         {{if gt .DiariesNum .PageSize }}
-        <div class="flex justify-end mt-10">
-            {{template "pagination" .}}
-        </div>
+        <div class="flex justify-end mt-10">{{template "pagination" .}}</div>
         {{end}}
     </section>
-
 </main>
 
 <!--增加日记本modal-->
 <div class="modal fade hidden" id="daybook_add_modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <form id="daybook_editor_form">
-        <div class="modal-dialog  modal-lg" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">增加日记本</h5>
@@ -110,16 +102,10 @@
 </div>
 <script>
     $(function () {
-
-
-        $('.daybook-block').on("mouseenter mouseleave", function () {
+        $('.daybook-block').on('mouseenter mouseleave', function () {
             $(this).find('.daybook-edit-btn').toggle();
         });
     });
-
-
 </script>
 
-
-{{template "footer" .}}
-{{end}}
+{{template "footer" .}} {{end}}

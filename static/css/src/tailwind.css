@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.main{
+    @apply flex-1 container px-3 pt-10 mx-auto;
+}
+
+.btn {
+    @apply border text-sm px-4 py-2 text-black border-gray-300 hover:bg-gray-200;
+}
+
+.card-title{
+    @apply h-8 mb-2 border-b border-b-gray-300;
+}

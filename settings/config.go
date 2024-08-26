@@ -113,9 +113,6 @@ var config *Config
 // 全局key-value对象
 var params map[string]string
 
-// 全局css对象，存储 tailwind css类名
-var css map[string]string
-
 //加载文件
 func LoadConfig() {
     // 获取当前工作目录
@@ -124,7 +121,6 @@ func LoadConfig() {
     // 构建文件路径
     configPath := filepath.Join(dir, "./settings/config.json")
     paramsPath := filepath.Join(dir, "./settings/params.xml")
-	cssPath := filepath.Join(dir, "./settings/css.json")
 
     // 读取 config.json 文件
     configBytes, _ := os.ReadFile(configPath)
@@ -132,13 +128,9 @@ func LoadConfig() {
     // 读取 params.xml 文件
     paramsBytes, _ := os.ReadFile(paramsPath)
 
-	// 读取 css.json 文件
-	cssBytes, _ := os.ReadFile(cssPath)
-
     // 加载配置和参数
     loadConfig(configBytes)
     loadParams(paramsBytes)
-	loadCSS(cssBytes)
 }
 
 //GetConfig returns actual config
@@ -151,11 +143,6 @@ func GetParams() map[string]string {
 	return params
 }
 
-//获取css代码
-func GetCSS() map[string]string {
-	return css
-}
-
 //PublicPath returns path to application public folder
 func PublicPath() string {
 	return config.Public
@@ -164,14 +151,6 @@ func PublicPath() string {
 //UploadsPath returns path to public/uploads folder
 func UploadsPath() string {
 	return path.Join(config.Public, "uploads")
-}
-
-//加载css文件
-func loadCSS(data []byte) {
-	err := json.Unmarshal(data, &css)
-	if err != nil {
-		panic(err)
-	}
 }
 
 //加载key-value格式的参数
