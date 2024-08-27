@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"github.com/biuren/hebe/utils"
+	"github.com/biuren/hebe/pkg"
 )
 
 // TestSha256 测试 Sha256 函数
@@ -15,7 +15,7 @@ func TestSha256(t *testing.T) {
 	hash.Write([]byte(str))
 	expected := base64.StdEncoding.EncodeToString(hash.Sum(nil))
 
-	if utils.Sha256(str) != expected {
+	if pkg.Sha256(str) != expected {
 		t.Errorf("Sha256 did not return the expected result")
 	}
 }
@@ -24,7 +24,7 @@ func TestSha256(t *testing.T) {
 func TestTripleDesEncrypt(t *testing.T) {
 	enstr := "Hello, world!Hello, world!Hello, world!"
 	key := "EGCF7q9RF8SIYM73G732r1XK"
-	enStr, err := utils.TripleDesEncrypt(enstr, key)
+	enStr, err := pkg.TripleDesEncrypt(enstr, key)
 	t.Log(enStr)
 	if err != nil {
 		t.Errorf("TripleDesEncrypt returned an error: %v", err)
@@ -35,7 +35,7 @@ func TestTripleDesEncrypt(t *testing.T) {
 func TestTripleDesDecrypt(t *testing.T) {
 	key := "EGCF7q9RF8SIYM73G732r1XK"
 	crypted := "PIpR2NdKFNvfIv/SW74mmft8M0KJIT+mu9yIRRQUXScgBnky7Dnmgg==" // 这应该是一个已经使用 3DES 加密并且 Base64 编码后的字符串
-	deStr, err := utils.TripleDesDecrypt(crypted, key)
+	deStr, err := pkg.TripleDesDecrypt(crypted, key)
 	t.Log(string(deStr))
 	if err != nil {
 		t.Errorf("TripleDesDecrypt returned an error: %v", err)
@@ -44,11 +44,11 @@ func TestTripleDesDecrypt(t *testing.T) {
 
 // 测试3Des加解密
 func Test3Desc(t *testing.T) {
-	key := string(utils.Rand(24, utils.RAND_KIND_ALL))
+	key := string(pkg.Rand(24, pkg.RAND_KIND_ALL))
 	t.Log(len(key))
 	t.Log(string(key))
 
-	result, err := utils.TripleDesEncrypt("polaris@studygol", key)
+	result, err := pkg.TripleDesEncrypt("polaris@studygol", key)
 	if err != nil {
 		panic(err)
 	}
@@ -56,7 +56,7 @@ func Test3Desc(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	origData, err := utils.TripleDesDecrypt(result, key)
+	origData, err := pkg.TripleDesDecrypt(result, key)
 	if err != nil {
 		panic(err)
 	}
@@ -80,14 +80,14 @@ func TestAESEncryptDecrypt(t *testing.T) {
 
     for _, tc := range testCases {
         // 使用 AESEncrypt 函数加密明文
-        cipherText, err :=utils.AESEncrypt(tc.plainText, tc.key)
+        cipherText, err :=pkg.AESEncrypt(tc.plainText, tc.key)
 		t.Log(cipherText)
         if err != nil {
             t.Errorf("AESEncrypt(%q, %q) returned error: %v", tc.plainText, tc.key, err)
         }
 
         // 使用 AESDecrypt 函数解密密文
-        decryptedText, err := utils.AESDecrypt(cipherText, tc.key)
+        decryptedText, err := pkg.AESDecrypt(cipherText, tc.key)
 		t.Log(string(decryptedText))
         if err != nil {
             t.Errorf("AESDecrypt(%q, %q) returned error: %v", cipherText, tc.key, err)

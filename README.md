@@ -57,13 +57,50 @@ iDiary.AI
 
 20. 智能社交互动：AI可以提供用户之间的社交互动平台，让用户能够分享和交流日记内容，获得更多的反馈和支持。
 
-## Tailwind build
-### 构建 tailwind css
-* 开发环境 css
+# 项目结构
+
+```plaintext
+.
+├── cmd                     # 主程序入口
+│   ├── idiary              # idiary 主程序
+│   ├── openapi             # OpenAPI 相关代码
+│   └── worker              # worker 相关代码
+├── configs                 # 配置文件目录
+├── internal                # 内部应用逻辑
+│   ├── config              # 配置相关代码
+│   ├── middlewares         # 中间件
+│   ├── models              # 数据模型
+│   └── services            # 服务层
+├── logs                    # 日志文件目录
+├── pkg                     # 可重用的包
+├── scripts                 # 构建和部署脚本
+│   ├── build               # 构建脚本
+│   └── deploy              # 部署脚本
+├── sql                     # 数据库脚本
+├── tests                   # 测试代码
+│   ├── services            # 服务层测试
+│   └── utils               # 工具类测试
+├── uploads                 # 上传文件目录
+└── website                 # 前端相关代码
+    ├── controllers         # 控制器
+    ├── errors              # 错误处理
+    ├── routes              # 路由
+    ├── static              # 静态文件
+    │   ├── dist            # 编译后的静态文件
+    │   ├── fonts           # 字体文件
+    │   ├── html            # HTML 文件
+    │   ├── img             # 图片文件
+    │   ├── src             # 源文件
+    │   └── favicon.ico     # 网站图标
+    └── views               # 视图模板
+
+# 构建
+## 构建 tailwind css
+* 编译 css 文件
 npm run build:css
 
-* 生产环境 css
-npm run build:css:prod
+* 编译 js 文件
+npm run build:js
 
 ## icon copyright
 <a target="_blank" href="https://icons8.com/icon/jmkHXlIGZKw5/diary">Diary</a> icon by <a target="_blank" href="https://pictogrammers.github.io/@mdi/font/6.5.95/">Material Design Icons</a> 

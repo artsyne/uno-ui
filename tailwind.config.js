@@ -1,7 +1,14 @@
 module.exports = {
     content: [
-      './src/**/*.{html,js,ts,jsx,tsx}', // 根据项目结构调整路径
-      './views/**/*.{html,tmpl,gohtml}',  // 添加 Go 模板文件路径
+      './website/static/src/**/*.html',
+      './website/static/src/**/*.js',
+      './website/static/src/**/*.jsx',
+      './website/static/src/**/*.ts',
+      './website/static/src/**/*.tsx',
+      './website/static/src/**/*.vue',
+      './website/views/**/*.html',
+      './website/controllers/**/*.go',
+      './website/routes/**/*.go'
     ],
     theme: {
       extend:{

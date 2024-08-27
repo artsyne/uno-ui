@@ -1,10 +1,10 @@
 /.DS_Store
 /.vscode
-/vendor
-/logs
+/cmd/idiary/logs/
 /upload
 config/config.json
-/*.exe
-/*debug_bin*
+/cmd/idiary/*.exe
+/cmd/idiary/*debug_bin*
 /node_modules
+/vendor/
   

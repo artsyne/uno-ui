@@ -7,25 +7,25 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/biuren/hebe/models"
-	"github.com/biuren/hebe/services"
-	"github.com/biuren/hebe/settings"
-	"github.com/biuren/hebe/utils"
+	"github.com/biuren/hebe/internal/models"
+	"github.com/biuren/hebe/internal/services"
+	"github.com/biuren/hebe/internal/configs"
+	"github.com/biuren/hebe/pkg"
 )
 
 // 初始化数据库连接
 func init() {
-	settings.LoadConfig()
+	configs.LoadConfig()
 	models.ConnectToDB()
 }
 
 // TestRand 测试 Rand 函数
 func TestRand(t *testing.T) {
 	size := 32
-	kinds := []int{utils.RAND_KIND_NUM, utils.RAND_KIND_LOWER, utils.RAND_KIND_UPPER, utils.RAND_KIND_ALL}
+	kinds := []int{pkg.RAND_KIND_NUM, pkg.RAND_KIND_LOWER, pkg.RAND_KIND_UPPER, pkg.RAND_KIND_ALL}
 
 	for _, kind := range kinds {
-		result := utils.Rand(size, kind)
+		result := pkg.Rand(size, kind)
 		t.Log(result)
 
 		if len(result) != size {
@@ -33,10 +33,10 @@ func TestRand(t *testing.T) {
 		}
 
 		for _, r := range result {
-			if (kind == utils.RAND_KIND_NUM && (r < '0' || r > '9')) ||
-				(kind == utils.RAND_KIND_LOWER && (r < 'a' || r > 'z')) ||
-				(kind == utils.RAND_KIND_UPPER && (r < 'A' || r > 'Z')) ||
-				(kind == utils.RAND_KIND_ALL && !((r >= '0' && r <= '9') || (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z'))) {
+			if (kind == pkg.RAND_KIND_NUM && (r < '0' || r > '9')) ||
+				(kind == pkg.RAND_KIND_LOWER && (r < 'a' || r > 'z')) ||
+				(kind == pkg.RAND_KIND_UPPER && (r < 'A' || r > 'Z')) ||
+				(kind == pkg.RAND_KIND_ALL && !((r >= '0' && r <= '9') || (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z'))) {
 				t.Errorf("Unexpected character: %c", r)
 			}
 		}
@@ -44,7 +44,7 @@ func TestRand(t *testing.T) {
 }
 
 func TestCreateRand(t *testing.T) {
-	num := string(utils.Rand(14, utils.RAND_KIND_ALL))
+	num := string(pkg.Rand(14, pkg.RAND_KIND_ALL))
 	if len(num) != 14 {
 		t.Error("创建随机数失败")
 	}
@@ -70,7 +70,7 @@ func TestSendEmail(t *testing.T) {
 			</html>
 			`
 	fmt.Println("send email")
-	err := utils.SendToMail(user, password, host, to, subject, body, "html")
+	err := pkg.SendToMail(user, password, host, to, subject, body, "html")
 	if err != nil {
 		panic(err)
 	} else {
@@ -90,10 +90,10 @@ func TestGetJobsTasks(t *testing.T) {
 
 func TestAddValidCode(t *testing.T) {
 	validCode := &models.ValidCode{}
-	validCode.ValidCode = string(utils.Rand(32, utils.RAND_KIND_ALL))
+	validCode.ValidCode = string(pkg.Rand(32, pkg.RAND_KIND_ALL))
 	validCode.UserId = 35
-	validCode.ValidTypeId = settings.VALID_CODE_ACTIVE_USER_EMAIL
-	nowTime := utils.GetNowTime()
+	validCode.ValidTypeId = configs.VALID_CODE_ACTIVE_USER_EMAIL
+	nowTime := pkg.GetNowTime()
 	validCode.CreateUTCTime = nowTime.UnixMilli()
 	validCode.ExpireUTCTime = nowTime.AddDate(0, 0, 1).UnixMilli() //增加一天过期
 
@@ -120,8 +120,8 @@ func TestAddActivateUserEmailTask(t *testing.T) {
 
 func TestCreateActiveUrl(t *testing.T) {
 	//插入发送邮件队列
-	config := settings.GetConfig()
-	params := settings.GetParams()
+	config := configs.GetConfig()
+	params := configs.GetParams()
 	//激活链接
 	url := fmt.Sprintf("%s/activiceuser?uid=%d&sign=%s", config.Domain, 10000, "wesdfsdfwerwerwer234234")
 	t.Log(fmt.Sprintf(params["reg_email_body"], url, url))
@@ -129,12 +129,12 @@ func TestCreateActiveUrl(t *testing.T) {
 
 func TestRedis(t *testing.T) {
 
-	err := utils.SetSession("username", "kupage12ww")
+	err := pkg.SetSession("username", "kupage12ww")
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	val, err := utils.GetSession("username")
+	val, err := pkg.GetSession("username")
 
 	if err != nil {
 		fmt.Println(err)
@@ -142,7 +142,7 @@ func TestRedis(t *testing.T) {
 
 	fmt.Print(len(val))
 
-	num, err := utils.DelSession("username")
+	num, err := pkg.DelSession("username")
 
 	fmt.Println(num)
 }
@@ -160,7 +160,7 @@ func TestAddSpace(t *testing.T) {
 	space.Remark = "这是备注"
 	space.AccessPwd = "this is pwd"
 	space.AccessURL = "http://accessurl"
-	space.AddUTCTime = utils.GetNowTimeUnixMilli()
+	space.AddUTCTime = pkg.GetNowTimeUnixMilli()
 	space.AddUserID = 123
 	space.AddUserName = "yasong"
 	space.CoverMidURL = "http://covermidurl"
@@ -249,7 +249,7 @@ func PrintTableGolangStructCode(tableName string) string {
 }
 
 func TestCreateFileName(t *testing.T) {
-	filePath, fileName := utils.CreateUploadPathFileName()
+	filePath, fileName := pkg.CreateUploadPathFileName()
 
 	filePath = "upload/" + filePath
 	fmt.Println(filePath + fileName)
@@ -266,7 +266,7 @@ func TestCreateFileName(t *testing.T) {
 
 // 测试Config，反序列化输出值
 func TestConfig(t *testing.T) {
-	config := settings.GetConfig()
+	config := configs.GetConfig()
 
 	// 将配置文件序列化为 JSON 格式的字符串
 	configJSON, err := json.Marshal(config)
@@ -293,7 +293,7 @@ func TestIsValidUserName(t *testing.T) {
 
 	// 运行测试用例
 	for _, c := range cases {
-		got := utils.IsValidUserName(c.input)
+		got := pkg.IsValidUserName(c.input)
 		if got != c.want {
 			t.Errorf("IsValidUserName(%q) == %v, want %v", c.input, got, c.want)
 		}
@@ -316,7 +316,7 @@ func TestIsValidPassword(t *testing.T) {
 
 	// 运行测试用例
 	for _, c := range cases {
-		got := utils.IsValidPassword(c.input)
+		got := pkg.IsValidPassword(c.input)
 		if got != c.want {
 			t.Errorf("IsValidPassword(%q) == %v, want %v", c.input, got, c.want)
 		}

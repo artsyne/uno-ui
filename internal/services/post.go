@@ -1,0 +1,36 @@
+package services
+
+import (
+	"github.com/biuren/hebe/internal/errors"
+	"github.com/biuren/hebe/internal/models"
+	"github.com/biuren/hebe/internal/configs"
+	"github.com/biuren/hebe/pkg"
+)
+
+// 增加新的日记（post）
+// 返回新增日记ID
+func AddPost(post *models.Post)(int64,error){
+
+	//截取配置长度字符串，末尾增加 suffix
+	//获取配置信息
+	config := configs.GetConfig()
+	//截取配置长度字符串，末尾增加 suffix
+	post.Summary = pkg.TruncateString(post.Body, config.SummaryMax, config.Suffix)
+
+	// todo：需判断空间是否有权限发布日记
+
+	//插入数据库
+	postID, err := post.Insert()
+	if err != nil {
+		return 0, errors.DbOperationErr
+	}
+	post.PostID = postID
+
+	//日记本信息数量加一
+	err = models.IncrementPostNum(post.DiaryID, post.AddUserID,post.AddUserName, post.AddUTCTime)
+	if err != nil {
+		return 0, errors.DbOperationErr
+	}
+	
+	return post.PostID, nil
+}

@@ -2,8 +2,8 @@
   "name": "hebe",
   "version": "1.0.0",
   "scripts": {
-    "build:css": "node build-css.js",
-    "build:js": "terser ./static/js/src/*.js -o ./static/js/dist/idiary.min.js --compress --mangle"
+    "build:css": "node scripts/build/build-css.js",
+    "build:js": "terser ./website/static/src/js/*.js -o ./website/static/dist/js/idiary.min.js --compress --mangle"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.20",

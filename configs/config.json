@@ -1,0 +1,182 @@
+{
+  "debug": {
+    "public": "../../website/static",
+    "domain": "http://127.0.0.1:8080",
+    "site_port": "8081",
+    "summary_max":666,
+    "suffix":"...",
+    "page_size":30,
+    "max_daybook_limit":500,
+    "support_langs":[
+      {
+        "code": "ar",
+        "label": "Arabic",
+        "local-text": "Arabic"
+      },
+      {
+        "code": "de",
+        "label": "German",
+        "local-text": "Deutsch"
+      },
+      {
+        "code": "en",
+        "label": "English",
+        "local-text": "English"
+      },
+      {
+        "code": "es",
+        "label": "Spanish",
+        "local-text": "Español"
+      },
+      {
+        "code": "fr",
+        "label": "French",
+        "local-text": "Français"
+      },
+      {
+        "code": "ja",
+        "label": "Japanese",
+        "local-text": "日本語"
+      },
+      {
+        "code": "ko",
+        "label": "Korean",
+        "local-text": "한국어"
+      },
+      {
+        "code": "ru",
+        "label": "Russian",
+        "local-text": "Русский"
+      },
+      {
+        "code": "zh-cn",
+        "label": "Chinese Simplified",
+        "local-text": "简体中文"
+      },
+      {
+        "code": "zh-tw",
+        "label": "Chinese Traditional",
+        "local-text": "繁體中文"
+      }
+    ],
+    "database": {
+      "host": "127.0.0.1",
+      "port": 3306,
+      "name": "cd",
+      "user": "root",
+      "password": "iloveyou"
+    },
+    "cookie": {
+      "domain": "127.0.0.1",
+      "secret_key": "2GzVloukJl9C7y44O740o59e3sD8xTzr",
+      "expire_days": 7,
+      "http_only": true
+    },
+    "email": {
+      "smtp_server": "smtpdm.aliyun.com:25",
+      "smtp_user": "noreply@sinodiary.com",
+      "smtp_pwd": "HL90rmWKeJjS92",
+      "smtp_port": 25
+    },
+    "redis": {
+      "redis_server": "127.0.0.1",
+      "redis_port": 6379,
+      "redis_pwd": "woaibeijingtiananmeng"
+    },
+    "upload": {
+      "img_save_path": "upload/",
+      "img_type": "data:image/jpeg|data:image/jpg|data:image/gif|data:image/png",
+      "img_max_size": 1048576
+    }
+  },
+  "release": {
+    "public": "static",
+    "domain": "http://www.idiary.ai",
+    "site_port": "80",
+    "summary_max":350,
+    "suffix":"...",
+    "page_size":30,
+    "max_daybook_limit":500,
+    "support_langs": [
+      {
+        "code": "ar",
+        "label": "Arabic",
+        "local-text": "Arabic"
+      },
+      {
+        "code": "de",
+        "label": "German",
+        "local-text": "Deutsch"
+      },
+      {
+        "code": "en",
+        "label": "English",
+        "local-text": "English"
+      },
+      {
+        "code": "es",
+        "label": "Spanish",
+        "local-text": "Español"
+      },
+      {
+        "code": "fr",
+        "label": "French",
+        "local-text": "Français"
+      },
+      {
+        "code": "ja",
+        "label": "Japanese",
+        "local-text": "日本語"
+      },
+      {
+        "code": "ko",
+        "label": "Korean",
+        "local-text": "한국어"
+      },
+      {
+        "code": "ru",
+        "label": "Russian",
+        "local-text": "Русский"
+      },
+      {
+        "code": "zh-cn",
+        "label": "Chinese Simplified",
+        "local-text": "简体中文"
+      },
+      {
+        "code": "zh-tw",
+        "label": "Chinese Traditional",
+        "local-text": "繁體中文"
+      }
+    ],
+    "database": {
+      "host": "127.0.0.1",
+      "port": 3306,
+      "name": "cd",
+      "user": "root",
+      "password": "123123"
+    },
+    "cookie": {
+      "domain": "127.0.0.1",
+      "secret_key": "2GzVloukJl9C7y44O740o59e3sD8xTzr",
+      "expire_days": 7,
+      "http_only": true
+    },
+    "email": {
+      "smtp_server": "smtpdm.aliyun.com:25",
+      "smtp_user": "noreply@sinodiary.com",
+      "smtp_pwd": "HL90rmWKeJjS92",
+      "smtp_port": 25
+    },
+    "redis": {
+      "redis_server": "127.0.0.1",
+      "redis_port": 6379,
+      "redis_pwd": "woaibeijingtiananmeng"
+    },
+    "upload": {
+      "img_save_path": "upload/",
+      "img_type": "data:image/jpeg|data:image/jpg|data:image/gif|data:image/png",
+      "img_max_size": 1048576
+    }
+  }
+}
