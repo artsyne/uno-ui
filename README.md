@@ -63,15 +63,16 @@ iDiary.AI
 .
 ├── cmd                     # 主程序入口
 │   ├── idiary              # idiary 主程序
+│   │   └── logs            # 日志文件目录
 │   ├── openapi             # OpenAPI 相关代码
 │   └── worker              # worker 相关代码
 ├── configs                 # 配置文件目录
 ├── internal                # 内部应用逻辑
-│   ├── config              # 配置相关代码
+│   ├── configs             # 配置相关代码
+│   ├── errors              # 错误处理
 │   ├── middlewares         # 中间件
 │   ├── models              # 数据模型
 │   └── services            # 服务层
-├── logs                    # 日志文件目录
 ├── pkg                     # 可重用的包
 ├── scripts                 # 构建和部署脚本
 │   ├── build               # 构建脚本
@@ -83,16 +84,21 @@ iDiary.AI
 ├── uploads                 # 上传文件目录
 └── website                 # 前端相关代码
     ├── controllers         # 控制器
-    ├── errors              # 错误处理
     ├── routes              # 路由
     ├── static              # 静态文件
     │   ├── dist            # 编译后的静态文件
-    │   ├── fonts           # 字体文件
+    │   │   ├── css         # 编译后的 CSS 文件
+    │   │   ├── fonts       # 字体文件
+    │   │   └── js          # 编译后的 JavaScript 文件
     │   ├── html            # HTML 文件
     │   ├── img             # 图片文件
-    │   ├── src             # 源文件
-    │   └── favicon.ico     # 网站图标
+    │   │   ├── diary       # 日记相关图片
+    │   │   └── passport    # 护照相关图片
+    │   └── src             # 源文件
+    │       ├── css         # 源 CSS 文件
+    │       └── js          # 源 JavaScript 文件
     └── views               # 视图模板
+```
 
 # 构建
 ## 构建 tailwind css
