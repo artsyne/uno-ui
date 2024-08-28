@@ -1,0 +1,17 @@
+- key: reg_email_subject
+  val: 中国日记网注册激活邮件
+- key: reg_email_body
+  val: |
+    Hi, %s<br /><br />
+    希望中国日记网能够让你的网络生活充满乐趣!<br/><br/>
+    <a href="%s" target="_blank">点击激活账户</a><br />
+    <br />若链接无法点击，请复制下面地址在浏览器中访问即可激活
+    <br /><br /> %s
+- key: rest_pwd_email_subject
+  val: 中国日记网重置登录密码邮件
+- key: rest_pwd_email_body
+  val: |
+    Hi, %s<br /><br />
+    请点击<a href="%s" target="_blank">此处</a>或将以下链接复制并粘贴到浏览器地址栏，即可修改中国日记网密码:
+    <br /><br /> %s <br /><br />
+    此链接将于 24 小时后失效，请尽快修改密码。

@@ -271,7 +271,7 @@ func GetSupportedLang(language string) string {
 	language = strings.ToLower(language)
 
 	//获取系统支持的语言列表
-	supportedLangs := configs.GetConfig().SupportLangs
+	supportedLangs := configs.GetSupportLangs()
 
 	switch {
 	case strings.Contains(language, "zh-cn"), strings.Contains(language, "zh-hans"):
