@@ -1,3 +1,4 @@
+{{define "ajax/diary_form"}}
 <div class="modal-body">
     <div class="form-floating mb-3">
         <input type="email" class="form-control" id="title" name="title" valid="[{type:'limit',min:1,max:40}]"
@@ -48,3 +49,4 @@
 <div class="modal-footer">
     <button type="button" class="ms-auto btn btn-outline-secondary  px-4" onclick="Biuren.Diary.doDaybook()">保存</button>
 </div>
+{{end}}

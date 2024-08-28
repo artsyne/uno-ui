@@ -4,14 +4,14 @@ debug:
   site_port: "8081"
   summary_max: 666
   suffix: "..."
-  page_size: 30
+  page_size: 6
   max_daybook_limit: 500
   database:
     host: "127.0.0.1"
     port: 3306
     name: "cd"
     user: "root"
-    password: "iloveyou"
+    password: "123123"
   cookie:
     domain: "127.0.0.1"
     secret_key: "2GzVloukJl9C7y44O740o59e3sD8xTzr"

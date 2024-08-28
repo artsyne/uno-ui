@@ -101,7 +101,7 @@
 
 
         {{if gt .DiariesNum .PageSize}}
-        {{template "pagination" .}}
+        <div class="flex justify-end mt-10">{{template "pagination" .}}</div>
         {{end}}
     </section>
 </main>
