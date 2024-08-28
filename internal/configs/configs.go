@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
@@ -149,7 +150,7 @@ func PublicPath() string {
 
 //UploadsPath returns path to public/uploads folder
 func UploadsPath() string {
-	return filepath.Join(config.Public, "uploads")
+	return path.Join(config.Public, "uploads")
 }
 
 //加载key-value格式的参数
@@ -182,12 +183,11 @@ func loadConfig(data []byte) {
 	default:
 		panic(fmt.Sprintf("Unknown gin mode %s", gin.Mode()))
 	}
-	if !filepath.IsAbs(config.Public) {
+	if !path.IsAbs(config.Public) {
 		workingDir, err := os.Getwd()
 		if err != nil {
 			panic(err)
 		}
-		abspath := filepath.Join(workingDir, config.Public)
-		config.Public = abspath
+		config.Public = path.Join(workingDir, config.Public)
 	}
 }
