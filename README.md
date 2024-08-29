@@ -101,7 +101,7 @@ iDiary.AI
 ```
 
 # 构建
-## 构建 tailwind css
+## 构建脚本
 * 编译 css 文件
 npm run build:css
 
