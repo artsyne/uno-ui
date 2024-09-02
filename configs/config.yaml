@@ -4,7 +4,7 @@ debug:
   site_port: "8081"
   summary_max: 666
   suffix: "..."
-  page_size: 3
+  page_size: 2
   max_daybook_limit: 500
   database:
     host: "127.0.0.1"

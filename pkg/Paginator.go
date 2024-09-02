@@ -48,8 +48,10 @@ func GeneratePagination(listOptions ListOptions) []PageLinks {
 
     // 添加起始页码链接
     if interval[0] > 1 {
-        aryLinks = append(aryLinks, appendItem(listOptions.URL, 1, pageIndex, totalPages, ""))
-        if interval[0] > 2 {
+        for i := 1; i <= 2 && i < interval[0]; i++ {
+            aryLinks = append(aryLinks, appendItem(listOptions.URL, i, pageIndex, totalPages, ""))
+        }
+        if interval[0] > 3 {
             aryLinks = append(aryLinks, PageLinks{Text: "..."})
         }
     }
@@ -61,10 +63,14 @@ func GeneratePagination(listOptions ListOptions) []PageLinks {
 
     // 添加结束页码链接
     if interval[1] < totalPages {
-        if interval[1] < totalPages-1 {
+        if interval[1] < totalPages-2 {
             aryLinks = append(aryLinks, PageLinks{Text: "..."})
         }
-        aryLinks = append(aryLinks, appendItem(listOptions.URL, totalPages, pageIndex, totalPages, ""))
+        for i := totalPages - 1; i <= totalPages; i++ {
+            if i > interval[1] {
+                aryLinks = append(aryLinks, appendItem(listOptions.URL, i, pageIndex, totalPages, ""))
+            }
+        }
     }
 
     // 如果当前页码小于总页数，则显示下一页

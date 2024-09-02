@@ -24,9 +24,9 @@
 
     <section>
         <form id="diary_editor_form">
-            <div class="row col-md-8 offset-md-2 p-5">
+            <div class="flex flex-col mx-auto lg:w-4/5">
                 <div>
-                    <div class="form-floating mb-3">
+                    <div class="">
                         <input type="email" class="form-control" id="info_title" name="info_title"
                             placeholder="标题(非必填)">
                         <label for="info_title">标题(非必填)</label>
@@ -46,9 +46,9 @@
                     </div>
                 </div>
                 <div>
-                    <button type="button" class="ms-auto btn btn-outline-secondary px-5 mx-5"
+                    <button type="button" class="btn"
                         onclick="Biuren.Diary.postInfo()">发布</button>
-                    <button type="button" class="ms-auto btn btn-outline-secondary"
+                    <button type="button" class="btn"
                         onclick="Biuren.Diary.postInfo()">保存草稿</button>
                 </div>
             </div>
