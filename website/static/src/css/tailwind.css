@@ -2,14 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
-.main{
-    @apply flex-1 container px-3 pt-10 mx-auto;
+.main {
+  @apply flex-1 container px-3 pt-10 mx-auto;
 }
 
 .btn {
-    @apply border text-sm px-4 py-2 text-black border-gray-300 hover:bg-gray-200;
+  @apply border text-sm px-4 py-2 transition text-black border-gray-300 hover:bg-gray-200 tracking-widest;
 }
 
-.card-title{
-    @apply h-8 mb-2 border-b border-b-gray-300;
+.btn-red {
+  @apply border text-sm px-4 py-2 transition text-white border-transparent bg-red-600 hover:bg-red-700 tracking-widest;
+}
+
+.form-group{
+    @apply grid grid-cols-1 gap-6;
+}
+
+.form-header{
+    @apply mb-12 text-center text-5xl font-extrabold;
+}
+
+.form-title {
+  @apply text-sm;
+}
+
+.form-control {
+  @apply p-2.5 mt-2 block w-full bg-gray-100 border border-transparent focus:outline-none focus:border-gray-500 focus:bg-white focus:ring-0;
+}
+
+.form-info{
+    @apply text-sm p-2;
+}
+
+.card-title {
+  @apply h-8 mb-2 border-b border-b-gray-300;
 }

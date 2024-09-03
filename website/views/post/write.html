@@ -25,31 +25,29 @@
     <section>
         <form id="diary_editor_form">
             <div class="flex flex-col mx-auto lg:w-4/5">
-                <div>
-                    <div class="">
-                        <input type="email" class="form-control" id="info_title" name="info_title"
-                            placeholder="标题(非必填)">
-                        <label for="info_title">标题(非必填)</label>
+                <div class="form-group">
+                    <div class="block">
+                        <label class="form-title" for="info_title">标题(非必填)</label>
+                        <input type="text" class="form-control" id="info_title" name="info_title">
                     </div>
-                    <div class="form-floating mb-3">
-                        <select class="form-select" id="diary_id" name="diary_id">
+                    <div class="block">
+                        <label class="form-title" for="info_title">日记本</label>
+                        <select class="form-control" id="diary_id" name="diary_id">
                             {{range .Diaries}}
                             <option value="{{.DiaryID}}">{{.Title}}</option>
                             {{end}}
                         </select>
-                        <label for="info_title">日记本</label>
                     </div>
-                    <div class="form-floating mb-3">
-                        <textarea class="form-control" id="info_body" name="info_body" rows="8" placeholder="日记内容"
-                            style="height: 300px;"></textarea>
-                        <label for="info_body">日记内容</label>
+                    <div class="block">
+                        <label class="form-title" for="info_body">日记内容</label>
+                        <textarea class="form-control h-80" id="info_body" name="info_body" rows="8"></textarea>
                     </div>
-                </div>
-                <div>
-                    <button type="button" class="btn"
-                        onclick="Biuren.Diary.postInfo()">发布</button>
-                    <button type="button" class="btn"
-                        onclick="Biuren.Diary.postInfo()">保存草稿</button>
+                    <div class="block">
+                        <button type="button" class="btn-red px-10 me-10"
+                            onclick="Biuren.Diary.postInfo()">发布</button>
+                        <button type="button" class="btn"
+                            onclick="Biuren.Diary.postInfo()">保存草稿</button>
+                    </div>
                 </div>
             </div>
         </form>
