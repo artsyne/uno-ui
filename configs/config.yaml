@@ -6,6 +6,7 @@ debug:
   suffix: "..."
   page_size: 20
   max_daybook_limit: 500
+  hash_id_salt: "M5o9Q3s7Y4v2D8z6"
   database:
     host: "127.0.0.1"
     port: 3306
@@ -38,6 +39,7 @@ release:
   suffix: "..."
   page_size: 30
   max_daybook_limit: 500
+  hash_id_salt: "J3k7M1q5V9z2B6y8"
   database:
     host: "127.0.0.1"
     port: 3306

@@ -8,20 +8,20 @@
 
 /*button 样式*/
 .btn {
-  @apply border text-sm px-4 py-2 transition text-black border-gray-300 hover:bg-gray-200 tracking-widest;
+  @apply border border-gray-300 px-4 py-2 text-sm tracking-widest text-black transition hover:bg-gray-200;
 }
 
 .btn-red {
-  @apply border text-sm px-4 py-2 transition text-white border-transparent bg-red-600 hover:bg-red-700 tracking-widest;
+  @apply border border-transparent bg-red-600 px-4 py-2 text-sm tracking-widest text-white transition hover:bg-red-700;
 }
 
 /*form 样式*/
-.form-group{
-    @apply grid grid-cols-1 gap-6 px-10 lg:px-0;
+.form-group {
+  @apply grid grid-cols-1 gap-6 px-10 lg:px-0;
 }
 
-.form-header{
-    @apply mb-12 text-center text-5xl font-extrabold;
+.form-header {
+  @apply mb-12 text-center text-5xl font-extrabold;
 }
 
 .form-title {
@@ -29,11 +29,11 @@
 }
 
 .form-control {
-  @apply p-2.5 mt-2 block w-full bg-gray-100 border border-transparent focus:outline-none focus:border-gray-500 focus:bg-white focus:ring-0;
+  @apply mt-2 block w-full border border-transparent bg-gray-100 p-2.5 focus:border-gray-500 focus:bg-white focus:outline-none focus:ring-0;
 }
 
-.form-info{
-    @apply text-sm p-2;
+.form-info {
+  @apply text-sm p-2;
 }
 
 .card-title {

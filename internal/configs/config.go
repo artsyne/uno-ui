@@ -6,7 +6,7 @@ import (
     "path/filepath"
 
     "github.com/gin-gonic/gin"
-    "gopkg.in/yaml.v2"
+    "gopkg.in/yaml.v3"
 )
 
 // 构造默认返回值对象
@@ -56,6 +56,7 @@ type Config struct {
     Suffix          string         `yaml:"suffix"`
     PageSize        int            `yaml:"page_size"`
     MaxDaybookLimit int            `yaml:"max_daybook_limit"`
+    HashIDSalt      string         `yaml:"hash_id_salt"`
     Database        struct {
         Host     string `yaml:"host"`
         Port     int    `yaml:"port"`

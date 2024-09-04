@@ -6,46 +6,52 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 
+	"github.com/biuren/hebe/internal/configs"
 	"github.com/biuren/hebe/internal/middlewares"
 	"github.com/biuren/hebe/internal/models"
-	"github.com/biuren/hebe/website/routes"
 	"github.com/biuren/hebe/internal/services"
-	"github.com/biuren/hebe/internal/configs"
 	"github.com/biuren/hebe/pkg"
+	"github.com/biuren/hebe/website/routes"
 )
 
+// 初始化 site 
+func init() {
+    // 设置 gin 模式
+    gin.SetMode(gin.DebugMode)
+
+    // 设置日志
+    pkg.SetLogger()
+
+    // 捕获启动过程中的 panic 错误
+    defer func() {
+        if err := recover(); err != nil {
+            logrus.WithFields(logrus.Fields{
+                "error": err,
+                "stack": string(debug.Stack()),
+            }).Error("启动函数 panic 错误")
+        }
+    }()
+
+    // 初始化配置信息
+    configs.LoadConfig()
+    logrus.Info("config,params 加载成功！")
+
+    // 链接数据库，若异常将 panic
+    models.ConnectToDB()
+    logrus.Info("成功数据库连接")
+
+    // 设置 cookie 默认值
+    config := configs.GetConfig()
+    pkg.SetCookieDefVal(config.Cookie.Domain, "/", config.Cookie.ExpireDays, config.Cookie.HttpOnly)
+    logrus.Info("成功设置 Cookie 默认值")
+}
+
 func main() {
-	//设置gin模式∏
-	gin.SetMode(gin.DebugMode)
+    // 获取配置信息
+    config := configs.GetConfig()
 
-	//设置日志
-	pkg.SetLogger()
-
-	// 捕获启动过程中的 panic 错误
-	defer func() {
-		if err := recover(); err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error": err,
-				"stack": string(debug.Stack()),
-			}).Error("启动函数 panic 错误")
-		}
-	}()
-
-	//初始化配置信息
-	configs.LoadConfig()
-	logrus.Info("config,params 加载成功！")
-
-	//链接数据库，若异常将 panic
-	models.ConnectToDB()
-	logrus.Info("成功数据库连接")
-
-	//设置cookie默认值
-	config := configs.GetConfig()
-	pkg.SetCookieDefVal(config.Cookie.Domain, "/", config.Cookie.ExpireDays, config.Cookie.HttpOnly)
-	logrus.Info("成功设置Cookie默认值")
-
-	//初始化Gin server
-	startServer(config.SitePort)
+    // 初始化 Gin server
+    startServer(config.SitePort)
 }
 
 // 初始化服务，设置路由、加载中间件等
