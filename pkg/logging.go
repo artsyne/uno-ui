@@ -25,7 +25,7 @@ func SetLogger() {
 
 	logFile := &lumberjack.Logger{
         Filename:   "logs/app.log", // 日志文件的位置
-        MaxSize:    50,             // megabytes
+        MaxSize:    20,             // megabytes
         MaxBackups: 10,
         MaxAge:     28,   //days
         Compress:   true, // disabled by default
