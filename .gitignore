@@ -4,7 +4,7 @@
 /upload
 config/config.json
 /cmd/idiary/*.exe
-/cmd/idiary/*debug_bin*
 /node_modules
 /vendor/
 /logs/
+/__debug_bin/

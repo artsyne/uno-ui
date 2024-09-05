@@ -14,7 +14,7 @@ import (
 	"github.com/biuren/hebe/website/routes"
 )
 
-// 初始化 site 
+// 初始化 site
 func init() {
     // 设置 gin 模式
     gin.SetMode(gin.DebugMode)

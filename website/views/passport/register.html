@@ -11,16 +11,16 @@
                     <div class="block">
                         <label class="form-title">用户名</label>
                         <input class="form-control" type="text" id="user_name" name="user_name"
-                            valid="[{type:'limit',min:4,max:20},'validname']" />
+                            valid='[{"type":"limit","min":4,"max":20},"validname"]' />
                     </div>
                     <div class="block">
                         <label class="form-title">密码</label>
                         <input class="form-control" type="password" id="pwd" name="pwd"
-                            valid="[{type:'limit',min:6,max:30}]" />
+                            valid='[{"type":"limit","min":6,"max":30}]' />
                     </div>
                     <div class="block">
                         <label class="form-title">电子邮箱地址</label>
-                        <input class="form-control" type="text" id="email" name="email" valid="['required','email']" />
+                        <input class="form-control" type="text" id="email" name="email" valid='["required","email"]' />
                         <p class="form-info">
                             将往您注册E-mail发送一封激活邮件，请点击邮件中链接完成注册。如果激活邮件没有收到，请到垃圾邮箱找找
                         </p>
@@ -28,7 +28,7 @@
                     <div class="block text-center">
                         <input type="hidden" name="time_zone" id="time_zone" />
                         <input type="hidden" name="lang" id="lang" />
-                        <button class="w-full btn-red" type="button" onclick="Biuren.Passport.reg()">免费注册
+                        <button id="register_btn" class="w-full btn-red" type="button" >免费注册
                         </button>
                     </div>
                     <div class="block text-center">

@@ -11,15 +11,15 @@
                     <div class="block">
                         <label for="login_name" class="form-title">用户名或邮箱</label>
                         <input type="text" class="form-control" id="login_name" name="login_name"
-                            valid="[{type:'limit',min:4,max:20},'validname']" />
+                            valid='[{"type":"limit","min":4,"max":20},"validname"]' />
                     </div>
                     <div class="block">
                         <label for="pwd" class="form-title">密码</label>
                         <input type="password" class="form-control" id="pwd" name="pwd"
-                            valid="[{type:'limit',min:6,max:30}]" />
+                            valid='[{"type":"limit","min":6,"max":30}]' />
                     </div>
                     <div class="block text-center">
-                        <button class="w-full btn-red" type="button" onclick="Biuren.Passport.login()">登录
+                        <button class="w-full btn-red" type="button" id="login_btn">登录
                         </button>
                     </div>
                     <div class="flex justify-between">

@@ -1,7 +1,6 @@
 debug:
-  public: "../../website/static"
   domain: "http://127.0.0.1:8080"
-  site_port: "8081"
+  site_port: "9090"
   summary_max: 666
   suffix: "..."
   page_size: 20
@@ -32,7 +31,6 @@ debug:
     img_type: "data:image/jpeg|data:image/jpg|data:image/gif|data:image/png"
     img_max_size: 1048576
 release:
-  public: "static"
   domain: "http://www.idiary.ai"
   site_port: "80"
   summary_max: 350
