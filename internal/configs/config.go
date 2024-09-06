@@ -111,17 +111,21 @@ var timeZone []string
 // 支持语言
 var supportLangs []SupportLang
 
-// 配置文件目录
-var configDir string
-var viewsDir string
-var saticDir string
+var (
+    // 配置文件目录，视图文件目录，静态文件目录
+    configDir string 
+    viewsDir  string 
+    staticDir string
+)
 
 // 加载文件
 func LoadConfig() {
-    // 获取环境变量
-    configDir = GetEnv("CONFIG_PATH")
-    viewsDir = GetEnv("VIEW_PATH")
-    saticDir = GetEnv("STATIC_PATH")
+    // 获取当前工作目录,并转换为绝对路径
+    cwd, _ := os.Getwd()
+
+	configDir = filepath.Join(cwd, "configs")
+	viewsDir = filepath.Join(cwd, "website/views")
+	staticDir = filepath.Join(cwd, "website/static")
 
 	// 构建文件路径
 	configPath := filepath.Join(configDir, "config.yaml")
@@ -185,14 +189,14 @@ func GetViewsPath() string {
     return viewsDir
 }
 
-// GetStaticPath returns path to application public folder
+// 获取 static 目录
 func GetStaticPath() string {
-	return saticDir
+	return staticDir
 }
 
 // UploadsPath returns path to public/uploads folder
 func UploadsPath() string {
-	return filepath.Join(saticDir, "uploads")
+	return filepath.Join(staticDir, "uploads")
 }
 
 // 读环境变量，如果为空则 panic

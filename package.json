@@ -1,6 +1,6 @@
 {
   "name": "hebe",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "scripts": {
     "build:css": "node scripts/build/build-css.js",
     "build:js": "terser ./website/static/src/js/*.js -o ./website/static/dist/js/idiary.min.js --compress --mangle"
