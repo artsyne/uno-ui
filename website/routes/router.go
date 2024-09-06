@@ -25,15 +25,6 @@ func Set(server *gin.Engine) {
 	setPath(server)
 }
 
-// 设置静态文件目录，存放js、css，以及上传文件目录upload
-func setStaticFs(server *gin.Engine, staticPath string) {
-	//初始化静态文件
-	//better use nginx to serve assets (Cache-Control, Etag, fast gzip, etc)
-	server.StaticFS("/public", http.Dir(staticPath))
-	server.StaticFS("/static", http.Dir(staticPath))
-	server.StaticFile("/favicon.ico", "./public/favicon.ico")
-}
-
 // #region 加载模版文件，并注入全局变量
 // 通过原生 Go 能力加载 "views" 目录中的模版文件
 func setTemplate(server *gin.Engine, basePath string) {
@@ -72,8 +63,16 @@ func loadTemplates(tmpl *template.Template, basePath string) error {
 		return nil
 	})
 }
-
 // #endregion
+
+// 设置静态文件目录，存放js、css，以及上传文件目录upload
+func setStaticFs(server *gin.Engine, staticPath string) {
+	//初始化静态文件
+	//better use nginx to serve assets (Cache-Control, Etag, fast gzip, etc)
+	server.StaticFS("/public", http.Dir(staticPath))
+	server.StaticFS("/static", http.Dir(staticPath))
+	server.StaticFile("/favicon.ico", "./public/favicon.ico")
+}
 
 // 设置站点router
 func setPath(server *gin.Engine) {

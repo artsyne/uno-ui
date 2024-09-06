@@ -25,7 +25,7 @@ func GetDB() *sqlx.DB {
 // 初始化数据库链接
 func ConnectToDB() {
 	config := configs.GetConfig()
-	connection := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true&loc=Local&charset=utf8mb4&collation=utf8mb4_general_ci", config.Database.User,config.Database.Password,
+	connection := fmt.Sprintf(config.Database.Conn, config.Database.User,config.Database.Password,
 		config.Database.Host, config.Database.Name)
 	SetDB(connection)
 }

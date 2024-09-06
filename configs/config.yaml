@@ -7,6 +7,7 @@ debug:
   max_daybook_limit: 500
   hash_id_salt: "M5o9Q3s7Y4v2D8z6"
   database:
+    conn: "%s:%s@tcp(%s:3306)/%s?parseTime=true&loc=Local&charset=utf8mb4&collation=utf8mb4_general_ci"
     host: "127.0.0.1"
     port: 3306
     name: "cd"
@@ -39,6 +40,7 @@ release:
   max_daybook_limit: 500
   hash_id_salt: "J3k7M1q5V9z2B6y8"
   database:
+    conn: "%s:%s@tcp(%s:3306)/%s?parseTime=true&loc=Local&charset=utf8mb4&collation=utf8mb4_general_ci"
     host: "127.0.0.1"
     port: 3306
     name: "cd"

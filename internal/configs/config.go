@@ -57,6 +57,7 @@ type Config struct {
 	MaxDaybookLimit int    `yaml:"max_daybook_limit"`
 	HashIDSalt      string `yaml:"hash_id_salt"`
 	Database        struct {
+		Conn 	 string `yaml:"conn"`
 		Host     string `yaml:"host"`
 		Port     int    `yaml:"port"`
 		Name     string `yaml:"name"`

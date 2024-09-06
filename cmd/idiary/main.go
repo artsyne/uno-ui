@@ -14,44 +14,45 @@ import (
 	"github.com/biuren/hebe/website/routes"
 )
 
-// 初始化 site
-func init() {
-    // 设置 gin 模式
-    gin.SetMode(gin.DebugMode)
+func main() {
+	// 设置 gin 模式
+	gin.SetMode(gin.DebugMode)
 
-    // 设置日志
-    pkg.SetLogger()
+	// 设置日志
+	pkg.SetLogger()
 
-    // 捕获启动过程中的 panic 错误
-    defer func() {
-        if err := recover(); err != nil {
-            logrus.WithFields(logrus.Fields{
-                "error": err,
-                "stack": string(debug.Stack()),
-            }).Error("启动函数 panic 错误")
-        }
-    }()
+	// 捕获启动过程中的 panic 错误
+	defer func() {
+		if err := recover(); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err,
+				"stack": string(debug.Stack()),
+			}).Error("启动函数 panic 错误")
+		}
+	}()
 
-    // 初始化配置信息
-    configs.LoadConfig()
-    logrus.Info("config,params 加载成功！")
+	// 初始化 site
+	initialize()
 
-    // 链接数据库，若异常将 panic
-    models.ConnectToDB()
-    logrus.Info("成功数据库连接")
-
-    // 设置 cookie 默认值
-    config := configs.GetConfig()
-    pkg.SetCookieDefVal(config.Cookie.Domain, "/", config.Cookie.ExpireDays, config.Cookie.HttpOnly)
-    logrus.Info("成功设置 Cookie 默认值")
+	// 初始化 Gin server
+	startServer(configs.GetConfig().SitePort)
 }
 
-func main() {
-    // 获取配置信息
-    config := configs.GetConfig()
+// 初始化 site
+func initialize() {
 
-    // 初始化 Gin server
-    startServer(config.SitePort)
+	// 初始化配置信息
+	configs.LoadConfig()
+	logrus.Info("config、params 加载成功！")
+
+	// 链接数据库，若异常将 panic
+	models.ConnectToDB()
+	logrus.Info("数据库连接成功")
+
+	// 设置 cookie 默认值
+	config := configs.GetConfig()
+	pkg.SetCookieDefVal(config.Cookie.Domain, "/", config.Cookie.ExpireDays, config.Cookie.HttpOnly)
+	logrus.Info("成功设置 Cookie 默认值")
 }
 
 // 初始化服务，设置路由、加载中间件等
@@ -60,11 +61,11 @@ func startServer(sitePort string) {
 	server := gin.Default()
 
 	// 初始化中间件
-	// TODO: gin-csrf,gin-limit，error
+	// TODO: gin-csrf、gin-limit、error
 	attachMiddleware(server)
 	logrus.Info("成功初始化中间件")
 
-	// 初始化Router，创建gin 默认router
+	// 初始化Router，创建 gin 默认 router
 	// 设置模板文件，静态文件Path, 加载上下文共享数据
 	routes.Set(server)
 	logrus.Info("成功初始化网站静态文件目录及路由")

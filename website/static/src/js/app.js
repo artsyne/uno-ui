@@ -1,80 +1,4 @@
-
-
-var Biuren = {
-    html: function (container, html) {
-        if ($("#" + container).length > 0) {
-            $("#" + container).get(0).innerHTML = html;
-        }
-    },
-    inputErr: function (fid, emid, str, strCss, setTop) {
-        var f = $("#" + fid);
-        this.showText(emid, str, strCss);
-        if (f.length == 0) {
-            return false;
-        }
-        if (f.disabled) {
-            return false;
-        }
-        f.focus();
-        if (typeof setTop != "undefined") {
-            this.scrollTop();
-        }
-        return false;
-    },
-    post: function (options) {
-        var options = jQuery.extend({
-            type: "post",
-            dataType: "json",
-            success: function (json) {
-                if (Biuren.checkError(json, ajaxOptions.container)) {
-                    return;
-                }
-                if (json.Result == 0) {
-                    Biuren.Pager.setAjaxStatus("本次操作成功！", "help");
-                } else {
-                    Biuren.Comm.showErrorMsg("help", Biuren.getErrorText(json), "error");
-                }
-            }
-        }, options);
-        $.ajax(options);
-    },
-    get: function (options) {
-        var options = jQuery.extend({
-            cache: false,
-            type: "get"
-        }, options);
-        $.ajax(options);
-    },
-    showOK: function () {
-        $("#help").show().attr("class", "help").html("操作成功").fadeOut(4000);
-    },
-    setBgColor: function (obj) {
-        $(obj).css({
-            backgroundColor: "#EFEFEF"
-        });
-    },
-    moveBgColor: function (obj) {
-        $(obj).css({
-            backgroundColor: ""
-        });
-    },
-    checkError: function (data, container) {
-        var result = false;
-        if (data == null) {
-            return true;
-        }
-        if (typeof (data.Result) != "undefined") {
-            if (data.Result != 0) {
-                Biuren.Comm.showErrorMsg("help", Biuren.getErrorText(data), "error");
-                result = true;
-            }
-        }
-        if (result) {
-            $("#" + container).text("");
-        }
-        return result;
-    }
-};
+var Biuren = {}
 
 var AJAX_URL = '';
 
@@ -95,20 +19,23 @@ Biuren.Passport = {
         if (form.valid("checkError")) {
             return;
         }
-        form.find('#time_zone').val(Intl.DateTimeFormat().resolvedOptions().timeZone);
-        form.find('#lang').val(navigator.language);
-        $.post(AJAX_URL + '/register', form.serialize(), function (data) {
+        var timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        var lang = navigator.language;
+        
+        // 序列化表单数据
+        var formData = form.serialize();
+        
+        // 附加时区和语言信息
+        formData += '&time_zone=' + encodeURIComponent(timeZone);
+        formData += '&lang=' + encodeURIComponent(lang);
+        
+        $.post(AJAX_URL + '/register', formData, function (data) {
             console.log(data);
         }, 'json').fail(function (res) {
             console.log(res.responseJSON);
         });
     }
 }
-
-$(document).ready(function () {
-    $('#register_btn').on('click', Biuren.Passport.reg);
-    $('#login_btn').on('click', Biuren.Passport.login);
-});
 
 Biuren.Diary = {
     init: function () {
@@ -154,10 +81,11 @@ Biuren.Diary = {
         }, 'json');
     },
     postInfo:function(){
-        if (Biuren.Valid.checkError("diary_editor_form")) {
+        var form = $(this).closest('form');
+        if (form.valid("checkError")) {
             return;
         }
-        $.post(AJAX_URL + '/info', $("#diary_editor_form").serialize(), function (data) {
+        $.post(AJAX_URL + '/info', form.serialize(), function (data) {
             if (data.Status == 0) {
                 
             }
@@ -166,8 +94,10 @@ Biuren.Diary = {
 }
 
 $(function () {
-   // Biuren.Valid.init();
-  //  Biuren.Pager.init();
+    $('#register_btn').on('click', Biuren.Passport.reg);
+    $('#login_btn').on('click', Biuren.Passport.login);
+    $('#post_btn').on('click', Biuren.Diary.postInfo);
+
     Biuren.Diary.init();
 
     //header fixed
