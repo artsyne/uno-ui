@@ -19,3 +19,13 @@ String.prototype.trim = function (arg) {
         return this.replace(/(^\s*)|(\s*$)/g, "");
     }
 };
+
+(($) => {
+    const methods = {
+      disableFormInputs(form, disabled) {
+        form.find(':input').prop('disabled', disabled);
+      },
+    };
+  
+    $.utils = methods;
+  })(jQuery);
