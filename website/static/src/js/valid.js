@@ -1,3 +1,53 @@
+/**
+ * jQuery表单验证插件
+ * 
+ * 这个插件提供了一种简单而强大的方式来验证表单输入。
+ * 它支持多种验证类型，包括内置验证和自定义回调验证。
+ * 
+ * @author nobody
+ * @version 1.0.3
+ * @license MIT
+ * 
+ * 使用说明：
+ * 
+ * 1. 在HTML中为需要验证的输入元素添加valid属性：
+ *    <input type="text" name="username" valid='["required","validname"]'>
+ * 
+ * 2. 支持的验证类型：
+ *    - required: 必填字段
+ *    - validname: 有效的用户名（字母、数字、下划线、连字符）
+ *    - en: 仅英文字母
+ *    - domain: 有效的域名
+ *    - mobile: 手机号码
+ *    - int: 整数
+ *    - email: 电子邮件地址
+ *    - date: 日期
+ *    - url: URL地址
+ *    - pwd: 密码（至少8个字符，包含字母和数字）
+ *    - strongpwd: 强密码（至少8个字符，包含字母、数字和特殊字符）
+ *    - limit: 字符长度限制
+ *    - range: 数值范围
+ *    - compareto: 与其他字段比较
+ *    - callback: 自定义回调函数
+ *    - tag: 标签数量限制
+ * 
+ * 3. 自定义回调函数示例：
+ *    $.fn.valid.registerCallback('checkUsername', function(id, value) {
+ *      return value.length >= 3 && value.length <= 20;
+ *    });
+ * 
+ *    然后在HTML中使用：
+ *    <input type="text" name="username" valid='[{"type":"callback", "fn":"checkUsername", "msg":"用户名长度必须在3到20个字符之间"}]'>
+ * 
+ * 4. 手动触发验证：
+ *    $('#myForm').valid('checkError');
+ * 
+ * 5. 显示字符计数：
+ *    <input type="text" name="description" valid='[{"type":"limit", "max": 100, "show": true}]'>
+ * 
+ * 注意：确保在使用此插件之前已经加载了jQuery库。
+ */
+
 (function ($) {
   // 私有函数：计算字符串长度（使用标准的字符串长度属性）
   const strLen = (str) => str.length;
@@ -5,11 +55,14 @@
   // 私有函数：按字符数截取字符串（使用标准的substring方法）
   const substrByChar = (str, charLength) => str.substring(0, charLength);
 
+  // 回调函数注册对象
+  const callbackRegistry = {};
+
   $.fn.valid = function () {
     const validators = {
       validname: {
         regex: /^[a-zA-Z0-9_-]+$/,
-        msg: '请输入有效的用户名（3-20个字符，可包含字母、数字、下划线和连字符）',
+        msg: '请输入有效的用户名（包含字母、数字、下划线和连字符）',
       },
       en: {
         regex: /^[a-zA-Z]+$/,
@@ -52,13 +105,16 @@
     };
 
     const methods = {
+      /**
+       * 初始化验证
+       */
       init() {
         this.find('[valid]').each((_, obj) => {
           const $obj = $(obj);
           if ($obj.data('loadedvalid')) return;
 
           $obj.after('<div />').data('loadedvalid', true);
-          $obj.on('input', () => methods.checkElement($obj));
+          $obj.on('input blur', () => methods.checkElement($obj));
 
           const validRules = JSON.parse($obj.attr('valid'));
           validRules.forEach((json) => {
@@ -71,6 +127,9 @@
         });
       },
 
+      /**
+       * 更新字符计数
+       */
       updateCharCount() {
         const $obj = $(this);
         const value = $obj.val();
@@ -90,6 +149,10 @@
         }
       },
 
+      /**
+       * 检查所有元素的错误
+       * @returns {boolean} 是否有错误
+       */
       checkError() {
         const errors = Array.from($(this).find('[valid]')).map((obj) =>
           methods.checkElement($(obj)),
@@ -97,6 +160,11 @@
         return errors.some(Boolean);
       },
 
+      /**
+       * 检查单个元素的验证
+       * @param {jQuery} $obj - 要检查的jQuery对象
+       * @returns {boolean} 是否有错误
+       */
       checkElement($obj) {
         const validRules = JSON.parse($obj.attr('valid'));
         const $labelError = $obj.nextAll('div:first');
@@ -160,12 +228,12 @@
               }
               break;
             case 'callback':
-              if (typeof window[json.fn] === 'function') {
-                if (window[json.fn]($obj.attr('id'), val) === false) {
+              if (typeof callbackRegistry[json.fn] === 'function') {
+                if (callbackRegistry[json.fn]($obj.attr('id'), val) === false) {
                   errorMsg = json.msg || '输入内容无效';
                 }
               } else {
-                console.error(`Callback function ${json.fn} is not defined`);
+                console.error(`Callback function ${json.fn} is not registered`);
               }
               break;
             case 'tag':
@@ -200,6 +268,19 @@
       return methods.init.apply(this, arguments);
     } else {
       $.error('Method ' + arguments[0] + ' does not exist on jQuery.valid');
+    }
+  };
+
+  /**
+   * 注册自定义回调函数
+   * @param {string} name - 回调函数的名称
+   * @param {function} callback - 回调函数
+   */
+  $.fn.valid.registerCallback = function(name, callback) {
+    if (typeof callback === 'function') {
+      callbackRegistry[name] = callback;
+    } else {
+      console.error(`Invalid callback function for ${name}`);
     }
   };
 
