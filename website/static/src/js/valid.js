@@ -1,31 +1,14 @@
 (function ($) {
-  // 私有函数：计算字符串长度（支持多语言）
-  const strLen = (str) => {
-    return [...str].reduce(
-      (len, char) =>
-        len + (char.codePointAt(0) > 127 || char.codePointAt(0) === 94 ? 2 : 1),
-      0,
-    );
-  };
+  // 私有函数：计算字符串长度（使用标准的字符串长度属性）
+  const strLen = (str) => str.length;
 
-  // 私有函数：按字节数截取字符串（支持多语言）
-  const substrByByte = (str, byteLength) => {
-    let len = 0;
-    return [...str].reduce((result, char) => {
-      const charLen =
-        char.codePointAt(0) > 127 || char.codePointAt(0) === 94 ? 2 : 1;
-      if (len + charLen <= byteLength) {
-        len += charLen;
-        return result + char;
-      }
-      return result;
-    }, '');
-  };
+  // 私有函数：按字符数截取字符串（使用标准的substring方法）
+  const substrByChar = (str, charLength) => str.substring(0, charLength);
 
   $.fn.valid = function () {
     const validators = {
       validname: {
-        regex: /^[a-zA-Z0-9_-]{3,20}$/,
+        regex: /^[a-zA-Z0-9_-]+$/,
         msg: '请输入有效的用户名（3-20个字符，可包含字母、数字、下划线和连字符）',
       },
       en: {
@@ -75,7 +58,7 @@
           if ($obj.data('loadedvalid')) return;
 
           $obj.after('<div />').data('loadedvalid', true);
-          $obj.on('blur', () => methods.checkElement($obj));
+          $obj.on('input', () => methods.checkElement($obj));
 
           const validRules = JSON.parse($obj.attr('valid'));
           validRules.forEach((json) => {
@@ -97,11 +80,11 @@
           if (json.show === true) {
             const maxlen = json.max;
             if (strLen(value) > maxlen) {
-              $obj.val(substrByByte(value, maxlen));
+              $obj.val(substrByChar(value, maxlen));
             }
             $obj
               .nextAll('span:first')
-              .html(`可输入${json.max - strLen($obj.val())}个字符`);
+              .html(`可输入${maxlen - strLen($obj.val())}个字符`);
             break;
           }
         }

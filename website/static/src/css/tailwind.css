@@ -36,6 +36,15 @@
   @apply text-sm p-2;
 }
 
+/*表单校验*/
+.invalid-feedback {
+  @apply text-red-500 text-sm;
+}
+
+.is-invalid {
+  @apply border-red-500;
+}
+
 .card-title {
   @apply h-8 mb-2 border-b border-b-gray-300;
 }

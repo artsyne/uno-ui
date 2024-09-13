@@ -66,6 +66,7 @@
       },
     };
 
+    // 绑定事件列表
     const eventBindings = [
       { selector: '#register_btn', event: 'click', handler: methods.reg },
       { selector: '#login_btn', event: 'click', handler: methods.login },
