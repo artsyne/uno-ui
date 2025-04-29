@@ -4,26 +4,26 @@ import (
 	"net/http"
 )
 
-//cookie 默认值
+// cookie 默认值
 var cookie = &http.Cookie{
 	Path:     "/",
-	Domain:   "127.0.0.1",
+	Domain:   "",
 	MaxAge:   7 * 86400,
 	HttpOnly: true,
 }
 
-//写cookie
+// 写cookie
 func WriteCookie(rw http.ResponseWriter, name string, val string) {
 	http.SetCookie(rw, &http.Cookie{Name: name, Value: val, Path: cookie.Path,
 		Domain: cookie.Domain, MaxAge: cookie.MaxAge, HttpOnly: cookie.HttpOnly})
 }
 
-//删除cookie
+// 删除cookie
 func DelCookie(rw http.ResponseWriter, name string) {
 	http.SetCookie(rw, &http.Cookie{Name: name, MaxAge: -1})
 }
 
-//读cookie
+// 读cookie
 func ReadCookie(req *http.Request, name string) string {
 	mycookie, err := req.Cookie(name)
 	if err != nil {

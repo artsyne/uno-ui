@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/biuren/hebe/internal/configs"
 	"github.com/biuren/hebe/internal/errors"
 	"github.com/biuren/hebe/internal/models"
 	"github.com/biuren/hebe/internal/services"
-	"github.com/biuren/hebe/internal/configs"
 	"github.com/biuren/hebe/pkg"
 )
 
@@ -155,8 +155,6 @@ func HandleLogin(c *gin.Context) {
 	//创建用户Login数据
 	login.UserId = user.UserId
 	login.FullName = user.FullName
-	login.AccessUrl = user.AccessUrl
-	login.FaceSmallUrl = user.FaceSmallUrl
 	login.LoginUTCTime = pkg.GetNowTimeUnixMilli()
 	login.UserGroup = user.UserGroup
 	login.UserName = user.UserName
@@ -182,7 +180,6 @@ func HandleLogin(c *gin.Context) {
 	//设置返回值
 	h["IsLogin"] = true
 	h["UserId"] = user.UserId
-	h["AccessUrl"] = user.AccessUrl
 
 	c.JSON(http.StatusOK, h)
 }
@@ -213,7 +210,6 @@ func HandleUserReg(c *gin.Context) {
 
 	h := pkg.DefaultH(c)
 	h["UserId"] = user.UserId
-	h["AccessUrl"] = user.AccessUrl
 	c.JSON(http.StatusOK, h)
 }
 

@@ -4,15 +4,14 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/biuren/hebe/website/controllers"
-	"github.com/biuren/hebe/internal/models"
 	"github.com/biuren/hebe/internal/configs"
+	"github.com/biuren/hebe/internal/models"
 	"github.com/biuren/hebe/pkg"
-	
+	"github.com/biuren/hebe/website/controllers"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
-
 
 // 需要登录访问地址
 func AuthRequired() gin.HandlerFunc {
@@ -33,23 +32,30 @@ func SharedData() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//获取cookie
 		cookieEnUserData := pkg.ReadCookie(c.Request, "ud")
+		logrus.Debugf("Cookie value: %s", cookieEnUserData)
+
 		//获取是否有cookie
 		if len(cookieEnUserData) < 1 {
+			logrus.Debug("No cookie found")
 			return
 		}
 
 		//解密cookie
 		byteUserData, err := pkg.AESDecrypt(cookieEnUserData, configs.GetConfig().Cookie.SecretKey)
 		if err != nil || byteUserData == nil {
+			logrus.Errorf("Failed to decrypt cookie: %v", err)
 			return
 		}
+		logrus.Debugf("Decrypted cookie data: %s", string(byteUserData))
 
 		//反序列化为对象
 		var userData models.Login
 		err = json.Unmarshal(byteUserData, &userData)
 		if err != nil {
+			logrus.Errorf("Failed to unmarshal user data: %v", err)
 			return
 		}
+		logrus.Debugf("User data: %+v", userData)
 
 		//判断认证信息
 

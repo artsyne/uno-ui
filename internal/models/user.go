@@ -22,93 +22,93 @@ type Login struct {
 type User struct {
 	UserId           int64  `form:"user_id" json:"user_id" db:"user_id"`
 	UserName         string `form:"user_name" json:"user_name" db:"user_name"`
-	FullName     	 string `form:"full_name" json:"full_name" db:"full_name"`
+	FullName         string `form:"full_name" json:"full_name" db:"full_name"`
 	UserGroup        int8   `form:"user_group" json:"user_group" db:"user_group"`
 	Pwd              string `form:"pwd" json:"pwd" db:"pwd"`
 	PwdSalt          string `form:"pwd_salt" json:"pwd_salt" db:"pwd_salt"`
-	AccessUrl        string `form:"access_url" json:"access_url" db:"access_url"`
-	FaceBigUrl       string `form:"face_big_url" json:"face_big_url" db:"face_big_url"`
-	FaceMidUrl       string `form:"face_mid_url" json:"face_mid_url" db:"face_mid_url"`
-	FaceSmallUrl     string `form:"face_small_url" json:"face_small_url" db:"face_small_url"`
+	ProfileUrl       string `form:"profile_url" json:"profile_url" db:"profile_url"`
+	FaceUrl          string `form:"face_url" json:"face_url" db:"face_url"`
 	Email            string `form:"email" json:"email" db:"email"`
+	EmailVerified    int8   `form:"email_verified" json:"email_verified" db:"email_verified"`
 	RegIp            string `form:"reg_ip" json:"reg_ip" db:"reg_ip"`
-	RegUTCTime       int64  `form:"reg_utc_time" json:"reg_utc_time" db:"reg_utc_time"`
+	CreatedUTCTime   int64  `form:"created_utc_time" json:"created_utc_time" db:"created_utc_time"`
 	Remark           string `form:"remark" json:"remark" db:"remark"`
 	LastIp           string `form:"last_ip" json:"last_ip" db:"last_ip"`
 	LastLoginUTCTime int64  `form:"last_login_utc_time" json:"last_login_utc_time" db:"last_login_utc_time"`
-	Status           int8   `form:"status" json:"status" db:"status"`
 	TimeZone         string `form:"time_zone" json:"time_zone" db:"time_zone"`
 	Lang             string `form:"lang" json:"lang" db:"lang"`
+	Status           int8   `form:"status" json:"status" db:"status"`
 }
 
 // 插入数据
 func (user *User) Insert() (int64, error) {
 	sql := `
                 insert into br_user  (
-                    user_id  ,
-                    user_name  ,
-                    user_group  ,
-                    pwd  ,
-					pwd_salt  ,
-                    access_url  ,
-                    face_big_url  ,
-                    face_mid_url  ,
-                    face_small_url  ,
-                    email  ,
-                    reg_ip  ,
-                    reg_utc_time  ,
-                    remark  ,
-                    last_ip  ,
-                    last_login_utc_time  ,
-                    status,
-					time_zone,
-					lang,
-					full_name 
+                    user_id,
+                    user_name,
+                    full_name,
+                    user_group,
+                    pwd,
+                    pwd_salt,
+                    profile_url,
+                    face_url,
+                    email,
+                    email_verified,
+                    reg_ip,
+                    created_utc_time,
+                    remark,
+                    last_ip,
+                    last_login_utc_time,
+                    time_zone,
+                    lang,
+                    status
                 )
                 values (
-                    ?  ,
-                    ?  ,
-                    ?  ,
-                    ?  ,
-					?  ,
-                    ?  ,
-                    ?  ,
-                    ?  ,
-                    ?  ,
-                    ?  ,
-                    ?  ,
-                    ?  ,
-                    ?  ,
-                    ?  ,
-                    ?  ,
                     ?,
-					?,
-					?,
-					?
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?
                 )
                 `
+
 	res, err := db.Exec(sql,
 		user.UserId,
 		user.UserName,
+		user.FullName,
 		user.UserGroup,
 		user.Pwd,
 		user.PwdSalt,
-		user.AccessUrl,
-		user.FaceBigUrl,
-		user.FaceMidUrl,
-		user.FaceSmallUrl,
+		user.ProfileUrl,
+		user.FaceUrl,
 		user.Email,
+		user.EmailVerified,
 		user.RegIp,
-		user.RegUTCTime,
+		user.CreatedUTCTime,
 		user.Remark,
 		user.LastIp,
 		user.LastLoginUTCTime,
-		user.Status, user.TimeZone, user.Lang,user.FullName)
+		user.TimeZone,
+		user.Lang,
+		user.Status)
 
+	id, err := res.LastInsertId()
 	if err != nil {
 		return 0, err
 	}
-	id, err := res.LastInsertId()
 	return id, err
 }
 
@@ -117,42 +117,46 @@ func (user *User) Update() (int64, error) {
 	sql := `
                 update br_user
                  set
-                        user_id = ?  ,
-                        user_name = ?  ,
-                        user_group = ?  ,
-                        pwd = ?  ,
-						pwd_salt = ?  ,
-                        access_url = ?  ,
-                        face_big_url = ?  ,
-                        face_mid_url = ?  ,
-                        face_small_url = ?  ,
-                        email = ?  ,
-                        reg_ip = ?  ,
-                        reg_utc_time = ?  ,                       
-                        remark = ?  ,
-                        last_ip = ?  ,
-                        last_login_utc_time = ?  ,
-                        status = ? ,
-						time_zone = ?,
-						lang = ?
+                        user_id = ?,
+                        user_name = ?,
+                        full_name = ?,
+                        user_group = ?,
+                        pwd = ?,
+                        pwd_salt = ?,
+                        profile_url = ?,
+                        face_url = ?,
+                        email = ?,
+                        email_verified = ?,
+                        reg_ip = ?,
+                        created_utc_time = ?,
+                        remark = ?,
+                        last_ip = ?,
+                        last_login_utc_time = ?,
+                        time_zone = ?,
+                        lang = ?,
+                        status = ?
+                where user_id = ?
            `
 	res, err := db.Exec(sql,
 		user.UserId,
 		user.UserName,
+		user.FullName,
 		user.UserGroup,
 		user.Pwd,
 		user.PwdSalt,
-		user.AccessUrl,
-		user.FaceBigUrl,
-		user.FaceMidUrl,
-		user.FaceSmallUrl,
+		user.ProfileUrl,
+		user.FaceUrl,
 		user.Email,
+		user.EmailVerified,
 		user.RegIp,
-		user.RegUTCTime,
+		user.CreatedUTCTime,
 		user.Remark,
 		user.LastIp,
 		user.LastLoginUTCTime,
-		user.Status, user.TimeZone, user.Lang)
+		user.TimeZone,
+		user.Lang,
+		user.Status,
+		user.UserId)
 
 	if err != nil {
 		return 0, err
@@ -163,16 +167,17 @@ func (user *User) Update() (int64, error) {
 }
 
 // 根据uid更新用户空间地址
-func UpdateAccessUrlByUserId(userId int64, accessUrl string) (int64, error) {
-	sql := "UPDATE br_user SET access_url = ? WHERE user_id = ?"
-	res, err := db.Exec(sql, accessUrl, userId)
-	if err != nil {
-		return 0, err
-	}
-
-	rows, err := res.RowsAffected()
-	return rows, err
-}
+// 此方法已废弃，因为 access_url 字段已被移除
+// func UpdateAccessUrlByUserId(userId int64, accessUrl string) (int64, error) {
+//     sql := "UPDATE br_user SET access_url = ? WHERE user_id = ?"
+//     res, err := db.Exec(sql, accessUrl, userId)
+//     if err != nil {
+//         return 0, err
+//     }
+//
+//     rows, err := res.RowsAffected()
+//     return rows, err
+// }
 
 // 删除数据，假删除，status = 0
 func DeleteByUserId(id int64) (int64, error) {

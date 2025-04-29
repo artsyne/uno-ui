@@ -8,8 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/biuren/hebe/internal/models"
 	"github.com/biuren/hebe/internal/configs"
+	"github.com/biuren/hebe/internal/models"
 	"github.com/biuren/hebe/pkg"
 )
 
@@ -24,7 +24,12 @@ func RenderMemberIndex(c *gin.Context) {
 	h["Active"] = "users"
 
 	//读取用户认证信息
-	userData := h["UserData"].(models.Login)
+	userData, ok := h["UserData"].(models.Login)
+	if !ok {
+		// 用户未登录或登录信息无效，重定向到登录页面
+		c.Redirect(http.StatusFound, "/login")
+		return
+	}
 
 	//返回判断是否是日记owner
 	isOnwer := false

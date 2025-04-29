@@ -1,15 +1,15 @@
 /**
  * jQuery Passport Plugin
- * 
+ *
  * 这个插件提供了登录和注册功能，支持表单验证和AJAX提交。
  * 它还允许配置是否启用回车键提交表单。
- * 
+ *
  * @author nobody
  * @version 1.0.4
  * @license MIT
- * 
+ *
  * 使用示例：
- * 
+ *
  * $('#passport').passport({
  *   ajaxUrl: '/api',
  *   eventBindings: [
@@ -27,12 +27,23 @@
       {
         ajaxUrl: '', // AJAX请求的基础URL
         debug: false, // 新增的debug选项，默认为false
-        eventBindings: [ // 默认的事件绑定配置
-          { selector: '#login_btn', event: 'click', allowEnterKey: true, handler: 'login' },
-          { selector: '#register_btn', event: 'click', allowEnterKey: true, handler: 'reg' },
-        ]
+        eventBindings: [
+          // 默认的事件绑定配置
+          {
+            selector: '#login_btn',
+            event: 'click',
+            allowEnterKey: true,
+            handler: 'login',
+          },
+          {
+            selector: '#register_btn',
+            event: 'click',
+            allowEnterKey: true,
+            handler: 'reg',
+          },
+        ],
       },
-      options
+      options,
     );
 
     // 添加一个调试日志函数
@@ -62,9 +73,9 @@
           `${settings.ajaxUrl}/login`,
           formData,
           (data) => {
-            window.location = data.AccessUrl;
+            window.location = `/u/${data.UserId}`;
           },
-          'json'
+          'json',
         ).fail((res) => {
           console.log(res.responseJSON);
           $.utils.disableFormInputs(form, false);
@@ -98,7 +109,7 @@
           (data) => {
             console.log(data);
           },
-          'json'
+          'json',
         ).fail((res) => {
           console.log(res.responseJSON);
           $.utils.disableFormInputs(form, false);
@@ -112,7 +123,8 @@
        */
       handleEnterKey(event, binding) {
         debug('Enter key pressed', event, binding);
-        if (event.which === 13) { // 13 是回车键的键码
+        if (event.which === 13) {
+          // 13 是回车键的键码
           event.preventDefault();
           $(binding.selector).click();
         }
@@ -126,16 +138,19 @@
       debug('Binding events', settings.eventBindings);
       settings.eventBindings.forEach((binding) => {
         // 获取处理函数，可以是字符串（方法名）或函数
-        const handler = typeof binding.handler === 'string' ? methods[binding.handler] : binding.handler;
-        
+        const handler =
+          typeof binding.handler === 'string'
+            ? methods[binding.handler]
+            : binding.handler;
+
         debug(`Binding ${binding.event} event to ${binding.selector}`);
         $(document).on(binding.event, binding.selector, handler);
-        
+
         // 如果允许回车键提交，为相关表单的所有输入框绑定keypress事件
         if (binding.allowEnterKey) {
           debug(`Enabling Enter key for ${binding.selector}`);
           const $form = $(binding.selector).closest('form');
-          $form.on('keypress', 'input', function(event) {
+          $form.on('keypress', 'input', function (event) {
             methods.handleEnterKey.call(this, event, binding);
           });
         }
