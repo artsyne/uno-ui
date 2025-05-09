@@ -3,7 +3,10 @@ const fs = require('fs');
 const os = require('os');
 
 // Step 1: Generate tailwind.css
-execSync('npx tailwindcss -i ./website/static/src/css/tailwind.css -o ./website/static/dist/css/tailwind.css', { stdio: 'inherit' });
+execSync(
+  'npx tailwindcss -i ./website/static/src/css/tailwind.css -o ./website/static/dist/css/tailwind.css',
+  { stdio: 'inherit' },
+);
 
 // Step 2: Combine CSS files
 const isWindows = os.platform() === 'win32';
@@ -14,7 +17,10 @@ const combineCommand = isWindows
 execSync(combineCommand, { stdio: 'inherit' });
 
 // Step 3: Minify combined CSS file
-execSync('npx postcss ./website/static/dist/css/combined.css -u cssnano -o ./website/static/dist/css/idiary.min.css --no-map', { stdio: 'inherit' });
+execSync(
+  'npx postcss ./website/static/dist/css/combined.css -u cssnano -o ./website/static/dist/css/idiary.min.css --no-map',
+  { stdio: 'inherit' },
+);
 
 // Clean up
 fs.unlinkSync('./website/static/dist/css/combined.css');
