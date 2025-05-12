@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/biuren/hebe/internal/configs"
 	"github.com/biuren/hebe/internal/errors"
 	"github.com/biuren/hebe/internal/models"
 	"github.com/biuren/hebe/internal/services"
-	"github.com/biuren/hebe/internal/configs"
 	"github.com/biuren/hebe/pkg"
 
 	"github.com/gin-gonic/gin"
@@ -53,12 +53,9 @@ func RenderDiaryIndex(c *gin.Context) {
 		return
 	}
 
-	//读取配置
-	config := configs.GetConfig()
-
 	// 日记总数
 	diariesNum := 0
-	pageSize := config.PageSize
+	pageSize := configs.GetConfig().App.PageSize
 
 	// 分页显示日记列表
 	h["Posts"], diariesNum, err = models.ListPostsByUserID(diary.AddUserID, diaryID, pageIndex, pageSize)

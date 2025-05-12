@@ -26,7 +26,7 @@ func UploadImage(imgBase64Data string) (string, string, error) {
 	//判断图片是否为空
 	fileSize := len(imgBase64Data)
 	if fileSize < 100 {
-		return "", "", errors.UploadFileErr 
+		return "", "", errors.UploadFileErr
 	}
 
 	// 获取上传文件配置信息
@@ -34,18 +34,18 @@ func UploadImage(imgBase64Data string) (string, string, error) {
 
 	//判断上传文件类型是否正确
 	filetype := imgBase64Data[:strings.IndexByte(imgBase64Data, ';')]
-	if !strings.Contains(config.Upload.ImgType, filetype) {
+	if !strings.Contains(config.Upload.Types, filetype) {
 		return "", "", errors.UploadFileErr
 	}
 
 	//判断文件大小
-	if fileSize > config.Upload.ImgMaxSize {
+	if fileSize > config.Upload.MaxSize {
 		return "", "", errors.UploadFileTooLarge
 	}
 
 	//路径格式为：config配置路径 + /年/月/日/uid.jpg
 	filePath, fileName := CreateUploadPathFileName()
-	filePath = path.Join(config.Upload.ImgSavePath, filePath)
+	filePath = path.Join(config.Upload.Path, filePath)
 	fileName = fmt.Sprintf("%s/%s.jpeg", filePath, fileName)
 
 	//保存图片

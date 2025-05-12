@@ -44,12 +44,9 @@ func RenderMemberIndex(c *gin.Context) {
 		pageIndex = 1
 	}
 
-	//读取配置
-	config := configs.GetConfig()
-
 	// 日记总数
 	diariesNum := 0
-	pageSize := config.PageSize
+	pageSize := configs.GetConfig().App.PageSize
 
 	// 分页显示日记列表
 	h["Diaries"], diariesNum, _ = models.ListDiariesByUserID(uid, pageIndex, pageSize)

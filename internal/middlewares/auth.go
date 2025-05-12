@@ -41,7 +41,7 @@ func SharedData() gin.HandlerFunc {
 		}
 
 		//解密cookie
-		byteUserData, err := pkg.AESDecrypt(cookieEnUserData, configs.GetConfig().Cookie.SecretKey)
+		byteUserData, err := pkg.AESDecrypt(cookieEnUserData, configs.GetConfig().Cookie.Secret)
 		if err != nil || byteUserData == nil {
 			logrus.Errorf("Failed to decrypt cookie: %v", err)
 			return

@@ -211,7 +211,7 @@ func insertEmailTask(user *models.User, validCode *models.ValidCode) error {
 	nowTime := pkg.GetNowTime()
 
 	// 激活链接
-	url := fmt.Sprintf("%s/activateuser?uid=%d&sign=%s", config.Domain, user.UserId, validCode.ValidCode)
+	url := fmt.Sprintf("%s/activateuser?uid=%d&sign=%s", config.App.Domain, user.UserId, validCode.ValidCode)
 
 	// 邮件task对象
 	emailTask := &models.EmailTask{
@@ -223,7 +223,7 @@ func insertEmailTask(user *models.User, validCode *models.ValidCode) error {
 	// 插入邮件队列
 	jobQueue := &models.JobQueue{
 		AddUTCTime:  nowTime.UnixMilli(),
-		JobType:     configs.JOB_TYPE_EMAIL,
+		JobType:     "email",
 		PlanUTCTime: nowTime.UnixMilli(),
 		TryNum:      0,
 		Result:      1,

@@ -1,35 +1,97 @@
 package pkg
 
 import (
+	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
-	"github.com/gin-gonic/gin"
+	"github.com/biuren/hebe/internal/configs"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// 函数为应用程序配置日志记录器。它将日志格式设置为 JSON，
-// 根据当前的 gin 模式（Debug 或 Release）调整日志级别，
-// 并设置一个带有日志轮转的日志文件（最大大小 20MB，最多 10 个备份，最大年龄 28 天，带有压缩）。
-// 日志输出被写入标准错误和日志文件
-func SetLogger() {
-	// json 格式化输出日志
-	logrus.SetFormatter(&logrus.JSONFormatter{})
-	
-	if gin.Mode() == gin.DebugMode {
-		logrus.SetLevel(logrus.DebugLevel)
-	} else if gin.Mode() == gin.ReleaseMode {
-        logrus.SetLevel(logrus.ErrorLevel)
-    }
+// SetLogger 配置日志
+// 设置日志输出位置、格式和轮转策略
+func SetLogger(config *configs.LogConfig) error {
+	if config == nil {
+		return fmt.Errorf("log configuration is nil")
+	}
 
+	// 验证日志配置
+	if err := validateLogConfig(config); err != nil {
+		return fmt.Errorf("invalid log configuration: %w", err)
+	}
+
+	// 确保日志目录存在
+	logPath := filepath.Join(config.Path)
+	if err := os.MkdirAll(logPath, 0755); err != nil {
+		return fmt.Errorf("failed to create log directory: %w", err)
+	}
+
+	// 配置日志轮转
 	logFile := &lumberjack.Logger{
-        Filename:   "logs/app.log", // 日志文件的位置
-        MaxSize:    20,             // megabytes
-        MaxBackups: 10,
-        MaxAge:     28,   //days
-        Compress:   true, // disabled by default
-    }
+		Filename:   filepath.Join(logPath, config.Filename),
+		MaxSize:    config.MaxSize,    // MB
+		MaxBackups: config.MaxBackups, // 文件个数
+		MaxAge:     config.MaxAge,     // 天数
+		Compress:   config.Compress,   // 压缩
+		LocalTime:  config.LocalTime,  // 使用本地时间
+	}
 
-    logrus.SetOutput(io.MultiWriter(os.Stderr, logFile))
+	// 同时输出到文件和控制台
+	writers := []io.Writer{logFile, os.Stdout}
+	mw := io.MultiWriter(writers...)
+	logrus.SetOutput(mw)
+
+	// 设置日志格式
+	if config.Format == "json" {
+		logrus.SetFormatter(&logrus.JSONFormatter{
+			TimestampFormat: "2006-01-02 15:04:05",
+		})
+	} else {
+		logrus.SetFormatter(&logrus.TextFormatter{
+			FullTimestamp:   true,
+			TimestampFormat: "2006-01-02 15:04:05",
+		})
+	}
+
+	// 设置日志级别
+	level, err := logrus.ParseLevel(config.Level)
+	if err != nil {
+		return fmt.Errorf("invalid log level %q: %w", config.Level, err)
+	}
+	logrus.SetLevel(level)
+
+	return nil
+}
+
+// validateLogConfig 验证日志配置的有效性
+func validateLogConfig(config *configs.LogConfig) error {
+	if config == nil {
+		return fmt.Errorf("log config is nil")
+	}
+
+	// 验证日志级别
+	if _, err := logrus.ParseLevel(config.Level); err != nil {
+		return fmt.Errorf("invalid log level %q: %w", config.Level, err)
+	}
+
+	// 验证日志格式
+	if config.Format != "text" && config.Format != "json" {
+		return fmt.Errorf("invalid log format %q: must be 'text' or 'json'", config.Format)
+	}
+
+	return nil
+}
+
+// SetupBasicLogger 设置基本日志，用于配置加载前
+func SetupBasicLogger() {
+	// 基本控制台日志设置
+	logrus.SetOutput(os.Stdout)
+	logrus.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
+	logrus.SetLevel(logrus.InfoLevel)
 }

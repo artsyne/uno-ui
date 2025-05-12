@@ -8,15 +8,15 @@ import (
 	"github.com/go-redis/redis"
 )
 
-//创建redis client
+// 创建redis client
 func getRedisClient() *redis.Client {
 	//获取配置信息
 	config := configs.GetConfig()
 
 	// 链接redis
 	client := redis.NewClient(&redis.Options{
-		Addr:     config.Redis.RedisServer + ":" + strconv.Itoa(config.Redis.RedisPort),
-		Password: config.Redis.RedisPwd,
+		Addr:     config.Redis.Host + ":" + strconv.Itoa(config.Redis.Port),
+		Password: config.Redis.Password,
 		DB:       0,
 	})
 
@@ -34,7 +34,7 @@ func SetSession(name string, val string) error {
 	return err
 }
 
-//获取session的值
+// 获取session的值
 func GetSession(name string) (string, error) {
 
 	//获取client
@@ -45,7 +45,7 @@ func GetSession(name string) (string, error) {
 	return val, err
 }
 
-//删除一个session
+// 删除一个session
 func DelSession(name string) (int64, error) {
 	//获取client
 	client := getRedisClient()

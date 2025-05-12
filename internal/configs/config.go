@@ -1,196 +1,167 @@
 package configs
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 
-	"github.com/gin-gonic/gin"
-	"gopkg.in/yaml.v3"
+	"github.com/spf13/viper"
 )
 
-// 构造默认返回值对象
-const (
-	OPS_SUCCESS    int = 0  // 操作成功
-	VALID_CODE_LEN int = 64 //确认码长度
-	PWD_MIN_LEN    int = 6  //最小密码长度
-	PWD_MAX_LEN    int = 50 //最大密码长度
-
-	JOB_TYPE_EMAIL string = "email" //email任务
-	JOB_TYPE_DB    string = "db"    // 数据库操作任务
-
-	USER_STATUS_OK          int8 = 1 //用户正常状态
-	USER_STATUS_WAIT_ACTIVE int8 = 2 //用户待激活
-	USER_STATUS_DEL         int8 = 0 //用户已删除状态
-	USER_NOT_VIP            int8 = 0 //用户不是vip
-	USER_IS_VIP             int8 = 1 //用户是vip
-
-	REG_EMAIL_VAILID_CODE_EXPIRE_DAY      int = 1 // 注册email过期天数
-	FIND_PWD_EMAIL_VAILID_CODE_EXPIRE_DAY int = 1 // 重设密码邮件过期天数
-
-	DEFAULT_USER_GROUP int8 = 1 // 用户注册默认分组
-
-	VALID_CODE_ACTIVE_USER_EMAIL        int8 = 1 //激活用户
-	VALID_CODE_RESET_PWD_EMAIL          int8 = 2 //重设密码
-	VALID_CODE_INVITE_USER_JOIN_DAYBOOK int8 = 3 //邀请用户加入日记本
-
-	//日记本阅读权限
-	DAYBOOK_VIEW_PUBLIC  int8 = 1 //公开
-	DAYBOOK_VIEW_PRIVATE int8 = 2 //私有
-
-)
-
-// ConfigSet contains application configurations for all gin modes
-type ConfigSet struct {
-	Debug   Config
-	Release Config
-	Test    Config
-}
-
-// 配置文件结构定义
-type Config struct {
-	Domain          string `yaml:"domain"`
-	SitePort        string `yaml:"site_port"`
-	SummaryMax      int    `yaml:"summary_max"`
-	Suffix          string `yaml:"suffix"`
-	PageSize        int    `yaml:"page_size"`
-	MaxDaybookLimit int    `yaml:"max_daybook_limit"`
-	HashIDSalt      string `yaml:"hash_id_salt"`
-	Database        struct {
-		Conn 	 string `yaml:"conn"`
-		Host     string `yaml:"host"`
-		Port     int    `yaml:"port"`
-		Name     string `yaml:"name"`
-		User     string `yaml:"user"`
-		Password string `yaml:"password"`
-	}
-	Cookie struct {
-		Domain     string `yaml:"domain"`
-		SecretKey  string `yaml:"secret_key"`
-		ExpireDays int    `yaml:"expire_days"`
-		HttpOnly   bool   `yaml:"http_only"`
-	}
-	Email struct {
-		SMTPServer string `yaml:"smtp_server"`
-		SMTPUser   string `yaml:"smtp_user"`
-		SMTPPwd    string `yaml:"smtp_pwd"`
-		SMTPPort   int    `yaml:"smtp_port"`
-	}
-	Redis struct {
-		RedisServer string `yaml:"redis_server"`
-		RedisPort   int    `yaml:"redis_port"`
-		RedisPwd    string `yaml:"redis_pwd"`
-	}
-	Upload struct {
-		ImgSavePath string `yaml:"img_save_path"`
-		ImgType     string `yaml:"img_type"`
-		ImgMaxSize  int    `yaml:"img_max_size"`
-	}
-}
-
-type Param struct {
-	Key string `yaml:"key"`
-	Val string `yaml:"val"`
-}
-
-// 定义支持的语言
-type SupportLang struct {
-	Code      string `yaml:"code"`
-	Label     string `yaml:"label"`
-	LocalText string `yaml:"local-text"`
-}
-
-// 配置对象
-var config *Config
-
-// key-value对象
-var params map[string]string
-
-// 时区对象
-var timeZone []string
-
-// 支持语言
-var supportLangs []SupportLang
-
+// 全局配置实例
 var (
-    // 配置文件目录，视图文件目录，静态文件目录
-    configDir string 
-    viewsDir  string 
-    staticDir string
+	globalConfig *Config
+	v            *viper.Viper
+	staticDir    string
 )
 
-// 加载文件
-func LoadConfig() {
-    // 获取当前工作目录,并转换为绝对路径
-    cwd, _ := os.Getwd()
+// InitConfig 初始化配置
+func InitConfig() error {
+	v = viper.New()
 
-	configDir = filepath.Join(cwd, "configs")
-	viewsDir = filepath.Join(cwd, "website/views")
-	staticDir = filepath.Join(cwd, "website/static")
+	// 环境变量支持
+	v.AutomaticEnv()
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	v.SetEnvPrefix("IDIARY")
 
-	// 构建文件路径
-	configPath := filepath.Join(configDir, "config.yaml")
-	paramsPath := filepath.Join(configDir, "params.yaml")
-	timeZonePath := filepath.Join(configDir, "timezone.yaml")
-	supportLangsPath := filepath.Join(configDir, "support_langs.yaml")
-
-	// 读取 config.yaml 文件
-	configBytes, err := os.ReadFile(configPath)
-	if err != nil {
-		panic(err)
+	// 解析JSON格式的环境变量
+	var supportLangs []SupportLang
+	if err := parseJSON(getEnvOrDefault("SUPPORT_LANGS", v.GetString("SUPPORT_LANGS")), &supportLangs); err != nil {
+		return fmt.Errorf("解析SUPPORT_LANGS失败: %w", err)
 	}
 
-	// 读取 timezone.yaml 文件
-	timeZoneBytes, err := os.ReadFile(timeZonePath)
-	if err != nil {
-		panic(err)
+	var timezones []string
+	if err := parseJSON(getEnvOrDefault("TIMEZONES", v.GetString("TIMEZONES")), &timezones); err != nil {
+		return fmt.Errorf("解析TIMEZONES失败: %w", err)
 	}
 
-	// 读取 params.yaml 文件
-	paramsBytes, err := os.ReadFile(paramsPath)
-	if err != nil {
-		panic(err)
+	var params []Param
+	if err := parseJSON(getEnvOrDefault("PARAMS", v.GetString("PARAMS")), &params); err != nil {
+		return fmt.Errorf("解析PARAMS失败: %w", err)
 	}
 
-	// 读取 support_langs.yaml 文件
-	supportLangsBytes, err := os.ReadFile(supportLangsPath)
-	if err != nil {
-		panic(err)
+	// 初始化配置结构体
+	globalConfig = &Config{}
+
+	// 手动设置值
+	globalConfig.Env = getEnvOrDefault("ENV", v.GetString("ENV"))
+	globalConfig.App = AppConfig{
+		GinMode:         getEnvOrDefault("GIN_MODE", v.GetString("GIN_MODE")),
+		Domain:          getEnvOrDefault("DOMAIN", v.GetString("DOMAIN")),
+		Port:            getEnvOrDefault("PORT", v.GetString("PORT")),
+		SummaryMax:      getEnvIntOrDefault("SUMMARY_MAX", v.GetInt("SUMMARY_MAX")),
+		Suffix:          getEnvOrDefault("SUFFIX", v.GetString("SUFFIX")),
+		PageSize:        getEnvIntOrDefault("PAGE_SIZE", v.GetInt("PAGE_SIZE")),
+		MaxDaybookLimit: getEnvIntOrDefault("MAX_DAYBOOK_LIMIT", v.GetInt("MAX_DAYBOOK_LIMIT")),
+		HashSalt:        getEnvOrDefault("HASH_SALT", v.GetString("HASH_SALT")),
+		StaticDir:       getEnvOrDefault("STATIC_DIR", v.GetString("STATIC_DIR")),
+	}
+	globalConfig.Database = DatabaseConfig{
+		Host:     getEnvOrDefault("DB_HOST", v.GetString("DB_HOST")),
+		Port:     getEnvIntOrDefault("DB_PORT", v.GetInt("DB_PORT")),
+		Name:     getEnvOrDefault("DB_NAME", v.GetString("DB_NAME")),
+		User:     getEnvOrDefault("DB_USER", v.GetString("DB_USER")),
+		Password: getEnvOrDefault("DB_PASSWORD", v.GetString("DB_PASSWORD")),
+		Conn:     getEnvOrDefault("DB_CONN", v.GetString("DB_CONN")),
+	}
+	globalConfig.Redis = RedisConfig{
+		Host:     getEnvOrDefault("REDIS_HOST", v.GetString("REDIS_HOST")),
+		Port:     getEnvIntOrDefault("REDIS_PORT", v.GetInt("REDIS_PORT")),
+		Password: getEnvOrDefault("REDIS_PASSWORD", v.GetString("REDIS_PASSWORD")),
+	}
+	globalConfig.Email = EmailConfig{
+		SMTPServer:   getEnvOrDefault("SMTP_SERVER", v.GetString("SMTP_SERVER")),
+		SMTPUser:     getEnvOrDefault("SMTP_USER", v.GetString("SMTP_USER")),
+		SMTPPassword: getEnvOrDefault("SMTP_PASSWORD", v.GetString("SMTP_PASSWORD")),
+		SMTPPort:     getEnvIntOrDefault("SMTP_PORT", v.GetInt("SMTP_PORT")),
+		SMTPFrom:     getEnvOrDefault("SMTP_FROM", v.GetString("SMTP_FROM")),
+		MaxRetries:   getEnvIntOrDefault("EMAIL_MAX_RETRIES", v.GetInt("EMAIL_MAX_RETRIES")),
+		BatchSize:    getEnvIntOrDefault("EMAIL_BATCH_SIZE", v.GetInt("EMAIL_BATCH_SIZE")),
+	}
+	globalConfig.Cookie = CookieConfig{
+		Domain:     getEnvOrDefault("COOKIE_DOMAIN", v.GetString("COOKIE_DOMAIN")),
+		Secret:     getEnvOrDefault("COOKIE_SECRET", v.GetString("COOKIE_SECRET")),
+		ExpireDays: getEnvIntOrDefault("COOKIE_EXPIRE_DAYS", v.GetInt("COOKIE_EXPIRE_DAYS")),
+		HttpOnly:   getEnvBoolOrDefault("COOKIE_HTTP_ONLY", v.GetBool("COOKIE_HTTP_ONLY")),
+	}
+	globalConfig.Upload = UploadConfig{
+		Path:    getEnvOrDefault("UPLOAD_PATH", v.GetString("UPLOAD_PATH")),
+		Types:   getEnvOrDefault("UPLOAD_TYPES", v.GetString("UPLOAD_TYPES")),
+		MaxSize: getEnvIntOrDefault("UPLOAD_MAX_SIZE", v.GetInt("UPLOAD_MAX_SIZE")),
+	}
+	globalConfig.SupportLangs = supportLangs
+	globalConfig.Timezones = timezones
+	globalConfig.Params = params
+	globalConfig.Log = LogConfig{
+		Level:      getEnvOrDefault("LOG_LEVEL", v.GetString("LOG_LEVEL")),
+		Format:     getEnvOrDefault("LOG_FORMAT", v.GetString("LOG_FORMAT")),
+		Path:       getEnvOrDefault("LOG_PATH", v.GetString("LOG_PATH")),
+		Filename:   getEnvOrDefault("LOG_FILENAME", v.GetString("LOG_FILENAME")),
+		MaxSize:    getEnvIntOrDefault("LOG_MAX_SIZE", v.GetInt("LOG_MAX_SIZE")),
+		MaxAge:     getEnvIntOrDefault("LOG_MAX_AGE", v.GetInt("LOG_MAX_AGE")),
+		MaxBackups: getEnvIntOrDefault("LOG_MAX_BACKUPS", v.GetInt("LOG_MAX_BACKUPS")),
+		Compress:   getEnvBoolOrDefault("LOG_COMPRESS", v.GetBool("LOG_COMPRESS")),
+		LocalTime:  getEnvBoolOrDefault("LOG_LOCAL_TIME", v.GetBool("LOG_LOCAL_TIME")),
 	}
 
-	// 加载配置和参数
-	loadConfig(configBytes)
-	loadParams(paramsBytes)
-	loadTimeZone(timeZoneBytes)
-	loadSupportLangs(supportLangsBytes)
+	// 设置 static 目录
+	cwd, _ := os.Getwd()
+	staticDir = filepath.Join(cwd, getEnvOrDefault("STATIC_DIR", v.GetString("STATIC_DIR")))
+
+	// 验证配置
+	if err := globalConfig.ValidateConfig(); err != nil {
+		return fmt.Errorf("配置验证失败: %w", err)
+	}
+
+	return nil
 }
 
-// GetConfig returns actual config
+// 解析JSON字符串
+func parseJSON(jsonStr string, target interface{}) error {
+	if jsonStr == "" {
+		return fmt.Errorf("JSON字符串为空")
+	}
+	return json.Unmarshal([]byte(jsonStr), target)
+}
+
+// GetConfig 获取配置
 func GetConfig() *Config {
-	return config
+	return globalConfig
 }
 
-// 获取key-val参数
+// SetConfig 设置配置（仅用于测试）
+func SetConfig(config *Config) {
+	globalConfig = config
+}
+
+// GetViper 获取viper实例
+func GetViper() *viper.Viper {
+	return v
+}
+
+// GetParams 获取参数配置
 func GetParams() map[string]string {
+	params := make(map[string]string)
+	for _, p := range globalConfig.Params {
+		params[p.Key] = p.Val
+	}
 	return params
 }
 
-// 获取时区
+// GetTimeZone 获取时区配置
 func GetTimeZone() []string {
-	return timeZone
+	return globalConfig.Timezones
 }
 
-// 获取支持的语言
+// GetSupportLangs 获取支持的语言
 func GetSupportLangs() []SupportLang {
-	return supportLangs
+	return globalConfig.SupportLangs
 }
 
-// 获取 views 目录
-func GetViewsPath() string {
-    return viewsDir
-}
-
-// 获取 static 目录
+// GetStaticPath 获取 static 目录
 func GetStaticPath() string {
 	return staticDir
 }
@@ -200,64 +171,51 @@ func UploadsPath() string {
 	return filepath.Join(staticDir, "uploads")
 }
 
-// 读环境变量，如果为空则 panic
-func GetEnv(key string) string {
-    val := os.Getenv(key)
-    if key == "" {
-        panic(key + " environment variable is not set")
-    }
-    return val
+// GetViewsPath 获取views目录路径
+func GetViewsPath() string {
+	cwd, _ := os.Getwd()
+	return filepath.Join(cwd, "website/views")
 }
 
-// #region 配置加载处理
-// 加载key-value格式的参数
-func loadParams(data []byte) {
-	ps := []Param{}
-	err := yaml.Unmarshal(data, &ps)
+// getEnvOrDefault 从环境变量获取字符串值，如果不存在则返回默认值
+func getEnvOrDefault(key string, defaultVal string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		return defaultVal
+	}
+	return val
+}
+
+// getEnvIntOrDefault 从环境变量获取整数值，如果不存在或无法转换则返回默认值
+func getEnvIntOrDefault(key string, defaultVal int) int {
+	valStr := os.Getenv(key)
+	if valStr == "" {
+		return defaultVal
+	}
+
+	val, err := strconv.Atoi(valStr)
 	if err != nil {
-		panic(err)
+		return defaultVal
 	}
-	params = make(map[string]string)
-	for _, val := range ps {
-		params[val.Key] = val.Val
-	}
+
+	return val
 }
 
-// 加载时区 timezone.yaml
-func loadTimeZone(data []byte) {
-	tz := &timeZone
-	err := yaml.Unmarshal(data, tz)
-	if err != nil {
-		panic(err)
+// getEnvBoolOrDefault 从环境变量获取布尔值，如果不存在或无法转换则返回默认值
+func getEnvBoolOrDefault(key string, defaultVal bool) bool {
+	valStr := os.Getenv(key)
+	if valStr == "" {
+		return defaultVal
 	}
-}
 
-// 加载支持的语言 support_langs.yaml
-func loadSupportLangs(data []byte) {
-	supportLangs = make([]SupportLang, 0)
-	err := yaml.Unmarshal(data, &supportLangs)
-	if err != nil {
-		panic(err)
+	// 处理常见的布尔值表示
+	valStr = strings.ToLower(valStr)
+	if valStr == "true" || valStr == "1" || valStr == "yes" || valStr == "y" {
+		return true
 	}
-}
+	if valStr == "false" || valStr == "0" || valStr == "no" || valStr == "n" {
+		return false
+	}
 
-// LoadConfig unmarshals config for current GIN_MODE
-func loadConfig(data []byte) {
-	configs := &ConfigSet{}
-	err := yaml.Unmarshal(data, configs)
-	if err != nil {
-		panic(err)
-	}
-	switch gin.Mode() {
-	case gin.DebugMode:
-		config = &configs.Debug
-	case gin.ReleaseMode:
-		config = &configs.Release
-	case gin.TestMode:
-		config = &configs.Test
-	default:
-		panic(fmt.Sprintf("Unknown gin mode %s", gin.Mode()))
-	}
+	return defaultVal
 }
-
-// #endregion

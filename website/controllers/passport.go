@@ -170,7 +170,7 @@ func HandleLogin(c *gin.Context) {
 		return
 	}
 	//加密cookie
-	cookieUD, _ := pkg.AESEncrypt(string(ud), configs.GetConfig().Cookie.SecretKey)
+	cookieUD, _ := pkg.AESEncrypt(string(ud), configs.GetConfig().Cookie.Secret)
 
 	//写入cookie
 	pkg.WriteCookie(c.Writer, "ud", cookieUD)
@@ -249,7 +249,7 @@ func HandleFindPwd(c *gin.Context) {
 	config := configs.GetConfig()
 	params := configs.GetParams()
 	//激活链接
-	url := fmt.Sprintf("%s/resetpwd?uid=%d&sign=%s", config.Domain, user.UserId, validCode.ValidCode)
+	url := fmt.Sprintf("%s/resetpwd?uid=%d&sign=%s", config.App.Domain, user.UserId, validCode.ValidCode)
 
 	//邮件task对象
 	emailTask := &models.EmailTask{}
@@ -266,7 +266,7 @@ func HandleFindPwd(c *gin.Context) {
 		return
 	}
 	jobQueue.Body = string(jsonBytes) //插入邮件任务json
-	jobQueue.JobType = configs.JOB_TYPE_EMAIL
+	jobQueue.JobType = "email"
 	jobQueue.PlanUTCTime = nowTime.UnixMilli()
 	jobQueue.TryNum = 0
 	jobQueue.Result = 1

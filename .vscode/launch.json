@@ -1,27 +1,29 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Launch go",
-            "type": "go",
-            "request": "launch",
-            "mode": "exec",
-            "program": "${workspaceFolder}/__debug_bin/debug.idiary.site",
-            "cwd": "${workspaceFolder}/",
-            "showLog": true,
-            "preLaunchTask": "build:go",
-            "dlvFlags": ["--log", "--log-output=rpc"]
-        },
-        {
-            "name": "Launch css&jss",
-            "type": "go",
-            "request": "launch",
-            "mode": "exec",
-            "program": "${workspaceFolder}/__debug_bin/debug.idiary.site",
-            "cwd": "${workspaceFolder}/",
-            "showLog": true,
-            "preLaunchTask": "build",
-            "dlvFlags": ["--log", "--log-output=rpc"]
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch go",
+      "type": "go",
+      "request": "launch",
+      "mode": "exec",
+      "program": "${workspaceFolder}/__debug_bin/debug.idiary.site",
+      "cwd": "${workspaceFolder}/",
+      "showLog": true,
+      "preLaunchTask": "build:go",
+      "dlvFlags": ["--log", "--log-output=rpc"],
+      "envFile": "${workspaceFolder}/.env.local"
+    },
+    {
+      "name": "Launch css&jss",
+      "type": "go",
+      "request": "launch",
+      "mode": "exec",
+      "program": "${workspaceFolder}/__debug_bin/debug.idiary.site",
+      "cwd": "${workspaceFolder}/",
+      "showLog": true,
+      "preLaunchTask": "build",
+      "dlvFlags": ["--log", "--log-output=rpc"],
+      "envFile": "${workspaceFolder}/.env.local"
+    }
+  ]
 }

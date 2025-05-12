@@ -1,0 +1,202 @@
+package configs
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/go-playground/validator/v10"
+)
+
+// Config 配置结构体
+type Config struct {
+	Env          string         `json:"env" mapstructure:"ENV" validate:"required,oneof=development production test"`
+	App          AppConfig      `json:"app" validate:"required"`
+	Database     DatabaseConfig `json:"database" validate:"required"`
+	Redis        RedisConfig    `json:"redis" validate:"required"`
+	Email        EmailConfig    `json:"email" validate:"required"`
+	Cookie       CookieConfig   `json:"cookie" validate:"required"`
+	Upload       UploadConfig   `json:"upload" validate:"required"`
+	SupportLangs []SupportLang  `json:"support_langs" validate:"required,dive"`
+	Timezones    []string       `json:"timezones" validate:"required,dive,timezone"`
+	Params       []Param        `json:"params" validate:"required,dive"`
+	Log          LogConfig      `json:"log" validate:"required"`
+}
+
+// AppConfig 应用配置
+type AppConfig struct {
+	GinMode         string `json:"gin_mode" mapstructure:"GIN_MODE" validate:"required,oneof=debug release"`
+	Domain          string `json:"domain" mapstructure:"DOMAIN" validate:"required,url"`
+	Port            string `json:"port" mapstructure:"PORT" validate:"required,numeric"`
+	SummaryMax      int    `json:"summary_max" mapstructure:"SUMMARY_MAX" validate:"required,min=10,max=1000"`
+	Suffix          string `json:"suffix" mapstructure:"SUFFIX" validate:"required"`
+	PageSize        int    `json:"page_size" mapstructure:"PAGE_SIZE" validate:"required,min=1,max=100"`
+	MaxDaybookLimit int    `json:"max_daybook_limit" mapstructure:"MAX_DAYBOOK_LIMIT" validate:"required,min=1,max=1000"`
+	HashSalt        string `json:"hash_salt" mapstructure:"HASH_SALT" validate:"required,min=8"`
+	StaticDir       string `json:"static_dir" mapstructure:"STATIC_DIR" validate:"required,dir"`
+}
+
+// DatabaseConfig 数据库配置
+type DatabaseConfig struct {
+	Host     string `json:"host" mapstructure:"DB_HOST" validate:"required"`
+	Port     int    `json:"port" mapstructure:"DB_PORT" validate:"required,min=1,max=65535"`
+	Name     string `json:"name" mapstructure:"DB_NAME" validate:"required"`
+	User     string `json:"user" mapstructure:"DB_USER" validate:"required"`
+	Password string `json:"password" mapstructure:"DB_PASSWORD"` // 在非生产环境可以为空
+	Conn     string `json:"conn" mapstructure:"DB_CONN" validate:"required"`
+}
+
+// RedisConfig Redis配置
+type RedisConfig struct {
+	Host     string `json:"host" mapstructure:"REDIS_HOST" validate:"required"`
+	Port     int    `json:"port" mapstructure:"REDIS_PORT" validate:"required,min=1,max=65535"`
+	Password string `json:"password" mapstructure:"REDIS_PASSWORD"`
+}
+
+// EmailConfig 邮件配置
+type EmailConfig struct {
+	SMTPServer   string `json:"smtp_server" mapstructure:"SMTP_SERVER" validate:"required"`
+	SMTPUser     string `json:"smtp_user" mapstructure:"SMTP_USER" validate:"required,email"`
+	SMTPPassword string `json:"smtp_password" mapstructure:"SMTP_PASSWORD"` // 在非生产环境可以为空
+	SMTPPort     int    `json:"smtp_port" mapstructure:"SMTP_PORT" validate:"required,min=1,max=65535"`
+	SMTPFrom     string `json:"smtp_from" mapstructure:"SMTP_FROM" validate:"required,email"`
+	MaxRetries   int    `json:"max_retries" mapstructure:"EMAIL_MAX_RETRIES" validate:"required,min=1"`
+	BatchSize    int    `json:"batch_size" mapstructure:"EMAIL_BATCH_SIZE" validate:"required,min=1"`
+}
+
+// CookieConfig Cookie配置
+type CookieConfig struct {
+	Domain     string `json:"domain" mapstructure:"COOKIE_DOMAIN" validate:"required"`
+	Secret     string `json:"secret" mapstructure:"COOKIE_SECRET" validate:"required,min=16"`
+	ExpireDays int    `json:"expire_days" mapstructure:"COOKIE_EXPIRE_DAYS" validate:"required,min=1,max=365"`
+	HttpOnly   bool   `json:"http_only" mapstructure:"COOKIE_HTTP_ONLY" validate:"required"`
+}
+
+// UploadConfig 上传配置
+type UploadConfig struct {
+	Path    string `json:"path" mapstructure:"UPLOAD_PATH" validate:"required"`
+	Types   string `json:"types" mapstructure:"UPLOAD_TYPES" validate:"required"`
+	MaxSize int    `json:"max_size" mapstructure:"UPLOAD_MAX_SIZE" validate:"required,min=1,max=10485760"`
+}
+
+// LogConfig 日志配置
+type LogConfig struct {
+	Level      string `json:"level" mapstructure:"LOG_LEVEL" validate:"required,oneof=debug info warn error"`
+	Format     string `json:"format" mapstructure:"LOG_FORMAT" validate:"required,oneof=text json"`
+	Path       string `json:"path" mapstructure:"LOG_PATH" validate:"required"`
+	Filename   string `json:"filename" mapstructure:"LOG_FILENAME" validate:"required"`
+	MaxSize    int    `json:"max_size" mapstructure:"LOG_MAX_SIZE" validate:"required,min=1,max=500"`
+	MaxAge     int    `json:"max_age" mapstructure:"LOG_MAX_AGE" validate:"required,min=1"`
+	MaxBackups int    `json:"max_backups" mapstructure:"LOG_MAX_BACKUPS" validate:"required,min=1"`
+	Compress   bool   `json:"compress" mapstructure:"LOG_COMPRESS" validate:"required"`
+	LocalTime  bool   `json:"local_time" mapstructure:"LOG_LOCAL_TIME" validate:"required"`
+}
+
+// Param 参数配置
+type Param struct {
+	Key string `json:"key" validate:"required"`
+	Val string `json:"val" validate:"required"`
+}
+
+// SupportLang 支持的语言
+type SupportLang struct {
+	Code      string `json:"code" validate:"required"`
+	Label     string `json:"label" validate:"required"`
+	LocalText string `json:"local-text" validate:"required"`
+}
+
+// 自定义验证器
+var validate *validator.Validate
+
+func init() {
+	validate = validator.New()
+
+	// 注册自定义验证规则
+	_ = validate.RegisterValidation("dir", validateDir)
+	_ = validate.RegisterValidation("timezone", validateTimezone)
+}
+
+// ValidateConfig 验证配置
+func (c *Config) ValidateConfig() error {
+	if err := validate.Struct(c); err != nil {
+		if _, ok := err.(*validator.InvalidValidationError); ok {
+			return err
+		}
+
+		var errMsgs []string
+		for _, err := range err.(validator.ValidationErrors) {
+			errMsgs = append(errMsgs, formatValidationError(err))
+		}
+		return fmt.Errorf("config validation failed: %s", strings.Join(errMsgs, "; "))
+	}
+	return nil
+}
+
+// validateDir 验证目录是否存在或可创建
+func validateDir(fl validator.FieldLevel) bool {
+	dir := fl.Field().String()
+
+	// 获取绝对路径
+	absPath, err := filepath.Abs(dir)
+	if err != nil {
+		return false
+	}
+
+	// 检查目录是否存在
+	info, err := os.Stat(absPath)
+	if err == nil {
+		// 目录存在，检查是否是目录
+		return info.IsDir()
+	}
+
+	// 如果错误不是"不存在"，则返回 false
+	if !os.IsNotExist(err) {
+		return false
+	}
+
+	// 目录不存在，尝试创建
+	err = os.MkdirAll(absPath, 0755)
+	if err != nil { // 创建失败
+		return false
+	}
+
+	// 再次检查目录是否创建成功
+	info, err = os.Stat(absPath)
+	return err == nil && info.IsDir()
+}
+
+// validateTimezone 验证时区数组中的每个时区是否有效
+func validateTimezone(fl validator.FieldLevel) bool {
+	tz := fl.Field().String()
+
+	if tz == "UTC" {
+		return true
+	}
+	if !strings.Contains(tz, "/") && tz != "UTC" {
+		return false
+	}
+
+	// 尝试加载时区
+	_, err := time.LoadLocation(tz)
+	return err == nil
+}
+
+// 格式化验证错误信息
+func formatValidationError(err validator.FieldError) string {
+	switch err.Tag() {
+	case "required":
+		return fmt.Sprintf("%s is required", err.Field())
+	case "min":
+		return fmt.Sprintf("%s must be at least %s", err.Field(), err.Param())
+	case "max":
+		return fmt.Sprintf("%s must be at most %s", err.Field(), err.Param())
+	case "url":
+		return fmt.Sprintf("%s must be a valid URL", err.Field())
+	case "email":
+		return fmt.Sprintf("%s must be a valid email address", err.Field())
+	default:
+		return fmt.Sprintf("%s failed %s validation", err.Field(), err.Tag())
+	}
+}
