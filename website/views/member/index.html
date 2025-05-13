@@ -51,7 +51,7 @@
     </section>
 
     <section>
-        <div class="grid grid-cols-4 gap-8 max-lg:grid-cols-1" id="daybook_list">
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8"  id="daybook_list">
             {{$isOwner := .IsOwner}} {{range .Diaries}}
             <div class="border h-64 text-center dt{{.ThemeID}}">
                 <div class="h-full content-center p-3">
