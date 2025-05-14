@@ -177,66 +177,66 @@ func ActivateUser(uid string, sign string) bool {
 // #region 发送激活邮件任务
 // AddActivateUserEmailTask : 增加发送激活用户邮件任务
 func AddActivateUserEmailTask(user *models.User) error {
-	// 插入激活码
-	validCode, err := insertValidCode(user.UserId)
-	if err != nil {
-		return err
-	}
+    // 插入激活码
+    validCode, err := insertValidCode(user.UserId)
+    if err != nil {
+        return err
+    }
 
-	// 插入发送邮件队列
-	return insertEmailTask(user, validCode)
+    // 插入发送邮件队列
+    return insertEmailTask(user, validCode)
 }
 
 // insertValidCode 插入有效验证码
 func insertValidCode(userID int64) (*models.ValidCode, error) {
-	validCode := &models.ValidCode{
-		ValidCode:     string(pkg.Rand(configs.VALID_CODE_LEN, pkg.RAND_KIND_ALL)),
-		UserId:        userID,
-		ValidTypeId:   configs.VALID_CODE_ACTIVE_USER_EMAIL,
-		CreateUTCTime: pkg.GetNowTime().UnixMilli(),
-		ExpireUTCTime: pkg.GetNowTime().AddDate(0, 0, configs.REG_EMAIL_VAILID_CODE_EXPIRE_DAY).UnixMilli(),
-	}
+    validCode := &models.ValidCode{
+        ValidCode:     string(pkg.Rand(configs.VALID_CODE_LEN, pkg.RAND_KIND_ALL)),
+        UserId:        userID,
+        ValidTypeId:   configs.VALID_CODE_ACTIVE_USER_EMAIL,
+        CreateUTCTime: pkg.GetNowTime().UnixMilli(),
+        ExpireUTCTime: pkg.GetNowTime().AddDate(0, 0, configs.REG_EMAIL_VAILID_CODE_EXPIRE_DAY).UnixMilli(),
+    }
 
-	if _, err := validCode.Insert(); err != nil {
-		return nil, err
-	}
+    if _, err := validCode.Insert(); err != nil {
+        return nil, err
+    }
 
-	return validCode, nil
+    return validCode, nil
 }
 
 // insertEmailTask 插入邮件任务
 func insertEmailTask(user *models.User, validCode *models.ValidCode) error {
-	config := configs.GetConfig()
-	params := configs.GetParams()
-	nowTime := pkg.GetNowTime()
+    config := configs.GetConfig()
+    params := configs.GetParams()
+    nowTime := pkg.GetNowTime()
 
-	// 激活链接
+    // 激活链接
 	url := fmt.Sprintf("%s/activateuser?uid=%d&sign=%s", config.App.Domain, user.UserId, validCode.ValidCode)
 
-	// 邮件task对象
-	emailTask := &models.EmailTask{
-		To:      user.Email,
-		Subject: params["reg_email_subject"],
-		Body:    fmt.Sprintf(params["reg_email_body"], user.UserName, url, url),
-	}
+    // 邮件task对象
+    emailTask := &models.EmailTask{
+        To:      user.Email,
+        Subject: params["reg_email_subject"],
+        Body:    fmt.Sprintf(params["reg_email_body"], user.UserName, url, url),
+    }
 
-	// 插入邮件队列
-	jobQueue := &models.JobQueue{
+    // 插入邮件队列
+    jobQueue := &models.JobQueue{
 		AddUTCTime:  nowTime.UnixMilli(),
 		JobType:     "email",
-		PlanUTCTime: nowTime.UnixMilli(),
+        PlanUTCTime: nowTime.UnixMilli(),
 		TryNum:      0,
 		Result:      1,
-	}
+    }
 
-	jsonBytes, err := json.Marshal(emailTask)
-	if err != nil {
-		return err
-	}
-	jobQueue.Body = string(jsonBytes)
+    jsonBytes, err := json.Marshal(emailTask)
+    if err != nil {
+        return err
+    }
+    jobQueue.Body = string(jsonBytes)
 
-	_, err = jobQueue.Insert()
-	return err
+    _, err = jobQueue.Insert()
+    return err
 }
 
 // #endregion

@@ -41,6 +41,14 @@
       "problemMatcher": ["$go"]
     },
     {
+      "label": "build:css-js",
+      "dependsOn": ["build:css", "build:js"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
       "label": "build",
       "dependsOn": ["build:css", "build:js", "build:go"],
       "group": {

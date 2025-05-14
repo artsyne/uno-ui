@@ -44,6 +44,9 @@
  *    - modal: 是否显示遮罩层
  *    - width: 对话框宽度
  *    - height: 对话框高度
+ *    - responsive: 是否启用响应式设计
+ *    - smBreakpoint: 小屏幕断点宽度，默认640px
+ *    - overlayOpacity: 遮罩层透明度，默认0.5
  *    - position: 位置 ('center', 'top', 'left', 'right', 'bottom' 或数组)
  *    - footerTxt: 底部文本内容
  *    - idPrefix: 自定义ID前缀，默认为'jqbox-'
@@ -75,6 +78,7 @@
   let options = {};
   let idPrefix = 'jqbox-';
   let uniqueId = '';
+  let resizeTimer = null;
 
   // 生成一个随机ID后缀，确保多个实例不会冲突
   const generateUniqueId = function () {
@@ -103,6 +107,9 @@
         width: 400,
         height: 300,
         idPrefix: 'jqbox-',
+        responsive: true,
+        smBreakpoint: 640,
+        overlayOpacity: 0.5,
       },
       opts || {},
     );
@@ -120,27 +127,38 @@
     // 创建对话框DOM（如果不存在）
     if ($(getSelector('container')).length === 0) {
       const boxHtml = `
-        <div id="${getId('container')}" class="hidden fixed z-50 bg-white rounded-lg shadow-lg overflow-hidden">
-          <div id="${getId('header')}" class="flex justify-between items-center p-4 border-b">
-            <div id="${getId('title')}" class="text-lg font-semibold"></div>
-            <button id="${getId('close')}" class="text-gray-500 hover:text-gray-700" title="关闭">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+        <div id="${getId('outer-container')}" class="hidden fixed inset-0 z-50 p-4 flex items-center justify-center">
+          <div id="${getId('container')}" class="bg-white border-8 border-gray-200 shadow-lg overflow-hidden">
+            <div id="${getId('header')}" class="flex justify-between items-center p-4 border-b border-gray-300">
+              <div id="${getId('title')}" class="text-lg font-semibold"></div>
+              <button id="${getId('close')}" class="text-gray-500 hover:text-gray-700 cursor-pointer" title="关闭">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div id="${getId('wrapper')}" class="p-4">
+              <div id="${getId('content')}" class="overflow-auto"></div>
+            </div>
+            <div id="${getId('footer')}" class="p-4 border-t hidden"></div>
           </div>
-          <div id="${getId('wrapper')}" class="p-4">
-            <div id="${getId('content')}" class="overflow-auto"></div>
-          </div>
-          <div id="${getId('footer')}" class="p-4 border-t hidden"></div>
         </div>
-        <div id="${getId('overlay')}" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40"></div>
+        <div id="${getId('overlay')}" class="hidden fixed inset-0 bg-black z-40" style="opacity: ${options.overlayOpacity}"></div>
       `;
       $(boxHtml).appendTo('body');
+
+      // 添加窗口大小变化监听
+      if (options.responsive) {
+        $(window).on('resize', handleWindowResize);
+      }
     }
 
     // 设置事件和内容
-    $(getSelector('close')).off('click').on('click', methods.close);
+    $(getSelector('close'))
+      .off('click')
+      .on('click', function () {
+        methods.close();
+      });
     $(getSelector('title')).text(options.title);
 
     // 设置底部文本
@@ -170,7 +188,7 @@
         url: options.ajaxUrl,
         success: function (data) {
           $(getSelector('content')).html(data);
-          if ($.isFunction(options.ajaxCallback)) {
+          if (typeof options.ajaxCallback === 'function') {
             options.ajaxCallback();
           }
         },
@@ -182,36 +200,68 @@
     }
   };
 
-  // 私有方法：显示对话框
-  const showBox = function () {
+  // 私有方法：更新对话框位置和大小
+  const updateBoxPosition = function () {
     const width = options.width;
     const height = options.height;
-    let positionStyles = {};
+    const windowWidth =
+      window.innerWidth ||
+      document.documentElement.clientWidth ||
+      document.body.clientWidth;
+    const mdBreakpoint = 768; // MD断点
+    const $outerContainer = $(getSelector('outer-container'));
+    const $container = $(getSelector('container'));
+    const $content = $(getSelector('content'));
 
-    // 设置位置
-    if (!$.isArray(options.position)) {
-      positionStyles = getPositionStyles(options.position, width, height);
-    } else {
-      positionStyles = getPositionStyles(
-        options.position[0],
-        width,
-        height,
-        options.position[1],
-      );
+    // 显示容器和遮罩层
+    if (options.modal) {
+      $(getSelector('overlay')).removeClass('hidden');
     }
+    $outerContainer.removeClass('hidden');
 
-    // 应用样式
-    $(getSelector('container'))
-      .css({
+    // 以MD尺寸为界
+    if (windowWidth <= mdBreakpoint) {
+      // 小于等于MD尺寸：采用统一的全屏带边距逻辑
+      $container.css({
+        width: 'calc(100% - 2rem)',
+        height: 'calc(100% - 2rem)',
+        maxWidth: '100%',
+        maxHeight: '100%',
+        margin: '0',
+      });
+
+      // 内容区域占满容器
+      $content.css({
+        height: '100%',
+      });
+    } else {
+      // 大于MD尺寸：恢复初始状态
+      $container.css({
         width: width + 'px',
-        ...positionStyles,
-      })
-      .removeClass('hidden');
+        height: 'auto',
+        maxWidth: '',
+        maxHeight: '',
+        margin: '0',
+      });
 
-    // 设置内容高度
-    $(getSelector('content')).css({
-      height: height + 'px',
-    });
+      // 设置内容区域为用户指定高度
+      $content.css({
+        height: height + 'px',
+      });
+    }
+  };
+
+  // 窗口大小变化处理函数
+  const handleWindowResize = function () {
+    if (resizeTimer) {
+      clearTimeout(resizeTimer);
+    }
+    resizeTimer = setTimeout(function () {
+      // 只有当容器可见时才更新位置
+      if (!$(getSelector('outer-container')).hasClass('hidden')) {
+        updateBoxPosition();
+      }
+    }, 200);
   };
 
   // 私有方法：获取位置样式
@@ -231,22 +281,42 @@
       document.documentElement.clientHeight ||
       document.body.clientHeight;
 
+    // 边距设置，确保在中等屏幕及以上有足够边距
+    const margin = 16; // 1rem = 16px
+
+    // 计算可用空间，考虑边距
+    const availableWidth = windowWidth - margin * 2;
+    const availableHeight = windowHeight - margin * 2;
+
+    // 调整宽高，确保不超出可用空间
+    const adjustedWidth = Math.min(width, availableWidth);
+    const adjustedHeight = Math.min(height, availableHeight);
+
     // 水平位置
     switch (horizontalPos) {
       case 'center':
-        styles.left = Math.floor((windowWidth - width) / 2) + 'px';
+        styles.left =
+          Math.max(margin, Math.floor((windowWidth - adjustedWidth) / 2)) +
+          'px';
+        styles.right = 'auto';
         break;
       case 'left':
-        styles.left = '0px';
+        styles.left = margin + 'px';
+        styles.right = 'auto';
         break;
       case 'right':
-        styles.right = '0px';
+        styles.right = margin + 'px';
+        styles.left = 'auto';
         break;
       default:
         if (typeof horizontalPos === 'number') {
-          styles.left = horizontalPos + 'px';
+          styles.left = Math.max(margin, horizontalPos) + 'px';
+          styles.right = 'auto';
         } else {
-          styles.left = Math.floor((windowWidth - width) / 2) + 'px';
+          styles.left =
+            Math.max(margin, Math.floor((windowWidth - adjustedWidth) / 2)) +
+            'px';
+          styles.right = 'auto';
         }
         break;
     }
@@ -254,19 +324,28 @@
     // 垂直位置
     switch (verticalPos) {
       case 'center':
-        styles.top = Math.floor((windowHeight - height) / 2) + 'px';
+        styles.top =
+          Math.max(margin, Math.floor((windowHeight - adjustedHeight) / 2)) +
+          'px';
+        styles.bottom = 'auto';
         break;
       case 'top':
-        styles.top = '0px';
+        styles.top = margin + 'px';
+        styles.bottom = 'auto';
         break;
       case 'bottom':
-        styles.bottom = '0px';
+        styles.bottom = margin + 'px';
+        styles.top = 'auto';
         break;
       default:
         if (typeof verticalPos === 'number') {
-          styles.top = verticalPos + 'px';
+          styles.top = Math.max(margin, verticalPos) + 'px';
+          styles.bottom = 'auto';
         } else {
-          styles.top = Math.floor((windowHeight - height) / 2) + 'px';
+          styles.top =
+            Math.max(margin, Math.floor((windowHeight - adjustedHeight) / 2)) +
+            'px';
+          styles.bottom = 'auto';
         }
         break;
     }
@@ -284,14 +363,14 @@
       // 重置唯一ID用于新的对话框实例
       uniqueId = generateUniqueId();
 
-      if ($.isFunction(opts.onBeforeOpen)) {
+      if (typeof opts.onBeforeOpen === 'function') {
         opts.onBeforeOpen();
       }
 
       initBox(opts);
-      showBox();
+      updateBoxPosition();
 
-      if ($.isFunction(options.onOpen)) {
+      if (typeof options.onOpen === 'function') {
         options.onOpen();
       }
 
@@ -307,7 +386,7 @@
       // 重置唯一ID用于新的对话框实例
       uniqueId = generateUniqueId();
 
-      if ($.isFunction(opts.onBeforeOpen)) {
+      if (typeof opts.onBeforeOpen === 'function') {
         opts.onBeforeOpen();
       }
 
@@ -317,8 +396,8 @@
       if ($(getSelector('buttons')).length === 0) {
         $(getSelector('wrapper')).after(`
           <div id="${getId('buttons')}" class="flex justify-center space-x-4 p-4 border-t">
-            <button id="${getId('ok')}" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">确定</button>
-            <button id="${getId('cancel')}" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">取消</button>
+            <button id="${getId('ok')}" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200">确定</button>
+            <button id="${getId('cancel')}" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors duration-200">取消</button>
           </div>
         `);
 
@@ -326,7 +405,7 @@
           .off('click')
           .on('click', function () {
             methods.close();
-            if ($.isFunction(opts.onOk)) {
+            if (typeof opts.onOk === 'function') {
               opts.onOk();
             }
           });
@@ -335,15 +414,15 @@
           .off('click')
           .on('click', function () {
             methods.close();
-            if ($.isFunction(opts.onCancel)) {
+            if (typeof opts.onCancel === 'function') {
               opts.onCancel();
             }
           });
       }
 
-      showBox();
+      updateBoxPosition();
 
-      if ($.isFunction(options.onOpen)) {
+      if (typeof options.onOpen === 'function') {
         options.onOpen();
       }
 
@@ -359,7 +438,7 @@
       // 重置唯一ID用于新的对话框实例
       uniqueId = generateUniqueId();
 
-      if ($.isFunction(opts.onBeforeOpen)) {
+      if (typeof opts.onBeforeOpen === 'function') {
         opts.onBeforeOpen();
       }
 
@@ -369,7 +448,7 @@
       if ($(getSelector('buttons')).length === 0) {
         $(getSelector('wrapper')).after(`
           <div id="${getId('buttons')}" class="flex justify-center p-4 border-t">
-            <button id="${getId('ok')}" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">确定</button>
+            <button id="${getId('ok')}" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200">确定</button>
           </div>
         `);
 
@@ -377,15 +456,15 @@
           .off('click')
           .on('click', function () {
             methods.close();
-            if ($.isFunction(opts.onOk)) {
+            if (typeof opts.onOk === 'function') {
               opts.onOk();
             }
           });
       }
 
-      showBox();
+      updateBoxPosition();
 
-      if ($.isFunction(options.onOpen)) {
+      if (typeof options.onOpen === 'function') {
         options.onOpen();
       }
 
@@ -403,16 +482,17 @@
         uniqueId = id;
       }
 
-      if ($.isFunction(options.onBeforeClose)) {
+      if (typeof options.onBeforeClose === 'function') {
         options.onBeforeClose();
       }
 
-      $(getSelector('container')).addClass('hidden');
+      // 同时隐藏容器和遮罩层
+      $(getSelector('outer-container')).addClass('hidden');
       $(getSelector('overlay')).addClass('hidden');
       $(getSelector('content')).empty();
       $(getSelector('buttons')).remove();
 
-      if ($.isFunction(options.onClose)) {
+      if (typeof options.onClose === 'function') {
         options.onClose();
       }
     },

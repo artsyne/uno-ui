@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "scripts": {
     "build:css": "node scripts/build/build-css.js",
-    "build:js": "node scripts/build/build-js.js",
+    "build:js": "node scripts/build/build-js.js --dev",
     "build": "npm run build:css && npm run build:js",
     "create:dirs": "node scripts/build/create-dirs.js"
   },

@@ -7,13 +7,21 @@
  * 3. 使用terser压缩并混淆
  *
  * 兼容Mac和Windows系统
+ *
+ * 使用方法：
+ * - 标准构建（压缩并移除调试语句）: node scripts/build/build-js.js
+ * - 开发模式构建（保留console.log）: node scripts/build/build-js.js --dev
  */
 
 const { execSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 
-console.log('Starting JS build process...');
+// 检查是否为开发模式
+const isDevMode = process.argv.includes('--dev');
+console.log(isDevMode ? 
+  'Starting JS build process in DEVELOPMENT mode (debug info will be preserved)...':
+  'Starting JS build process in PRODUCTION mode (debug info will be removed)...');
 
 // 创建输出目录（如果不存在）
 console.log('Ensuring output directory exists...');
@@ -48,12 +56,17 @@ try {
   // 为所有目录中的文件创建Glob模式列表
   const globPatterns = [vendorFiles, toolFiles, appFiles];
 
+  // 设置压缩选项，根据模式决定是否保留console和debugger
+const compressOptions = isDevMode
+    ? 'drop_console=false,drop_debugger=false'
+    : 'drop_console=true,drop_debugger=true';
+
   // 构建terser命令
   const terserCommand = `npx terser ${globPatterns.join(' ')} -o ${
     isWindows
       ? '.\\website\\static\\dist\\js\\idiary.min.js'
       : './website/static/dist/js/idiary.min.js'
-  } --compress drop_console=true,drop_debugger=true --mangle --comments false`;
+  } --compress ${compressOptions} --mangle --comments false`;
 
   // 执行命令
   execSync(terserCommand, { stdio: 'inherit', shell: true });

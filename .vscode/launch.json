@@ -21,9 +21,25 @@
       "program": "${workspaceFolder}/__debug_bin/debug.idiary.site",
       "cwd": "${workspaceFolder}/",
       "showLog": true,
-      "preLaunchTask": "build",
+      "preLaunchTask": "build:css-js",
       "dlvFlags": ["--log", "--log-output=rpc"],
       "envFile": "${workspaceFolder}/.env.local"
+    },
+    {
+      "name": "Launch All",
+      "type": "go",
+      "request": "launch",
+      "mode": "exec",
+      "program": "${workspaceFolder}/__debug_bin/debug.idiary.site",
+      "cwd": "${workspaceFolder}/",
+      "showLog": true,
+      "preLaunchTask": "build",
+      "dlvFlags": ["--log", "--log-output=rpc"],
+      "envFile": "${workspaceFolder}/.env.local",
+      "presentation": {
+        "group": "launch",
+        "order": 1
+      }
     }
   ]
 }

@@ -26,7 +26,7 @@
     const settings = $.extend(
       {
         ajaxUrl: '', // AJAX请求的基础URL
-        debug: false, // 新增的debug选项，默认为false
+        debug: true, // 新增的debug选项，默认为false
         eventBindings: [
           // 默认的事件绑定配置
           {

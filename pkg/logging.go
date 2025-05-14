@@ -27,7 +27,7 @@ func SetLogger(config *configs.LogConfig) error {
 	logPath := filepath.Join(config.Path)
 	if err := os.MkdirAll(logPath, 0755); err != nil {
 		return fmt.Errorf("failed to create log directory: %w", err)
-	}
+    }
 
 	// 配置日志轮转
 	logFile := &lumberjack.Logger{
