@@ -10,31 +10,33 @@
 	<link rel="icon" href="/public/favicon.ico?v=7">
 	<title>{{.Title}} - iDiary</title>
 	<script src="https://code.jquery.com/jquery-4.0.0-beta.min.js"></script>
-	<!--
-	<script src="/public/dist/js/idiary.min.js?v=0.28"></script>
-	<link href="/public/dist/css/idiary.min.css?v=1.14" rel="stylesheet">
-	-->
 	<script>
-		//发布时去掉
-		// 动态生成时间戳
-		var timestamp = new Date().getTime();
+		// 动态加载JavaScript文件
+		(function () {
+			var version = new Date().getTime();
 
-		// 动态加载 JavaScript 文件
-		var script = document.createElement('script');
-		script.src = '/public/dist/js/idiary.min.js?v=' + timestamp;
-		document.head.appendChild(script);
+			// 加载 kiko ui 框架
+			var script = document.createElement('script');
+			script.src = '/public/dist/js/kiko.min.js?v=' + version;
+			script.async = false; // 确保脚本按顺序加载
+			document.head.appendChild(script);
 
-		// 动态加载 CSS 文件
-		var link = document.createElement('link');
-		link.rel = 'stylesheet';
-		link.href = '/public/dist/css/idiary.min.css?v=' + timestamp;
-		document.head.appendChild(link);
+			// 动态创建并添加脚本标签
+			var script = document.createElement('script');
+			script.src = '/public/dist/js/idiary.min.js?v=' + version;
+			script.async = false; // 确保脚本按顺序加载
+			document.head.appendChild(script);
+
+			// 记录加载信息
+			console.log('[iDiary] 加载脚本: ' + script.src);
+		})();
 	</script>
-
+	<link href="/public/dist/css/idiary.min.css?v=1.14" rel="stylesheet">
 	<link href="/public/dist/css/materialdesignicons.min.css?v=6.5.95" rel="stylesheet">
 	{{if .IsLogin }}
 	<script>
-		var login_user_name = '{{.UserData.UserName}}'; var login_user_id = {{.UserData.UserId }};
+		var login_user_name = '{{.UserData.UserName}}';
+		var login_user_id = {{.UserData.UserId }};
 	</script>
 	{{end}}
 </head>

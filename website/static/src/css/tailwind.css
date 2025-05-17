@@ -38,6 +38,24 @@
   @apply text-sm p-2;
 }
 
+/**
+ * 表单处理中状态样式
+ * 用于防止用户在表单提交过程中进行额外操作
+ */
+.form-processing {
+  @apply relative opacity-70 pointer-events-none transition-opacity duration-200;
+}
+
+.form-processing::after {
+  @apply content-[''] absolute inset-0 bg-white/50 flex items-center justify-center;
+  content: '';
+}
+
+.form-processing::before {
+  @apply content-[''] absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-10 h-10 border-4 border-t-blue-500 border-b-blue-500 border-l-transparent border-r-transparent rounded-full animate-spin;
+  content: '';
+}
+
 /*表单校验*/
 .invalid-feedback {
   @apply text-red-500 text-sm;

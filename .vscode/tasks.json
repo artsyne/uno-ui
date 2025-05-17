@@ -17,7 +17,7 @@
     {
       "label": "build:js",
       "type": "shell",
-      "command": "npm run build:js",
+      "command": "npm run build:js --dev",
       "options": {
         "cwd": "${workspaceFolder}/"
       },

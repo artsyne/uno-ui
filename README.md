@@ -1,20 +1,24 @@
 ## 域名
+
 iDiary.AI
 
 ## 日记网功能相关
+
 ### slogan
-英文：“Record Life, Accompany You Forward”
-德文：“Das Leben aufzeichnen, Dich begleiten”
-西班牙文：“Registrar la vida, Acompañarte en el camino”
-法文：“Enregistrer la vie, Vous accompagner dans votre parcours”
-日文：“人生を記録し、あなたと共に前進する”
-韩文：“인생 기록, 함께 나아가다”
-俄文：“Записывайте жизнь, Сопровождайте вас вперед”
-中文（简体）：“记录人生，伴你前行”
-中文（繁体）：“記錄人生，伴你前行”
-阿拉伯文：“تسجيل الحياة، رفقتك في المضي قدمًا”
+
+英文："Record Life, Accompany You Forward"
+德文："Das Leben aufzeichnen, Dich begleiten"
+西班牙文："Registrar la vida, Acompañarte en el camino"
+法文："Enregistrer la vie, Vous accompagner dans votre parcours"
+日文："人生を記録し、あなたと共に前進する"
+韩文："인생 기록, 함께 나아가다"
+俄文："Записывайте жизнь, Сопровождайте вас вперед"
+中文（简体）："记录人生，伴你前行"
+中文（繁体）："記錄人生，伴你前行"
+阿拉伯文："تسجيل الحياة، رفقتك في المضي قدمًا"
 
 ### chatgpt4推荐的功能
+
 以下是20个AI相关的功能建议，可以提升日记网的竞争力，并更好地体现 slogan "记录人生，伴你前行" 的精髓：
 
 1. 情感分析：通过AI技术分析用户日记中的情感，并提供情绪指数和情感趋势分析，帮助用户更好地了解自己的情绪变化。
@@ -56,6 +60,39 @@ iDiary.AI
 19. 智能情感日记：AI可以根据用户的情感状态和需求，提供个性化的情感日记模板和写作指导，帮助用户表达情感和记录心情。
 
 20. 智能社交互动：AI可以提供用户之间的社交互动平台，让用户能够分享和交流日记内容，获得更多的反馈和支持。
+
+## Kiko UI框架优化
+
+Kiko UI是一个轻量级的UI框架，为iDiary提供界面交互功能。最近的优化包括：
+
+### 1. 框架结构优化
+
+- 移除了auth.js和app.js中的向后兼容代码
+- 创建了00-kiko-init.js统一管理框架初始化
+- 简化了pager.js实现，支持无target参数的API请求
+- 重写了AJAX请求处理，直接使用jQuery 4.0原生方法
+- 增强了错误日志记录和调试功能
+
+### 2. 表单提交修复
+
+- 修复了"Cannot read properties of undefined (reading 'id')"错误
+- 优化了getDataFromSource实现，确保表单数据正确序列化
+- 解决了POST请求表单数据未传递的问题（content-length: 0）
+- 简化了表单处理逻辑，删除冗余代码
+
+### 3. 脚本加载与缓存优化
+
+- 修改构建脚本，合并kiko.min.js和idiary.min.js为idiary.bundle.js
+- 实现开发模式使用时间戳，生产模式使用版本号的缓存控制
+- 优化脚本加载顺序，确保jQuery在其他脚本之前加载
+- 从package.json读取版本号，统一版本管理
+
+### 4. 页面交互优化
+
+- 将滚动监听功能移至初始化文件
+- 支持登录后重定向和表单禁用/启用
+- 统一错误处理机制
+- 简化组件初始化流程
 
 # 项目结构
 
@@ -101,12 +138,15 @@ iDiary.AI
 ```
 
 # 构建
-## 构建脚本
-* 编译 css 文件
-npm run build:css
 
-* 编译 js 文件
-npm run build:js
+## 构建脚本
+
+- 编译 css 文件
+  npm run build:css
+
+- 编译 js 文件
+  npm run build:js
 
 ## icon copyright
-<a target="_blank" href="https://icons8.com/icon/jmkHXlIGZKw5/diary">Diary</a> icon by <a target="_blank" href="https://pictogrammers.github.io/@mdi/font/6.5.95/">Material Design Icons</a> 
+
+<a target="_blank" href="https://icons8.com/icon/jmkHXlIGZKw5/diary">Diary</a> icon by <a target="_blank" href="https://pictogrammers.github.io/@mdi/font/6.5.95/">Material Design Icons</a>
