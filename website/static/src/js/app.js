@@ -7,18 +7,18 @@
  * @license MIT
  */
 
+/**
+ * 全局日志函数
+ *
+ * @param {string} message - 日志消息
+ * @param {...any} data - 可选的额外数据
+ */
+window.log = function (message, ...data) {
+  kiko.core.log(`[App] ${message}`, ...data);
+};
+
 $(() => {
   const AJAX_URL = '';
-
-  /**
-   * 日志函数
-   *
-   * @param {string} message - 日志消息
-   * @param {...any} data - 可选的额外数据
-   */
-  const log = (message, ...data) => {
-    console.log(`[App] ${message}`, ...data);
-  };
 
   /**
    * 统一的错误处理函数

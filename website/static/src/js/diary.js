@@ -19,7 +19,7 @@ const Diary = {
    * @returns {Array} 日记本行为配置数组
    */
   init: function (baseUrl = '') {
-    console.log('[Diary] 初始化日记本模块');
+    log('日记本模块初始化');
     this.baseUrl = baseUrl;
     return this.getActions();
   },
@@ -42,51 +42,61 @@ const Diary = {
    * @type {Object}
    */
   showDiaryBoxAction: {
-    id: 'show-diary-box',
+    id: 'showDiaryBox',
     type: 'function',
-    selector: '[jq-bind-click="addDaybook"]',
     /**
      * 处理显示日记本对话框请求
      */
-    handler: function () {
-      console.log('[Diary] 显示新增日记本对话框');
+    handler: function (id, target, eventData, data) {
+      log('显示新增日记本对话框', id, target, eventData);
+
+      //todo：data 中data-form的值，后面会判断是增加还是编辑逻辑
+      log(data);
 
       // 显示对话框
       kiko.ui.box.dialog({
-        title: appI18n.getMessage('operation.success'), // 可根据需要自定义key
+        title: appI18n.getMessage('diary.create.title') || '新建日记本',
         content:
           '<div class="modal-body" id="add-diary-form-container">' +
           appI18n.getMessage('loading') +
           '</div>',
-        width: 700,
+        width: 680,
         height: 400,
         cache: true,
         boxId: 'addDaybook',
       });
 
-      // 加载表单内容
-      $.get(`${Diary.baseUrl}/form/daybook`, function (response) {
-        $('#add-diary-form-container').html(response);
+      // 使用Promise加载表单内容
+      $.get(`${Diary.baseUrl}/form/daybook`)
+        .then(function (response) {
+          // 将响应插入容器
+          $('#add-diary-form-container').html(response);
 
-        // 初始化表单验证
-        if ($.fn.valid) {
-          $('#daybook_editor_form').valid();
-        }
+          // 直接使用上下文选择器，确保选择的是新添加的元素
+          const $form = $('#add-diary-form-container form#daybook_editor_form');
 
-        // 绑定主题选择事件
-        $('.d-theme>div')
-          .mouseover(function () {
-            $(this).addClass('dtfhover');
-          })
-          .mouseout(function () {
-            $(this).removeClass('dtfhover');
-          })
-          .click(function () {
-            $('.d-theme>div').removeClass('dtfselected');
-            $(this).addClass('dtfselected');
-            $('#theme_id').val($(this).attr('theme'));
+          // 绑定主题选择事件
+          $form.find('.d-theme div').on('click', function () {
+            $form
+              .find('.d-theme div')
+              .removeClass('ring-2 ring-black')
+              .addClass('hover:ring-2 hover:ring-gray-400');
+
+            $(this)
+              .removeClass('hover:ring-2 hover:ring-gray-400')
+              .addClass('ring-2 ring-black');
+
+            $form.find('#theme_id').val($(this).attr('theme'));
           });
-      });
+
+          // 初始化验证
+          $form.valid();
+          log('表单验证初始化完成');
+        })
+        .catch(function (error) {
+          log('加载表单失败:', error, 'error');
+          $('#add-diary-form-container').html('加载表单失败，请重试');
+        });
     },
   },
 
@@ -95,9 +105,8 @@ const Diary = {
    * @type {Object}
    */
   createDiaryAction: {
-    id: 'create-diary',
+    id: 'createDiary',
     type: 'function',
-    selector: '#diary_submit_btn',
     /**
      * 处理创建日记本请求
      *
@@ -106,10 +115,14 @@ const Diary = {
      * @param {Object} eventData - 事件数据
      */
     handler: function (id, target, eventData) {
-      const form = $('#daybook_editor_form');
+      log('提交日记本表单');
 
-      // 验证表单，如果有错误则停止提交
-      if (form.valid && form.valid('checkError')) {
+      // 获取表单 - 确保我们获取到对话框中的表单元素
+      const $form = $('#add-diary-form-container form#daybook_editor_form');
+
+      // 验证表单 - valid('checkError')返回true表示表单有错误
+      if ($form.valid('checkError')) {
+        log('表单验证失败');
         return;
       }
 
@@ -117,21 +130,19 @@ const Diary = {
       $.ajax({
         url: `${Diary.baseUrl}/daybook`,
         type: 'POST',
-        data: form.serialize(),
+        data: $form.serialize(),
         dataType: 'json',
         success: function (response) {
           if (response.Status === 0) {
             // 创建成功，添加到列表
             const html = `
-              <div class="col-sm-6 col-md-4 col-lg-3">
-                <div class="card card-diary-theme dt${response.Data.theme_id}">
-                  <div class="card-body">
-                    <h5>
-                      ${response.Data.view_setting === 2 ? "<i class='mdi mdi-lock-outline'></i>" : ''}
-                      <a href='/d/${response.Data.diary_id}'>${response.Data.title}</a>
-                    </h5>
-                    <p>0篇</p>
-                  </div>
+              <div class="border h-64 text-center dt${response.Data.theme_id}">
+                <div class="h-full content-center p-3">
+                  <h1 class="text-xl mb-2 break-words">
+                    <a href="/d/${response.Data.diary_id}">${response.Data.title}</a>
+                    ${response.Data.view_setting === 2 ? "<i class='mdi mdi-lock-outline'></i>" : ''}
+                  </h1>
+                  <p>0篇</p>
                 </div>
               </div>`;
 

@@ -21,6 +21,7 @@ window.kikoI18nMessages['zh-tw'] = {
   'confirm.cancel': '確定要取消嗎？',
   'confirm.save': '確定要保存嗎？',
   'diary.create.success': '日記本創建成功',
+  'diary.create.title': '新增日記本',
   'login.success': '登錄成功',
   'register.success': '註冊成功',
   'password.reset.success': '密碼重置郵件已發送',

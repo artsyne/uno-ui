@@ -15,20 +15,6 @@
         "server": "localhost",
         "port": 3306,
         "driver": "MySQL",
-        "name": "127.0.0.1",
-        "database": "cd",
-        "username": "root",
-        "password": "iloveyou"
-      },
-      {
-        "mysqlOptions": {
-          "authProtocol": "default",
-          "enableSsl": "Disabled"
-        },
-        "previewLimit": 50,
-        "server": "localhost",
-        "port": 3306,
-        "driver": "MySQL",
         "name": "cd",
         "database": "cd",
         "username": "root",

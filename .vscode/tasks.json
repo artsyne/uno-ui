@@ -8,10 +8,7 @@
       "options": {
         "cwd": "${workspaceFolder}/"
       },
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
+      "group": "build",
       "problemMatcher": []
     },
     {
@@ -21,10 +18,7 @@
       "options": {
         "cwd": "${workspaceFolder}/"
       },
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
+      "group": "build",
       "problemMatcher": []
     },
     {
@@ -34,23 +28,18 @@
       "options": {
         "cwd": "${workspaceFolder}/"
       },
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
+      "group": "build",
       "problemMatcher": ["$go"]
     },
     {
-      "label": "build:css-js",
+      "label": "build:frontend",
       "dependsOn": ["build:css", "build:js"],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      }
+      "group": "build"
     },
     {
       "label": "build",
-      "dependsOn": ["build:css", "build:js", "build:go"],
+      "dependsOn": ["build:frontend", "build:go"],
+      "dependsOrder": "sequence",
       "group": {
         "kind": "build",
         "isDefault": true

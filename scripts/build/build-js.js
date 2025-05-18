@@ -142,7 +142,7 @@ try {
     '..',
     'kiko',
     'dist',
-    'kiko.min.js',
+    'kiko.js', // 使用未压缩的版本
   );
 
   // 拷贝Kiko UI文件（不再合并）

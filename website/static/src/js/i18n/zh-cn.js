@@ -20,6 +20,7 @@ window.kikoI18nMessages['zh-cn'] = {
   'confirm.delete': '确定要删除吗？',
   'confirm.cancel': '确定要取消吗？',
   'confirm.save': '确定要保存吗？',
+  'diary.create.title': '创建日记本',
   'diary.create.success': '日记本创建成功',
   'login.success': '登录成功',
   'register.success': '注册成功',

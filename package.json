@@ -4,26 +4,27 @@
   "scripts": {
     "build:css": "node scripts/build/build-css.js",
     "build:js": "node scripts/build/build-js.js --dev",
-    "build": "npm run build:css && npm run build:js",
+    "build": "npm run build:css && npm run build:js --dev",
     "create:dirs": "node scripts/build/create-dirs.js"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.20",
+    "@tailwindcss/cli": "^4.1.7",
+    "autoprefixer": "^10.4.21",
     "css-loader": "^7.1.2",
     "cssnano": "^6.0.5",
     "eslint": "^9.9.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "mini-css-extract-plugin": "^2.9.1",
-    "postcss": "^8.4.38",
+    "postcss": "^8.5.3",
     "postcss-cli": "^11.0.0",
     "postcss-loader": "^8.1.1",
     "prettier": "^3.3.3",
-    "tailwindcss": "4.1.5",
+    "tailwindcss": "^4.1.5",
     "terser": "^5.39.1"
   },
   "dependencies": {
-    "@tailwindcss/cli": "^4.1.5",
-    "@tailwindcss/postcss": "^4.1.5"
+    "@tailwindcss/postcss": "^4.1.5",
+    "mysql2": "^3.14.1"
   }
 }

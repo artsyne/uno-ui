@@ -18,9 +18,9 @@ $(function () {
       duration: 300,
     },
     errorHandler: function (type, error, data) {
-      console.error('[Kiko Error]', type, error);
+      log('Kiko错误', type, error, 'error');
     },
   });
 
-  console.log('[iDiary] Kiko UI框架初始化完成');
+  log('Kiko UI框架初始化完成');
 });

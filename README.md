@@ -150,3 +150,50 @@ Kiko UI是一个轻量级的UI框架，为iDiary提供界面交互功能。最�
 ## icon copyright
 
 <a target="_blank" href="https://icons8.com/icon/jmkHXlIGZKw5/diary">Diary</a> icon by <a target="_blank" href="https://pictogrammers.github.io/@mdi/font/6.5.95/">Material Design Icons</a>
+
+# 数据库结构更新总结
+
+## 更新概述
+
+本次更新使用Node.js脚本成功将cd数据库的表结构更新为最新的schema。
+
+## 更新过程
+
+1. 创建了包含最新schema的SQL文件 `update_schema.sql`
+2. 开发了Node.js脚本 `update_db.js` 执行SQL文件
+3. 创建了验证脚本 `verify_db_tables.js` 和 `db_update_summary.js` 检查数据库结构
+
+## 更新结果
+
+- 所有预期的12个表都已成功创建：
+
+  - br_comment
+  - br_diary
+  - br_feed
+  - br_follow
+  - br_job_history
+  - br_job_queue
+  - br_like
+  - br_post
+  - br_diary_member
+  - br_user
+  - br_user_stat
+  - br_valid_code
+
+- 同时保留了一些数据库中已有的表（未在schema中定义）：
+  - br_inbox_detail
+  - br_inbox_header
+  - br_inbox_stat
+  - br_like_history
+  - br_my_follow
+  - br_online
+  - br_space_member
+  - br_sys_param
+
+## 数据库连接信息
+
+- 主机: 127.0.0.1
+- 端口: 3306
+- 用户名: root
+- 密码: 123123
+- 数据库名: cd

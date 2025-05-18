@@ -19,7 +19,7 @@ const Auth = {
    * @returns {Array} 认证行为配置数组
    */
   init: function (baseUrl = '') {
-    console.log('[Auth] 初始化认证模块');
+    log('认证模块初始化');
     this.baseUrl = baseUrl;
     return this.getActions();
   },

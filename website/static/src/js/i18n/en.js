@@ -21,6 +21,7 @@ window.kikoI18nMessages['en'] = {
   'confirm.cancel': 'Are you sure you want to cancel?',
   'confirm.save': 'Are you sure you want to save?',
   'diary.create.success': 'Diary created successfully',
+  'diary.create.title': 'Create Diary',
   'login.success': 'Login successful',
   'register.success': 'Registration successful',
   'password.reset.success': 'Password reset email has been sent',
