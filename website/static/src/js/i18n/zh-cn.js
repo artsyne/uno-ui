@@ -25,4 +25,5 @@ window.kikoI18nMessages['zh-cn'] = {
   'login.success': '登录成功',
   'register.success': '注册成功',
   'password.reset.success': '密码重置邮件已发送',
+  'diary.save': '保存',
 };

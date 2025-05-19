@@ -25,4 +25,5 @@ window.kikoI18nMessages['en'] = {
   'login.success': 'Login successful',
   'register.success': 'Registration successful',
   'password.reset.success': 'Password reset email has been sent',
+  'diary.save': 'Save',
 };
