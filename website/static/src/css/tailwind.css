@@ -8,6 +8,11 @@
   @apply flex-1 container px-3 pt-10 mx-auto;
 }
 
+.btn-ok-box {
+  @apply px-4 py-2 bg-red-500 text-white hover:bg-red-600 transition-colors duration-200;
+  
+}
+
 /*button 样式*/
 .btn {
   @apply border border-gray-300 px-4 py-2 text-sm tracking-widest text-black transition hover:bg-gray-200;

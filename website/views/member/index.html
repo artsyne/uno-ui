@@ -46,7 +46,7 @@
     <section class="flex justify-between mb-10">
         <div class="text-lg">日记本</div>
         <div>
-            <a href="#" class="btn" data-action="showDiaryBox" data-form="diary.add"><i class="mdi mdi-plus"></i> 新增日记本</a>
+            <a href="#" class="btn" data-action="showDiaryBox" data-form-action="diary.add"><i class="mdi mdi-plus"></i> 新增日记本</a>
         </div>
     </section>
 
@@ -76,30 +76,4 @@
         {{end}}
     </section>
 </main>
-
-<!--增加日记本modal-->
-<div class="modal fade hidden" id="daybook_add_modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <form id="daybook_editor_form">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">增加日记本</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="form_html">
-                    <div class="modal-body">正在加载中......</div>
-                </div>
-                <div class="d-theme"></div>
-            </div>
-        </div>
-    </form>
-</div>
-<script>
-    $(function () {
-        $('.daybook-block').on('mouseenter mouseleave', function () {
-            $(this).find('.daybook-edit-btn').toggle();
-        });
-    });
-</script>
-
 {{template "footer" .}} {{end}}

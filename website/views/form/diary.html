@@ -1,4 +1,4 @@
-{{define "form/daybook"}}
+{{define "form/diary"}}
 
 <div class="px-4">
     <form id="daybook_editor_form">
@@ -65,7 +65,8 @@
                 <div class="dtf1 h-8 w-8 rounded cursor-pointer hover:ring-2 hover:ring-gray-400" theme="1"></div>
             </div>
         </div>
-        <input type="hidden" name="action" id="action" value="My.insertDaybook" />
+        <input type="hidden" name="action" id="action" />
+        <input type="hidden" name="diary_id" id="diary_id" value="" />
         <input type="hidden" name="theme_id" id="theme_id" value="16" />
     </form>
 </div>

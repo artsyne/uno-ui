@@ -90,7 +90,7 @@ func RenderDiaryIndex(c *gin.Context) {
 func RenderDiaryForm(c *gin.Context) {
 	h := pkg.DefaultH(c)
 
-	c.HTML(http.StatusOK, "form/daybook", h)
+	c.HTML(http.StatusOK, "form/diary", h)
 }
 
 // RenderDiary : 渲染日记详细信息

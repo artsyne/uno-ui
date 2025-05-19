@@ -13,9 +13,7 @@
  * @param {string} message - 日志消息
  * @param {...any} data - 可选的额外数据
  */
-window.log = function (message, ...data) {
-  kiko.core.log(`[App] ${message}`, ...data);
-};
+window.log = (message, ...data) => kiko.core.log(`[App] ${message}`, ...data);
 
 $(() => {
   const AJAX_URL = '';
@@ -32,22 +30,13 @@ $(() => {
     // 确定错误消息文本
     let errorMessage = appI18n.getMessage(fallbackMessage);
 
-    // 处理XHR响应
-    if (error && error.responseJSON && error.responseJSON.Message) {
-      errorMessage = error.responseJSON.Message;
-    }
-    // 处理错误对象
-    else if (error && error.message) {
-      errorMessage = error.message;
-    }
-    // 处理字符串错误
-    else if (typeof error === 'string' && error) {
-      errorMessage = error;
-    }
+    // 根据错误类型提取消息
+    if (error?.responseJSON?.Message) errorMessage = error.responseJSON.Message;
+    else if (error?.message) errorMessage = error.message;
+    else if (typeof error === 'string' && error) errorMessage = error;
 
     // 显示错误消息
     kiko.ui.notify.error(errorMessage);
-
     return { handled: true, message: errorMessage };
   };
 
@@ -55,36 +44,22 @@ $(() => {
 
   // 设置全局AJAX拦截器 - 简化版
   $.ajaxSetup({
-    /**
-     * 全局Ajax发送前回调
-     * @param {Object} xhr - XMLHttpRequest对象
-     * @param {Object} settings - Ajax设置对象
-     */
-    beforeSend: function (xhr, settings) {
+    beforeSend: (xhr, settings) => {
       // 显示加载指示器
       kiko.ui.notify.loading(true);
 
-      // 只处理POST请求，寻找当前活动表单
+      // 只处理POST请求，寻找当前活动表单并禁用
       if (settings.type === 'POST') {
-        // 获取当前焦点所在表单
         const $focusedForm = $('form:has(:focus)');
         if ($focusedForm.length) {
-          // 标记表单为处理中并禁用输入
           $focusedForm.addClass('form-processing').disableFormInputs(true);
         }
       }
     },
 
-    /**
-     * 全局Ajax错误处理
-     * @param {Object} xhr - XMLHttpRequest对象
-     * @param {string} textStatus - 错误状态描述
-     * @param {string} errorThrown - 抛出的错误信息
-     */
-    error: function (xhr, textStatus, errorThrown) {
+    error: (xhr, textStatus, errorThrown) => {
       // 当没有自定义错误处理时，显示默认错误消息
       if (!xhr.isHandled) {
-        // 使用共享错误处理函数
         const result = handleError(
           xhr.responseJSON?.Message || errorThrown || xhr,
         );
@@ -92,16 +67,10 @@ $(() => {
       }
     },
 
-    /**
-     * 全局Ajax完成处理
-     * @param {Object} xhr - XMLHttpRequest对象
-     * @param {string} textStatus - 状态描述
-     */
-    complete: function (xhr, textStatus) {
+    complete: () => {
       // 隐藏加载指示器
       kiko.ui.notify.loading(false);
-
-      // 恢复所有处于处理中的表单（简化的兜底措施）
+      // 恢复所有处于处理中的表单
       $('form.form-processing')
         .removeClass('form-processing')
         .disableFormInputs(false);
@@ -120,17 +89,13 @@ $(() => {
       debug: true,
       cache: false,
       enableAnchorCapture: true,
-      // 移除复杂的loadingText，使用简单文本，因为全局ajax加载状态已由$.ajaxSetup处理
       loadingText: appI18n.getMessage('loading'),
-      errorHandler: function (error, type, data) {
-        // 使用共享错误处理函数
-        handleError(error);
-      },
-      init: function (action, eventData) {
+      errorHandler: (error) => handleError(error),
+      init: (action) => {
         log('行为初始化', action.id);
         return true; // 继续执行
       },
-      complete: function (success, action, eventData) {
+      complete: (success, action) => {
         log('行为执行完成', { success, actionId: action.id });
 
         // 成功完成的特定类型行为可以显示成功消息
@@ -148,30 +113,24 @@ $(() => {
     ],
   );
 
+  // 初始化模块方法
+  const initActionModules = (actions, moduleName) => {
+    actions.forEach((action) => {
+      if (action.init && typeof action.init === 'function') {
+        try {
+          action.init();
+        } catch (e) {
+          log(`错误: 执行${moduleName}初始化方法失败`, e);
+          handleError(e, 'execution.failed');
+        }
+      }
+    });
+  };
+
+  // 调用各模块的初始化方法
   log('调用初始化方法...');
-
-  // 调用各模块的初始化方法（如果有）
-  authActions.forEach((action) => {
-    if (action.init && typeof action.init === 'function') {
-      try {
-        action.init();
-      } catch (e) {
-        log(`错误: 执行认证模块初始化方法失败`, e);
-        handleError(e, 'execution.failed');
-      }
-    }
-  });
-
-  diaryActions.forEach((action) => {
-    if (action.init && typeof action.init === 'function') {
-      try {
-        action.init();
-      } catch (e) {
-        log(`错误: 执行日记本模块初始化方法失败`, e);
-        handleError(e, 'execution.failed');
-      }
-    }
-  });
+  initActionModules(authActions, '认证模块');
+  initActionModules(diaryActions, '日记本模块');
 
   // 初始化滚动监听
   initScrollHeader();
@@ -185,16 +144,21 @@ $(() => {
  */
 function initScrollHeader() {
   // 检查所需元素是否存在
-  if ($('#top-nav').length === 0 || $('#page-nav').length === 0) {
-    return;
-  }
+  const $topNav = $('#top-nav');
+  const $pageNav = $('#page-nav');
 
-  // 绑定滚动事件
-  $(window).on('scroll', function () {
-    if ($(window).scrollTop() > 1) {
-      $('#top-nav').html($('#page-nav').html());
-    } else if ($(window).scrollTop() === 0) {
-      $('#top-nav').html('');
+  if (!$topNav.length || !$pageNav.length) return;
+
+  // 缓存页面导航内容
+  const pageNavHtml = $pageNav.html();
+
+  // 绑定滚动事件，使用节流函数优化性能
+  let lastScrollY = window.scrollY;
+  $(window).on('scroll', () => {
+    // 只有滚动位置发生变化时才更新
+    if (window.scrollY !== lastScrollY) {
+      lastScrollY = window.scrollY;
+      $topNav.html(lastScrollY > 1 ? pageNavHtml : '');
     }
   });
 }

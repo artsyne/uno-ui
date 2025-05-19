@@ -34,17 +34,16 @@ const Diary = {
      */
     handler: function (id, target, eventData, data) {
       log('显示新增日记本对话框');
-
+      log('传入Action数据:', data);
       // 显示对话框并加载表单
       const boxId = kiko.ui.box.dialog({
         title: appI18n.getMessage('diary.create.title') || '新建日记本',
         content: `<div class="modal-body" id="add-diary-form-container">${appI18n.getMessage('loading')}</div>`,
-        width: 680,
-        height: 400,
+        width: 780,
+        height: 460,
         showOkButton: true,
         okButtonText: appI18n.getMessage('diary.save'),
-        okButtonClass:
-          'px-4 py-2 bg-red-500 text-white hover:bg-red-600 transition-colors duration-200',
+        okButtonClass:'btn-ok-box',
         buttonAlign: 'right',
 
         // 表单提交处理
@@ -87,7 +86,7 @@ const Diary = {
       });
 
       // 加载表单内容
-      $.get(`${Diary.baseUrl}/form/daybook`)
+      $.get(`${Diary.baseUrl}/form/diary`)
         .then((response) => {
           // 初始化表单
           $('#add-diary-form-container').html(response);
@@ -108,6 +107,8 @@ const Diary = {
             $form.find('#theme_id').val($this.attr('theme'));
           });
 
+          //根据初始化data值formAction，设置表单行为
+          $form.find('input[name="action"]').val(data.formAction);
           // 初始化验证
           $form.valid();
         })

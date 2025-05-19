@@ -89,7 +89,7 @@ func setPath(server *gin.Engine) {
 	//表单渲染
 	form := server.Group("/form")
 	{
-		form.GET("/daybook", controllers.RenderDiaryForm)
+		form.GET("/diary", controllers.RenderDiaryForm)
 	}
 
 	// diary
