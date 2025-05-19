@@ -43,7 +43,7 @@ const Diary = {
         height: 460,
         showOkButton: true,
         okButtonText: appI18n.getMessage('diary.save'),
-        okButtonClass:'btn-ok-box',
+        okButtonClass:'btn-red',
         buttonAlign: 'right',
 
         // 表单提交处理

@@ -2,114 +2,113 @@
 {{template "header" .}}
 {{template "navbar" .}}
 
-<div class="main-body px-5 py-4">
-    <!--封面信息-->
-    <div class="info-cover">
+<main class="main">
+    <!-- 导航路径 -->
+    <section class="mb-10">
         <div id="page-nav">
-            <ul class="nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="/u/{{.UserData.UserId}}">{{.UserData.UserName}}</a>
+            <ul class="flex text-lg">
+                <li>
+                    <a href="/u/{{.UserData.UserId}}">{{.UserData.UserName}}</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#"><span class="mdi mdi-slash-forward"></span></a>
+                <li class="mx-2">
+                    <span class="mdi mdi-slash-forward"></span>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Settings</a>
+                <li>
+                    <a href="#">Settings</a>
                 </li>
             </ul>
         </div>
-    </div>
+    </section>
 
-    <div class="row">
-        <div class="col-md-6 offset-md-3">
-            <div class="card border-0 mb-4">
-                <div class="card-header bg-transparent border-bottom p-3">
-                    <h5 class="card-header-title mb-0">Profile</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3 text-center"><img class="rounded" style="width: 150px;"
-                            src="https://pbs.twimg.com/profile_images/1762062628552396800/K6bcqY9T_400x400.jpg" /></div>
+    <section class="mx-auto lg:w-2/3">
+        <form id="settings-form">
+            <!-- Profile Card -->
+            <div class="mb-8">
+                <div class="card-title">Profile</div>
+                <div>
+                    <div class="mb-6 text-center">
+                        <img class="rounded-full w-32 h-32 mx-auto"
+                            src="https://img.alicdn.com/imgextra/i3/2215558368627/O1CN01NeBWNY2DbDmCqibhj_!!2215558368627.jpg"
+                            alt="Profile" />
+                    </div>
+
                     <!-- Full name -->
-                    <div class="form-floating mb-3">
+                    <div class="mb-4">
+                        <label class="form-title" for="full_name">Full name</label>
                         <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Full name"
-                            value="{{.UserInfo.FullName}}">
-                        <label for="full_name">Full name</label>
+                            valid='[{"type":"required"},{"type":"limit","max":50}]' value="{{.UserInfo.FullName}}">
                     </div>
+
                     <!-- Bio -->
-                    <div class="form-floating mb-3">
-                        <textarea type="text" class="form-control" id="remark" name="remark" placeholder="Bio" rows="3"
-                            valid="[{type:'limit',max:250,show:true}]"
-                            style="height: 120px;">I’ve found a way to get paid for my favorite hobby, and do so while following my dream of traveling the world.</textarea>
-                        <label for="remark">Bio</label>
+                    <div class="mb-4">
+                        <label class="form-title" for="remark">Bio</label>
+                        <textarea class="form-control" id="remark" name="remark" placeholder="Bio" rows="3"
+                            valid='[{"type":"limit","max":250,"show":true}]'
+                            style="height: 120px;">I've found a way to get paid for my favorite hobby, and do so while following my dream of traveling the world.</textarea>
                     </div>
-                    <!-- Save button -->
-                    <div class="d-flex justify-content-end mt-4">
-                        <a href="#" class="btn text-secondary border-0 me-2">Discard</a>
-                        <a href="#" class="ms-auto btn btn-outline-secondary  px-4">Save changes</a>
+
+                    <!-- Save buttons -->
+                    <div class="flex justify-end mt-6">
+                        <button type="button" class="btn text-gray-500 border-0 mr-2"
+                            data-action="discard-profile">Discard</button>
+                        <button type="submit" class="btn-red" data-action="save-profile">Save changes</button>
                     </div>
                 </div>
             </div>
 
-            <div class="card border-0 mb-4">
-                <div class="card-header bg-transparent border-bottom p-3">
-                    <h5 class="card-header-title mb-0">Email</h5>
-                </div>
-                <div class="card-body">
+            <!-- Email Card -->
+            <div class="mb-8">
+                <div class="card-title">Email</div>
+                <div>
                     <!-- Email -->
-                    <div class="form-floating mb-3">
+                    <div class="mb-4">
+                        <label class="form-title" for="email">Email</label>
                         <input type="email" class="form-control" id="email" name="email" placeholder="Email"
-                            type="email" value="{{.UserInfo.Email}}">
-                        <label for="email">Email</label>
+                            valid='[{"type":"required"},{"type":"email"}]' value="{{.UserInfo.Email}}">
                     </div>
+
                     <!-- Save button -->
-                    <div class="d-flex justify-content-end mt-4">
-                        <a href="#" class="ms-auto btn btn-outline-secondary  px-4">Save changes</a>
+                    <div class="flex justify-end mt-6">
+                        <button type="submit" class="btn-red" data-action="save-email">Save changes</button>
                     </div>
                 </div>
             </div>
 
-
-            <div class="card border-0">
-                <div class="card-header bg-transparent border-bottom p-3">
-                    <h5 class="card-header-title mb-0">Update password</h5>
-                </div>
-                <div class="card-body">
-
-                    <div class="form-floating mb-3">
+            <!-- Password Card -->
+            <div>
+                <div class="card-title">Update password</div>
+                <div>
+                    <!-- Current password -->
+                    <div class="mb-4">
+                        <label class="form-title" for="current_pwd">Current password</label>
                         <input type="password" class="form-control" id="current_pwd" name="current_pwd"
-                            placeholder="Current password">
-                        <label for="current_pwd">Current password</label>
+                            placeholder="Current password" valid='[{"type":"required"},{"type":"pwd"}]'>
                     </div>
 
-                    <div class="form-floating mb-3">
+                    <!-- New password -->
+                    <div class="mb-4">
+                        <label class="form-title" for="new_pwd">New password</label>
                         <input type="password" class="form-control" id="new_pwd" name="new_pwd"
-                            placeholder="New password">
-                        <label for="new_pwd">New password</label>
+                            placeholder="New password" valid='[{"type":"required"},{"type":"strongpwd"}]'>
                     </div>
 
-                    <div class="form-floating mb-3">
+                    <!-- Confirm password -->
+                    <div class="mb-4">
+                        <label class="form-title" for="confirm_pwd">Confirm new password</label>
                         <input type="password" class="form-control" id="confirm_pwd" name="confirm_pwd"
-                            placeholder=" Confirm new password">
-                        <label for="confirm_pwd"> Confirm new password</label>
+                            placeholder="Confirm new password"
+                            valid='[{"type":"required"},{"type":"compareto","destid":"new_pwd"}]'>
                     </div>
 
-                    <div class="d-flex justify-content-end mt-4">
-                        <a href="#" class="ms-auto btn btn-outline-secondary  px-4">Change password</a>
+                    <!-- Change password button -->
+                    <div class="flex justify-end mt-6">
+                        <button type="submit" class="btn-red" data-action="change-password">Change password</button>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-
-
-<script>
-
-
-
-</script>
-
+        </form>
+    </section>
+</main>
 
 {{template "footer" .}}
 {{end}}

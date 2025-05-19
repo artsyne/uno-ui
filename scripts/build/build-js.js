@@ -68,6 +68,7 @@ const jsFiles = [
   'i18n.js', // 再加载i18n支持
   'auth.js', // 认证模块
   'diary.js', // 日记本模块
+  'settings.js', // 设置模块
   'app.js', // 最后是主应用
 ];
 

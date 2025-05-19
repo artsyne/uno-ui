@@ -1,11 +1,13 @@
-{{define "member/index"}} {{template "header" .}} {{template "navbar" .}}
+{{ define "member/index" }}
+{{ template "header" . }}
+{{ template "navbar" . }}
 
 <main class="main">
     <section class="mb-10 flex justify-between">
         <div id="page-nav">
             <ul class="flex text-lg">
                 <li>
-                    <a href="/u/{{.UserData.UserId}}">{{.UserData.UserName}}</a>
+                    <a href="/u/{{ .UserData.UserId }}">{{ .UserData.UserName }}</a>
                 </li>
             </ul>
         </div>
@@ -30,7 +32,8 @@
                         <li class="py-1">
                             <a href="#">
                                 <i class="mdi mdi-book-multiple"></i>
-                                <span>加入日记本</span></a>
+                                <span>加入日记本</span>
+                            </a>
                         </li>
                     </ul>
                 </div>
@@ -43,37 +46,58 @@
             </div>
         </div>
     </section>
+
     <section class="flex justify-between mb-10">
         <div class="text-lg">日记本</div>
         <div>
-            <a href="#" class="btn" data-action="showDiaryBox" data-form-action="diary.add"><i class="mdi mdi-plus"></i> 新增日记本</a>
+            <a href="#" class="btn" data-action="showDiaryBox" data-form-action="diary.add">
+                <i class="mdi mdi-plus"></i> 新增日记本
+            </a>
         </div>
     </section>
 
     <section>
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8" id="daybook_list">
-            {{$isOwner := .IsOwner}} {{range .Diaries}}
-            <div class="border h-64 text-center dt{{.ThemeID}}">
+            {{ $isOwner := .IsOwner }}
+            {{ range .Diaries }}
+            <div class="border h-64 text-center dt{{ .ThemeID }}">
                 <div class="h-full content-center p-3">
                     <h1 class="text-xl mb-2 break-words">
-                        <a href="/d/{{.DiaryID}}">{{.Title}}</a>
-                        {{if gt .ViewSetting 1 }}
+                        <a href="/d/{{ .DiaryID }}">{{ .Title }}</a>
+                        {{ if gt .ViewSetting 1 }}
                         <i class="mdi mdi-lock-outline"></i>
-                        {{end}}
+                        {{ end }}
                     </h1>
-                    <p>
-                        {{.InfoNum}}篇 {{if gt .InfoNum 0 }} - {{formatTime
-                        .LastActionUTCTime "2006-01-02 15:04"}}
+                    <p class="mb-2">
+                        {{ .InfoNum }}篇
+                        {{ if gt .InfoNum 0 }}
+                        - {{ formatTime .LastActionUTCTime "2006-01-02 15:04" }}
+                        {{ end }}
                     </p>
-                    {{end}}
+                    {{ if $isOwner }}
+                        <p>
+                            <a href="#" class="btn mr-3" data-action="showDiaryBox" data-form-action="diary.edit"
+                                data-diary-id="{{ .DiaryID }}">
+                                <i class="mdi mdi-pencil"></i> 编辑
+                            </a>
+                            <a href="#" class="btn" data-action="showDiaryBox" data-form-action="diary.delete"
+                                data-diary-id="{{ .DiaryID }}">
+                                <i class="mdi mdi-delete"></i> 删除
+                            </a> 
+                        </p>
+                    {{ end }}
                 </div>
             </div>
-            {{end}}
+            {{ end }}
         </div>
 
-        {{if gt .DiariesNum .PageSize }}
-        <div class="flex justify-center mt-10">{{template "pagination" .}}</div>
-        {{end}}
+        {{ if gt .DiariesNum .PageSize }}
+        <div class="flex justify-center mt-10">
+            {{ template "pagination" . }}
+        </div>
+        {{ end }}
     </section>
 </main>
-{{template "footer" .}} {{end}}
+
+{{ template "footer" . }}
+{{ end }}
