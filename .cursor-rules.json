@@ -15,7 +15,12 @@
       }
     },
     "javascript": {
-      "version": "ES2022",
+      "version": "ES2023",
+      "browserSupport": {
+        "chrome": "110+",
+        "edge": "110+",
+        "firefox": "128 ESR+"
+      },
       "preferences": {
         "useStrict": true,
         "useModules": true,
