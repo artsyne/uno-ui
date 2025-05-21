@@ -83,6 +83,9 @@ $(() => {
   // 初始化日记本模块
   const diaryActions = Diary.init(AJAX_URL);
 
+  // 初始化设置模块
+  const settingsActions = Settings.init(AJAX_URL);
+
   // 创建统一的页面行为管理器
   kiko.ui.pager.init(
     {
@@ -110,6 +113,7 @@ $(() => {
       // 合并所有行为配置
       ...authActions,
       ...diaryActions,
+      ...settingsActions,
     ],
   );
 
@@ -131,6 +135,7 @@ $(() => {
   log('调用初始化方法...');
   initActionModules(authActions, '认证模块');
   initActionModules(diaryActions, '日记本模块');
+  initActionModules(settingsActions, '设置模块');
 
   // 初始化滚动监听
   initScrollHeader();

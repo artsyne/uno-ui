@@ -50,9 +50,9 @@
     <section class="flex justify-between mb-10">
         <div class="text-lg">日记本</div>
         <div>
-            <a href="#" class="btn" data-action="showDiaryBox" data-form-action="diary.add">
+            <button class="btn" data-action="showDiaryBox" data-form-action="diary.add">
                 <i class="mdi mdi-plus"></i> 新增日记本
-            </a>
+            </button>
         </div>
     </section>
 
@@ -61,31 +61,23 @@
             {{ $isOwner := .IsOwner }}
             {{ range .Diaries }}
             <div class="border h-64 text-center dt{{ .ThemeID }}">
-                <div class="h-full content-center p-3">
-                    <h1 class="text-xl mb-2 break-words">
-                        <a href="/d/{{ .DiaryID }}">{{ .Title }}</a>
-                        {{ if gt .ViewSetting 1 }}
-                        <i class="mdi mdi-lock-outline"></i>
-                        {{ end }}
-                    </h1>
-                    <p class="mb-2">
-                        {{ .InfoNum }}篇
-                        {{ if gt .InfoNum 0 }}
-                        - {{ formatTime .LastActionUTCTime "2006-01-02 15:04" }}
-                        {{ end }}
-                    </p>
-                    {{ if $isOwner }}
-                        <p>
-                            <a href="#" class="btn mr-3" data-action="showDiaryBox" data-form-action="diary.edit"
-                                data-diary-id="{{ .DiaryID }}">
-                                <i class="mdi mdi-pencil"></i> 编辑
+                <div class="h-full flex flex-col p-3">
+                    <div class="flex-grow flex items-center justify-center flex-col">
+                        <h1 class="text-xl mb-2 break-words w-full">
+                            <a href="/d/{{ .DiaryID }}" class="block w-full">{{ .Title }}
+                                {{ if gt .ViewSetting 1 }}
+                                <i class="mdi mdi-lock-outline"></i>
+                                {{ end }}
                             </a>
-                            <a href="#" class="btn" data-action="showDiaryBox" data-form-action="diary.delete"
-                                data-diary-id="{{ .DiaryID }}">
-                                <i class="mdi mdi-delete"></i> 删除
-                            </a> 
+
+                        </h1>
+                        <p class="mb-2">
+                            {{ .InfoNum }}篇
+                            {{ if gt .InfoNum 0 }}
+                            - {{ formatTime .LastActionUTCTime "2006-01-02 15:04" }}
+                            {{ end }}
                         </p>
-                    {{ end }}
+                    </div>
                 </div>
             </div>
             {{ end }}

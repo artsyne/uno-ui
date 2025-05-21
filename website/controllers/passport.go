@@ -79,13 +79,6 @@ func RenderActivateUser(c *gin.Context) {
 	c.HTML(http.StatusOK, "passport/activateuser", h)
 }
 
-// RenderPassport : 渲染登录页面
-func RenderPassport(c *gin.Context) {
-	h := pkg.DefaultH(c)
-	h["Title"] = "Passport"
-	c.HTML(http.StatusOK, "passport/index", h)
-}
-
 // HandleLoginOut : 退出登录
 func HandleLoginOut(c *gin.Context) {
 	//如果登录删除cookie

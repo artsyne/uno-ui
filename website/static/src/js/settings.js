@@ -33,13 +33,12 @@ const Settings = {
   saveProfileAction: {
     id: 'save-profile',
     type: 'function',
-    selector: '[data-action="save-profile"]',
 
     /**
      * 处理保存个人资料请求
      */
     handler: function (id, target, eventData) {
-      const form = $(eventData.element).closest('form');
+      const form = $('#profile-form');
 
       // 验证表单
       if (form.valid('checkError')) {
@@ -65,13 +64,12 @@ const Settings = {
   discardProfileAction: {
     id: 'discard-profile',
     type: 'function',
-    selector: '[data-action="discard-profile"]',
 
     /**
      * 处理放弃更改请求
      */
     handler: function (id, target, eventData) {
-      const form = $(eventData.element).closest('form');
+      const form = $('#profile-form');
 
       // 重置表单
       form.find('#full_name').val('{{.UserInfo.FullName}}');
@@ -96,13 +94,12 @@ const Settings = {
   saveEmailAction: {
     id: 'save-email',
     type: 'function',
-    selector: '[data-action="save-email"]',
 
     /**
      * 处理保存邮箱请求
      */
     handler: function (id, target, eventData) {
-      const form = $(eventData.element).closest('form');
+      const form = $('#email-form');
 
       // 验证表单
       if (form.valid('checkError')) {
@@ -127,13 +124,12 @@ const Settings = {
   changePasswordAction: {
     id: 'change-password',
     type: 'function',
-    selector: '[data-action="change-password"]',
 
     /**
      * 处理修改密码请求
      */
     handler: function (id, target, eventData) {
-      const form = $(eventData.element).closest('form');
+      const form = $('#password-form');
 
       // 验证表单
       if (form.valid('checkError')) {

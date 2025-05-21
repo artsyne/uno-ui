@@ -21,10 +21,10 @@
     </section>
 
     <section class="mx-auto lg:w-2/3">
-        <form id="settings-form">
-            <!-- Profile Card -->
-            <div class="mb-8">
-                <div class="card-title">Profile</div>
+        <!-- Profile Card -->
+        <div class="mb-8">
+            <div class="card-title">Profile</div>
+            <form id="profile-form">
                 <div>
                     <div class="mb-6 text-center">
                         <img class="rounded-full w-32 h-32 mx-auto"
@@ -49,16 +49,16 @@
 
                     <!-- Save buttons -->
                     <div class="flex justify-end mt-6">
-                        <button type="button" class="btn text-gray-500 border-0 mr-2"
-                            data-action="discard-profile">Discard</button>
                         <button type="submit" class="btn-red" data-action="save-profile">Save changes</button>
                     </div>
                 </div>
-            </div>
+            </form>
+        </div>
 
-            <!-- Email Card -->
-            <div class="mb-8">
-                <div class="card-title">Email</div>
+        <!-- Email Card -->
+        <div class="mb-8">
+            <div class="card-title">Email</div>
+            <form id="email-form">
                 <div>
                     <!-- Email -->
                     <div class="mb-4">
@@ -72,11 +72,13 @@
                         <button type="submit" class="btn-red" data-action="save-email">Save changes</button>
                     </div>
                 </div>
-            </div>
+            </form>
+        </div>
 
-            <!-- Password Card -->
-            <div>
-                <div class="card-title">Update password</div>
+        <!-- Password Card -->
+        <div>
+            <div class="card-title">Update password</div>
+            <form id="password-form">
                 <div>
                     <!-- Current password -->
                     <div class="mb-4">
@@ -105,8 +107,8 @@
                         <button type="submit" class="btn-red" data-action="change-password">Change password</button>
                     </div>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </section>
 </main>
 

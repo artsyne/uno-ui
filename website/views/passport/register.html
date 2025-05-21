@@ -11,7 +11,7 @@
                     <div class="block">
                         <label class="form-title">用户名</label>
                         <input class="form-control" type="text" id="user_name" name="user_name"
-                            valid='[{"type":"limit","min":6,"max":20},"validname"]' />
+                            valid='[{"type":"limit","min":6,"max":20},{"type":"validname"},{"type":"callback","fn":"checkUsername","msg":"该用户名已被注册"}]' />
                     </div>
                     <div class="block">
                         <label class="form-title">密码</label>
@@ -20,13 +20,14 @@
                     </div>
                     <div class="block">
                         <label class="form-title">电子邮箱地址</label>
-                        <input class="form-control" type="text" id="email" name="email" valid='["required","email"]' />
+                        <input class="form-control" type="text" id="email" name="email"
+                            valid='[{"type":"required"},{"type":"email"},{"type":"callback","fn":"checkEmail","msg":"该邮箱已被注册"}]' />
                         <p class="form-info">
                             将往您注册E-mail发送一封激活邮件，请点击邮件中链接完成注册。如果激活邮件没有收到，请到垃圾邮箱找找
                         </p>
                     </div>
                     <div class="block text-center">
-                        <button id="register_btn" class="w-full btn-red" type="button" >免费注册
+                        <button id="register_btn" class="w-full btn-red" type="button">免费注册
                         </button>
                     </div>
                     <div class="block text-center">

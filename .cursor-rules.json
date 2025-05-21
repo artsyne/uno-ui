@@ -1,0 +1,105 @@
+{
+  "version": "1.0.0",
+  "rules": {
+    "jquery": {
+      "version": "4.x",
+      "preferences": {
+        "useModernAPI": true,
+        "avoidDeprecated": true
+      }
+    },
+    "tailwindcss": {
+      "version": "4.x",
+      "preferences": {
+        "useModernClasses": true
+      }
+    },
+    "javascript": {
+      "version": "ES2022",
+      "preferences": {
+        "useStrict": true,
+        "useModules": true,
+        "useAsyncAwait": true,
+        "useArrowFunctions": true,
+        "useConstLet": true,
+        "useTemplateLiterals": true,
+        "useDestructuring": true,
+        "useSpreadOperator": true,
+        "useOptionalChaining": true,
+        "useNullishCoalescing": true
+      }
+    },
+    "golang": {
+      "version": "1.23",
+      "preferences": {
+        "useModules": true,
+        "useGoWork": true,
+        "useGenerics": true,
+        "useEmbed": true
+      }
+    },
+    "gin": {
+      "version": "1.10.0",
+      "preferences": {
+        "useContext": true,
+        "useMiddleware": true,
+        "useGroup": true,
+        "useBinding": true
+      }
+    },
+    "i18n": {
+      "kiko": {
+        "type": "plugin",
+        "path": "kiko/src/i18n",
+        "strategy": {
+          "defaultLocale": "en",
+          "fallbackLocale": "zh-CN",
+          "namespace": "kiko"
+        }
+      },
+      "website": {
+        "type": "application",
+        "path": "website/static/src/js/i18n",
+        "strategy": {
+          "defaultLocale": "en",
+          "fallbackLocale": "zh-CN",
+          "namespace": "website.js",
+          "scope": "website/static/src/js"
+        }
+      }
+    },
+    "quality": {
+      "javascript": {
+        "linting": {
+          "eslint": true,
+          "prettier": true
+        },
+        "complexity": {
+          "maxFunctionLength": 50,
+          "maxParameters": 4
+        }
+      },
+      "golang": {
+        "linting": {
+          "golangci-lint": true
+        },
+        "complexity": {
+          "maxFunctionLength": 60,
+          "maxParameters": 5
+        }
+      }
+    }
+  },
+  "extensions": {
+    "enabled": true,
+    "rules": []
+  },
+  "documentation": {
+    "format": "markdown",
+    "required": {
+      "readme": true,
+      "api": true,
+      "changelog": true
+    }
+  }
+}

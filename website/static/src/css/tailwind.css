@@ -8,14 +8,13 @@
   @apply flex-1 container px-3 pt-10 mx-auto;
 }
 
-
 /*button 样式*/
 .btn {
-  @apply border border-gray-300 px-4 py-2 text-sm tracking-widest text-black transition hover:bg-gray-200;
+  @apply border border-gray-300 px-4 py-2 text-sm tracking-widest text-black transition hover:bg-gray-200 cursor-pointer;
 }
 
 .btn-red {
-  @apply border border-transparent bg-red-600 px-4 py-2 text-sm tracking-widest text-white transition hover:bg-red-700;
+  @apply border border-transparent bg-red-600 px-4 py-2 text-sm tracking-widest text-white transition hover:bg-red-700 cursor-pointer;
 }
 
 /*form 样式*/

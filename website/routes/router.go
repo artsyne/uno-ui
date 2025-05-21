@@ -101,16 +101,20 @@ func setPath(server *gin.Engine) {
 	server.POST("/info", controllers.HandlePost)
 
 	// passport
-	server.GET("/passport/", controllers.RenderPassport)
 	server.GET("/register", controllers.RenderRegister)
 	server.POST("/register", controllers.HandleUserReg)
+
 	server.GET("/login", controllers.RenderLogin)
 	server.POST("/login", controllers.HandleLogin)
+
 	server.POST("/loginout", controllers.HandleLoginOut)
+
 	server.GET("/findpwd", controllers.RenderFindPwd)
 	server.POST("/findpwd", controllers.HandleFindPwd)
+
 	server.GET("/resetpwd", controllers.RenderResetPwd)
 	server.POST("/resetpwd", controllers.HandleResetPwd)
+	
 	server.GET("/activateuser", controllers.RenderActivateUser)
 
 	//

@@ -21,16 +21,66 @@ const Auth = {
   init: function (baseUrl = '') {
     log('认证模块初始化');
     this.baseUrl = baseUrl;
-    return this.getActions();
+
+    // 注册自定义验证回调
+    this.registerValidationCallbacks();
+
+    // 返回认证行为配置数组
+    return [this.loginAction, this.registerAction, this.forgotPasswordAction];
   },
 
   /**
-   * 获取所有认证相关的行为配置
-   *
-   * @returns {Array} 认证行为配置数组
+   * 注册自定义验证回调
    */
-  getActions: function () {
-    return [this.loginAction, this.registerAction, this.forgotPasswordAction];
+  registerValidationCallbacks: function () {
+    // 用户名查重验证
+    $.fn.valid.registerCallback('checkUsername', function (id, value) {
+      // 如果用户名为空，不进行查重
+      if (!value) return true;
+      // 返回Promise对象，以支持异步验证
+      return new Promise((resolve) => {
+        // 调用后端API检查用户名是否存在
+        $.ajax({
+          url: `${Auth.baseUrl}/check-username`,
+          type: 'POST',
+          data: { username: value },
+          dataType: 'json',
+          success: function (response) {
+            // 返回false表示验证失败（用户名已存在）
+            resolve(!response.exists);
+          },
+          error: function () {
+            // 出错时默认通过验证
+            resolve(true);
+          },
+        });
+      });
+    });
+
+    // 邮箱查重验证
+    $.fn.valid.registerCallback('checkEmail', function (id, value) {
+      // 如果邮箱为空，不进行查重
+      if (!value) return true;
+
+      // 返回Promise对象，以支持异步验证
+      return new Promise((resolve) => {
+        // 调用后端API检查邮箱是否存在
+        $.ajax({
+          url: `${Auth.baseUrl}/check-email`,
+          type: 'POST',
+          data: { email: value },
+          dataType: 'json',
+          success: function (response) {
+            // 返回false表示验证失败（邮箱已存在）
+            resolve(!response.exists);
+          },
+          error: function () {
+            // 出错时默认通过验证
+            resolve(true);
+          },
+        });
+      });
+    });
   },
 
   /**
