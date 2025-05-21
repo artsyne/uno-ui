@@ -35,7 +35,7 @@
       }
     },
     "golang": {
-      "version": "1.23",
+      "version": "1.24",
       "preferences": {
         "useModules": true,
         "useGoWork": true,
