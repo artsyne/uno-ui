@@ -22,7 +22,7 @@ const Diary = {
   },
 
   /**
-   * 显示新增日记本对话框行为
+   * 显示日记本对话框行为
    * @type {Object}
    */
   showDiaryBoxAction: {
@@ -33,89 +33,213 @@ const Diary = {
      * 处理显示日记本对话框请求
      */
     handler: function (id, target, eventData, data) {
-      log('显示新增日记本对话框');
+      log('显示日记本对话框');
       log('传入Action数据:', data);
+
+      const isEdit = data.formAction === 'diary.edit';
+      const dialogTitle = isEdit
+        ? appI18n.getMessage('diary.edit.title') || '编辑日记本'
+        : appI18n.getMessage('diary.create.title') || '新建日记本';
+
       // 显示对话框并加载表单
       const boxId = kiko.ui.box.dialog({
-        title: appI18n.getMessage('diary.create.title') || '新建日记本',
-        content: `<div class="modal-body" id="add-diary-form-container">${appI18n.getMessage('loading')}</div>`,
+        title: dialogTitle,
+        content: `<div class="modal-body" id="add-diary-form-container">${appI18n.getMessage('loading') || '加载中...'}</div>`,
         width: 780,
         height: 460,
         showOkButton: true,
-        okButtonText: appI18n.getMessage('diary.save'),
-        okButtonClass:'btn-red',
+        okButtonText: appI18n.getMessage('diary.save') || '保存',
+        okButtonClass: 'btn-red',
         buttonAlign: 'right',
-
-        // 表单提交处理
-        onOk: () => {
-          const $form = $('#add-diary-form-container form#daybook_editor_form');
-
-          // 表单验证
-          if (!$form.length || $form.valid('checkError')) {
-            return false; // 阻止对话框关闭
-          }
-
-          // 提交表单
-          $.ajax({
-            url: `${Diary.baseUrl}/diary`,
-            type: 'POST',
-            data: $form.serialize(),
-            dataType: 'json',
-            success: (response) => {
-              if (response.Status === 0) {
-                // 创建成功，添加到列表
-                $('#daybook_list').prepend(`
-                  <div class="border h-64 text-center dt${response.Data.theme_id}">
-                    <div class="h-full content-center p-3">
-                      <h1 class="text-xl mb-2 break-words">
-                        <a href="/d/${response.Data.diary_id}">${response.Data.title}</a>
-                        ${response.Data.view_setting === 2 ? "<i class='mdi mdi-lock-outline'></i>" : ''}
-                      </h1>
-                      <p>0篇</p>
-                    </div>
-                  </div>`);
-
-                kiko.ui.box.close(boxId);
-                kiko.ui.notify.success(appI18n.getMessage('operation.success'));
-              }
-            },
-          });
-
-          return true;
-        },
+        onOk: () => this._handleFormSubmit(data, boxId),
       });
 
       // 加载表单内容
-      $.get(`${Diary.baseUrl}/form/diary`)
+      this._loadForm(data, boxId);
+    },
+
+    /**
+     * 处理表单提交
+     * @private
+     */
+    _handleFormSubmit: function (data, boxId) {
+      const $form = $('#add-diary-form-container form#daybook_editor_form');
+
+      // 表单验证
+      if (!$form.length || $form.valid('checkError')) {
+        return false; // 阻止对话框关闭
+      }
+
+      // 显示提交状态
+      const $okButton = $('.kiko-dialog-footer .btn-red');
+      const originalText = $okButton.text();
+      $okButton.prop('disabled', true).text('保存中...');
+
+      // 提交表单
+      $.ajax({
+        url: `${Diary.baseUrl}/diary`,
+        type: 'POST',
+        data: $form.serialize(),
+        dataType: 'json',
+        success: (response) => {
+          if (response.Status === 0) {
+            this._handleSubmitSuccess(data.formAction, response.Data);
+            kiko.ui.box.close(boxId);
+            kiko.ui.notify.success(
+              appI18n.getMessage('operation.success') || '操作成功',
+            );
+          } else {
+            this._handleSubmitError(response.Message || '操作失败');
+          }
+        },
+        error: (xhr, status, error) => {
+          log('提交失败:', error, 'error');
+          this._handleSubmitError('网络错误，请重试');
+        },
+        complete: () => {
+          // 恢复按钮状态
+          $okButton.prop('disabled', false).text(originalText);
+        },
+      });
+
+      return false; // 阻止对话框自动关闭
+    },
+
+    /**
+     * 处理提交成功
+     * @private
+     */
+    _handleSubmitSuccess: function (formAction, responseData) {
+      if (formAction === 'diary.add') {
+        this._addDiaryToList(responseData);
+      } else if (formAction === 'diary.edit') {
+        this._updateDiaryInfo(responseData);
+      }
+    },
+
+    /**
+     * 添加日记本到列表
+     * @private
+     */
+    _addDiaryToList: function (diaryData) {
+      const lockIcon =
+        diaryData.view_setting === 2
+          ? "<i class='mdi mdi-lock-outline'></i>"
+          : '';
+      const diaryHtml = `
+        <div class="border h-64 text-center dt${diaryData.theme_id}">
+          <div class="h-full content-center p-3">
+            <h1 class="text-xl mb-2 break-words">
+              <a href="/d/${diaryData.diary_id}">${diaryData.title}</a>
+              ${lockIcon}
+            </h1>
+            <p>0篇</p>
+          </div>
+        </div>`;
+      $('#daybook_list').prepend(diaryHtml);
+    },
+
+    /**
+     * 更新日记本信息
+     * @private
+     */
+    _updateDiaryInfo: function (diaryData) {
+      // 更新标题
+      const $title = $('#diary_title');
+      $title.text(diaryData.title);
+
+      // 处理锁图标
+      $title.find('i.mdi-lock-outline').remove();
+      if (diaryData.view_setting === 2) {
+        $title.append("<i class='mdi mdi-lock-outline'></i>");
+      }
+
+      // 更新描述
+      $('#diary_remark').text(diaryData.remark || '');
+
+      // 更新主题样式
+      const $main = $('.main');
+      $main.removeClass((index, className) => {
+        return (className.match(/(^|\s)dt\d+/g) || []).join(' ');
+      });
+      $main.addClass(`dt${diaryData.theme_id}`);
+    },
+
+    /**
+     * 处理提交错误
+     * @private
+     */
+    _handleSubmitError: function (errorMessage) {
+      kiko.ui.notify.error(errorMessage);
+    },
+
+    /**
+     * 加载表单内容
+     * @private
+     */
+    _loadForm: function (data, boxId) {
+      const params = {
+        action: data.formAction,
+        ...(data.diaryId && { diary_id: data.diaryId }),
+      };
+
+      $.get(`${Diary.baseUrl}/form/diary`, params)
         .then((response) => {
-          // 初始化表单
-          $('#add-diary-form-container').html(response);
-          const $form = $('#add-diary-form-container form#daybook_editor_form');
-
-          // 绑定主题选择事件
-          $form.find('.d-theme div').on('click', function () {
-            const $this = $(this);
-            $form
-              .find('.d-theme div')
-              .removeClass('ring-2 ring-black')
-              .addClass('hover:ring-2 hover:ring-gray-400');
-
-            $this
-              .removeClass('hover:ring-2 hover:ring-gray-400')
-              .addClass('ring-2 ring-black');
-
-            $form.find('#theme_id').val($this.attr('theme'));
-          });
-
-          //根据初始化data值formAction，设置表单行为
-          $form.find('input[name="action"]').val(data.formAction);
-          // 初始化验证
-          $form.valid();
+          this._initializeForm(response, data.formAction);
         })
         .catch((error) => {
           log('加载表单失败:', error, 'error');
-          $('#add-diary-form-container').html('加载表单失败，请重试');
+          $('#add-diary-form-container').html(`
+            <div class="text-center text-red-500 py-8">
+              <p>加载表单失败，请重试</p>
+              <button class="btn btn-sm mt-2" onclick="location.reload()">刷新页面</button>
+            </div>
+          `);
         });
+    },
+
+    /**
+     * 初始化表单
+     * @private
+     */
+    _initializeForm: function (formHtml, formAction) {
+      $('#add-diary-form-container').html(formHtml);
+      const $form = $('#add-diary-form-container form#daybook_editor_form');
+
+      // 绑定主题选择事件
+      this._bindThemeSelection($form);
+
+      // 设置表单行为
+      $form.find('input[name="action"]').val(formAction);
+
+      // 初始化验证
+      if ($form.valid) {
+        $form.valid();
+      }
+    },
+
+    /**
+     * 绑定主题选择事件
+     * @private
+     */
+    _bindThemeSelection: function ($form) {
+      $form.find('.d-theme div').on('click', function () {
+        const $this = $(this);
+        const $themes = $form.find('.d-theme div');
+
+        // 重置所有主题样式
+        $themes
+          .removeClass('ring-2 ring-black')
+          .addClass('hover:ring-2 hover:ring-gray-400');
+
+        // 设置选中样式
+        $this
+          .removeClass('hover:ring-2 hover:ring-gray-400')
+          .addClass('ring-2 ring-black');
+
+        // 更新隐藏字段值
+        $form.find('#theme_id').val($this.attr('theme'));
+      });
     },
   },
 

@@ -79,13 +79,6 @@ func setPath(server *gin.Engine) {
 
 	server.GET("/index", controllers.RenderIndex)
 
-	// 日记本页面即列表
-	daybook := server.Group("/d")
-	{
-		daybook.GET("/:spaceid", controllers.RenderDiaryIndex)
-		daybook.GET("/:spaceid/:pageindex", controllers.RenderDiaryIndex)
-	}
-
 	//表单渲染
 	form := server.Group("/form")
 	{
@@ -120,10 +113,17 @@ func setPath(server *gin.Engine) {
 	
 	server.GET("/activateuser", controllers.RenderActivateUser)
 
-	//
+	// 日记本页面
 	server.GET("/u/:uid", controllers.RenderMemberIndex)
 	server.GET("u/:uid/settings", controllers.RenderMemberSettings)
 	server.GET("/u/:uid/:pageindex", controllers.RenderMemberIndex)
+
+	// 日记列表
+	daybook := server.Group("/d")
+	{
+		daybook.GET("/:spaceid", controllers.RenderDiaryIndex)
+		daybook.GET("/:spaceid/:pageindex", controllers.RenderDiaryIndex)
+	}
 
 	// 日记本操作
 	server.POST("/diary", controllers.HandleDiary)

@@ -89,7 +89,34 @@ func RenderDiaryIndex(c *gin.Context) {
 // 增加日记本表单渲染
 func RenderDiaryForm(c *gin.Context) {
 	h := pkg.DefaultH(c)
+	// 获取action 和 diary_id
+	action := c.Query("action")
+	// 如果是编辑日记本，则需要获取 diary_id
+	if action == "diary.edit" {
+		diaryID, err := strconv.ParseInt(c.Query("diary_id"), 10, 64)
+		if err != nil || diaryID <= 0 {
+			errors.ResponseErr(c, errors.ParseInputParamErr)
+			return
+		}
+		//获取用户登录信息
+		userSession, _ := c.Get("UserData")
+		userData := userSession.(models.Login)
 
+		// 获取日记本信息
+		diary, err := models.GetDiaryByDiaryID(diaryID)
+		if err != nil || diary == nil {
+			errors.ResponseErr(c, errors.ParseInputParamErr)
+			return
+		}
+		// 如果不是当前用户的日记本，则返回错误
+		if diary.AddUserID != userData.UserId {
+			errors.ResponseErr(c, errors.InputParamErr)
+			return
+		}
+		// 返回日记本信息到模板
+		h["Diary"] = diary
+
+	}
 	c.HTML(http.StatusOK, "form/diary", h)
 }
 
@@ -134,13 +161,48 @@ func HandleDiary(c *gin.Context) {
 	diary.LastActionUserName = userData.UserName
 
 	//保存日记本
-	if action, _ := c.GetPostForm("action"); action == "diary.add" {
+	action, _ := c.GetPostForm("action")
+	if action == "diary.add" {
 		diaryID, err := services.AddDiary(diary)
 		if err != nil {
 			errors.ResponseErr(c, err)
 			return
 		}
 		diary.DiaryID = diaryID
+	} else if action == "diary.edit" {
+		// 获取原始日记本信息进行权限校验
+		originalDiary, err := models.GetDiaryByDiaryID(diary.DiaryID)
+		if err != nil || originalDiary == nil {
+			errors.ResponseErr(c, errors.ParseInputParamErr)
+			return
+		}
+
+		// 检查是否是当前用户的日记本
+		if originalDiary.AddUserID != userData.UserId {
+			errors.ResponseErr(c, errors.InputParamErr)
+			return
+		}
+
+		// 保留原有的一些字段值
+		diary.AddUTCTime = originalDiary.AddUTCTime
+		diary.AddUserID = originalDiary.AddUserID
+		diary.AddUserName = originalDiary.AddUserName
+		diary.AccessURL = originalDiary.AccessURL
+		diary.CoverURL = originalDiary.CoverURL
+		diary.CoverMidURL = originalDiary.CoverMidURL
+		diary.LikeNum = originalDiary.LikeNum
+		diary.MemberNum = originalDiary.MemberNum
+		diary.ViewNum = originalDiary.ViewNum
+		diary.InfoNum = originalDiary.InfoNum
+		diary.Status = originalDiary.Status
+		diary.AccessPwd = originalDiary.AccessPwd
+
+		// 更新日记本
+		err = services.UpdateDiary(diary)
+		if err != nil {
+			errors.ResponseErr(c, err)
+			return
+		}
 	}
 
 	//创建返回对象

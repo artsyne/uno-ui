@@ -6,9 +6,6 @@
 {{template "error" .}}
 {{else}}
 
-<script>
-    var spaceId = {{.Diary.DiaryID }};
-</script>
 <main class="main dt{{.Diary.ThemeID}}">
     <section class="flex justify-between mb-10">
         <div id="page-nav">
@@ -17,7 +14,7 @@
                     <span class="mdi mdi-slash-forward mx-3"></span>
                 </li>
                 <li>
-                    <a href="/d/{{.Diary.DiaryID}}">{{.Diary.Title}}</a>
+                    <a href="/d/{{.Diary.DiaryID}}" id="diary_title">{{.Diary.Title}}</a>
                     {{if eq .Diary.ViewSetting 2}}
                     <span class="mdi mdi-lock-outline mx-3"></span>
                     {{end}}
@@ -25,7 +22,7 @@
             </ul>
         </div>
         <div>
-            <button class="mr-3 btn" data-action="showDiaryBox" data-form-action="diary.edit" data-diary-id=""><i class="mdi mdi-cogs"></i> 日记本设置</button>
+            <button class="mr-3 btn" data-action="showDiaryBox" data-form-action="diary.edit" data-diary-id="{{.Diary.DiaryID}}"><i class="mdi mdi-cogs"></i> 日记本设置</button>
             <button class="btn" href="#"><i class="mdi mdi-heart-outline"></i> 点赞</button>
         </div>
     </section>
@@ -35,7 +32,7 @@
             <div>
                 <h1 class="card-title">日记本介绍</h1>
                 <div class="text-sm">
-                    <p>日记本介绍，这是个人日记</p>
+                    <p id="diary_remark">{{.Diary.Remark}}</p>
                 </div>
             </div>
             <div>

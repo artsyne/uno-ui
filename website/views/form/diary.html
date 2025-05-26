@@ -5,25 +5,27 @@
         <div class="block mb-4">
             <label class="form-title">日记本名称 *</label>
             <input type="text" class="form-control" id="title" name="title"
-                valid='[{"type":"required"},{"type":"limit","min":1,"max":100}]' placeholder="日记本名称">
+                valid='[{"type":"required"},{"type":"limit","min":1,"max":100}]' placeholder="日记本名称" {{if
+                .Diary}}value="{{.Diary.Title}}" {{end}}>
             <div class="invalid-feedback"></div>
         </div>
         <div class="block mb-4">
             <label class="form-title">日记本介绍</label>
             <textarea class="form-control" valid='[{"type":"limit","max":250,"show":true}]' id="remark" name="remark"
-                placeholder="日记本介绍" style="height: 80px"></textarea>
+                placeholder="日记本介绍" style="height: 80px">{{if .Diary}}{{.Diary.Remark}}{{end}}</textarea>
             <div class="invalid-feedback"></div>
         </div>
         <div class="block mb-4">
             <div class="flex items-center space-x-4 mb-2">
                 <div class="flex items-center">
-                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" checked name="view_setting"
-                        id="daybook_view_setting1" value="2">
+                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Diary (eq .Diary.ViewSetting
+                        2)}}checked{{else if not .Diary}}checked{{end}} name="view_setting" id="daybook_view_setting1"
+                        value="2">
                     <label class="text-sm" for="daybook_view_setting1">私人日记本</label>
                 </div>
                 <div class="flex items-center">
-                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" name="view_setting"
-                        id="daybook_view_setting2" value="1">
+                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Diary (eq .Diary.ViewSetting
+                        1)}}checked{{end}} name="view_setting" id="daybook_view_setting2" value="1">
                     <label class="text-sm" for="daybook_view_setting2">公开日记本</label>
                 </div>
             </div>
@@ -32,13 +34,15 @@
         <div class="block mb-4">
             <div class="flex items-center space-x-4 mb-2">
                 <div class="flex items-center">
-                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" checked name="social_setting"
+                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Diary (eq
+                        .Diary.SocialSetting 2)}}checked{{else if not .Diary}}checked{{end}} name="social_setting"
                         id="daybook_social_setting1" value="2">
                     <label class="text-sm" for="daybook_social_setting1">关闭社交功能</label>
                 </div>
                 <div class="flex items-center">
-                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" name="social_setting"
-                        id="daybook_social_setting2" value="1">
+                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Diary (eq
+                        .Diary.SocialSetting 1)}}checked{{end}} name="social_setting" id="daybook_social_setting2"
+                        value="1">
                     <label class="text-sm" for="daybook_social_setting2">开启社交功能</label>
                 </div>
             </div>
@@ -47,27 +51,47 @@
         <div class="block mb-4">
             <label class="form-title mb-2 block">选择风格</label>
             <div class="d-theme flex flex-wrap gap-3 py-2">
-                <div class="dtf16 h-8 w-8 rounded cursor-pointer ring-2 ring-black" theme="16"></div>
-                <div class="dtf15 h-8 w-8 rounded cursor-pointer hover:ring-2 hover:ring-gray-400" theme="15"></div>
-                <div class="dtf14 h-8 w-8 rounded cursor-pointer hover:ring-2 hover:ring-gray-400" theme="14"></div>
-                <div class="dtf13 h-8 w-8 rounded cursor-pointer hover:ring-2 hover:ring-gray-400" theme="13"></div>
-                <div class="dtf12 h-8 w-8 rounded cursor-pointer hover:ring-2 hover:ring-gray-400" theme="12"></div>
-                <div class="dtf11 h-8 w-8 rounded cursor-pointer hover:ring-2 hover:ring-gray-400" theme="11"></div>
-                <div class="dtf10 h-8 w-8 rounded cursor-pointer hover:ring-2 hover:ring-gray-400" theme="10"></div>
-                <div class="dtf9 h-8 w-8 rounded cursor-pointer hover:ring-2 hover:ring-gray-400" theme="9"></div>
-                <div class="dtf8 h-8 w-8 rounded cursor-pointer hover:ring-2 hover:ring-gray-400" theme="8"></div>
-                <div class="dtf7 h-8 w-8 rounded cursor-pointer hover:ring-2 hover:ring-gray-400" theme="7"></div>
-                <div class="dtf6 h-8 w-8 rounded cursor-pointer hover:ring-2 hover:ring-gray-400" theme="6"></div>
-                <div class="dtf5 h-8 w-8 rounded cursor-pointer hover:ring-2 hover:ring-gray-400" theme="5"></div>
-                <div class="dtf4 h-8 w-8 rounded cursor-pointer hover:ring-2 hover:ring-gray-400" theme="4"></div>
-                <div class="dtf3 h-8 w-8 rounded cursor-pointer hover:ring-2 hover:ring-gray-400" theme="3"></div>
-                <div class="dtf2 h-8 w-8 rounded cursor-pointer hover:ring-2 hover:ring-gray-400" theme="2"></div>
-                <div class="dtf1 h-8 w-8 rounded cursor-pointer hover:ring-2 hover:ring-gray-400" theme="1"></div>
+                {{$selectedTheme := 16}}
+                {{if .Diary}}
+                {{$selectedTheme = .Diary.ThemeID}}
+                {{end}}
+                <div class="dtf16 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 16}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
+                    theme="16"></div>
+                <div class="dtf15 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 15}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
+                    theme="15"></div>
+                <div class="dtf14 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 14}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
+                    theme="14"></div>
+                <div class="dtf13 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 13}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
+                    theme="13"></div>
+                <div class="dtf12 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 12}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
+                    theme="12"></div>
+                <div class="dtf11 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 11}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
+                    theme="11"></div>
+                <div class="dtf10 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 10}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
+                    theme="10"></div>
+                <div class="dtf9 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 9}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
+                    theme="9"></div>
+                <div class="dtf8 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 8}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
+                    theme="8"></div>
+                <div class="dtf7 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 7}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
+                    theme="7"></div>
+                <div class="dtf6 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 6}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
+                    theme="6"></div>
+                <div class="dtf5 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 5}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
+                    theme="5"></div>
+                <div class="dtf4 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 4}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
+                    theme="4"></div>
+                <div class="dtf3 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 3}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
+                    theme="3"></div>
+                <div class="dtf2 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 2}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
+                    theme="2"></div>
+                <div class="dtf1 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 1}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
+                    theme="1"></div>
             </div>
         </div>
         <input type="hidden" name="action" id="action" />
-        <input type="hidden" name="diary_id" id="diary_id" value="" />
-        <input type="hidden" name="theme_id" id="theme_id" value="16" />
+        <input type="hidden" name="diary_id" id="diary_id" value="{{if .Diary}}{{.Diary.DiaryID}}{{end}}" />
+        <input type="hidden" name="theme_id" id="theme_id" value="{{if .Diary}}{{.Diary.ThemeID}}{{else}}16{{end}}" />
     </form>
 </div>
 {{end}}

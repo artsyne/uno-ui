@@ -95,6 +95,30 @@ func (diary *Diary) Insert() (int64, error) {
 	return id, err
 }
 
+// 更新日记本
+func (diary *Diary) Update() error {
+	sql := `
+		UPDATE br_diary SET 
+		title = ?,
+		remark = ?,
+		view_setting = ?,
+		social_setting = ?,
+		theme_id = ?,
+		last_action_utc_time = ?,
+		last_action_user_id = ?,
+		last_action_user_name = ?
+		WHERE diary_id = ?
+	`
+
+	_, err := db.Exec(sql,
+		diary.Title, diary.Remark,
+		diary.ViewSetting, diary.SocialSetting, diary.ThemeID,
+		diary.LastActionUTCTime, diary.LastActionUserID, diary.LastActionUserName,
+		diary.DiaryID)
+
+	return err
+}
+
 // 通过空间 ID 把空间信息数量加一，并更新最后动作时间,用户ID,用户名
 func IncrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
 	sqlstr := `
