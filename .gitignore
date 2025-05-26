@@ -31,4 +31,5 @@ config/config.json
 /cmd/idiary/*.exe
 /vendor/
 /logs/
+/ai/
 /__debug_bin/
