@@ -29,6 +29,8 @@ const Auth = {
     return [this.loginAction, this.registerAction, this.forgotPasswordAction];
   },
 
+  // 注意：已移除 _handleValidationError 方法，现在使用全局的 handleError
+
   /**
    * 注册自定义验证回调
    */
@@ -37,6 +39,12 @@ const Auth = {
     $.fn.valid.registerCallback('checkUsername', function (id, value) {
       // 如果用户名为空，不进行查重
       if (!value) return true;
+
+      // 定义用户名相关的错误代码和消息
+      const errorCodeMessages = {
+        100001: '用户名 {value} 已被注册，请尝试其他用户名',
+      };
+
       // 返回Promise对象，以支持异步验证
       return new Promise((resolve) => {
         // 调用后端API检查用户名是否存在
@@ -45,13 +53,18 @@ const Auth = {
           type: 'POST',
           data: { username: value },
           dataType: 'json',
-          success: function (response) {
-            // 返回false表示验证失败（用户名已存在）
-            resolve(!response.exists);
-          },
-          error: function () {
-            // 出错时默认通过验证
-            resolve(true);
+          global: false, // 禁用全局AJAX事件,覆盖 beforeSend 全局定义
+          beforeSend: function () {},
+          error: function (xhr) {
+            // 使用全局错误处理函数处理错误响应
+            const result = handleError(xhr, 'validation.username', {
+              showNotify: false, // 不显示通知，仅返回消息
+              errorCodeMessages: errorCodeMessages,
+              messageData: { value: value },
+            });
+
+            // 如果是验证错误，返回错误消息，否则返回true
+            resolve(result.isValid ? true : result.message);
           },
         });
       });
@@ -62,6 +75,11 @@ const Auth = {
       // 如果邮箱为空，不进行查重
       if (!value) return true;
 
+      // 定义邮箱相关的错误代码和消息
+      const errorCodeMessages = {
+        100002: '邮箱 {value} 已被注册，请使用其他邮箱',
+      };
+
       // 返回Promise对象，以支持异步验证
       return new Promise((resolve) => {
         // 调用后端API检查邮箱是否存在
@@ -70,13 +88,18 @@ const Auth = {
           type: 'POST',
           data: { email: value },
           dataType: 'json',
-          success: function (response) {
-            // 返回false表示验证失败（邮箱已存在）
-            resolve(!response.exists);
-          },
-          error: function () {
-            // 出错时默认通过验证
-            resolve(true);
+          global: false, // 禁用全局AJAX事件,覆盖 beforeSend 全局定义
+          beforeSend: function () {},
+          error: function (xhr) {
+            // 使用全局错误处理函数处理错误响应
+            const result = handleError(xhr, 'validation.email', {
+              showNotify: false, // 不显示通知，仅返回消息
+              errorCodeMessages: errorCodeMessages,
+              messageData: { value: value },
+            });
+
+            // 如果是验证错误，返回错误消息，否则返回true
+            resolve(result.isValid ? true : result.message);
           },
         });
       });
@@ -136,9 +159,8 @@ const Auth = {
    * @type {Object}
    */
   registerAction: {
-    id: 'register',
+    id: 'reg',
     type: 'function',
-    selector: '#register_btn',
     /**
      * 处理注册请求
      * @param {string} id - 行为ID

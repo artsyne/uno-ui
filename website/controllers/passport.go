@@ -206,6 +206,49 @@ func HandleUserReg(c *gin.Context) {
 	c.JSON(http.StatusOK, h)
 }
 
+// HandleCheckUserName : 检查用户名是否存在
+func HandleCheckUserName(c *gin.Context) {
+	userName, _ := c.GetPostForm("username")
+	//创建正则表达式
+	regexCheck := &pkg.RegexCheck{}
+
+	//判断参数是否正确
+	if !regexCheck.IsUserName(userName) {
+		errors.ResponseErr(c, errors.InputParamErr)
+		return
+	}
+	//根据用户名获取用户信息
+	
+	if services.IsExistUserName(userName) != nil {
+		errors.ResponseErr(c, errors.RegisterUserNameExists)
+		return
+	}
+
+	h := pkg.ResponseH(c)
+	c.JSON(http.StatusOK, h)
+}
+
+// HandleCheckEmail : 检查邮件地址是否存在
+func HandleCheckEmail(c *gin.Context) {
+	email, _ := c.GetPostForm("email")
+	//创建正则表达式
+	regexCheck := &pkg.RegexCheck{}
+
+	//判断参数是否正确
+	if !regexCheck.IsEmail(email) {
+		errors.ResponseErr(c, errors.InputParamErr)
+		return
+	}
+	//根据邮件地址获取用户信息
+	if services.IsExistEmail(email) != nil {
+		errors.ResponseErr(c, errors.RegisterUserEmailExists)
+		return
+	}
+
+	h := pkg.ResponseH(c)
+	c.JSON(http.StatusOK, h)
+}
+
 // HandleFindPwd : 处理找回密码链接
 func HandleFindPwd(c *gin.Context) {
 	email, _ := c.GetPostForm("email")

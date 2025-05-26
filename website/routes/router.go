@@ -103,6 +103,9 @@ func setPath(server *gin.Engine) {
 	// passport
 	server.GET("/register", controllers.RenderRegister)
 	server.POST("/register", controllers.HandleUserReg)
+	server.POST("/check-username", controllers.HandleCheckUserName)
+	server.POST("/check-email", controllers.HandleCheckEmail)
+
 
 	server.GET("/login", controllers.RenderLogin)
 	server.POST("/login", controllers.HandleLogin)
@@ -123,5 +126,5 @@ func setPath(server *gin.Engine) {
 	server.GET("/u/:uid/:pageindex", controllers.RenderMemberIndex)
 
 	// 日记本操作
-	server.POST("/daybook", controllers.HandleDiary)
+	server.POST("/diary", controllers.HandleDiary)
 }

@@ -134,7 +134,7 @@ func HandleDiary(c *gin.Context) {
 	diary.LastActionUserName = userData.UserName
 
 	//保存日记本
-	if action, _ := c.GetPostForm("action"); action == "My.insertDaybook" {
+	if action, _ := c.GetPostForm("action"); action == "diary.add" {
 		diaryID, err := services.AddDiary(diary)
 		if err != nil {
 			errors.ResponseErr(c, err)

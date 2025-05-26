@@ -19,6 +19,18 @@ func (ic *RegexCheck) IsID(str ...string) bool {
 	return b
 }
 
+//检查用户名是否合法，数字+字母  不限制大小写 6~30位
+func (ic *RegexCheck) IsUserName(str ...string) bool {
+	var b bool
+	for _, s := range str {
+		b, _ = regexp.MatchString("^[0-9a-zA-Z]{6,30}$", s)
+		if false == b {
+			return b
+		}
+	}
+	return b
+}
+
 //数字+字母+符号 6~30位
 func (ic *RegexCheck) IsPwd(str ...string) bool {
 	var b bool
@@ -30,6 +42,7 @@ func (ic *RegexCheck) IsPwd(str ...string) bool {
 	}
 	return b
 }
+
 
 /************************* 数字类型 ************************/
 //纯整数

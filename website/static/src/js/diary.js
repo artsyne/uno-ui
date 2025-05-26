@@ -57,7 +57,7 @@ const Diary = {
 
           // 提交表单
           $.ajax({
-            url: `${Diary.baseUrl}/daybook`,
+            url: `${Diary.baseUrl}/diary`,
             type: 'POST',
             data: $form.serialize(),
             dataType: 'json',
