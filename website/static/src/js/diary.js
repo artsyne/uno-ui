@@ -82,6 +82,9 @@ const Diary = {
         data: $form.serialize(),
         dataType: 'json',
         success: (response) => {
+          // 恢复按钮状态
+          $okButton.prop('disabled', false).text(originalText);
+
           if (response.Status === 0) {
             this._handleSubmitSuccess(data.formAction, response.Data);
             kiko.ui.box.close(boxId);
@@ -93,12 +96,11 @@ const Diary = {
           }
         },
         error: (xhr, status, error) => {
-          log('提交失败:', error, 'error');
-          this._handleSubmitError('网络错误，请重试');
-        },
-        complete: () => {
           // 恢复按钮状态
           $okButton.prop('disabled', false).text(originalText);
+
+          log('提交失败:', error, 'error');
+          this._handleSubmitError('网络错误，请重试');
         },
       });
 

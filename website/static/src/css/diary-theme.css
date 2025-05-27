@@ -1,194 +1,207 @@
-.dt1 {
-    border-color: #E53935;
+.dt1,
+.dt1 .card {
+  border-color: #e53935;
 }
 
-.dt1 a
- {
-    color: #E53935;
+.dt1 a {
+  color: #e53935;
 }
 
 .dtf1 {
-    background-color: #E53935;
+  background-color: #e53935;
 }
 
-.dt2 {
-    border-color: #EB3F79;
+.dt2,
+.dt2 .card {
+  border-color: #eb3f79;
 }
 
 .dt2 a {
-    color: #EB3F79;
+  color: #eb3f79;
 }
 
 .dtf2 {
-    background-color: #EB3F79;
+  background-color: #eb3f79;
 }
 
-.dt3 {
-    border-color: #A900FF;
+.dt3,
+.dt3 .card {
+  border-color: #a900ff;
 }
 
 .dt3 a {
-    color: #A900FF;
+  color: #a900ff;
 }
 
 .dtf3 {
-    background-color: #A900FF;
+  background-color: #a900ff;
 }
 
-.dt4{
-    border-color: #7D56C1;
+.dt4,
+.dt4 .card {
+  border-color: #7d56c1;
 }
 
-
-.dt4 a{
-    color: #7D56C1;
+.dt4 a {
+  color: #7d56c1;
 }
 
 .dtf4 {
-    background-color: #7D56C1;
+  background-color: #7d56c1;
 }
 
-.dt5 {
-    border-color: #5B6ABF;
+.dt5,
+.dt5 .card {
+  border-color: #5b6abf;
 }
 
-.dt5 a{
-    color: #5B6ABF;
+.dt5 a {
+  color: #5b6abf;
 }
 
 .dtf5 {
-    background-color: #5B6ABF;
+  background-color: #5b6abf;
 }
 
-.dt6 {
-    border-color: #1D87E4;
+.dt6,
+.dt6 .card {
+  border-color: #1d87e4;
 }
-
 
 .dt6 a {
-    color: #1D87E4;
+  color: #1d87e4;
 }
 
 .dtf6 {
-    background-color: #1D87E4;
+  background-color: #1d87e4;
 }
 
-.dt7 {
-    border-color: #029AE4;
+.dt7,
+.dt7 .card {
+  border-color: #029ae4;
 }
 
-.dt7 a{
-    color: #029AE4;
+.dt7 a {
+  color: #029ae4;
 }
 
 .dtf7 {
-    background-color: #029AE4;
+  background-color: #029ae4;
 }
 
-.dt8 {
-    border-color: #00ABC0;
+.dt8,
+.dt8 .card {
+  border-color: #00abc0;
 }
 
-.dt8 a{
-    color: #00ABC0;
+.dt8 a {
+  color: #00abc0;
 }
 
 .dtf8 {
-    background-color: #00ABC0;
+  background-color: #00abc0;
 }
 
-.dt9 {
-    border-color: #00887A;
+.dt9,
+.dt9 .card {
+  border-color: #00887a;
 }
 
 .dt9 a {
-    color: #00887A;
+  color: #00887a;
 }
 
 .dtf9 {
-    background-color: #00887A;
+  background-color: #00887a;
 }
 
-.dt10 {
-    border-color: #378D3B;
+.dt10,
+.dt10 .card {
+  border-color: #378d3b;
 }
 
-.dt10 a{
-    color: #378D3B;
+.dt10 a {
+  color: #378d3b;
 }
 
 .dtf10 {
-    background-color: #378D3B;
+  background-color: #378d3b;
 }
 
-.dt11 {
-    border-color: #679E37;
+.dt11,
+.dt11 .card {
+  border-color: #679e37;
 }
 
 .dt11 a {
-    color: #679E37;
+  color: #679e37;
 }
 
 .dtf11 {
-    background-color: #679E37;
+  background-color: #679e37;
 }
 
-.dt12 {
-    border-color: #F8A724;
+.dt12,
+.dt12 .card {
+  border-color: #f8a724;
 }
 
 .dt12 a {
-    color: #F8A724;
+  color: #f8a724;
 }
 
 .dtf12 {
-    background-color: #F8A724;
+  background-color: #f8a724;
 }
 
-.dt13 {
-    border-color: #FF6F42;
+.dt13,
+.dt13 .card {
+  border-color: #ff6f42;
 }
 
 .dt13 a {
-    color: #FF6F42;
+  color: #ff6f42;
 }
 
 .dtf13 {
-    background-color: #FF6F42;
+  background-color: #ff6f42;
 }
 
-.dt14 {
-    border-color: #8C6D62;
+.dt14,
+.dt14 .card {
+  border-color: #8c6d62;
 }
 
 .dt14 a {
-    color: #8C6D62;
+  color: #8c6d62;
 }
 
 .dtf14 {
-    background-color: #8C6D62;
+  background-color: #8c6d62;
 }
 
-.dt15 {
-    border-color: #778F9B;
+.dt15,
+.dt15 .card {
+  border-color: #778f9b;
 }
 
-.dt15 a{
-    color: #778F9B;
+.dt15 a {
+  color: #778f9b;
 }
 
 .dtf15 {
-    background-color: #778F9B;
+  background-color: #778f9b;
 }
 
-.dt16 {
-    border-color: #414141;
+.dt16,
+.dt16 .card {
+  border-color: #414141;
 }
 
-.dt16 a{
-    color: #414141;
+.dt16 a {
+  color: #414141;
 }
 
 .dtf16 {
-    background-color: #414141;
+  background-color: #414141;
 }
