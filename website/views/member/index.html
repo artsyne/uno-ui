@@ -60,7 +60,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8" id="daybook_list">
             {{ $isOwner := .IsOwner }}
             {{ range .Diaries }}
-            <div class="border h-64 text-center dt{{ .ThemeID }}">
+            <div class="border h-72 text-center dt{{ .ThemeID }}">
                 <div class="h-full flex flex-col p-3">
                     <div class="flex-grow flex items-center justify-center flex-col">
                         <h1 class="text-xl mb-2 break-words w-full">
@@ -73,10 +73,12 @@
                         </h1>
                         <p class="mb-2">
                             {{ .InfoNum }}篇
-                            {{ if gt .InfoNum 0 }}
-                            - {{ formatTime .LastActionUTCTime "2006-01-02 15:04" }}
-                            {{ end }}
                         </p>
+                        {{ if gt .InfoNum 0 }}
+                        <p class="mb-2">
+                            {{ formatTime .LastActionUTCTime "2006-01-02 15:04" }}
+                        </p>
+                        {{ end }}
                     </div>
                 </div>
             </div>

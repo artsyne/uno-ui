@@ -16,13 +16,279 @@ const Diary = {
    * @returns {Array} 日记本行为配置数组
    */
   init: function (baseUrl = '') {
-    log('日记本模块初始化');
     this.baseUrl = baseUrl;
-    return [this.showDiaryBoxAction, this.postInfoAction];
+    return [
+      this.showDiaryBoxAction,
+      this.showPostBoxAction,
+      this.postInfoAction,
+    ];
+  },
+  /*
+   * 显示写日记对话框行为
+   */
+  showPostBoxAction: {
+    id: 'showPostBox',
+    type: 'function',
+
+    /**
+     * 处理显示写日记对话框请求
+     * @param {string} id - 行为ID
+     * @param {HTMLElement} target - 触发元素
+     * @param {Object} eventData - 事件数据
+     * @param {Object} data - 附加数据
+     */
+    handler: function (id, target, eventData, data) {
+      const isEdit = data.formAction === 'post.edit';
+      const dialogTitle = isEdit
+        ? appI18n.getMessage('post.edit.title')
+        : appI18n.getMessage('post.create.title');
+
+      // 显示对话框并加载表单
+      const boxId = kiko.ui.box.dialog({
+        title: dialogTitle,
+        content: `<div class="modal-body" id="post-form-container">${appI18n.getMessage('loading')}</div>`,
+        width: 880,
+        height: 570,
+        showOkButton: true,
+        okButtonText: appI18n.getMessage('post.save') || '保存',
+        okButtonClass: 'btn-red',
+        buttonAlign: 'right',
+        onOk: () => this._handlePostSubmit(data, boxId),
+      });
+
+      // 加载表单内容
+      this._loadPostForm(data, boxId);
+    },
+
+    /**
+     * 加载写日记表单内容
+     * @private
+     */
+    _loadPostForm: function (data, boxId) {
+      const params = {
+        action: data.formAction,
+        ...(data.postId && { post_id: data.postId }),
+        ...(data.diaryId && { diary_id: data.diaryId }),
+      };
+
+      $.get(`${Diary.baseUrl}/form/post`, params)
+        .then((response) => {
+          this._initializePostForm(
+            response,
+            data.formAction,
+            data.diaryId,
+            data.postId,
+          );
+        })
+        .catch((error) => {
+          $('#post-form-container').html(`
+            <div class="text-center text-red-500 py-8">
+              <p>加载表单失败，请重试</p>
+              <button class="btn btn-sm mt-2" onclick="location.reload()">刷新页面</button>
+            </div>
+          `);
+        });
+    },
+
+    /**
+     * 初始化写日记表单
+     * @private
+     */
+    _initializePostForm: function (formHtml, formAction, diaryId, postId) {
+      $('#post-form-container').html(formHtml);
+      const $form = $('#post-form-container form');
+
+      // 设置表单行为
+      $form.find('input[name="action"]').val(formAction);
+      $form.find('input[name="diary_id"]').val(diaryId || '');
+      $form.find('input[name="post_id"]').val(postId || '');
+
+      // 初始化验证
+      if ($form.valid) {
+        $form.valid();
+      }
+
+      // 光标focus到标题输入框
+      const $titleInput = $form.find('input[name="info_title"]');
+      if ($titleInput.length) {
+        $titleInput.focus();
+      } 
+    },
+
+    /**
+     * 处理写日记表单提交
+     * @private
+     */
+    _handlePostSubmit: function (data, boxId) {
+      const $form = $('#post-form-container form');
+
+      // 表单验证
+      if (!$form.length || ($form.valid && $form.valid('checkError'))) {
+        return false; // 阻止对话框关闭
+      }
+
+      // 显示提交状态
+      const $okButton = $('.kiko-dialog-footer .btn-red');
+      const originalText = $okButton.text();
+      $okButton.prop('disabled', true).text('保存中...');
+
+      // 提交表单
+      $.ajax({
+        url: `${Diary.baseUrl}/post`,
+        type: 'POST',
+        data: $form.serialize(),
+        dataType: 'json',
+        success: (response) => {
+          // 恢复按钮状态
+          $okButton.prop('disabled', false).text(originalText);
+
+          if (response.Status === 0) {
+            this._handlePostSubmitSuccess(data.formAction, response.Data);
+            kiko.ui.box.close(boxId);
+            kiko.ui.notify.success(appI18n.getMessage('post.save.success'));
+          } else {
+            this._handleSubmitError(response.Message);
+          }
+        },
+        error: (xhr, status, error) => {
+          // 恢复按钮状态
+          $okButton.prop('disabled', false).text(originalText);
+
+          log('提交失败:', error, 'error');
+          this._handleSubmitError('网络错误，请重试');
+        },
+      });
+
+      return false; // 阻止对话框自动关闭
+    },
+
+    /**
+     * 处理写日记提交成功
+     * @private
+     */
+    _handlePostSubmitSuccess: function (formAction, responseData) {
+      if (formAction === 'post.create') {
+        // 新建日记成功，增加新的日记到列表
+        this._addPostToList(responseData);
+      } else if (formAction === 'post.edit') {
+        // 编辑日记成功，更新列表中的日记信息
+        this._updatePostInfo(responseData);
+      }
+    },
+    /**
+     * 更新日记信息
+     * @private
+     */
+    _updatePostInfo: function (postData) {
+      // 确保必要的数据存在
+      if (!postData || !postData.post_id) {
+        log('更新日记信息失败：缺少必要数据', 'error');
+        return;
+      }
+
+      // 查找对应的日记卡片
+      const $postCard = $(
+        `#diary_post_container .card[data-post-id="${postData.post_id}"]`,
+      );
+      if (!$postCard.length) {
+        log('未找到对应的日记卡片，无法更新', 'error');
+        return;
+      }
+
+      // 更新标题和摘要
+      $postCard.find('h1').text(escapeHtml(postData.title || ''));
+      $postCard.find('p').text(escapeHtml(postData.summary || ''));
+
+      log('成功更新日记信息', postData);
+    },
+    /**
+     * 添加新日记到列表
+     * @private
+     */
+    _addPostToList: function (postData) {
+      // 确保必要的数据存在
+      if (!postData || !postData.post_id) {
+        log('添加日记到列表失败：缺少必要数据', 'error');
+        return;
+      }
+
+      // 构建日记卡片HTML，直接使用服务端返回的数据
+      const postHtml = `
+        <div class="card border p-3 mb-6 break-inside-avoid" data-post-id="${postData.post_id}">
+          <div class="card-body">
+            ${
+              postData.title
+                ? `
+            <h1 class="text-black break-words mb-2">
+              ${escapeHtml(postData.title)}
+            </h1>
+            `
+                : ''
+            }
+            <p class="break-words leading-relaxed">
+              ${escapeHtml(postData.summary || '')}
+            </p>
+          </div>
+          <div class="my-4 flex justify-between">
+            <div>
+              <a href="#"><i class="mdi mdi-account-box"></i>
+                ${escapeHtml(postData.add_user_name || '')}</a>
+              <a href="#"><i class="mdi mdi-book-outline"></i> ${escapeHtml($('#diary_title').text() || '')}</a>
+            </div>
+            <div>
+              <a href="#">
+                <i class="mdi mdi-comment-multiple-outline"></i> <span>${postData.comment_num || 0}</span>
+              </a>
+              <a href="#">
+                <i class="mdi mdi-heart-outline"></i> <span>${postData.like_num || 0}</span>
+              </a>
+            </div>
+          </div>
+          <div class="my-4 flex justify-between">
+            <div>
+              <a href="" data-action="showPostBox" data-form-action="post.edit"
+                data-diary-id="${postData.diary_id || ''}" data-post-id="${postData.post_id}">编辑</a>
+            </div>
+          </div>
+          <div class="blog-date">
+            <span class="post-month">${postData.month || ''}</span>
+            <span class="post-day">${postData.day || ''}</span>
+            <span class="post-year">${postData.year || ''}</span>
+          </div>
+          <div class="blog-quote-icon">
+            <i class="mdi mdi-format-quote-close"></i>
+          </div>
+        </div>
+      `;
+
+      // 将新日记添加到列表的第二个位置（第一个是写日记按钮）
+      const $container = $('#diary_post_container');
+      const $firstCard = $container.find('.card').first();
+
+      if ($firstCard.length) {
+        $firstCard.after(postHtml);
+      } else {
+        $container.prepend(postHtml);
+      }
+
+      // 添加动画效果
+      const $newPost = $container.find(`[data-post-id="${postData.post_id}"]`);
+      $newPost.hide().fadeIn(600);
+
+      log('成功添加新日记到列表', postData);
+    },
+
+    /**
+     * 处理提交错误
+     * @private
+     */
+    _handleSubmitError: function (errorMessage) {
+      kiko.ui.notify.error(errorMessage);
+    },
   },
 
   /**
-   * 显示日记本对话框行为
+   * 显示日记对话框行为
    * @type {Object}
    */
   showDiaryBoxAction: {
@@ -38,13 +304,13 @@ const Diary = {
 
       const isEdit = data.formAction === 'diary.edit';
       const dialogTitle = isEdit
-        ? appI18n.getMessage('diary.edit.title') || '编辑日记本'
-        : appI18n.getMessage('diary.create.title') || '新建日记本';
+        ? appI18n.getMessage('diary.edit.title')
+        : appI18n.getMessage('diary.create.title');
 
       // 显示对话框并加载表单
       const boxId = kiko.ui.box.dialog({
         title: dialogTitle,
-        content: `<div class="modal-body" id="add-diary-form-container">${appI18n.getMessage('loading') || '加载中...'}</div>`,
+        content: `<div class="modal-body" id="add-diary-form-container">${appI18n.getMessage('loading')}</div>`,
         width: 780,
         height: 460,
         showOkButton: true,
@@ -190,7 +456,6 @@ const Diary = {
           this._initializeForm(response, data.formAction);
         })
         .catch((error) => {
-          log('加载表单失败:', error, 'error');
           $('#add-diary-form-container').html(`
             <div class="text-center text-red-500 py-8">
               <p>加载表单失败，请重试</p>
@@ -250,9 +515,8 @@ const Diary = {
    * @type {Object}
    */
   postInfoAction: {
-    id: 'post-info',
+    id: 'postInfo',
     type: 'function',
-    selector: '#post_btn',
 
     /**
      * 处理信息提交请求

@@ -16,6 +16,21 @@
 window.log = (message, ...data) => kiko.core.log(`[App] ${message}`, ...data);
 
 /**
+ * HTML转义工具函数
+ * 将文本中的HTML特殊字符转义，防止XSS攻击
+ *
+ * @param {string} text - 需要转义的文本
+ * @returns {string} 转义后的安全文本
+ */
+window.escapeHtml = (text) => {
+  if (!text) return '';
+
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+};
+
+/**
  * 统一的错误处理函数
  * 从错误对象或响应中提取消息并显示，或者根据错误码返回自定义消息
  *

@@ -57,6 +57,21 @@ func (post *Post) Insert() (int64, error) {
 	return id, err
 }
 
+//更新日志
+func (post *Post) Update() error {
+	sqlstr := `
+		UPDATE br_post SET 
+			diary_id = ?, is_top = ?, title = ?, summary = ?, body = ?, 
+			view_num = ?, like_num = ?, comment_num = ?, 
+			update_utc_time = ?, status = ?, info_type = ? 
+		WHERE post_id = ?
+	`
+	_, err := db.Exec(sqlstr, post.DiaryID, post.IsTop, post.Title, post.Summary, post.Body,
+		post.ViewNum, post.LikeNum, post.CommentNum,  post.UpdateUTCTime, post.Status, post.InfoType,
+		post.PostID)
+	return err
+}
+
 // ListPostsByUserID 根据用户ID和日记本ID分页查询日记信息
 // 参数:
 // - userID: 用户ID
@@ -104,4 +119,38 @@ func GetPostCountByUserID(userID int64, diaryID int64) (int, error) {
 		return 0, nil
 	}
 	return count, err
+}
+
+// GetPostByID 根据日记ID获取日记信息
+func GetPostByID(postID int64) (*Post, error) {
+	sqlstr := "SELECT * FROM br_post WHERE post_id = ?"
+	post := &Post{}
+	err := db.Get(post, sqlstr, postID)
+	if err == sql.ErrNoRows {
+		return nil, nil // 如果没有找到记录，返回nil
+	}
+	return post, err
+}
+// UpdatePostByID 根据日记ID更新日记信息
+func UpdatePostByID(post *Post) error {		
+	sqlstr := `
+		UPDATE br_post SET 
+			diary_id = ?, is_top = ?, title = ?, summary = ?, body = ?, 
+			view_num = ?, like_num = ?, comment_num = ?, add_user_id = ?, 
+			add_user_name = ?, add_user_ip = ?, add_utc_time = ?, 
+			update_utc_time = ?, status = ?, info_type = ? 
+		WHERE post_id = ?
+	`
+	_, err := db.Exec(sqlstr, post.DiaryID, post.IsTop, post.Title, post.Summary, post.Body,
+		post.ViewNum, post.LikeNum, post.CommentNum, post.AddUserID, post.AddUserName,
+		post.AddUserIP, post.AddUTCTime, post.UpdateUTCTime, post.Status, post.InfoType,
+		post.PostID)
+	return err
+}
+
+// DeletePostByID 根据日记ID删除日记信息
+func DeletePostByID(postID int64) error {
+	sqlstr := "DELETE FROM br_post WHERE post_id = ?"
+	_, err := db.Exec(sqlstr, postID)
+	return err
 }

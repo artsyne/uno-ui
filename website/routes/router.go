@@ -55,7 +55,20 @@ func loadTemplates(tmpl *template.Template, basePath string) error {
 			return err
 		}
 		if !f.IsDir() && strings.HasSuffix(f.Name(), ".html") {
-			_, err = tmpl.ParseFiles(path)
+			// 使用相对路径作为模板名称，避免命名冲突
+			relPath, err := filepath.Rel(basePath, path)
+			if err != nil {
+				return err
+			}
+			
+			// 读取文件内容
+			content, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			
+			// 使用相对路径作为模板名称解析
+			_, err = tmpl.New(relPath).Parse(string(content))
 			if err != nil {
 				return err
 			}
@@ -79,19 +92,11 @@ func setPath(server *gin.Engine) {
 
 	server.GET("/index", controllers.RenderIndex)
 
-	//表单渲染
-	form := server.Group("/form")
-	{
-		form.GET("/diary", controllers.RenderDiaryForm)
-	}
-
 	// diary
 	diary := server.Group("/diary")
 	{
 		diary.GET("/", controllers.RenderDiary)
 	}
-	server.GET("/write", controllers.RenderPostWrite)
-	server.POST("/info", controllers.HandlePost)
 
 	// passport
 	server.GET("/register", controllers.RenderRegister)
@@ -121,10 +126,19 @@ func setPath(server *gin.Engine) {
 	// 日记列表
 	daybook := server.Group("/d")
 	{
-		daybook.GET("/:spaceid", controllers.RenderDiaryIndex)
-		daybook.GET("/:spaceid/:pageindex", controllers.RenderDiaryIndex)
+		daybook.GET("/:diaryid", controllers.RenderDiaryIndex)
+		daybook.GET("/:diaryid/:pageindex", controllers.RenderDiaryIndex)
+	}
+
+	//表单渲染
+	form := server.Group("/form")
+	{
+		form.GET("/diary", controllers.RenderDiaryForm)
+		form.GET("/post", controllers.RenderPostForm)
 	}
 
 	// 日记本操作
 	server.POST("/diary", controllers.HandleDiary)
+	// 日记操作
+	server.POST("/post", controllers.HandlePost)
 }

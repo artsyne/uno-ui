@@ -327,3 +327,11 @@ func IfLoginGotoIndex(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/")
 	}
 }
+
+// 获取用户login 对象
+func GetLogin(c *gin.Context) (*models.Login) {
+	userSession, _ := c.Get("UserData")
+	userData, _ := userSession.(models.Login)
+
+	return &userData
+}

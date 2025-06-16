@@ -31,3 +31,23 @@ func AddPost(post *models.Post) (int64, error) {
 
 	return post.PostID, nil
 }
+
+// GetPostById 根据id获取post
+func GetPostByID(postId int64) (*models.Post,error){
+	post,error :=  models.GetPostByID(postId)
+	return post,error
+}
+
+// UpdatePost 更新 post
+func UpdatePost(post *models.Post)(error){
+	//校验参数：todo
+
+
+	// 更新日记本
+	err := post.Update()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

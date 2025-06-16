@@ -22,7 +22,8 @@
             </ul>
         </div>
         <div>
-            <button class="mr-3 btn" data-action="showDiaryBox" data-form-action="diary.edit" data-diary-id="{{.Diary.DiaryID}}"><i class="mdi mdi-cogs"></i> 日记本设置</button>
+            <button class="mr-3 btn" data-action="showDiaryBox" data-form-action="diary.edit"
+                data-diary-id="{{.Diary.DiaryID}}"><i class="mdi mdi-cogs"></i> 日记本设置</button>
             <button class="btn" href="#"><i class="mdi mdi-heart-outline"></i> 点赞</button>
         </div>
     </section>
@@ -56,15 +57,22 @@
     </section>
 
     <section>
-        <div class="lg:columns-3 md:columns-2 gap-6">
+        <div class="lg:columns-3 md:columns-2 gap-6" id="diary_post_container">
+            {{if .IsOwner}}
+            <div class="card border p-6 mb-6 break-inside-avoid">
+                <div class="flex items-center justify-center h-32 hover:cursor-pointer" data-action="showPostBox"
+                    data-form-action="post.create" data-diary-id="{{.Diary.DiaryID}}">
+                    <a><i class="mdi mdi-plus text-xl"></i>
+                        写日记</a>
+                </div>
+            </div>
+            {{end}}
             {{range .Posts}}
-            <div class="card border p-3 mb-6 break-inside-avoid">
+            <div class="card border p-3 mb-6 break-inside-avoid" data-post-id="{{.PostID}}">
                 <div class="card-body">
-                    {{if .Title }}
                     <h1 class="text-black break-words mb-2">
-                        {{.Title}}
+                      {{if .Title }}   {{.Title}} {{end}}
                     </h1>
-                    {{end}}
                     <p class="break-words leading-relaxed">
                         {{ .Summary}}
                     </p>
@@ -84,6 +92,15 @@
                         </a>
                     </div>
                 </div>
+                {{if $.IsOwner}}
+                <div class="my-4 flex justify-between">
+                    <div>
+                        <a href="" data-action="showPostBox" data-form-action="post.edit"
+                data-diary-id="{{$.Diary.DiaryID}}" data-post-id="{{.PostID}}">编辑</a>
+                    </div>
+                </div>
+                {{end}}
+
                 <div class="blog-date">
                     <span class="post-month">十二月</span>
                     <span class="post-day">29</span>

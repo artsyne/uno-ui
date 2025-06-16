@@ -10,6 +10,7 @@ import (
 	"github.com/biuren/hebe/internal/errors"
 	"github.com/biuren/hebe/internal/models"
 	"github.com/biuren/hebe/internal/services"
+	 "github.com/biuren/hebe/internal/helpers"
 	"github.com/biuren/hebe/pkg"
 
 	"github.com/gin-gonic/gin"
@@ -27,13 +28,13 @@ func RenderDiaryIndex(c *gin.Context) {
 	h["Active"] = "users"
 
 	// 获取 URL 中的 diaryID
-	diaryID, err := strconv.ParseInt(strings.TrimSpace(c.Param("spaceid")), 10, 64)
+	diaryID, err := strconv.ParseInt(strings.TrimSpace(c.Param("diaryid")), 10, 64)
 	if err != nil {
 		hasError = true
 		h["SpaceID"] = diaryID
 		h["hasError"] = hasError
 		h["errMsg"] = errMsg
-		c.HTML(http.StatusOK, "daybook/index", h)
+		c.HTML(http.StatusOK, "diary/index", h)
 		return
 	}
 
@@ -49,7 +50,7 @@ func RenderDiaryIndex(c *gin.Context) {
 		h["DiaryID"] = diaryID
 		h["hasError"] = hasError
 		h["errMsg"] = errMsg
-		c.HTML(http.StatusOK, "daybook/index", h)
+		c.HTML(http.StatusOK, "diary/index", h)
 		return
 	}
 
@@ -74,10 +75,17 @@ func RenderDiaryIndex(c *gin.Context) {
 	}
 	pageLinks := pkg.GeneratePagination(listOptions)
 
+	//判断用户是否登陆，如果登陆是否是日记本owner 以便初始化模版写日记功能
+	isAuth, loginUser := helpers.Auth.IsAuthenticated(c)
+	if isAuth && loginUser.UserId == diary.AddUserID {
+		h["IsOwner"] = true
+	} else {
+		h["IsOwner"] = false
+	}
+
 	// 分页导航链接
 	h["Diary"] = diary
 	h["PageLinks"] = pageLinks
-	h["DiaryID"] = diaryID
 	h["hasError"] = hasError
 	h["errMsg"] = errMsg
 	h["DiariesNum"] = diariesNum
@@ -125,7 +133,7 @@ func RenderDiary(c *gin.Context) {
 	h := pkg.DefaultH(c)
 	h["Title"] = "我的日记本"
 	h["Active"] = "users"
-	c.HTML(http.StatusOK, "daybook/diary", h)
+	c.HTML(http.StatusOK, "diary/diary", h)
 }
 
 // 保存日记本信息

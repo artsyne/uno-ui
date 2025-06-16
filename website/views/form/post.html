@@ -1,0 +1,27 @@
+{{define "form/post"}}
+
+<div class="px-4">
+    <form id="post_editor_form">
+        <div class="flex flex-col mx-auto">
+            <div class="form-group">
+                <div class="block">
+                    <label class="form-title" for="info_title">标题(非必填)</label>
+                    <input type="text" class="form-control" id="info_title" name="info_title"
+                        valid='["emptyquit",{"type":"limit","max":250}]' placeholder="日记标题"
+                        value="{{if .Post}}{{.Post.Title}}{{end}}">
+                </div>
+                <div class="block">
+                    <label class="form-title" for="info_body">日记内容 *</label>
+                    <textarea class="form-control h-96" id="info_body" name="info_body" rows="8"
+                        valid='["required",{"type":"limit","max":10000,"show":true}]'
+                        placeholder="请输入日记内容...">{{if .Post}}{{.Post.Body}}{{end}}</textarea>
+                </div>
+                <input type="hidden" name="post_id" id="post_id" value="{{if .Post}}{{.Post.PostID}}{{end}}">
+                <input type="hidden" name="action" id="action" value="{{if .Post}}post.edit{{else}}post.create{{end}}">
+                <input type="hidden" name="diary_id" id="diary_id" value="{{if .Post}}{{.Post.DiaryID}}{{end}}">
+            </div>
+        </div>
+    </form>
+</div>
+
+{{end}}

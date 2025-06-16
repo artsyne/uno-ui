@@ -2,77 +2,136 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
+	"github.com/biuren/hebe/internal/configs"
 	"github.com/biuren/hebe/internal/errors"
+	"github.com/biuren/hebe/internal/helpers"
 	"github.com/biuren/hebe/internal/models"
 	"github.com/biuren/hebe/internal/services"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
 
-// renderDiaryWrite ： 渲染日记编辑界面
-func RenderPostWrite(c *gin.Context) {
+// RenderPostForm: 渲染日本编辑界面
+func RenderPostForm(c *gin.Context) {
 	//获取用户登录信息
-	userSession, _ := c.Get("UserData")
-	userData := userSession.(models.Login)
+	loginUser := helpers.Auth.MustGetCurrentUser(c)
+	h := pkg.DefaultH(c)
 
-	//读取用户所有日记本
-	diaries, err := models.ListDiariesForWriteByUserID(userData.UserId)
-	if err != nil {
-		errors.ResponseErr(c, errors.ParseInputParamErr)
-		return
+	// 获取action 和 post_id
+	action := c.Query("action")
+	if action == "post.edit" {
+		postId, err := strconv.ParseInt(c.Query("post_id"), 10, 64)
+		if err != nil || postId <= 0 {
+			errors.ResponseErr(c, errors.ParseInputParamErr)
+			return
+		}
+
+		// 获取日记信息
+		post, err := services.GetPostByID(postId)
+
+		//判断是否有权限修改
+		if loginUser.UserId != post.AddUserID || err != nil {
+			errors.ResponseErr(c, errors.InputParamErr)
+			return
+		}
+		h["Post"] = post
 	}
 
-	h := pkg.DefaultH(c)
-	h["Title"] = "写日记"
 	h["Active"] = "users"
-	h["UserData"] = userData
-	h["Diaries"] = diaries
-	c.HTML(http.StatusOK, "post/write", h)
+	h["UserData"] = loginUser
+	c.HTML(http.StatusOK, "form/post", h)
 }
 
-// 发布日记
+// HandlePost 处理日记的创建和编辑
 func HandlePost(c *gin.Context) {
-	//获取用户登录信息
-	userSession, _ := c.Get("UserData")
-	userData := userSession.(models.Login)
-
-	// 序列化请求对象
-	psotForm := &models.PostForm{}
-	err := c.Bind(psotForm)
+	// 序列化用户输入对象
+	postForm := &models.PostForm{}
+	err := c.Bind(postForm)
 	if err != nil {
 		errors.ResponseErr(c, errors.ParseInputParamErr)
 		return
 	}
+	//获取配置信息
+	config := configs.GetConfig()
+
+	// 获取用户登录信息
+	userSession, _ := c.Get("UserData")
+	userData := userSession.(models.Login)
+
+	//初始化修改数据
 	var nowTime = pkg.GetNowTimeUnixMilli()
-
-	//赋值post对象
 	post := &models.Post{}
+	post.DiaryID = postForm.DiaryID
+	post.Title = postForm.Title
+	post.Body = postForm.Body
+	// 摘要长度从配置中获取
+	post.Summary = pkg.TruncateString(postForm.Body, config.App.SummaryMax,config.App.Suffix) 
 
-	// todo 需判断空间是否有权限发布日记
-	post.DiaryID = psotForm.DiaryID
-	post.IsTop = 0
-	post.Title = psotForm.Title
-	post.Body = psotForm.Body
-	post.InfoType = 1 //默认为文本
-	post.AddUserID = userData.UserId
-	post.AddUserName = userData.UserName
-	post.AddUTCTime = nowTime
-	post.AddUserIP = c.ClientIP()
-	post.UpdateUTCTime = nowTime
-	post.Status = 1
+	// 保存日记
+	action, _ := c.GetPostForm("action")
+	if action == "post.create" {
+		// 其他设置默认值
+		post.IsTop = 0
+		post.InfoType = 1 // 默认为文本
+		post.AddUTCTime = nowTime
+		post.AddUserID = userData.UserId
+		post.AddUserName = userData.UserName
+		post.AddUserIP = c.ClientIP()
+		post.UpdateUTCTime = nowTime
+		post.Status = 1
+		post.ViewNum = 0
+		post.LikeNum = 0
+		post.CommentNum = 0
 
-	//插入数据库
-	postID, err := services.AddPost(post)
-	if err != nil {
-		errors.ResponseErr(c, err)
-		return
+		postID, err := services.AddPost(post)
+		if err != nil {
+			errors.ResponseErr(c, err)
+			return
+		}
+		post.PostID = postID
+	} else if action == "post.edit" {
+		// 获取 post_id
+		postIdStr, _ := c.GetPostForm("post_id")
+		postId, err := strconv.ParseInt(postIdStr, 10, 64)
+		if err != nil || postId <= 0 {
+			errors.ResponseErr(c, errors.ParseInputParamErr)
+			return
+		}
+		post.PostID = postId
+		// 获取原始日记信息进行权限校验
+		originalPost, err := services.GetPostByID(post.PostID)
+		if err != nil || originalPost == nil {
+			errors.ResponseErr(c, errors.ParseInputParamErr)
+			return
+		}
+
+		// 检查是否是当前用户的日记
+		if originalPost.AddUserID != userData.UserId {
+			errors.ResponseErr(c, errors.InputParamErr)
+			return
+		}
+
+		post.UpdateUTCTime = nowTime
+		// 保留原有的一些字段值
+		post.DiaryID = originalPost.DiaryID
+		post.ViewNum = originalPost.ViewNum
+		post.LikeNum = originalPost.LikeNum
+		post.CommentNum = originalPost.CommentNum
+		post.IsTop = originalPost.IsTop
+		post.InfoType = originalPost.InfoType
+
+		// 更新日记
+		err = services.UpdatePost(post)
+		if err != nil {
+			errors.ResponseErr(c, err)
+			return
+		}
 	}
 
-	//创建返回对象
+	// 创建返回对象
 	h := pkg.ResponseH(c)
 	h["Data"] = post
-	h["Form"] = psotForm
-	h["infoId"] = postID
 	c.JSON(http.StatusOK, h)
 }
