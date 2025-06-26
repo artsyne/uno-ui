@@ -13,124 +13,225 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RenderPostForm: 渲染日本编辑界面
-func RenderPostForm(c *gin.Context) {
-	//获取用户登录信息
-	loginUser := helpers.Auth.MustGetCurrentUser(c)
-	h := pkg.DefaultH(c)
+// PostController 日记控制器
+// 负责处理日记相关的所有HTTP请求，包括渲染表单、创建日记、编辑日记等操作
+type PostController struct{}
 
-	// 获取action 和 post_id
+// NewPostController 创建新的日记控制器实例
+// 返回值: *PostController 日记控制器指针
+func NewPostController() *PostController {
+	return &PostController{}
+}
+
+// RenderPostForm 渲染日记编辑表单页面
+// 根据action参数决定是渲染创建表单还是编辑表单
+// 对于编辑操作，会验证用户权限并加载现有日记数据
+//
+// 参数:
+//   - c: Gin上下文，包含请求信息和响应操作
+//
+// 支持的URL参数:
+//   - action: "post.create" 或 "post.edit"
+//   - post_id: 当action为edit时需要提供的日记ID
+func (pc *PostController) RenderPostForm(c *gin.Context) {
+	// 获取当前登录用户信息，如果未登录会panic（由中间件保证已登录）
+	loginUser := helpers.Auth.MustGetCurrentUser(c)
+
+	// 初始化模板数据
+	h := pkg.DefaultH(c)
+	h["Active"] = "users"
+	h["UserData"] = loginUser
+
+	// 根据action参数处理不同的表单渲染逻辑
 	action := c.Query("action")
 	if action == "post.edit" {
-		postId, err := strconv.ParseInt(c.Query("post_id"), 10, 64)
-		if err != nil || postId <= 0 {
-			errors.ResponseErr(c, errors.ParseInputParamErr)
-			return
-		}
-
-		// 获取日记信息
-		post, err := services.GetPostByID(postId)
-
-		//判断是否有权限修改
-		if loginUser.UserId != post.AddUserID || err != nil {
-			errors.ResponseErr(c, errors.InputParamErr)
+		// 编辑模式：获取并验证日记数据
+		post, err := pc.getAndValidatePost(c, loginUser.UserId)
+		if err != nil {
+			errors.ResponseErr(c, err)
 			return
 		}
 		h["Post"] = post
 	}
+	// 创建模式：直接渲染空表单
 
-	h["Active"] = "users"
-	h["UserData"] = loginUser
 	c.HTML(http.StatusOK, "form/post", h)
 }
 
-// HandlePost 处理日记的创建和编辑
-func HandlePost(c *gin.Context) {
-	// 序列化用户输入对象
+// HandlePost 处理日记的创建和编辑请求
+// 根据表单中的action字段分发到对应的处理方法
+//
+// 参数:
+//   - c: Gin上下文，包含请求信息和响应操作
+//
+// 支持的表单action值:
+//   - "post.create": 创建新日记
+//   - "post.edit": 编辑现有日记
+func (pc *PostController) HandlePost(c *gin.Context) {
+	// 获取当前登录用户信息
+	loginUser := helpers.Auth.MustGetCurrentUser(c)
+
+	// 解析表单数据到PostForm结构体
 	postForm := &models.PostForm{}
-	err := c.Bind(postForm)
-	if err != nil {
+	if err := c.Bind(postForm); err != nil {
 		errors.ResponseErr(c, errors.ParseInputParamErr)
 		return
 	}
-	//获取配置信息
-	config := configs.GetConfig()
 
-	// 获取用户登录信息
-	userSession, _ := c.Get("UserData")
-	userData := userSession.(models.Login)
-
-	//初始化修改数据
-	var nowTime = pkg.GetNowTimeUnixMilli()
-	post := &models.Post{}
-	post.DiaryID = postForm.DiaryID
-	post.Title = postForm.Title
-	post.Body = postForm.Body
-	// 摘要长度从配置中获取
-	post.Summary = pkg.TruncateString(postForm.Body, config.App.SummaryMax,config.App.Suffix) 
-
-	// 保存日记
+	// 根据操作类型分发处理
 	action, _ := c.GetPostForm("action")
-	if action == "post.create" {
-		// 其他设置默认值
-		post.IsTop = 0
-		post.InfoType = 1 // 默认为文本
-		post.AddUTCTime = nowTime
-		post.AddUserID = userData.UserId
-		post.AddUserName = userData.UserName
-		post.AddUserIP = c.ClientIP()
-		post.UpdateUTCTime = nowTime
-		post.Status = 1
-		post.ViewNum = 0
-		post.LikeNum = 0
-		post.CommentNum = 0
+	switch action {
+	case "post.create":
+		pc.handleCreatePost(c, postForm, loginUser)
+	case "post.edit":
+		pc.handleEditPost(c, postForm, loginUser)
+	default:
+		errors.ResponseErr(c, errors.ParseInputParamErr)
+	}
+}
 
-		postID, err := services.AddPost(post)
-		if err != nil {
-			errors.ResponseErr(c, err)
-			return
-		}
-		post.PostID = postID
-	} else if action == "post.edit" {
-		// 获取 post_id
-		postIdStr, _ := c.GetPostForm("post_id")
-		postId, err := strconv.ParseInt(postIdStr, 10, 64)
-		if err != nil || postId <= 0 {
-			errors.ResponseErr(c, errors.ParseInputParamErr)
-			return
-		}
-		post.PostID = postId
-		// 获取原始日记信息进行权限校验
-		originalPost, err := services.GetPostByID(post.PostID)
-		if err != nil || originalPost == nil {
-			errors.ResponseErr(c, errors.ParseInputParamErr)
-			return
-		}
+// handleCreatePost 处理创建新日记的业务逻辑
+// 设置日记的所有必要字段，调用服务层创建日记，并返回创建结果
+//
+// 参数:
+//   - c: Gin上下文
+//   - postForm: 解析后的表单数据
+//   - user: 当前登录用户信息
+func (pc *PostController) handleCreatePost(c *gin.Context, postForm *models.PostForm, user *models.Login) {
+	config := configs.GetConfig()
+	nowTime := pkg.GetNowTimeUnixMilli()
 
-		// 检查是否是当前用户的日记
-		if originalPost.AddUserID != userData.UserId {
-			errors.ResponseErr(c, errors.InputParamErr)
-			return
-		}
-
-		post.UpdateUTCTime = nowTime
-		// 保留原有的一些字段值
-		post.DiaryID = originalPost.DiaryID
-		post.ViewNum = originalPost.ViewNum
-		post.LikeNum = originalPost.LikeNum
-		post.CommentNum = originalPost.CommentNum
-		post.IsTop = originalPost.IsTop
-		post.InfoType = originalPost.InfoType
-
-		// 更新日记
-		err = services.UpdatePost(post)
-		if err != nil {
-			errors.ResponseErr(c, err)
-			return
-		}
+	// 构建新日记对象，设置所有必要字段
+	post := &models.Post{
+		DiaryID:       postForm.DiaryID,
+		Title:         postForm.Title,
+		Body:          postForm.Body,
+		Summary:       pkg.TruncateString(postForm.Body, config.App.SummaryMax, config.App.Suffix),
+		IsTop:         0,
+		InfoType:      1, // 默认为文本类型
+		AddUTCTime:    nowTime,
+		AddUserID:     user.UserId,
+		AddUserName:   user.UserName,
+		AddUserIP:     c.ClientIP(),
+		UpdateUTCTime: nowTime,
+		Status:        1, // 默认状态为正常
+		ViewNum:       0,
+		LikeNum:       0,
+		CommentNum:    0,
 	}
 
-	// 创建返回对象
+	// 调用服务层创建日记
+	postID, err := services.AddPost(post)
+	if err != nil {
+		errors.ResponseErr(c, err)
+		return
+	}
+	post.PostID = postID
+
+	// 返回成功响应
+	pc.respondSuccess(c, post)
+}
+
+// handleEditPost 处理编辑现有日记的业务逻辑
+// 验证用户权限，保留原有字段值，更新可编辑字段，调用服务层更新日记
+//
+// 参数:
+//   - c: Gin上下文
+//   - postForm: 解析后的表单数据
+//   - user: 当前登录用户信息
+func (pc *PostController) handleEditPost(c *gin.Context, postForm *models.PostForm, user *models.Login) {
+	// 获取要编辑的日记ID
+	postIdStr, _ := c.GetPostForm("post_id")
+	postId, err := strconv.ParseInt(postIdStr, 10, 64)
+	if err != nil || postId <= 0 {
+		errors.ResponseErr(c, errors.ParseInputParamErr)
+		return
+	}
+
+	// 验证日记所有权
+	originalPost, err := pc.validatePostOwnership(postId, user.UserId)
+	if err != nil {
+		errors.ResponseErr(c, err)
+		return
+	}
+
+	// 构建更新后的日记对象
+	config := configs.GetConfig()
+	post := &models.Post{
+		PostID:        postId,
+		DiaryID:       originalPost.DiaryID, // 保持原有日记本ID
+		Title:         postForm.Title,
+		Body:          postForm.Body,
+		Summary:       pkg.TruncateString(postForm.Body, config.App.SummaryMax, config.App.Suffix),
+		UpdateUTCTime: pkg.GetNowTimeUnixMilli(),
+		// 保留原有字段值
+		ViewNum:    originalPost.ViewNum,
+		LikeNum:    originalPost.LikeNum,
+		CommentNum: originalPost.CommentNum,
+		IsTop:      originalPost.IsTop,
+		InfoType:   originalPost.InfoType,
+	}
+
+	// 调用服务层更新日记
+	if err := services.UpdatePost(post); err != nil {
+		errors.ResponseErr(c, err)
+		return
+	}
+
+	// 返回成功响应
+	pc.respondSuccess(c, post)
+}
+
+// getAndValidatePost 获取并验证日记权限（用于表单渲染）
+// 从URL参数中获取post_id，验证其有效性和用户权限
+//
+// 参数:
+//   - c: Gin上下文
+//   - userID: 当前用户ID
+//
+// 返回值:
+//   - *models.Post: 日记对象，如果验证失败返回nil
+//   - error: 错误信息
+func (pc *PostController) getAndValidatePost(c *gin.Context, userID int64) (*models.Post, error) {
+	postId, err := strconv.ParseInt(c.Query("post_id"), 10, 64)
+	if err != nil || postId <= 0 {
+		return nil, errors.ParseInputParamErr
+	}
+
+	return pc.validatePostOwnership(postId, userID)
+}
+
+// validatePostOwnership 验证日记所有权
+// 检查指定日记是否存在，以及当前用户是否有权限操作该日记
+//
+// 参数:
+//   - postID: 日记ID
+//   - userID: 当前用户ID
+//
+// 返回值:
+//   - *models.Post: 日记对象
+//   - error: 验证失败时的错误信息
+func (pc *PostController) validatePostOwnership(postID, userID int64) (*models.Post, error) {
+	post, err := services.GetPostByID(postID)
+	if err != nil || post == nil {
+		return nil, errors.ParseInputParamErr
+	}
+
+	// 检查是否是当前用户的日记
+	if post.AddUserID != userID {
+		return nil, errors.InputParamErr
+	}
+
+	return post, nil
+}
+
+// respondSuccess 统一的成功响应格式
+// 封装标准的JSON响应格式，包含操作成功的日记数据
+//
+// 参数:
+//   - c: Gin上下文
+//   - post: 操作成功的日记对象
+func (pc *PostController) respondSuccess(c *gin.Context, post *models.Post) {
 	h := pkg.ResponseH(c)
 	h["Data"] = post
 	c.JSON(http.StatusOK, h)

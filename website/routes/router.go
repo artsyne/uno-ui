@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/biuren/hebe/website/controllers"
 	"github.com/biuren/hebe/internal/configs"
+	"github.com/biuren/hebe/website/controllers"
 	"github.com/gin-gonic/gin"
 )
 
@@ -60,13 +60,13 @@ func loadTemplates(tmpl *template.Template, basePath string) error {
 			if err != nil {
 				return err
 			}
-			
+
 			// 读取文件内容
 			content, err := os.ReadFile(path)
 			if err != nil {
 				return err
 			}
-			
+
 			// 使用相对路径作为模板名称解析
 			_, err = tmpl.New(relPath).Parse(string(content))
 			if err != nil {
@@ -76,6 +76,7 @@ func loadTemplates(tmpl *template.Template, basePath string) error {
 		return nil
 	})
 }
+
 // #endregion
 
 // 设置静态文件目录，存放js、css，以及上传文件目录upload
@@ -87,23 +88,27 @@ func setStaticFs(server *gin.Engine, staticPath string) {
 	server.StaticFile("/favicon.ico", "./public/favicon.ico")
 }
 
-// 设置站点router
+// setPath 设置站点路由
+// 创建控制器实例并配置所有HTTP路由
 func setPath(server *gin.Engine) {
+	// 创建控制器实例
+	diaryController := controllers.NewDiaryController()
+	postController := controllers.NewPostController()
 
+	// 基础页面路由
 	server.GET("/index", controllers.RenderIndex)
 
-	// diary
+	// 日记相关路由组
 	diary := server.Group("/diary")
 	{
-		diary.GET("/", controllers.RenderDiary)
+		diary.GET("/", diaryController.RenderDiary)
 	}
 
-	// passport
+	// 用户认证相关路由
 	server.GET("/register", controllers.RenderRegister)
 	server.POST("/register", controllers.HandleUserReg)
 	server.POST("/check-username", controllers.HandleCheckUserName)
 	server.POST("/check-email", controllers.HandleCheckEmail)
-
 
 	server.GET("/login", controllers.RenderLogin)
 	server.POST("/login", controllers.HandleLogin)
@@ -115,30 +120,31 @@ func setPath(server *gin.Engine) {
 
 	server.GET("/resetpwd", controllers.RenderResetPwd)
 	server.POST("/resetpwd", controllers.HandleResetPwd)
-	
+
 	server.GET("/activateuser", controllers.RenderActivateUser)
 
-	// 日记本页面
+	// 用户主页路由
 	server.GET("/u/:uid", controllers.RenderMemberIndex)
 	server.GET("u/:uid/settings", controllers.RenderMemberSettings)
 	server.GET("/u/:uid/:pageindex", controllers.RenderMemberIndex)
 
-	// 日记列表
+	// 日记本页面路由组
 	daybook := server.Group("/d")
 	{
-		daybook.GET("/:diaryid", controllers.RenderDiaryIndex)
-		daybook.GET("/:diaryid/:pageindex", controllers.RenderDiaryIndex)
+		daybook.GET("/:diaryid", diaryController.RenderDiaryIndex)
+		daybook.GET("/:diaryid/:pageindex", diaryController.RenderDiaryIndex)
 	}
 
-	//表单渲染
+	// 表单渲染路由组
 	form := server.Group("/form")
 	{
-		form.GET("/diary", controllers.RenderDiaryForm)
-		form.GET("/post", controllers.RenderPostForm)
+		form.GET("/diary", diaryController.RenderDiaryForm)
+		form.GET("/post", postController.RenderPostForm)
 	}
 
-	// 日记本操作
-	server.POST("/diary", controllers.HandleDiary)
-	// 日记操作
-	server.POST("/post", controllers.HandlePost)
+	// 数据操作路由
+	// 日记本相关操作
+	server.POST("/diary", diaryController.HandleDiary)
+	// 日记相关操作
+	server.POST("/post", postController.HandlePost)
 }
