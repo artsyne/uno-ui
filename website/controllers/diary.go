@@ -25,6 +25,23 @@ func NewDiaryController() *DiaryController {
 	return &DiaryController{}
 }
 
+// parseDiaryID 解析并验证日记本ID
+// 从字符串中解析出有效的日记本ID
+//
+// 参数:
+//   - idStr: 待解析的ID字符串
+//
+// 返回值:
+//   - int64: 解析后的ID
+//   - error: 解析失败时的错误信息
+func (dc *DiaryController) parseDiaryID(idStr string) (int64, error) {
+	id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
+	if err != nil || id <= 0 {
+		return 0, errors.ParseInputParamErr
+	}
+	return id, nil
+}
+
 // RenderDiaryIndex 渲染日记本首页
 // 显示指定日记本的详细信息和其包含的日记列表，支持分页显示
 // 同时判断当前用户是否为日记本所有者，以决定是否显示管理功能
@@ -45,7 +62,7 @@ func (dc *DiaryController) RenderDiaryIndex(c *gin.Context) {
 	errMsg := ""
 
 	// 解析URL中的日记本ID
-	diaryID, err := strconv.ParseInt(strings.TrimSpace(c.Param("diaryid")), 10, 64)
+	diaryID, err := dc.parseDiaryID(c.Param("diaryid"))
 	if err != nil {
 		hasError = true
 		h["SpaceID"] = diaryID
@@ -190,27 +207,38 @@ func (dc *DiaryController) HandleDiary(c *gin.Context) {
 //
 // 参数:
 //   - c: Gin上下文
-//   - diary: 解析后的日记本数据
+//   - formData: 解析后的表单数据
 //   - user: 当前登录用户信息
-func (dc *DiaryController) handleCreateDiary(c *gin.Context, diary *models.Diary, user *models.Login) {
+func (dc *DiaryController) handleCreateDiary(c *gin.Context, formData *models.Diary, user *models.Login) {
 	nowTime := pkg.GetNowTimeUnixMilli()
 
-	// 设置新日记本的默认值和用户信息
-	diary.AccessPwd = ""
-	diary.AccessURL = ""
-	diary.AddUTCTime = nowTime
-	diary.AddUserID = user.UserId
-	diary.AddUserName = user.UserName
-	diary.CoverMidURL = ""
-	diary.CoverURL = ""
-	diary.LikeNum = 0
-	diary.MemberNum = 0
-	diary.Status = 1 // 默认状态为正常
-	diary.ViewNum = 0
-	diary.InfoNum = 0 // 日记数量初始为0
-	diary.LastActionUTCTime = nowTime
-	diary.LastActionUserID = user.UserId
-	diary.LastActionUserName = user.UserName
+	// 使用结构体字面量创建完整的日记本对象
+	diary := &models.Diary{
+		// 用户输入的字段
+		Title:         formData.Title,
+		Remark:        formData.Remark,
+		ViewSetting:   formData.ViewSetting,
+		SocialSetting: formData.SocialSetting,
+		ThemeID:       formData.ThemeID,
+
+		// 系统设置的字段
+		DiaryID:            0, // 将由数据库生成
+		AccessPwd:          "",
+		AccessURL:          "",
+		CoverURL:           "",
+		CoverMidURL:        "",
+		LikeNum:            0,
+		MemberNum:          0,
+		ViewNum:            0,
+		InfoNum:            0, // 日记数量初始为0
+		Status:             1, // 默认状态为正常
+		AddUTCTime:         nowTime,
+		AddUserID:          user.UserId,
+		AddUserName:        user.UserName,
+		LastActionUTCTime:  nowTime,
+		LastActionUserID:   user.UserId,
+		LastActionUserName: user.UserName,
+	}
 
 	// 调用服务层创建日记本
 	diaryID, err := services.AddDiary(diary)
@@ -279,9 +307,9 @@ func (dc *DiaryController) handleEditDiary(c *gin.Context, diary *models.Diary, 
 //   - *models.Diary: 日记本对象，如果验证失败返回nil
 //   - error: 错误信息
 func (dc *DiaryController) getAndValidateDiary(c *gin.Context, userID int64) (*models.Diary, error) {
-	diaryID, err := strconv.ParseInt(c.Query("diary_id"), 10, 64)
-	if err != nil || diaryID <= 0 {
-		return nil, errors.ParseInputParamErr
+	diaryID, err := dc.parseDiaryID(c.Query("diary_id"))
+	if err != nil {
+		return nil, err
 	}
 
 	return dc.validateDiaryOwnership(diaryID, userID)

@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	"github.com/biuren/hebe/internal/configs"
+	"github.com/biuren/hebe/internal/helpers"
 	"github.com/biuren/hebe/internal/models"
 	"github.com/biuren/hebe/pkg"
-	"github.com/biuren/hebe/website/controllers"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -32,7 +32,7 @@ import (
 // 注意：这个中间件依赖于 SharedData() 中间件注入的认证信息
 func AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if controllers.IsLogin(c) {
+		if isAuth, _ := helpers.Auth.IsAuthenticated(c); isAuth {
 			c.Next()
 		} else {
 			logrus.Warnf("User not authorized to visit %s", c.Request.RequestURI)

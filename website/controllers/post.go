@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/biuren/hebe/internal/configs"
 	"github.com/biuren/hebe/internal/errors"
@@ -21,6 +22,23 @@ type PostController struct{}
 // 返回值: *PostController 日记控制器指针
 func NewPostController() *PostController {
 	return &PostController{}
+}
+
+// parsePostID 解析并验证日记ID
+// 从字符串中解析出有效的日记ID
+//
+// 参数:
+//   - idStr: 待解析的ID字符串
+//
+// 返回值:
+//   - int64: 解析后的ID
+//   - error: 解析失败时的错误信息
+func (pc *PostController) parsePostID(idStr string) (int64, error) {
+	id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
+	if err != nil || id <= 0 {
+		return 0, errors.ParseInputParamErr
+	}
+	return id, nil
 }
 
 // RenderPostForm 渲染日记编辑表单页面
@@ -142,9 +160,9 @@ func (pc *PostController) handleCreatePost(c *gin.Context, postForm *models.Post
 func (pc *PostController) handleEditPost(c *gin.Context, postForm *models.PostForm, user *models.Login) {
 	// 获取要编辑的日记ID
 	postIdStr, _ := c.GetPostForm("post_id")
-	postId, err := strconv.ParseInt(postIdStr, 10, 64)
-	if err != nil || postId <= 0 {
-		errors.ResponseErr(c, errors.ParseInputParamErr)
+	postId, err := pc.parsePostID(postIdStr)
+	if err != nil {
+		errors.ResponseErr(c, err)
 		return
 	}
 
@@ -155,7 +173,7 @@ func (pc *PostController) handleEditPost(c *gin.Context, postForm *models.PostFo
 		return
 	}
 
-	// 构建更新后的日记对象
+	// 使用结构体字面量构建更新后的日记对象
 	config := configs.GetConfig()
 	post := &models.Post{
 		PostID:        postId,
@@ -193,9 +211,9 @@ func (pc *PostController) handleEditPost(c *gin.Context, postForm *models.PostFo
 //   - *models.Post: 日记对象，如果验证失败返回nil
 //   - error: 错误信息
 func (pc *PostController) getAndValidatePost(c *gin.Context, userID int64) (*models.Post, error) {
-	postId, err := strconv.ParseInt(c.Query("post_id"), 10, 64)
-	if err != nil || postId <= 0 {
-		return nil, errors.ParseInputParamErr
+	postId, err := pc.parsePostID(c.Query("post_id"))
+	if err != nil {
+		return nil, err
 	}
 
 	return pc.validatePostOwnership(postId, userID)

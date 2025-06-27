@@ -11,12 +11,12 @@
         <div id="page-nav">
             <ul class="flex text-lg">
                 <li><a href="/u/{{.Diary.AddUserID}}">{{.Diary.AddUserName}}</a>
-                    <span class="mdi mdi-slash-forward mx-3"></span>
+                    <i class="mdi mdi-slash-forward mx-3"></i>
                 </li>
                 <li>
                     <a href="/d/{{.Diary.DiaryID}}" id="diary_title">{{.Diary.Title}}</a>
                     {{if eq .Diary.ViewSetting 2}}
-                    <span class="mdi mdi-lock-outline mx-3"></span>
+                    <i class="mdi mdi-lock-outline mx-3"></i>
                     {{end}}
                 </li>
             </ul>
