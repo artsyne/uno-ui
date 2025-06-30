@@ -1,0 +1,188 @@
+package diary
+
+import (
+	"database/sql"
+
+	"github.com/biuren/hebe/internal/models"
+)
+
+// Repository 日记本数据访问层
+// 负责处理所有与日记本相关的数据库操作
+type Repository struct{}
+
+// NewRepository 创建新的日记本数据访问层实例
+func NewRepository() *Repository {
+	return &Repository{}
+}
+
+// Insert 新增日记本到数据库
+// 参数: diary - 要插入的日记本对象
+// 返回: 新创建的日记本ID和可能的错误
+func (r *Repository) Insert(diary *Diary) (int64, error) {
+	sql := `
+		INSERT INTO br_diary
+		(
+		title,
+		remark,
+		access_url,
+		cover_url,
+		cover_mid_url,
+		like_num,
+		member_num,
+		view_num,
+		view_setting,
+		access_pwd,
+		social_setting,
+		add_utc_time,
+		add_user_id,
+		add_user_name,
+		status,
+		info_num,
+		last_action_utc_time,
+		last_action_user_id,
+		last_action_user_name,
+		theme_id
+		)
+		VALUES
+		(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+	`
+
+	res, err := models.GetDB().Exec(sql,
+		diary.Title, diary.Remark, diary.AccessURL,
+		diary.CoverURL, diary.CoverMidURL, diary.LikeNum,
+		diary.MemberNum, diary.ViewNum,
+		diary.ViewSetting, diary.AccessPwd, diary.SocialSetting,
+		diary.AddUTCTime,
+		diary.AddUserID, diary.AddUserName, diary.Status, diary.InfoNum,
+		diary.LastActionUTCTime, diary.LastActionUserID, diary.LastActionUserName, diary.ThemeID)
+
+	if err != nil {
+		return 0, err
+	}
+	id, err := res.LastInsertId()
+
+	return id, err
+}
+
+// Update 更新日记本信息
+// 参数: diary - 要更新的日记本对象
+// 返回: 可能的错误
+func (r *Repository) Update(diary *Diary) error {
+	sql := `
+		UPDATE br_diary SET 
+		title = ?,
+		remark = ?,
+		view_setting = ?,
+		social_setting = ?,
+		theme_id = ?,
+		last_action_utc_time = ?,
+		last_action_user_id = ?,
+		last_action_user_name = ?
+		WHERE diary_id = ?
+	`
+
+	_, err := models.GetDB().Exec(sql,
+		diary.Title, diary.Remark,
+		diary.ViewSetting, diary.SocialSetting, diary.ThemeID,
+		diary.LastActionUTCTime, diary.LastActionUserID, diary.LastActionUserName,
+		diary.DiaryID)
+
+	return err
+}
+
+// IncrementPostNum 增加日记本的日记数量
+// 通过空间 ID 把空间信息数量加一，并更新最后动作时间,用户ID,用户名
+// 参数: diaryID - 日记本ID, userID - 用户ID, userName - 用户名, actionUTCTime - 操作时间
+// 返回: 可能的错误
+func (r *Repository) IncrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
+	sqlstr := `
+		UPDATE br_diary SET info_num = info_num + 1,
+		last_action_utc_time = ?,
+		last_action_user_id=?, 
+		last_action_user_name = ? 
+		WHERE diary_id = ?
+	`
+	_, err := models.GetDB().Exec(sqlstr, actionUTCTime, userID, userName, diaryID)
+	return err
+}
+
+// DecrementPostNum 减少日记本的日记数量
+// 通过空间 ID 把空间信息数量减一，并更新最后动作时间,用户ID,用户名
+// 参数: diaryID - 日记本ID, userID - 用户ID, userName - 用户名, actionUTCTime - 操作时间
+// 返回: 可能的错误
+func (r *Repository) DecrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
+	sqlstr := `
+		UPDATE br_diary SET info_num = info_num - 1,
+		last_action_utc_time = ?,
+		last_action_user_id=?, 
+		last_action_user_name = ? 
+		WHERE diary_id = ?
+	`
+	_, err := models.GetDB().Exec(sqlstr, actionUTCTime, userID, userName, diaryID)
+	return err
+}
+
+// GetByDiaryID 根据ID获取日记本对象
+// 参数: diaryID - 日记本ID
+// 返回: 日记本对象和可能的错误
+func (r *Repository) GetByDiaryID(diaryID int64) (*Diary, error) {
+	diary := &Diary{}
+	sqlstr := "SELECT * FROM br_diary WHERE diary_id = ?"
+	err := models.GetDB().Get(diary, sqlstr, diaryID)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return diary, err
+}
+
+// ListForWriteByUserID 根据用户ID获取日记本列表，依据最后更新时间排序
+// 用在写日记本界面
+// 参数: userID - 用户ID
+// 返回: 日记本列表和可能的错误
+func (r *Repository) ListForWriteByUserID(userID int64) ([]Diary, error) {
+	diaryArray := []Diary{}
+	sqlstr := `SELECT * FROM br_diary WHERE add_user_id = ? 
+		ORDER BY last_action_utc_time DESC, diary_id DESC`
+	err := models.GetDB().Select(&diaryArray, sqlstr, userID)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return diaryArray, err
+}
+
+// ListByUserID 根据特定用户ID检索分页的日记本列表
+// 参数: userID - 要检索其日记本的用户ID, pageIndex - 页索引（从1开始）, pageSize - 每页项目数
+// 返回: 日记本对象切片、总数和可能的错误
+func (r *Repository) ListByUserID(userID int64, pageIndex, pageSize int) ([]Diary, int, error) {
+	infoArray := []Diary{}
+	totalRecords := 0
+
+	// 计算偏移量，注意：页码通常从1开始，所以需要减1
+	offset := (pageIndex - 1) * pageSize
+
+	sqlstr := `SELECT * FROM br_diary WHERE add_user_id = ? 
+		ORDER BY diary_id DESC LIMIT ? offset ?`
+
+	err := models.GetDB().Select(&infoArray, sqlstr, userID, pageSize, offset)
+	if err == sql.ErrNoRows {
+		return nil, 0, nil
+	}
+
+	//获取总记录数
+	totalRecords, err = r.GetCountByUserID(userID)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return infoArray, totalRecords, err
+}
+
+// GetCountByUserID 获取用户的日记本数量
+// 参数: userID - 用户ID
+// 返回: 日记本数量和可能的错误
+func (r *Repository) GetCountByUserID(userID int64) (int, error) {
+	var count int
+	sqlstr := "SELECT COUNT(*) FROM br_diary WHERE add_user_id = ?"
+	err := models.GetDB().Get(&count, sqlstr, userID)
+	return count, err
+}

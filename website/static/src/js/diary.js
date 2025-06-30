@@ -395,7 +395,7 @@ const Diary = {
           ? "<i class='mdi mdi-lock-outline'></i>"
           : '';
       const diaryHtml = `
-        <div class="border h-64 text-center dt${diaryData.theme_id}">
+        <div class="border h-72 text-center dt${diaryData.theme_id}">
           <div class="h-full content-center p-3">
             <h1 class="text-xl mb-2 break-words">
               <a href="/d/${diaryData.diary_id}">${diaryData.title}</a>

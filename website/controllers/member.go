@@ -9,7 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/biuren/hebe/internal/configs"
-	"github.com/biuren/hebe/internal/models"
+	"github.com/biuren/hebe/internal/modules/diary"
+	"github.com/biuren/hebe/internal/modules/user"
 	"github.com/biuren/hebe/pkg"
 )
 
@@ -24,7 +25,7 @@ func RenderMemberIndex(c *gin.Context) {
 	h["Active"] = "users"
 
 	//读取用户认证信息
-	userData, ok := h["UserData"].(models.Login)
+	userData, ok := h["UserData"].(user.Login)
 	if !ok {
 		// 用户未登录或登录信息无效，重定向到登录页面
 		c.Redirect(http.StatusFound, "/login")
@@ -49,7 +50,8 @@ func RenderMemberIndex(c *gin.Context) {
 	pageSize := configs.GetConfig().App.PageSize
 
 	// 分页显示日记列表
-	h["Diaries"], diariesNum, _ = models.ListDiariesByUserID(uid, pageIndex, pageSize)
+	diaryService := diary.NewService()
+	h["Diaries"], diariesNum, _ = diaryService.ListDiariesByUser(uid, pageIndex, pageSize)
 
 	// 初始化分页信息
 	listOptions := pkg.ListOptions{
@@ -82,7 +84,7 @@ func RenderMemberSettings(c *gin.Context) {
 	h["Active"] = "setting"
 
 	//读取用户认证信息
-	userData := h["UserData"].(models.Login)
+	userData := h["UserData"].(user.Login)
 
 	//返回判断是否是owner
 	isOnwer := false
@@ -90,7 +92,8 @@ func RenderMemberSettings(c *gin.Context) {
 		isOnwer = true
 
 		//如果是用户本人，将获取用户信息
-		userInfo, _ := models.GetUserByUserId(userData.UserId)
+		userRepo := user.NewRepository()
+		userInfo, _ := userRepo.GetUserByUserId(userData.UserId)
 
 		//返回用户对象到模版
 		h["UserInfo"] = userInfo

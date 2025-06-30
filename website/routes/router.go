@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"github.com/biuren/hebe/internal/configs"
-	"github.com/biuren/hebe/internal/middlewares"
+	"github.com/biuren/hebe/internal/modules/diary"
+	"github.com/biuren/hebe/internal/modules/post"
+	"github.com/biuren/hebe/internal/modules/user"
 	"github.com/biuren/hebe/website/controllers"
 	"github.com/gin-gonic/gin"
 )
@@ -92,68 +94,25 @@ func setStaticFs(server *gin.Engine, staticPath string) {
 // setPath 设置站点路由
 // 创建控制器实例并配置所有HTTP路由
 func setPath(server *gin.Engine) {
-	// 创建控制器实例
-	diaryController := controllers.NewDiaryController()
-	postController := controllers.NewPostController()
-	passportController := controllers.NewPassportController()
+	// 创建模块处理器
+	userHandler := user.NewHandler()
+	diaryHandler := diary.NewHandler()
+	postHandler := post.NewHandler()
 
 	// 基础页面路由
 	server.GET("/index", controllers.RenderIndex)
 
-	// 日记相关路由组
-	diary := server.Group("/diary")
-	{
-		diary.GET("/", diaryController.RenderDiary)
-	}
+	// 用户相关路由 - 使用新的User模块
+	userHandler.RegisterRoutes(server)
 
-	// 用户认证相关路由（无需鉴权）
-	server.GET("/register", passportController.RenderRegister)
-	server.POST("/register", passportController.HandleUserReg)
-	server.POST("/check-username", passportController.HandleCheckUserName)
-	server.POST("/check-email", passportController.HandleCheckEmail)
+	// 日记本相关路由 - 使用新的Diary模块（包含所有diary相关路由）
+	diaryHandler.RegisterRoutes(server)
 
-	server.GET("/login", passportController.RenderLogin)
-	server.POST("/login", passportController.HandleLogin)
-
-	server.POST("/loginout", passportController.HandleLoginOut)
-
-	server.GET("/findpwd", passportController.RenderFindPwd)
-	server.POST("/findpwd", passportController.HandleFindPwd)
-
-	server.GET("/resetpwd", passportController.RenderResetPwd)
-	server.POST("/resetpwd", passportController.HandleResetPwd)
-
-	server.GET("/activateuser", passportController.RenderActivateUser)
+	// 日记相关路由 - 使用新的Post模块（包含所有post相关路由）
+	postHandler.RegisterRoutes(server)
 
 	// 用户主页路由（无需鉴权，支持匿名访问）
 	server.GET("/u/:uid", controllers.RenderMemberIndex)
 	server.GET("u/:uid/settings", controllers.RenderMemberSettings)
 	server.GET("/u/:uid/:pageindex", controllers.RenderMemberIndex)
-
-	// 日记本页面路由组（无需鉴权，支持公开访问）
-	daybook := server.Group("/d")
-	{
-		daybook.GET("/:diaryid", diaryController.RenderDiaryIndex)
-		daybook.GET("/:diaryid/:pageindex", diaryController.RenderDiaryIndex)
-	}
-
-	// 需要鉴权的路由组 - 表单渲染
-	// 创建日记本和写日记的表单需要用户登录
-	authForm := server.Group("/form")
-	authForm.Use(middlewares.AuthRequired())
-	{
-		authForm.GET("/diary", diaryController.RenderDiaryForm)
-		authForm.GET("/post", postController.RenderPostForm)
-	}
-
-	// 需要鉴权的路由组 - 数据操作
-	// 日记本和日记的创建/编辑操作需要用户登录
-	authAPI := server.Group("/")
-	authAPI.Use(middlewares.AuthRequired())
-	{
-		// 日记本相关操作
-		authAPI.POST("/diary", diaryController.HandleDiary)
-		// 日记相关操作
-		authAPI.POST("/post", postController.HandlePost)
-	}
 }

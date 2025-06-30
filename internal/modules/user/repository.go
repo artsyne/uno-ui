@@ -1,0 +1,435 @@
+package user
+
+import (
+	"database/sql"
+
+	"github.com/biuren/hebe/internal/models"
+	"github.com/biuren/hebe/pkg"
+	"github.com/sirupsen/logrus"
+)
+
+// Repository 用户数据访问层
+type Repository struct{}
+
+// NewRepository 创建用户数据访问层实例
+func NewRepository() *Repository {
+	return &Repository{}
+}
+
+// ===================== User 相关方法 =====================
+
+// InsertUser 插入用户数据
+func (r *Repository) InsertUser(user *User) (int64, error) {
+	sql := `
+                insert into br_user  (
+                    user_id,
+                    user_name,
+                    full_name,
+                    user_group,
+                    pwd,
+                    pwd_salt,
+                    profile_url,
+                    face_url,
+                    email,
+                    email_verified,
+                    reg_ip,
+                    created_utc_time,
+                    remark,
+                    last_ip,
+                    last_login_utc_time,
+                    time_zone,
+                    lang,
+                    status
+                )
+                values (
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?
+                )
+                `
+
+	res, err := models.GetDB().Exec(sql,
+		user.UserId,
+		user.UserName,
+		user.FullName,
+		user.UserGroup,
+		user.Pwd,
+		user.PwdSalt,
+		user.ProfileUrl,
+		user.FaceUrl,
+		user.Email,
+		user.EmailVerified,
+		user.RegIp,
+		user.CreatedUTCTime,
+		user.Remark,
+		user.LastIp,
+		user.LastLoginUTCTime,
+		user.TimeZone,
+		user.Lang,
+		user.Status)
+
+	if err != nil {
+		return 0, err
+	}
+	id, err := res.LastInsertId()
+	return id, err
+}
+
+// UpdateUser 更新用户数据
+func (r *Repository) UpdateUser(user *User) (int64, error) {
+	sql := `
+                update br_user
+                 set
+                        user_id = ?,
+                        user_name = ?,
+                        full_name = ?,
+                        user_group = ?,
+                        pwd = ?,
+                        pwd_salt = ?,
+                        profile_url = ?,
+                        face_url = ?,
+                        email = ?,
+                        email_verified = ?,
+                        reg_ip = ?,
+                        created_utc_time = ?,
+                        remark = ?,
+                        last_ip = ?,
+                        last_login_utc_time = ?,
+                        time_zone = ?,
+                        lang = ?,
+                        status = ?
+                where user_id = ?
+           `
+	res, err := models.GetDB().Exec(sql,
+		user.UserId,
+		user.UserName,
+		user.FullName,
+		user.UserGroup,
+		user.Pwd,
+		user.PwdSalt,
+		user.ProfileUrl,
+		user.FaceUrl,
+		user.Email,
+		user.EmailVerified,
+		user.RegIp,
+		user.CreatedUTCTime,
+		user.Remark,
+		user.LastIp,
+		user.LastLoginUTCTime,
+		user.TimeZone,
+		user.Lang,
+		user.Status,
+		user.UserId)
+
+	if err != nil {
+		return 0, err
+	}
+
+	rows, err := res.RowsAffected()
+	return rows, err
+}
+
+// DeleteByUserId 删除用户数据（假删除，设置status = 0）
+func (r *Repository) DeleteByUserId(id int64) (int64, error) {
+	sql := `UPDATE br_user SET status = 0 where user_id = ?`
+	res, err := models.GetDB().Exec(sql, id)
+
+	if err != nil {
+		return 0, err
+	}
+	rows, err := res.RowsAffected()
+	return rows, err
+}
+
+// IsExistUserName 判断用户名是否存在
+func (r *Repository) IsExistUserName(userName string) (bool, error) {
+	var total int
+	err := models.GetDB().Get(&total, "SELECT count(*) as num FROM br_user WHERE user_name = ?", userName)
+	if err != nil {
+		return false, err
+	}
+	return total > 0, nil
+}
+
+// IsExistsEmail 判断邮箱是否存在
+func (r *Repository) IsExistsEmail(email string) (bool, error) {
+	var total int
+	err := models.GetDB().Get(&total, "SELECT count(*) as num FROM br_user WHERE email = ?", email)
+	if err != nil {
+		return false, err
+	}
+	return total > 0, nil
+}
+
+// UpdateEmailByUserId 根据用户ID更新邮箱
+func (r *Repository) UpdateEmailByUserId(userId int64, email string) (int64, error) {
+	sql := "UPDATE br_user SET email = ? WHERE user_id = ?"
+	res, err := models.GetDB().Exec(sql, email, userId)
+	if err != nil {
+		return 0, err
+	}
+	rows, err := res.RowsAffected()
+	return rows, err
+}
+
+// UpdateUserStatus 更新用户状态
+func (r *Repository) UpdateUserStatus(userId int64, status int8) (int64, error) {
+	sql := "UPDATE br_user SET status = ? WHERE user_id = ?"
+	res, err := models.GetDB().Exec(sql, status, userId)
+	if err != nil {
+		return 0, err
+	}
+	rows, err := res.RowsAffected()
+	return rows, err
+}
+
+// UpdateUserPwd 更新用户密码
+func (r *Repository) UpdateUserPwd(userId int64, pwd string) (int64, error) {
+	sql := "UPDATE br_user SET pwd = ? WHERE user_id = ?"
+	res, err := models.GetDB().Exec(sql, pwd, userId)
+	if err != nil {
+		return 0, err
+	}
+	rows, err := res.RowsAffected()
+	return rows, err
+}
+
+// DeleteUser 彻底删除用户
+func (r *Repository) DeleteUser(userId int64) (int64, error) {
+	sql := "DELETE FROM br_user WHERE user_id = ?"
+	res, err := models.GetDB().Exec(sql, userId)
+	if err != nil {
+		return 0, err
+	}
+	rows, err := res.RowsAffected()
+	return rows, err
+}
+
+// GetUserByUserId 根据用户ID获取用户信息
+func (r *Repository) GetUserByUserId(userId int64) (*User, error) {
+	sqlstr := "SELECT * FROM br_user WHERE user_id = ?"
+	user := &User{}
+	err := models.GetDB().Get(user, sqlstr, userId)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return user, err
+}
+
+// GetUserByUserName 根据用户名获取用户信息
+func (r *Repository) GetUserByUserName(userName string) (*User, error) {
+	sqlstr := "SELECT * FROM br_user WHERE user_name = ?"
+	user := &User{}
+	err := models.GetDB().Get(user, sqlstr, userName)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return user, err
+}
+
+// GetUserByEmail 根据邮箱获取用户信息
+func (r *Repository) GetUserByEmail(email string) (*User, error) {
+	sqlstr := "SELECT * FROM br_user WHERE email = ?"
+	user := &User{}
+	err := models.GetDB().Get(user, sqlstr, email)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return user, err
+}
+
+// ===================== ValidCode 相关方法 =====================
+
+// InsertValidCode 插入验证码
+func (r *Repository) InsertValidCode(validCode *ValidCode) (int64, error) {
+	// 删除已存在确认码
+	_, err := models.GetDB().Exec("DELETE FROM br_valid_code WHERE user_id = ? and valid_type_id=?", validCode.UserId, validCode.ValidTypeId)
+	if err != nil {
+		return 0, err
+	}
+	// 增加确认码
+	sql := `
+                insert into br_valid_code  (
+                    user_id  ,
+                    valid_code  ,
+                    valid_type_id  ,
+                    expire_utc_time  ,
+                    create_utc_time
+                )
+                values (
+                    ?  ,
+                    ?  ,
+                    ?  ,
+                    ?  ,
+                    ? 
+                )
+                `
+	res, err := models.GetDB().Exec(sql,
+		validCode.UserId,
+		validCode.ValidCode,
+		validCode.ValidTypeId,
+		validCode.ExpireUTCTime,
+		validCode.CreateUTCTime,
+	)
+	if err != nil {
+		return 0, err
+	}
+	id, err := res.LastInsertId()
+	return id, err
+}
+
+// DeleteValidCode 删除验证码
+func (r *Repository) DeleteValidCode(id int64) (int64, error) {
+	sql := "DELETE FROM br_valid_code WHERE valid_code_id = ?"
+	res, err := models.GetDB().Exec(sql, id)
+	if err != nil {
+		return 0, err
+	}
+
+	rows, err := res.RowsAffected()
+	return rows, err
+}
+
+// GetValidCode 获取验证码
+func (r *Repository) GetValidCode(userId int64, code string) (*ValidCode, error) {
+	sqlstr := "SELECT * FROM br_valid_code WHERE user_id = ? AND valid_code = ? order by valid_code_id desc limit 1"
+	validCode := &ValidCode{}
+	err := models.GetDB().Get(validCode, sqlstr, userId, code)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return validCode, err
+}
+
+// CheckValidCode 检查确认码
+func (r *Repository) CheckValidCode(userID int64, sign string, validType int8) (bool, int64) {
+	// 默认返回值
+	result := false
+	var validId int64 = 0
+	// 获取验证码
+	if validCode, err := r.GetValidCode(userID, sign); err == nil && validCode != nil {
+		// 判断验证码类型, 验证码类型不对
+		if validCode.ValidTypeId != validType {
+			return false, 0
+		}
+		// 判断验证码有效时间
+		if validCode.ExpireUTCTime < pkg.GetNowTimeUnixMilli() {
+			return false, 0
+		}
+		result = true
+		validId = validCode.ValidCodeId
+	}
+
+	return result, validId
+}
+
+// ===================== JobQueue 相关方法 =====================
+
+// InsertJobQueue 插入作业队列
+func (r *Repository) InsertJobQueue(jobQueue *JobQueue) (int64, error) {
+	sql := `
+                insert into br_job_queue  (
+                    job_type  ,
+                    body  ,
+                    add_utc_time  ,
+                    plan_utc_time  ,
+                    result ,
+                    try_num
+                )
+                values (
+                    ?  ,
+                    ?  ,
+                    ?  ,
+                    ?  ,
+                    ? ,
+                    ?
+                )
+                `
+	res, err := models.GetDB().Exec(sql,
+		jobQueue.JobType,
+		jobQueue.Body,
+		jobQueue.AddUTCTime,
+		jobQueue.PlanUTCTime,
+		jobQueue.Result,
+		jobQueue.TryNum,
+	)
+	if err != nil {
+		return 0, err
+	}
+	id, err := res.LastInsertId()
+	return id, err
+}
+
+// GetJobTasks 获取作业任务
+func (r *Repository) GetJobTasks(num int, jobType string) ([]JobQueue, error) {
+	result := []JobQueue{}
+	sqlstr := `SELECT *  FROM br_job_queue WHERE job_type = ? and try_num <4
+		ORDER BY job_id desc limit ? `
+	err := models.GetDB().Select(&result, sqlstr, jobType, num)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return result, err
+}
+
+// DelJobTask 删除作业任务
+func (r *Repository) DelJobTask(job_id int64) (int64, error) {
+	sql := "DELETE FROM br_job_queue WHERE job_id = ?"
+	res, err := models.GetDB().Exec(sql, job_id)
+	if err != nil {
+		return 0, err
+	}
+
+	rows, err := res.RowsAffected()
+	return rows, err
+}
+
+// UpdateJobTaskTryNum 更新任务失败次数
+func (r *Repository) UpdateJobTaskTryNum(job_id int64) (int64, error) {
+	sql := "UPDATE br_job_queue set try_num = try_num + 1  where job_id = ?"
+	res, err := models.GetDB().Exec(sql, job_id)
+	if err != nil {
+		return 0, err
+	}
+
+	rows, err := res.RowsAffected()
+	return rows, err
+}
+
+// RemoveJobToHistory 将任务移到历史表中
+func (r *Repository) RemoveJobToHistory(jobQueue *JobQueue) (int64, error) {
+	// 删除任务
+	rows, err := r.DelJobTask(jobQueue.JobId)
+	if rows != 1 || err != nil {
+		logrus.Error(err)
+		// 任务重试次数加1
+		_, _ = r.UpdateJobTaskTryNum(jobQueue.JobId)
+		return 0, err
+	}
+	// 将任务写入历史表
+	jobHistory := &models.JobHistory{}
+	jobHistory.JobId = jobQueue.JobId
+	jobHistory.Body = jobQueue.Body
+	jobHistory.DoneUTCTime = pkg.GetNowTimeUnixMilli()
+	jobHistory.JobType = jobQueue.JobType
+	jobHistory.PlanUTCTime = jobQueue.PlanUTCTime
+	jobHistory.TryNum = jobQueue.TryNum
+	jobHistory.Result = 2
+	rows, err = jobHistory.Insert()
+	return rows, err
+}

@@ -7,9 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/biuren/hebe/internal/models"
-	"github.com/biuren/hebe/internal/services"
 	"github.com/biuren/hebe/internal/configs"
+	"github.com/biuren/hebe/internal/models"
+	"github.com/biuren/hebe/internal/modules/diary"
+	"github.com/biuren/hebe/internal/services"
 	"github.com/biuren/hebe/pkg"
 )
 
@@ -148,14 +149,17 @@ func TestRedis(t *testing.T) {
 }
 
 func TestGetSpacesByUserID(t *testing.T) {
-	space, err := models.GetDiaryByDiaryID(6)
+	diaryService := diary.NewService()
+	space, err := diaryService.GetDiaryByID(6)
 	fmt.Print(space)
 	fmt.Print(err)
-	fmt.Print(space.Title)
+	if space != nil {
+		fmt.Print(space.Title)
+	}
 }
 
 func TestAddSpace(t *testing.T) {
-	space := &models.Diary{}
+	space := &diary.Diary{}
 	space.Title = "测试日记"
 	space.Remark = "这是备注"
 	space.AccessPwd = "this is pwd"
@@ -171,7 +175,8 @@ func TestAddSpace(t *testing.T) {
 	space.ViewNum = 7
 	space.ViewSetting = 3
 
-	id, err := space.Insert()
+	diaryService := diary.NewService()
+	id, err := diaryService.AddDiary(space)
 
 	if err != nil {
 		fmt.Println(err)

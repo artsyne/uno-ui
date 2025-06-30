@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/biuren/hebe/internal/configs"
-	"github.com/biuren/hebe/internal/models"
+	"github.com/biuren/hebe/internal/modules/user"
 	"github.com/biuren/hebe/pkg"
 
 	"github.com/jasonlvhit/gocron"
@@ -27,7 +27,10 @@ func RunTask() {
 
 // 发送email任务
 func EmailTask() {
-	tasks, err := models.GetJobTasks(10, "email")
+	// 创建用户仓库实例
+	userRepo := user.NewRepository()
+
+	tasks, err := userRepo.GetJobTasks(10, "email")
 	if err != nil {
 		logrus.Error("获取邮件任务失败:", err)
 		return
@@ -39,7 +42,7 @@ func EmailTask() {
 
 	//循环发送邮件
 	for _, val := range tasks {
-		var obj models.EmailTask
+		var obj user.EmailTask
 		err = json.Unmarshal([]byte(val.Body), &obj)
 		if err != nil {
 			logrus.Error("解析邮件任务失败:", err)
@@ -53,14 +56,14 @@ func EmailTask() {
 		if err != nil {
 			logrus.Error("邮件发送失败:", err)
 			//任务重试次数加1
-			_, _ = models.UpdateJobTaskTryNum(val.JobId)
+			_, _ = userRepo.UpdateJobTaskTryNum(val.JobId)
 			continue
 		}
 
 		logrus.Info(fmt.Sprintf("邮件发送成功 to=%s subject=%s", obj.To, obj.Subject))
 
 		//删除记录到历史表
-		_, err := val.RemoveToHistory()
+		_, err := userRepo.RemoveJobToHistory(&val)
 		if err != nil {
 			logrus.Error(fmt.Sprintf("任务job_id=%d，删除到历史表失败", val.JobId))
 		}

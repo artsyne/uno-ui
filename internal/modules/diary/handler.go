@@ -1,28 +1,54 @@
-package controllers
+package diary
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/biuren/hebe/internal/configs"
 	"github.com/biuren/hebe/internal/errors"
-	"github.com/biuren/hebe/internal/helpers"
-	"github.com/biuren/hebe/internal/models"
-	"github.com/biuren/hebe/internal/services"
+	"github.com/biuren/hebe/internal/middlewares"
+	"github.com/biuren/hebe/internal/modules/user"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
 
-// DiaryController 日记本控制器
-// 负责处理日记本相关的所有HTTP请求，包括日记本列表展示、表单渲染、创建和编辑等操作
-type DiaryController struct{}
+// Handler 日记本模块HTTP处理器
+// 负责处理所有与日记本相关的HTTP请求，包括渲染列表、表单、创建日记本、编辑日记本等操作
+type Handler struct {
+	service *Service
+	auth    *user.AuthHelper
+}
 
-// NewDiaryController 创建新的日记本控制器实例
-// 返回值: *DiaryController 日记本控制器指针
-func NewDiaryController() *DiaryController {
-	return &DiaryController{}
+// NewHandler 创建新的日记本处理器实例
+func NewHandler() *Handler {
+	return &Handler{
+		service: NewService(),
+		auth:    user.NewAuthHelper(),
+	}
+}
+
+// RegisterRoutes 注册所有日记本相关路由
+// 将所有diary相关路由聚合在一个地方，实现高内聚
+func (h *Handler) RegisterRoutes(router *gin.Engine) {
+	// 日记相关路由组（无需鉴权）
+	diary := router.Group("/diary")
+	{
+		diary.GET("/", h.RenderDiary)
+	}
+
+	// 需要鉴权的日记本表单路由
+	authForm := router.Group("/form")
+	authForm.Use(middlewares.AuthRequired())
+	{
+		authForm.GET("/diary", h.RenderDiaryForm)
+	}
+
+	// 需要鉴权的日记本数据操作路由
+	authAPI := router.Group("/")
+	authAPI.Use(middlewares.AuthRequired())
+	{
+		authAPI.POST("/diary", h.HandleDiary)
+	}
 }
 
 // parseDiaryID 解析并验证日记本ID
@@ -34,96 +60,12 @@ func NewDiaryController() *DiaryController {
 // 返回值:
 //   - int64: 解析后的ID
 //   - error: 解析失败时的错误信息
-func (dc *DiaryController) parseDiaryID(idStr string) (int64, error) {
+func (h *Handler) parseDiaryID(idStr string) (int64, error) {
 	id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
 	if err != nil || id <= 0 {
 		return 0, errors.ParseInputParamErr
 	}
 	return id, nil
-}
-
-// RenderDiaryIndex 渲染日记本首页
-// 显示指定日记本的详细信息和其包含的日记列表，支持分页显示
-// 同时判断当前用户是否为日记本所有者，以决定是否显示管理功能
-//
-// 参数:
-//   - c: Gin上下文，包含请求信息和响应操作
-//
-// URL参数:
-//   - diaryid: 日记本ID
-//   - pageindex: 页码（可选，默认为1）
-func (dc *DiaryController) RenderDiaryIndex(c *gin.Context) {
-	h := pkg.DefaultH(c)
-	h["Title"] = "日记本"
-	h["Active"] = "users"
-
-	// 页面加载错误标志
-	hasError := false
-	errMsg := ""
-
-	// 解析URL中的日记本ID
-	diaryID, err := dc.parseDiaryID(c.Param("diaryid"))
-	if err != nil {
-		hasError = true
-		h["SpaceID"] = diaryID
-		h["hasError"] = hasError
-		h["errMsg"] = errMsg
-		c.HTML(http.StatusOK, "diary/index", h)
-		return
-	}
-
-	// 解析页码参数，默认为第1页
-	pageIndex, err := strconv.Atoi(strings.TrimSpace(c.Param("pageindex")))
-	if err != nil || pageIndex <= 0 {
-		pageIndex = 1
-	}
-
-	// 获取日记本信息
-	diary, _ := models.GetDiaryByDiaryID(diaryID)
-	if diary == nil {
-		hasError = true
-		h["DiaryID"] = diaryID
-		h["hasError"] = hasError
-		h["errMsg"] = errMsg
-		c.HTML(http.StatusOK, "diary/index", h)
-		return
-	}
-
-	// 获取分页配置
-	pageSize := configs.GetConfig().App.PageSize
-
-	// 获取分页日记列表
-	posts, diariesNum, err := models.ListPostsByUserID(diary.AddUserID, diaryID, pageIndex, pageSize)
-	if err != nil {
-		hasError = true
-	}
-	h["Posts"] = posts
-
-	// 生成分页导航
-	listOptions := pkg.ListOptions{
-		PageIndex: pageIndex,
-		PageSize:  pageSize,
-		Total:     diariesNum,
-		URL:       fmt.Sprintf("/d/%d/%%d", diaryID),
-		PagePrev:  "上页",
-		PageNext:  "下页",
-	}
-	pageLinks := pkg.GeneratePagination(listOptions)
-
-	// 判断当前用户是否为日记本所有者
-	isAuth, loginUser := helpers.Auth.IsAuthenticated(c)
-	isOwner := isAuth && loginUser.UserId == diary.AddUserID
-	h["IsOwner"] = isOwner
-
-	// 设置模板数据
-	h["Diary"] = diary
-	h["PageLinks"] = pageLinks
-	h["hasError"] = hasError
-	h["errMsg"] = errMsg
-	h["DiariesNum"] = diariesNum
-	h["PageSize"] = pageSize
-
-	c.HTML(http.StatusOK, "diary/index", h)
 }
 
 // RenderDiaryForm 渲染日记本创建/编辑表单页面
@@ -136,26 +78,26 @@ func (dc *DiaryController) RenderDiaryIndex(c *gin.Context) {
 // 支持的URL参数:
 //   - action: "diary.add" 或 "diary.edit"
 //   - diary_id: 当action为edit时需要提供的日记本ID
-func (dc *DiaryController) RenderDiaryForm(c *gin.Context) {
+func (h *Handler) RenderDiaryForm(c *gin.Context) {
 	// 获取当前登录用户信息
-	loginUser := helpers.Auth.MustGetCurrentUser(c)
+	loginUser := h.auth.MustGetCurrentUser(c)
 
-	h := pkg.DefaultH(c)
+	data := pkg.DefaultH(c)
 
 	// 根据action参数处理不同的表单渲染逻辑
 	action := c.Query("action")
 	if action == "diary.edit" {
 		// 编辑模式：获取并验证日记本数据
-		diary, err := dc.getAndValidateDiary(c, loginUser.UserId)
+		diary, err := h.getAndValidateDiary(c, loginUser.UserId)
 		if err != nil {
 			errors.ResponseErr(c, err)
 			return
 		}
-		h["Diary"] = diary
+		data["Diary"] = diary
 	}
 	// 创建模式：直接渲染空表单
 
-	c.HTML(http.StatusOK, "form/diary", h)
+	c.HTML(http.StatusOK, "form/diary", data)
 }
 
 // RenderDiary 渲染日记详细信息页面
@@ -163,11 +105,11 @@ func (dc *DiaryController) RenderDiaryForm(c *gin.Context) {
 //
 // 参数:
 //   - c: Gin上下文，包含请求信息和响应操作
-func (dc *DiaryController) RenderDiary(c *gin.Context) {
-	h := pkg.DefaultH(c)
-	h["Title"] = "我的日记本"
-	h["Active"] = "users"
-	c.HTML(http.StatusOK, "diary/diary", h)
+func (h *Handler) RenderDiary(c *gin.Context) {
+	data := pkg.DefaultH(c)
+	data["Title"] = "我的日记本"
+	data["Active"] = "users"
+	c.HTML(http.StatusOK, "diary/diary", data)
 }
 
 // HandleDiary 处理日记本的创建和编辑请求
@@ -179,12 +121,12 @@ func (dc *DiaryController) RenderDiary(c *gin.Context) {
 // 支持的表单action值:
 //   - "diary.add": 创建新日记本
 //   - "diary.edit": 编辑现有日记本
-func (dc *DiaryController) HandleDiary(c *gin.Context) {
+func (h *Handler) HandleDiary(c *gin.Context) {
 	// 获取当前登录用户信息
-	loginUser := helpers.Auth.MustGetCurrentUser(c)
+	loginUser := h.auth.MustGetCurrentUser(c)
 
 	// 解析表单数据到Diary结构体
-	diary := &models.Diary{}
+	diary := &Diary{}
 	if err := c.Bind(diary); err != nil {
 		errors.ResponseErr(c, errors.ParseInputParamErr)
 		return
@@ -194,9 +136,9 @@ func (dc *DiaryController) HandleDiary(c *gin.Context) {
 	action, _ := c.GetPostForm("action")
 	switch action {
 	case "diary.add":
-		dc.handleCreateDiary(c, diary, loginUser)
+		h.handleCreateDiary(c, diary, loginUser)
 	case "diary.edit":
-		dc.handleEditDiary(c, diary, loginUser)
+		h.handleEditDiary(c, diary, loginUser)
 	default:
 		errors.ResponseErr(c, errors.ParseInputParamErr)
 	}
@@ -209,11 +151,11 @@ func (dc *DiaryController) HandleDiary(c *gin.Context) {
 //   - c: Gin上下文
 //   - formData: 解析后的表单数据
 //   - user: 当前登录用户信息
-func (dc *DiaryController) handleCreateDiary(c *gin.Context, formData *models.Diary, user *models.Login) {
+func (h *Handler) handleCreateDiary(c *gin.Context, formData *Diary, user *user.Login) {
 	nowTime := pkg.GetNowTimeUnixMilli()
 
 	// 使用结构体字面量创建完整的日记本对象
-	diary := &models.Diary{
+	diary := &Diary{
 		// 用户输入的字段
 		Title:         formData.Title,
 		Remark:        formData.Remark,
@@ -241,7 +183,7 @@ func (dc *DiaryController) handleCreateDiary(c *gin.Context, formData *models.Di
 	}
 
 	// 调用服务层创建日记本
-	diaryID, err := services.AddDiary(diary)
+	diaryID, err := h.service.AddDiary(diary)
 	if err != nil {
 		errors.ResponseErr(c, err)
 		return
@@ -249,7 +191,7 @@ func (dc *DiaryController) handleCreateDiary(c *gin.Context, formData *models.Di
 	diary.DiaryID = diaryID
 
 	// 返回成功响应
-	dc.respondSuccess(c, diary)
+	h.respondSuccess(c, diary)
 }
 
 // handleEditDiary 处理编辑现有日记本的业务逻辑
@@ -259,9 +201,9 @@ func (dc *DiaryController) handleCreateDiary(c *gin.Context, formData *models.Di
 //   - c: Gin上下文
 //   - diary: 解析后的日记本数据
 //   - user: 当前登录用户信息
-func (dc *DiaryController) handleEditDiary(c *gin.Context, diary *models.Diary, user *models.Login) {
+func (h *Handler) handleEditDiary(c *gin.Context, diary *Diary, user *user.Login) {
 	// 验证日记本所有权
-	originalDiary, err := dc.validateDiaryOwnership(diary.DiaryID, user.UserId)
+	originalDiary, err := h.validateDiaryOwnership(diary.DiaryID, user.UserId)
 	if err != nil {
 		errors.ResponseErr(c, err)
 		return
@@ -287,13 +229,13 @@ func (dc *DiaryController) handleEditDiary(c *gin.Context, diary *models.Diary, 
 	diary.LastActionUserName = user.UserName
 
 	// 调用服务层更新日记本
-	if err := services.UpdateDiary(diary); err != nil {
+	if err := h.service.UpdateDiary(diary); err != nil {
 		errors.ResponseErr(c, err)
 		return
 	}
 
 	// 返回成功响应
-	dc.respondSuccess(c, diary)
+	h.respondSuccess(c, diary)
 }
 
 // getAndValidateDiary 获取并验证日记本权限（用于表单渲染）
@@ -304,15 +246,15 @@ func (dc *DiaryController) handleEditDiary(c *gin.Context, diary *models.Diary, 
 //   - userID: 当前用户ID
 //
 // 返回值:
-//   - *models.Diary: 日记本对象，如果验证失败返回nil
+//   - *Diary: 日记本对象，如果验证失败返回nil
 //   - error: 错误信息
-func (dc *DiaryController) getAndValidateDiary(c *gin.Context, userID int64) (*models.Diary, error) {
-	diaryID, err := dc.parseDiaryID(c.Query("diary_id"))
+func (h *Handler) getAndValidateDiary(c *gin.Context, userID int64) (*Diary, error) {
+	diaryID, err := h.parseDiaryID(c.Query("diary_id"))
 	if err != nil {
 		return nil, err
 	}
 
-	return dc.validateDiaryOwnership(diaryID, userID)
+	return h.validateDiaryOwnership(diaryID, userID)
 }
 
 // validateDiaryOwnership 验证日记本所有权
@@ -323,10 +265,10 @@ func (dc *DiaryController) getAndValidateDiary(c *gin.Context, userID int64) (*m
 //   - userID: 当前用户ID
 //
 // 返回值:
-//   - *models.Diary: 日记本对象
+//   - *Diary: 日记本对象
 //   - error: 验证失败时的错误信息
-func (dc *DiaryController) validateDiaryOwnership(diaryID, userID int64) (*models.Diary, error) {
-	diary, err := models.GetDiaryByDiaryID(diaryID)
+func (h *Handler) validateDiaryOwnership(diaryID, userID int64) (*Diary, error) {
+	diary, err := h.service.GetDiaryByID(diaryID)
 	if err != nil || diary == nil {
 		return nil, errors.ParseInputParamErr
 	}
@@ -345,8 +287,22 @@ func (dc *DiaryController) validateDiaryOwnership(diaryID, userID int64) (*model
 // 参数:
 //   - c: Gin上下文
 //   - diary: 操作成功的日记本对象
-func (dc *DiaryController) respondSuccess(c *gin.Context, diary *models.Diary) {
-	h := pkg.ResponseH(c)
-	h["Data"] = diary
-	c.JSON(http.StatusOK, h)
+func (h *Handler) respondSuccess(c *gin.Context, diary *Diary) {
+	data := pkg.ResponseH(c)
+	data["Data"] = diary
+	c.JSON(http.StatusOK, data)
+}
+
+// renderErrorPage 渲染错误页面
+// 当发生错误时显示用户友好的错误信息
+//
+// 参数:
+//   - c: Gin上下文
+//   - title: 错误标题
+//   - message: 错误详细信息
+func (h *Handler) renderErrorPage(c *gin.Context, title, message string) {
+	data := pkg.DefaultH(c)
+	data["title"] = title
+	data["message"] = message
+	c.HTML(http.StatusBadRequest, "error", data)
 }

@@ -5,8 +5,7 @@ import (
 	"net/http"
 
 	"github.com/biuren/hebe/internal/configs"
-	"github.com/biuren/hebe/internal/helpers"
-	"github.com/biuren/hebe/internal/models"
+	"github.com/biuren/hebe/internal/modules/user"
 	"github.com/biuren/hebe/pkg"
 
 	"github.com/gin-gonic/gin"
@@ -31,8 +30,9 @@ import (
 //
 // 注意：这个中间件依赖于 SharedData() 中间件注入的认证信息
 func AuthRequired() gin.HandlerFunc {
+	auth := user.NewAuthHelper()
 	return func(c *gin.Context) {
-		if isAuth, _ := helpers.Auth.IsAuthenticated(c); isAuth {
+		if isAuth, _ := auth.IsAuthenticated(c); isAuth {
 			c.Next()
 		} else {
 			logrus.Warnf("User not authorized to visit %s", c.Request.RequestURI)
@@ -72,7 +72,7 @@ func SharedData() gin.HandlerFunc {
 
 // parseUserFromCookie 从Cookie中解析用户登录信息
 // 这是内部函数，负责具体的用户认证逻辑
-func parseUserFromCookie(c *gin.Context) *models.Login {
+func parseUserFromCookie(c *gin.Context) *user.Login {
 	// 获取cookie
 	cookieEnUserData := pkg.ReadCookie(c.Request, "ud")
 	logrus.Debugf("Cookie value: %s", cookieEnUserData)
@@ -92,7 +92,7 @@ func parseUserFromCookie(c *gin.Context) *models.Login {
 	logrus.Debugf("Decrypted cookie data: %s", string(byteUserData))
 
 	// 反序列化为对象
-	var userData models.Login
+	var userData user.Login
 	err = json.Unmarshal(byteUserData, &userData)
 	if err != nil {
 		logrus.Errorf("Failed to unmarshal user data: %v", err)
