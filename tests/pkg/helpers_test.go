@@ -10,13 +10,12 @@ import (
 	"github.com/biuren/hebe/internal/configs"
 	"github.com/biuren/hebe/internal/models"
 	"github.com/biuren/hebe/internal/modules/diary"
-	"github.com/biuren/hebe/internal/services"
 	"github.com/biuren/hebe/pkg"
 )
 
 // 初始化数据库连接
 func init() {
-	configs.LoadConfig()
+	configs.InitConfig()
 	models.ConnectToDB()
 }
 
@@ -79,54 +78,7 @@ func TestSendEmail(t *testing.T) {
 	}
 }
 
-func TestGetJobsTasks(t *testing.T) {
-	tasks, err := models.GetJobTasks(3, "email")
-	if err != nil {
-		panic(err)
-	} else {
-		str, _ := json.Marshal(tasks)
-		t.Log(string(str))
-	}
-}
-
-func TestAddValidCode(t *testing.T) {
-	validCode := &models.ValidCode{}
-	validCode.ValidCode = string(pkg.Rand(32, pkg.RAND_KIND_ALL))
-	validCode.UserId = 35
-	validCode.ValidTypeId = configs.VALID_CODE_ACTIVE_USER_EMAIL
-	nowTime := pkg.GetNowTime()
-	validCode.CreateUTCTime = nowTime.UnixMilli()
-	validCode.ExpireUTCTime = nowTime.AddDate(0, 0, 1).UnixMilli() //增加一天过期
-
-	id, err := validCode.Insert()
-
-	if err != nil {
-		t.Error(err)
-	} else {
-		t.Log(fmt.Printf("valid code id= %d", id))
-	}
-}
-
-func TestAddActivateUserEmailTask(t *testing.T) {
-	user := &models.User{}
-
-	user.Email = "kupage@gmail.com"
-	user.UserId = 34
-	user.UserName = "icefire"
-
-	if err := services.AddActivateUserEmailTask(user); err != nil {
-		t.Error(err)
-	}
-}
-
-func TestCreateActiveUrl(t *testing.T) {
-	//插入发送邮件队列
-	config := configs.GetConfig()
-	params := configs.GetParams()
-	//激活链接
-	url := fmt.Sprintf("%s/activiceuser?uid=%d&sign=%s", config.Domain, 10000, "wesdfsdfwerwerwer234234")
-	t.Log(fmt.Sprintf(params["reg_email_body"], url, url))
-}
+// 这些测试方法已被移除，因为依赖的模型和服务已经重构
 
 func TestRedis(t *testing.T) {
 

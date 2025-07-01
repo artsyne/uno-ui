@@ -5,7 +5,6 @@ import (
 
 	"github.com/biuren/hebe/internal/models"
 	"github.com/biuren/hebe/pkg"
-	"github.com/sirupsen/logrus"
 )
 
 // Repository 用户数据访问层
@@ -338,98 +337,24 @@ func (r *Repository) CheckValidCode(userID int64, sign string, validType int8) (
 	return result, validId
 }
 
-// ===================== JobQueue 相关方法 =====================
-
-// InsertJobQueue 插入作业队列
-func (r *Repository) InsertJobQueue(jobQueue *JobQueue) (int64, error) {
-	sql := `
-                insert into br_job_queue  (
-                    job_type  ,
-                    body  ,
-                    add_utc_time  ,
-                    plan_utc_time  ,
-                    result ,
-                    try_num
-                )
-                values (
-                    ?  ,
-                    ?  ,
-                    ?  ,
-                    ?  ,
-                    ? ,
-                    ?
-                )
-                `
-	res, err := models.GetDB().Exec(sql,
-		jobQueue.JobType,
-		jobQueue.Body,
-		jobQueue.AddUTCTime,
-		jobQueue.PlanUTCTime,
-		jobQueue.Result,
-		jobQueue.TryNum,
-	)
+// UpdateUserProfile 更新用户基本资料
+func (r *Repository) UpdateUserProfile(userId int64, fullName, remark string) (int64, error) {
+	sql := "UPDATE br_user SET full_name = ?, remark = ? WHERE user_id = ?"
+	res, err := models.GetDB().Exec(sql, fullName, remark, userId)
 	if err != nil {
 		return 0, err
 	}
-	id, err := res.LastInsertId()
-	return id, err
-}
-
-// GetJobTasks 获取作业任务
-func (r *Repository) GetJobTasks(num int, jobType string) ([]JobQueue, error) {
-	result := []JobQueue{}
-	sqlstr := `SELECT *  FROM br_job_queue WHERE job_type = ? and try_num <4
-		ORDER BY job_id desc limit ? `
-	err := models.GetDB().Select(&result, sqlstr, jobType, num)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	return result, err
-}
-
-// DelJobTask 删除作业任务
-func (r *Repository) DelJobTask(job_id int64) (int64, error) {
-	sql := "DELETE FROM br_job_queue WHERE job_id = ?"
-	res, err := models.GetDB().Exec(sql, job_id)
-	if err != nil {
-		return 0, err
-	}
-
 	rows, err := res.RowsAffected()
 	return rows, err
 }
 
-// UpdateJobTaskTryNum 更新任务失败次数
-func (r *Repository) UpdateJobTaskTryNum(job_id int64) (int64, error) {
-	sql := "UPDATE br_job_queue set try_num = try_num + 1  where job_id = ?"
-	res, err := models.GetDB().Exec(sql, job_id)
+// UpdateUserPasswordAndSalt 更新用户密码和盐值
+func (r *Repository) UpdateUserPasswordAndSalt(userId int64, pwd, salt string) (int64, error) {
+	sql := "UPDATE br_user SET pwd = ?, pwd_salt = ? WHERE user_id = ?"
+	res, err := models.GetDB().Exec(sql, pwd, salt, userId)
 	if err != nil {
 		return 0, err
 	}
-
 	rows, err := res.RowsAffected()
-	return rows, err
-}
-
-// RemoveJobToHistory 将任务移到历史表中
-func (r *Repository) RemoveJobToHistory(jobQueue *JobQueue) (int64, error) {
-	// 删除任务
-	rows, err := r.DelJobTask(jobQueue.JobId)
-	if rows != 1 || err != nil {
-		logrus.Error(err)
-		// 任务重试次数加1
-		_, _ = r.UpdateJobTaskTryNum(jobQueue.JobId)
-		return 0, err
-	}
-	// 将任务写入历史表
-	jobHistory := &models.JobHistory{}
-	jobHistory.JobId = jobQueue.JobId
-	jobHistory.Body = jobQueue.Body
-	jobHistory.DoneUTCTime = pkg.GetNowTimeUnixMilli()
-	jobHistory.JobType = jobQueue.JobType
-	jobHistory.PlanUTCTime = jobQueue.PlanUTCTime
-	jobHistory.TryNum = jobQueue.TryNum
-	jobHistory.Result = 2
-	rows, err = jobHistory.Insert()
 	return rows, err
 }

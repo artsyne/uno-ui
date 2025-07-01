@@ -12,7 +12,8 @@ import (
 	"github.com/biuren/hebe/internal/configs"
 	"github.com/biuren/hebe/internal/middlewares"
 	"github.com/biuren/hebe/internal/models"
-	"github.com/biuren/hebe/internal/services"
+	"github.com/biuren/hebe/internal/modules/task"
+	"github.com/biuren/hebe/internal/modules/user"
 	"github.com/biuren/hebe/pkg"
 	"github.com/biuren/hebe/website/routes"
 )
@@ -73,7 +74,7 @@ func NewApp() (*App, error) {
 	logrus.Info("成功设置 Cookie 默认值")
 
 	// 启动定时任务
-	services.RunTask()
+	task.NewService().StartScheduler()
 	logrus.Info("成功启动定时任务")
 
 	// 初始化 Gin server
@@ -165,7 +166,7 @@ func setupGinServer(mode string) *gin.Engine {
 	server := gin.New()
 
 	// 初始化中间件
-	server.Use(middlewares.PanicHandler(), middlewares.ErrorHandler(), middlewares.SharedData())
+	server.Use(middlewares.PanicHandler(), middlewares.ErrorHandler(), user.SharedData())
 	logrus.Info("成功初始化中间件")
 
 	// 初始化Router，创建 gin 默认 router

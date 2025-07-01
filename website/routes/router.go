@@ -111,8 +111,4 @@ func setPath(server *gin.Engine) {
 	// 日记相关路由 - 使用新的Post模块（包含所有post相关路由）
 	postHandler.RegisterRoutes(server)
 
-	// 用户主页路由（无需鉴权，支持匿名访问）
-	server.GET("/u/:uid", controllers.RenderMemberIndex)
-	server.GET("u/:uid/settings", controllers.RenderMemberSettings)
-	server.GET("/u/:uid/:pageindex", controllers.RenderMemberIndex)
 }

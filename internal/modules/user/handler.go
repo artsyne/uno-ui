@@ -46,6 +46,16 @@ func (h *Handler) RegisterRoutes(router *gin.Engine) {
 	router.POST("/resetpwd", h.HandleResetPwd)
 
 	router.GET("/activateuser", h.RenderActivateUser)
+
+	// 用户设置相关路由（需要鉴权）
+	authGroup := router.Group("/u")
+	authGroup.Use(AuthRequired())
+	{
+		authGroup.GET("/:uid/settings", h.RenderUserSettings)
+		authGroup.POST("/:uid/settings/profile", h.UpdateProfile)
+		authGroup.POST("/:uid/settings/email", h.UpdateEmail)
+		authGroup.POST("/:uid/settings/password", h.ChangePassword)
+	}
 }
 
 // ===================== 页面渲染方法 =====================
@@ -400,4 +410,136 @@ func (h *Handler) setLoginCookie(c *gin.Context, login *Login) error {
 	// 写入cookie
 	pkg.WriteCookie(c.Writer, "ud", cookieUD)
 	return nil
+}
+
+// ===================== Member 相关处理方法 =====================
+
+// RenderUserSettings 渲染用户设置页面
+// 从website/controllers/member.go中迁移的RenderMemberSettings方法
+// 现在在路由级别已确保用户已登录
+func (h *Handler) RenderUserSettings(c *gin.Context) {
+	// 获取当前登录用户信息（由中间件保证已登录）
+	loginUser := h.auth.MustGetCurrentUser(c)
+
+	// 获取url中的uid
+	uid, err := h.parseUserID(c.Param("uid"))
+	if err != nil {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	data := pkg.DefaultH(c)
+	data["Title"] = "设置"
+	data["Active"] = "setting"
+
+	// 判断是否是用户本人
+	isOwner := (loginUser.UserId == uid)
+
+	// 如果是用户本人，获取详细的用户信息
+	var userInfo *User
+	if isOwner {
+		userInfo, err = h.service.GetUserSettings(uid, loginUser.UserId)
+		if err != nil {
+			c.Redirect(http.StatusFound, "/")
+			return
+		}
+	}
+
+	data["IsOwner"] = isOwner
+	data["UserData"] = *loginUser
+	data["UserInfo"] = userInfo
+
+	c.HTML(http.StatusOK, "member/settings", data)
+}
+
+// UpdateProfile 更新用户基本资料
+func (h *Handler) UpdateProfile(c *gin.Context) {
+	// 获取url中的uid
+	uid, err := h.parseUserID(c.Param("uid"))
+	if err != nil {
+		errors.ResponseErr(c, errors.InputParamErr)
+		return
+	}
+
+	// 读取用户认证信息
+	userData, exists := c.Get("UserData")
+	if !exists {
+		errors.ResponseErr(c, errors.UserNotExists)
+		return
+	}
+	userLogin := userData.(Login)
+
+	// 获取表单数据
+	fullName := c.PostForm("full_name")
+	remark := c.PostForm("remark")
+
+	// 调用service更新资料
+	err = h.service.UpdateUserProfile(uid, userLogin.UserId, fullName, remark)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "资料更新成功"})
+}
+
+// UpdateEmail 更新用户邮箱
+func (h *Handler) UpdateEmail(c *gin.Context) {
+	// 获取url中的uid
+	uid, err := h.parseUserID(c.Param("uid"))
+	if err != nil {
+		errors.ResponseErr(c, errors.InputParamErr)
+		return
+	}
+
+	// 读取用户认证信息
+	userData, exists := c.Get("UserData")
+	if !exists {
+		errors.ResponseErr(c, errors.UserNotExists)
+		return
+	}
+	userLogin := userData.(Login)
+
+	// 获取表单数据
+	email := c.PostForm("email")
+
+	// 调用service更新邮箱
+	err = h.service.UpdateUserEmail(uid, userLogin.UserId, email)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "邮箱更新成功"})
+}
+
+// ChangePassword 修改用户密码
+func (h *Handler) ChangePassword(c *gin.Context) {
+	// 获取url中的uid
+	uid, err := h.parseUserID(c.Param("uid"))
+	if err != nil {
+		errors.ResponseErr(c, errors.InputParamErr)
+		return
+	}
+
+	// 读取用户认证信息
+	userData, exists := c.Get("UserData")
+	if !exists {
+		errors.ResponseErr(c, errors.UserNotExists)
+		return
+	}
+	userLogin := userData.(Login)
+
+	// 获取表单数据
+	currentPwd := c.PostForm("current_pwd")
+	newPwd := c.PostForm("new_pwd")
+
+	// 调用service更改密码
+	err = h.service.ChangeUserPassword(uid, userLogin.UserId, currentPwd, newPwd)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "密码修改成功"})
 }

@@ -8,7 +8,6 @@ import (
 
 	"github.com/biuren/hebe/internal/configs"
 	"github.com/biuren/hebe/internal/errors"
-	"github.com/biuren/hebe/internal/middlewares"
 	"github.com/biuren/hebe/internal/modules/diary"
 	"github.com/biuren/hebe/internal/modules/user"
 	"github.com/biuren/hebe/pkg"
@@ -34,24 +33,26 @@ func NewHandler() *Handler {
 // 将所有post相关路由聚合在一个地方，实现高内聚
 func (h *Handler) RegisterRoutes(router *gin.Engine) {
 	// 日记本页面路由组（无需鉴权，支持公开访问）
+	// 显示日记本下的日记列表
 	daybook := router.Group("/d")
 	{
-		daybook.GET("/:diaryid", h.RenderDiaryIndex)
-		daybook.GET("/:diaryid/:pageindex", h.RenderDiaryIndex)
+		daybook.GET("/:spaceid", h.RenderDiaryIndex)
+		daybook.GET("/:spaceid/:pageindex", h.RenderDiaryIndex)
 	}
 
 	// 需要鉴权的日记表单路由
 	authForm := router.Group("/form")
-	authForm.Use(middlewares.AuthRequired())
+	authForm.Use(user.AuthRequired())
 	{
 		authForm.GET("/post", h.RenderPostForm)
 	}
 
-	// 需要鉴权的日记数据操作路由
+	// 需要鉴权的日记数据操作路由（保持原路径）
 	authAPI := router.Group("/")
-	authAPI.Use(middlewares.AuthRequired())
+	authAPI.Use(user.AuthRequired())
 	{
 		authAPI.POST("/post", h.HandlePost)
+		authAPI.POST("/info", h.HandlePost)
 	}
 }
 
@@ -322,7 +323,7 @@ func (h *Handler) respondSuccess(c *gin.Context, post *Post) {
 //   - c: Gin上下文，包含请求信息和响应操作
 func (h *Handler) RenderDiaryIndex(c *gin.Context) {
 	// 解析日记本ID
-	diaryIDStr := c.Param("diaryid")
+	diaryIDStr := c.Param("spaceid")
 	diaryID, err := h.parseDiaryID(diaryIDStr)
 	if err != nil {
 		h.renderErrorPage(c, "日记本ID格式错误", "请检查URL中的日记本ID是否正确")

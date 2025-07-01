@@ -1,12 +1,13 @@
 package diary
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/biuren/hebe/internal/configs"
 	"github.com/biuren/hebe/internal/errors"
-	"github.com/biuren/hebe/internal/middlewares"
 	"github.com/biuren/hebe/internal/modules/user"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
@@ -36,18 +37,23 @@ func (h *Handler) RegisterRoutes(router *gin.Engine) {
 		diary.GET("/", h.RenderDiary)
 	}
 
+	// 用户个人主页路由（公开访问，显示用户的日记本列表）
+	router.GET("/u/:uid", h.RenderUserProfile)
+	router.GET("/u/:uid/:pageindex", h.RenderUserProfile)
+
 	// 需要鉴权的日记本表单路由
 	authForm := router.Group("/form")
-	authForm.Use(middlewares.AuthRequired())
+	authForm.Use(user.AuthRequired())
 	{
 		authForm.GET("/diary", h.RenderDiaryForm)
 	}
 
-	// 需要鉴权的日记本数据操作路由
+	// 需要鉴权的日记本数据操作路由（保持原路径）
 	authAPI := router.Group("/")
-	authAPI.Use(middlewares.AuthRequired())
+	authAPI.Use(user.AuthRequired())
 	{
 		authAPI.POST("/diary", h.HandleDiary)
+		authAPI.POST("/daybook", h.HandleDiary)
 	}
 }
 
@@ -305,4 +311,67 @@ func (h *Handler) renderErrorPage(c *gin.Context, title, message string) {
 	data["title"] = title
 	data["message"] = message
 	c.HTML(http.StatusBadRequest, "error", data)
+}
+
+// RenderUserProfile 渲染用户个人主页
+// 从website/controllers/member.go中迁移的RenderMemberIndex方法
+// 显示用户的日记本列表，支持分页
+func (h *Handler) RenderUserProfile(c *gin.Context) {
+	data := pkg.DefaultH(c)
+
+	// 获取url中的uid
+	uid, err := h.parseDiaryID(c.Param("uid")) // 复用parseDiaryID方法
+	if err != nil {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	data["Title"] = "个人主页"
+	data["Active"] = "users"
+
+	// 读取用户认证信息
+	userData, ok := data["UserData"].(user.Login)
+	if !ok {
+		// 用户未登录或登录信息无效，重定向到登录页面
+		c.Redirect(http.StatusFound, "/login")
+		return
+	}
+
+	// 判断是否是用户本人
+	isOwner := (userData.UserId == uid)
+
+	// 获取URL中的pageIndex
+	pageIndexStr := c.Param("pageindex")
+	pageIndex := 1
+	if pageIndexStr != "" {
+		if idx, err := strconv.Atoi(strings.TrimSpace(pageIndexStr)); err == nil && idx > 0 {
+			pageIndex = idx
+		}
+	}
+
+	// 获取分页配置
+	pageSize := configs.GetConfig().App.PageSize
+
+	// 获取用户的日记本列表
+	diaries, diariesNum, _ := h.service.ListDiariesByUser(uid, pageIndex, pageSize)
+
+	// 初始化分页信息
+	listOptions := pkg.ListOptions{
+		PageIndex: pageIndex,
+		PageSize:  pageSize,
+		Total:     diariesNum,
+		URL:       fmt.Sprintf("/u/%d/%%d", uid),
+		PagePrev:  "上页",
+		PageNext:  "下页",
+	}
+	pageLinks := pkg.GeneratePagination(listOptions)
+
+	data["IsOwner"] = isOwner
+	data["UserData"] = userData
+	data["Diaries"] = diaries
+	data["DiariesNum"] = diariesNum
+	data["PageSize"] = pageSize
+	data["PageLinks"] = pageLinks
+
+	c.HTML(http.StatusOK, "member/index", data)
 }

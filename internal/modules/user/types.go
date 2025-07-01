@@ -48,24 +48,6 @@ type ValidCode struct {
 	CreateUTCTime int64  `form:"create_utc_time" json:"gmt_create" db:"create_utc_time"`
 }
 
-// JobQueue 作业队列结构体
-type JobQueue struct {
-	JobId       int64  `form:"job_id" json:"job_id" db:"job_id"`
-	JobType     string `form:"job_type" json:"job_type" db:"job_type"`
-	Body        string `form:"body" json:"body" db:"body"`
-	AddUTCTime  int64  `form:"add_utc_time" json:"add_utc_time" db:"add_utc_time"`
-	PlanUTCTime int64  `form:"plan_utc_time" json:"plan_utc_time" db:"plan_utc_time"`
-	Result      int8   `form:"result" json:"result" db:"result"`
-	TryNum      int8   `form:"try_num" json:"try_num" db:"try_num"`
-}
-
-// EmailTask 邮件任务结构体
-type EmailTask struct {
-	To      string `json:"to"`
-	Subject string `json:"subject"`
-	Body    string `json:"body"`
-}
-
 // 请求结构体定义
 type LoginRequest struct {
 	LoginName string `form:"login_name" json:"login_name"`

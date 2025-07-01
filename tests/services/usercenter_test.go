@@ -7,18 +7,17 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/biuren/hebe/internal/models"
-	"github.com/biuren/hebe/internal/services"
 	"github.com/biuren/hebe/internal/configs"
+	"github.com/biuren/hebe/internal/models"
+	"github.com/biuren/hebe/internal/modules/user"
 	"github.com/biuren/hebe/pkg"
 )
 
 // 初始化数据库连接
 func init() {
-	configs.LoadConfig()
+	configs.InitConfig()
 	models.ConnectToDB()
 }
-
 
 // 测试时间函数
 func TestUTCUnix(t *testing.T) {
@@ -70,42 +69,41 @@ func TestGetTimeByTimeZone(t *testing.T) {
 	}
 }
 
-//测试获取用户语言
+// 测试获取用户语言
 func TestGetUserLanguage(t *testing.T) {
-    
-    //测试台湾语言
-    if  services.GetSupportedLang("zh-tw") != "zh-tw" {
-        t.Error("获取用户语言zh-tw失败")
-    }
-    //测试中文
-    if  services.GetSupportedLang("zh-cn") != "zh-cn" {
-        t.Error("获取用户语言zh-cn失败")
-    }
-    //测试英文
-    if  services.GetSupportedLang("en-us") != "en" {
-        t.Error("获取用户语言en-us失败")
-    }
+	userService := user.NewService()
+
+	//测试台湾语言
+	if userService.GetSupportedLang("zh-tw") != "zh-tw" {
+		t.Error("获取用户语言zh-tw失败")
+	}
+	//测试中文
+	if userService.GetSupportedLang("zh-cn") != "zh-cn" {
+		t.Error("获取用户语言zh-cn失败")
+	}
+	//测试英文
+	if userService.GetSupportedLang("en-us") != "en" {
+		t.Error("获取用户语言en-us失败")
+	}
 }
 
 func Backward(s []string) func(yield func(string) bool) {
 	return func(yield func(string) bool) {
-	  for i := len(s) - 1; i >= 0; i-- {
-		yield(strings.ToUpper(s[i]))
-	  }
+		for i := len(s) - 1; i >= 0; i-- {
+			yield(strings.ToUpper(s[i]))
+		}
 	}
-  }
- 
+}
 
-//测试golang 1.23 新特性
+// 测试golang 1.23 新特性
 func TestGolang123(t *testing.T) {
 	//测试golang 1.23 新特性
 	t.Log("测试golang 1.23 新特性")
 
 	s := []string{"hello", "world", "golang", "GO to hall"}
 	backwardFunc := Backward(s)
-    backwardFunc(func(str string) bool {
-       t.Log(str)
-        return true
-    })
+	backwardFunc(func(str string) bool {
+		t.Log(str)
+		return true
+	})
 }
-
