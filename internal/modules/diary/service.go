@@ -8,13 +8,22 @@ import (
 // Service 日记本业务逻辑层
 // 负责处理所有与日记本相关的业务逻辑和规则验证
 type Service struct {
-	repo *Repository
+	repo   *Repository
+	config *configs.Config // 缓存配置，避免重复调用全局变量
 }
 
 // NewService 创建新的日记本业务逻辑层实例
 func NewService() *Service {
+	config := configs.GetConfig()
+	if config == nil {
+		// 在初始化时就检查配置，如果配置未正确加载则panic
+		// 这是合理的，因为没有配置应用无法正常运行
+		panic("Failed to get config during diary service initialization - config is nil")
+	}
+
 	return &Service{
-		repo: NewRepository(),
+		repo:   NewRepository(),
+		config: config, // 缓存配置
 	}
 }
 
@@ -123,7 +132,7 @@ func (s *Service) CheckDiaryLimit(userID int64) error {
 		return errors.ParseInputParamErr
 	}
 
-	if daybookNum > configs.GetConfig().App.MaxDaybookLimit {
+	if daybookNum > s.config.App.MaxDaybookLimit {
 		return errors.MaxDaybookLimitErr
 	}
 

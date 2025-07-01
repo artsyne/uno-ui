@@ -3,16 +3,26 @@ package post
 import (
 	"database/sql"
 
-	"github.com/biuren/hebe/internal/models"
+	"github.com/biuren/hebe/internal/database"
+	"github.com/jmoiron/sqlx"
 )
 
 // Repository 日记数据访问层
 // 负责处理所有与日记相关的数据库操作
-type Repository struct{}
+type Repository struct {
+	db *sqlx.DB
+}
 
 // NewRepository 创建新的日记数据访问层实例
 func NewRepository() *Repository {
-	return &Repository{}
+	db := database.GetDB()
+	if db == nil {
+		panic("database connection is nil")
+	}
+
+	return &Repository{
+		db: db,
+	}
 }
 
 // Insert 插入日记信息到数据库
@@ -25,7 +35,7 @@ func (r *Repository) Insert(post *Post) (int64, error) {
 		)
 		VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 	`
-	res, err := models.GetDB().Exec(sqlstr, post.DiaryID,
+	res, err := r.db.Exec(sqlstr, post.DiaryID,
 		post.IsTop, post.Title, post.Summary, post.Body, post.ViewNum, post.LikeNum,
 		post.CommentNum, post.AddUserID, post.AddUserName, post.AddUserIP, post.AddUTCTime,
 		post.UpdateUTCTime, post.Status, post.InfoType)
@@ -46,7 +56,7 @@ func (r *Repository) Update(post *Post) error {
 			update_utc_time = ?, status = ?, info_type = ? 
 		WHERE post_id = ?
 	`
-	_, err := models.GetDB().Exec(sqlstr, post.DiaryID, post.IsTop, post.Title, post.Summary, post.Body,
+	_, err := r.db.Exec(sqlstr, post.DiaryID, post.IsTop, post.Title, post.Summary, post.Body,
 		post.ViewNum, post.LikeNum, post.CommentNum, post.UpdateUTCTime, post.Status, post.InfoType,
 		post.PostID)
 	return err
@@ -63,7 +73,7 @@ func (r *Repository) ListByUserID(userID int64, diaryID int64, pageIndex, pageSi
 	sqlstr := `SELECT * FROM br_post WHERE diary_id = ? AND add_user_id = ? 
 		ORDER BY post_id DESC LIMIT ? offset ?`
 
-	err := models.GetDB().Select(&infoArray, sqlstr, diaryID, userID, pageSize, offset)
+	err := r.db.Select(&infoArray, sqlstr, diaryID, userID, pageSize, offset)
 	if err == sql.ErrNoRows {
 		return nil, 0, nil
 	}
@@ -79,7 +89,7 @@ func (r *Repository) GetCountByUserID(userID int64, diaryID int64) (int, error) 
 	var count int
 	sqlstr := "SELECT COUNT(*) FROM br_post WHERE diary_id = ? AND add_user_id = ?"
 
-	err := models.GetDB().Get(&count, sqlstr, diaryID, userID)
+	err := r.db.Get(&count, sqlstr, diaryID, userID)
 	if err == sql.ErrNoRows {
 		return 0, nil
 	}
@@ -90,7 +100,7 @@ func (r *Repository) GetCountByUserID(userID int64, diaryID int64) (int, error) 
 func (r *Repository) GetByID(postID int64) (*Post, error) {
 	sqlstr := "SELECT * FROM br_post WHERE post_id = ?"
 	post := &Post{}
-	err := models.GetDB().Get(post, sqlstr, postID)
+	err := r.db.Get(post, sqlstr, postID)
 	if err == sql.ErrNoRows {
 		return nil, nil // 如果没有找到记录，返回nil
 	}
@@ -107,7 +117,7 @@ func (r *Repository) UpdateByID(post *Post) error {
 			update_utc_time = ?, status = ?, info_type = ? 
 		WHERE post_id = ?
 	`
-	_, err := models.GetDB().Exec(sqlstr, post.DiaryID, post.IsTop, post.Title, post.Summary, post.Body,
+	_, err := r.db.Exec(sqlstr, post.DiaryID, post.IsTop, post.Title, post.Summary, post.Body,
 		post.ViewNum, post.LikeNum, post.CommentNum, post.AddUserID, post.AddUserName,
 		post.AddUserIP, post.AddUTCTime, post.UpdateUTCTime, post.Status, post.InfoType,
 		post.PostID)
@@ -117,6 +127,6 @@ func (r *Repository) UpdateByID(post *Post) error {
 // DeleteByID 根据日记ID删除日记信息
 func (r *Repository) DeleteByID(postID int64) error {
 	sqlstr := "DELETE FROM br_post WHERE post_id = ?"
-	_, err := models.GetDB().Exec(sqlstr, postID)
+	_, err := r.db.Exec(sqlstr, postID)
 	return err
 }

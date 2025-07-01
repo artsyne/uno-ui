@@ -15,13 +15,22 @@ import (
 type Handler struct {
 	service *Service
 	auth    *AuthHelper
+	config  *configs.Config // 缓存配置，避免重复调用全局变量
 }
 
 // NewHandler 创建用户HTTP处理层实例
 func NewHandler() *Handler {
+	config := configs.GetConfig()
+	if config == nil {
+		// 在初始化时就检查配置，如果配置未正确加载则panic
+		// 这是合理的，因为没有配置应用无法正常运行
+		panic("Failed to get config during user handler initialization - config is nil")
+	}
+
 	return &Handler{
 		service: NewService(),
 		auth:    NewAuthHelper(),
+		config:  config, // 缓存配置
 	}
 }
 
@@ -402,7 +411,7 @@ func (h *Handler) setLoginCookie(c *gin.Context, login *Login) error {
 	}
 
 	// 加密cookie内容
-	cookieUD, err := pkg.AESEncrypt(string(ud), configs.GetConfig().Cookie.Secret)
+	cookieUD, err := pkg.AESEncrypt(string(ud), h.config.Cookie.Secret)
 	if err != nil {
 		return err
 	}

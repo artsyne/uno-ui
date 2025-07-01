@@ -3,18 +3,25 @@ package task
 import (
 	"database/sql"
 
-	"github.com/biuren/hebe/internal/models"
+	"github.com/biuren/hebe/internal/database"
 	"github.com/biuren/hebe/pkg"
+	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 )
 
 // Repository 任务数据访问层
 // 负责处理所有与任务相关的数据库操作
-type Repository struct{}
+type Repository struct {
+	db *sqlx.DB
+}
 
 // NewRepository 创建新的任务数据访问层实例
 func NewRepository() *Repository {
-	return &Repository{}
+	db := database.GetDB()
+	if db == nil {
+		panic("database connection is nil")
+	}
+	return &Repository{db: db}
 }
 
 // ===================== JobHistory 相关方法 =====================
@@ -33,7 +40,7 @@ func (r *Repository) InsertJobHistory(jobHistory *JobHistory) (int64, error) {
 		)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`
-	res, err := models.GetDB().Exec(sql,
+	res, err := r.db.Exec(sql,
 		jobHistory.JobId,
 		jobHistory.JobType,
 		jobHistory.Body,
@@ -64,7 +71,7 @@ func (r *Repository) InsertJobQueue(jobQueue *JobQueue) (int64, error) {
 		)
 		VALUES (?, ?, ?, ?, ?, ?)
 	`
-	res, err := models.GetDB().Exec(sql,
+	res, err := r.db.Exec(sql,
 		jobQueue.JobType,
 		jobQueue.Body,
 		jobQueue.AddUTCTime,
@@ -84,7 +91,7 @@ func (r *Repository) GetJobTasks(num int, jobType string) ([]JobQueue, error) {
 	result := []JobQueue{}
 	sqlstr := `SELECT * FROM br_job_queue WHERE job_type = ? and try_num < 4
 		ORDER BY job_id desc limit ?`
-	err := models.GetDB().Select(&result, sqlstr, jobType, num)
+	err := r.db.Select(&result, sqlstr, jobType, num)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -94,7 +101,7 @@ func (r *Repository) GetJobTasks(num int, jobType string) ([]JobQueue, error) {
 // DeleteJobTask 删除作业任务
 func (r *Repository) DeleteJobTask(jobId int64) (int64, error) {
 	sql := "DELETE FROM br_job_queue WHERE job_id = ?"
-	res, err := models.GetDB().Exec(sql, jobId)
+	res, err := r.db.Exec(sql, jobId)
 	if err != nil {
 		return 0, err
 	}
@@ -106,7 +113,7 @@ func (r *Repository) DeleteJobTask(jobId int64) (int64, error) {
 // UpdateJobTaskTryNum 更新任务失败次数
 func (r *Repository) UpdateJobTaskTryNum(jobId int64) (int64, error) {
 	sql := "UPDATE br_job_queue set try_num = try_num + 1 where job_id = ?"
-	res, err := models.GetDB().Exec(sql, jobId)
+	res, err := r.db.Exec(sql, jobId)
 	if err != nil {
 		return 0, err
 	}

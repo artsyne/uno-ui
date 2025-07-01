@@ -19,13 +19,22 @@ import (
 type Handler struct {
 	service *Service
 	auth    *user.AuthHelper
+	config  *configs.Config // 缓存配置，避免重复调用全局变量
 }
 
 // NewHandler 创建新的日记处理器实例
 func NewHandler() *Handler {
+	config := configs.GetConfig()
+	if config == nil {
+		// 在初始化时就检查配置，如果配置未正确加载则panic
+		// 这是合理的，因为没有配置应用无法正常运行
+		panic("Failed to get config during post handler initialization - config is nil")
+	}
+
 	return &Handler{
 		service: NewService(),
 		auth:    user.NewAuthHelper(),
+		config:  config, // 缓存配置
 	}
 }
 
@@ -165,7 +174,6 @@ func (h *Handler) HandlePost(c *gin.Context) {
 //   - postForm: 解析后的表单数据
 //   - user: 当前登录用户信息
 func (h *Handler) handleCreatePost(c *gin.Context, postForm *PostForm, user *user.Login) {
-	config := configs.GetConfig()
 	nowTime := pkg.GetNowTimeUnixMilli()
 
 	// 构建新日记对象，设置所有必要字段
@@ -173,7 +181,7 @@ func (h *Handler) handleCreatePost(c *gin.Context, postForm *PostForm, user *use
 		DiaryID:       postForm.DiaryID,
 		Title:         postForm.Title,
 		Body:          postForm.Body,
-		Summary:       pkg.TruncateString(postForm.Body, config.App.SummaryMax, config.App.Suffix),
+		Summary:       pkg.TruncateString(postForm.Body, h.config.App.SummaryMax, h.config.App.Suffix),
 		IsTop:         0,
 		InfoType:      1, // 默认为文本类型
 		AddUTCTime:    nowTime,
@@ -231,13 +239,12 @@ func (h *Handler) handleEditPost(c *gin.Context, postForm *PostForm, user *user.
 	}
 
 	// 使用结构体字面量构建更新后的日记对象
-	config := configs.GetConfig()
 	post := &Post{
 		PostID:        postId,
 		DiaryID:       originalPost.DiaryID, // 保持原有日记本ID
 		Title:         postForm.Title,
 		Body:          postForm.Body,
-		Summary:       pkg.TruncateString(postForm.Body, config.App.SummaryMax, config.App.Suffix),
+		Summary:       pkg.TruncateString(postForm.Body, h.config.App.SummaryMax, h.config.App.Suffix),
 		UpdateUTCTime: pkg.GetNowTimeUnixMilli(),
 		// 保留原有字段值
 		ViewNum:    originalPost.ViewNum,
@@ -348,8 +355,7 @@ func (h *Handler) RenderDiaryIndex(c *gin.Context) {
 	}
 
 	// 获取分页配置
-	config := configs.GetConfig()
-	pageSize := config.App.PageSize
+	pageSize := h.config.App.PageSize
 
 	// 获取日记列表
 	posts, diariesNum, err := h.service.ListPostsByUserID(diaryInfo.AddUserID, diaryID, pageIndex, pageSize)

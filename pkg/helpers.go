@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 	"unicode"
-	"unicode/utf8"
 )
 
 const (
@@ -107,32 +106,4 @@ func IsValidPassword(password string) bool {
 		}
 	}
 	return hasLetter && hasDigit
-}
-
-// TruncateString 函数将一个字符串截断到指定的长度，同时不会截断整个单词。
-// s: 要截断的字符串
-// length: 截断的长度（以字符为单位）
-// suffix: 截断后添加的字符串
-func TruncateString(s string, length int, suffix string) string {
-    if utf8.RuneCountInString(s) <= length {
-        return s
-    }
-
-    rs := []rune(s)
-    if len(rs) <= length {
-        return s
-    }
-
-    // 截断到指定长度
-    rs = rs[:length]
-
-    // 转换回字符串并在空格处分割，以避免截断单词
-    truncated := string(rs)
-    lastSpace := strings.LastIndex(truncated, " ")
-
-    if lastSpace == -1 {
-        return truncated + suffix
-    }
-
-    return truncated[:lastSpace] + suffix
 }

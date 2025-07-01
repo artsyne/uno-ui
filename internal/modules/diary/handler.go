@@ -18,13 +18,22 @@ import (
 type Handler struct {
 	service *Service
 	auth    *user.AuthHelper
+	config  *configs.Config // 缓存配置，避免重复调用全局变量
 }
 
 // NewHandler 创建新的日记本处理器实例
 func NewHandler() *Handler {
+	config := configs.GetConfig()
+	if config == nil {
+		// 在初始化时就检查配置，如果配置未正确加载则panic
+		// 这是合理的，因为没有配置应用无法正常运行
+		panic("Failed to get config during diary handler initialization - config is nil")
+	}
+
 	return &Handler{
 		service: NewService(),
 		auth:    user.NewAuthHelper(),
+		config:  config, // 缓存配置
 	}
 }
 
@@ -350,7 +359,7 @@ func (h *Handler) RenderUserProfile(c *gin.Context) {
 	}
 
 	// 获取分页配置
-	pageSize := configs.GetConfig().App.PageSize
+	pageSize := h.config.App.PageSize
 
 	// 获取用户的日记本列表
 	diaries, diariesNum, _ := h.service.ListDiariesByUser(uid, pageIndex, pageSize)

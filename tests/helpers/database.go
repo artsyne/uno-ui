@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/biuren/hebe/internal/configs"
-	"github.com/biuren/hebe/internal/models"
+	"github.com/biuren/hebe/internal/database"
 )
 
 // DatabaseTestHelper 数据库测试辅助工具
@@ -94,9 +94,9 @@ func SetupTestDatabase(t *testing.T) *DatabaseTestHelper {
 	}
 
 	// 连接数据库
-	models.ConnectToDB()
+	database.Connect()
 
-	db := models.GetDB().DB
+	db := database.GetDB().DB
 	if db == nil {
 		t.Fatal("数据库连接为空")
 	}

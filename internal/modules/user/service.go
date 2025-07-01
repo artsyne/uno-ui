@@ -13,13 +13,22 @@ import (
 
 // Service 用户业务逻辑层
 type Service struct {
-	repo *Repository
+	repo   *Repository
+	config *configs.Config // 缓存配置，避免重复调用全局变量
 }
 
 // NewService 创建用户业务逻辑层实例
 func NewService() *Service {
+	config := configs.GetConfig()
+	if config == nil {
+		// 在初始化时就检查配置，如果配置未正确加载则panic
+		// 这是合理的，因为没有配置应用无法正常运行
+		panic("Failed to get config during user service initialization - config is nil")
+	}
+
 	return &Service{
-		repo: NewRepository(),
+		repo:   NewRepository(),
+		config: config, // 缓存配置
 	}
 }
 
@@ -224,7 +233,7 @@ func (s *Service) addActivateUserEmailTask(user *User) error {
 
 	// 生成激活链接
 	activateUrl := fmt.Sprintf("http://%s/passport/activateuser?uid=%d&sign=%s",
-		configs.GetConfig().App.Domain, user.UserId, validCode.ValidCode)
+		s.config.App.Domain, user.UserId, validCode.ValidCode)
 
 	// 调用task模块创建邮件任务
 	taskService := task.NewService()
@@ -301,7 +310,7 @@ func (s *Service) SendResetPasswordEmail(user *User) error {
 
 	// 生成重置链接
 	resetUrl := fmt.Sprintf("http://%s/passport/resetpwd?uid=%d&sign=%s",
-		configs.GetConfig().App.Domain, user.UserId, validCode.ValidCode)
+		s.config.App.Domain, user.UserId, validCode.ValidCode)
 
 	// 调用task模块创建邮件任务
 	taskService := task.NewService()

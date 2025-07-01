@@ -3,16 +3,26 @@ package diary
 import (
 	"database/sql"
 
-	"github.com/biuren/hebe/internal/models"
+	"github.com/biuren/hebe/internal/database"
+	"github.com/jmoiron/sqlx"
 )
 
 // Repository 日记本数据访问层
 // 负责处理所有与日记本相关的数据库操作
-type Repository struct{}
+type Repository struct {
+	db *sqlx.DB
+}
 
 // NewRepository 创建新的日记本数据访问层实例
 func NewRepository() *Repository {
-	return &Repository{}
+	db := database.GetDB()
+	if db == nil {
+		panic("database connection is nil")
+	}
+
+	return &Repository{
+		db: db,
+	}
 }
 
 // Insert 新增日记本到数据库
@@ -47,7 +57,7 @@ func (r *Repository) Insert(diary *Diary) (int64, error) {
 		(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 	`
 
-	res, err := models.GetDB().Exec(sql,
+	res, err := r.db.Exec(sql,
 		diary.Title, diary.Remark, diary.AccessURL,
 		diary.CoverURL, diary.CoverMidURL, diary.LikeNum,
 		diary.MemberNum, diary.ViewNum,
@@ -81,7 +91,7 @@ func (r *Repository) Update(diary *Diary) error {
 		WHERE diary_id = ?
 	`
 
-	_, err := models.GetDB().Exec(sql,
+	_, err := r.db.Exec(sql,
 		diary.Title, diary.Remark,
 		diary.ViewSetting, diary.SocialSetting, diary.ThemeID,
 		diary.LastActionUTCTime, diary.LastActionUserID, diary.LastActionUserName,
@@ -102,7 +112,7 @@ func (r *Repository) IncrementPostNum(diaryID int64, userID int64, userName stri
 		last_action_user_name = ? 
 		WHERE diary_id = ?
 	`
-	_, err := models.GetDB().Exec(sqlstr, actionUTCTime, userID, userName, diaryID)
+	_, err := r.db.Exec(sqlstr, actionUTCTime, userID, userName, diaryID)
 	return err
 }
 
@@ -118,7 +128,7 @@ func (r *Repository) DecrementPostNum(diaryID int64, userID int64, userName stri
 		last_action_user_name = ? 
 		WHERE diary_id = ?
 	`
-	_, err := models.GetDB().Exec(sqlstr, actionUTCTime, userID, userName, diaryID)
+	_, err := r.db.Exec(sqlstr, actionUTCTime, userID, userName, diaryID)
 	return err
 }
 
@@ -128,7 +138,7 @@ func (r *Repository) DecrementPostNum(diaryID int64, userID int64, userName stri
 func (r *Repository) GetByDiaryID(diaryID int64) (*Diary, error) {
 	diary := &Diary{}
 	sqlstr := "SELECT * FROM br_diary WHERE diary_id = ?"
-	err := models.GetDB().Get(diary, sqlstr, diaryID)
+	err := r.db.Get(diary, sqlstr, diaryID)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -143,7 +153,7 @@ func (r *Repository) ListForWriteByUserID(userID int64) ([]Diary, error) {
 	diaryArray := []Diary{}
 	sqlstr := `SELECT * FROM br_diary WHERE add_user_id = ? 
 		ORDER BY last_action_utc_time DESC, diary_id DESC`
-	err := models.GetDB().Select(&diaryArray, sqlstr, userID)
+	err := r.db.Select(&diaryArray, sqlstr, userID)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -163,7 +173,7 @@ func (r *Repository) ListByUserID(userID int64, pageIndex, pageSize int) ([]Diar
 	sqlstr := `SELECT * FROM br_diary WHERE add_user_id = ? 
 		ORDER BY diary_id DESC LIMIT ? offset ?`
 
-	err := models.GetDB().Select(&infoArray, sqlstr, userID, pageSize, offset)
+	err := r.db.Select(&infoArray, sqlstr, userID, pageSize, offset)
 	if err == sql.ErrNoRows {
 		return nil, 0, nil
 	}
@@ -183,6 +193,6 @@ func (r *Repository) ListByUserID(userID int64, pageIndex, pageSize int) ([]Diar
 func (r *Repository) GetCountByUserID(userID int64) (int, error) {
 	var count int
 	sqlstr := "SELECT COUNT(*) FROM br_diary WHERE add_user_id = ?"
-	err := models.GetDB().Get(&count, sqlstr, userID)
+	err := r.db.Get(&count, sqlstr, userID)
 	return count, err
 }

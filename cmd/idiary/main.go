@@ -10,8 +10,8 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/biuren/hebe/internal/configs"
+	"github.com/biuren/hebe/internal/database"
 	"github.com/biuren/hebe/internal/middlewares"
-	"github.com/biuren/hebe/internal/models"
 	"github.com/biuren/hebe/internal/modules/task"
 	"github.com/biuren/hebe/internal/modules/user"
 	"github.com/biuren/hebe/pkg"
@@ -111,8 +111,10 @@ func (app *App) Shutdown() {
 
 // initializeDatabase 初始化数据库连接
 func initializeDatabase() error {
-	// 使用已有的数据库连接方法
-	models.ConnectToDB()
+	// 使用新的数据库连接方法
+	if err := database.Connect(); err != nil {
+		return fmt.Errorf("数据库连接失败: %w", err)
+	}
 	return nil
 }
 
