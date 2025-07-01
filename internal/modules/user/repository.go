@@ -8,24 +8,86 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// Repository 用户数据访问层
-type Repository struct {
+// RepositoryInterface 用户数据访问层接口
+// 定义所有与用户相关的数据库操作，包括用户管理和验证码管理
+type RepositoryInterface interface {
+	// ===================== User 相关方法 =====================
+
+	// InsertUser 插入用户数据
+	InsertUser(user *User) (int64, error)
+
+	// UpdateUser 更新用户数据
+	UpdateUser(user *User) (int64, error)
+
+	// DeleteByUserId 删除用户数据（假删除，设置status = 0）
+	DeleteByUserId(id int64) (int64, error)
+
+	// IsExistUserName 判断用户名是否存在
+	IsExistUserName(userName string) (bool, error)
+
+	// IsExistsEmail 判断邮箱是否存在
+	IsExistsEmail(email string) (bool, error)
+
+	// UpdateEmailByUserId 根据用户ID更新邮箱
+	UpdateEmailByUserId(userId int64, email string) (int64, error)
+
+	// UpdateUserStatus 更新用户状态
+	UpdateUserStatus(userId int64, status int8) (int64, error)
+
+	// UpdateUserPwd 更新用户密码
+	UpdateUserPwd(userId int64, pwd string) (int64, error)
+
+	// DeleteUser 彻底删除用户
+	DeleteUser(userId int64) (int64, error)
+
+	// GetUserByUserId 根据用户ID获取用户信息
+	GetUserByUserId(userId int64) (*User, error)
+
+	// GetUserByUserName 根据用户名获取用户信息
+	GetUserByUserName(userName string) (*User, error)
+
+	// GetUserByEmail 根据邮箱获取用户信息
+	GetUserByEmail(email string) (*User, error)
+
+	// UpdateUserProfile 更新用户基本资料
+	UpdateUserProfile(userId int64, fullName, remark string) (int64, error)
+
+	// UpdateUserPasswordAndSalt 更新用户密码和盐值
+	UpdateUserPasswordAndSalt(userId int64, pwd, salt string) (int64, error)
+
+	// ===================== ValidCode 相关方法 =====================
+
+	// InsertValidCode 插入验证码
+	InsertValidCode(validCode *ValidCode) (int64, error)
+
+	// DeleteValidCode 删除验证码
+	DeleteValidCode(id int64) (int64, error)
+
+	// GetValidCode 获取验证码
+	GetValidCode(userId int64, code string) (*ValidCode, error)
+
+	// CheckValidCode 检查确认码
+	CheckValidCode(userID int64, sign string, validType int8) (bool, int64)
+}
+
+// repository 用户数据访问层实现
+type repository struct {
 	db *sqlx.DB
 }
 
 // NewRepository 创建用户数据访问层实例
-func NewRepository() *Repository {
+func NewRepository() RepositoryInterface {
 	db := database.GetDB()
 	if db == nil {
 		panic("database connection is nil")
 	}
-	return &Repository{db: db}
+	return &repository{db: db}
 }
 
 // ===================== User 相关方法 =====================
 
 // InsertUser 插入用户数据
-func (r *Repository) InsertUser(user *User) (int64, error) {
+func (r *repository) InsertUser(user *User) (int64, error) {
 	sql := `
                 insert into br_user  (
                     user_id,
@@ -96,7 +158,7 @@ func (r *Repository) InsertUser(user *User) (int64, error) {
 }
 
 // UpdateUser 更新用户数据
-func (r *Repository) UpdateUser(user *User) (int64, error) {
+func (r *repository) UpdateUser(user *User) (int64, error) {
 	sql := `
                 update br_user
                  set
@@ -150,7 +212,7 @@ func (r *Repository) UpdateUser(user *User) (int64, error) {
 }
 
 // DeleteByUserId 删除用户数据（假删除，设置status = 0）
-func (r *Repository) DeleteByUserId(id int64) (int64, error) {
+func (r *repository) DeleteByUserId(id int64) (int64, error) {
 	sql := `UPDATE br_user SET status = 0 where user_id = ?`
 	res, err := r.db.Exec(sql, id)
 
@@ -162,7 +224,7 @@ func (r *Repository) DeleteByUserId(id int64) (int64, error) {
 }
 
 // IsExistUserName 判断用户名是否存在
-func (r *Repository) IsExistUserName(userName string) (bool, error) {
+func (r *repository) IsExistUserName(userName string) (bool, error) {
 	var total int
 	err := r.db.Get(&total, "SELECT count(*) as num FROM br_user WHERE user_name = ?", userName)
 	if err != nil {
@@ -172,7 +234,7 @@ func (r *Repository) IsExistUserName(userName string) (bool, error) {
 }
 
 // IsExistsEmail 判断邮箱是否存在
-func (r *Repository) IsExistsEmail(email string) (bool, error) {
+func (r *repository) IsExistsEmail(email string) (bool, error) {
 	var total int
 	err := r.db.Get(&total, "SELECT count(*) as num FROM br_user WHERE email = ?", email)
 	if err != nil {
@@ -182,7 +244,7 @@ func (r *Repository) IsExistsEmail(email string) (bool, error) {
 }
 
 // UpdateEmailByUserId 根据用户ID更新邮箱
-func (r *Repository) UpdateEmailByUserId(userId int64, email string) (int64, error) {
+func (r *repository) UpdateEmailByUserId(userId int64, email string) (int64, error) {
 	sql := "UPDATE br_user SET email = ? WHERE user_id = ?"
 	res, err := r.db.Exec(sql, email, userId)
 	if err != nil {
@@ -193,7 +255,7 @@ func (r *Repository) UpdateEmailByUserId(userId int64, email string) (int64, err
 }
 
 // UpdateUserStatus 更新用户状态
-func (r *Repository) UpdateUserStatus(userId int64, status int8) (int64, error) {
+func (r *repository) UpdateUserStatus(userId int64, status int8) (int64, error) {
 	sql := "UPDATE br_user SET status = ? WHERE user_id = ?"
 	res, err := r.db.Exec(sql, status, userId)
 	if err != nil {
@@ -204,7 +266,7 @@ func (r *Repository) UpdateUserStatus(userId int64, status int8) (int64, error) 
 }
 
 // UpdateUserPwd 更新用户密码
-func (r *Repository) UpdateUserPwd(userId int64, pwd string) (int64, error) {
+func (r *repository) UpdateUserPwd(userId int64, pwd string) (int64, error) {
 	sql := "UPDATE br_user SET pwd = ? WHERE user_id = ?"
 	res, err := r.db.Exec(sql, pwd, userId)
 	if err != nil {
@@ -215,7 +277,7 @@ func (r *Repository) UpdateUserPwd(userId int64, pwd string) (int64, error) {
 }
 
 // DeleteUser 彻底删除用户
-func (r *Repository) DeleteUser(userId int64) (int64, error) {
+func (r *repository) DeleteUser(userId int64) (int64, error) {
 	sql := "DELETE FROM br_user WHERE user_id = ?"
 	res, err := r.db.Exec(sql, userId)
 	if err != nil {
@@ -226,7 +288,7 @@ func (r *Repository) DeleteUser(userId int64) (int64, error) {
 }
 
 // GetUserByUserId 根据用户ID获取用户信息
-func (r *Repository) GetUserByUserId(userId int64) (*User, error) {
+func (r *repository) GetUserByUserId(userId int64) (*User, error) {
 	sqlstr := "SELECT * FROM br_user WHERE user_id = ?"
 	user := &User{}
 	err := r.db.Get(user, sqlstr, userId)
@@ -237,7 +299,7 @@ func (r *Repository) GetUserByUserId(userId int64) (*User, error) {
 }
 
 // GetUserByUserName 根据用户名获取用户信息
-func (r *Repository) GetUserByUserName(userName string) (*User, error) {
+func (r *repository) GetUserByUserName(userName string) (*User, error) {
 	sqlstr := "SELECT * FROM br_user WHERE user_name = ?"
 	user := &User{}
 	err := r.db.Get(user, sqlstr, userName)
@@ -248,7 +310,7 @@ func (r *Repository) GetUserByUserName(userName string) (*User, error) {
 }
 
 // GetUserByEmail 根据邮箱获取用户信息
-func (r *Repository) GetUserByEmail(email string) (*User, error) {
+func (r *repository) GetUserByEmail(email string) (*User, error) {
 	sqlstr := "SELECT * FROM br_user WHERE email = ?"
 	user := &User{}
 	err := r.db.Get(user, sqlstr, email)
@@ -261,7 +323,7 @@ func (r *Repository) GetUserByEmail(email string) (*User, error) {
 // ===================== ValidCode 相关方法 =====================
 
 // InsertValidCode 插入验证码
-func (r *Repository) InsertValidCode(validCode *ValidCode) (int64, error) {
+func (r *repository) InsertValidCode(validCode *ValidCode) (int64, error) {
 	// 删除已存在确认码
 	_, err := r.db.Exec("DELETE FROM br_valid_code WHERE user_id = ? and valid_type_id=?", validCode.UserId, validCode.ValidTypeId)
 	if err != nil {
@@ -299,7 +361,7 @@ func (r *Repository) InsertValidCode(validCode *ValidCode) (int64, error) {
 }
 
 // DeleteValidCode 删除验证码
-func (r *Repository) DeleteValidCode(id int64) (int64, error) {
+func (r *repository) DeleteValidCode(id int64) (int64, error) {
 	sql := "DELETE FROM br_valid_code WHERE valid_code_id = ?"
 	res, err := r.db.Exec(sql, id)
 	if err != nil {
@@ -311,7 +373,7 @@ func (r *Repository) DeleteValidCode(id int64) (int64, error) {
 }
 
 // GetValidCode 获取验证码
-func (r *Repository) GetValidCode(userId int64, code string) (*ValidCode, error) {
+func (r *repository) GetValidCode(userId int64, code string) (*ValidCode, error) {
 	sqlstr := "SELECT * FROM br_valid_code WHERE user_id = ? AND valid_code = ? order by valid_code_id desc limit 1"
 	validCode := &ValidCode{}
 	err := r.db.Get(validCode, sqlstr, userId, code)
@@ -322,7 +384,7 @@ func (r *Repository) GetValidCode(userId int64, code string) (*ValidCode, error)
 }
 
 // CheckValidCode 检查确认码
-func (r *Repository) CheckValidCode(userID int64, sign string, validType int8) (bool, int64) {
+func (r *repository) CheckValidCode(userID int64, sign string, validType int8) (bool, int64) {
 	// 默认返回值
 	result := false
 	var validId int64 = 0
@@ -344,7 +406,7 @@ func (r *Repository) CheckValidCode(userID int64, sign string, validType int8) (
 }
 
 // UpdateUserProfile 更新用户基本资料
-func (r *Repository) UpdateUserProfile(userId int64, fullName, remark string) (int64, error) {
+func (r *repository) UpdateUserProfile(userId int64, fullName, remark string) (int64, error) {
 	sql := "UPDATE br_user SET full_name = ?, remark = ? WHERE user_id = ?"
 	res, err := r.db.Exec(sql, fullName, remark, userId)
 	if err != nil {
@@ -355,7 +417,7 @@ func (r *Repository) UpdateUserProfile(userId int64, fullName, remark string) (i
 }
 
 // UpdateUserPasswordAndSalt 更新用户密码和盐值
-func (r *Repository) UpdateUserPasswordAndSalt(userId int64, pwd, salt string) (int64, error) {
+func (r *repository) UpdateUserPasswordAndSalt(userId int64, pwd, salt string) (int64, error) {
 	sql := "UPDATE br_user SET pwd = ?, pwd_salt = ? WHERE user_id = ?"
 	res, err := r.db.Exec(sql, pwd, salt, userId)
 	if err != nil {

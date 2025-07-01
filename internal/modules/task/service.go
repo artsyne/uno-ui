@@ -10,15 +10,28 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Service 任务业务逻辑层
+// ServiceInterface 任务业务逻辑层接口
+// 定义所有与任务相关的业务逻辑操作
+type ServiceInterface interface {
+	// StartScheduler 启动定时任务调度器
+	StartScheduler()
+
+	// ProcessEmailTasks 处理邮件任务
+	ProcessEmailTasks()
+
+	// CreateEmailTask 创建邮件任务
+	CreateEmailTask(to, subject, body string) error
+}
+
+// service 任务业务逻辑层实现
 // 负责处理所有与任务相关的业务逻辑和规则验证
-type Service struct {
-	repo   *Repository
+type service struct {
+	repo   RepositoryInterface
 	config *configs.Config // 缓存配置，避免重复调用全局变量
 }
 
 // NewService 创建新的任务业务逻辑层实例
-func NewService() *Service {
+func NewService() ServiceInterface {
 	config := configs.GetConfig()
 	if config == nil {
 		// 在初始化时就检查配置，如果配置未正确加载则panic
@@ -26,7 +39,7 @@ func NewService() *Service {
 		panic("Failed to get config during task service initialization - config is nil")
 	}
 
-	return &Service{
+	return &service{
 		repo:   NewRepository(),
 		config: config, // 缓存配置
 	}
@@ -34,7 +47,7 @@ func NewService() *Service {
 
 // StartScheduler 启动定时任务调度器
 // 初始化并启动所有定时任务
-func (s *Service) StartScheduler() {
+func (s *service) StartScheduler() {
 	logrus.Info("开始初始化定时任务...")
 
 	// 设置定时任务
@@ -48,7 +61,7 @@ func (s *Service) StartScheduler() {
 
 // ProcessEmailTasks 处理邮件任务
 // 获取待处理的邮件任务，发送邮件，处理结果
-func (s *Service) ProcessEmailTasks() {
+func (s *service) ProcessEmailTasks() {
 	tasks, err := s.repo.GetJobTasks(10, "email")
 	if err != nil {
 		logrus.Error("获取邮件任务失败:", err)
@@ -64,7 +77,7 @@ func (s *Service) ProcessEmailTasks() {
 
 // processEmailTask 处理单个邮件任务
 // 解析任务内容，发送邮件，处理结果
-func (s *Service) processEmailTask(task JobQueue, config *configs.Config) {
+func (s *service) processEmailTask(task JobQueue, config *configs.Config) {
 	var emailTask EmailTask
 	err := json.Unmarshal([]byte(task.Body), &emailTask)
 	if err != nil {
@@ -101,7 +114,7 @@ func (s *Service) processEmailTask(task JobQueue, config *configs.Config) {
 
 // CreateEmailTask 创建邮件任务
 // 将邮件任务添加到队列中等待处理
-func (s *Service) CreateEmailTask(to, subject, body string) error {
+func (s *service) CreateEmailTask(to, subject, body string) error {
 	emailTask := &EmailTask{
 		To:      to,
 		Subject: subject,

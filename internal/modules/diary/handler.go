@@ -13,16 +13,35 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Handler 日记本模块HTTP处理器
+// HandlerInterface 日记本模块HTTP处理器接口
+// 定义所有与日记本相关的HTTP处理操作
+type HandlerInterface interface {
+	// RegisterRoutes 注册所有日记本相关路由
+	RegisterRoutes(router *gin.Engine)
+
+	// RenderDiaryForm 渲染日记本创建/编辑表单页面
+	RenderDiaryForm(c *gin.Context)
+
+	// RenderDiary 渲染日记详细信息页面
+	RenderDiary(c *gin.Context)
+
+	// HandleDiary 处理日记本的创建和编辑请求
+	HandleDiary(c *gin.Context)
+
+	// RenderUserProfile 渲染用户个人主页
+	RenderUserProfile(c *gin.Context)
+}
+
+// handler 日记本模块HTTP处理器实现
 // 负责处理所有与日记本相关的HTTP请求，包括渲染列表、表单、创建日记本、编辑日记本等操作
-type Handler struct {
-	service *Service
-	auth    *user.AuthHelper
+type handler struct {
+	service ServiceInterface
+	auth    user.AuthHelperInterface
 	config  *configs.Config // 缓存配置，避免重复调用全局变量
 }
 
 // NewHandler 创建新的日记本处理器实例
-func NewHandler() *Handler {
+func NewHandler() HandlerInterface {
 	config := configs.GetConfig()
 	if config == nil {
 		// 在初始化时就检查配置，如果配置未正确加载则panic
@@ -30,7 +49,7 @@ func NewHandler() *Handler {
 		panic("Failed to get config during diary handler initialization - config is nil")
 	}
 
-	return &Handler{
+	return &handler{
 		service: NewService(),
 		auth:    user.NewAuthHelper(),
 		config:  config, // 缓存配置
@@ -39,7 +58,7 @@ func NewHandler() *Handler {
 
 // RegisterRoutes 注册所有日记本相关路由
 // 将所有diary相关路由聚合在一个地方，实现高内聚
-func (h *Handler) RegisterRoutes(router *gin.Engine) {
+func (h *handler) RegisterRoutes(router *gin.Engine) {
 	// 日记相关路由组（无需鉴权）
 	diary := router.Group("/diary")
 	{
@@ -75,7 +94,7 @@ func (h *Handler) RegisterRoutes(router *gin.Engine) {
 // 返回值:
 //   - int64: 解析后的ID
 //   - error: 解析失败时的错误信息
-func (h *Handler) parseDiaryID(idStr string) (int64, error) {
+func (h *handler) parseDiaryID(idStr string) (int64, error) {
 	id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
 	if err != nil || id <= 0 {
 		return 0, errors.ParseInputParamErr
@@ -93,7 +112,7 @@ func (h *Handler) parseDiaryID(idStr string) (int64, error) {
 // 支持的URL参数:
 //   - action: "diary.add" 或 "diary.edit"
 //   - diary_id: 当action为edit时需要提供的日记本ID
-func (h *Handler) RenderDiaryForm(c *gin.Context) {
+func (h *handler) RenderDiaryForm(c *gin.Context) {
 	// 获取当前登录用户信息
 	loginUser := h.auth.MustGetCurrentUser(c)
 
@@ -120,7 +139,7 @@ func (h *Handler) RenderDiaryForm(c *gin.Context) {
 //
 // 参数:
 //   - c: Gin上下文，包含请求信息和响应操作
-func (h *Handler) RenderDiary(c *gin.Context) {
+func (h *handler) RenderDiary(c *gin.Context) {
 	data := pkg.DefaultH(c)
 	data["Title"] = "我的日记本"
 	data["Active"] = "users"
@@ -136,7 +155,7 @@ func (h *Handler) RenderDiary(c *gin.Context) {
 // 支持的表单action值:
 //   - "diary.add": 创建新日记本
 //   - "diary.edit": 编辑现有日记本
-func (h *Handler) HandleDiary(c *gin.Context) {
+func (h *handler) HandleDiary(c *gin.Context) {
 	// 获取当前登录用户信息
 	loginUser := h.auth.MustGetCurrentUser(c)
 
@@ -166,7 +185,7 @@ func (h *Handler) HandleDiary(c *gin.Context) {
 //   - c: Gin上下文
 //   - formData: 解析后的表单数据
 //   - user: 当前登录用户信息
-func (h *Handler) handleCreateDiary(c *gin.Context, formData *Diary, user *user.Login) {
+func (h *handler) handleCreateDiary(c *gin.Context, formData *Diary, user *user.Login) {
 	nowTime := pkg.GetNowTimeUnixMilli()
 
 	// 使用结构体字面量创建完整的日记本对象
@@ -216,7 +235,7 @@ func (h *Handler) handleCreateDiary(c *gin.Context, formData *Diary, user *user.
 //   - c: Gin上下文
 //   - diary: 解析后的日记本数据
 //   - user: 当前登录用户信息
-func (h *Handler) handleEditDiary(c *gin.Context, diary *Diary, user *user.Login) {
+func (h *handler) handleEditDiary(c *gin.Context, diary *Diary, user *user.Login) {
 	// 验证日记本所有权
 	originalDiary, err := h.validateDiaryOwnership(diary.DiaryID, user.UserId)
 	if err != nil {
@@ -263,7 +282,7 @@ func (h *Handler) handleEditDiary(c *gin.Context, diary *Diary, user *user.Login
 // 返回值:
 //   - *Diary: 日记本对象，如果验证失败返回nil
 //   - error: 错误信息
-func (h *Handler) getAndValidateDiary(c *gin.Context, userID int64) (*Diary, error) {
+func (h *handler) getAndValidateDiary(c *gin.Context, userID int64) (*Diary, error) {
 	diaryID, err := h.parseDiaryID(c.Query("diary_id"))
 	if err != nil {
 		return nil, err
@@ -282,7 +301,7 @@ func (h *Handler) getAndValidateDiary(c *gin.Context, userID int64) (*Diary, err
 // 返回值:
 //   - *Diary: 日记本对象
 //   - error: 验证失败时的错误信息
-func (h *Handler) validateDiaryOwnership(diaryID, userID int64) (*Diary, error) {
+func (h *handler) validateDiaryOwnership(diaryID, userID int64) (*Diary, error) {
 	diary, err := h.service.GetDiaryByID(diaryID)
 	if err != nil || diary == nil {
 		return nil, errors.ParseInputParamErr
@@ -302,7 +321,7 @@ func (h *Handler) validateDiaryOwnership(diaryID, userID int64) (*Diary, error) 
 // 参数:
 //   - c: Gin上下文
 //   - diary: 操作成功的日记本对象
-func (h *Handler) respondSuccess(c *gin.Context, diary *Diary) {
+func (h *handler) respondSuccess(c *gin.Context, diary *Diary) {
 	data := pkg.ResponseH(c)
 	data["Data"] = diary
 	c.JSON(http.StatusOK, data)
@@ -315,7 +334,7 @@ func (h *Handler) respondSuccess(c *gin.Context, diary *Diary) {
 //   - c: Gin上下文
 //   - title: 错误标题
 //   - message: 错误详细信息
-func (h *Handler) renderErrorPage(c *gin.Context, title, message string) {
+func (h *handler) renderErrorPage(c *gin.Context, title, message string) {
 	data := pkg.DefaultH(c)
 	data["title"] = title
 	data["message"] = message
@@ -325,7 +344,7 @@ func (h *Handler) renderErrorPage(c *gin.Context, title, message string) {
 // RenderUserProfile 渲染用户个人主页
 // 从website/controllers/member.go中迁移的RenderMemberIndex方法
 // 显示用户的日记本列表，支持分页
-func (h *Handler) RenderUserProfile(c *gin.Context) {
+func (h *handler) RenderUserProfile(c *gin.Context) {
 	data := pkg.DefaultH(c)
 
 	// 获取url中的uid

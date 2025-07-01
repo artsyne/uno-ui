@@ -7,20 +7,48 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// Repository 日记本数据访问层
+// RepositoryInterface 日记本数据访问层接口
+// 定义所有与日记本相关的数据库操作
+type RepositoryInterface interface {
+	// Insert 新增日记本到数据库
+	Insert(diary *Diary) (int64, error)
+
+	// Update 更新日记本信息
+	Update(diary *Diary) error
+
+	// IncrementPostNum 增加日记本的日记数量
+	IncrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error
+
+	// DecrementPostNum 减少日记本的日记数量
+	DecrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error
+
+	// GetByDiaryID 根据ID获取日记本对象
+	GetByDiaryID(diaryID int64) (*Diary, error)
+
+	// ListForWriteByUserID 根据用户ID获取日记本列表，依据最后更新时间排序
+	ListForWriteByUserID(userID int64) ([]Diary, error)
+
+	// ListByUserID 根据特定用户ID检索分页的日记本列表
+	ListByUserID(userID int64, pageIndex, pageSize int) ([]Diary, int, error)
+
+	// GetCountByUserID 获取用户的日记本数量
+	GetCountByUserID(userID int64) (int, error)
+}
+
+// repository 日记本数据访问层实现
 // 负责处理所有与日记本相关的数据库操作
-type Repository struct {
+type repository struct {
 	db *sqlx.DB
 }
 
 // NewRepository 创建新的日记本数据访问层实例
-func NewRepository() *Repository {
+func NewRepository() RepositoryInterface {
 	db := database.GetDB()
 	if db == nil {
 		panic("database connection is nil")
 	}
 
-	return &Repository{
+	return &repository{
 		db: db,
 	}
 }
@@ -28,7 +56,7 @@ func NewRepository() *Repository {
 // Insert 新增日记本到数据库
 // 参数: diary - 要插入的日记本对象
 // 返回: 新创建的日记本ID和可能的错误
-func (r *Repository) Insert(diary *Diary) (int64, error) {
+func (r *repository) Insert(diary *Diary) (int64, error) {
 	sql := `
 		INSERT INTO br_diary
 		(
@@ -77,7 +105,7 @@ func (r *Repository) Insert(diary *Diary) (int64, error) {
 // Update 更新日记本信息
 // 参数: diary - 要更新的日记本对象
 // 返回: 可能的错误
-func (r *Repository) Update(diary *Diary) error {
+func (r *repository) Update(diary *Diary) error {
 	sql := `
 		UPDATE br_diary SET 
 		title = ?,
@@ -104,7 +132,7 @@ func (r *Repository) Update(diary *Diary) error {
 // 通过空间 ID 把空间信息数量加一，并更新最后动作时间,用户ID,用户名
 // 参数: diaryID - 日记本ID, userID - 用户ID, userName - 用户名, actionUTCTime - 操作时间
 // 返回: 可能的错误
-func (r *Repository) IncrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
+func (r *repository) IncrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
 	sqlstr := `
 		UPDATE br_diary SET info_num = info_num + 1,
 		last_action_utc_time = ?,
@@ -120,7 +148,7 @@ func (r *Repository) IncrementPostNum(diaryID int64, userID int64, userName stri
 // 通过空间 ID 把空间信息数量减一，并更新最后动作时间,用户ID,用户名
 // 参数: diaryID - 日记本ID, userID - 用户ID, userName - 用户名, actionUTCTime - 操作时间
 // 返回: 可能的错误
-func (r *Repository) DecrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
+func (r *repository) DecrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
 	sqlstr := `
 		UPDATE br_diary SET info_num = info_num - 1,
 		last_action_utc_time = ?,
@@ -135,7 +163,7 @@ func (r *Repository) DecrementPostNum(diaryID int64, userID int64, userName stri
 // GetByDiaryID 根据ID获取日记本对象
 // 参数: diaryID - 日记本ID
 // 返回: 日记本对象和可能的错误
-func (r *Repository) GetByDiaryID(diaryID int64) (*Diary, error) {
+func (r *repository) GetByDiaryID(diaryID int64) (*Diary, error) {
 	diary := &Diary{}
 	sqlstr := "SELECT * FROM br_diary WHERE diary_id = ?"
 	err := r.db.Get(diary, sqlstr, diaryID)
@@ -149,7 +177,7 @@ func (r *Repository) GetByDiaryID(diaryID int64) (*Diary, error) {
 // 用在写日记本界面
 // 参数: userID - 用户ID
 // 返回: 日记本列表和可能的错误
-func (r *Repository) ListForWriteByUserID(userID int64) ([]Diary, error) {
+func (r *repository) ListForWriteByUserID(userID int64) ([]Diary, error) {
 	diaryArray := []Diary{}
 	sqlstr := `SELECT * FROM br_diary WHERE add_user_id = ? 
 		ORDER BY last_action_utc_time DESC, diary_id DESC`
@@ -163,7 +191,7 @@ func (r *Repository) ListForWriteByUserID(userID int64) ([]Diary, error) {
 // ListByUserID 根据特定用户ID检索分页的日记本列表
 // 参数: userID - 要检索其日记本的用户ID, pageIndex - 页索引（从1开始）, pageSize - 每页项目数
 // 返回: 日记本对象切片、总数和可能的错误
-func (r *Repository) ListByUserID(userID int64, pageIndex, pageSize int) ([]Diary, int, error) {
+func (r *repository) ListByUserID(userID int64, pageIndex, pageSize int) ([]Diary, int, error) {
 	infoArray := []Diary{}
 	totalRecords := 0
 
@@ -190,7 +218,7 @@ func (r *Repository) ListByUserID(userID int64, pageIndex, pageSize int) ([]Diar
 // GetCountByUserID 获取用户的日记本数量
 // 参数: userID - 用户ID
 // 返回: 日记本数量和可能的错误
-func (r *Repository) GetCountByUserID(userID int64) (int, error) {
+func (r *repository) GetCountByUserID(userID int64) (int, error) {
 	var count int
 	sqlstr := "SELECT COUNT(*) FROM br_diary WHERE add_user_id = ?"
 	err := r.db.Get(&count, sqlstr, userID)

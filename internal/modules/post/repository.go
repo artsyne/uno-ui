@@ -7,26 +7,51 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// Repository 日记数据访问层
+// RepositoryInterface 日记数据访问层接口
+// 定义所有与日记相关的数据库操作
+type RepositoryInterface interface {
+	// Insert 插入日记信息到数据库
+	Insert(post *Post) (int64, error)
+
+	// Update 更新日记信息
+	Update(post *Post) error
+
+	// ListByUserID 根据用户ID和日记本ID分页查询日记信息
+	ListByUserID(userID int64, diaryID int64, pageIndex, pageSize int) ([]Post, int, error)
+
+	// GetCountByUserID 根据用户ID和日记本ID统计信息数量
+	GetCountByUserID(userID int64, diaryID int64) (int, error)
+
+	// GetByID 根据日记ID获取日记信息
+	GetByID(postID int64) (*Post, error)
+
+	// UpdateByID 根据日记ID更新日记信息
+	UpdateByID(post *Post) error
+
+	// DeleteByID 根据日记ID删除日记信息
+	DeleteByID(postID int64) error
+}
+
+// repository 日记数据访问层实现
 // 负责处理所有与日记相关的数据库操作
-type Repository struct {
+type repository struct {
 	db *sqlx.DB
 }
 
 // NewRepository 创建新的日记数据访问层实例
-func NewRepository() *Repository {
+func NewRepository() RepositoryInterface {
 	db := database.GetDB()
 	if db == nil {
 		panic("database connection is nil")
 	}
 
-	return &Repository{
+	return &repository{
 		db: db,
 	}
 }
 
 // Insert 插入日记信息到数据库
-func (r *Repository) Insert(post *Post) (int64, error) {
+func (r *repository) Insert(post *Post) (int64, error) {
 	sqlstr := `
 		INSERT INTO br_post(
 			diary_id,is_top,
@@ -48,7 +73,7 @@ func (r *Repository) Insert(post *Post) (int64, error) {
 }
 
 // Update 更新日记信息
-func (r *Repository) Update(post *Post) error {
+func (r *repository) Update(post *Post) error {
 	sqlstr := `
 		UPDATE br_post SET 
 			diary_id = ?, is_top = ?, title = ?, summary = ?, body = ?, 
@@ -63,7 +88,7 @@ func (r *Repository) Update(post *Post) error {
 }
 
 // ListByUserID 根据用户ID和日记本ID分页查询日记信息
-func (r *Repository) ListByUserID(userID int64, diaryID int64, pageIndex, pageSize int) ([]Post, int, error) {
+func (r *repository) ListByUserID(userID int64, diaryID int64, pageIndex, pageSize int) ([]Post, int, error) {
 	infoArray := []Post{}
 	totalRecords := 0
 
@@ -85,7 +110,7 @@ func (r *Repository) ListByUserID(userID int64, diaryID int64, pageIndex, pageSi
 }
 
 // GetCountByUserID 根据用户ID和日记本ID统计信息数量
-func (r *Repository) GetCountByUserID(userID int64, diaryID int64) (int, error) {
+func (r *repository) GetCountByUserID(userID int64, diaryID int64) (int, error) {
 	var count int
 	sqlstr := "SELECT COUNT(*) FROM br_post WHERE diary_id = ? AND add_user_id = ?"
 
@@ -97,7 +122,7 @@ func (r *Repository) GetCountByUserID(userID int64, diaryID int64) (int, error) 
 }
 
 // GetByID 根据日记ID获取日记信息
-func (r *Repository) GetByID(postID int64) (*Post, error) {
+func (r *repository) GetByID(postID int64) (*Post, error) {
 	sqlstr := "SELECT * FROM br_post WHERE post_id = ?"
 	post := &Post{}
 	err := r.db.Get(post, sqlstr, postID)
@@ -108,7 +133,7 @@ func (r *Repository) GetByID(postID int64) (*Post, error) {
 }
 
 // UpdateByID 根据日记ID更新日记信息
-func (r *Repository) UpdateByID(post *Post) error {
+func (r *repository) UpdateByID(post *Post) error {
 	sqlstr := `
 		UPDATE br_post SET 
 			diary_id = ?, is_top = ?, title = ?, summary = ?, body = ?, 
@@ -125,7 +150,7 @@ func (r *Repository) UpdateByID(post *Post) error {
 }
 
 // DeleteByID 根据日记ID删除日记信息
-func (r *Repository) DeleteByID(postID int64) error {
+func (r *repository) DeleteByID(postID int64) error {
 	sqlstr := "DELETE FROM br_post WHERE post_id = ?"
 	_, err := r.db.Exec(sqlstr, postID)
 	return err

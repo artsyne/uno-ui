@@ -14,10 +14,10 @@
                     <i class="mdi mdi-slash-forward mx-3"></i>
                 </li>
                 <li>
-                    <a href="/d/{{.Diary.DiaryID}}" id="diary_title">{{.Diary.Title}}</a>
-                    {{if eq .Diary.ViewSetting 2}}
-                    <i class="mdi mdi-lock-outline mx-3"></i>
-                    {{end}}
+                    <a href="/d/{{.Diary.DiaryID}}" id="diary_title">{{.Diary.Title}}{{if eq .Diary.ViewSetting 2}}<i
+                            class="mdi mdi-lock-outline mx-3"></i>
+                        {{end}}
+                    </a>
                 </li>
             </ul>
         </div>
@@ -71,7 +71,7 @@
             <div class="card border p-3 mb-6 break-inside-avoid" data-post-id="{{.PostID}}">
                 <div class="card-body">
                     <h1 class="text-black break-words mb-2">
-                      {{if .Title }}   {{.Title}} {{end}}
+                        {{if .Title }} {{.Title}} {{end}}
                     </h1>
                     <p class="break-words leading-relaxed">
                         {{ .Summary}}
@@ -96,7 +96,7 @@
                 <div class="my-4 flex justify-between">
                     <div>
                         <a href="" data-action="showPostBox" data-form-action="post.edit"
-                data-diary-id="{{$.Diary.DiaryID}}" data-post-id="{{.PostID}}">编辑</a>
+                            data-diary-id="{{$.Diary.DiaryID}}" data-post-id="{{.PostID}}">编辑</a>
                     </div>
                 </div>
                 {{end}}

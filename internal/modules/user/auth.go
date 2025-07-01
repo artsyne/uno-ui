@@ -24,17 +24,45 @@ import (
  * @version 1.0.0
  */
 
-// AuthHelper 认证助手结构体
+// AuthHelperInterface 认证助手接口
+// 定义了所有与用户认证相关的操作方法
+type AuthHelperInterface interface {
+	// IsAuthenticated 检查用户是否已通过认证
+	IsAuthenticated(c *gin.Context) (bool, *Login)
+
+	// RequireGuest 中间件：要求用户处于游客状态（未登录）
+	RequireGuest(redirectURL ...string) gin.HandlerFunc
+
+	// RequireAuth 中间件：要求用户已通过认证
+	RequireAuth(loginURL ...string) gin.HandlerFunc
+
+	// GetCurrentUser 安全地获取当前登录用户信息
+	GetCurrentUser(c *gin.Context) (*Login, bool)
+
+	// MustGetCurrentUser 强制获取当前登录用户信息
+	MustGetCurrentUser(c *gin.Context) *Login
+
+	// IsLogin 检查用户是否已登录（简化版本）
+	IsLogin(c *gin.Context) bool
+
+	// IfLoginGotoIndex 如果已登录则跳转到首页
+	IfLoginGotoIndex(c *gin.Context)
+
+	// GetLogin 获取登录用户信息（兼容性方法）
+	GetLogin(c *gin.Context) *Login
+}
+
+// authHelper 认证助手结构体
 // 封装了所有与用户认证相关的操作，提供类型安全和错误处理
-type AuthHelper struct{}
+type authHelper struct{}
 
 // NewAuthHelper 创建新的认证助手实例
-// 虽然提供了全局实例 Auth，但也可以通过此方法创建独立实例
+// 虽然提供了全局实例，但也可以通过此方法创建独立实例
 //
 // Returns:
-//   - *AuthHelper: 认证助手实例
-func NewAuthHelper() *AuthHelper {
-	return &AuthHelper{}
+//   - AuthHelperInterface: 认证助手接口实例
+func NewAuthHelper() AuthHelperInterface {
+	return &authHelper{}
 }
 
 // IsAuthenticated 检查用户是否已通过认证
@@ -61,7 +89,7 @@ func NewAuthHelper() *AuthHelper {
 //	if isAuth {
 //	    fmt.Printf("用户 %s 已登录", user.Username)
 //	}
-func (a *AuthHelper) IsAuthenticated(c *gin.Context) (bool, *Login) {
+func (a *authHelper) IsAuthenticated(c *gin.Context) (bool, *Login) {
 	// 检查登录状态标志
 	isLogin, exists := c.Get("IsLogin")
 	if !exists || isLogin != true {
@@ -100,7 +128,7 @@ func (a *AuthHelper) IsAuthenticated(c *gin.Context) (bool, *Login) {
 //
 //	// 使用自定义重定向URL
 //	router.Use(helpers.Auth.RequireGuest("/dashboard"))
-func (a *AuthHelper) RequireGuest(redirectURL ...string) gin.HandlerFunc {
+func (a *authHelper) RequireGuest(redirectURL ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if isAuth, _ := a.IsAuthenticated(c); isAuth {
 			// 确定重定向URL
@@ -134,7 +162,7 @@ func (a *AuthHelper) RequireGuest(redirectURL ...string) gin.HandlerFunc {
 //
 //	// 使用自定义登录页
 //	adminGroup.Use(helpers.Auth.RequireAuth("/admin/login"))
-func (a *AuthHelper) RequireAuth(loginURL ...string) gin.HandlerFunc {
+func (a *authHelper) RequireAuth(loginURL ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if isAuth, _ := a.IsAuthenticated(c); !isAuth {
 			// 确定登录页URL
@@ -174,7 +202,7 @@ func (a *AuthHelper) RequireAuth(loginURL ...string) gin.HandlerFunc {
 //	}
 //	// 使用用户信息
 //	fmt.Printf("当前用户：%s", user.Username)
-func (a *AuthHelper) GetCurrentUser(c *gin.Context) (*Login, bool) {
+func (a *authHelper) GetCurrentUser(c *gin.Context) (*Login, bool) {
 	isAuth, userData := a.IsAuthenticated(c)
 	return userData, isAuth
 }
@@ -197,7 +225,7 @@ func (a *AuthHelper) GetCurrentUser(c *gin.Context) (*Login, bool) {
 //	// 在已认证的路由中使用
 //	user := helpers.Auth.MustGetCurrentUser(c)
 //	fmt.Printf("当前用户：%s", user.Username)
-func (a *AuthHelper) MustGetCurrentUser(c *gin.Context) *Login {
+func (a *authHelper) MustGetCurrentUser(c *gin.Context) *Login {
 	userData, ok := a.GetCurrentUser(c)
 	if !ok {
 		panic("用户未认证：在未认证的上下文中调用了 MustGetCurrentUser")
@@ -220,7 +248,7 @@ func (a *AuthHelper) MustGetCurrentUser(c *gin.Context) *Login {
 //	if helpers.Auth.IsLogin(c) {
 //	    // 用户已登录的逻辑
 //	}
-func (a *AuthHelper) IsLogin(c *gin.Context) bool {
+func (a *authHelper) IsLogin(c *gin.Context) bool {
 	isAuth, _ := a.IsAuthenticated(c)
 	return isAuth
 }
@@ -235,7 +263,7 @@ func (a *AuthHelper) IsLogin(c *gin.Context) bool {
 //
 //	// 在登录页处理函数开头使用
 //	helpers.Auth.IfLoginGotoIndex(c)
-func (a *AuthHelper) IfLoginGotoIndex(c *gin.Context) {
+func (a *authHelper) IfLoginGotoIndex(c *gin.Context) {
 	if a.IsLogin(c) {
 		c.Redirect(http.StatusFound, "/")
 		c.Abort()
@@ -258,7 +286,7 @@ func (a *AuthHelper) IfLoginGotoIndex(c *gin.Context) {
 //	if user != nil {
 //	    fmt.Printf("当前用户：%s", user.Username)
 //	}
-func (a *AuthHelper) GetLogin(c *gin.Context) *Login {
+func (a *authHelper) GetLogin(c *gin.Context) *Login {
 	userData, _ := a.GetCurrentUser(c)
 	return userData
 }

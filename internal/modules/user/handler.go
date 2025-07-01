@@ -11,15 +11,76 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Handler 用户HTTP处理层
-type Handler struct {
-	service *Service
-	auth    *AuthHelper
+// HandlerInterface 用户HTTP处理层接口
+// 定义所有与用户相关的HTTP处理操作，包括认证、注册、设置等
+type HandlerInterface interface {
+	// RegisterRoutes 注册所有用户相关路由
+	RegisterRoutes(router *gin.Engine)
+
+	// ===================== 页面渲染方法 =====================
+
+	// RenderLogin 渲染登录页面
+	RenderLogin(c *gin.Context)
+
+	// RenderRegister 渲染注册页面
+	RenderRegister(c *gin.Context)
+
+	// RenderFindPwd 渲染找回密码页面
+	RenderFindPwd(c *gin.Context)
+
+	// RenderResetPwd 渲染重置密码页面
+	RenderResetPwd(c *gin.Context)
+
+	// RenderActivateUser 渲染激活用户页面
+	RenderActivateUser(c *gin.Context)
+
+	// RenderUserSettings 渲染用户设置页面
+	RenderUserSettings(c *gin.Context)
+
+	// ===================== 请求处理方法 =====================
+
+	// HandleLogin 处理用户登录请求
+	HandleLogin(c *gin.Context)
+
+	// HandleUserReg 处理用户注册请求
+	HandleUserReg(c *gin.Context)
+
+	// HandleCheckUserName 检查用户名是否存在
+	HandleCheckUserName(c *gin.Context)
+
+	// HandleCheckEmail 检查邮箱是否存在
+	HandleCheckEmail(c *gin.Context)
+
+	// HandleFindPwd 处理找回密码请求
+	HandleFindPwd(c *gin.Context)
+
+	// HandleResetPwd 处理重置密码请求
+	HandleResetPwd(c *gin.Context)
+
+	// HandleLoginOut 处理用户退出登录请求
+	HandleLoginOut(c *gin.Context)
+
+	// ===================== 用户设置相关方法 =====================
+
+	// UpdateProfile 更新用户基本资料
+	UpdateProfile(c *gin.Context)
+
+	// UpdateEmail 更新用户邮箱
+	UpdateEmail(c *gin.Context)
+
+	// ChangePassword 修改用户密码
+	ChangePassword(c *gin.Context)
+}
+
+// handler 用户HTTP处理层实现
+type handler struct {
+	service ServiceInterface
+	auth    AuthHelperInterface
 	config  *configs.Config // 缓存配置，避免重复调用全局变量
 }
 
 // NewHandler 创建用户HTTP处理层实例
-func NewHandler() *Handler {
+func NewHandler() HandlerInterface {
 	config := configs.GetConfig()
 	if config == nil {
 		// 在初始化时就检查配置，如果配置未正确加载则panic
@@ -27,7 +88,7 @@ func NewHandler() *Handler {
 		panic("Failed to get config during user handler initialization - config is nil")
 	}
 
-	return &Handler{
+	return &handler{
 		service: NewService(),
 		auth:    NewAuthHelper(),
 		config:  config, // 缓存配置
@@ -36,7 +97,7 @@ func NewHandler() *Handler {
 
 // RegisterRoutes 注册所有用户相关路由
 // 保持与原系统完全一致的路由路径
-func (h *Handler) RegisterRoutes(router *gin.Engine) {
+func (h *handler) RegisterRoutes(router *gin.Engine) {
 	// 用户认证相关路由（无需鉴权）
 	router.GET("/register", h.RenderRegister)
 	router.POST("/register", h.HandleUserReg)
@@ -70,7 +131,7 @@ func (h *Handler) RegisterRoutes(router *gin.Engine) {
 // ===================== 页面渲染方法 =====================
 
 // RenderLogin 渲染登录页面
-func (h *Handler) RenderLogin(c *gin.Context) {
+func (h *handler) RenderLogin(c *gin.Context) {
 	// 如果已登录则跳转首页
 	if isAuth, _ := h.auth.IsAuthenticated(c); isAuth {
 		c.Redirect(http.StatusFound, "/")
@@ -83,7 +144,7 @@ func (h *Handler) RenderLogin(c *gin.Context) {
 }
 
 // RenderRegister 渲染注册页面
-func (h *Handler) RenderRegister(c *gin.Context) {
+func (h *handler) RenderRegister(c *gin.Context) {
 	// 如果已登录则跳转首页
 	if isAuth, _ := h.auth.IsAuthenticated(c); isAuth {
 		c.Redirect(http.StatusFound, "/")
@@ -98,7 +159,7 @@ func (h *Handler) RenderRegister(c *gin.Context) {
 }
 
 // RenderFindPwd 渲染找回密码页面
-func (h *Handler) RenderFindPwd(c *gin.Context) {
+func (h *handler) RenderFindPwd(c *gin.Context) {
 	// 如果已登录则跳转首页
 	if isAuth, _ := h.auth.IsAuthenticated(c); isAuth {
 		c.Redirect(http.StatusFound, "/")
@@ -111,7 +172,7 @@ func (h *Handler) RenderFindPwd(c *gin.Context) {
 }
 
 // RenderResetPwd 渲染重置密码页面
-func (h *Handler) RenderResetPwd(c *gin.Context) {
+func (h *handler) RenderResetPwd(c *gin.Context) {
 	uid := c.Query("uid")
 	sign := c.Query("sign")
 
@@ -150,7 +211,7 @@ func (h *Handler) RenderResetPwd(c *gin.Context) {
 }
 
 // RenderActivateUser 渲染激活用户页面
-func (h *Handler) RenderActivateUser(c *gin.Context) {
+func (h *handler) RenderActivateUser(c *gin.Context) {
 	uid := c.Query("uid")
 	sign := c.Query("sign")
 
@@ -176,7 +237,7 @@ func (h *Handler) RenderActivateUser(c *gin.Context) {
 // ===================== 请求处理方法 =====================
 
 // HandleLogin 处理用户登录请求
-func (h *Handler) HandleLogin(c *gin.Context) {
+func (h *handler) HandleLogin(c *gin.Context) {
 	// 解析登录表单数据
 	login := &Login{}
 	if err := c.Bind(login); err != nil {
@@ -226,7 +287,7 @@ func (h *Handler) HandleLogin(c *gin.Context) {
 }
 
 // HandleUserReg 处理用户注册请求
-func (h *Handler) HandleUserReg(c *gin.Context) {
+func (h *handler) HandleUserReg(c *gin.Context) {
 	// 如果已登录则跳转首页
 	if isAuth, _ := h.auth.IsAuthenticated(c); isAuth {
 		c.Redirect(http.StatusFound, "/")
@@ -256,7 +317,7 @@ func (h *Handler) HandleUserReg(c *gin.Context) {
 }
 
 // HandleCheckUserName 检查用户名是否已存在
-func (h *Handler) HandleCheckUserName(c *gin.Context) {
+func (h *handler) HandleCheckUserName(c *gin.Context) {
 	userName, _ := c.GetPostForm("username")
 
 	// 验证用户名格式
@@ -276,7 +337,7 @@ func (h *Handler) HandleCheckUserName(c *gin.Context) {
 }
 
 // HandleCheckEmail 检查邮箱地址是否已存在
-func (h *Handler) HandleCheckEmail(c *gin.Context) {
+func (h *handler) HandleCheckEmail(c *gin.Context) {
 	email, _ := c.GetPostForm("email")
 
 	// 验证邮箱格式
@@ -296,7 +357,7 @@ func (h *Handler) HandleCheckEmail(c *gin.Context) {
 }
 
 // HandleFindPwd 处理找回密码请求
-func (h *Handler) HandleFindPwd(c *gin.Context) {
+func (h *handler) HandleFindPwd(c *gin.Context) {
 	email, _ := c.GetPostForm("email")
 
 	// 验证邮箱格式
@@ -329,7 +390,7 @@ func (h *Handler) HandleFindPwd(c *gin.Context) {
 }
 
 // HandleResetPwd 处理重置密码请求
-func (h *Handler) HandleResetPwd(c *gin.Context) {
+func (h *handler) HandleResetPwd(c *gin.Context) {
 	uid, _ := c.GetPostForm("uid")
 	sign, _ := c.GetPostForm("sign")
 	newPwd, _ := c.GetPostForm("new_pwd")
@@ -378,7 +439,7 @@ func (h *Handler) HandleResetPwd(c *gin.Context) {
 }
 
 // HandleLoginOut 处理登出请求
-func (h *Handler) HandleLoginOut(c *gin.Context) {
+func (h *handler) HandleLoginOut(c *gin.Context) {
 	// 清除登录cookie
 	pkg.DelCookie(c.Writer, "ud")
 	c.Redirect(http.StatusFound, "/passport/login")
@@ -387,23 +448,23 @@ func (h *Handler) HandleLoginOut(c *gin.Context) {
 // ===================== 私有辅助方法 =====================
 
 // parseUserID 解析用户ID
-func (h *Handler) parseUserID(idStr string) (int64, error) {
+func (h *handler) parseUserID(idStr string) (int64, error) {
 	return h.service.ParseUserID(idStr)
 }
 
 // validateEmailFormat 验证邮箱格式
-func (h *Handler) validateEmailFormat(email string) bool {
+func (h *handler) validateEmailFormat(email string) bool {
 	regexCheck := &pkg.RegexCheck{}
 	return regexCheck.IsEmail(email)
 }
 
 // validateUserNameFormat 验证用户名格式
-func (h *Handler) validateUserNameFormat(userName string) bool {
+func (h *handler) validateUserNameFormat(userName string) bool {
 	return len(userName) >= 6 && len(userName) <= 50
 }
 
 // setLoginCookie 设置登录会话cookie
-func (h *Handler) setLoginCookie(c *gin.Context, login *Login) error {
+func (h *handler) setLoginCookie(c *gin.Context, login *Login) error {
 	// 序列化登录对象
 	ud, err := json.Marshal(login)
 	if err != nil {
@@ -426,7 +487,7 @@ func (h *Handler) setLoginCookie(c *gin.Context, login *Login) error {
 // RenderUserSettings 渲染用户设置页面
 // 从website/controllers/member.go中迁移的RenderMemberSettings方法
 // 现在在路由级别已确保用户已登录
-func (h *Handler) RenderUserSettings(c *gin.Context) {
+func (h *handler) RenderUserSettings(c *gin.Context) {
 	// 获取当前登录用户信息（由中间件保证已登录）
 	loginUser := h.auth.MustGetCurrentUser(c)
 
@@ -462,7 +523,7 @@ func (h *Handler) RenderUserSettings(c *gin.Context) {
 }
 
 // UpdateProfile 更新用户基本资料
-func (h *Handler) UpdateProfile(c *gin.Context) {
+func (h *handler) UpdateProfile(c *gin.Context) {
 	// 获取url中的uid
 	uid, err := h.parseUserID(c.Param("uid"))
 	if err != nil {
@@ -493,7 +554,7 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 }
 
 // UpdateEmail 更新用户邮箱
-func (h *Handler) UpdateEmail(c *gin.Context) {
+func (h *handler) UpdateEmail(c *gin.Context) {
 	// 获取url中的uid
 	uid, err := h.parseUserID(c.Param("uid"))
 	if err != nil {
@@ -523,7 +584,7 @@ func (h *Handler) UpdateEmail(c *gin.Context) {
 }
 
 // ChangePassword 修改用户密码
-func (h *Handler) ChangePassword(c *gin.Context) {
+func (h *handler) ChangePassword(c *gin.Context) {
 	// 获取url中的uid
 	uid, err := h.parseUserID(c.Param("uid"))
 	if err != nil {
