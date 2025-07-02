@@ -191,7 +191,7 @@ CREATE TABLE br_post (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `br_space_member`
+-- Table structure for table `br_diary_member`
 --
 
 DROP TABLE IF EXISTS br_diary_member;

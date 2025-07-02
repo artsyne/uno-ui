@@ -98,3 +98,4 @@ func WrapFactory(factory interface{}) (FactoryFunc, error) {
 		return results[0].Interface(), nil
 	}, nil
 }
+ 

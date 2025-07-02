@@ -101,3 +101,4 @@ func NewTypeError(expectedType, actualType reflect.Type) DIError {
 		message: fmt.Sprintf("type conversion failed: expected %s, got %s", expectedType.String(), actualType.String()),
 	}
 }
+ 

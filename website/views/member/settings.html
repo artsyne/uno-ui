@@ -36,19 +36,21 @@
                     <div class="mb-4">
                         <label class="form-title" for="full_name">Full name</label>
                         <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Full name"
-                            valid='[{"type":"required"},{"type":"limit","max":50}]' value="{{.UserInfo.FullName}}">
+                            valid='[{"type":"required"},{"type":"limit","max":50}]' value="{{.UserInfo.FullName}}"
+                            data-original-value="{{.UserInfo.FullName}}">
                     </div>
 
                     <!-- Bio -->
                     <div class="mb-4">
                         <label class="form-title" for="remark">Bio</label>
                         <textarea class="form-control" id="remark" name="remark" placeholder="Bio" rows="3"
-                            valid='[{"type":"limit","max":250,"show":true}]'
-                            style="height: 120px;">I've found a way to get paid for my favorite hobby, and do so while following my dream of traveling the world.</textarea>
+                            valid='[{"type":"limit","max":250,"show":true}]' style="height: 120px;"
+                            data-original-value="I've found a way to get paid for my favorite hobby, and do so while following my dream of traveling the world.">I've found a way to get paid for my favorite hobby, and do so while following my dream of traveling the world.</textarea>
                     </div>
 
                     <!-- Save buttons -->
                     <div class="flex justify-end mt-6">
+                        <button type="button" class="btn-gray mr-2" data-action="discard-profile">Cancel</button>
                         <button type="submit" class="btn-red" data-action="save-profile">Save changes</button>
                     </div>
                 </div>
@@ -64,11 +66,13 @@
                     <div class="mb-4">
                         <label class="form-title" for="email">Email</label>
                         <input type="email" class="form-control" id="email" name="email" placeholder="Email"
-                            valid='[{"type":"required"},{"type":"email"}]' value="{{.UserInfo.Email}}">
+                            valid='[{"type":"required"},{"type":"email"}]' value="{{.UserInfo.Email}}"
+                            data-original-value="{{.UserInfo.Email}}">
                     </div>
 
-                    <!-- Save button -->
+                    <!-- Save buttons -->
                     <div class="flex justify-end mt-6">
+                        <button type="button" class="btn-gray mr-2" data-action="discard-email">Cancel</button>
                         <button type="submit" class="btn-red" data-action="save-email">Save changes</button>
                     </div>
                 </div>

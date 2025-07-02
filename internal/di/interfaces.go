@@ -93,3 +93,4 @@ func IsRegistered[T any](container ContainerInterface) bool {
 	serviceType := reflect.TypeOf((*T)(nil)).Elem()
 	return container.IsRegistered(serviceType)
 }
+ 

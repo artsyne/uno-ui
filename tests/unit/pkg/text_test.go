@@ -401,3 +401,4 @@ func BenchmarkTextProcessor_CleanHTML(b *testing.B) {
 		tp.CleanHTML(input)
 	}
 }
+ 

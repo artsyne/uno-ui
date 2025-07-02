@@ -402,6 +402,7 @@ func (h *handler) RenderDiaryIndex(c *gin.Context) {
 
 	// 设置模板数据
 	data := pkg.DefaultH(c)
+	data["Title"] = diaryInfo.Title + " - " + diaryInfo.AddUserName
 	data["Diary"] = diaryInfo
 	data["Posts"] = posts
 	data["PageLinks"] = pageLinks
