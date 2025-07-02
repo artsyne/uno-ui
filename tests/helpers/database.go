@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/biuren/hebe/internal/configs"
-	"github.com/biuren/hebe/internal/database"
+	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/core/database"
 )
 
 // DatabaseTestHelper 数据库测试辅助工具
@@ -89,7 +89,7 @@ func SetupTestDatabase(t *testing.T) *DatabaseTestHelper {
 	setupTestEnvironment()
 
 	// 初始化配置
-	if err := configs.InitConfig(); err != nil {
+	if err := config.InitConfig(); err != nil {
 		t.Fatalf("初始化配置失败: %v", err)
 	}
 

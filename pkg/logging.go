@@ -6,14 +6,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/biuren/hebe/internal/configs"
+	"github.com/biuren/hebe/internal/core/config"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 // SetLogger 配置日志
 // 设置日志输出位置、格式和轮转策略
-func SetLogger(config *configs.LogConfig) error {
+func SetLogger(config *config.LogConfig) error {
 	if config == nil {
 		return fmt.Errorf("log configuration is nil")
 	}
@@ -67,7 +67,7 @@ func SetLogger(config *configs.LogConfig) error {
 }
 
 // validateLogConfig 验证日志配置的有效性
-func validateLogConfig(config *configs.LogConfig) error {
+func validateLogConfig(config *config.LogConfig) error {
 	if config == nil {
 		return fmt.Errorf("log config is nil")
 	}

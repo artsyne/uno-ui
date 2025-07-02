@@ -9,13 +9,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 
-	"github.com/biuren/hebe/internal/configs"
-	"github.com/biuren/hebe/internal/database"
-	"github.com/biuren/hebe/internal/middlewares"
-	"github.com/biuren/hebe/internal/modules/task"
-	"github.com/biuren/hebe/internal/modules/user"
+	"github.com/biuren/hebe/internal/app/route"
+	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/core/database"
+	"github.com/biuren/hebe/internal/core/middleware"
+	"github.com/biuren/hebe/internal/module/task"
+	"github.com/biuren/hebe/internal/module/user"
 	"github.com/biuren/hebe/pkg"
-	"github.com/biuren/hebe/website/routes"
 )
 
 // main 是应用程序的入口函数
@@ -27,7 +27,7 @@ func main() {
 	pkg.SetupBasicLogger()
 
 	// 初始化配置
-	if err := configs.InitConfig(); err != nil {
+	if err := config.InitConfig(); err != nil {
 		// 使用logrus记录错误，Fatal会自动调用os.Exit(1)
 		logrus.WithError(err).Fatal("初始化配置失败")
 	}
@@ -50,15 +50,15 @@ func main() {
 
 // App 结构体包含应用程序的核心组件
 type App struct {
-	config *configs.Config // 应用配置
-	server *gin.Engine     // Gin HTTP 服务器实例
+	config *config.Config // 应用配置
+	server *gin.Engine    // Gin HTTP 服务器实例
 }
 
 // NewApp 创建并初始化一个新的应用实例
 // 包括配置加载、日志设置、数据库连接、Cookie 设置和 HTTP 服务器初始化
 // 返回初始化后的应用实例和可能的错误
 func NewApp() (*App, error) {
-	config := configs.GetConfig()
+	config := config.GetConfig()
 	if config == nil {
 		return nil, fmt.Errorf("配置未初始化")
 	}
@@ -121,7 +121,7 @@ func initializeDatabase() error {
 // setupLogger 初始化日志配置
 // 设置日志级别和输出格式
 func setupLogger() error {
-	config := configs.GetConfig()
+	config := config.GetConfig()
 	if config == nil {
 		return fmt.Errorf("配置未初始化")
 	}
@@ -168,12 +168,12 @@ func setupGinServer(mode string) *gin.Engine {
 	server := gin.New()
 
 	// 初始化中间件
-	server.Use(middlewares.PanicHandler(), middlewares.ErrorHandler(), user.SharedData())
+	server.Use(middleware.PanicHandler(), middleware.ErrorHandler(), user.SharedData())
 	logrus.Info("成功初始化中间件")
 
 	// 初始化Router，创建 gin 默认 router
 	// 设置模板文件，静态文件Path, 加载上下文共享数据
-	routes.Set(server)
+	route.Set(server)
 	logrus.Info("成功初始化网站静态文件目录及路由")
 
 	return server

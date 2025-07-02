@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/biuren/hebe/internal/modules/diary"
+	"github.com/biuren/hebe/internal/module/diary"
 	"github.com/biuren/hebe/pkg"
 	testhelpers "github.com/biuren/hebe/tests/helpers"
 )

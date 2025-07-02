@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/biuren/hebe/internal/modules/user"
+	"github.com/biuren/hebe/internal/module/user"
 	"github.com/gin-gonic/gin"
 )
 

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/biuren/hebe/internal/modules/diary"
-	"github.com/biuren/hebe/internal/modules/post"
+	"github.com/biuren/hebe/internal/module/diary"
+	"github.com/biuren/hebe/internal/module/post"
 	"github.com/biuren/hebe/pkg"
 	testhelpers "github.com/biuren/hebe/tests/helpers"
 )

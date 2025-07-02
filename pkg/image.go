@@ -7,8 +7,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/biuren/hebe/internal/configs"
-	"github.com/biuren/hebe/internal/errors"
+	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/core/error"
 	"github.com/rs/xid"
 )
 
@@ -30,7 +30,7 @@ func UploadImage(imgBase64Data string) (string, string, error) {
 	}
 
 	// 获取上传文件配置信息
-	config := configs.GetConfig()
+	config := config.GetConfig()
 
 	//判断上传文件类型是否正确
 	filetype := imgBase64Data[:strings.IndexByte(imgBase64Data, ';')]

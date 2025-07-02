@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/biuren/hebe/internal/modules/task"
+	"github.com/biuren/hebe/internal/module/task"
 	testhelpers "github.com/biuren/hebe/tests/helpers"
 )
 

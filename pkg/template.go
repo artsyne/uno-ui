@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/biuren/hebe/internal/configs"
+	"github.com/biuren/hebe/internal/core/config"
 	"github.com/gin-gonic/gin"
 )
 
@@ -39,7 +39,7 @@ func DefaultH(c *gin.Context) gin.H {
 // ajax 操作返回JSON串
 func ResponseH(c *gin.Context) gin.H {
 	return gin.H{
-		"Status": configs.OPS_SUCCESS,
+		"Status": config.OPS_SUCCESS,
 		"Data":   "",
 	}
 }

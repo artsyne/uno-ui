@@ -4,14 +4,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/biuren/hebe/internal/configs"
+	"github.com/biuren/hebe/internal/core/config"
 	"github.com/go-redis/redis"
 )
 
 // 创建redis client
 func getRedisClient() *redis.Client {
 	//获取配置信息
-	config := configs.GetConfig()
+	config := config.GetConfig()
 
 	// 链接redis
 	client := redis.NewClient(&redis.Options{

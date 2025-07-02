@@ -3,7 +3,7 @@ package user_test
 import (
 	"testing"
 
-	"github.com/biuren/hebe/internal/modules/user"
+	"github.com/biuren/hebe/internal/module/user"
 	testhelpers "github.com/biuren/hebe/tests/helpers"
 )
 
