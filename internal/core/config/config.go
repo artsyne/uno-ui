@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -29,87 +28,119 @@ func InitConfig() error {
 
 	// 解析JSON格式的环境变量
 	var supportLangs []SupportLang
-	if err := parseJSON(getEnvOrDefault("SUPPORT_LANGS", v.GetString("SUPPORT_LANGS")), &supportLangs); err != nil {
+	supportLangsStr := v.GetString("SUPPORT_LANGS")
+	if supportLangsStr == "" {
+		return fmt.Errorf("SUPPORT_LANGS配置不能为空")
+	}
+	if err := parseJSON(supportLangsStr, &supportLangs); err != nil {
 		return fmt.Errorf("解析SUPPORT_LANGS失败: %w", err)
 	}
 
 	var timezones []string
-	if err := parseJSON(getEnvOrDefault("TIMEZONES", v.GetString("TIMEZONES")), &timezones); err != nil {
+	timezonesStr := v.GetString("TIMEZONES")
+	if timezonesStr == "" {
+		return fmt.Errorf("TIMEZONES配置不能为空")
+	}
+	if err := parseJSON(timezonesStr, &timezones); err != nil {
 		return fmt.Errorf("解析TIMEZONES失败: %w", err)
 	}
 
 	var params []Param
-	if err := parseJSON(getEnvOrDefault("PARAMS", v.GetString("PARAMS")), &params); err != nil {
+	paramsStr := v.GetString("PARAMS")
+	if paramsStr == "" {
+		return fmt.Errorf("PARAMS配置不能为空")
+	}
+	if err := parseJSON(paramsStr, &params); err != nil {
 		return fmt.Errorf("解析PARAMS失败: %w", err)
 	}
 
 	// 初始化配置结构体
 	globalConfig = &Config{}
 
-	// 手动设置值
-	globalConfig.Env = getEnvOrDefault("ENV", v.GetString("ENV"))
+	// 验证并设置基本配置
+	if env := v.GetString("ENV"); env == "" {
+		return fmt.Errorf("ENV配置不能为空")
+	} else {
+		globalConfig.Env = env
+	}
+
+	// App配置
 	globalConfig.App = AppConfig{
-		GinMode:         getEnvOrDefault("GIN_MODE", v.GetString("GIN_MODE")),
-		Domain:          getEnvOrDefault("DOMAIN", v.GetString("DOMAIN")),
-		Port:            getEnvOrDefault("PORT", v.GetString("PORT")),
-		SummaryMax:      getEnvIntOrDefault("SUMMARY_MAX", v.GetInt("SUMMARY_MAX")),
-		Suffix:          getEnvOrDefault("SUFFIX", v.GetString("SUFFIX")),
-		PageSize:        getEnvIntOrDefault("PAGE_SIZE", v.GetInt("PAGE_SIZE")),
-		MaxDaybookLimit: getEnvIntOrDefault("MAX_DAYBOOK_LIMIT", v.GetInt("MAX_DAYBOOK_LIMIT")),
-		HashSalt:        getEnvOrDefault("HASH_SALT", v.GetString("HASH_SALT")),
-		StaticDir:       getEnvOrDefault("STATIC_DIR", v.GetString("STATIC_DIR")),
+		GinMode:         requireString(v, "GIN_MODE"),
+		Domain:          requireString(v, "DOMAIN"),
+		Port:            requireString(v, "PORT"),
+		SummaryMax:      requireInt(v, "SUMMARY_MAX"),
+		Suffix:          requireString(v, "SUFFIX"),
+		PageSize:        requireInt(v, "PAGE_SIZE"),
+		MaxDaybookLimit: requireInt(v, "MAX_DAYBOOK_LIMIT"),
+		HashSalt:        requireString(v, "HASH_SALT"),
+		StaticDir:       requireString(v, "STATIC_DIR"),
 	}
+
+	// Database配置
 	globalConfig.Database = DatabaseConfig{
-		Host:     getEnvOrDefault("DB_HOST", v.GetString("DB_HOST")),
-		Port:     getEnvIntOrDefault("DB_PORT", v.GetInt("DB_PORT")),
-		Name:     getEnvOrDefault("DB_NAME", v.GetString("DB_NAME")),
-		User:     getEnvOrDefault("DB_USER", v.GetString("DB_USER")),
-		Password: getEnvOrDefault("DB_PASSWORD", v.GetString("DB_PASSWORD")),
-		Conn:     getEnvOrDefault("DB_CONN", v.GetString("DB_CONN")),
+		Host:     requireString(v, "DB_HOST"),
+		Port:     requireInt(v, "DB_PORT"),
+		Name:     requireString(v, "DB_NAME"),
+		User:     requireString(v, "DB_USER"),
+		Password: requireString(v, "DB_PASSWORD"),
+		Conn:     requireString(v, "DB_CONN"),
 	}
+
+	// Redis配置
 	globalConfig.Redis = RedisConfig{
-		Host:     getEnvOrDefault("REDIS_HOST", v.GetString("REDIS_HOST")),
-		Port:     getEnvIntOrDefault("REDIS_PORT", v.GetInt("REDIS_PORT")),
-		Password: getEnvOrDefault("REDIS_PASSWORD", v.GetString("REDIS_PASSWORD")),
+		Host:     requireString(v, "REDIS_HOST"),
+		Port:     requireInt(v, "REDIS_PORT"),
+		Password: requireString(v, "REDIS_PASSWORD"),
 	}
+
+	// Email配置
 	globalConfig.Email = EmailConfig{
-		SMTPServer:   getEnvOrDefault("SMTP_SERVER", v.GetString("SMTP_SERVER")),
-		SMTPUser:     getEnvOrDefault("SMTP_USER", v.GetString("SMTP_USER")),
-		SMTPPassword: getEnvOrDefault("SMTP_PASSWORD", v.GetString("SMTP_PASSWORD")),
-		SMTPPort:     getEnvIntOrDefault("SMTP_PORT", v.GetInt("SMTP_PORT")),
-		SMTPFrom:     getEnvOrDefault("SMTP_FROM", v.GetString("SMTP_FROM")),
-		MaxRetries:   getEnvIntOrDefault("EMAIL_MAX_RETRIES", v.GetInt("EMAIL_MAX_RETRIES")),
-		BatchSize:    getEnvIntOrDefault("EMAIL_BATCH_SIZE", v.GetInt("EMAIL_BATCH_SIZE")),
+		SMTPServer:   requireString(v, "SMTP_SERVER"),
+		SMTPUser:     requireString(v, "SMTP_USER"),
+		SMTPPassword: requireString(v, "SMTP_PASSWORD"),
+		SMTPPort:     requireInt(v, "SMTP_PORT"),
+		SMTPFrom:     requireString(v, "SMTP_FROM"),
+		MaxRetries:   requireInt(v, "EMAIL_MAX_RETRIES"),
+		BatchSize:    requireInt(v, "EMAIL_BATCH_SIZE"),
 	}
+
+	// Cookie配置
 	globalConfig.Cookie = CookieConfig{
-		Domain:     getEnvOrDefault("COOKIE_DOMAIN", v.GetString("COOKIE_DOMAIN")),
-		Secret:     getEnvOrDefault("COOKIE_SECRET", v.GetString("COOKIE_SECRET")),
-		ExpireDays: getEnvIntOrDefault("COOKIE_EXPIRE_DAYS", v.GetInt("COOKIE_EXPIRE_DAYS")),
-		HttpOnly:   getEnvBoolOrDefault("COOKIE_HTTP_ONLY", v.GetBool("COOKIE_HTTP_ONLY")),
+		Domain:     requireString(v, "COOKIE_DOMAIN"),
+		Secret:     requireString(v, "COOKIE_SECRET"),
+		ExpireDays: requireInt(v, "COOKIE_EXPIRE_DAYS"),
+		HttpOnly:   requireBool(v, "COOKIE_HTTP_ONLY"),
 	}
+
+	// Upload配置
 	globalConfig.Upload = UploadConfig{
-		Path:    getEnvOrDefault("UPLOAD_PATH", v.GetString("UPLOAD_PATH")),
-		Types:   getEnvOrDefault("UPLOAD_TYPES", v.GetString("UPLOAD_TYPES")),
-		MaxSize: getEnvIntOrDefault("UPLOAD_MAX_SIZE", v.GetInt("UPLOAD_MAX_SIZE")),
+		Path:    requireString(v, "UPLOAD_PATH"),
+		Types:   requireString(v, "UPLOAD_TYPES"),
+		MaxSize: requireInt(v, "UPLOAD_MAX_SIZE"),
 	}
+
+	// 设置数组配置
 	globalConfig.SupportLangs = supportLangs
 	globalConfig.Timezones = timezones
 	globalConfig.Params = params
+
+	// Log配置
 	globalConfig.Log = LogConfig{
-		Level:      getEnvOrDefault("LOG_LEVEL", v.GetString("LOG_LEVEL")),
-		Format:     getEnvOrDefault("LOG_FORMAT", v.GetString("LOG_FORMAT")),
-		Path:       getEnvOrDefault("LOG_PATH", v.GetString("LOG_PATH")),
-		Filename:   getEnvOrDefault("LOG_FILENAME", v.GetString("LOG_FILENAME")),
-		MaxSize:    getEnvIntOrDefault("LOG_MAX_SIZE", v.GetInt("LOG_MAX_SIZE")),
-		MaxAge:     getEnvIntOrDefault("LOG_MAX_AGE", v.GetInt("LOG_MAX_AGE")),
-		MaxBackups: getEnvIntOrDefault("LOG_MAX_BACKUPS", v.GetInt("LOG_MAX_BACKUPS")),
-		Compress:   getEnvBoolOrDefault("LOG_COMPRESS", v.GetBool("LOG_COMPRESS")),
-		LocalTime:  getEnvBoolOrDefault("LOG_LOCAL_TIME", v.GetBool("LOG_LOCAL_TIME")),
+		Level:      requireString(v, "LOG_LEVEL"),
+		Format:     requireString(v, "LOG_FORMAT"),
+		Path:       requireString(v, "LOG_PATH"),
+		Filename:   requireString(v, "LOG_FILENAME"),
+		MaxSize:    requireInt(v, "LOG_MAX_SIZE"),
+		MaxAge:     requireInt(v, "LOG_MAX_AGE"),
+		MaxBackups: requireInt(v, "LOG_MAX_BACKUPS"),
+		Compress:   requireBool(v, "LOG_COMPRESS"),
+		LocalTime:  requireBool(v, "LOG_LOCAL_TIME"),
 	}
 
 	// 设置 static 目录
 	cwd, _ := os.Getwd()
-	staticDir = filepath.Join(cwd, getEnvOrDefault("STATIC_DIR", v.GetString("STATIC_DIR")))
+	staticDir = filepath.Join(cwd, requireString(v, "STATIC_DIR"))
 
 	// 验证配置
 	if err := globalConfig.ValidateConfig(); err != nil {
@@ -177,45 +208,27 @@ func GetViewsPath() string {
 	return filepath.Join(cwd, "website/views")
 }
 
-// getEnvOrDefault 从环境变量获取字符串值，如果不存在则返回默认值
-func getEnvOrDefault(key string, defaultVal string) string {
-	val := os.Getenv(key)
-	if val == "" {
-		return defaultVal
+// requireString 获取必需的字符串配置值
+func requireString(v *viper.Viper, key string) string {
+	value := v.GetString(key)
+	if value == "" {
+		panic(fmt.Sprintf("配置项 %s 不能为空", key))
 	}
-	return val
+	return value
 }
 
-// getEnvIntOrDefault 从环境变量获取整数值，如果不存在或无法转换则返回默认值
-func getEnvIntOrDefault(key string, defaultVal int) int {
-	valStr := os.Getenv(key)
-	if valStr == "" {
-		return defaultVal
+// requireInt 获取必需的整数配置值
+func requireInt(v *viper.Viper, key string) int {
+	if !v.IsSet(key) {
+		panic(fmt.Sprintf("配置项 %s 不能为空", key))
 	}
-
-	val, err := strconv.Atoi(valStr)
-	if err != nil {
-		return defaultVal
-	}
-
-	return val
+	return v.GetInt(key)
 }
 
-// getEnvBoolOrDefault 从环境变量获取布尔值，如果不存在或无法转换则返回默认值
-func getEnvBoolOrDefault(key string, defaultVal bool) bool {
-	valStr := os.Getenv(key)
-	if valStr == "" {
-		return defaultVal
+// requireBool 获取必需的布尔配置值
+func requireBool(v *viper.Viper, key string) bool {
+	if !v.IsSet(key) {
+		panic(fmt.Sprintf("配置项 %s 不能为空", key))
 	}
-
-	// 处理常见的布尔值表示
-	valStr = strings.ToLower(valStr)
-	if valStr == "true" || valStr == "1" || valStr == "yes" || valStr == "y" {
-		return true
-	}
-	if valStr == "false" || valStr == "0" || valStr == "no" || valStr == "n" {
-		return false
-	}
-
-	return defaultVal
+	return v.GetBool(key)
 }

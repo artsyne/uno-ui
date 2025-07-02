@@ -2,7 +2,7 @@ package diary
 
 import (
 	"github.com/biuren/hebe/internal/core/config"
-	"github.com/biuren/hebe/internal/core/error"
+	errors "github.com/biuren/hebe/internal/core/error"
 )
 
 // ServiceInterface 日记本业务逻辑层接口
@@ -137,16 +137,16 @@ func (s *service) DecrementPostCount(diaryID int64, userID int64, userName strin
 // 返回: 可能的错误
 func (s *service) validateDiary(diary *Diary) error {
 	if len(diary.Title) < 1 {
-		return errors.ParseInputParamErr
+		return errors.InvalidParamsErr()
 	}
 	if diary.ViewSetting != 1 && diary.ViewSetting != 2 {
-		return errors.ParseInputParamErr
+		return errors.InvalidParamsErr()
 	}
 	if diary.SocialSetting != 1 && diary.SocialSetting != 2 {
-		return errors.ParseInputParamErr
+		return errors.InvalidParamsErr()
 	}
 	if diary.ThemeID < 1 || diary.ThemeID > 16 {
-		return errors.ParseInputParamErr
+		return errors.InvalidParamsErr()
 	}
 	return nil
 }
@@ -157,11 +157,11 @@ func (s *service) validateDiary(diary *Diary) error {
 func (s *service) CheckDiaryLimit(userID int64) error {
 	daybookNum, err := s.repo.GetCountByUserID(userID)
 	if err != nil {
-		return errors.ParseInputParamErr
+		return errors.InvalidParamsErr()
 	}
 
 	if daybookNum > s.config.App.MaxDaybookLimit {
-		return errors.MaxDaybookLimitErr
+		return errors.DiaryLimitExceededErr()
 	}
 
 	return nil

@@ -3,15 +3,15 @@ package pkg
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 
 	"github.com/biuren/hebe/internal/core/config"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// SetLogger 配置日志
+// SetLogger 配置slog日志
 // 设置日志输出位置、格式和轮转策略
 func SetLogger(config *config.LogConfig) error {
 	if config == nil {
@@ -27,7 +27,7 @@ func SetLogger(config *config.LogConfig) error {
 	logPath := filepath.Join(config.Path)
 	if err := os.MkdirAll(logPath, 0755); err != nil {
 		return fmt.Errorf("failed to create log directory: %w", err)
-    }
+	}
 
 	// 配置日志轮转
 	logFile := &lumberjack.Logger{
@@ -42,28 +42,43 @@ func SetLogger(config *config.LogConfig) error {
 	// 同时输出到文件和控制台
 	writers := []io.Writer{logFile, os.Stdout}
 	mw := io.MultiWriter(writers...)
-	logrus.SetOutput(mw)
 
-	// 设置日志格式
+	// 解析日志级别
+	level := parseLogLevel(config.Level)
+
+	// 创建handler
+	var handler slog.Handler
 	if config.Format == "json" {
-		logrus.SetFormatter(&logrus.JSONFormatter{
-			TimestampFormat: "2006-01-02 15:04:05",
+		handler = slog.NewJSONHandler(mw, &slog.HandlerOptions{
+			Level: level,
 		})
 	} else {
-		logrus.SetFormatter(&logrus.TextFormatter{
-			FullTimestamp:   true,
-			TimestampFormat: "2006-01-02 15:04:05",
+		handler = slog.NewTextHandler(mw, &slog.HandlerOptions{
+			Level: level,
 		})
 	}
 
-	// 设置日志级别
-	level, err := logrus.ParseLevel(config.Level)
-	if err != nil {
-		return fmt.Errorf("invalid log level %q: %w", config.Level, err)
-	}
-	logrus.SetLevel(level)
+	// 设置默认logger
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
 
 	return nil
+}
+
+// parseLogLevel 将字符串日志级别转换为slog.Level
+func parseLogLevel(levelStr string) slog.Level {
+	switch levelStr {
+	case "debug":
+		return slog.LevelDebug
+	case "info":
+		return slog.LevelInfo
+	case "warn":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo // 默认级别
+	}
 }
 
 // validateLogConfig 验证日志配置的有效性
@@ -73,8 +88,16 @@ func validateLogConfig(config *config.LogConfig) error {
 	}
 
 	// 验证日志级别
-	if _, err := logrus.ParseLevel(config.Level); err != nil {
-		return fmt.Errorf("invalid log level %q: %w", config.Level, err)
+	validLevels := []string{"debug", "info", "warn", "error"}
+	isValidLevel := false
+	for _, level := range validLevels {
+		if config.Level == level {
+			isValidLevel = true
+			break
+		}
+	}
+	if !isValidLevel {
+		return fmt.Errorf("invalid log level %q: must be one of %v", config.Level, validLevels)
 	}
 
 	// 验证日志格式
@@ -85,13 +108,12 @@ func validateLogConfig(config *config.LogConfig) error {
 	return nil
 }
 
-// SetupBasicLogger 设置基本日志，用于配置加载前
+// SetupBasicLogger 设置基本slog日志，用于配置加载前
 func SetupBasicLogger() {
 	// 基本控制台日志设置
-	logrus.SetOutput(os.Stdout)
-	logrus.SetFormatter(&logrus.TextFormatter{
-		FullTimestamp:   true,
-		TimestampFormat: "2006-01-02 15:04:05",
+	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
 	})
-	logrus.SetLevel(logrus.InfoLevel)
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
 }

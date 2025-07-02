@@ -1,61 +1,75 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
 	"runtime/debug"
 
-	"github.com/sirupsen/logrus"
+	errors "github.com/biuren/hebe/internal/core/error"
 	"github.com/gin-gonic/gin"
-
-	"github.com/biuren/hebe/internal/core/error"
 )
 
-// 捕获error 错误
-func ErrorHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		 // 先调用c.Next()执行后面的中间件，最后再处理错误信息
-		c.Next()
+// ErrorHandlerMiddleware 错误处理中间件
+func ErrorHandlerMiddleware() gin.HandlerFunc {
+	return gin.CustomRecovery(func(c *gin.Context, recovered interface{}) {
+		if recovered != nil {
+			// 记录 panic 详情
+			log.Printf("系统发生panic: %v, 路径: %s, 方法: %s, 客户端IP: %s",
+				recovered, c.Request.URL.Path, c.Request.Method, c.ClientIP())
+			log.Printf("堆栈跟踪: %s", string(debug.Stack()))
 
-		// 所有中间件及router处理完毕后从这里开始执行
-		for _, e := range c.Errors {
-			err := e.Err
-			// 若是自定义的错误则将code、msg返回
-			if e, ok := err.(*errors.AppError); ok {
-				c.JSON(http.StatusOK, gin.H{
-					"code": e.Code,
-					"msgkey":  e.MsgKey,
-					"msg":e.MsgKey+",todo",
-					"data": err.Error(),
-				})
-			} else {
-				// 若非自定义错误则返回详细错误信息err.Error()
-				c.JSON(http.StatusOK, gin.H{
-					"code": errors.InternalErr.Code,
-					"msgkey":  errors.InternalErr.MsgKey,
-					"msg":errors.InternalErr.MsgKey+",todo",
-					"data": err.Error(),
-				})
+			response := gin.H{
+				"code":    errors.InternalErr().Code,
+				"message": errors.InternalErr().MsgKey,
+				"data":    nil,
 			}
-			return // 检查一个错误就退出
+
+			c.JSON(http.StatusInternalServerError, response)
+			c.Abort()
 		}
-	}
+	})
 }
 
-// 捕获 panic 错误
-func PanicHandler() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        defer func() {
-            if err := recover(); err != nil {
-                // 记录错误日志
-                logrus.WithFields(logrus.Fields{
-                    "error": err,
-                    "stack": string(debug.Stack()),
-                }).Error("A panic occurred")
+// logAppError 记录应用错误的详细信息
+func logAppError(c *gin.Context, err *errors.AppError) {
+	log.Printf("API错误: 错误码=%d, 错误键=%s, HTTP状态=%d, 方法=%s, 路径=%s, 客户端IP=%s, 详情=%s",
+		err.Code, err.MsgKey, err.HttpCode, c.Request.Method, c.Request.URL.Path,
+		c.ClientIP(), err.Details)
+}
 
-                // 返回错误响应,todo: 后面需要跳转到错误页面
-                c.JSON(500, gin.H{"message": "Internal server error"})
-            }
-        }()
-        c.Next()
-    }
+// GlobalErrorHandlerMiddleware 全局错误处理中间件
+func GlobalErrorHandlerMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		defer func() {
+			if len(c.Errors) > 0 {
+				// 获取最后一个错误
+				lastError := c.Errors.Last()
+
+				// 处理 AppError
+				if appErr, ok := lastError.Err.(*errors.AppError); ok {
+					logAppError(c, appErr)
+					c.JSON(appErr.HttpCode, gin.H{
+						"code":    appErr.Code,
+						"message": appErr.MsgKey,
+						"data":    nil,
+					})
+					return
+				}
+
+				// 处理其他错误
+				log.Printf("未知错误: %s, 路径: %s, 方法: %s, 客户端IP: %s",
+					lastError.Err.Error(), c.Request.URL.Path, c.Request.Method, c.ClientIP())
+
+				// 返回错误响应
+				internalErr := errors.InternalErr()
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"code":    internalErr.Code,
+					"message": internalErr.MsgKey,
+					"data":    nil,
+				})
+			}
+		}()
+
+		c.Next()
+	}
 }

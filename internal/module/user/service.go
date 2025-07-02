@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/internal/core/config"
-	"github.com/biuren/hebe/internal/core/error"
+	errors "github.com/biuren/hebe/internal/core/error"
 	"github.com/biuren/hebe/internal/module/task"
 	"github.com/biuren/hebe/pkg"
 )
@@ -128,7 +128,7 @@ func (s *service) RegisterUser(user *User) error {
 
 	// 插入数据库
 	if err := s.insertUserIntoDB(user); err != nil {
-		return errors.DbOperationErr
+		return errors.DatabaseErr().WithDetails(err.Error())
 	}
 
 	// 发送激活邮件
@@ -141,12 +141,12 @@ func (s *service) RegisterUser(user *User) error {
 func (s *service) validateUserInput(user *User) error {
 	// 判断参数是否到位
 	if len(user.UserName) < 6 || len(user.Pwd) < 6 {
-		return errors.InputParamErr
+		return errors.ValidationErr().WithDetails("用户名和密码长度至少6位")
 	}
 
 	// 判断用户时区与语言是否正确
 	if !pkg.IsTimeZone(user.TimeZone) {
-		return errors.InputParamErr
+		return errors.ValidationErr().WithDetails("时区格式不正确")
 	}
 
 	// 判断用户名是否存在
@@ -166,9 +166,9 @@ func (s *service) validateUserInput(user *User) error {
 func (s *service) isExistEmail(email string) error {
 	// 判断邮件地址是否存在
 	if isExistEmail, err := s.repo.IsExistsEmail(email); err == nil && isExistEmail {
-		return errors.RegisterUserEmailExists
+		return errors.EmailExistsErr().WithDetails("邮箱: " + email)
 	} else if err != nil {
-		return errors.DbOperationErr
+		return errors.DatabaseErr().WithDetails(err.Error())
 	}
 	return nil
 }
@@ -182,9 +182,9 @@ func (s *service) IsExistEmail(email string) error {
 func (s *service) isExistUserName(userName string) error {
 	// 判断用户名是否存在
 	if isExistName, err := s.repo.IsExistUserName(userName); err == nil && isExistName {
-		return errors.RegisterUserNameExists
+		return errors.UserExistsErr().WithDetails("用户名: " + userName)
 	} else if err != nil {
-		return errors.DbOperationErr
+		return errors.DatabaseErr().WithDetails(err.Error())
 	}
 	return nil
 }
@@ -258,20 +258,20 @@ func (s *service) CheckNameAndPassword(name string, pwd string) (*User, error) {
 	user, err := s.repo.GetUserByUserName(name)
 
 	if err != nil {
-		return nil, errors.UserNotExists
+		return nil, errors.UserNotFoundErr().WithDetails(err.Error())
 	}
 
 	// 如果用户不存在，用邮件地址查找用户信息
 	if user == nil {
 		user, err = s.repo.GetUserByEmail(name)
 		if err != nil || user == nil {
-			return nil, errors.UserNotExists
+			return nil, errors.UserNotFoundErr().WithDetails(err.Error())
 		}
 	}
 
 	// 判断密码是否正确,密码为pwd+salt的sha256
 	if !s.verifyPassword(pwd, user.Pwd, user.PwdSalt) {
-		return nil, errors.UserPwdErr
+		return nil, errors.PasswordIncorrectErr().WithDetails("密码不正确")
 	}
 
 	return user, nil

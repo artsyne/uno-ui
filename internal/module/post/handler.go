@@ -6,8 +6,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/biuren/hebe/internal/app/response"
+	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/core/config"
-	"github.com/biuren/hebe/internal/core/error"
+	errors "github.com/biuren/hebe/internal/core/error"
 	"github.com/biuren/hebe/internal/module/diary"
 	"github.com/biuren/hebe/internal/module/user"
 	"github.com/biuren/hebe/pkg"
@@ -33,9 +35,11 @@ type HandlerInterface interface {
 // handler 日记模块HTTP处理器实现
 // 负责处理所有与日记相关的HTTP请求，包括渲染表单、创建日记、编辑日记等操作
 type handler struct {
-	service ServiceInterface
-	auth    user.AuthHelperInterface
-	config  *config.Config // 缓存配置，避免重复调用全局变量
+	service         ServiceInterface
+	auth            user.AuthHelperInterface
+	config          *config.Config
+	responseService response.ResponseServiceInterface
+	viewService     view.ViewServiceInterface
 }
 
 // NewHandler 创建新的日记处理器实例
@@ -47,10 +51,15 @@ func NewHandler() HandlerInterface {
 		panic("Failed to get config during post handler initialization - config is nil")
 	}
 
+	viewService := view.NewViewService(config)
+	responseService := response.NewResponseService(viewService)
+
 	return &handler{
-		service: NewService(),
-		auth:    user.NewAuthHelper(),
-		config:  config, // 缓存配置
+		service:         NewService(),
+		auth:            user.NewAuthHelper(),
+		config:          config,
+		responseService: responseService,
+		viewService:     viewService,
 	}
 }
 
@@ -93,7 +102,7 @@ func (h *handler) RegisterRoutes(router *gin.Engine) {
 func (h *handler) parsePostID(idStr string) (int64, error) {
 	id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
 	if err != nil || id <= 0 {
-		return 0, errors.ParseInputParamErr
+		return 0, errors.InvalidParamsErr()
 	}
 	return id, nil
 }
@@ -110,7 +119,7 @@ func (h *handler) parsePostID(idStr string) (int64, error) {
 func (h *handler) parseDiaryID(idStr string) (int64, error) {
 	id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
 	if err != nil || id <= 0 {
-		return 0, errors.ParseInputParamErr
+		return 0, errors.InvalidParamsErr()
 	}
 	return id, nil
 }
@@ -140,7 +149,7 @@ func (h *handler) RenderPostForm(c *gin.Context) {
 		// 编辑模式：获取并验证日记数据
 		post, err := h.getAndValidatePost(c, loginUser.UserId)
 		if err != nil {
-			errors.ResponseErr(c, err)
+			h.responseService.JSONError(c, err)
 			return
 		}
 		data["Post"] = post
@@ -166,7 +175,7 @@ func (h *handler) HandlePost(c *gin.Context) {
 	// 解析表单数据到PostForm结构体
 	postForm := &PostForm{}
 	if err := c.Bind(postForm); err != nil {
-		errors.ResponseErr(c, errors.ParseInputParamErr)
+		h.responseService.JSONError(c, errors.InvalidParamsErr())
 		return
 	}
 
@@ -178,7 +187,7 @@ func (h *handler) HandlePost(c *gin.Context) {
 	case "post.edit":
 		h.handleEditPost(c, postForm, loginUser)
 	default:
-		errors.ResponseErr(c, errors.ParseInputParamErr)
+		h.responseService.JSONError(c, errors.InvalidParamsErr())
 	}
 }
 
@@ -214,7 +223,7 @@ func (h *handler) handleCreatePost(c *gin.Context, postForm *PostForm, user *use
 	// 调用服务层创建日记
 	postID, err := h.service.AddPost(post)
 	if err != nil {
-		errors.ResponseErr(c, err)
+		h.responseService.JSONError(c, err)
 		return
 	}
 	post.PostID = postID
@@ -243,14 +252,14 @@ func (h *handler) handleEditPost(c *gin.Context, postForm *PostForm, user *user.
 	postIdStr, _ := c.GetPostForm("post_id")
 	postId, err := h.parsePostID(postIdStr)
 	if err != nil {
-		errors.ResponseErr(c, err)
+		h.responseService.JSONError(c, err)
 		return
 	}
 
 	// 验证日记所有权
 	originalPost, err := h.validatePostOwnership(postId, user.UserId)
 	if err != nil {
-		errors.ResponseErr(c, err)
+		h.responseService.JSONError(c, err)
 		return
 	}
 
@@ -272,7 +281,7 @@ func (h *handler) handleEditPost(c *gin.Context, postForm *PostForm, user *user.
 
 	// 调用服务层更新日记
 	if err := h.service.UpdatePost(post); err != nil {
-		errors.ResponseErr(c, err)
+		h.responseService.JSONError(c, err)
 		return
 	}
 
@@ -312,12 +321,12 @@ func (h *handler) getAndValidatePost(c *gin.Context, userID int64) (*Post, error
 func (h *handler) validatePostOwnership(postID, userID int64) (*Post, error) {
 	post, err := h.service.GetPostByID(postID)
 	if err != nil || post == nil {
-		return nil, errors.ParseInputParamErr
+		return nil, errors.InvalidParamsErr()
 	}
 
 	// 检查是否是当前用户的日记
 	if post.AddUserID != userID {
-		return nil, errors.InputParamErr
+		return nil, errors.PermissionErr()
 	}
 
 	return post, nil
@@ -330,9 +339,7 @@ func (h *handler) validatePostOwnership(postID, userID int64) (*Post, error) {
 //   - c: Gin上下文
 //   - post: 操作成功的日记对象
 func (h *handler) respondSuccess(c *gin.Context, post *Post) {
-	data := pkg.ResponseH(c)
-	data["Data"] = post
-	c.JSON(http.StatusOK, data)
+	h.responseService.JSONSuccess(c, post)
 }
 
 // RenderDiaryIndex 渲染日记本列表页面
@@ -423,8 +430,5 @@ func (h *handler) RenderDiaryIndex(c *gin.Context) {
 //   - title: 错误标题
 //   - message: 错误详细信息
 func (h *handler) renderErrorPage(c *gin.Context, title, message string) {
-	data := pkg.DefaultH(c)
-	data["title"] = title
-	data["message"] = message
-	c.HTML(http.StatusBadRequest, "error", data)
+	h.responseService.HTMLError(c, title, message)
 }

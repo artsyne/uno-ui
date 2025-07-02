@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/internal/core/config"
-	"github.com/biuren/hebe/internal/core/error"
+	errors "github.com/biuren/hebe/internal/core/error"
 	"github.com/rs/xid"
 )
 
@@ -26,7 +26,7 @@ func UploadImage(imgBase64Data string) (string, string, error) {
 	//判断图片是否为空
 	fileSize := len(imgBase64Data)
 	if fileSize < 100 {
-		return "", "", errors.UploadFileErr
+		return "", "", errors.UploadFailedErr()
 	}
 
 	// 获取上传文件配置信息
@@ -35,12 +35,12 @@ func UploadImage(imgBase64Data string) (string, string, error) {
 	//判断上传文件类型是否正确
 	filetype := imgBase64Data[:strings.IndexByte(imgBase64Data, ';')]
 	if !strings.Contains(config.Upload.Types, filetype) {
-		return "", "", errors.UploadFileErr
+		return "", "", errors.FileFormatUnsupportedErr()
 	}
 
 	//判断文件大小
 	if fileSize > config.Upload.MaxSize {
-		return "", "", errors.UploadFileTooLarge
+		return "", "", errors.FileTooLargeErr().WithDetails("file too large")
 	}
 
 	//路径格式为：config配置路径 + /年/月/日/uid.jpg
@@ -51,7 +51,7 @@ func UploadImage(imgBase64Data string) (string, string, error) {
 	//保存图片
 	err := SaveBase64File(imgBase64Data, filePath, fileName)
 	if err != nil {
-		return "", "", errors.UploadFileErr
+		return "", "", errors.UploadFailedErr().WithDetails(err.Error())
 	}
 
 	return filePath, fileName, nil

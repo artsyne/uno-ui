@@ -2,12 +2,12 @@ package user
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/biuren/hebe/internal/core/config"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 // MiddlewareInterface 用户中间件接口
@@ -73,7 +73,7 @@ func AuthRequired() gin.HandlerFunc {
 		if isAuth, _ := middleware.GetAuthHelper().IsAuthenticated(c); isAuth {
 			c.Next()
 		} else {
-			logrus.Warnf("User not authorized to visit %s", c.Request.RequestURI)
+			slog.Warn("User not authorized", "uri", c.Request.RequestURI)
 			c.HTML(http.StatusForbidden, "error", nil)
 			c.Abort()
 		}

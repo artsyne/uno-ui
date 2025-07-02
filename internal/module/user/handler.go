@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/biuren/hebe/internal/app/response"
 	"github.com/biuren/hebe/internal/core/config"
-	"github.com/biuren/hebe/internal/core/error"
+	errors "github.com/biuren/hebe/internal/core/error"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -74,24 +75,19 @@ type HandlerInterface interface {
 
 // handler 用户HTTP处理层实现
 type handler struct {
-	service ServiceInterface
-	auth    AuthHelperInterface
-	config  *config.Config // 缓存配置，避免重复调用全局变量
+	service         ServiceInterface
+	auth            AuthHelperInterface
+	config          *config.Config // 缓存配置，避免重复调用全局变量
+	responseService response.ResponseServiceInterface
 }
 
 // NewHandler 创建用户HTTP处理层实例
 func NewHandler() HandlerInterface {
-	config := config.GetConfig()
-	if config == nil {
-		// 在初始化时就检查配置，如果配置未正确加载则panic
-		// 这是合理的，因为没有配置应用无法正常运行
-		panic("Failed to get config during user handler initialization - config is nil")
-	}
-
 	return &handler{
-		service: NewService(),
-		auth:    NewAuthHelper(),
-		config:  config, // 缓存配置
+		service:         NewService(),
+		auth:            NewAuthHelper(),
+		config:          config.GetConfig(),
+		responseService: response.NewResponseService(nil), // TODO: 注入ViewService
 	}
 }
 
@@ -241,13 +237,13 @@ func (h *handler) HandleLogin(c *gin.Context) {
 	// 解析登录表单数据
 	login := &Login{}
 	if err := c.Bind(login); err != nil {
-		errors.ResponseErr(c, errors.InputParamErr)
+		h.responseService.JSONError(c, errors.ValidationErr().WithDetails(err.Error()))
 		return
 	}
 
 	// 验证输入参数长度
 	if len(login.LoginName) < 6 || len(login.Pwd) < 6 {
-		errors.ResponseErr(c, errors.InputParamErr)
+		h.responseService.JSONError(c, errors.ValidationErr().WithDetails("用户名和密码长度至少6位"))
 		return
 	}
 
@@ -255,7 +251,7 @@ func (h *handler) HandleLogin(c *gin.Context) {
 	login.LoginName = strings.ToLower(login.LoginName)
 	user, err := h.service.CheckNameAndPassword(login.LoginName, login.Pwd)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		h.responseService.JSONError(c, errors.PasswordIncorrectErr().WithDetails(err.Error()))
 		return
 	}
 
@@ -275,7 +271,7 @@ func (h *handler) HandleLogin(c *gin.Context) {
 
 	// 序列化登录会话并加密存储到cookie
 	if err := h.setLoginCookie(c, loginSession); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		h.responseService.JSONError(c, errors.InternalErr().WithDetails(err.Error()))
 		return
 	}
 
@@ -283,21 +279,21 @@ func (h *handler) HandleLogin(c *gin.Context) {
 	data := pkg.DefaultH(c)
 	data["IsLogin"] = true
 	data["UserId"] = user.UserId
-	c.JSON(http.StatusOK, data)
+	h.responseService.JSONSuccess(c, data)
 }
 
 // HandleUserReg 处理用户注册请求
 func (h *handler) HandleUserReg(c *gin.Context) {
 	// 如果已登录则跳转首页
 	if isAuth, _ := h.auth.IsAuthenticated(c); isAuth {
-		c.Redirect(http.StatusFound, "/")
+		h.responseService.Redirect(c, "/")
 		return
 	}
 
 	// 解析注册表单数据
 	user := &User{}
 	if err := c.Bind(user); err != nil {
-		errors.ResponseErr(c, errors.InputParamErr)
+		h.responseService.JSONError(c, errors.ValidationErr().WithDetails(err.Error()))
 		return
 	}
 
@@ -306,14 +302,14 @@ func (h *handler) HandleUserReg(c *gin.Context) {
 
 	// 调用服务层注册用户
 	if regErr := h.service.RegisterUser(user); regErr != nil {
-		errors.ResponseErr(c, regErr)
+		h.responseService.JSONError(c, regErr)
 		return
 	}
 
 	// 返回注册成功响应
 	data := pkg.DefaultH(c)
 	data["UserId"] = user.UserId
-	c.JSON(http.StatusOK, data)
+	h.responseService.JSONSuccess(c, data)
 }
 
 // HandleCheckUserName 检查用户名是否已存在
@@ -322,18 +318,17 @@ func (h *handler) HandleCheckUserName(c *gin.Context) {
 
 	// 验证用户名格式
 	if !h.validateUserNameFormat(userName) {
-		errors.ResponseErr(c, errors.InputParamErr)
+		h.responseService.JSONError(c, errors.ValidationErr().WithDetails("用户名格式不正确"))
 		return
 	}
 
 	// 检查用户名是否已存在
 	if h.service.IsExistUserName(userName) != nil {
-		errors.ResponseErr(c, errors.RegisterUserNameExists)
+		h.responseService.JSONError(c, errors.UserExistsErr().WithDetails("用户名: "+userName))
 		return
 	}
 
-	data := pkg.ResponseH(c)
-	c.JSON(http.StatusOK, data)
+	h.responseService.JSONSuccess(c, pkg.ResponseH(c))
 }
 
 // HandleCheckEmail 检查邮箱地址是否已存在
@@ -342,18 +337,17 @@ func (h *handler) HandleCheckEmail(c *gin.Context) {
 
 	// 验证邮箱格式
 	if !h.validateEmailFormat(email) {
-		errors.ResponseErr(c, errors.InputParamErr)
+		h.responseService.JSONError(c, errors.ValidationErr().WithDetails("邮箱格式不正确"))
 		return
 	}
 
 	// 检查邮箱是否已存在
 	if h.service.IsExistEmail(email) != nil {
-		errors.ResponseErr(c, errors.RegisterUserEmailExists)
+		h.responseService.JSONError(c, errors.EmailExistsErr().WithDetails("邮箱: "+email))
 		return
 	}
 
-	data := pkg.ResponseH(c)
-	c.JSON(http.StatusOK, data)
+	h.responseService.JSONSuccess(c, pkg.ResponseH(c))
 }
 
 // HandleFindPwd 处理找回密码请求
@@ -362,31 +356,30 @@ func (h *handler) HandleFindPwd(c *gin.Context) {
 
 	// 验证邮箱格式
 	if !h.validateEmailFormat(email) {
-		errors.ResponseErr(c, errors.InputParamErr)
+		h.responseService.JSONError(c, errors.ValidationErr().WithDetails("邮箱格式不正确"))
 		return
 	}
 
 	// 根据邮箱获取用户信息
 	user, err := h.service.GetUserByEmail(email)
 	if user == nil || err != nil {
-		errors.ResponseErr(c, errors.UserNotExists)
+		h.responseService.JSONError(c, errors.UserNotFoundErr().WithDetails(err.Error()))
 		return
 	}
 
 	// 创建并插入重置密码验证码
 	if err := h.service.CreateResetPasswordCode(user.UserId); err != nil {
-		errors.ResponseErr(c, errors.InputParamErr)
+		h.responseService.JSONError(c, errors.InternalErr().WithDetails(err.Error()))
 		return
 	}
 
 	// 发送重置密码邮件
 	if err := h.service.SendResetPasswordEmail(user); err != nil {
-		errors.ResponseErr(c, err)
+		h.responseService.JSONError(c, err)
 		return
 	}
 
-	data := pkg.ResponseH(c)
-	c.JSON(http.StatusOK, data)
+	h.responseService.JSONSuccess(c, pkg.ResponseH(c))
 }
 
 // HandleResetPwd 处理重置密码请求
@@ -397,45 +390,45 @@ func (h *handler) HandleResetPwd(c *gin.Context) {
 
 	// 验证参数
 	if uid == "" || sign == "" || len(newPwd) < 6 {
-		errors.ResponseErr(c, errors.InputParamErr)
+		h.responseService.JSONError(c, errors.ValidationErr().WithDetails("参数不完整或密码长度不足6位"))
 		return
 	}
 
 	// 解析用户ID
 	userID, err := h.parseUserID(uid)
 	if err != nil {
-		errors.ResponseErr(c, errors.InputParamErr)
+		h.responseService.JSONError(c, errors.ValidationErr().WithDetails(err.Error()))
 		return
 	}
 
 	// 验证确认码
 	result, validID := h.service.CheckValidCode(userID, sign, config.VALID_CODE_RESET_PWD_EMAIL)
 	if !result {
-		errors.ResponseErr(c, errors.InputParamErr)
+		h.responseService.JSONError(c, errors.ValidationErr().WithDetails("验证码无效"))
 		return
 	}
 
 	// 获取用户信息以获取盐值
 	user, err := h.service.GetUserByUserId(userID)
 	if err != nil || user == nil {
-		errors.ResponseErr(c, errors.UserNotExists)
+		h.responseService.JSONError(c, errors.UserNotFoundErr().WithDetails(err.Error()))
 		return
 	}
 
 	// 更新密码
 	newPwdHash := pkg.Sha256(newPwd + user.PwdSalt)
 	if rows, err := h.service.UpdateUserPwd(userID, newPwdHash); err != nil || rows != 1 {
-		errors.ResponseErr(c, errors.DbOperationErr)
+		h.responseService.JSONError(c, errors.DatabaseErr().WithDetails(err.Error()))
 		return
 	}
 
 	// 删除已使用的验证码
 	if rows, err := h.service.DeleteValidCode(validID); err != nil || rows != 1 {
-		errors.ResponseErr(c, errors.DbOperationErr)
+		h.responseService.JSONError(c, errors.DatabaseErr().WithDetails(err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, pkg.ResponseH(c))
+	h.responseService.JSONSuccess(c, pkg.ResponseH(c))
 }
 
 // HandleLoginOut 处理登出请求
@@ -527,14 +520,14 @@ func (h *handler) UpdateProfile(c *gin.Context) {
 	// 获取url中的uid
 	uid, err := h.parseUserID(c.Param("uid"))
 	if err != nil {
-		errors.ResponseErr(c, errors.InputParamErr)
+		h.responseService.JSONError(c, errors.ValidationErr().WithDetails(err.Error()))
 		return
 	}
 
 	// 读取用户认证信息
 	userData, exists := c.Get("UserData")
 	if !exists {
-		errors.ResponseErr(c, errors.UserNotExists)
+		h.responseService.JSONError(c, errors.UnauthorizedErr().WithDetails("用户认证信息不存在"))
 		return
 	}
 	userLogin := userData.(Login)
@@ -546,11 +539,11 @@ func (h *handler) UpdateProfile(c *gin.Context) {
 	// 调用service更新资料
 	err = h.service.UpdateUserProfile(uid, userLogin.UserId, fullName, remark)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		h.responseService.JSONError(c, errors.DatabaseErr().WithDetails(err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "资料更新成功"})
+	h.responseService.JSONSuccess(c, gin.H{"message": "资料更新成功"})
 }
 
 // UpdateEmail 更新用户邮箱
@@ -558,14 +551,14 @@ func (h *handler) UpdateEmail(c *gin.Context) {
 	// 获取url中的uid
 	uid, err := h.parseUserID(c.Param("uid"))
 	if err != nil {
-		errors.ResponseErr(c, errors.InputParamErr)
+		h.responseService.JSONError(c, errors.ValidationErr().WithDetails(err.Error()))
 		return
 	}
 
 	// 读取用户认证信息
 	userData, exists := c.Get("UserData")
 	if !exists {
-		errors.ResponseErr(c, errors.UserNotExists)
+		h.responseService.JSONError(c, errors.UnauthorizedErr().WithDetails("用户认证信息不存在"))
 		return
 	}
 	userLogin := userData.(Login)
@@ -576,11 +569,11 @@ func (h *handler) UpdateEmail(c *gin.Context) {
 	// 调用service更新邮箱
 	err = h.service.UpdateUserEmail(uid, userLogin.UserId, email)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		h.responseService.JSONError(c, errors.DatabaseErr().WithDetails(err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "邮箱更新成功"})
+	h.responseService.JSONSuccess(c, gin.H{"message": "邮箱更新成功"})
 }
 
 // ChangePassword 修改用户密码
@@ -588,14 +581,14 @@ func (h *handler) ChangePassword(c *gin.Context) {
 	// 获取url中的uid
 	uid, err := h.parseUserID(c.Param("uid"))
 	if err != nil {
-		errors.ResponseErr(c, errors.InputParamErr)
+		h.responseService.JSONError(c, errors.ValidationErr().WithDetails(err.Error()))
 		return
 	}
 
 	// 读取用户认证信息
 	userData, exists := c.Get("UserData")
 	if !exists {
-		errors.ResponseErr(c, errors.UserNotExists)
+		h.responseService.JSONError(c, errors.UnauthorizedErr().WithDetails("用户认证信息不存在"))
 		return
 	}
 	userLogin := userData.(Login)
@@ -607,9 +600,9 @@ func (h *handler) ChangePassword(c *gin.Context) {
 	// 调用service更改密码
 	err = h.service.ChangeUserPassword(uid, userLogin.UserId, currentPwd, newPwd)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		h.responseService.JSONError(c, errors.DatabaseErr().WithDetails(err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "密码修改成功"})
+	h.responseService.JSONSuccess(c, gin.H{"message": "密码修改成功"})
 }

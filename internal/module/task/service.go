@@ -2,12 +2,11 @@ package task
 
 import (
 	"encoding/json"
-	"fmt"
+	"log/slog"
 
 	"github.com/biuren/hebe/internal/core/config"
 	"github.com/biuren/hebe/pkg"
 	"github.com/jasonlvhit/gocron"
-	"github.com/sirupsen/logrus"
 )
 
 // ServiceInterface 任务业务逻辑层接口
@@ -48,7 +47,7 @@ func NewService() ServiceInterface {
 // StartScheduler 启动定时任务调度器
 // 初始化并启动所有定时任务
 func (s *service) StartScheduler() {
-	logrus.Info("开始初始化定时任务...")
+	slog.Info("开始初始化定时任务...")
 
 	// 设置定时任务
 	gocron.Every(10).Seconds().Do(s.ProcessEmailTasks)
@@ -56,7 +55,7 @@ func (s *service) StartScheduler() {
 	// 启动定时任务
 	gocron.Start()
 
-	logrus.Info("定时任务已启动，每10秒执行一次邮件任务")
+	slog.Info("定时任务已启动，每10秒执行一次邮件任务")
 }
 
 // ProcessEmailTasks 处理邮件任务
@@ -64,10 +63,10 @@ func (s *service) StartScheduler() {
 func (s *service) ProcessEmailTasks() {
 	tasks, err := s.repo.GetJobTasks(10, "email")
 	if err != nil {
-		logrus.Error("获取邮件任务失败:", err)
+		slog.Error("获取邮件任务失败", "error", err)
 		return
 	}
-	logrus.Info(fmt.Sprintf("获取到%d条邮件任务", len(tasks)))
+	slog.Info("获取邮件任务", "count", len(tasks))
 
 	//循环发送邮件
 	for _, val := range tasks {
@@ -81,7 +80,7 @@ func (s *service) processEmailTask(task JobQueue, config *config.Config) {
 	var emailTask EmailTask
 	err := json.Unmarshal([]byte(task.Body), &emailTask)
 	if err != nil {
-		logrus.Error("解析邮件任务失败:", err)
+		slog.Error("解析邮件任务失败", "error", err, "job_id", task.JobId)
 		return
 	}
 
@@ -97,18 +96,18 @@ func (s *service) processEmailTask(task JobQueue, config *config.Config) {
 	)
 
 	if err != nil {
-		logrus.Error("邮件发送失败:", err)
+		slog.Error("邮件发送失败", "error", err, "job_id", task.JobId, "to", emailTask.To)
 		//任务重试次数加1
 		_, _ = s.repo.UpdateJobTaskTryNum(task.JobId)
 		return
 	}
 
-	logrus.Info(fmt.Sprintf("邮件发送成功 to=%s subject=%s", emailTask.To, emailTask.Subject))
+	slog.Info("邮件发送成功", "job_id", task.JobId, "to", emailTask.To, "subject", emailTask.Subject)
 
 	//删除记录到历史表
 	_, err = s.repo.RemoveJobToHistory(&task)
 	if err != nil {
-		logrus.Error(fmt.Sprintf("任务job_id=%d，删除到历史表失败", task.JobId))
+		slog.Error("任务删除到历史表失败", "job_id", task.JobId, "error", err)
 	}
 }
 

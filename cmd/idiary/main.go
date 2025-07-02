@@ -3,11 +3,11 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"runtime/debug"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 
 	"github.com/biuren/hebe/internal/app/route"
 	"github.com/biuren/hebe/internal/core/config"
@@ -28,21 +28,24 @@ func main() {
 
 	// 初始化配置
 	if err := config.InitConfig(); err != nil {
-		// 使用logrus记录错误，Fatal会自动调用os.Exit(1)
-		logrus.WithError(err).Fatal("初始化配置失败")
+		// 使用slog记录错误并退出
+		slog.Error("初始化配置失败", "error", err)
+		os.Exit(1)
 	}
 
 	// 使用应用配置初始化日志
 	if err := setupLogger(); err != nil {
 		// 保持一致的错误处理风格
-		logrus.WithError(err).Fatal("初始化日志系统失败")
+		slog.Error("初始化日志系统失败", "error", err)
+		os.Exit(1)
 	}
-	logrus.Info("成功初始化日志系统")
+	slog.Info("成功初始化日志系统")
 
 	// 创建并启动应用
 	app, err := NewApp()
 	if err != nil {
-		logrus.WithError(err).Fatal("初始化应用程序失败")
+		slog.Error("初始化应用程序失败", "error", err)
+		os.Exit(1)
 	}
 
 	app.Start()
@@ -67,15 +70,15 @@ func NewApp() (*App, error) {
 	if err := initializeDatabase(); err != nil {
 		return nil, fmt.Errorf("数据库连接失败: %w", err)
 	}
-	logrus.Info("数据库连接成功")
+	slog.Info("数据库连接成功")
 
 	// 设置 cookie 默认值
 	pkg.SetCookieDefVal(config.Cookie.Domain, "/", config.Cookie.ExpireDays, config.Cookie.HttpOnly)
-	logrus.Info("成功设置 Cookie 默认值")
+	slog.Info("成功设置 Cookie 默认值")
 
 	// 启动定时任务
 	task.NewService().StartScheduler()
-	logrus.Info("成功启动定时任务")
+	slog.Info("成功启动定时任务")
 
 	// 初始化 Gin server
 	server := setupGinServer(config.App.GinMode)
@@ -91,22 +94,20 @@ func NewApp() (*App, error) {
 func (app *App) Start() {
 	// 启动服务器
 	addr := ":" + app.config.App.Port
-	logrus.Infof("Starting server on %s", addr)
+	slog.Info("Starting server", "addr", addr)
 
 	if err := app.server.Run(addr); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error": err,
-			"addr":  addr,
-		}).Fatal("服务器启动失败")
+		slog.Error("服务器启动失败", "error", err, "addr", addr)
+		os.Exit(1)
 	}
 }
 
 // Shutdown 关闭应用程序
 // 清理资源并优雅退出
 func (app *App) Shutdown() {
-	logrus.Info("开始关闭应用程序...")
+	slog.Info("开始关闭应用程序...")
 	// 此处可以添加资源清理代码
-	logrus.Info("应用程序已关闭")
+	slog.Info("应用程序已关闭")
 }
 
 // initializeDatabase 初始化数据库连接
@@ -139,21 +140,10 @@ func setupLogger() error {
 func setupPanicRecovery() {
 	defer func() {
 		if err := recover(); err != nil {
-			// 尝试使用 logrus，但如果 logrus 还没初始化，则使用标准输出
+			// 使用slog记录panic
 			stack := string(debug.Stack())
-
-			// 检查 logrus 是否已初始化
-			if logrus.StandardLogger().Out == os.Stderr {
-				// logrus 还没初始化，使用标准输出
-				fmt.Printf("启动过程中发生 panic: %v\n堆栈: %s\n", err, stack)
-				os.Exit(1)
-			} else {
-				// logrus 已初始化，使用 logrus 记录
-				logrus.WithFields(logrus.Fields{
-					"error": err,
-					"stack": stack,
-				}).Fatal("启动过程中发生 panic") // 使用Fatal代替Error+os.Exit
-			}
+			slog.Error("启动过程中发生 panic", "error", err, "stack", stack)
+			os.Exit(1)
 		}
 	}()
 }
@@ -168,13 +158,15 @@ func setupGinServer(mode string) *gin.Engine {
 	server := gin.New()
 
 	// 初始化中间件
-	server.Use(middleware.PanicHandler(), middleware.ErrorHandler(), user.SharedData())
-	logrus.Info("成功初始化中间件")
+	server.Use(gin.Recovery())                      // 使用gin内置的panic recovery
+	server.Use(middleware.ErrorHandlerMiddleware()) // 使用我们的错误处理中间件
+	server.Use(user.SharedData())
+	slog.Info("成功初始化中间件")
 
 	// 初始化Router，创建 gin 默认 router
 	// 设置模板文件，静态文件Path, 加载上下文共享数据
 	route.Set(server)
-	logrus.Info("成功初始化网站静态文件目录及路由")
+	slog.Info("成功初始化网站静态文件目录及路由")
 
 	return server
 }

@@ -2,11 +2,11 @@ package task
 
 import (
 	"database/sql"
+	"log/slog"
 
 	"github.com/biuren/hebe/internal/core/database"
 	"github.com/biuren/hebe/pkg"
 	"github.com/jmoiron/sqlx"
-	"github.com/sirupsen/logrus"
 )
 
 // RepositoryInterface 任务数据访问层接口
@@ -149,7 +149,7 @@ func (r *repository) RemoveJobToHistory(jobQueue *JobQueue) (int64, error) {
 	// 删除任务
 	rows, err := r.DeleteJobTask(jobQueue.JobId)
 	if rows != 1 || err != nil {
-		logrus.Error(err)
+		slog.Error("删除任务失败", "error", err, "job_id", jobQueue.JobId)
 		// 任务重试次数加1
 		_, _ = r.UpdateJobTaskTryNum(jobQueue.JobId)
 		return 0, err

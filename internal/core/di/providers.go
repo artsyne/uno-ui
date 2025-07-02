@@ -3,6 +3,10 @@ package di
 import (
 	"reflect"
 	"sync"
+
+	"github.com/biuren/hebe/internal/app/response"
+	"github.com/biuren/hebe/internal/app/view"
+	"github.com/biuren/hebe/internal/core/config"
 )
 
 // FactoryFunc 工厂函数类型
@@ -98,4 +102,29 @@ func WrapFactory(factory interface{}) (FactoryFunc, error) {
 		return results[0].Interface(), nil
 	}, nil
 }
- 
+
+// RegisterAppServices 注册App层服务
+func RegisterAppServices(container ContainerInterface) error {
+	// 注册ViewService
+	err := RegisterSingleton[view.ViewServiceInterface](container, func(c ContainerInterface) (view.ViewServiceInterface, error) {
+		cfg := config.GetConfig()
+		return view.NewViewService(cfg), nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// 注册ResponseService
+	err = RegisterSingleton[response.ResponseServiceInterface](container, func(c ContainerInterface) (response.ResponseServiceInterface, error) {
+		viewService, err := Resolve[view.ViewServiceInterface](c)
+		if err != nil {
+			return nil, err
+		}
+		return response.NewResponseService(viewService), nil
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
