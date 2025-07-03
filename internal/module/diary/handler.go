@@ -2,12 +2,10 @@ package diary
 
 import (
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/biuren/hebe/internal/app/response"
-	"github.com/biuren/hebe/internal/app/view"
+	"github.com/biuren/hebe/internal/app/render"
 	"github.com/biuren/hebe/internal/core/config"
 	errors "github.com/biuren/hebe/internal/core/error"
 	"github.com/biuren/hebe/internal/module/user"
@@ -32,36 +30,30 @@ type HandlerInterface interface {
 
 	// RenderUserProfile 渲染用户个人主页
 	RenderUserProfile(c *gin.Context)
+
+	// ShowDiaryForm 显示创建/编辑日记表单页面
+	ShowDiaryForm(c *gin.Context)
+
+	// ShowDiaryDetail 显示日记详情页面
+	ShowDiaryDetail(c *gin.Context)
 }
 
 // handler 日记本模块HTTP处理器实现
 // 负责处理所有与日记本相关的HTTP请求，包括渲染列表、表单、创建日记本、编辑日记本等操作
 type handler struct {
-	service         ServiceInterface
-	auth            user.AuthHelperInterface
-	config          *config.Config
-	responseService response.ResponseServiceInterface
-	viewService     view.ViewServiceInterface
+	service       ServiceInterface
+	auth          user.AuthHelperInterface
+	config        *config.Config
+	renderService render.RenderServiceInterface
 }
 
-// NewHandler 创建新的日记本处理器实例
-func NewHandler() HandlerInterface {
-	config := config.GetConfig()
-	if config == nil {
-		// 在初始化时就检查配置，如果配置未正确加载则panic
-		// 这是合理的，因为没有配置应用无法正常运行
-		panic("Failed to get config during diary handler initialization - config is nil")
-	}
-
-	viewService := view.NewViewService(config)
-	responseService := response.NewResponseService(viewService)
-
+// NewHandlerWithServices 通过DI容器创建日记本处理器实例
+func NewHandlerWithServices(renderService render.RenderServiceInterface, _ render.RenderServiceInterface) HandlerInterface {
 	return &handler{
-		service:         NewService(),
-		auth:            user.NewAuthHelper(),
-		config:          config,
-		responseService: responseService,
-		viewService:     viewService,
+		service:       NewService(),
+		auth:          user.NewAuthHelper(),
+		config:        config.GetConfig(),
+		renderService: renderService,
 	}
 }
 
@@ -112,20 +104,16 @@ func (h *handler) parseDiaryID(idStr string) (int64, error) {
 }
 
 // RenderDiaryForm 渲染日记本创建/编辑表单页面
-// 根据action参数决定是渲染创建表单还是编辑表单
-// 对于编辑操作，会验证用户权限并加载现有日记本数据
+// 根据URL参数中的action和diary_id决定是创建新日记本还是编辑现有日记本
 //
-// 参数:
-//   - c: Gin上下文，包含请求信息和响应操作
-//
-// 支持的URL参数:
-//   - action: "diary.add" 或 "diary.edit"
+// URL参数:
+//   - action: 操作类型，"diary.add"表示创建，"diary.edit"表示编辑
 //   - diary_id: 当action为edit时需要提供的日记本ID
 func (h *handler) RenderDiaryForm(c *gin.Context) {
 	// 获取当前登录用户信息
 	loginUser := h.auth.MustGetCurrentUser(c)
 
-	data := pkg.DefaultH(c)
+	data := h.renderService.PageData(c, "diary.form.title")
 
 	// 根据action参数处理不同的表单渲染逻辑
 	action := c.Query("action")
@@ -133,14 +121,14 @@ func (h *handler) RenderDiaryForm(c *gin.Context) {
 		// 编辑模式：获取并验证日记本数据
 		diary, err := h.getAndValidateDiary(c, loginUser.UserId)
 		if err != nil {
-			h.responseService.JSONError(c, err)
+			h.renderService.JSONError(c, err)
 			return
 		}
-		data["Diary"] = diary
+		data.Data["Diary"] = diary
 	}
 	// 创建模式：直接渲染空表单
 
-	c.HTML(http.StatusOK, "form/diary", data)
+	h.renderService.HTML(c, "form/diary", data)
 }
 
 // RenderDiary 渲染日记详细信息页面
@@ -149,10 +137,9 @@ func (h *handler) RenderDiaryForm(c *gin.Context) {
 // 参数:
 //   - c: Gin上下文，包含请求信息和响应操作
 func (h *handler) RenderDiary(c *gin.Context) {
-	data := pkg.DefaultH(c)
-	data["Title"] = "我的日记本"
-	data["Active"] = "users"
-	c.HTML(http.StatusOK, "diary/diary", data)
+	data := h.renderService.PageData(c, "diary.detail.title")
+	data.Data["Active"] = "users"
+	h.renderService.HTML(c, "diary/diary", data)
 }
 
 // HandleDiary 处理日记本的创建和编辑请求
@@ -171,7 +158,7 @@ func (h *handler) HandleDiary(c *gin.Context) {
 	// 解析表单数据到Diary结构体
 	diary := &Diary{}
 	if err := c.Bind(diary); err != nil {
-		h.responseService.JSONError(c, errors.InvalidParamsErr())
+		h.renderService.JSONError(c, errors.InvalidParamsErr())
 		return
 	}
 
@@ -183,7 +170,7 @@ func (h *handler) HandleDiary(c *gin.Context) {
 	case "diary.edit":
 		h.handleEditDiary(c, diary, loginUser)
 	default:
-		h.responseService.JSONError(c, errors.InvalidParamsErr())
+		h.renderService.JSONError(c, errors.InvalidParamsErr())
 	}
 }
 
@@ -194,7 +181,7 @@ func (h *handler) HandleDiary(c *gin.Context) {
 //   - c: Gin上下文
 //   - formData: 解析后的表单数据
 //   - user: 当前登录用户信息
-func (h *handler) handleCreateDiary(c *gin.Context, formData *Diary, user *user.Login) {
+func (h *handler) handleCreateDiary(c *gin.Context, formData *Diary, user *user.AuthUser) {
 	nowTime := pkg.GetNowTimeUnixMilli()
 
 	// 使用结构体字面量创建完整的日记本对象
@@ -228,7 +215,7 @@ func (h *handler) handleCreateDiary(c *gin.Context, formData *Diary, user *user.
 	// 调用服务层创建日记本
 	diaryID, err := h.service.AddDiary(diary)
 	if err != nil {
-		h.responseService.JSONError(c, err)
+		h.renderService.JSONError(c, err)
 		return
 	}
 	diary.DiaryID = diaryID
@@ -244,11 +231,11 @@ func (h *handler) handleCreateDiary(c *gin.Context, formData *Diary, user *user.
 //   - c: Gin上下文
 //   - diary: 解析后的日记本数据
 //   - user: 当前登录用户信息
-func (h *handler) handleEditDiary(c *gin.Context, diary *Diary, user *user.Login) {
+func (h *handler) handleEditDiary(c *gin.Context, diary *Diary, user *user.AuthUser) {
 	// 验证日记本所有权
 	originalDiary, err := h.validateDiaryOwnership(diary.DiaryID, user.UserId)
 	if err != nil {
-		h.responseService.JSONError(c, err)
+		h.renderService.JSONError(c, err)
 		return
 	}
 
@@ -273,7 +260,7 @@ func (h *handler) handleEditDiary(c *gin.Context, diary *Diary, user *user.Login
 
 	// 调用服务层更新日记本
 	if err := h.service.UpdateDiary(diary); err != nil {
-		h.responseService.JSONError(c, err)
+		h.renderService.JSONError(c, err)
 		return
 	}
 
@@ -331,7 +318,7 @@ func (h *handler) validateDiaryOwnership(diaryID, userID int64) (*Diary, error) 
 //   - c: Gin上下文
 //   - diary: 日记本数据
 func (h *handler) respondSuccess(c *gin.Context, diary *Diary) {
-	h.responseService.JSONSuccess(c, diary)
+	h.renderService.JSONSuccess(c, diary)
 }
 
 // renderErrorPage 渲染错误页面
@@ -342,35 +329,34 @@ func (h *handler) respondSuccess(c *gin.Context, diary *Diary) {
 //   - title: 错误标题
 //   - message: 错误消息
 func (h *handler) renderErrorPage(c *gin.Context, title, message string) {
-	h.responseService.HTMLError(c, title, message)
+	h.renderService.HTMLError(c, title, message)
 }
 
 // RenderUserProfile 渲染用户个人主页
-// 从website/controllers/member.go中迁移的RenderMemberIndex方法
-// 显示用户的日记本列表，支持分页
+// 显示指定用户的日记本列表，支持分页显示
+//
+// URL格式:
+//   - /u/{uid} - 显示第一页
+//   - /u/{uid}/{pageindex} - 显示指定页
+//
+// 参数:
+//   - c: Gin上下文，包含请求信息和响应操作
 func (h *handler) RenderUserProfile(c *gin.Context) {
-	data := pkg.DefaultH(c)
+	data := h.renderService.PageData(c, "user.profile")
 
 	// 获取url中的uid
 	uid, err := h.parseDiaryID(c.Param("uid")) // 复用parseDiaryID方法
 	if err != nil {
-		c.Redirect(http.StatusFound, "/")
+		h.renderService.Redirect(c, "/")
 		return
 	}
 
-	data["Title"] = "个人主页"
-	data["Active"] = "users"
-
-	// 读取用户认证信息
-	userData, ok := data["UserData"].(user.Login)
-	if !ok {
-		// 用户未登录或登录信息无效，重定向到登录页面
-		c.Redirect(http.StatusFound, "/login")
-		return
+	// 判断用户是否当前空间 Owenr
+	authUser,ok := h.auth.GetCurrentUser(c)
+	isOwner := false
+	if ok  {
+		isOwner = (authUser.UserId == uid)
 	}
-
-	// 判断是否是用户本人
-	isOwner := (userData.UserId == uid)
 
 	// 获取URL中的pageIndex
 	pageIndexStr := c.Param("pageindex")
@@ -398,12 +384,107 @@ func (h *handler) RenderUserProfile(c *gin.Context) {
 	}
 	pageLinks := pkg.GeneratePagination(listOptions)
 
-	data["IsOwner"] = isOwner
-	data["UserData"] = userData
-	data["Diaries"] = diaries
-	data["DiariesNum"] = diariesNum
-	data["PageSize"] = pageSize
-	data["PageLinks"] = pageLinks
+	// 根据uid 获取用户信息
+	user, err := user.NewService().GetUserByUserId(uid)
+	if err != nil || user == nil {
+		h.renderService.Redirect(c, "/")
+		return
+	}
 
-	c.HTML(http.StatusOK, "member/index", data)
+	// Data 中的AuthUser 是当前登录用户信息
+	// Data 中的User 是当前用户个人主页的用户信息
+	data.IsOwner = isOwner
+	data.Lang = user.Lang
+	data.TimeZone = user.TimeZone
+	data.Data["AuthUser"] = authUser
+	data.Data["User"] = user
+
+	data.Data["Diaries"] = diaries
+	data.Data["DiariesNum"] = diariesNum
+	data.Data["PageSize"] = pageSize
+	data.Data["PageLinks"] = pageLinks
+
+	h.renderService.HTML(c, "member/index", data)
+}
+
+// ShowDiaryForm 显示创建/编辑日记表单页面
+func (h *handler) ShowDiaryForm(c *gin.Context) {
+	// 获取当前登录用户（中间件保证已登录）
+	authUser := h.auth.MustGetCurrentUser(c)
+
+	// 根据Form Action决定是创建还是编辑
+	formAction := c.DefaultQuery("form_action", "diary.create")
+	var diary *Diary
+
+	if formAction == "diary.edit" {
+		// 编辑模式：获取日记信息
+		diaryIdStr := c.Query("diary_id")
+		if diaryIdStr == "" {
+			h.renderService.JSONError(c, errors.ValidationErr().WithDetails("missing diary_id"))
+			return
+		}
+
+		// 解析日记ID
+		diaryId, err := strconv.ParseInt(diaryIdStr, 10, 64)
+		if err != nil {
+			h.renderService.Redirect(c, "/")
+			return
+		}
+
+		// 获取日记详情
+		diary, err = h.service.GetDiaryByID(diaryId)
+		if err != nil || diary == nil {
+			h.renderService.JSONError(c, errors.InternalErr().WithDetails("diary not found"))
+			return
+		}
+
+		// 检查权限
+		if diary.AddUserID != authUser.UserId {
+			h.renderService.JSONError(c, errors.PermissionErr())
+			return
+		}
+	}
+
+	// 构建表单数据
+	data := h.renderService.PageData(c, "diary.form.title")
+	data.Data["FormAction"] = formAction
+	data.Data["Diary"] = diary
+	data.Data["SupportLangs"] = config.GetSupportLangs()
+	data.Data["TimeZones"] = config.GetTimeZone()
+
+	h.renderService.HTML(c, "form/diary", data)
+}
+
+// ShowDiaryDetail 显示日记详情页面
+func (h *handler) ShowDiaryDetail(c *gin.Context) {
+	diaryIdStr := c.Param("id")
+	if diaryIdStr == "" {
+		h.renderService.Redirect(c, "/")
+		return
+	}
+
+	// 解析日记ID
+	diaryId, err := strconv.ParseInt(diaryIdStr, 10, 64)
+	if err != nil {
+		h.renderService.Redirect(c, "/")
+		return
+	}
+
+	// 获取日记详情
+	diary, err := h.service.GetDiaryByID(diaryId)
+	if err != nil || diary == nil {
+		h.renderService.Redirect(c, "/")
+		return
+	}
+
+	// 获取当前用户信息（可能未登录）
+	isAuth, authUser := h.auth.IsAuthenticated(c)
+	isOwner := isAuth && (authUser.UserId == diary.AddUserID)
+
+	// 构建页面数据
+	data := h.renderService.PageData(c, "diary.detail.title")
+	data.Data["Diary"] = diary
+	data.Data["IsOwner"] = isOwner
+
+	h.renderService.HTML(c, "diary/diary", data)
 }

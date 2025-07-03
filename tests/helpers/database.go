@@ -18,66 +18,66 @@ type DatabaseTestHelper struct {
 
 // setupTestEnvironment 设置测试环境变量
 func setupTestEnvironment() {
-	// 设置必需的JSON格式环境变量
-	os.Setenv("SUPPORT_LANGS", `[{"code":"zh-cn","label":"中文","local-text":"中文"},{"code":"en","label":"English","local-text":"English"}]`)
-	os.Setenv("TIMEZONES", `["Asia/Shanghai","UTC","America/New_York"]`)
-	os.Setenv("PARAMS", `[{"key":"test_key","val":"test_value"}]`)
+	// 设置必需的JSON格式环境变量（使用IDIARY_前缀）
+	os.Setenv("IDIARY_SUPPORT_LANGS", `[{"code":"zh-cn","label":"中文","local-text":"中文"},{"code":"en","label":"English","local-text":"English"}]`)
+	os.Setenv("IDIARY_TIMEZONES", `["Asia/Shanghai","UTC","America/New_York"]`)
+	os.Setenv("IDIARY_PARAMS", `[{"key":"test_key","val":"test_value"}]`)
 
 	// 设置其他必需的配置项
-	os.Setenv("ENV", "test")
-	os.Setenv("GIN_MODE", "debug")
-	os.Setenv("DOMAIN", "localhost")
-	os.Setenv("PORT", "8080")
-	os.Setenv("SUMMARY_MAX", "200")
-	os.Setenv("SUFFIX", "...")
-	os.Setenv("PAGE_SIZE", "10")
-	os.Setenv("MAX_DAYBOOK_LIMIT", "100")
-	os.Setenv("HASH_SALT", "test_salt_12345")
-	os.Setenv("STATIC_DIR", "website/static")
+	os.Setenv("IDIARY_ENV", "test")
+	os.Setenv("IDIARY_GIN_MODE", "debug")
+	os.Setenv("IDIARY_DOMAIN", "http://localhost:8080")
+	os.Setenv("IDIARY_PORT", "8080")
+	os.Setenv("IDIARY_SUMMARY_MAX", "200")
+	os.Setenv("IDIARY_SUFFIX", "...")
+	os.Setenv("IDIARY_PAGE_SIZE", "10")
+	os.Setenv("IDIARY_MAX_DAYBOOK_LIMIT", "100")
+	os.Setenv("IDIARY_HASH_SALT", "test_salt_12345")
+	os.Setenv("IDIARY_STATIC_DIR", "website/static")
 
 	// 数据库配置
-	os.Setenv("DB_HOST", "localhost")
-	os.Setenv("DB_PORT", "3306")
-	os.Setenv("DB_NAME", "test_db")
-	os.Setenv("DB_USER", "test_user")
-	os.Setenv("DB_PASSWORD", "test_password")
-	os.Setenv("DB_CONN", "mysql")
+	os.Setenv("IDIARY_DB_HOST", "localhost")
+	os.Setenv("IDIARY_DB_PORT", "3306")
+	os.Setenv("IDIARY_DB_NAME", "test_db")
+	os.Setenv("IDIARY_DB_USER", "test_user")
+	os.Setenv("IDIARY_DB_PASSWORD", "test_password")
+	os.Setenv("IDIARY_DB_CONN", "mysql")
 
 	// Redis配置
-	os.Setenv("REDIS_HOST", "localhost")
-	os.Setenv("REDIS_PORT", "6379")
-	os.Setenv("REDIS_PASSWORD", "")
+	os.Setenv("IDIARY_REDIS_HOST", "localhost")
+	os.Setenv("IDIARY_REDIS_PORT", "6379")
+	os.Setenv("IDIARY_REDIS_PASSWORD", "test_redis_password")
 
 	// 邮件配置
-	os.Setenv("SMTP_SERVER", "smtp.test.com")
-	os.Setenv("SMTP_USER", "test@test.com")
-	os.Setenv("SMTP_PASSWORD", "test_password")
-	os.Setenv("SMTP_PORT", "587")
-	os.Setenv("SMTP_FROM", "test@test.com")
-	os.Setenv("EMAIL_MAX_RETRIES", "3")
-	os.Setenv("EMAIL_BATCH_SIZE", "10")
+	os.Setenv("IDIARY_SMTP_SERVER", "smtp.test.com")
+	os.Setenv("IDIARY_SMTP_USER", "test@test.com")
+	os.Setenv("IDIARY_SMTP_PASSWORD", "test_password")
+	os.Setenv("IDIARY_SMTP_PORT", "587")
+	os.Setenv("IDIARY_SMTP_FROM", "test@test.com")
+	os.Setenv("IDIARY_EMAIL_MAX_RETRIES", "3")
+	os.Setenv("IDIARY_EMAIL_BATCH_SIZE", "10")
 
 	// Cookie配置
-	os.Setenv("COOKIE_DOMAIN", "localhost")
-	os.Setenv("COOKIE_SECRET", "test_secret_key_12345")
-	os.Setenv("COOKIE_EXPIRE_DAYS", "30")
-	os.Setenv("COOKIE_HTTP_ONLY", "true")
+	os.Setenv("IDIARY_COOKIE_DOMAIN", "localhost")
+	os.Setenv("IDIARY_COOKIE_SECRET", "test_secret_key_12345")
+	os.Setenv("IDIARY_COOKIE_EXPIRE_DAYS", "30")
+	os.Setenv("IDIARY_COOKIE_HTTP_ONLY", "true")
 
 	// 上传配置
-	os.Setenv("UPLOAD_PATH", "uploads")
-	os.Setenv("UPLOAD_TYPES", "jpg,jpeg,png,gif")
-	os.Setenv("UPLOAD_MAX_SIZE", "10485760")
+	os.Setenv("IDIARY_UPLOAD_PATH", "uploads")
+	os.Setenv("IDIARY_UPLOAD_TYPES", "jpg,jpeg,png,gif")
+	os.Setenv("IDIARY_UPLOAD_MAX_SIZE", "10485760")
 
 	// 日志配置
-	os.Setenv("LOG_LEVEL", "info")
-	os.Setenv("LOG_FORMAT", "json")
-	os.Setenv("LOG_PATH", "logs")
-	os.Setenv("LOG_FILENAME", "test.log")
-	os.Setenv("LOG_MAX_SIZE", "100")
-	os.Setenv("LOG_MAX_AGE", "7")
-	os.Setenv("LOG_MAX_BACKUPS", "5")
-	os.Setenv("LOG_COMPRESS", "true")
-	os.Setenv("LOG_LOCAL_TIME", "true")
+	os.Setenv("IDIARY_LOG_LEVEL", "info")
+	os.Setenv("IDIARY_LOG_FORMAT", "json")
+	os.Setenv("IDIARY_LOG_PATH", "logs")
+	os.Setenv("IDIARY_LOG_FILENAME", "test.log")
+	os.Setenv("IDIARY_LOG_MAX_SIZE", "100")
+	os.Setenv("IDIARY_LOG_MAX_AGE", "7")
+	os.Setenv("IDIARY_LOG_MAX_BACKUPS", "5")
+	os.Setenv("IDIARY_LOG_COMPRESS", "true")
+	os.Setenv("IDIARY_LOG_LOCAL_TIME", "true")
 }
 
 // SetupTestDatabase 初始化测试数据库连接

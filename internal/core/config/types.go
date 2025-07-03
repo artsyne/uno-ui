@@ -71,7 +71,7 @@ type CookieConfig struct {
 	Domain     string `json:"domain" mapstructure:"COOKIE_DOMAIN" validate:"required"`
 	Secret     string `json:"secret" mapstructure:"COOKIE_SECRET" validate:"required,min=16"`
 	ExpireDays int    `json:"expire_days" mapstructure:"COOKIE_EXPIRE_DAYS" validate:"required,min=1,max=365"`
-	HttpOnly   bool   `json:"http_only" mapstructure:"COOKIE_HTTP_ONLY" validate:"required"`
+	HttpOnly   bool   `json:"http_only" mapstructure:"COOKIE_HTTP_ONLY"`
 }
 
 // UploadConfig 上传配置
@@ -90,8 +90,8 @@ type LogConfig struct {
 	MaxSize    int    `json:"max_size" mapstructure:"LOG_MAX_SIZE" validate:"required,min=1,max=500"`
 	MaxAge     int    `json:"max_age" mapstructure:"LOG_MAX_AGE" validate:"required,min=1"`
 	MaxBackups int    `json:"max_backups" mapstructure:"LOG_MAX_BACKUPS" validate:"required,min=1"`
-	Compress   bool   `json:"compress" mapstructure:"LOG_COMPRESS" validate:"required"`
-	LocalTime  bool   `json:"local_time" mapstructure:"LOG_LOCAL_TIME" validate:"required"`
+	Compress   bool   `json:"compress" mapstructure:"LOG_COMPRESS"`
+	LocalTime  bool   `json:"local_time" mapstructure:"LOG_LOCAL_TIME"`
 }
 
 // Param 参数配置

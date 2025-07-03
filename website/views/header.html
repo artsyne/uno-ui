@@ -8,7 +8,7 @@
 	<meta name="description" content="">
 	<meta name="author" content="">
 	<link rel="icon" href="/public/favicon.ico?v=7">
-	<title>{{.Title}} - iDiary</title>
+	<title>{{.Title}}</title>
 	<script src="https://code.jquery.com/jquery-4.0.0-beta.min.js"></script>
 	<script>
 		// 动态加载JavaScript文件
@@ -35,8 +35,8 @@
 	<link href="/public/dist/css/materialdesignicons.min.css?v=6.5.95" rel="stylesheet">
 	{{if .IsLogin }}
 	<script>
-		var login_user_name = '{{.UserData.UserName}}';
-		var login_user_id = {{.UserData.UserId }};
+		var login_user_name = '{{.Data.AuthUser.UserName}}';
+		var login_user_id = {{.Data.AuthUser.UserId }};
 	</script>
 	{{end}}
 </head>

@@ -1,7 +1,7 @@
 package user
 
-// Login 登录信息结构体
-type Login struct {
+// AuthUser 已认证用户信息结构体
+type AuthUser struct {
 	LoginName    string `form:"login_name" json:"login_name"`
 	Pwd          string `form:"pwd" json:"pwd"`
 	AccessUrl    string `form:"access_url" json:"access_url"`
@@ -9,7 +9,7 @@ type Login struct {
 	UserName     string `form:"user_name" json:"user_name"`
 	FullName     string `form:"full_name" json:"full_name"`
 	UserGroup    int8   `form:"user_group" json:"user_group"`
-	FaceSmallUrl string `form:"face_small_url" json:"face_small_url"`
+	FaceUrl string `form:"face_url" json:"face_url"`
 	LoginUTCTime int64  `form:"login_utc_time" json:"login_utc_time"`
 	TimeZone     string `form:"time_zone" json:"time_zone"`
 	Lang         string `form:"lang" json:"lang"`

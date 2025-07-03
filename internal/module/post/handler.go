@@ -2,12 +2,10 @@ package post
 
 import (
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/biuren/hebe/internal/app/response"
-	"github.com/biuren/hebe/internal/app/view"
+	"github.com/biuren/hebe/internal/app/render"
 	"github.com/biuren/hebe/internal/core/config"
 	errors "github.com/biuren/hebe/internal/core/error"
 	"github.com/biuren/hebe/internal/module/diary"
@@ -35,31 +33,19 @@ type HandlerInterface interface {
 // handler 日记模块HTTP处理器实现
 // 负责处理所有与日记相关的HTTP请求，包括渲染表单、创建日记、编辑日记等操作
 type handler struct {
-	service         ServiceInterface
-	auth            user.AuthHelperInterface
-	config          *config.Config
-	responseService response.ResponseServiceInterface
-	viewService     view.ViewServiceInterface
+	service       ServiceInterface
+	auth          user.AuthHelperInterface
+	config        *config.Config
+	renderService render.RenderServiceInterface
 }
 
-// NewHandler 创建新的日记处理器实例
-func NewHandler() HandlerInterface {
-	config := config.GetConfig()
-	if config == nil {
-		// 在初始化时就检查配置，如果配置未正确加载则panic
-		// 这是合理的，因为没有配置应用无法正常运行
-		panic("Failed to get config during post handler initialization - config is nil")
-	}
-
-	viewService := view.NewViewService(config)
-	responseService := response.NewResponseService(viewService)
-
+// NewHandlerWithServices 通过DI容器创建日记处理器实例
+func NewHandlerWithServices(renderService render.RenderServiceInterface, _ render.RenderServiceInterface) HandlerInterface {
 	return &handler{
-		service:         NewService(),
-		auth:            user.NewAuthHelper(),
-		config:          config,
-		responseService: responseService,
-		viewService:     viewService,
+		service:       NewService(),
+		auth:          user.NewAuthHelper(),
+		config:        config.GetConfig(),
+		renderService: renderService,
 	}
 }
 
@@ -125,8 +111,7 @@ func (h *handler) parseDiaryID(idStr string) (int64, error) {
 }
 
 // RenderPostForm 渲染日记编辑表单页面
-// 根据action参数决定是渲染创建表单还是编辑表单
-// 对于编辑操作，会验证用户权限并加载现有日记数据
+// 支持创建新日记和编辑现有日记两种模式
 //
 // 参数:
 //   - c: Gin上下文，包含请求信息和响应操作
@@ -138,25 +123,28 @@ func (h *handler) RenderPostForm(c *gin.Context) {
 	// 获取当前登录用户信息，如果未登录会panic（由中间件保证已登录）
 	loginUser := h.auth.MustGetCurrentUser(c)
 
-	// 初始化模板数据
-	data := pkg.DefaultH(c)
-	data["Active"] = "users"
-	data["UserData"] = loginUser
-
 	// 根据action参数处理不同的表单渲染逻辑
 	action := c.Query("action")
+	var post *Post
+
 	if action == "post.edit" {
 		// 编辑模式：获取并验证日记数据
-		post, err := h.getAndValidatePost(c, loginUser.UserId)
+		var err error
+		post, err = h.getAndValidatePost(c, loginUser.UserId)
 		if err != nil {
-			h.responseService.JSONError(c, err)
+			h.renderService.JSONError(c, err)
 			return
 		}
-		data["Post"] = post
 	}
 	// 创建模式：直接渲染空表单
 
-	c.HTML(http.StatusOK, "form/post", data)
+	// 初始化页面数据
+	data := h.renderService.PageData(c, "post.form.title")
+	data.Data["Active"] = "users"
+	data.Data["UserData"] = loginUser
+	data.Data["Post"] = post
+
+	h.renderService.HTML(c, "form/post", data)
 }
 
 // HandlePost 处理日记的创建和编辑请求
@@ -175,7 +163,7 @@ func (h *handler) HandlePost(c *gin.Context) {
 	// 解析表单数据到PostForm结构体
 	postForm := &PostForm{}
 	if err := c.Bind(postForm); err != nil {
-		h.responseService.JSONError(c, errors.InvalidParamsErr())
+		h.renderService.JSONError(c, errors.InvalidParamsErr())
 		return
 	}
 
@@ -187,7 +175,7 @@ func (h *handler) HandlePost(c *gin.Context) {
 	case "post.edit":
 		h.handleEditPost(c, postForm, loginUser)
 	default:
-		h.responseService.JSONError(c, errors.InvalidParamsErr())
+		h.renderService.JSONError(c, errors.InvalidParamsErr())
 	}
 }
 
@@ -198,7 +186,7 @@ func (h *handler) HandlePost(c *gin.Context) {
 //   - c: Gin上下文
 //   - postForm: 解析后的表单数据
 //   - user: 当前登录用户信息
-func (h *handler) handleCreatePost(c *gin.Context, postForm *PostForm, user *user.Login) {
+func (h *handler) handleCreatePost(c *gin.Context, postForm *PostForm, user *user.AuthUser) {
 	nowTime := pkg.GetNowTimeUnixMilli()
 
 	// 构建新日记对象，设置所有必要字段
@@ -223,7 +211,7 @@ func (h *handler) handleCreatePost(c *gin.Context, postForm *PostForm, user *use
 	// 调用服务层创建日记
 	postID, err := h.service.AddPost(post)
 	if err != nil {
-		h.responseService.JSONError(c, err)
+		h.renderService.JSONError(c, err)
 		return
 	}
 	post.PostID = postID
@@ -247,19 +235,19 @@ func (h *handler) handleCreatePost(c *gin.Context, postForm *PostForm, user *use
 //   - c: Gin上下文
 //   - postForm: 解析后的表单数据
 //   - user: 当前登录用户信息
-func (h *handler) handleEditPost(c *gin.Context, postForm *PostForm, user *user.Login) {
+func (h *handler) handleEditPost(c *gin.Context, postForm *PostForm, user *user.AuthUser) {
 	// 获取要编辑的日记ID
 	postIdStr, _ := c.GetPostForm("post_id")
 	postId, err := h.parsePostID(postIdStr)
 	if err != nil {
-		h.responseService.JSONError(c, err)
+		h.renderService.JSONError(c, err)
 		return
 	}
 
 	// 验证日记所有权
 	originalPost, err := h.validatePostOwnership(postId, user.UserId)
 	if err != nil {
-		h.responseService.JSONError(c, err)
+		h.renderService.JSONError(c, err)
 		return
 	}
 
@@ -281,7 +269,7 @@ func (h *handler) handleEditPost(c *gin.Context, postForm *PostForm, user *user.
 
 	// 调用服务层更新日记
 	if err := h.service.UpdatePost(post); err != nil {
-		h.responseService.JSONError(c, err)
+		h.renderService.JSONError(c, err)
 		return
 	}
 
@@ -339,7 +327,7 @@ func (h *handler) validatePostOwnership(postID, userID int64) (*Post, error) {
 //   - c: Gin上下文
 //   - post: 操作成功的日记对象
 func (h *handler) respondSuccess(c *gin.Context, post *Post) {
-	h.responseService.JSONSuccess(c, post)
+	h.renderService.JSONSuccess(c, post)
 }
 
 // RenderDiaryIndex 渲染日记本列表页面
@@ -407,19 +395,19 @@ func (h *handler) RenderDiaryIndex(c *gin.Context) {
 	isAuth, loginUser := h.auth.IsAuthenticated(c)
 	isOwner := isAuth && loginUser.UserId == diaryInfo.AddUserID
 
-	// 设置模板数据
-	data := pkg.DefaultH(c)
-	data["Title"] = diaryInfo.Title + " - " + diaryInfo.AddUserName
-	data["Diary"] = diaryInfo
-	data["Posts"] = posts
-	data["PageLinks"] = pageLinks
-	data["hasError"] = hasError
-	data["errMsg"] = errMsg
-	data["DiariesNum"] = diariesNum
-	data["PageSize"] = pageSize
-	data["IsOwner"] = isOwner
+	// 构建页面数据
+	data := h.renderService.PageData(c, "diary.index.title")
+	data.Title = diaryInfo.Title + " - " + diaryInfo.AddUserName
+	data.Data["Diary"] = diaryInfo
+	data.Data["Posts"] = posts
+	data.Data["PageLinks"] = pageLinks
+	data.Data["hasError"] = hasError
+	data.Data["errMsg"] = errMsg
+	data.Data["DiariesNum"] = diariesNum
+	data.Data["PageSize"] = pageSize
+	data.Data["IsOwner"] = isOwner
 
-	c.HTML(http.StatusOK, "diary/index", data)
+	h.renderService.HTML(c, "diary/index", data)
 }
 
 // renderErrorPage 渲染错误页面
@@ -430,5 +418,8 @@ func (h *handler) RenderDiaryIndex(c *gin.Context) {
 //   - title: 错误标题
 //   - message: 错误详细信息
 func (h *handler) renderErrorPage(c *gin.Context, title, message string) {
-	h.responseService.HTMLError(c, title, message)
+	data := h.renderService.PageData(c, "error")
+	data.Data["title"] = title
+	data.Data["message"] = message
+	h.renderService.HTML(c, "error", data)
 }

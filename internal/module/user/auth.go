@@ -28,7 +28,7 @@ import (
 // 定义了所有与用户认证相关的操作方法
 type AuthHelperInterface interface {
 	// IsAuthenticated 检查用户是否已通过认证
-	IsAuthenticated(c *gin.Context) (bool, *Login)
+	IsAuthenticated(c *gin.Context) (bool, *AuthUser)
 
 	// RequireGuest 中间件：要求用户处于游客状态（未登录）
 	RequireGuest(redirectURL ...string) gin.HandlerFunc
@@ -37,10 +37,10 @@ type AuthHelperInterface interface {
 	RequireAuth(loginURL ...string) gin.HandlerFunc
 
 	// GetCurrentUser 安全地获取当前登录用户信息
-	GetCurrentUser(c *gin.Context) (*Login, bool)
+	GetCurrentUser(c *gin.Context) (*AuthUser, bool)
 
 	// MustGetCurrentUser 强制获取当前登录用户信息
-	MustGetCurrentUser(c *gin.Context) *Login
+	MustGetCurrentUser(c *gin.Context) *AuthUser
 
 	// IsLogin 检查用户是否已登录（简化版本）
 	IsLogin(c *gin.Context) bool
@@ -49,7 +49,7 @@ type AuthHelperInterface interface {
 	IfLoginGotoIndex(c *gin.Context)
 
 	// GetLogin 获取登录用户信息（兼容性方法）
-	GetLogin(c *gin.Context) *Login
+	GetLogin(c *gin.Context) *AuthUser
 }
 
 // authHelper 认证助手结构体
@@ -70,7 +70,7 @@ func NewAuthHelper() AuthHelperInterface {
 //
 // 依赖条件：
 //   - 必须先使用 middlewares.SharedData() 中间件注入认证信息
-//   - 中间件会将 IsLogin 和 UserData 注入到上下文中
+//   - 中间件会将 IsLogin 和 AuthUser 注入到上下文中
 //
 // Parameters:
 //   - c: Gin上下文对象，包含请求和会话信息
@@ -89,7 +89,7 @@ func NewAuthHelper() AuthHelperInterface {
 //	if isAuth {
 //	    fmt.Printf("用户 %s 已登录", user.Username)
 //	}
-func (a *authHelper) IsAuthenticated(c *gin.Context) (bool, *Login) {
+func (a *authHelper) IsAuthenticated(c *gin.Context) (bool, *AuthUser) {
 	// 检查登录状态标志
 	isLogin, exists := c.Get("IsLogin")
 	if !exists || isLogin != true {
@@ -97,13 +97,13 @@ func (a *authHelper) IsAuthenticated(c *gin.Context) (bool, *Login) {
 	}
 
 	// 获取用户会话数据
-	userSession, exists := c.Get("UserData")
+	userSession, exists := c.Get("AuthUser")
 	if !exists {
 		return false, nil
 	}
 
 	// 类型断言，确保数据类型正确
-	userData, ok := userSession.(Login)
+	userData, ok := userSession.(AuthUser)
 	if !ok {
 		return false, nil
 	}
@@ -202,7 +202,7 @@ func (a *authHelper) RequireAuth(loginURL ...string) gin.HandlerFunc {
 //	}
 //	// 使用用户信息
 //	fmt.Printf("当前用户：%s", user.Username)
-func (a *authHelper) GetCurrentUser(c *gin.Context) (*Login, bool) {
+func (a *authHelper) GetCurrentUser(c *gin.Context) (*AuthUser, bool) {
 	isAuth, userData := a.IsAuthenticated(c)
 	return userData, isAuth
 }
@@ -225,7 +225,7 @@ func (a *authHelper) GetCurrentUser(c *gin.Context) (*Login, bool) {
 //	// 在已认证的路由中使用
 //	user := helpers.Auth.MustGetCurrentUser(c)
 //	fmt.Printf("当前用户：%s", user.Username)
-func (a *authHelper) MustGetCurrentUser(c *gin.Context) *Login {
+func (a *authHelper) MustGetCurrentUser(c *gin.Context) *AuthUser {
 	userData, ok := a.GetCurrentUser(c)
 	if !ok {
 		panic("用户未认证：在未认证的上下文中调用了 MustGetCurrentUser")
@@ -286,7 +286,7 @@ func (a *authHelper) IfLoginGotoIndex(c *gin.Context) {
 //	if user != nil {
 //	    fmt.Printf("当前用户：%s", user.Username)
 //	}
-func (a *authHelper) GetLogin(c *gin.Context) *Login {
+func (a *authHelper) GetLogin(c *gin.Context) *AuthUser {
 	userData, _ := a.GetCurrentUser(c)
 	return userData
 }

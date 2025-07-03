@@ -135,7 +135,7 @@ const Auth = {
         data: form.serialize(),
         dataType: 'json',
         success: function (response) {
-          window.location = `/u/${response.UserId}`;
+          window.location = `/u/${response.data.UserId}`;
         },
       });
     },
@@ -188,8 +188,8 @@ const Auth = {
         dataType: 'json',
         success: function (response) {
           // 注册成功后跳转
-          if (response.Data && response.Data.redirect) {
-            window.location = response.Data.redirect;
+          if (response.data && response.data.redirect) {
+            window.location = response.data.redirect;
           }
         },
       });

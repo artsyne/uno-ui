@@ -9,35 +9,95 @@ import (
 	"time"
 
 	"github.com/biuren/hebe/internal/app/controller"
+	"github.com/biuren/hebe/internal/app/render"
 	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/core/di"
 	"github.com/biuren/hebe/internal/module/diary"
 	"github.com/biuren/hebe/internal/module/post"
 	"github.com/biuren/hebe/internal/module/user"
 	"github.com/gin-gonic/gin"
 )
 
-// 初始化Router，加载静态文件，上下文共享数据，中间件
-func Set(server *gin.Engine) {
-	// 初始化 Views 模板
-	setTemplate(server, config.GetViewsPath())
-
-	// 初始化静态文件目录
+// SetWithContainer 使用DI容器设置路由系统
+func SetWithContainer(server *gin.Engine, container di.ContainerInterface) {
+	setTemplate(server, config.GetViewsPath(), container)
 	setStaticFs(server, config.GetStaticPath())
+	setPath(server, container)
+}
 
-	// 初始化站点动态目录
-	setPath(server)
+// setPath 设置站点路由，使用DI容器注入服务
+func setPath(server *gin.Engine, container di.ContainerInterface) {
+	// 通过DI容器创建Controller
+	controllerInstance := createController(container)
+
+	// 通过DI容器创建handlers
+	userHandler := createUserHandler(container)
+	diaryHandler := createDiaryHandler(container)
+	postHandler := createPostHandler(container)
+
+	// 基础页面路由
+	server.GET("/index", controllerInstance.RenderIndex)
+
+	// 注册模块路由
+	userHandler.RegisterRoutes(server)
+	diaryHandler.RegisterRoutes(server)
+	postHandler.RegisterRoutes(server)
+}
+
+// createController 通过DI容器创建Controller
+func createController(container di.ContainerInterface) *controller.Controller {
+	renderService, err := di.Resolve[render.RenderServiceInterface](container)
+	if err != nil {
+		panic("Failed to resolve RenderService: " + err.Error())
+	}
+
+	return controller.NewController(renderService)
+}
+
+// createUserHandler 通过DI容器创建UserHandler
+func createUserHandler(container di.ContainerInterface) user.HandlerInterface {
+	renderService, err := di.Resolve[render.RenderServiceInterface](container)
+	if err != nil {
+		panic("Failed to resolve RenderService: " + err.Error())
+	}
+
+	return user.NewHandlerWithServices(renderService, renderService)
+}
+
+// createDiaryHandler 通过DI容器创建DiaryHandler
+func createDiaryHandler(container di.ContainerInterface) diary.HandlerInterface {
+	renderService, err := di.Resolve[render.RenderServiceInterface](container)
+	if err != nil {
+		panic("Failed to resolve RenderService: " + err.Error())
+	}
+
+	return diary.NewHandlerWithServices(renderService, renderService)
+}
+
+// createPostHandler 通过DI容器创建PostHandler
+func createPostHandler(container di.ContainerInterface) post.HandlerInterface {
+	renderService, err := di.Resolve[render.RenderServiceInterface](container)
+	if err != nil {
+		panic("Failed to resolve RenderService: " + err.Error())
+	}
+
+	return post.NewHandlerWithServices(renderService, renderService)
 }
 
 // #region 加载模版文件，并注入全局变量
 // 通过原生 Go 能力加载 "views" 目录中的模版文件
-func setTemplate(server *gin.Engine, basePath string) {
-	// 注册模版函数
-	tmpl := template.New("").Funcs(template.FuncMap{
-		"formatTime": formatTime,
-	})
+func setTemplate(server *gin.Engine, basePath string, container di.ContainerInterface) {
+	// 从DI容器获取RenderService
+	renderService, err := di.Resolve[render.RenderServiceInterface](container)
+	if err != nil {
+		panic("Failed to resolve RenderService: " + err.Error())
+	}
+
+	// 注册所有模版函数
+	tmpl := template.New("").Funcs(renderService.RegisterFuncs())
 
 	// 加载所有 .html 文件
-	err := loadTemplates(tmpl, basePath)
+	err = loadTemplates(tmpl, basePath)
 	if err != nil {
 		panic(err)
 	}
@@ -89,26 +149,4 @@ func setStaticFs(server *gin.Engine, staticPath string) {
 	server.StaticFS("/public", http.Dir(staticPath))
 	server.StaticFS("/static", http.Dir(staticPath))
 	server.StaticFile("/favicon.ico", "./public/favicon.ico")
-}
-
-// setPath 设置站点路由
-// 创建控制器实例并配置所有HTTP路由
-func setPath(server *gin.Engine) {
-	// 创建模块处理器
-	userHandler := user.NewHandler()
-	diaryHandler := diary.NewHandler()
-	postHandler := post.NewHandler()
-
-	// 基础页面路由
-	server.GET("/index", controller.RenderIndex)
-
-	// 用户相关路由 - 使用新的User模块
-	userHandler.RegisterRoutes(server)
-
-	// 日记本相关路由 - 使用新的Diary模块（包含所有diary相关路由）
-	diaryHandler.RegisterRoutes(server)
-
-	// 日记相关路由 - 使用新的Post模块（包含所有post相关路由）
-	postHandler.RegisterRoutes(server)
-
 }

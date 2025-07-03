@@ -4,14 +4,14 @@ import (
 	"log/slog"
 	"runtime/debug"
 
-	"github.com/biuren/hebe/internal/app/response"
+	"github.com/biuren/hebe/internal/app/render"
 	errors "github.com/biuren/hebe/internal/core/error"
 	"github.com/gin-gonic/gin"
 )
 
 // ErrorHandler 应用级错误处理中间件
-// 依赖ResponseService处理错误响应
-func ErrorHandler(responseService response.ResponseServiceInterface) gin.HandlerFunc {
+// 依赖RenderService处理错误响应
+func ErrorHandler(renderService render.RenderServiceInterface) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -28,7 +28,7 @@ func ErrorHandler(responseService response.ResponseServiceInterface) gin.Handler
 
 				// 创建内部错误响应
 				err := errors.InternalErr()
-				responseService.JSONError(c, err)
+				renderService.JSONError(c, err)
 			}
 		}()
 

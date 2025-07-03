@@ -227,8 +227,15 @@ func requireInt(v *viper.Viper, key string) int {
 
 // requireBool 获取必需的布尔配置值
 func requireBool(v *viper.Viper, key string) bool {
-	if !v.IsSet(key) {
-		panic(fmt.Sprintf("配置项 %s 不能为空", key))
+	// 对于布尔值，viper.IsSet可能对false值返回false
+	// 所以我们需要检查是否在环境变量中明确设置了
+	if v.IsSet(key) {
+		return v.GetBool(key)
 	}
-	return v.GetBool(key)
+	// 检查环境变量是否存在
+	envKey := "IDIARY_" + key
+	if _, exists := os.LookupEnv(envKey); exists {
+		return v.GetBool(key)
+	}
+	panic(fmt.Sprintf("配置项 %s 不能为空", key))
 }

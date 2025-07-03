@@ -9,10 +9,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/biuren/hebe/internal/app/middleware"
+	"github.com/biuren/hebe/internal/app/render"
 	"github.com/biuren/hebe/internal/app/route"
 	"github.com/biuren/hebe/internal/core/config"
 	"github.com/biuren/hebe/internal/core/database"
-	"github.com/biuren/hebe/internal/core/middleware"
+	"github.com/biuren/hebe/internal/core/di"
 	"github.com/biuren/hebe/internal/module/task"
 	"github.com/biuren/hebe/internal/module/user"
 	"github.com/biuren/hebe/pkg"
@@ -53,12 +55,13 @@ func main() {
 
 // App 结构体包含应用程序的核心组件
 type App struct {
-	config *config.Config // 应用配置
-	server *gin.Engine    // Gin HTTP 服务器实例
+	config    *config.Config        // 应用配置
+	server    *gin.Engine           // Gin HTTP 服务器实例
+	container di.ContainerInterface // DI容器
 }
 
 // NewApp 创建并初始化一个新的应用实例
-// 包括配置加载、日志设置、数据库连接、Cookie 设置和 HTTP 服务器初始化
+// 包括配置加载、日志设置、数据库连接、DI容器初始化和HTTP服务器初始化
 // 返回初始化后的应用实例和可能的错误
 func NewApp() (*App, error) {
 	config := config.GetConfig()
@@ -72,6 +75,13 @@ func NewApp() (*App, error) {
 	}
 	slog.Info("数据库连接成功")
 
+	// 创建DI容器并注册服务
+	container := di.NewContainer()
+	if err := registerServices(container); err != nil {
+		return nil, fmt.Errorf("注册服务失败: %w", err)
+	}
+	slog.Info("成功注册DI服务")
+
 	// 设置 cookie 默认值
 	pkg.SetCookieDefVal(config.Cookie.Domain, "/", config.Cookie.ExpireDays, config.Cookie.HttpOnly)
 	slog.Info("成功设置 Cookie 默认值")
@@ -81,12 +91,54 @@ func NewApp() (*App, error) {
 	slog.Info("成功启动定时任务")
 
 	// 初始化 Gin server
-	server := setupGinServer(config.App.GinMode)
+	server, err := setupGinServer(config.App.GinMode, container)
+	if err != nil {
+		return nil, fmt.Errorf("初始化Gin服务器失败: %w", err)
+	}
 
 	return &App{
-		config: config,
-		server: server,
+		config:    config,
+		server:    server,
+		container: container,
 	}, nil
+}
+
+// registerServices 注册所有DI服务
+func registerServices(container di.ContainerInterface) error {
+	// 注册App层服务
+	if err := di.RegisterAppServices(container); err != nil {
+		return fmt.Errorf("注册App层服务失败: %w", err)
+	}
+
+	return nil
+}
+
+// setupGinServer 初始化并配置 Gin HTTP 服务器
+// 设置运行模式、中间件和路由，使用DI容器注入服务
+func setupGinServer(mode string, container di.ContainerInterface) (*gin.Engine, error) {
+	// 设置 Gin 模式
+	gin.SetMode(mode)
+
+	// 初始化默认gin server
+	server := gin.New()
+
+	// 从DI容器获取RenderService
+	renderService, err := di.Resolve[render.RenderServiceInterface](container)
+	if err != nil {
+		return nil, fmt.Errorf("获取RenderService失败: %w", err)
+	}
+
+	// 初始化中间件 - 使用App层的ErrorHandler
+	server.Use(gin.Recovery())                         // 使用gin内置的panic recovery
+	server.Use(middleware.ErrorHandler(renderService)) // 使用App层错误处理中间件
+	server.Use(user.SharedData())                      // 用户共享数据中间件
+	slog.Info("成功初始化中间件")
+
+	// 初始化Router - 传递DI容器以供路由创建handlers
+	route.SetWithContainer(server, container)
+	slog.Info("成功初始化网站静态文件目录及路由")
+
+	return server, nil
 }
 
 // Start 启动应用程序
@@ -146,27 +198,4 @@ func setupPanicRecovery() {
 			os.Exit(1)
 		}
 	}()
-}
-
-// setupGinServer 初始化并配置 Gin HTTP 服务器
-// 设置运行模式、中间件和路由
-func setupGinServer(mode string) *gin.Engine {
-	// 设置 Gin 模式
-	gin.SetMode(mode)
-
-	// 初始化默认gin server
-	server := gin.New()
-
-	// 初始化中间件
-	server.Use(gin.Recovery())                      // 使用gin内置的panic recovery
-	server.Use(middleware.ErrorHandlerMiddleware()) // 使用我们的错误处理中间件
-	server.Use(user.SharedData())
-	slog.Info("成功初始化中间件")
-
-	// 初始化Router，创建 gin 默认 router
-	// 设置模板文件，静态文件Path, 加载上下文共享数据
-	route.Set(server)
-	slog.Info("成功初始化网站静态文件目录及路由")
-
-	return server
 }

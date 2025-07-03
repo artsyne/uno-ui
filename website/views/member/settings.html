@@ -8,7 +8,7 @@
         <div id="page-nav">
             <ul class="flex text-lg">
                 <li>
-                    <a href="/u/{{.UserData.UserId}}">{{.UserData.UserName}}</a>
+                    <a href="/u/{{.User.UserId}}">{{.User.UserName}}</a>
                 </li>
                 <li class="mx-2">
                     <span class="mdi mdi-slash-forward"></span>
@@ -36,8 +36,8 @@
                     <div class="mb-4">
                         <label class="form-title" for="full_name">Full name</label>
                         <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Full name"
-                            valid='[{"type":"required"},{"type":"limit","max":50}]' value="{{.UserInfo.FullName}}"
-                            data-original-value="{{.UserInfo.FullName}}">
+                            valid='[{"type":"required"},{"type":"limit","max":50}]' value="{{.Data.User.FullName}}"
+                            data-original-value="{{.Data.User.FullName}}">
                     </div>
 
                     <!-- Bio -->
@@ -66,8 +66,8 @@
                     <div class="mb-4">
                         <label class="form-title" for="email">Email</label>
                         <input type="email" class="form-control" id="email" name="email" placeholder="Email"
-                            valid='[{"type":"required"},{"type":"email"}]' value="{{.UserInfo.Email}}"
-                            data-original-value="{{.UserInfo.Email}}">
+                            valid='[{"type":"required"},{"type":"email"}]' value="{{.Data.User.Email}}"
+                            data-original-value="{{.Data.User.Email}}">
                     </div>
 
                     <!-- Save buttons -->

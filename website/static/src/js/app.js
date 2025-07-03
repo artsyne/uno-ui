@@ -33,6 +33,7 @@ window.escapeHtml = (text) => {
 /**
  * 统一的错误处理函数
  * 从错误对象或响应中提取消息并显示，或者根据错误码返回自定义消息
+ * 已更新以适配新的ResponseService格式：{code, message, data}
  *
  * @param {Object|string} error - 错误对象、消息或XHR
  * @param {string} [fallbackMessage] - 默认错误消息键
@@ -61,8 +62,9 @@ window.handleError = (
   let isUserError = false; // 是否为用户输入导致的预期错误
 
   // 解析错误对象，提取错误代码和消息
+  // 适配新的ResponseService格式：{code, message, data}
   if (error?.responseJSON) {
-    errorCode = error.responseJSON.Status;
+    errorCode = error.responseJSON.code;
 
     // 优先使用映射的自定义错误消息
     if (errorCode && errorCodeMessages[errorCode]) {
@@ -70,8 +72,8 @@ window.handleError = (
       isUserError = true;
     }
     // 否则使用服务端提供的错误描述
-    else if (error.responseJSON.ErrDesc) {
-      errorMessage = error.responseJSON.ErrDesc;
+    else if (error.responseJSON.message) {
+      errorMessage = error.responseJSON.message;
     }
   } else if (error?.message) {
     errorMessage = error.message;

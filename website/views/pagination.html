@@ -1,6 +1,6 @@
 {{define "pagination"}}
 <div class="flex space-x-2">
-    {{range .PageLinks}}
+    {{range .Data.PageLinks}}
         {{if eq .Text "dots"}}
         <a class="py-2 px-3" href="javascript:void(0)"><span class="mdi mdi-dots-horizontal"></span></a>
         {{else}}

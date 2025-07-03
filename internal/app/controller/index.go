@@ -1,17 +1,25 @@
 package controller
 
 import (
-	"net/http"
-
+	"github.com/biuren/hebe/internal/app/render"
 	"github.com/gin-gonic/gin"
-
-	"github.com/biuren/hebe/pkg"
 )
 
-// RenderIndex : 渲染网站首页
-func RenderIndex(c *gin.Context) {
-	h := pkg.DefaultH(c)
-	h["Title"] = "List of users"
-	h["Active"] = "users"
-	c.HTML(http.StatusOK, "index", h)
+// Controller 基础控制器，包含公共服务
+type Controller struct {
+	renderService render.RenderServiceInterface
+}
+
+// NewController 创建控制器实例
+func NewController(renderService render.RenderServiceInterface) *Controller {
+	return &Controller{
+		renderService: renderService,
+	}
+}
+
+// RenderIndex 渲染网站首页
+func (ctrl *Controller) RenderIndex(c *gin.Context) {
+	data := ctrl.renderService.PageData(c, "home.title")
+	data.Data["Active"] = "users"
+	ctrl.renderService.HTML(c, "index.html", data)
 }

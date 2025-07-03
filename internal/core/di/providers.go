@@ -4,8 +4,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/biuren/hebe/internal/app/response"
-	"github.com/biuren/hebe/internal/app/view"
+	"github.com/biuren/hebe/internal/app/render"
 	"github.com/biuren/hebe/internal/core/config"
 )
 
@@ -105,22 +104,10 @@ func WrapFactory(factory interface{}) (FactoryFunc, error) {
 
 // RegisterAppServices 注册App层服务
 func RegisterAppServices(container ContainerInterface) error {
-	// 注册ViewService
-	err := RegisterSingleton[view.ViewServiceInterface](container, func(c ContainerInterface) (view.ViewServiceInterface, error) {
+	// 注册RenderService（合并了原来的ViewService和ResponseService）
+	err := RegisterSingleton[render.RenderServiceInterface](container, func(c ContainerInterface) (render.RenderServiceInterface, error) {
 		cfg := config.GetConfig()
-		return view.NewViewService(cfg), nil
-	})
-	if err != nil {
-		return err
-	}
-
-	// 注册ResponseService
-	err = RegisterSingleton[response.ResponseServiceInterface](container, func(c ContainerInterface) (response.ResponseServiceInterface, error) {
-		viewService, err := Resolve[view.ViewServiceInterface](c)
-		if err != nil {
-			return nil, err
-		}
-		return response.NewResponseService(viewService), nil
+		return render.NewRenderService(cfg), nil
 	})
 	if err != nil {
 		return err

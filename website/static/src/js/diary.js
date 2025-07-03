@@ -112,7 +112,7 @@ const Diary = {
       const $titleInput = $form.find('input[name="info_title"]');
       if ($titleInput.length) {
         $titleInput.focus();
-      } 
+      }
     },
 
     /**
@@ -142,12 +142,12 @@ const Diary = {
           // 恢复按钮状态
           $okButton.prop('disabled', false).text(originalText);
 
-          if (response.Status === 0) {
-            this._handlePostSubmitSuccess(data.formAction, response.Data);
+          if (response.code === 0) {
+            this._handlePostSubmitSuccess(data.formAction, response.data);
             kiko.ui.box.close(boxId);
             kiko.ui.notify.success(appI18n.getMessage('post.save.success'));
           } else {
-            this._handleSubmitError(response.Message);
+            this._handleSubmitError(response.message);
           }
         },
         error: (xhr, status, error) => {
@@ -351,14 +351,14 @@ const Diary = {
           // 恢复按钮状态
           $okButton.prop('disabled', false).text(originalText);
 
-          if (response.Status === 0) {
-            this._handleSubmitSuccess(data.formAction, response.Data);
+          if (response.code === 0) {
+            this._handleSubmitSuccess(data.formAction, response.data);
             kiko.ui.box.close(boxId);
             kiko.ui.notify.success(
               appI18n.getMessage('operation.success') || '操作成功',
             );
           } else {
-            this._handleSubmitError(response.Message || '操作失败');
+            this._handleSubmitError(response.message || '操作失败');
           }
         },
         error: (xhr, status, error) => {
@@ -536,10 +536,10 @@ const Diary = {
         data: form.serialize(),
         dataType: 'json',
         success: (response) => {
-          if (response.Status === 0) {
+          if (response.code === 0) {
             // 处理成功响应
-            if (response.Data?.redirect) {
-              window.location = response.Data.redirect;
+            if (response.data?.redirect) {
+              window.location = response.data.redirect;
             } else {
               kiko.ui.notify.success(appI18n.getMessage('operation.success'));
             }

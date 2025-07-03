@@ -27,7 +27,7 @@ func ErrorHandlerMiddleware() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, response)
 			c.Abort()
 		}
-	})
+				})
 }
 
 // logAppError 记录应用错误的详细信息
@@ -39,8 +39,8 @@ func logAppError(c *gin.Context, err *errors.AppError) {
 
 // GlobalErrorHandlerMiddleware 全局错误处理中间件
 func GlobalErrorHandlerMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		defer func() {
+    return func(c *gin.Context) {
+        defer func() {
 			if len(c.Errors) > 0 {
 				// 获取最后一个错误
 				lastError := c.Errors.Last()
@@ -67,9 +67,9 @@ func GlobalErrorHandlerMiddleware() gin.HandlerFunc {
 					"message": internalErr.MsgKey,
 					"data":    nil,
 				})
-			}
-		}()
+            }
+        }()
 
-		c.Next()
-	}
+        c.Next()
+    }
 }

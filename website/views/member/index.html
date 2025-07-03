@@ -7,7 +7,7 @@
         <div id="page-nav">
             <ul class="flex text-lg">
                 <li>
-                    <a href="/u/{{ .UserData.UserId }}">{{ .UserData.UserName }}</a>
+                    <a href="/u/{{ .Data.User.UserId }}">{{ .Data.User.UserName }}</a>
                 </li>
             </ul>
         </div>
@@ -58,8 +58,8 @@
 
     <section>
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8" id="daybook_list">
-            {{ $isOwner := .IsOwner }}
-            {{ range .Diaries }}
+            {{ $timeZone := .TimeZone }}
+            {{ range .Data.Diaries }}
             <div class="border h-72 text-center dt{{ .ThemeID }}">
                 <div class="h-full flex flex-col p-3">
                     <div class="flex-grow flex items-center justify-center flex-col">
@@ -69,14 +69,13 @@
                                 <i class="mdi mdi-lock-outline"></i>
                                 {{ end }}
                             </a>
-
                         </h1>
+                        {{ if gt .InfoNum 0 }}
                         <p class="mb-2">
                             {{ .InfoNum }}篇
                         </p>
-                        {{ if gt .InfoNum 0 }}
                         <p class="mb-2">
-                            {{ formatTime .LastActionUTCTime "2006-01-02 15:04" }}
+                            {{ formatTime .LastActionUTCTime "2006-01-02 15:04" $timeZone}}
                         </p>
                         {{ end }}
                     </div>
@@ -85,7 +84,7 @@
             {{ end }}
         </div>
 
-        {{ if gt .DiariesNum .PageSize }}
+        {{ if gt .Data.DiariesNum .Data.PageSize }}
         <div class="flex justify-center mt-10">
             {{ template "pagination" . }}
         </div>

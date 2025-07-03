@@ -14,7 +14,7 @@ import (
 // 定义了用户认证中间件相关的核心方法
 type MiddlewareInterface interface {
 	// ParseUserFromCookie 从Cookie中解析用户登录信息
-	ParseUserFromCookie(c *gin.Context) *Login
+	ParseUserFromCookie(c *gin.Context) *AuthUser
 
 	// GetAuthHelper 获取认证助手实例
 	GetAuthHelper() AuthHelperInterface
@@ -40,7 +40,7 @@ func NewMiddleware() MiddlewareInterface {
 }
 
 // ParseUserFromCookie 从Cookie中解析用户登录信息
-func (m *middleware) ParseUserFromCookie(c *gin.Context) *Login {
+func (m *middleware) ParseUserFromCookie(c *gin.Context) *AuthUser {
 	cookieEnUserData := pkg.ReadCookie(c.Request, "ud")
 	if len(cookieEnUserData) < 1 {
 		return nil
@@ -51,7 +51,7 @@ func (m *middleware) ParseUserFromCookie(c *gin.Context) *Login {
 		return nil
 	}
 
-	var userData Login
+	var userData AuthUser
 	err = json.Unmarshal(byteUserData, &userData)
 	if err != nil {
 		return nil
@@ -91,7 +91,7 @@ func SharedData() gin.HandlerFunc {
 		// 注入登录状态和用户数据到上下文
 		if userData != nil {
 			c.Set("IsLogin", true)
-			c.Set("UserData", *userData)
+			c.Set("AuthUser", *userData) // 新的键名，供render服务使用
 		} else {
 			c.Set("IsLogin", false)
 		}
