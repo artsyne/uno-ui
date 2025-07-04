@@ -141,8 +141,8 @@ func (h *handler) RenderPostForm(c *gin.Context) {
 	// 初始化页面数据
 	data := h.renderService.PageData(c, "post.form.title")
 	data.Data["Active"] = "users"
-	data.Data["UserData"] = loginUser
 	data.Data["Post"] = post
+	// 注意：用户信息现在通过 data.Context.AuthUser 在模板中访问，无需在 Data 中设置 UserData
 
 	h.renderService.HTML(c, "form/post", data)
 }

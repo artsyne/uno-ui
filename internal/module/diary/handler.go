@@ -446,6 +446,7 @@ func (h *handler) ShowDiaryForm(c *gin.Context) {
 	data.Data["Diary"] = diary
 	data.Data["SupportLangs"] = config.GetSupportLangs()
 	data.Data["TimeZones"] = config.GetTimeZone()
+	// 注意：用户信息现在通过 data.Context.AuthUser 在模板中访问，无需手动设置
 
 	h.renderService.HTML(c, "form/diary", data)
 }

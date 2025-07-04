@@ -7,51 +7,84 @@ import (
 	"path"
 	"strings"
 
-	"github.com/biuren/hebe/internal/core/config"
-	errors "github.com/biuren/hebe/internal/core/error"
 	"github.com/rs/xid"
 )
+
+// UploadConfig 上传配置结构
+type UploadConfig struct {
+	Path    string // 上传路径
+	Types   string // 允许的文件类型
+	MaxSize int    // 最大文件大小
+}
+
+// UploadError 上传错误类型
+type UploadError struct {
+	Code    int
+	Message string
+	Details string
+}
+
+func (e *UploadError) Error() string {
+	if e.Details != "" {
+		return fmt.Sprintf("%s: %s", e.Message, e.Details)
+	}
+	return e.Message
+}
+
+// 预定义的错误
+var (
+	ErrUploadFailed          = &UploadError{Code: 1001, Message: "上传失败"}
+	ErrFileFormatUnsupported = &UploadError{Code: 1002, Message: "文件格式不支持"}
+	ErrFileTooLarge          = &UploadError{Code: 1003, Message: "文件太大"}
+)
+
+// WithDetails 添加错误详情
+func (e *UploadError) WithDetails(details string) *UploadError {
+	return &UploadError{
+		Code:    e.Code,
+		Message: e.Message,
+		Details: details,
+	}
+}
 
 // UploadImage 是一个处理图片上传的函数。
 // 它接受一个 base64 编码的图像数据作为参数，将图像保存到服务器的指定位置，
 // 并返回保存的文件的路径和文件名。如果在过程中出现错误，它会返回一个错误代码。
 // 参数：
+// config: 上传配置
 // imgBase64Data: base64 编码的图像数据。
 // 返回值：
 // filePath: 保存的文件的路径。
 // fileName: 保存的文件的名称。
-// errCode: 错误代码，如果没有错误发生，此值为0。
-func UploadImage(imgBase64Data string) (string, string, error) {
+// error: 错误信息，如果没有错误发生，此值为nil。
+func UploadImage(config *UploadConfig, imgBase64Data string) (string, string, error) {
 
 	//判断图片是否为空
 	fileSize := len(imgBase64Data)
 	if fileSize < 100 {
-		return "", "", errors.UploadFailedErr()
+		return "", "", ErrUploadFailed
 	}
-
-	// 获取上传文件配置信息
-	config := config.GetConfig()
 
 	//判断上传文件类型是否正确
 	filetype := imgBase64Data[:strings.IndexByte(imgBase64Data, ';')]
-	if !strings.Contains(config.Upload.Types, filetype) {
-		return "", "", errors.FileFormatUnsupportedErr()
+	if !strings.Contains(config.Types, filetype) {
+		return "", "", ErrFileFormatUnsupported
 	}
 
 	//判断文件大小
-	if fileSize > config.Upload.MaxSize {
-		return "", "", errors.FileTooLargeErr().WithDetails("file too large")
+	if fileSize > config.MaxSize {
+		return "", "", ErrFileTooLarge.WithDetails("file too large")
 	}
 
 	//路径格式为：config配置路径 + /年/月/日/uid.jpg
 	filePath, fileName := CreateUploadPathFileName()
-	filePath = path.Join(config.Upload.Path, filePath)
+	filePath = path.Join(config.Path, filePath)
 	fileName = fmt.Sprintf("%s/%s.jpeg", filePath, fileName)
 
 	//保存图片
 	err := SaveBase64File(imgBase64Data, filePath, fileName)
 	if err != nil {
-		return "", "", errors.UploadFailedErr().WithDetails(err.Error())
+		return "", "", ErrUploadFailed.WithDetails(err.Error())
 	}
 
 	return filePath, fileName, nil

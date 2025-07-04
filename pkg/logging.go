@@ -7,13 +7,25 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/biuren/hebe/internal/core/config"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
+// LoggerConfig 独立的日志配置结构
+type LoggerConfig struct {
+	Path       string // 日志文件路径
+	Filename   string // 日志文件名
+	MaxSize    int    // 单个日志文件最大尺寸，单位MB
+	MaxBackups int    // 保留的旧日志文件数量
+	MaxAge     int    // 日志文件保留天数
+	Compress   bool   // 是否压缩旧日志文件
+	LocalTime  bool   // 是否使用本地时间
+	Level      string // 日志级别: debug, info, warn, error
+	Format     string // 日志格式: text, json
+}
+
 // SetLogger 配置slog日志
 // 设置日志输出位置、格式和轮转策略
-func SetLogger(config *config.LogConfig) error {
+func SetLogger(config *LoggerConfig) error {
 	if config == nil {
 		return fmt.Errorf("log configuration is nil")
 	}
@@ -82,7 +94,7 @@ func parseLogLevel(levelStr string) slog.Level {
 }
 
 // validateLogConfig 验证日志配置的有效性
-func validateLogConfig(config *config.LogConfig) error {
+func validateLogConfig(config *LoggerConfig) error {
 	if config == nil {
 		return fmt.Errorf("log config is nil")
 	}

@@ -4,19 +4,22 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/biuren/hebe/internal/core/config"
 	"github.com/go-redis/redis"
 )
 
-// 创建redis client
-func getRedisClient() *redis.Client {
-	//获取配置信息
-	config := config.GetConfig()
+// RedisConfig Redis配置结构
+type RedisConfig struct {
+	Host     string
+	Port     int
+	Password string
+}
 
+// 创建redis client
+func getRedisClient(config *RedisConfig) *redis.Client {
 	// 链接redis
 	client := redis.NewClient(&redis.Options{
-		Addr:     config.Redis.Host + ":" + strconv.Itoa(config.Redis.Port),
-		Password: config.Redis.Password,
+		Addr:     config.Host + ":" + strconv.Itoa(config.Port),
+		Password: config.Password,
 		DB:       0,
 	})
 
@@ -24,10 +27,9 @@ func getRedisClient() *redis.Client {
 }
 
 // 设置Session,默认保存4个小时
-func SetSession(name string, val string) error {
-
+func SetSession(config *RedisConfig, name string, val string) error {
 	// 获取client
-	client := getRedisClient()
+	client := getRedisClient(config)
 
 	err := client.Set(name, val, 4*time.Hour).Err()
 
@@ -35,10 +37,9 @@ func SetSession(name string, val string) error {
 }
 
 // 获取session的值
-func GetSession(name string) (string, error) {
-
+func GetSession(config *RedisConfig, name string) (string, error) {
 	//获取client
-	client := getRedisClient()
+	client := getRedisClient(config)
 
 	val, err := client.Get(name).Result()
 
@@ -46,9 +47,9 @@ func GetSession(name string) (string, error) {
 }
 
 // 删除一个session
-func DelSession(name string) (int64, error) {
+func DelSession(config *RedisConfig, name string) (int64, error) {
 	//获取client
-	client := getRedisClient()
+	client := getRedisClient(config)
 
 	num, err := client.Del(name).Result()
 

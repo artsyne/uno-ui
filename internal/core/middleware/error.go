@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 	"runtime/debug"
 
@@ -9,14 +9,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ErrorHandlerMiddleware 错误处理中间件
-func ErrorHandlerMiddleware() gin.HandlerFunc {
+// PanicRecoveryMiddleware panic 恢复中间件
+// 捕获并处理运行时 panic，记录详细的错误信息和堆栈跟踪
+func PanicRecoveryMiddleware() gin.HandlerFunc {
 	return gin.CustomRecovery(func(c *gin.Context, recovered interface{}) {
 		if recovered != nil {
-			// 记录 panic 详情
-			log.Printf("系统发生panic: %v, 路径: %s, 方法: %s, 客户端IP: %s",
-				recovered, c.Request.URL.Path, c.Request.Method, c.ClientIP())
-			log.Printf("堆栈跟踪: %s", string(debug.Stack()))
+			// 记录 panic 详细信息
+			slog.Error("panic recovered",
+				"panic", recovered,
+				"path", c.Request.URL.Path,
+				"method", c.Request.Method,
+				"client_ip", c.ClientIP(),
+				"user_agent", c.Request.UserAgent(),
+				"stack", string(debug.Stack()))
 
 			response := gin.H{
 				"code":    errors.InternalErr().Code,
@@ -27,25 +32,18 @@ func ErrorHandlerMiddleware() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, response)
 			c.Abort()
 		}
-				})
+	})
 }
 
-// logAppError 记录应用错误的详细信息
-func logAppError(c *gin.Context, err *errors.AppError) {
-	log.Printf("API错误: 错误码=%d, 错误键=%s, HTTP状态=%d, 方法=%s, 路径=%s, 客户端IP=%s, 详情=%s",
-		err.Code, err.MsgKey, err.HttpCode, c.Request.Method, c.Request.URL.Path,
-		c.ClientIP(), err.Details)
-}
-
-// GlobalErrorHandlerMiddleware 全局错误处理中间件
-func GlobalErrorHandlerMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        defer func() {
+// AppErrorHandlerMiddleware 应用错误处理中间件
+// 处理通过 c.Error() 添加的业务错误和应用错误
+func AppErrorHandlerMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		defer func() {
 			if len(c.Errors) > 0 {
-				// 获取最后一个错误
 				lastError := c.Errors.Last()
 
-				// 处理 AppError
+				// 处理 AppError 类型的业务错误
 				if appErr, ok := lastError.Err.(*errors.AppError); ok {
 					logAppError(c, appErr)
 					c.JSON(appErr.HttpCode, gin.H{
@@ -56,20 +54,36 @@ func GlobalErrorHandlerMiddleware() gin.HandlerFunc {
 					return
 				}
 
-				// 处理其他错误
-				log.Printf("未知错误: %s, 路径: %s, 方法: %s, 客户端IP: %s",
-					lastError.Err.Error(), c.Request.URL.Path, c.Request.Method, c.ClientIP())
+				// 处理其他类型的错误
+				slog.Error("未知应用错误",
+					"error", lastError.Err.Error(),
+					"path", c.Request.URL.Path,
+					"method", c.Request.Method,
+					"user_agent", c.Request.UserAgent(),
+					"client_ip", c.ClientIP())
 
-				// 返回错误响应
 				internalErr := errors.InternalErr()
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"code":    internalErr.Code,
 					"message": internalErr.MsgKey,
 					"data":    nil,
 				})
-            }
-        }()
+			}
+		}()
 
-        c.Next()
-    }
+		c.Next()
+	}
+}
+
+// logAppError 记录应用错误的详细信息
+func logAppError(c *gin.Context, err *errors.AppError) {
+	slog.Error("应用业务错误",
+		"error_code", err.Code,
+		"error_key", err.MsgKey,
+		"http_code", err.HttpCode,
+		"method", c.Request.Method,
+		"path", c.Request.URL.Path,
+		"user_agent", c.Request.UserAgent(),
+		"client_ip", c.ClientIP(),
+		"details", err.Details)
 }

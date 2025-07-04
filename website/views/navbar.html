@@ -10,7 +10,7 @@
         <div id="top-nav" class="text-base/loose flex items-center">
         </div>
         <div class="text-base/loose">
-            {{if not .IsLogin }}
+            {{if not (isLogin .)}}
             <a class="nav-link text-black-50 fs-6" href="/register" role="button"><i class="fa fa-id-card-o"></i>
                 免费注册</a>
             <a class="nav-link text-black-50 fs-6" href="/login" role="button"><i class="fa fa-sign-in"></i> 登录</a>
@@ -19,14 +19,13 @@
                 <div>
                     <a id="user_drop" href="#" class="text-gray-500 p-0" data-tooltip-target="user_menu"
                         data-tooltip-position="bottom" data-tooltip-event="click,mouseover">
-                        <img class="w-10 h-10 rounded-full" src="{{.Data.AuthUser.FaceUrl}}" />
+                        <img class="w-10 h-10 rounded-full" src="{{getUserAvatar .}}" />
                     </a>
                     <div id="user_menu" class="bg-white border border-gray-200 p-3" style="display:none;">
                         <ul>
-                            <li><a href="/u/{{.Data.AuthUser.UserId }}"
-                                    class="block px-3 py-2 text-gray-700 hover:bg-gray-100"><i
+                            <li><a href="/u/{{getUserID .}}" class="block px-3 py-2 text-gray-700 hover:bg-gray-100"><i
                                         class="mdi mdi-home-variant-outline"></i> 我的主页</a></li>
-                            <li><a href="/u/{{.Data.AuthUser.UserId }}/settings"
+                            <li><a href="/u/{{getUserID .}}/settings"
                                     class="block px-3 py-2 text-gray-700 hover:bg-gray-100"><i class="mdi mdi-cogs"></i>
                                     用户设置</a></li>
                             <li><a href="/loginout" class="block px-3 py-2 text-gray-700 hover:bg-gray-100"><i

@@ -1,0 +1,136 @@
+package bootstrap
+
+import (
+	"fmt"
+	"log/slog"
+	"os"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/biuren/hebe/internal/app/route"
+	"github.com/biuren/hebe/internal/core/bootstrap"
+	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/core/di"
+	"github.com/biuren/hebe/internal/core/middleware"
+	"github.com/biuren/hebe/internal/module/task"
+	"github.com/biuren/hebe/internal/module/user"
+	"github.com/biuren/hebe/pkg"
+)
+
+// Application 应用程序主体
+type Application struct {
+	config    *config.Config
+	server    *gin.Engine
+	container di.ContainerInterface
+	coreInit  *bootstrap.Initializer
+}
+
+// NewApplication 创建应用程序实例
+func NewApplication() *Application {
+	return &Application{
+		coreInit: bootstrap.NewInitializer(),
+	}
+}
+
+// Bootstrap 启动应用程序
+// 初始化核心基础设施，然后初始化应用层组件
+func (a *Application) Bootstrap() error {
+	// 1. 初始化核心基础设施
+	if err := a.coreInit.InitializeCore(); err != nil {
+		return fmt.Errorf("核心初始化失败: %w", err)
+	}
+
+	// 2. 获取核心组件
+	a.config = a.coreInit.GetConfig()
+	a.container = a.coreInit.GetContainer()
+
+	// 3. 初始化应用层组件
+	if err := a.initApplicationLayer(); err != nil {
+		return fmt.Errorf("应用层初始化失败: %w", err)
+	}
+
+	return nil
+}
+
+// Run 运行应用程序
+func (a *Application) Run() error {
+	// 启动服务器
+	addr := ":" + a.config.App.Port
+	slog.Info("Starting server", "addr", addr)
+
+	if err := a.server.Run(addr); err != nil {
+		slog.Error("服务器启动失败", "error", err, "addr", addr)
+		os.Exit(1)
+	}
+
+	return nil
+}
+
+// Shutdown 关闭应用程序
+func (a *Application) Shutdown() error {
+	slog.Info("开始关闭应用程序...")
+	// 此处可以添加资源清理代码
+	slog.Info("应用程序已关闭")
+	return nil
+}
+
+// initApplicationLayer 初始化应用层组件
+func (a *Application) initApplicationLayer() error {
+	// 1. 设置 Cookie 默认值
+	if err := a.initCookie(); err != nil {
+		return err
+	}
+
+	// 2. 启动定时任务
+	if err := a.initScheduler(); err != nil {
+		return err
+	}
+
+	// 3. 初始化 Gin 服务器
+	if err := a.initGinServer(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// initCookie 设置 Cookie 默认值
+func (a *Application) initCookie() error {
+	pkg.SetCookieDefVal(
+		a.config.Cookie.Domain,
+		"/",
+		a.config.Cookie.ExpireDays,
+		a.config.Cookie.HttpOnly,
+	)
+	slog.Info("成功设置 Cookie 默认值")
+	return nil
+}
+
+// initScheduler 启动定时任务
+func (a *Application) initScheduler() error {
+	task.NewService().StartScheduler()
+	slog.Info("成功启动定时任务")
+	return nil
+}
+
+// initGinServer 初始化 Gin 服务器
+func (a *Application) initGinServer() error {
+	// 设置 Gin 模式
+	gin.SetMode(a.config.App.GinMode)
+
+	// 初始化默认gin server
+	server := gin.New()
+
+	// 初始化中间件
+	server.Use(middleware.PanicRecoveryMiddleware())   // panic recovery中间件
+	server.Use(middleware.AppErrorHandlerMiddleware()) // 应用错误处理中间件
+	server.Use(user.SharedData())                      // 用户共享数据中间件
+	slog.Info("成功初始化中间件")
+
+	// 初始化路由
+	route.SetWithContainer(server, a.container)
+	slog.Info("成功初始化网站静态文件目录及路由")
+
+	a.server = server
+	return nil
+}

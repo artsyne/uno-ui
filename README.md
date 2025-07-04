@@ -1,3 +1,58 @@
+# iDiary.AI - 智能日记平台
+
+## 架构概述
+
+iDiary.AI 是一个基于 Go 语言开发的现代化智能日记平台，采用分层架构设计，支持多语言国际化，具备完善的渲染系统和用户管理功能。
+
+## 系统架构
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                           前端层 (Frontend)                      │
+├─────────────────────────────────────────────────────────────────┤
+│  Kiko UI框架  │  模板引擎  │  静态资源  │  多语言支持              │
+└─────────────────────────────────────────────────────────────────┘
+                                   │
+┌─────────────────────────────────────────────────────────────────┐
+│                         应用层 (Application)                     │
+├─────────────────────────────────────────────────────────────────┤
+│           路由系统        │        中间件        │    控制器      │
+│         (Router)         │     (Middleware)     │  (Controller)  │
+└─────────────────────────────────────────────────────────────────┘
+                                   │
+┌─────────────────────────────────────────────────────────────────┐
+│                         渲染层 (Render)                          │
+├─────────────────────────────────────────────────────────────────┤
+│  RenderService  │  PageBuilder  │  I18nManager  │  TemplateFuncs │
+│       │         │       │       │       │       │       │        │
+│  ResponseHandler│  ContextBuilder│  MessageService│  RenderUtils │
+└─────────────────────────────────────────────────────────────────┘
+                                   │
+┌─────────────────────────────────────────────────────────────────┐
+│                        业务层 (Business)                         │
+├─────────────────────────────────────────────────────────────────┤
+│   用户模块     │   日记模块     │   文章模块     │   任务模块      │
+│  (User)       │  (Diary)      │  (Post)       │  (Task)        │
+│  Service      │  Service      │  Service      │  Service       │
+│  Handler      │  Handler      │  Handler      │  Handler       │
+│  Repository   │  Repository   │  Repository   │  Repository    │
+└─────────────────────────────────────────────────────────────────┘
+                                   │
+┌─────────────────────────────────────────────────────────────────┐
+│                         核心层 (Core)                            │
+├─────────────────────────────────────────────────────────────────┤
+│   配置管理     │   数据库      │   依赖注入     │   错误处理      │
+│  (Config)     │  (Database)   │    (DI)       │  (Error)       │
+└─────────────────────────────────────────────────────────────────┘
+                                   │
+┌─────────────────────────────────────────────────────────────────┐
+│                      基础设施层 (Infrastructure)                   │
+├─────────────────────────────────────────────────────────────────┤
+│    MySQL      │    Redis      │    文件存储     │    日志系统     │
+│   数据库       │    缓存       │   (Storage)    │   (Logging)    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ## 域名
 
 iDiary.AI
@@ -98,54 +153,133 @@ Kiko UI是一个轻量级的UI框架，为iDiary提供界面交互功能。最�
 
 ```plaintext
 .
-├── cmd                     # 主程序入口
-│   ├── idiary              # idiary 主程序
-│   │   └── logs            # 日志文件目录
-│   ├── openapi             # OpenAPI 相关代码
-│   └── worker              # worker 相关代码
-├── configs                 # 配置文件目录
-├── internal                # 内部应用逻辑
-│   ├── configs             # 配置相关代码
-│   ├── errors              # 错误处理
-│   ├── middlewares         # 中间件
-│   ├── models              # 数据模型
-│   └── services            # 服务层
-├── pkg                     # 可重用的包
-├── scripts                 # 构建和部署脚本
-│   ├── build               # 构建脚本
-│   └── deploy              # 部署脚本
-├── sql                     # 数据库脚本
-├── tests                   # 测试代码
-│   ├── services            # 服务层测试
-│   └── utils               # 工具类测试
-├── uploads                 # 上传文件目录
-└── website                 # 前端相关代码
-    ├── controllers         # 控制器
-    ├── routes              # 路由
-    ├── static              # 静态文件
-    │   ├── dist            # 编译后的静态文件
-    │   │   ├── css         # 编译后的 CSS 文件
-    │   │   ├── fonts       # 字体文件
-    │   │   └── js          # 编译后的 JavaScript 文件
-    │   ├── html            # HTML 文件
-    │   ├── img             # 图片文件
-    │   │   ├── diary       # 日记相关图片
-    │   │   └── passport    # 护照相关图片
-    │   └── src             # 源文件
-    │       ├── css         # 源 CSS 文件
-    │       └── js          # 源 JavaScript 文件
-    └── views               # 视图模板
+├── cmd/                    # 主程序入口
+│   └── idiary/            # iDiary 主程序
+│       └── main.go        # 程序入口点
+├── internal/              # 内部应用逻辑
+│   ├── app/               # 应用层
+│   │   ├── controller/    # 控制器
+│   │   ├── middleware/    # 中间件
+│   │   ├── render/        # 渲染系统 (重构后)
+│   │   │   ├── service.go       # 核心渲染服务
+│   │   │   ├── page_builder.go  # 页面构建器
+│   │   │   ├── i18n.go          # 国际化管理
+│   │   │   ├── template_funcs.go # 模板函数
+│   │   │   ├── response_handler.go # 响应处理
+│   │   │   ├── context_builder.go  # 上下文构建
+│   │   │   ├── utils.go         # 工具函数
+│   │   │   ├── types.go         # 类型定义
+│   │   │   └── interfaces.go    # 接口定义
+│   │   └── route/         # 路由配置
+│   ├── core/              # 核心系统
+│   │   ├── config/        # 配置管理
+│   │   ├── database/      # 数据库连接
+│   │   ├── di/            # 依赖注入
+│   │   ├── error/         # 错误处理
+│   │   └── middleware/    # 核心中间件
+│   └── module/            # 业务模块
+│       ├── diary/         # 日记模块
+│       ├── post/          # 文章模块
+│       ├── task/          # 任务模块
+│       └── user/          # 用户模块
+├── pkg/                   # 可重用的包
+│   ├── cookie.go          # Cookie 工具
+│   ├── crypto.go          # 加密工具
+│   ├── helpers.go         # 辅助函数
+│   ├── logging.go         # 日志工具
+│   └── ...               # 其他工具包
+├── kiko/                  # Kiko UI 框架
+│   ├── src/               # 源代码
+│   │   ├── core.js        # 核心功能
+│   │   ├── i18n/          # 国际化
+│   │   ├── ui/            # UI组件
+│   │   └── utils/         # 工具函数
+│   └── build.js           # 构建脚本
+├── website/               # 前端资源
+│   ├── static/            # 静态文件
+│   │   ├── img/           # 图片资源
+│   │   └── src/           # 前端源码
+│   └── views/             # 模板文件
+├── scripts/               # 构建和部署脚本
+│   ├── build/             # 构建脚本
+│   └── deploy/            # 部署脚本
+├── sql/                   # 数据库脚本
+├── tests/                 # 测试代码
+├── logs/                  # 日志文件
+└── __debug_bin/           # 调试构建输出
 ```
 
-# 构建
+# 构建和开发
+
+## 开发环境要求
+
+- Go 1.21+
+- Node.js 16+
+- MySQL 8.0+
+- Redis (可选)
 
 ## 构建脚本
 
-- 编译 css 文件
-  npm run build:css
+### 前端构建
 
-- 编译 js 文件
-  npm run build:js
+```bash
+# 编译 CSS 文件
+npm run build:css
+
+# 编译 JavaScript 文件
+npm run build:js
+
+# 同时构建 CSS 和 JS
+npm run build
+```
+
+### 后端构建
+
+```bash
+# 构建主程序
+go build -o bin/idiary ./cmd/idiary/main.go
+
+# 使用 VS Code 任务构建
+# - build:css: 构建CSS文件
+# - build:js: 构建JavaScript文件
+# - build:go: 构建Go程序
+```
+
+## 开发指南
+
+### 添加新的业务模块
+
+1. 在 `internal/module/` 下创建新模块目录
+2. 实现 `handler.go`, `service.go`, `repository.go`, `types.go`
+3. 在 `internal/app/route/` 中注册路由
+4. 如需模板访问，在 `types.go` 中实现 `RenderUser` 接口
+
+### 添加新的模板函数
+
+1. 在 `internal/app/render/template_funcs.go` 中添加函数
+2. 在 `RegisterFuncs()` 方法中注册函数
+3. 优先使用 `RenderUser` 接口访问用户信息
+
+### 添加国际化消息
+
+1. 在 `internal/app/render/i18n.go` 中使用 `SetMessage()` 方法
+2. 或在 `website/static/messages/` 目录下创建语言文件
+3. 在模板中使用 `{{ getMessage "key" }}` 访问消息
+
+## 最新架构特性
+
+### 渲染系统重构 (2024.07)
+
+- **模块化设计**: 将单一的 `service.go` 拆分为7个职责单一的文件
+- **依赖注入**: 使用依赖注入模式，提高代码可测试性
+- **接口抽象**: 通过 `RenderUser` 和 `MessageService` 接口实现松耦合
+- **线程安全**: `I18nManager` 支持并发安全的消息管理
+
+### 用户认证抽象
+
+- 引入 `RenderUser` 接口，统一用户信息访问
+- `RenderContext` 仅包含认证相关信息
+- 页面数据通过 `Data` 字段传递，避免循环依赖
 
 ## icon copyright
 
@@ -197,3 +331,60 @@ Kiko UI是一个轻量级的UI框架，为iDiary提供界面交互功能。最�
 - 用户名: root
 - 密码: 123123
 - 数据库名: cd
+
+### 🎯 中间件系统 (Middleware System)
+
+**位置**: `internal/app/middleware/`
+
+**功能**:
+
+- 用户认证中间件
+- 错误处理中间件
+- 日志记录中间件
+- 权限验证中间件
+
+### 🎨 前端框架 (Kiko UI)
+
+**位置**: `kiko/`
+
+**特点**:
+
+- 轻量级UI框架
+- 基于jQuery 4.0
+- 支持AJAX表单提交
+- 响应式设计和组件化
+
+## 技术栈
+
+- **后端**: Go 1.21+, Gin Web Framework
+- **数据库**: MySQL 8.0+
+- **缓存**: Redis (可选)
+- **前端**: Kiko UI, jQuery 4.0, HTML5/CSS3
+- **模板**: Go HTML Template
+- **构建**: npm, Go modules
+
+## 特色功能
+
+### 🤖 AI 增强功能 (规划中)
+
+基于 slogan "记录人生，伴你前行" 的AI功能：
+
+1. **情感分析**: 分析日记情感，提供情绪趋势
+2. **智能标签**: 自动为日记添加分类标签
+3. **智能回忆**: 个性化的历史回顾推送
+4. **情感支持**: AI驱动的情绪支持和建议
+5. **智能摘要**: 自动生成日记摘要和时间线
+
+### 🌍 多语言支持
+
+支持以下语言：
+
+- 中文 (简体/繁体)
+- English
+- Deutsch
+- Español
+- Français
+- 日本語
+- 한국어
+- Русский
+- العربية
