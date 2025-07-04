@@ -342,8 +342,6 @@ func (h *handler) renderErrorPage(c *gin.Context, title, message string) {
 // 参数:
 //   - c: Gin上下文，包含请求信息和响应操作
 func (h *handler) RenderUserProfile(c *gin.Context) {
-	data := h.renderService.PageData(c, "user.profile")
-
 	// 获取url中的uid
 	uid, err := h.parseDiaryID(c.Param("uid")) // 复用parseDiaryID方法
 	if err != nil {
@@ -351,11 +349,13 @@ func (h *handler) RenderUserProfile(c *gin.Context) {
 		return
 	}
 
-	// 判断用户是否当前空间 Owenr
-	authUser,ok := h.auth.GetCurrentUser(c)
+	// 创建页面数据
+	data := h.renderService.PageData(c, "user.profile")
+
+	// 判断是否为页面所有者
 	isOwner := false
-	if ok  {
-		isOwner = (authUser.UserId == uid)
+	if data.IsAuthenticated() {
+		isOwner = (data.GetAuthUser().GetUserID() == uid)
 	}
 
 	// 获取URL中的pageIndex
@@ -385,20 +385,15 @@ func (h *handler) RenderUserProfile(c *gin.Context) {
 	pageLinks := pkg.GeneratePagination(listOptions)
 
 	// 根据uid 获取用户信息
-	user, err := user.NewService().GetUserByUserId(uid)
-	if err != nil || user == nil {
+	pageUser, err := user.NewService().GetUserByUserId(uid)
+	if err != nil || pageUser == nil {
 		h.renderService.Redirect(c, "/")
 		return
 	}
 
-	// Data 中的AuthUser 是当前登录用户信息
-	// Data 中的User 是当前用户个人主页的用户信息
-	data.IsOwner = isOwner
-	data.Lang = user.Lang
-	data.TimeZone = user.TimeZone
-	data.Data["AuthUser"] = authUser
-	data.Data["User"] = user
-
+	// 组织业务数据
+	data.Data["IsOwner"] = isOwner
+	data.Data["PageUser"] = pageUser // 页面用户信息通过 Data 传递
 	data.Data["Diaries"] = diaries
 	data.Data["DiariesNum"] = diariesNum
 	data.Data["PageSize"] = pageSize

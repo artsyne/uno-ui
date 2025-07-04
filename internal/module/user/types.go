@@ -1,5 +1,9 @@
 package user
 
+import (
+	"github.com/biuren/hebe/internal/app/render"
+)
+
 // AuthUser 已认证用户信息结构体
 type AuthUser struct {
 	LoginName    string `form:"login_name" json:"login_name"`
@@ -8,13 +12,31 @@ type AuthUser struct {
 	UserId       int64  `form:"user_id" json:"user_id"`
 	UserName     string `form:"user_name" json:"user_name"`
 	FullName     string `form:"full_name" json:"full_name"`
+	Email        string `form:"email" json:"email" db:"email"`
 	UserGroup    int8   `form:"user_group" json:"user_group"`
-	FaceUrl string `form:"face_url" json:"face_url"`
+	FaceUrl      string `form:"face_url" json:"face_url"`
 	LoginUTCTime int64  `form:"login_utc_time" json:"login_utc_time"`
 	TimeZone     string `form:"time_zone" json:"time_zone"`
 	Lang         string `form:"lang" json:"lang"`
 	Status       int8   `form:"status" json:"status"`
 }
+
+// 实现 render.RenderUser 接口
+func (u *AuthUser) GetLoginName() string   { return u.LoginName }
+func (u *AuthUser) GetAccessUrl() string   { return u.AccessUrl }
+func (u *AuthUser) GetUserID() int64       { return u.UserId }
+func (u *AuthUser) GetUserName() string    { return u.UserName }
+func (u *AuthUser) GetFullName() string    { return u.FullName }
+func (u *AuthUser) GetEmail() string       { return u.Email }
+func (u *AuthUser) GetUserGroup() int8     { return u.UserGroup }
+func (u *AuthUser) GetFaceUrl() string     { return u.FaceUrl }
+func (u *AuthUser) GetLoginUTCTime() int64 { return u.LoginUTCTime }
+func (u *AuthUser) GetTimeZone() string    { return u.TimeZone }
+func (u *AuthUser) GetLang() string        { return u.Lang }
+func (u *AuthUser) GetStatus() int8        { return u.Status }
+
+// 编译时检查：确保 AuthUser 实现了 render.RenderUser 接口
+var _ render.RenderUser = (*AuthUser)(nil)
 
 // User 用户信息结构体
 type User struct {
