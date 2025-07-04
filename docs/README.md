@@ -1,63 +1,179 @@
-# iDiary.AI 项目文档索引
+# iDiary.AI 项目文档中心
 
-本目录包含iDiary.AI项目的所有技术文档。
+欢迎来到iDiary.AI项目文档中心！本文档中心包含了系统架构、开发指南、使用手册等全面的技术文档。
 
-## 📚 文档分类
+## 📖 核心文档
 
-### 架构设计文档
+### 系统架构与设计
 
-- [internal-architecture-design.md](./internal-architecture-design.md) - 内部架构设计
-- [storage-architecture-design.md](./storage-architecture-design.md) - 存储架构设计
+- [系统架构概览](./architecture-overview.md) - 完整的系统分层架构和设计原理
+- [系统启动过程详解](./system-startup-guide.md) - 详细的启动流程和组件初始化
+- [存储架构设计](./storage-architecture-design.md) - 多云盘存储架构设计方案（未来规划）
 
-### 重构文档
+### 开发指南
 
-- [REFACTOR_SUMMARY.md](./REFACTOR_SUMMARY.md) - 总体重构总结
-- [refactor-render-summary.md](./refactor-render-summary.md) - 渲染系统重构总结
-- [pagedata-update-summary.md](./pagedata-update-summary.md) - PageData结构更新总结
-- [middleware-refactor-summary.md](./middleware-refactor-summary.md) - 中间件重构总结
-- [main-refactor-summary.md](./main-refactor-summary.md) - Main.go重构总结
+- [依赖注入容器使用指南](./dependency-injection-guide.md) - 高性能DI容器的完整使用手册
+- [中间件系统详解](./middleware-guide.md) - 完整的中间件架构和使用指南
+- [模板函数使用指南](./template-functions-guide.md) - 丰富的模板函数和实际使用示例
+- [模板开发最佳实践](./template-usage-guide.md) - 模板开发的架构模式和最佳实践
+- [错误处理和响应服务示例](./error-handling-examples.md) - 统一错误处理体系的使用方法
 
-### 使用指南
+### 系统功能
 
-- [template-usage-guide.md](./template-usage-guide.md) - 模板使用指南
-- [template-pagedata-usage.md](./template-pagedata-usage.md) - PageData模板访问更新指南
-- [error-handling-examples.md](./error-handling-examples.md) - 错误处理示例
+- [日志系统增强功能指南](./logging-enhancement-guide.md) - 日志系统的高级功能和使用方式
 
-## 🔧 模块文档
+## 🏗️ 架构特点
 
-以下模块包含独立的README文档：
+### 分层架构
 
-- [internal/core/di/README.md](../internal/core/di/README.md) - 依赖注入容器文档
-- [internal/core/config/README.md](../internal/core/config/README.md) - 配置系统文档
-- [kiko/README.md](../kiko/README.md) - Kiko UI框架文档
-- [tests/README.md](../tests/README.md) - 测试文档
+- **App Layer**: 应用编排、HTTP处理、渲染服务
+- **Module Layer**: 业务逻辑实现（User、Diary、Post、Task）
+- **Core Layer**: 基础设施服务（Config、DI、Database、Error、Middleware）
+- **Pkg Layer**: 纯函数工具库
 
-## 📝 开发指南
+### 核心技术栈
 
-### 添加新文档
+- **后端**: Go + Gin框架
+- **数据库**: MySQL
+- **缓存**: Redis (Session管理)
+- **依赖注入**: 自研高性能DI容器
+- **日志**: slog结构化日志
+- **模板**: HTML模板引擎
 
-1. **架构文档**: 放在 `docs/` 目录下
-2. **模块文档**: 放在对应模块的 `README.md` 中
-3. **API文档**: 使用代码注释生成
-4. **用户文档**: 放在项目根目录的 `README.md` 中
+### 设计原则
 
-### 文档命名规范
-
-- 使用小写字母和连字符
-- 架构文档: `xxx-architecture-design.md`
-- 重构文档: `xxx-refactor-summary.md`
-- 使用指南: `xxx-usage-guide.md`
-- 示例文档: `xxx-examples.md`
-
-### 文档维护
-
-- 每次重大更新后同步更新相关文档
-- 保持文档结构清晰，使用统一的格式
-- 及时清理过时的文档内容
+- **DDD分层架构**: 清晰的领域驱动设计
+- **依赖注入**: 类型安全的泛型DI容器
+- **统一错误处理**: 4位错误码体系
+- **模板函数**: 安全的模板数据访问
+- **中间件分层**: 核心中间件 + 业务中间件
 
 ## 🚀 快速导航
 
-- **新手入门**: 查看 [README.md](../README.md)
-- **架构了解**: 查看 [internal-architecture-design.md](./internal-architecture-design.md)
-- **开发指南**: 查看各模块的README文档
-- **问题排查**: 查看 [error-handling-examples.md](./error-handling-examples.md)
+### 新手入门
+
+1. 查看 [系统架构概览](./architecture-overview.md) 了解整体设计
+2. 阅读 [系统启动过程详解](./system-startup-guide.md) 理解启动流程
+3. 学习 [依赖注入容器使用指南](./dependency-injection-guide.md) 掌握DI容器
+4. 参考 [中间件系统详解](./middleware-guide.md) 学习中间件使用
+
+### 开发人员
+
+1. **前端开发**: 查看 [模板函数使用指南](./template-functions-guide.md)
+2. **后端开发**: 查看 [依赖注入容器使用指南](./dependency-injection-guide.md) 和 [错误处理和响应服务示例](./error-handling-examples.md)
+3. **运维人员**: 查看 [日志系统增强功能指南](./logging-enhancement-guide.md)
+
+### 架构师
+
+1. 深入 [系统架构概览](./architecture-overview.md) 了解设计模式
+2. 查看 [存储架构设计](./storage-architecture-design.md) 了解扩展规划
+3. 研究各模块的详细实现
+
+## 📚 模块文档
+
+以下模块包含独立的README文档：
+
+- [DI容器文档](../internal/core/di/README.md) - 依赖注入容器详细文档
+- [配置系统文档](../internal/core/config/README.md) - 配置管理系统
+- [Kiko UI框架文档](../kiko/README.md) - 前端UI组件框架
+- [测试文档](../tests/README.md) - 测试框架和策略
+
+## 🔧 开发规范
+
+### 代码结构规范
+
+- **App层**: 只依赖Module和Core层
+- **Module层**: 采用Handler-Service-Repository模式
+- **Core层**: 提供基础设施服务
+- **Pkg层**: 纯函数，无依赖
+
+### 错误处理规范
+
+- 使用4位错误码体系
+- 通过AppError统一错误格式
+- 中间件统一错误响应处理
+
+### 模板开发规范
+
+- 用户信息通过模板函数访问
+- 业务数据通过`.Data`传递
+- 所有文本使用国际化函数
+
+### 中间件开发规范
+
+- 核心中间件在Core层
+- 业务中间件在Module层
+- 遵循执行顺序最佳实践
+
+## 📝 文档维护
+
+### 文档分类
+
+- **架构文档**: `xxx-overview.md`、`xxx-architecture-design.md`
+- **指南文档**: `xxx-guide.md`
+- **示例文档**: `xxx-examples.md`
+- **模块文档**: 各模块的`README.md`
+
+### 更新原则
+
+- 重大功能更新后同步更新文档
+- 保持文档结构清晰统一
+- 及时清理过时内容
+- 添加实际使用示例
+
+### 贡献文档
+
+1. 新功能开发时同步编写文档
+2. 发现文档问题及时反馈
+3. 遵循统一的文档格式规范
+4. 提供清晰的代码示例
+
+## 🔍 问题排查
+
+### 常见问题
+
+- **启动失败**: 查看 [系统启动过程详解](./system-startup-guide.md)
+- **错误处理**: 查看 [错误处理和响应服务示例](./error-handling-examples.md)
+- **模板问题**: 查看 [模板函数使用指南](./template-functions-guide.md)
+- **中间件问题**: 查看 [中间件系统详解](./middleware-guide.md)
+
+### 调试技巧
+
+- 查看结构化日志输出
+- 使用DI容器的调试功能
+- 检查中间件执行顺序
+- 验证错误码和响应格式
+
+## 🎯 项目特色
+
+### 高性能DI容器
+
+- 19.89纳秒解析速度
+- 零内存分配
+- 类型安全的泛型接口
+
+### 统一渲染服务
+
+- 整合response、view、template功能
+- 统一的页面数据结构
+- 丰富的模板函数支持
+
+### 分层中间件
+
+- 核心中间件处理系统级功能
+- 业务中间件处理业务逻辑
+- 清晰的职责分离
+
+### 结构化日志
+
+- slog库支持
+- 自动错误追踪
+- 性能监控集成
+
+---
+
+**文档版本**: v2.0  
+**最后更新**: 2024年  
+**维护团队**: iDiary开发团队
+
+如有任何文档问题或建议，请通过项目Issue或讨论区反馈。

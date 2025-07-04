@@ -58,7 +58,7 @@
 
     <section>
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8" id="daybook_list">
-            {{ $timeZone := .TimeZone }}
+            {{ $timeZone := .Data.TimeZone }}
             {{ range .Data.Diaries }}
             <div class="border h-72 text-center dt{{ .ThemeID }}">
                 <div class="h-full flex flex-col p-3">

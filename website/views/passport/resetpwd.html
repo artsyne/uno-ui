@@ -7,7 +7,7 @@
         <div class="col-md-6 py-5">
             <div class="card border-0 my-3">
                 <div class="card-body my-2">
-                    {{if .IsRightCode }}
+                    {{if .Data.IsRightCode }}
                     <form action="/resetpwd" method="post">
                         <div class="form-floating mb-5">
                             <input class="form-control" type="password" id="new_pwd" name="new_pwd"
@@ -23,8 +23,8 @@
                         <div class="text-center">
                             <button class="btn btn-outline-secondary w-25 btn-lg" type="submit">重置密码
                             </button>
-                            <input type="hidden" name="uid" value="{{.UID}}" />
-                            <input type="hidden" name="sign" value="{{.Sign}}" />
+                            <input type="hidden" name="uid" value="{{.Data.UID}}" />
+                            <input type="hidden" name="sign" value="{{.Data.Sign}}" />
                         </div>
                     </form>
                     {{else}}

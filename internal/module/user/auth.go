@@ -103,12 +103,12 @@ func (a *authHelper) IsAuthenticated(c *gin.Context) (bool, *AuthUser) {
 	}
 
 	// 类型断言，确保数据类型正确
-	userData, ok := userSession.(AuthUser)
+	userData, ok := userSession.(*AuthUser)
 	if !ok {
 		return false, nil
 	}
 
-	return true, &userData
+	return true, userData
 }
 
 // RequireGuest 中间件：要求用户处于游客状态（未登录）

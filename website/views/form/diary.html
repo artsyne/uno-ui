@@ -6,25 +6,25 @@
             <label class="form-title">日记本名称 *</label>
             <input type="text" class="form-control" id="title" name="title"
                 valid='[{"type":"required"},{"type":"limit","min":1,"max":100}]' placeholder="日记本名称" {{if
-                .Diary}}value="{{.Diary.Title}}" {{end}}>
+                .Data.Diary}}value="{{.Data.Diary.Title}}" {{end}}>
             <div class="invalid-feedback"></div>
         </div>
         <div class="block mb-4">
             <label class="form-title">日记本介绍</label>
             <textarea class="form-control" valid='[{"type":"limit","max":250,"show":true}]' id="remark" name="remark"
-                placeholder="日记本介绍" style="height: 80px">{{if .Diary}}{{.Diary.Remark}}{{end}}</textarea>
+                placeholder="日记本介绍" style="height: 80px">{{if .Data.Diary}}{{.Data.Diary.Remark}}{{end}}</textarea>
             <div class="invalid-feedback"></div>
         </div>
         <div class="block mb-4">
             <div class="flex items-center space-x-4 mb-2">
                 <div class="flex items-center">
-                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Diary (eq .Diary.ViewSetting
-                        2)}}checked{{else if not .Diary}}checked{{end}} name="view_setting" id="daybook_view_setting1"
+                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Data.Diary (eq .Data.Diary.ViewSetting
+                        2)}}checked{{else if not .Data.Diary}}checked{{end}} name="view_setting" id="daybook_view_setting1"
                         value="2">
                     <label class="text-sm" for="daybook_view_setting1">私人日记本</label>
                 </div>
                 <div class="flex items-center">
-                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Diary (eq .Diary.ViewSetting
+                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Data.Diary (eq .Data.Diary.ViewSetting
                         1)}}checked{{end}} name="view_setting" id="daybook_view_setting2" value="1">
                     <label class="text-sm" for="daybook_view_setting2">公开日记本</label>
                 </div>
@@ -34,14 +34,14 @@
         <div class="block mb-4">
             <div class="flex items-center space-x-4 mb-2">
                 <div class="flex items-center">
-                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Diary (eq
-                        .Diary.SocialSetting 2)}}checked{{else if not .Diary}}checked{{end}} name="social_setting"
+                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Data.Diary (eq
+                        .Data.Diary.SocialSetting 2)}}checked{{else if not .Data.Diary}}checked{{end}} name="social_setting"
                         id="daybook_social_setting1" value="2">
                     <label class="text-sm" for="daybook_social_setting1">关闭社交功能</label>
                 </div>
                 <div class="flex items-center">
-                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Diary (eq
-                        .Diary.SocialSetting 1)}}checked{{end}} name="social_setting" id="daybook_social_setting2"
+                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Data.Diary (eq
+                        .Data.Diary.SocialSetting 1)}}checked{{end}} name="social_setting" id="daybook_social_setting2"
                         value="1">
                     <label class="text-sm" for="daybook_social_setting2">开启社交功能</label>
                 </div>
@@ -52,8 +52,8 @@
             <label class="form-title mb-2 block">选择风格</label>
             <div class="d-theme flex flex-wrap gap-3 py-2">
                 {{$selectedTheme := 16}}
-                {{if .Diary}}
-                {{$selectedTheme = .Diary.ThemeID}}
+                {{if .Data.Diary}}
+                {{$selectedTheme = .Data.Diary.ThemeID}}
                 {{end}}
                 <div class="dtf16 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 16}}ring-2 ring-black{{else}}hover:ring-2 hover:ring-gray-400{{end}}"
                     theme="16"></div>
@@ -90,8 +90,8 @@
             </div>
         </div>
         <input type="hidden" name="action" id="action" />
-        <input type="hidden" name="diary_id" id="diary_id" value="{{if .Diary}}{{.Diary.DiaryID}}{{end}}" />
-        <input type="hidden" name="theme_id" id="theme_id" value="{{if .Diary}}{{.Diary.ThemeID}}{{else}}16{{end}}" />
+        <input type="hidden" name="diary_id" id="diary_id" value="{{if .Data.Diary}}{{.Data.Diary.DiaryID}}{{end}}" />
+        <input type="hidden" name="theme_id" id="theme_id" value="{{if .Data.Diary}}{{.Data.Diary.ThemeID}}{{else}}16{{end}}" />
     </form>
 </div>
 {{end}}

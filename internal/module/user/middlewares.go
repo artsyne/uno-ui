@@ -86,12 +86,12 @@ func SharedData() gin.HandlerFunc {
 	middleware := NewMiddleware()
 	return func(c *gin.Context) {
 		// 解析用户登录信息
-		userData := middleware.ParseUserFromCookie(c)
+		authUser := middleware.ParseUserFromCookie(c)
 
 		// 注入登录状态和用户数据到上下文
-		if userData != nil {
+		if authUser != nil {
 			c.Set("IsLogin", true)
-			c.Set("AuthUser", *userData) // 新的键名，供render服务使用
+			c.Set("AuthUser", authUser) 
 		} else {
 			c.Set("IsLogin", false)
 		}
