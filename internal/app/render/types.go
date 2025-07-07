@@ -30,6 +30,7 @@ type RenderContext struct {
 type PageData struct {
 	Title       string                 `json:"title"`
 	Description string                 `json:"description,omitempty"`
+	Keywords	string                 `json:"keywords,omitempty"` 
 	Data        map[string]interface{} `json:"data"`
 	Breadcrumb  []BreadcrumbItem       `json:"breadcrumb,omitempty"`
 	Context     *RenderContext         `json:"context,omitempty"`

@@ -160,8 +160,8 @@ func (h *handler) HandlePost(c *gin.Context) {
 	// 获取当前登录用户信息
 	loginUser := h.auth.MustGetCurrentUser(c)
 
-	// 解析表单数据到PostForm结构体
-	postForm := &PostForm{}
+	// 解析表单数据到PostRequest结构体
+	postForm := &PostRequest{}
 	if err := c.Bind(postForm); err != nil {
 		h.renderService.JSONError(c, errors.InvalidParamsErr())
 		return
@@ -186,7 +186,7 @@ func (h *handler) HandlePost(c *gin.Context) {
 //   - c: Gin上下文
 //   - postForm: 解析后的表单数据
 //   - user: 当前登录用户信息
-func (h *handler) handleCreatePost(c *gin.Context, postForm *PostForm, user *user.AuthUser) {
+func (h *handler) handleCreatePost(c *gin.Context, postForm *PostRequest, user *user.AuthUser) {
 	nowTime := pkg.GetNowTimeUnixMilli()
 
 	// 构建新日记对象，设置所有必要字段
@@ -235,7 +235,7 @@ func (h *handler) handleCreatePost(c *gin.Context, postForm *PostForm, user *use
 //   - c: Gin上下文
 //   - postForm: 解析后的表单数据
 //   - user: 当前登录用户信息
-func (h *handler) handleEditPost(c *gin.Context, postForm *PostForm, user *user.AuthUser) {
+func (h *handler) handleEditPost(c *gin.Context, postForm *PostRequest, user *user.AuthUser) {
 	// 获取要编辑的日记ID
 	postIdStr, _ := c.GetPostForm("post_id")
 	postId, err := h.parsePostID(postIdStr)

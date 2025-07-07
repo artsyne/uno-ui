@@ -393,7 +393,7 @@ func (h *handler) RenderUserProfile(c *gin.Context) {
 
 	// 组织业务数据
 	data.Data["IsOwner"] = isOwner
-	data.Data["User"] = pageUser //被访问用户
+	data.Data["User"] = pageUser              //被访问用户
 	data.Data["TimeZone"] = pageUser.TimeZone // 被访问用户时区
 	data.Data["Diaries"] = diaries
 	data.Data["DiariesNum"] = diariesNum

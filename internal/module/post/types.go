@@ -1,8 +1,8 @@
 package post
 
-// PostForm 日记表单对象
+// PostRequest 日记表单对象
 // 用于接收前端表单提交的数据
-type PostForm struct {
+type PostRequest struct {
 	PostID   int64  `form:"post_id" json:"post_id" `
 	DiaryID  int64  `form:"diary_id" json:"diary_id"`
 	Title    string `form:"info_title" json:"title"`
