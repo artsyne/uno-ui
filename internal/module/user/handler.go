@@ -498,7 +498,7 @@ func (h *handler) RenderUserSettings(c *gin.Context) {
 	data.Data["SupportLangs"] = config.GetSupportLangs()
 	data.Data["TimeZones"] = config.GetTimeZone()
 
-	h.renderService.HTML(c, "member/settings.html", data)
+	h.renderService.HTML(c, "member/settings", data)
 }
 
 // UpdateProfile 更新用户基本资料
