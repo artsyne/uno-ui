@@ -10,31 +10,39 @@ import (
 
 // RenderService 渲染服务实现（合并response、view、template功能）
 type RenderService struct {
-	config          *config.Config
-	contextBuilder  *ContextBuilder
-	pageBuilder     *PageBuilder
-	responseHandler *ResponseHandler
-	templateFuncs   *TemplateFuncs
-	i18nManager     *I18nManager
-	utils           *RenderUtils
+	config              *config.Config
+	contextBuilder      *ContextBuilder
+	pageBuilder         *PageBuilder
+	responseHandler     *ResponseHandler
+	templateFuncs       *TemplateFuncs
+	localizationManager *LocalizationManager
+	utils               *RenderUtils
 }
 
 // NewRenderService 创建RenderService实例
 func NewRenderService(cfg *config.Config) RenderServiceInterface {
+	// 初始化本地化管理器
+	localizationManager, err := NewLocalizationManager(cfg)
+	if err != nil {
+		slog.Error("初始化本地化管理器失败", "error", err)
+		// 如果初始化失败，使用一个空的管理器避免系统崩溃
+		localizationManager = &LocalizationManager{
+			cfg:      cfg,
+			messages: make(map[string]map[string]string),
+		}
+	}
+
 	service := &RenderService{
-		config:         cfg,
-		contextBuilder: NewContextBuilder(),
+		config:              cfg,
+		contextBuilder:      NewContextBuilder(localizationManager),
+		localizationManager: localizationManager,
 	}
 
 	// 初始化各个组件
-	service.i18nManager = NewI18nManager(service)
-	service.pageBuilder = NewPageBuilder(cfg, service.contextBuilder, service.i18nManager)
+	service.pageBuilder = NewPageBuilder(cfg, service.contextBuilder, service.localizationManager)
 	service.responseHandler = NewResponseHandler(service)
 	service.templateFuncs = NewTemplateFuncs(service)
 	service.utils = NewRenderUtils(service)
-
-	// 初始化国际化消息
-	service.initMessages()
 
 	return service
 }
@@ -56,7 +64,7 @@ func (s *RenderService) Message(key string, args ...interface{}) string {
 		}
 	}
 
-	return s.i18nManager.GetMessage(key, lang)
+	return s.localizationManager.GetMessage(key, lang)
 }
 
 // ===================== HTTP响应处理（原response功能） =====================
@@ -113,7 +121,7 @@ func (s *RenderService) IsUserLoggedIn(user interface{}) bool {
 // GetCurrentLanguage 获取当前有效语言
 func (s *RenderService) GetCurrentLanguage(c *gin.Context, user interface{}) string {
 	if renderUser, ok := user.(RenderUser); ok {
-		return s.i18nManager.GetUserLanguage(renderUser)
+		return s.localizationManager.GetUserLocale(renderUser)
 	}
 	return "en"
 }
@@ -121,77 +129,4 @@ func (s *RenderService) GetCurrentLanguage(c *gin.Context, user interface{}) str
 // FormatTime 格式化时间
 func (s *RenderService) FormatTime(timestamp int64, format string, timezone ...string) string {
 	return s.templateFuncs.FormatTime(timestamp, format, timezone...)
-}
-
-// ===================== 私有方法 =====================
-
-// initMessages 初始化国际化消息
-func (s *RenderService) initMessages() {
-	// 预加载常用语言
-	supportedLanguages := []string{"en", "zh-cn", "zh-tw"}
-	for _, lang := range supportedLanguages {
-		if err := s.i18nManager.LoadMessages(lang); err != nil {
-			slog.Error("Failed to load messages", "lang", lang, "error", err)
-		}
-	}
-
-	// 设置默认消息
-	s.setDefaultMessages()
-}
-
-// setDefaultMessages 设置默认消息
-func (s *RenderService) setDefaultMessages() {
-	defaultMessages := map[string]string{
-		"success":             "Success",
-		"error":               "Error",
-		"internal_error":      "Internal Server Error",
-		"validation_error":    "Validation Error",
-		"user_exists":         "User already exists",
-		"email_exists":        "Email already exists",
-		"user_pwd_error":      "Invalid username or password",
-		"user_not_exists":     "User does not exist",
-		"login_required":      "Please log in first",
-		"permission_denied":   "Permission denied",
-		"not_found":           "Page not found",
-		"diary.title":         "My Diary",
-		"diary.detail.title":  "Diary Details",
-		"user.settings":       "User Settings",
-		"user.profile":        "User Profile",
-		"user.login.title":    "User Login",
-		"user.register.title": "User Registration",
-		"user.findpwd.title":  "Find Password",
-		"user.resetpwd.title": "Reset Password",
-		"user.activate.title": "Activate Account",
-	}
-
-	for key, message := range defaultMessages {
-		s.i18nManager.SetMessage(key, message)
-	}
-}
-
-// ===================== MessageService 接口实现 =====================
-
-// GetMessage 获取国际化消息
-func (s *RenderService) GetMessage(key string, args ...interface{}) string {
-	return s.Message(key, args...)
-}
-
-// GetMessageWithLang 获取指定语言的消息
-func (s *RenderService) GetMessageWithLang(key, lang string, args ...interface{}) string {
-	return s.i18nManager.GetMessage(key, lang)
-}
-
-// HasMessage 检查是否存在消息
-func (s *RenderService) HasMessage(key string) bool {
-	return s.i18nManager.GetMessage(key, "en") != key
-}
-
-// SetMessage 设置消息
-func (s *RenderService) SetMessage(key, message string) {
-	s.i18nManager.SetMessage(key, message)
-}
-
-// LoadMessages 加载消息
-func (s *RenderService) LoadMessages(lang string) error {
-	return s.i18nManager.LoadMessages(lang)
 }

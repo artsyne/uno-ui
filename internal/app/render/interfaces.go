@@ -50,21 +50,3 @@ type RenderServiceInterface interface {
 	// FormatTime 格式化时间
 	FormatTime(timestamp int64, format string, timezone ...string) string
 }
-
-// MessageService 消息服务接口
-type MessageService interface {
-	// GetMessage 获取国际化消息
-	GetMessage(key string, args ...interface{}) string
-
-	// GetMessageWithLang 获取指定语言的消息
-	GetMessageWithLang(key, lang string, args ...interface{}) string
-
-	// HasMessage 检查是否存在消息
-	HasMessage(key string) bool
-
-	// SetMessage 设置消息
-	SetMessage(key, message string)
-
-	// LoadMessages 加载消息
-	LoadMessages(lang string) error
-}

@@ -3,11 +3,15 @@ package render
 import "github.com/gin-gonic/gin"
 
 // ContextBuilder 上下文构建器
-type ContextBuilder struct{}
+type ContextBuilder struct {
+	localizationManager *LocalizationManager
+}
 
 // NewContextBuilder 创建上下文构建器
-func NewContextBuilder() *ContextBuilder {
-	return &ContextBuilder{}
+func NewContextBuilder(localizationManager *LocalizationManager) *ContextBuilder {
+	return &ContextBuilder{
+		localizationManager: localizationManager,
+	}
 }
 
 // BuildContext 构建渲染上下文
@@ -30,6 +34,9 @@ func (cb *ContextBuilder) BuildContext(c *gin.Context) *RenderContext {
 			ctx.AuthUser = renderUser
 		}
 	}
+
+	// 智能检测当前语言
+	ctx.Lang = cb.localizationManager.GetLocaleFromContext(c)
 
 	return ctx
 }

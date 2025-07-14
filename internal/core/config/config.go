@@ -75,6 +75,8 @@ func InitConfig() error {
 		MaxDaybookLimit: requireInt(v, "MAX_DAYBOOK_LIMIT"),
 		HashSalt:        requireString(v, "HASH_SALT"),
 		StaticDir:       requireString(v, "STATIC_DIR"),
+		LocalesDir:      requireString(v, "LOCALES_DIR"),
+		DefaultLang:     requireString(v, "DEFAULT_LANG"),
 	}
 
 	// Database配置

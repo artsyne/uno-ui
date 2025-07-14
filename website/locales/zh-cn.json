@@ -1,0 +1,44 @@
+{
+  "common.home": "首页",
+  "common.settings": "设置",
+  "common.profile": "个人资料",
+  "common.logout": "退出登录",
+  "common.save": "保存",
+  "common.edit": "编辑",
+  "common.delete": "删除",
+  "common.confirm_delete": "您确定要删除这个项目吗？",
+  "common.default_page_desc": "iDiary - 记录生活，分享美好",
+  "common.welcome_back": "欢迎回来！",
+  "common.please_login": "请登录",
+  "common.loading": "加载中...",
+  "common.submit": "提交",
+  "common.cancel": "取消",
+
+  "nav.home": "首页",
+  "nav.diary": "日记",
+  "nav.settings": "设置",
+  "nav.profile": "个人资料",
+
+  "page.title.diary_list": "我的日记",
+  "page.title.diary_detail": "日记详情",
+  "page.title.user_settings": "用户设置",
+
+  "diary.title": "我的日记",
+  "diary.title.desc": "记录生活点滴，分享精彩瞬间",
+  "diary.detail.title": "日记详情",
+  "diary.detail.title.desc": "查看日记详细内容",
+  "user.settings": "用户设置",
+  "user.settings.desc": "管理个人账户和偏好设置",
+  "user.profile": "个人资料",
+  "user.profile.desc": "编辑个人资料信息",
+
+  "diary.new_entry": "写新日记",
+  "diary.weather": "天气",
+  "diary.mood": "心情",
+  "diary.content_placeholder": "{{username}}，今天有什么新鲜事？",
+
+  "greeting.message": "你好，{{username}}！欢迎使用 iDiary。",
+
+  "error.not_found": "抱歉，您要查找的页面不存在。",
+  "error.internal_server_error": "服务器发生未知错误，请稍后重试。"
+}

@@ -10,34 +10,39 @@ import (
 
 // PageBuilder 页面构建器
 type PageBuilder struct {
-	config         *config.Config
-	contextBuilder *ContextBuilder
-	messageService MessageService
+	config              *config.Config
+	contextBuilder      *ContextBuilder
+	localizationManager *LocalizationManager
 }
 
 // NewPageBuilder 创建页面构建器
-func NewPageBuilder(cfg *config.Config, contextBuilder *ContextBuilder, messageService MessageService) *PageBuilder {
+func NewPageBuilder(cfg *config.Config, contextBuilder *ContextBuilder, localizationManager *LocalizationManager) *PageBuilder {
 	return &PageBuilder{
-		config:         cfg,
-		contextBuilder: contextBuilder,
-		messageService: messageService,
+		config:              cfg,
+		contextBuilder:      contextBuilder,
+		localizationManager: localizationManager,
 	}
 }
 
 // BuildPageData 构建页面数据
 func (pb *PageBuilder) BuildPageData(c *gin.Context, titleKey string) *PageData {
 	return &PageData{
-		Title:       pb.generatePageTitle(titleKey),
-		Description: pb.generateDescription(titleKey),
-		Data:        make(map[string]interface{}),
-		Breadcrumb:  pb.generateBreadcrumb(c),
-		Context:     pb.contextBuilder.BuildContext(c),
+		Title:               pb.generatePageTitle(c, titleKey),
+		Description:         pb.generateDescription(c, titleKey),
+		Data:                make(map[string]interface{}),
+		Breadcrumb:          pb.generateBreadcrumb(c),
+		Context:             pb.contextBuilder.BuildContext(c),
+		localizationManager: pb.localizationManager, // 注入本地化管理器
 	}
 }
 
 // generatePageTitle 生成页面标题
-func (pb *PageBuilder) generatePageTitle(titleKey string) string {
-	title := pb.messageService.GetMessage(titleKey, "en")
+func (pb *PageBuilder) generatePageTitle(c *gin.Context, titleKey string) string {
+	// 使用智能语言检测
+	locale := pb.localizationManager.GetLocaleFromContext(c)
+
+	// 从 localization 获取标题
+	title := pb.localizationManager.GetMessage(titleKey, locale)
 	siteName := "iDiary"
 
 	if pb.config != nil {
@@ -56,19 +61,20 @@ func (pb *PageBuilder) generatePageTitle(titleKey string) string {
 }
 
 // generateDescription 生成页面描述
-func (pb *PageBuilder) generateDescription(titleKey string) string {
-	descriptions := map[string]string{
-		"diary.title":        "记录生活点滴，分享精彩瞬间",
-		"diary.detail.title": "查看日记详细内容",
-		"user.settings":      "管理个人账户和偏好设置",
-		"user.profile":       "编辑个人资料信息",
+func (pb *PageBuilder) generateDescription(c *gin.Context, titleKey string) string {
+	// 使用智能语言检测
+	locale := pb.localizationManager.GetLocaleFromContext(c)
+
+	// 从 localization 获取描述（使用 .desc 后缀）
+	descKey := titleKey + ".desc"
+	desc := pb.localizationManager.GetMessage(descKey, locale)
+
+	// 如果没有找到对应的描述，使用通用默认描述
+	if desc == descKey {
+		return pb.localizationManager.GetMessage("common.default_page_desc", locale)
 	}
 
-	if desc, exists := descriptions[titleKey]; exists {
-		return desc
-	}
-
-	return "iDiary - 记录生活，分享美好"
+	return desc
 }
 
 // generateBreadcrumb 生成面包屑导航
