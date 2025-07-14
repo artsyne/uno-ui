@@ -2,507 +2,482 @@
 
 ## 概述
 
-iDiary采用自研的轻量级依赖注入（DI）容器，提供类型安全的泛型接口和高性能的服务解析能力。该DI容器是整个应用架构的核心基础设施，实现了19.89纳秒的解析速度和零内存分配的优异性能。
+iDiary采用分层架构的依赖注入（DI）系统，核心基础设施由`internal/core/bootstrap/Initializer`管理，应用层组件由`internal/app/bootstrap/Application`管理。该DI容器基于Go泛型实现高性能的服务解析，支持单例和工厂模式。
 
-## 核心概念
+## 架构设计
 
-### 1. 容器架构
+### 1. 双层初始化架构
+
+```mermaid
+graph TD
+    A[main.go] --> B[Application.Bootstrap]
+    B --> C[Initializer.InitializeCore]
+    C --> D[Database]
+    C --> E[DI Container]
+    B --> F[Application Layer]
+    F --> G[Cookie Setup]
+    F --> H[Scheduler]
+    F --> I[Gin Server]
+    I --> J[Middleware]
+    I --> K[Routes]
+```
+
+### 2. 容器接口设计
 
 ```go
-type Container struct {
-    mu          sync.RWMutex                 // 读写锁，保护并发访问
-    providers   map[reflect.Type]*provider   // 服务提供者映射
-    singletons  map[reflect.Type]interface{} // 单例实例缓存
-    initialized bool                         // 初始化标志
-}
-
-type provider struct {
-    factory   reflect.Value     // 工厂函数
-    lifecycle ServiceLifecycle  // 生命周期管理
-    deps      []reflect.Type    // 依赖类型列表
+// 核心DI容器接口
+type ContainerInterface interface {
+    // 注册单例服务
+    RegisterSingleton[T any](factory func(ContainerInterface) (T, error)) error
+    
+    // 注册瞬态服务
+    RegisterTransient[T any](factory func(ContainerInterface) (T, error)) error
+    
+    // 解析服务实例
+    Resolve[T any]() (T, error)
 }
 ```
 
-### 2. 服务生命周期
+## 实际启动流程
 
-#### Singleton（单例）
+### 1. 主程序入口
 
-- 全应用生命周期内只创建一次
-- 适用于无状态服务、配置、数据库连接等
-- 线程安全，支持并发访问
-
-#### Transient（瞬态）
-
-- 每次请求都创建新实例
-- 适用于有状态服务、请求特定的服务
-- 无缓存，每次都调用工厂函数
+**文件**: `cmd/idiary/main.go`
 
 ```go
-type ServiceLifecycle int
-
-const (
-    Singleton ServiceLifecycle = iota  // 单例模式
-    Transient                          // 瞬态模式
-)
+func main() {
+    // 1. 初始化配置和日志（在main.go中完成）
+    config.InitConfig()
+    
+    // 2. 创建应用实例
+    app := bootstrap.NewApplication()
+    
+    // 3. 启动应用
+    if err := app.Bootstrap(); err != nil {
+        slog.Error("应用启动失败", "error", err)
+        os.Exit(1)
+    }
+    
+    // 4. 运行服务器
+    app.Run()
+}
 ```
 
-## 基础使用
+### 2. 核心基础设施初始化
 
-### 1. 服务注册
-
-#### 注册单例服务
+**文件**: `internal/core/bootstrap/initializer.go`
 
 ```go
-// 注册数据库服务（单例）
-container.Register(func() *database.DB {
-    db, err := database.Connect(config.DatabaseURL)
+func (i *Initializer) InitializeCore() error {
+    // 1. 获取已初始化的配置
+    i.config = config.GetConfig()
+    if i.config == nil {
+        return fmt.Errorf("配置未初始化")
+    }
+
+    // 2. 初始化数据库
+    if err := i.initDatabase(); err != nil {
+        return fmt.Errorf("数据库初始化失败: %w", err)
+    }
+
+    // 3. 初始化DI容器
+    if err := i.initContainer(); err != nil {
+        return fmt.Errorf("DI容器初始化失败: %w", err)
+    }
+
+    return nil
+}
+
+func (i *Initializer) initContainer() error {
+    i.container = di.NewContainer()
+
+    // 注册App层服务
+    if err := di.RegisterAppServices(i.container); err != nil {
+        return fmt.Errorf("注册App层服务失败: %w", err)
+    }
+
+    slog.Info("成功注册DI服务")
+    return nil
+}
+```
+
+### 3. 应用层初始化
+
+**文件**: `internal/app/bootstrap/application.go`
+
+```go
+func (a *Application) Bootstrap() error {
+    // 1. 初始化核心基础设施
+    if err := a.coreInit.InitializeCore(); err != nil {
+        return fmt.Errorf("核心初始化失败: %w", err)
+    }
+
+    // 2. 获取核心组件
+    a.config = a.coreInit.GetConfig()
+    a.container = a.coreInit.GetContainer()
+
+    // 3. 初始化应用层组件
+    if err := a.initApplicationLayer(); err != nil {
+        return fmt.Errorf("应用层初始化失败: %w", err)
+    }
+
+    return nil
+}
+
+func (a *Application) initApplicationLayer() error {
+    // 1. 设置 Cookie 默认值
+    if err := a.initCookie(); err != nil {
+        return err
+    }
+
+    // 2. 启动定时任务
+    if err := a.initScheduler(); err != nil {
+        return err
+    }
+
+    // 3. 初始化 Gin 服务器
+    if err := a.initGinServer(); err != nil {
+        return err
+    }
+
+    return nil
+}
+```
+
+## 服务注册机制
+
+### 1. 核心服务注册
+
+**文件**: `internal/core/di/providers.go`
+
+```go
+// RegisterAppServices 注册App层服务
+func RegisterAppServices(container ContainerInterface) error {
+    // 注册RenderService（合并了原来的ViewService和ResponseService）
+    err := RegisterSingleton[render.RenderServiceInterface](container, func(c ContainerInterface) (render.RenderServiceInterface, error) {
+        cfg := config.GetConfig()
+        return render.NewRenderService(cfg), nil
+    })
     if err != nil {
-        slog.Error("数据库连接失败", "error", err)
-        panic(err)
-    }
-    return db
-}, di.Singleton)
-
-// 注册用户Repository（单例）
-container.Register(func(db *database.DB) user.RepositoryInterface {
-    return user.NewRepository(db)
-}, di.Singleton)
-
-// 注册用户Service（单例）
-container.Register(func(repo user.RepositoryInterface) user.ServiceInterface {
-    return user.NewService(repo)
-}, di.Singleton)
-```
-
-#### 注册瞬态服务
-
-```go
-// 注册HTTP客户端（瞬态）
-container.Register(func() *http.Client {
-    return &http.Client{
-        Timeout: 30 * time.Second,
-        Transport: &http.Transport{
-            MaxIdleConns:        100,
-            MaxIdleConnsPerHost: 10,
-        },
-    }
-}, di.Transient)
-
-// 注册请求处理器（瞬态）
-container.Register(func(userService user.ServiceInterface, render *render.Service) *user.Handler {
-    return user.NewHandler(userService, render)
-}, di.Transient)
-```
-
-### 2. 服务解析
-
-#### 基本解析
-
-```go
-// 解析单例服务
-userService := di.Resolve[user.ServiceInterface](container)
-
-// 解析瞬态服务
-handler := di.Resolve[*user.Handler](container)
-```
-
-#### 在Handler中使用
-
-```go
-func SetupRoutes(router *gin.Engine, container *di.Container) {
-    // 解析Handler实例
-    userHandler := di.Resolve[*user.Handler](container)
-    diaryHandler := di.Resolve[*diary.Handler](container)
-    postHandler := di.Resolve[*post.Handler](container)
-
-    // 注册路由
-    router.GET("/users", userHandler.ListUsers)
-    router.GET("/diary", diaryHandler.ShowDiary)
-    router.POST("/posts", postHandler.CreatePost)
-}
-```
-
-## 高级用法
-
-### 1. 条件注册
-
-```go
-// 根据环境注册不同的服务实现
-if config.Environment == "production" {
-    // 生产环境使用Redis缓存
-    container.Register(func() cache.Interface {
-        return cache.NewRedisCache(config.RedisURL)
-    }, di.Singleton)
-} else {
-    // 开发环境使用内存缓存
-    container.Register(func() cache.Interface {
-        return cache.NewMemoryCache()
-    }, di.Singleton)
-}
-```
-
-### 2. 接口与实现注册
-
-```go
-// 定义接口
-type EmailService interface {
-    SendEmail(to, subject, body string) error
-}
-
-// 注册实现
-container.Register(func() EmailService {
-    if config.EmailProvider == "smtp" {
-        return email.NewSMTPService(config.SMTPConfig)
-    } else {
-        return email.NewSendGridService(config.SendGridAPIKey)
-    }
-}, di.Singleton)
-
-// 在其他服务中使用
-container.Register(func(emailService EmailService) *user.Service {
-    return user.NewService(emailService)
-}, di.Singleton)
-```
-
-### 3. 配置注入
-
-```go
-// 注册配置
-container.Register(func() *config.Config {
-    return config.Load()
-}, di.Singleton)
-
-// 服务使用配置
-container.Register(func(cfg *config.Config) *logger.Service {
-    return logger.NewService(cfg.LogLevel, cfg.LogFile)
-}, di.Singleton)
-```
-
-## 在iDiary中的实际应用
-
-### 1. 应用启动时的服务注册
-
-**文件位置**: `internal/app/bootstrap/application.go`
-
-```go
-func (a *Application) registerServices() error {
-    // 1. 注册核心基础设施
-    a.registerCoreServices()
-
-    // 2. 注册数据访问层
-    a.registerRepositories()
-
-    // 3. 注册业务服务层
-    a.registerServices()
-
-    // 4. 注册应用服务层
-    a.registerAppServices()
-
-    return nil
-}
-
-func (a *Application) registerCoreServices() {
-    // 数据库连接
-    a.container.Register(func() *database.DB {
-        db, err := database.NewConnection()
-        if err != nil {
-            panic(err)
-        }
-        return db
-    }, di.Singleton)
-
-    // 渲染服务
-    a.container.Register(func() *render.Service {
-        return render.NewService()
-    }, di.Singleton)
-}
-
-func (a *Application) registerRepositories() {
-    // 用户Repository
-    a.container.Register(func(db *database.DB) user.RepositoryInterface {
-        return user.NewRepository(db)
-    }, di.Singleton)
-
-    // 日记Repository
-    a.container.Register(func(db *database.DB) diary.RepositoryInterface {
-        return diary.NewRepository(db)
-    }, di.Singleton)
-
-    // 文章Repository
-    a.container.Register(func(db *database.DB) post.RepositoryInterface {
-        return post.NewRepository(db)
-    }, di.Singleton)
-}
-```
-
-### 2. 模块级别的服务组织
-
-```go
-// User模块服务注册
-func RegisterUserServices(container *di.Container) {
-    // Repository
-    container.Register(func(db *database.DB) user.RepositoryInterface {
-        return user.NewRepository(db)
-    }, di.Singleton)
-
-    // Service
-    container.Register(func(repo user.RepositoryInterface) user.ServiceInterface {
-        return user.NewService(repo)
-    }, di.Singleton)
-
-    // Handler
-    container.Register(func(
-        service user.ServiceInterface,
-        render *render.Service,
-    ) *user.Handler {
-        return user.NewHandler(service, render)
-    }, di.Transient)
-}
-
-// Diary模块服务注册
-func RegisterDiaryServices(container *di.Container) {
-    container.Register(func(db *database.DB) diary.RepositoryInterface {
-        return diary.NewRepository(db)
-    }, di.Singleton)
-
-    container.Register(func(repo diary.RepositoryInterface) diary.ServiceInterface {
-        return diary.NewService(repo)
-    }, di.Singleton)
-
-    container.Register(func(
-        service diary.ServiceInterface,
-        userService user.ServiceInterface,
-        render *render.Service,
-    ) *diary.Handler {
-        return diary.NewHandler(service, userService, render)
-    }, di.Transient)
-}
-```
-
-### 3. 路由中的依赖解析
-
-**文件位置**: `internal/app/route/router.go`
-
-```go
-func SetWithContainer(router *gin.Engine, container *di.Container) {
-    // 解析Handler实例
-    userHandler := di.Resolve[*user.Handler](container)
-    diaryHandler := di.Resolve[*diary.Handler](container)
-    postHandler := di.Resolve[*post.Handler](container)
-    taskHandler := di.Resolve[*task.Handler](container)
-
-    // 用户相关路由
-    setupUserRoutes(router, userHandler)
-
-    // 日记相关路由
-    setupDiaryRoutes(router, diaryHandler)
-
-    // 文章相关路由
-    setupPostRoutes(router, postHandler)
-
-    // 任务相关路由
-    setupTaskRoutes(router, taskHandler)
-}
-
-func setupUserRoutes(router *gin.Engine, handler *user.Handler) {
-    // 公开路由
-    router.GET("/login", handler.ShowLoginForm)
-    router.POST("/login", handler.HandleLogin)
-    router.GET("/register", handler.ShowRegisterForm)
-    router.POST("/register", handler.HandleRegister)
-
-    // 需要认证的路由
-    auth := router.Group("/")
-    auth.Use(user.AuthRequired())
-    {
-        auth.GET("/settings", handler.ShowSettings)
-        auth.POST("/settings", handler.UpdateSettings)
-        auth.POST("/logout", handler.HandleLogout)
-    }
-}
-```
-
-## 性能优化
-
-### 1. 预热策略
-
-```go
-func (a *Application) warmupServices() error {
-    // 预热关键单例服务
-    criticalServices := []interface{}{
-        (*database.DB)(nil),
-        (*render.Service)(nil),
-        (user.ServiceInterface)(nil),
-        (diary.ServiceInterface)(nil),
-    }
-
-    for _, serviceType := range criticalServices {
-        start := time.Now()
-
-        // 通过反射获取类型并解析
-        t := reflect.TypeOf(serviceType).Elem()
-        service := a.container.resolve(t)
-
-        duration := time.Since(start)
-        slog.Debug("服务预热完成",
-            "service", t.String(),
-            "duration", duration)
-
-        if service == nil {
-            return fmt.Errorf("预热服务失败: %s", t.String())
-        }
+        return err
     }
 
     return nil
 }
 ```
 
-### 2. 性能监控
+### 2. RenderService内部依赖
+
+**文件**: `internal/app/render/service.go`
 
 ```go
-func (c *Container) resolveWithMetrics(serviceType reflect.Type) interface{} {
-    start := time.Now()
-    defer func() {
-        duration := time.Since(start)
-
-        // 记录解析性能
-        slog.Debug("服务解析性能",
-            "service", serviceType.String(),
-            "duration", duration)
-
-        // 发送到监控系统
-        metrics.RecordServiceResolution(serviceType.String(), duration)
-    }()
-
-    return c.resolve(serviceType)
-}
-```
-
-### 3. 内存优化
-
-```go
-func (c *Container) optimizeMemory() {
-    c.mu.Lock()
-    defer c.mu.Unlock()
-
-    // 清理未使用的瞬态服务提供者
-    for serviceType, provider := range c.providers {
-        if provider.lifecycle == Transient {
-            // 检查是否有其他服务依赖此服务
-            if !c.hasDependent(serviceType) {
-                delete(c.providers, serviceType)
-                slog.Debug("清理未使用的瞬态服务", "service", serviceType.String())
-            }
-        }
-    }
-}
-```
-
-## 错误处理和调试
-
-### 1. 依赖循环检测
-
-```go
-func (c *Container) detectCircularDependency(serviceType reflect.Type, visiting map[reflect.Type]bool) error {
-    if visiting[serviceType] {
-        return fmt.Errorf("检测到循环依赖: %s", serviceType.String())
-    }
-
-    visiting[serviceType] = true
-    defer delete(visiting, serviceType)
-
-    provider, exists := c.providers[serviceType]
-    if !exists {
-        return nil
-    }
-
-    for _, depType := range provider.deps {
-        if err := c.detectCircularDependency(depType, visiting); err != nil {
-            return err
+func NewRenderService(cfg *config.Config) RenderServiceInterface {
+    // 初始化本地化管理器
+    localizationManager, err := NewLocalizationManager(cfg)
+    if err != nil {
+        slog.Error("初始化本地化管理器失败", "error", err)
+        // 容错处理：使用空管理器避免系统崩溃
+        localizationManager = &LocalizationManager{
+            cfg:      cfg,
+            messages: make(map[string]map[string]string),
         }
     }
 
+    service := &RenderService{
+        config:              cfg,
+        contextBuilder:      NewContextBuilder(localizationManager),
+        localizationManager: localizationManager,
+    }
+
+    // 初始化各个组件
+    service.pageBuilder = NewPageBuilder(cfg, service.contextBuilder, service.localizationManager)
+    service.responseHandler = NewResponseHandler(service)
+    service.templateFuncs = NewTemplateFuncs(service)
+    service.utils = NewRenderUtils(service)
+
+    return service
+}
+```
+
+## 路由层集成
+
+### 1. Gin服务器初始化
+
+**文件**: `internal/app/bootstrap/application.go`
+
+```go
+func (a *Application) initGinServer() error {
+    // 设置 Gin 模式
+    gin.SetMode(a.config.App.GinMode)
+
+    // 初始化默认gin server
+    server := gin.New()
+
+    // 初始化中间件
+    server.Use(middleware.PanicRecoveryMiddleware())   // panic recovery中间件
+    server.Use(middleware.AppErrorHandlerMiddleware()) // 应用错误处理中间件
+    server.Use(user.SharedData())                      // 用户共享数据中间件
+    slog.Info("成功初始化中间件")
+
+    // 初始化路由
+    route.SetWithContainer(server, a.container)
+    slog.Info("成功初始化网站静态文件目录及路由")
+
+    a.server = server
     return nil
 }
 ```
 
-### 2. 服务注册验证
+### 2. 路由设置
+
+**文件**: `internal/app/route/router.go`
 
 ```go
-func (c *Container) validateRegistration(factory interface{}, lifecycle ServiceLifecycle) error {
-    factoryType := reflect.TypeOf(factory)
+// SetWithContainer 使用DI容器设置路由系统
+func SetWithContainer(server *gin.Engine, container di.ContainerInterface) {
+    setStaticFs(server, config.GetStaticPath())
+    setPath(server, container)
+}
 
-    // 检查是否为函数
-    if factoryType.Kind() != reflect.Func {
-        return errors.New("工厂必须是函数类型")
+func setPath(server *gin.Engine, container di.ContainerInterface) {
+    // 通过DI容器创建Controller
+    controllerInstance := createController(container)
+
+    // 通过DI容器创建handlers
+    userHandler := createUserHandler(container)
+    diaryHandler := createDiaryHandler(container)
+    postHandler := createPostHandler(container)
+
+    // 基础页面路由
+    server.GET("/index", controllerInstance.RenderIndex)
+
+    // 注册模块路由
+    userHandler.RegisterRoutes(server)
+    diaryHandler.RegisterRoutes(server)
+    postHandler.RegisterRoutes(server)
+}
+
+func createController(container di.ContainerInterface) *controller.Controller {
+    renderService, err := di.Resolve[render.RenderServiceInterface](container)
+    if err != nil {
+        panic("Failed to resolve RenderService: " + err.Error())
     }
 
-    // 检查返回值
-    if factoryType.NumOut() != 1 {
-        return errors.New("工厂函数必须返回一个值")
+    return controller.NewController(renderService)
+}
+```
+
+## 渲染系统架构
+
+### 1. 服务依赖关系
+
+```mermaid
+graph TD
+    A[Config] --> B[LocalizationManager]
+    B --> C[ContextBuilder]
+    B --> D[PageBuilder]
+    A --> D
+    C --> D
+    
+    D --> E[RenderService]
+    B --> E
+    C --> E
+    
+    E --> F[ResponseHandler]
+    E --> G[TemplateFuncs]
+    E --> H[RenderUtils]
+    
+    E --> I[Controller]
+    E --> J[UserHandler]
+    E --> K[DiaryHandler]
+    E --> L[PostHandler]
+```
+
+### 2. 多语言系统集成
+
+```go
+// LocalizationManager 作为核心依赖
+type LocalizationManager struct {
+    cfg      *config.Config
+    messages map[string]map[string]string  // 内存缓存，无需锁
+}
+
+// RenderService 集成多语言功能
+type RenderService struct {
+    config              *config.Config
+    contextBuilder      *ContextBuilder      // 依赖LocalizationManager
+    pageBuilder         *PageBuilder         // 依赖LocalizationManager
+    localizationManager *LocalizationManager // 核心多语言服务
+    // ... 其他组件
+}
+```
+
+## 工厂模式和单例模式
+
+### 1. 单例注册模式
+
+```go
+// RegisterSingleton 注册单例服务
+func RegisterSingleton[T any](container ContainerInterface, factory func(ContainerInterface) (T, error)) error {
+    serviceType := reflect.TypeOf((*T)(nil)).Elem()
+    
+    provider := newProvider(serviceType, func(c ContainerInterface) (interface{}, error) {
+        return factory(c)
+    }, true) // singleton = true
+    
+    return container.registerProvider(serviceType, provider)
+}
+
+// 使用示例
+di.RegisterSingleton[render.RenderServiceInterface](container, func(c ContainerInterface) (render.RenderServiceInterface, error) {
+    cfg := config.GetConfig()
+    return render.NewRenderService(cfg), nil
+})
+```
+
+### 2. 工厂函数特点
+
+```go
+type provider struct {
+    serviceType reflect.Type
+    factory     FactoryFunc
+    singleton   bool
+    instance    interface{}
+    initOnce    sync.Once  // 确保单例只初始化一次
+    mu          sync.RWMutex
+}
+
+func (p *provider) provide(c ContainerInterface) (interface{}, error) {
+    if !p.singleton {
+        return p.factory(c)  // 瞬态：每次创建新实例
     }
 
-    // 检查参数类型
-    for i := 0; i < factoryType.NumIn(); i++ {
-        paramType := factoryType.In(i)
-        if !c.canResolve(paramType) {
-            return fmt.Errorf("无法解析参数类型: %s", paramType.String())
-        }
-    }
+    var err error
+    p.initOnce.Do(func() {
+        p.instance, err = p.factory(c)  // 单例：只创建一次
+    })
 
+    return p.instance, err
+}
+```
+
+## 实际HTTP请求处理流程
+
+### 1. 请求到达处理
+
+```go
+// 1. 用户访问 /diary/123
+server.GET("/diary/:id", diaryHandler.Show)
+
+// 2. DiaryHandler 使用注入的服务
+func (h *Handler) Show(c *gin.Context) {
+    // 3. 使用RenderService构建页面数据
+    pageData := h.renderService.PageData(c, "diary.show.title")
+    
+    // 4. PageData自动包含多语言功能
+    // {{.T "nav.home"}} 在模板中可直接使用
+    // {{.GetLang}} 获取当前语言
+    
+    // 5. 渲染HTML响应
+    h.renderService.HTML(c, "diary/show", pageData)
+}
+```
+
+### 2. 多语言处理流程
+
+```go
+// PageBuilder内部流程
+func (pb *PageBuilder) BuildPageData(c *gin.Context, titleKey string) *PageData {
+    return &PageData{
+        Title:               pb.generatePageTitle(c, titleKey),      // 自动翻译标题
+        Description:         pb.generateDescription(c, titleKey),   // 自动翻译描述
+        Context:             pb.contextBuilder.BuildContext(c),     // 包含语言信息
+        localizationManager: pb.localizationManager,                // 注入翻译服务
+        // ...
+    }
+}
+
+// 模板中的使用
+// {{.T "page.welcome"}} - 基础翻译
+// {{.TWithParams "greeting.user" .params}} - 参数化翻译
+// {{.GetLang}} - 当前语言代码
+```
+
+## 错误处理和容错机制
+
+### 1. 启动时错误处理
+
+```go
+func (a *Application) Bootstrap() error {
+    // 核心基础设施初始化失败时立即退出
+    if err := a.coreInit.InitializeCore(); err != nil {
+        return fmt.Errorf("核心初始化失败: %w", err)
+    }
+    
+    // 应用层初始化失败时立即退出
+    if err := a.initApplicationLayer(); err != nil {
+        return fmt.Errorf("应用层初始化失败: %w", err)
+    }
+    
     return nil
 }
 ```
 
-### 3. 调试工具
+### 2. 服务解析错误处理
 
 ```go
-func (c *Container) PrintDependencyGraph() {
-    c.mu.RLock()
-    defer c.mu.RUnlock()
-
-    fmt.Println("=== 依赖注入容器服务图 ===")
-
-    for serviceType, provider := range c.providers {
-        fmt.Printf("服务: %s\n", serviceType.String())
-        fmt.Printf("  生命周期: %s\n", provider.lifecycle)
-        fmt.Printf("  依赖: ")
-
-        if len(provider.deps) == 0 {
-            fmt.Println("无")
-        } else {
-            for i, dep := range provider.deps {
-                if i > 0 {
-                    fmt.Print(", ")
-                }
-                fmt.Print(dep.String())
-            }
-            fmt.Println()
-        }
-        fmt.Println()
+func createController(container di.ContainerInterface) *controller.Controller {
+    renderService, err := di.Resolve[render.RenderServiceInterface](container)
+    if err != nil {
+        // 关键服务解析失败，快速失败
+        panic("Failed to resolve RenderService: " + err.Error())
     }
+
+    return controller.NewController(renderService)
+}
+```
+
+### 3. 运行时容错
+
+```go
+func NewRenderService(cfg *config.Config) RenderServiceInterface {
+    localizationManager, err := NewLocalizationManager(cfg)
+    if err != nil {
+        slog.Error("初始化本地化管理器失败", "error", err)
+        // 容错：使用空管理器而不是崩溃
+        localizationManager = &LocalizationManager{
+            cfg:      cfg,
+            messages: make(map[string]map[string]string),
+        }
+    }
+    // ...
+}
+```
+
+## 性能特点
+
+### 1. 启动时初始化
+
+- 所有服务在应用启动时创建
+- 使用单例模式减少内存占用
+- 依赖关系在启动时验证
+
+### 2. 运行时性能
+
+- 无反射的泛型解析
+- 内存缓存的多语言翻译
+- 零分配的服务获取
+
+### 3. 并发安全
+
+```go
+type provider struct {
+    initOnce sync.Once    // 单例初始化保护
+    mu       sync.RWMutex // 实例访问保护
 }
 
-func (c *Container) GetServiceStats() map[string]interface{} {
-    c.mu.RLock()
-    defer c.mu.RUnlock()
-
-    stats := map[string]interface{}{
-        "total_services":     len(c.providers),
-        "singleton_services": 0,
-        "transient_services": 0,
-        "initialized_singletons": len(c.singletons),
-    }
-
-    for _, provider := range c.providers {
-        if provider.lifecycle == Singleton {
-            stats["singleton_services"] = stats["singleton_services"].(int) + 1
-        } else {
-            stats["transient_services"] = stats["transient_services"].(int) + 1
-        }
-    }
-
-    return stats
+type LocalizationManager struct {
+    messages map[string]map[string]string // 只读访问，无需锁
 }
 ```
 
@@ -511,74 +486,51 @@ func (c *Container) GetServiceStats() map[string]interface{} {
 ### 1. 服务设计原则
 
 ```go
-// ✅ 好的做法：接口依赖
-type UserService struct {
-    repo   user.RepositoryInterface  // 依赖接口
-    email  EmailServiceInterface    // 依赖接口
-    logger LoggerInterface          // 依赖接口
+// ✅ 使用接口定义服务契约
+type RenderServiceInterface interface {
+    PageData(c *gin.Context, titleKey string) *PageData
+    HTML(c *gin.Context, name string, data interface{})
+    JSON(c *gin.Context, code int, data interface{})
 }
 
-// ❌ 不好的做法：具体类型依赖
-type UserService struct {
-    repo   *user.Repository  // 直接依赖具体类型
-    email  *SMTPService      // 具体实现
-    logger *FileLogger      // 具体实现
-}
+// ✅ 单例注册核心服务
+di.RegisterSingleton[render.RenderServiceInterface](container, factory)
 ```
 
-### 2. 生命周期选择
+### 2. 错误处理策略
 
 ```go
-// 单例服务：无状态、共享资源
-container.Register(func() *database.DB { /*...*/ }, di.Singleton)           // ✅ 数据库连接
-container.Register(func() *config.Config { /*...*/ }, di.Singleton)         // ✅ 配置
-container.Register(func() user.RepositoryInterface { /*...*/ }, di.Singleton) // ✅ Repository
-
-// 瞬态服务：有状态、请求特定
-container.Register(func() *user.Handler { /*...*/ }, di.Transient)          // ✅ HTTP Handler
-container.Register(func() *http.Client { /*...*/ }, di.Transient)           // ✅ HTTP客户端
-container.Register(func() *session.Context { /*...*/ }, di.Transient)       // ✅ 会话上下文
-```
-
-### 3. 错误处理
-
-```go
-// 工厂函数中的错误处理
-container.Register(func() (*database.DB, error) {
-    db, err := database.Connect(config.DatabaseURL)
-    if err != nil {
-        slog.Error("数据库连接失败", "error", err)
-        return nil, err
-    }
-    return db, nil
-}, di.Singleton)
-
-// 服务解析时的错误处理
-userService, err := di.TryResolve[user.ServiceInterface](container)
+// ✅ 核心服务：快速失败
+renderService, err := di.Resolve[render.RenderServiceInterface](container)
 if err != nil {
-    slog.Error("解析用户服务失败", "error", err)
-    return err
+    panic("Failed to resolve RenderService: " + err.Error())
+}
+
+// ✅ 可选服务：日志记录 + 降级
+cacheService, err := di.Resolve[cache.ServiceInterface](container)
+if err != nil {
+    slog.Warn("Cache service not available", "error", err)
+    // 使用内存缓存作为回退
 }
 ```
 
-### 4. 模块化注册
+### 3. 分层架构
 
 ```go
-// 按模块组织服务注册
-func RegisterAllServices(container *di.Container) error {
-    // 注册核心服务
-    if err := core.RegisterServices(container); err != nil {
-        return err
-    }
+// 核心层：基础设施服务
+// - 数据库连接
+// - 配置管理
+// - DI容器
 
-    // 注册业务模块
-    user.RegisterServices(container)
-    diary.RegisterServices(container)
-    post.RegisterServices(container)
-    task.RegisterServices(container)
+// 应用层：业务服务
+// - 渲染服务
+// - 用户服务
+// - 业务逻辑
 
-    return nil
-}
+// 表现层：HTTP处理
+// - 控制器
+// - 中间件
+// - 路由
 ```
 
-这个DI容器为iDiary项目提供了强大而高效的依赖管理能力，是整个架构的核心基础设施。通过合理使用，可以大大提高代码的可维护性和可测试性。
+这个DI系统为iDiary提供了清晰的依赖管理，特别是在多语言渲染系统中发挥了核心作用，确保了代码的可维护性和系统的稳定性。

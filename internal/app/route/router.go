@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/biuren/hebe/internal/app/controller"
 	"github.com/biuren/hebe/internal/app/render"
@@ -30,18 +29,13 @@ func setPath(server *gin.Engine, container di.ContainerInterface) {
 	// 通过DI容器创建Controller
 	controllerInstance := createController(container)
 
-	// 通过DI容器创建handlers
-	userHandler := createUserHandler(container)
-	diaryHandler := createDiaryHandler(container)
-	postHandler := createPostHandler(container)
-
 	// 基础页面路由
 	server.GET("/index", controllerInstance.RenderIndex)
 
-	// 注册模块路由
-	userHandler.RegisterRoutes(server)
-	diaryHandler.RegisterRoutes(server)
-	postHandler.RegisterRoutes(server)
+	// 通过DI容器创建handlers，注册模块路由
+	createUserHandler(container).RegisterRoutes(server)
+	createDiaryHandler(container).RegisterRoutes(server)
+	createPostHandler(container).RegisterRoutes(server)
 }
 
 // createController 通过DI容器创建Controller
@@ -104,11 +98,6 @@ func setTemplate(server *gin.Engine, basePath string, container di.ContainerInte
 
 	// 设置 Gin 原生的 HTML 渲染器
 	server.SetHTMLTemplate(tmpl)
-}
-
-// formatTime 格式化时间的辅助函数，utc 时间需精度到毫秒
-func formatTime(utc int64, layout string) string {
-	return time.Unix(utc/1000, 0).Format(layout)
 }
 
 // loadTemplates 递归遍历目录，加载所有 .html 文件
