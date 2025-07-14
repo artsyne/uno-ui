@@ -36,16 +36,13 @@ func NewLocalizationManager(cfg *config.Config) (*LocalizationManager, error) {
 
 	// 确保至少加载了一个语言文件
 	if loadedCount == 0 {
-		slog.Error("初始化本地化管理器失败", "error", "没有成功加载任何语言文件")
 		return nil, fmt.Errorf("没有成功加载任何语言文件，请检查语言文件是否存在")
 	}
 
 	// 确保默认语言已加载
 	if !manager.isValidLocale(cfg.App.DefaultLang) {
-		slog.Warn("默认语言未成功加载", "default_lang", cfg.App.DefaultLang, "loaded_locales", manager.GetSupportedLocales())
+		slog.Warn("默认语言未成功加载", "default_lang", cfg.App.DefaultLang)
 	}
-
-	slog.Info("本地化管理器初始化完成", "loaded_count", loadedCount, "total_configured", len(cfg.SupportLangs))
 	return manager, nil
 }
 
@@ -55,18 +52,15 @@ func (m *LocalizationManager) loadLocale(locale string) error {
 
 	data, err := os.ReadFile(localeFile)
 	if err != nil {
-		slog.Error("无法读取地域文件", "file", localeFile, "locale", locale, "error", err)
 		return fmt.Errorf("无法读取地域文件 %s: %w", localeFile, err)
 	}
 
 	var messages map[string]string
 	if err := json.Unmarshal(data, &messages); err != nil {
-		slog.Error("无法解析地域文件", "file", localeFile, "locale", locale, "error", err)
 		return fmt.Errorf("无法解析地域文件 %s: %w", localeFile, err)
 	}
 
 	m.messages[locale] = messages
-	slog.Info("成功加载地域文件", "locale", locale, "messages_count", len(messages))
 	return nil
 }
 
