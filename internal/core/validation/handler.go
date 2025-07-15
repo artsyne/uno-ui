@@ -72,7 +72,7 @@ func HandleRequest[T any](
 	if !exists {
 		// 如果找不到对应的处理函数，返回错误
 		// 通常这种情况不会发生，因为在验证阶段已经检查了 action 的有效性
-		return nil, errors.InvalidParamsErr().WithDetails("不支持的操作类型：" + action)
+		return nil, errors.InvalidParams.WithDetails("不支持的操作类型：" + action)
 	}
 
 	// 第六步：执行业务逻辑

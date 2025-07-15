@@ -85,7 +85,7 @@ func Resolve[T any](container ContainerInterface) (T, error) {
 
 	result, ok := instance.(T)
 	if !ok {
-		return zero, errors.DITypeConversionErr().WithDetails(
+		return zero, errors.DITypeConversionError.Err().WithDetails(
 			fmt.Sprintf("type conversion failed: expected %v, got %v", serviceType, reflect.TypeOf(instance)),
 		)
 	}

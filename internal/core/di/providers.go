@@ -104,7 +104,7 @@ func WrapFactory(factory interface{}) (FactoryFunc, error) {
 
 // newInvalidFactoryError 创建无效工厂函数错误
 func newInvalidFactoryError(factoryType reflect.Type) error {
-	return errors.DIInvalidFactoryErr().WithDetails(
+	return errors.DIInvalidFactory.WithDetails(
 		fmt.Sprintf("invalid factory function type: %s", factoryType.String()),
 	)
 }

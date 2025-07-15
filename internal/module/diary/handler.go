@@ -98,7 +98,7 @@ func (h *handler) RegisterRoutes(router *gin.Engine) {
 func (h *handler) parseDiaryID(idStr string) (int64, error) {
 	id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
 	if err != nil || id <= 0 {
-		return 0, errors.InvalidParamsErr()
+		return 0, errors.InvalidParams.Err()
 	}
 	return id, nil
 }
@@ -158,7 +158,7 @@ func (h *handler) HandleDiary(c *gin.Context) {
 	// 解析表单数据到Diary结构体
 	diary := &Diary{}
 	if err := c.Bind(diary); err != nil {
-		h.renderService.JSONError(c, errors.InvalidParamsErr())
+		h.renderService.JSONError(c, errors.InvalidParams.Err())
 		return
 	}
 
@@ -170,7 +170,7 @@ func (h *handler) HandleDiary(c *gin.Context) {
 	case "diary.edit":
 		h.handleEditDiary(c, diary, loginUser)
 	default:
-		h.renderService.JSONError(c, errors.InvalidParamsErr())
+		h.renderService.JSONError(c, errors.InvalidParams.Err())
 	}
 }
 
@@ -300,12 +300,12 @@ func (h *handler) getAndValidateDiary(c *gin.Context, userID int64) (*Diary, err
 func (h *handler) validateDiaryOwnership(diaryID, userID int64) (*Diary, error) {
 	diary, err := h.service.GetDiaryByID(diaryID)
 	if err != nil {
-		return nil, errors.DiaryNotFoundErr()
+		return nil, errors.DiaryNotFound.Err()
 	}
 
 	// 验证所有权
 	if diary.AddUserID != userID {
-		return nil, errors.PermissionErr()
+		return nil, errors.PermissionDenied.Err()
 	}
 
 	return diary, nil
@@ -416,7 +416,7 @@ func (h *handler) ShowDiaryForm(c *gin.Context) {
 		// 编辑模式：获取日记信息
 		diaryIdStr := c.Query("diary_id")
 		if diaryIdStr == "" {
-			h.renderService.JSONError(c, errors.ValidationErr().WithDetails("missing diary_id"))
+			h.renderService.JSONError(c, errors.ValidationError.WithDetails("missing diary_id"))
 			return
 		}
 
@@ -430,13 +430,13 @@ func (h *handler) ShowDiaryForm(c *gin.Context) {
 		// 获取日记详情
 		diary, err = h.service.GetDiaryByID(diaryId)
 		if err != nil || diary == nil {
-			h.renderService.JSONError(c, errors.InternalErr().WithDetails("diary not found"))
+			h.renderService.JSONError(c, errors.InternalError.WithDetails("diary not found"))
 			return
 		}
 
 		// 检查权限
 		if diary.AddUserID != authUser.UserId {
-			h.renderService.JSONError(c, errors.PermissionErr())
+			h.renderService.JSONError(c, errors.PermissionDenied.Err())
 			return
 		}
 	}

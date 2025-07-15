@@ -11,6 +11,21 @@ type ErrorDef struct {
 	HttpCode int    `json:"http_code"` // HTTP状态码
 }
 
+// Err 创建应用错误
+func (def ErrorDef) Err() *AppError {
+	return &AppError{
+		ErrorDef: def,
+	}
+}
+
+// WithDetails 创建带详细信息的应用错误
+func (def ErrorDef) WithDetails(details string) *AppError {
+	return &AppError{
+		ErrorDef: def,
+		Details:  details,
+	}
+}
+
 // 统一的错误定义 - 所有错误信息在一个地方维护
 var (
 	// 1000-1099: 参数验证错误 (400)
@@ -112,13 +127,6 @@ type AppError struct {
 	Details  string `json:"-"` // 错误详情
 }
 
-// NewAppError 创建应用错误
-func NewAppError(def ErrorDef) *AppError {
-	return &AppError{
-		ErrorDef: def,
-	}
-}
-
 // Error 实现error接口
 func (e *AppError) Error() string {
 	if e.Details != "" {
@@ -132,53 +140,3 @@ func (e *AppError) WithDetails(details string) *AppError {
 	e.Details = details
 	return e
 }
-
-// ==================== 快捷错误创建函数 ====================
-// 为常用错误提供简洁的创建方式
-
-// 参数验证错误
-func ValidationErr() *AppError    { return NewAppError(ValidationError) }
-func InvalidParamsErr() *AppError { return NewAppError(InvalidParams) }
-func MissingFieldErr() *AppError  { return NewAppError(MissingRequiredField) }
-func InvalidFormatErr() *AppError { return NewAppError(InvalidFormat) }
-
-// 认证错误
-func UnauthorizedErr() *AppError  { return NewAppError(Unauthorized) }
-func InvalidTokenErr() *AppError  { return NewAppError(InvalidToken) }
-func TokenExpiredErr() *AppError  { return NewAppError(TokenExpired) }
-func LoginRequiredErr() *AppError { return NewAppError(LoginRequired) }
-
-// 权限错误
-func PermissionErr() *AppError      { return NewAppError(PermissionDenied) }
-func AccessForbiddenErr() *AppError { return NewAppError(AccessForbidden) }
-
-// 资源不存在错误
-func UserNotFoundErr() *AppError     { return NewAppError(UserNotFound) }
-func ResourceNotFoundErr() *AppError { return NewAppError(ResourceNotFound) }
-func DiaryNotFoundErr() *AppError    { return NewAppError(DiaryNotFound) }
-func PostNotFoundErr() *AppError     { return NewAppError(PostNotFound) }
-
-// 业务错误
-func UserExistsErr() *AppError         { return NewAppError(UserExists) }
-func EmailExistsErr() *AppError        { return NewAppError(EmailExists) }
-func UsernameExistsErr() *AppError     { return NewAppError(UsernameExists) }
-func UserInactiveErr() *AppError       { return NewAppError(UserInactive) }
-func PasswordIncorrectErr() *AppError  { return NewAppError(PasswordIncorrect) }
-func DiaryLimitExceededErr() *AppError { return NewAppError(DiaryLimitExceeded) }
-
-// 文件处理错误
-func UploadFailedErr() *AppError          { return NewAppError(UploadFailed) }
-func FileTooLargeErr() *AppError          { return NewAppError(FileTooLarge) }
-func FileFormatUnsupportedErr() *AppError { return NewAppError(FileFormatUnsupported) }
-
-// 系统错误
-func DatabaseErr() *AppError { return NewAppError(DatabaseError) }
-func RedisErr() *AppError    { return NewAppError(RedisError) }
-func InternalErr() *AppError { return NewAppError(InternalError) }
-
-// DI容器错误
-func DIServiceAlreadyRegisteredErr() *AppError { return NewAppError(DIServiceAlreadyRegistered) }
-func DIServiceNotRegisteredErr() *AppError     { return NewAppError(DIServiceNotRegistered) }
-func DIInvalidFactoryErr() *AppError           { return NewAppError(DIInvalidFactory) }
-func DIContainerNotInitializedErr() *AppError  { return NewAppError(DIContainerNotInitialized) }
-func DITypeConversionErr() *AppError           { return NewAppError(DITypeConversionError) }

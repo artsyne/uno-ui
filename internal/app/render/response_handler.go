@@ -56,7 +56,7 @@ func (rh *ResponseHandler) JSONError(c *gin.Context, err error, data ...interfac
 	}
 
 	// 处理其他类型的错误，转换为内部错误
-	internalErr := errors.InternalErr()
+	internalErr := errors.InternalError.Err()
 	response := ErrorResponse{
 		Code:    internalErr.Code,
 		Message: internalErr.Key,

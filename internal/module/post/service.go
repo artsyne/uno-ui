@@ -2,7 +2,7 @@ package post
 
 import (
 	"github.com/biuren/hebe/internal/core/config"
-	"github.com/biuren/hebe/internal/core/error"
+	errors "github.com/biuren/hebe/internal/core/error"
 	"github.com/biuren/hebe/pkg"
 )
 
@@ -65,7 +65,7 @@ func (s *service) AddPost(post *Post) (int64, error) {
 	//插入数据库
 	postID, err := s.repo.Insert(post)
 	if err != nil {
-		return 0, errors.DatabaseErr()
+		return 0, errors.DatabaseError.Err()
 	}
 	post.PostID = postID
 

@@ -137,16 +137,16 @@ func (s *service) DecrementPostCount(diaryID int64, userID int64, userName strin
 // 返回: 可能的错误
 func (s *service) validateDiary(diary *Diary) error {
 	if len(diary.Title) < 1 {
-		return errors.InvalidParamsErr()
+		return errors.InvalidParams.Err()
 	}
 	if diary.ViewSetting != 1 && diary.ViewSetting != 2 {
-		return errors.InvalidParamsErr()
+		return errors.InvalidParams.Err()
 	}
 	if diary.SocialSetting != 1 && diary.SocialSetting != 2 {
-		return errors.InvalidParamsErr()
+		return errors.InvalidParams.Err()
 	}
 	if diary.ThemeID < 1 || diary.ThemeID > 16 {
-		return errors.InvalidParamsErr()
+		return errors.InvalidParams.Err()
 	}
 	return nil
 }
@@ -157,11 +157,11 @@ func (s *service) validateDiary(diary *Diary) error {
 func (s *service) CheckDiaryLimit(userID int64) error {
 	daybookNum, err := s.repo.GetCountByUserID(userID)
 	if err != nil {
-		return errors.InvalidParamsErr()
+		return errors.InvalidParams.Err()
 	}
 
 	if daybookNum > s.config.App.MaxDaybookLimit {
-		return errors.DiaryLimitExceededErr()
+		return errors.DiaryLimitExceeded.Err()
 	}
 
 	return nil

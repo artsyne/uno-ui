@@ -36,7 +36,7 @@ func GetValidator() *validator.Validate {
 //	error: 验证错误，如果验证通过返回 nil
 func ValidateStruct(s interface{}) error {
 	if err := GetValidator().Struct(s); err != nil {
-		return errors.ValidationErr().WithDetails(err.Error())
+		return errors.ValidationError.WithDetails(err.Error())
 	}
 	return nil
 }
@@ -54,7 +54,7 @@ func ValidateStruct(s interface{}) error {
 //	error: 验证错误，如果验证通过返回 nil
 func ValidateVar(field interface{}, tag string) error {
 	if err := GetValidator().Var(field, tag); err != nil {
-		return errors.ValidationErr().WithDetails(err.Error())
+		return errors.ValidationError.WithDetails(err.Error())
 	}
 	return nil
 }

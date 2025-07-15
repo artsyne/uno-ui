@@ -88,7 +88,7 @@ func (h *handler) RegisterRoutes(router *gin.Engine) {
 func (h *handler) parsePostID(idStr string) (int64, error) {
 	id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
 	if err != nil || id <= 0 {
-		return 0, errors.InvalidParamsErr()
+		return 0, errors.InvalidParams.Err()
 	}
 	return id, nil
 }
@@ -105,7 +105,7 @@ func (h *handler) parsePostID(idStr string) (int64, error) {
 func (h *handler) parseDiaryID(idStr string) (int64, error) {
 	id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
 	if err != nil || id <= 0 {
-		return 0, errors.InvalidParamsErr()
+		return 0, errors.InvalidParams.Err()
 	}
 	return id, nil
 }
@@ -163,7 +163,7 @@ func (h *handler) HandlePost(c *gin.Context) {
 	// 解析表单数据到PostRequest结构体
 	postForm := &PostRequest{}
 	if err := c.Bind(postForm); err != nil {
-		h.renderService.JSONError(c, errors.InvalidParamsErr())
+		h.renderService.JSONError(c, errors.InvalidParams.Err())
 		return
 	}
 
@@ -175,7 +175,7 @@ func (h *handler) HandlePost(c *gin.Context) {
 	case "post.edit":
 		h.handleEditPost(c, postForm, loginUser)
 	default:
-		h.renderService.JSONError(c, errors.InvalidParamsErr())
+		h.renderService.JSONError(c, errors.InvalidParams.Err())
 	}
 }
 
@@ -309,12 +309,12 @@ func (h *handler) getAndValidatePost(c *gin.Context, userID int64) (*Post, error
 func (h *handler) validatePostOwnership(postID, userID int64) (*Post, error) {
 	post, err := h.service.GetPostByID(postID)
 	if err != nil || post == nil {
-		return nil, errors.InvalidParamsErr()
+		return nil, errors.InvalidParams.Err()
 	}
 
 	// 检查是否是当前用户的日记
 	if post.AddUserID != userID {
-		return nil, errors.PermissionErr()
+		return nil, errors.PermissionDenied.Err()
 	}
 
 	return post, nil

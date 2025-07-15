@@ -24,8 +24,8 @@ func PanicRecoveryMiddleware() gin.HandlerFunc {
 				"stack", string(debug.Stack()))
 
 			response := gin.H{
-				"code":    errors.InternalErr().Code,
-				"message": errors.InternalErr().Key,
+				"code":    errors.InternalError.Code,
+				"message": errors.InternalError.Key,
 				"data":    nil,
 			}
 
@@ -62,7 +62,7 @@ func AppErrorHandlerMiddleware() gin.HandlerFunc {
 					"user_agent", c.Request.UserAgent(),
 					"client_ip", c.ClientIP())
 
-				internalErr := errors.InternalErr()
+				internalErr := errors.InternalError.Err()
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"code":    internalErr.Code,
 					"message": internalErr.Key,

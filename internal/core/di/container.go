@@ -52,7 +52,7 @@ func (c *Container) Register(serviceType reflect.Type, factory interface{}) erro
 	defer c.mu.Unlock()
 
 	if c.initialized {
-		return errors.DIContainerNotInitializedErr().WithDetails("container is already initialized")
+		return errors.DIContainerNotInitialized.Err().WithDetails("container is already initialized")
 	}
 
 	if _, exists := c.providers[serviceType]; exists {
@@ -89,7 +89,7 @@ func (c *Container) RegisterSingleton(serviceType reflect.Type, factory interfac
 	defer c.mu.Unlock()
 
 	if c.initialized {
-		return errors.DIContainerNotInitializedErr().WithDetails("container is already initialized")
+		return errors.DIContainerNotInitialized.Err().WithDetails("container is already initialized")
 	}
 
 	if _, exists := c.providers[serviceType]; exists {
@@ -126,7 +126,7 @@ func (c *Container) RegisterInstance(serviceType reflect.Type, instance interfac
 	defer c.mu.Unlock()
 
 	if c.initialized {
-		return errors.DIContainerNotInitializedErr().WithDetails("container is already initialized")
+		return errors.DIContainerNotInitialized.Err().WithDetails("container is already initialized")
 	}
 
 	if _, exists := c.providers[serviceType]; exists {
@@ -205,7 +205,7 @@ func (c *Container) Initialize(ctx context.Context) error {
 	defer c.mu.Unlock()
 
 	if c.initialized {
-		return errors.DIContainerNotInitializedErr().WithDetails("container is already initialized")
+		return errors.DIContainerNotInitialized.Err().WithDetails("container is already initialized")
 	}
 
 	// 预加载所有单例
@@ -213,7 +213,7 @@ func (c *Container) Initialize(ctx context.Context) error {
 		if provider.isSingleton() {
 			instance, err := provider.provide(c)
 			if err != nil {
-				return errors.DIContainerNotInitializedErr().WithDetails(
+				return errors.DIContainerNotInitialized.Err().WithDetails(
 					fmt.Sprintf("container initialization failed: %v", err),
 				)
 			}
@@ -242,7 +242,7 @@ func (c *Container) Shutdown(ctx context.Context) error {
 	defer c.mu.Unlock()
 
 	if !c.initialized {
-		return errors.DIContainerNotInitializedErr().WithDetails("container is not initialized")
+		return errors.DIContainerNotInitialized.Err().WithDetails("container is not initialized")
 	}
 
 	// 清理单例实例
@@ -254,14 +254,14 @@ func (c *Container) Shutdown(ctx context.Context) error {
 
 // newAlreadyRegisteredError 创建已注册错误
 func newAlreadyRegisteredError(serviceType reflect.Type) error {
-	return errors.DIServiceAlreadyRegisteredErr().WithDetails(
+	return errors.DIServiceAlreadyRegistered.WithDetails(
 		fmt.Sprintf("service type %s is already registered", serviceType.String()),
 	)
 }
 
 // newNotRegisteredError 创建未注册错误
 func newNotRegisteredError(serviceType reflect.Type) error {
-	return errors.DIServiceNotRegisteredErr().WithDetails(
+	return errors.DIServiceNotRegistered.WithDetails(
 		fmt.Sprintf("service type %s is not registered", serviceType.String()),
 	)
 }
