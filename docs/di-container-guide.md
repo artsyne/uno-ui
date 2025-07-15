@@ -11,6 +11,8 @@ iDiary使用基于Go 1.24泛型的高性能依赖注入容器，完全消除反�
 - **高并发性能**: 读写锁 + sync.Once优化
 - **简洁API**: 最少概念，最直观使用
 - **统一错误处理**: 集成项目错误体系
+- **重复注册检查**: 防止意外覆盖服务
+- **明确覆盖支持**: 提供Rebind方法用于测试场景
 
 ## 📦 核心API
 
@@ -31,11 +33,14 @@ container := di.New()
 
 ```go
 // 注册瞬态服务
-di.Bind(container, func() UserService {
+err := di.Bind(container, func() UserService {
     return &UserServiceImpl{
         ID: uuid.New(), // 每次都有新的ID
     }
 })
+if err != nil {
+    log.Fatal("注册失败:", err)
+}
 
 // 每次获取都是新实例
 user1 := di.Get[UserService](container)
@@ -49,11 +54,14 @@ user2 := di.Get[UserService](container)
 
 ```go
 // 注册单例服务
-di.Singleton(container, func() DatabaseService {
+err := di.Singleton(container, func() DatabaseService {
     return &PostgreSQLService{
         DSN: os.Getenv("DB_DSN"),
     }
 })
+if err != nil {
+    log.Fatal("注册失败:", err)
+}
 
 // 多次获取返回同一实例
 db1 := di.Get[DatabaseService](container)
@@ -71,7 +79,10 @@ config := &Config{
     Env:   "production",
     Debug: false,
 }
-di.Value(container, config)
+err := di.Value(container, config)
+if err != nil {
+    log.Fatal("注册失败:", err)
+}
 
 // 直接返回预注册实例
 appConfig := di.Get[*Config](container)
@@ -115,6 +126,30 @@ if di.Has[UserService](container) {
 container.Clear()
 ```
 
+### 重复注册处理
+
+#### 检测重复注册
+
+```go
+// 如果服务已注册，会返回明确错误
+err := di.Bind(container, func() UserService {
+    return &UserServiceImpl{}
+})
+if err != nil {
+    // 处理重复注册错误
+    log.Printf("注册失败: %v", err)
+}
+```
+
+#### 强制覆盖 (测试场景)
+
+```go
+// 在测试中强制覆盖生产服务
+di.Rebind(container, func() UserService {
+    return &MockUserService{}
+})
+```
+
 ## 🏗️ 架构集成
 
 ### 1. 核心层初始化
@@ -141,9 +176,11 @@ func (i *Initializer) GetContainer() *di.Container {
 ```go
 func (a *Application) registerAppServices() error {
     // 注册渲染服务
-    di.Singleton(a.container, func() render.RenderServiceInterface {
+    if err := di.Singleton(a.container, func() render.RenderServiceInterface {
         return render.NewRenderService(a.config)
-    })
+    }); err != nil {
+        return fmt.Errorf("注册RenderService失败: %w", err)
+    }
 
     return nil
 }
@@ -170,25 +207,33 @@ func createUserHandler(container *di.Container) user.HandlerInterface {
 ### 1. 基础服务配置
 
 ```go
-func ConfigureServices(container *di.Container) {
+func ConfigureServices(container *di.Container) error {
     // 配置 - 实例
     config := config.GetConfig()
-    di.Value(container, config)
+    if err := di.Value(container, config); err != nil {
+        return err
+    }
 
     // 数据库 - 单例
-    di.Singleton(container, func() *sql.DB {
+    if err := di.Singleton(container, func() *sql.DB {
         db, err := sql.Open("mysql", config.Database.DSN)
         if err != nil {
             panic(err)
         }
         return db
-    })
+    }); err != nil {
+        return err
+    }
 
     // 用户服务 - 瞬态
-    di.Bind(container, func() UserService {
+    if err := di.Bind(container, func() UserService {
         db := di.Get[*sql.DB](container)
         return &UserServiceImpl{db: db}
-    })
+    }); err != nil {
+        return err
+    }
+
+    return nil
 }
 ```
 
@@ -196,36 +241,46 @@ func ConfigureServices(container *di.Container) {
 
 ```go
 // 服务间依赖注入
-di.Singleton(container, func() EmailService {
+if err := di.Singleton(container, func() EmailService {
     config := di.Get[*Config](container)
     return &SMTPService{
         Host: config.SMTP.Host,
         Port: config.SMTP.Port,
     }
-})
+}); err != nil {
+    return err
+}
 
-di.Bind(container, func() UserService {
+if err := di.Bind(container, func() UserService {
     db := di.Get[*sql.DB](container)
     email := di.Get[EmailService](container)
     return &UserServiceImpl{
         db:    db,
         email: email,
     }
-})
+}); err != nil {
+    return err
+}
 ```
 
 ### 3. 测试环境配置
 
 ```go
-func ConfigureTestServices(container *di.Container) {
+func ConfigureTestServices(container *di.Container) error {
     // 使用mock替换真实服务
-    di.Bind(container, func() UserService {
+    if err := di.Bind(container, func() UserService {
         return &MockUserService{}
-    })
+    }); err != nil {
+        return err
+    }
 
-    di.Singleton(container, func() DatabaseService {
+    if err := di.Singleton(container, func() DatabaseService {
         return &InMemoryDatabase{}
-    })
+    }); err != nil {
+        return err
+    }
+
+    return nil
 }
 ```
 
@@ -243,11 +298,13 @@ type UserService interface {
     GetUser(id string) (*User, error)
 }
 
-di.Bind(container, func() UserService {
+if err := di.Bind(container, func() UserService {
     return &UserServiceImpl{
         db: di.Get[DatabaseService](container),
     }
-})
+}); err != nil {
+    log.Fatal(err)
+}
 
 // ❌ 避免的做法
 di.Bind(container, func() *UserServiceImpl {
@@ -300,6 +357,175 @@ func RequiredService(container *di.Container) {
 }
 ```
 
+## ⚠️ 重要注意事项 - 循环依赖 (Circular Dependencies)
+
+### 循环依赖风险
+
+本DI容器**不提供自动的循环依赖检测功能**。如果你的服务存在循环依赖（例如，A依赖B，B依赖A），将可能导致以下严重问题：
+
+#### 1. 瞬态服务的无限递归
+
+```go
+// ❌ 危险示例：循环依赖的瞬态服务
+di.Bind(container, func() ServiceA {
+    serviceB := di.Get[ServiceB](container) // 获取B
+    return &ServiceAImpl{b: serviceB}
+})
+
+di.Bind(container, func() ServiceB {
+    serviceA := di.Get[ServiceA](container) // 获取A，形成循环
+    return &ServiceBImpl{a: serviceA}
+})
+
+// 调用时会导致无限递归，最终栈溢出
+serviceA := di.Get[ServiceA](container) // Stack Overflow!
+```
+
+#### 2. 单例服务的死锁
+
+```go
+// ❌ 危险示例：循环依赖的单例服务
+di.Singleton(container, func() ServiceA {
+    serviceB := di.Get[ServiceB](container) // 在并发环境下可能死锁
+    return &ServiceAImpl{b: serviceB}
+})
+
+di.Singleton(container, func() ServiceB {
+    serviceA := di.Get[ServiceA](container) // 在并发环境下可能死锁
+    return &ServiceBImpl{a: serviceA}
+})
+```
+
+### 解决方案和最佳实践
+
+#### 1. 重新设计服务架构
+
+```go
+// ✅ 好的做法：通过引入中间层打破循环
+type SharedService interface {
+    DoCommonWork()
+}
+
+// A和B都依赖共同的服务，而不是相互依赖
+di.Singleton(container, func() SharedService {
+    return &SharedServiceImpl{}
+})
+
+di.Bind(container, func() ServiceA {
+    shared := di.Get[SharedService](container)
+    return &ServiceAImpl{shared: shared}
+})
+
+di.Bind(container, func() ServiceB {
+    shared := di.Get[SharedService](container)
+    return &ServiceBImpl{shared: shared}
+})
+```
+
+#### 2. 使用事件驱动架构
+
+```go
+// ✅ 好的做法：通过事件总线解耦
+type EventBus interface {
+    Publish(event interface{})
+    Subscribe(handler func(event interface{}))
+}
+
+di.Singleton(container, func() EventBus {
+    return &EventBusImpl{}
+})
+
+di.Bind(container, func() ServiceA {
+    eventBus := di.Get[EventBus](container)
+    return &ServiceAImpl{eventBus: eventBus}
+})
+
+di.Bind(container, func() ServiceB {
+    eventBus := di.Get[EventBus](container)
+    return &ServiceBImpl{eventBus: eventBus}
+})
+```
+
+#### 3. 延迟初始化模式
+
+```go
+// ✅ 好的做法：使用函数注入，延迟获取依赖
+type ServiceAFactory func() ServiceA
+
+di.Bind(container, func() ServiceB {
+    // 注入工厂函数而不是直接注入服务
+    serviceAFactory := func() ServiceA {
+        return di.Get[ServiceA](container)
+    }
+    return &ServiceBImpl{getServiceA: serviceAFactory}
+})
+```
+
+### 检测循环依赖的方法
+
+#### 1. 代码审查
+
+- 在代码审查中重点关注服务间的依赖关系
+- 绘制依赖关系图，识别潜在的环路
+
+#### 2. 单元测试
+
+```go
+func TestNoCyclicDependencies(t *testing.T) {
+    container := di.New()
+
+    // 注册所有服务
+    ConfigureServices(container)
+
+    // 尝试获取每个服务，如果有循环依赖会立即暴露
+    defer func() {
+        if r := recover(); r != nil {
+            t.Fatalf("Cyclic dependency detected: %v", r)
+        }
+    }()
+
+    _ = di.Get[ServiceA](container)
+    _ = di.Get[ServiceB](container)
+    _ = di.Get[ServiceC](container)
+}
+```
+
+#### 3. 启动时验证
+
+```go
+func ValidateServices(container *di.Container) error {
+    services := []interface{}{
+        di.Get[ServiceA],
+        di.Get[ServiceB],
+        di.Get[ServiceC],
+    }
+
+    for _, getService := range services {
+        func() {
+            defer func() {
+                if r := recover(); r != nil {
+                    panic(fmt.Sprintf("Service validation failed: %v", r))
+                }
+            }()
+            getService.(func(*di.Container) interface{})(container)
+        }()
+    }
+
+    return nil
+}
+```
+
+### 总结
+
+作为本DI容器的使用者，你有责任确保服务的依赖关系是**无环的**。良好的架构设计应避免循环依赖。如果遇到循环依赖，请考虑：
+
+1. **重新设计服务结构** - 引入抽象层或共享服务
+2. **使用事件驱动模式** - 通过事件解耦服务间的直接依赖
+3. **采用延迟初始化** - 使用工厂函数延迟依赖获取
+4. **加强测试** - 在单元测试中验证依赖关系
+
+记住：**循环依赖通常是设计问题的症状，而不是技术问题**。
+
 ## 🚀 性能特性
 
 ### 1. 零反射设计
@@ -310,7 +536,11 @@ serviceType := reflect.TypeOf((*UserService)(nil)).Elem()
 container.Register(serviceType, factory)
 
 // 新的泛型方式 (编译时类型检查)
-di.Bind(container, func() UserService { ... })
+if err := di.Bind(container, func() UserService {
+    return &UserServiceImpl{}
+}); err != nil {
+    log.Fatal(err)
+}
 ```
 
 ### 2. 高效查找
