@@ -25,7 +25,7 @@ func PanicRecoveryMiddleware() gin.HandlerFunc {
 
 			response := gin.H{
 				"code":    errors.InternalErr().Code,
-				"message": errors.InternalErr().MsgKey,
+				"message": errors.InternalErr().Key,
 				"data":    nil,
 			}
 
@@ -48,7 +48,7 @@ func AppErrorHandlerMiddleware() gin.HandlerFunc {
 					logAppError(c, appErr)
 					c.JSON(appErr.HttpCode, gin.H{
 						"code":    appErr.Code,
-						"message": appErr.MsgKey,
+						"message": appErr.Key,
 						"data":    nil,
 					})
 					return
@@ -65,7 +65,7 @@ func AppErrorHandlerMiddleware() gin.HandlerFunc {
 				internalErr := errors.InternalErr()
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"code":    internalErr.Code,
-					"message": internalErr.MsgKey,
+					"message": internalErr.Key,
 					"data":    nil,
 				})
 			}
@@ -79,7 +79,7 @@ func AppErrorHandlerMiddleware() gin.HandlerFunc {
 func logAppError(c *gin.Context, err *errors.AppError) {
 	slog.Error("应用业务错误",
 		"error_code", err.Code,
-		"error_key", err.MsgKey,
+		"error_key", err.Key,
 		"http_code", err.HttpCode,
 		"method", c.Request.Method,
 		"path", c.Request.URL.Path,

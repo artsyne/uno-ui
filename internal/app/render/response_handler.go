@@ -46,7 +46,7 @@ func (rh *ResponseHandler) JSONError(c *gin.Context, err error, data ...interfac
 	if appErr, ok := err.(*errors.AppError); ok {
 		c.JSON(appErr.HttpCode, ErrorResponse{
 			Code:    appErr.Code,
-			Message: appErr.MsgKey,
+			Message: appErr.Key,
 			Data:    errorData,
 		})
 
@@ -59,7 +59,7 @@ func (rh *ResponseHandler) JSONError(c *gin.Context, err error, data ...interfac
 	internalErr := errors.InternalErr()
 	response := ErrorResponse{
 		Code:    internalErr.Code,
-		Message: internalErr.MsgKey,
+		Message: internalErr.Key,
 		Data:    errorData,
 	}
 	c.JSON(internalErr.HttpCode, response)
@@ -92,7 +92,7 @@ func (rh *ResponseHandler) logAppError(c *gin.Context, err *errors.AppError) {
 	// 使用slog记录错误
 	slog.Error("API错误",
 		"error_code", err.Code,
-		"error_key", err.MsgKey,
+		"error_key", err.Key,
 		"http_code", err.HttpCode,
 		"method", c.Request.Method,
 		"path", c.Request.URL.Path,
