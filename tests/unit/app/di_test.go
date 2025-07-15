@@ -77,23 +77,16 @@ func TestDIContainerIntegration(t *testing.T) {
 	initTestConfig(t)
 
 	// 创建DI容器
-	container := di.NewContainer()
+	container := di.New()
 
 	// 注册RenderService（替换原来的RegisterAppServices调用）
-	err := di.RegisterSingleton[render.RenderServiceInterface](container, func(c di.ContainerInterface) (render.RenderServiceInterface, error) {
+	di.Singleton(container, func() render.RenderServiceInterface {
 		cfg := config.GetConfig()
-		return render.NewRenderService(cfg), nil
+		return render.NewRenderService(cfg)
 	})
-	if err != nil {
-		t.Fatalf("注册RenderService失败: %v", err)
-	}
 
 	t.Run("测试RenderService解析", func(t *testing.T) {
-		service, err := di.Resolve[render.RenderServiceInterface](container)
-		if err != nil {
-			t.Fatalf("解析RenderService失败: %v", err)
-		}
-
+		service := di.Get[render.RenderServiceInterface](container)
 		if service == nil {
 			t.Fatal("RenderService不应该为nil")
 		}
@@ -106,22 +99,16 @@ func TestHandlerCreation(t *testing.T) {
 	initTestConfig(t)
 
 	// 创建DI容器
-	container := di.NewContainer()
+	container := di.New()
 
 	// 注册RenderService
-	err := di.RegisterSingleton[render.RenderServiceInterface](container, func(c di.ContainerInterface) (render.RenderServiceInterface, error) {
+	di.Singleton(container, func() render.RenderServiceInterface {
 		cfg := config.GetConfig()
-		return render.NewRenderService(cfg), nil
+		return render.NewRenderService(cfg)
 	})
-	if err != nil {
-		t.Fatalf("注册RenderService失败: %v", err)
-	}
 
 	// 测试获取服务用于创建handlers
-	renderService, err := di.Resolve[render.RenderServiceInterface](container)
-	if err != nil {
-		t.Fatalf("解析RenderService失败: %v", err)
-	}
+	renderService := di.Get[render.RenderServiceInterface](container)
 
 	// 验证能够成功创建各模块的Handler
 	t.Run("测试创建UserHandler", func(t *testing.T) {

@@ -18,14 +18,14 @@ import (
 )
 
 // SetWithContainer 使用DI容器设置路由系统
-func SetWithContainer(server *gin.Engine, container di.ContainerInterface) {
+func SetWithContainer(server *gin.Engine, container *di.Container) {
 	setTemplate(server, config.GetViewsPath(), container)
 	setStaticFs(server, config.GetStaticPath())
 	setPath(server, container)
 }
 
 // setPath 设置站点路由，使用DI容器注入服务
-func setPath(server *gin.Engine, container di.ContainerInterface) {
+func setPath(server *gin.Engine, container *di.Container) {
 	// 通过DI容器创建Controller
 	controllerInstance := createController(container)
 
@@ -39,59 +39,40 @@ func setPath(server *gin.Engine, container di.ContainerInterface) {
 }
 
 // createController 通过DI容器创建Controller
-func createController(container di.ContainerInterface) *controller.Controller {
-	renderService, err := di.Resolve[render.RenderServiceInterface](container)
-	if err != nil {
-		panic("Failed to resolve RenderService: " + err.Error())
-	}
-
+func createController(container *di.Container) *controller.Controller {
+	renderService := di.Get[render.RenderServiceInterface](container)
 	return controller.NewController(renderService)
 }
 
 // createUserHandler 通过DI容器创建UserHandler
-func createUserHandler(container di.ContainerInterface) user.HandlerInterface {
-	renderService, err := di.Resolve[render.RenderServiceInterface](container)
-	if err != nil {
-		panic("Failed to resolve RenderService: " + err.Error())
-	}
-
+func createUserHandler(container *di.Container) user.HandlerInterface {
+	renderService := di.Get[render.RenderServiceInterface](container)
 	return user.NewHandlerWithServices(renderService, renderService)
 }
 
 // createDiaryHandler 通过DI容器创建DiaryHandler
-func createDiaryHandler(container di.ContainerInterface) diary.HandlerInterface {
-	renderService, err := di.Resolve[render.RenderServiceInterface](container)
-	if err != nil {
-		panic("Failed to resolve RenderService: " + err.Error())
-	}
-
+func createDiaryHandler(container *di.Container) diary.HandlerInterface {
+	renderService := di.Get[render.RenderServiceInterface](container)
 	return diary.NewHandlerWithServices(renderService, renderService)
 }
 
 // createPostHandler 通过DI容器创建PostHandler
-func createPostHandler(container di.ContainerInterface) post.HandlerInterface {
-	renderService, err := di.Resolve[render.RenderServiceInterface](container)
-	if err != nil {
-		panic("Failed to resolve RenderService: " + err.Error())
-	}
-
+func createPostHandler(container *di.Container) post.HandlerInterface {
+	renderService := di.Get[render.RenderServiceInterface](container)
 	return post.NewHandlerWithServices(renderService, renderService)
 }
 
 // #region 加载模版文件，并注入全局变量
 // 通过原生 Go 能力加载 "views" 目录中的模版文件
-func setTemplate(server *gin.Engine, basePath string, container di.ContainerInterface) {
+func setTemplate(server *gin.Engine, basePath string, container *di.Container) {
 	// 从DI容器获取RenderService
-	renderService, err := di.Resolve[render.RenderServiceInterface](container)
-	if err != nil {
-		panic("Failed to resolve RenderService: " + err.Error())
-	}
+	renderService := di.Get[render.RenderServiceInterface](container)
 
 	// 注册所有模版函数
 	tmpl := template.New("").Funcs(renderService.RegisterFuncs())
 
 	// 加载所有 .html 文件
-	err = loadTemplates(tmpl, basePath)
+	err := loadTemplates(tmpl, basePath)
 	if err != nil {
 		panic(err)
 	}

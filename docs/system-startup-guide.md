@@ -121,17 +121,10 @@ func (i *Initializer) initDatabase() error {
 #### 2.3 DI容器创建和服务注册
 
 ```go
-func (i *Initializer) initDIContainer() error {
-    container := di.NewContainer()
+func (i *Initializer) initContainer() error {
+    i.container = di.New()
 
-    // 注册核心服务
-    container.RegisterInstance(reflect.TypeOf((*config.Config)(nil)).Elem(), i.config)
-    container.RegisterInstance(reflect.TypeOf((*database.DB)(nil)).Elem(), i.database)
-
-    // 注册应用服务
-    container.RegisterSingleton(...)
-
-    i.container = container
+    slog.Info("成功初始化DI容器")
     return nil
 }
 ```
@@ -193,15 +186,15 @@ func (a *Application) initGinServer() error {
 **文件位置**: `internal/app/route/router.go`
 
 ```go
-func SetWithContainer(router *gin.Engine, container di.ContainerInterface) {
+func SetWithContainer(router *gin.Engine, container *di.Container) {
     // 设置静态文件路由
     router.Static("/static", "./website/static")
     router.LoadHTMLGlob("website/views/**/*.html")
 
     // 从DI容器获取Handler
-    userHandler := di.Resolve[*user.Handler](container)
-    diaryHandler := di.Resolve[*diary.Handler](container)
-    postHandler := di.Resolve[*post.Handler](container)
+    userHandler := createUserHandler(container)
+    diaryHandler := createDiaryHandler(container)
+    postHandler := createPostHandler(container)
 
     // 注册路由组
     setupUserRoutes(router, userHandler)

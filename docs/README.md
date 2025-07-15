@@ -12,7 +12,7 @@
 
 ### 开发指南
 
-- [依赖注入容器使用指南](./dependency-injection-guide.md) - 高性能DI容器的完整使用手册
+- [Go 1.24泛型DI容器使用指南](./di-container-guide.md) - 现代化高性能DI容器完整指南
 - [中间件系统详解](./middleware-guide.md) - 完整的中间件架构和使用指南
 - [模板函数使用指南](./template-functions-guide.md) - 丰富的模板函数和实际使用示例
 - [模板开发最佳实践](./template-usage-guide.md) - 模板开发的架构模式和最佳实践
@@ -36,7 +36,7 @@
 - **后端**: Go + Gin框架
 - **数据库**: MySQL
 - **缓存**: Redis (Session管理)
-- **依赖注入**: 自研高性能DI容器
+- **依赖注入**: Go 1.24泛型DI容器 (零反射)
 - **日志**: slog结构化日志
 - **模板**: HTML模板引擎
 
@@ -54,13 +54,13 @@
 
 1. 查看 [系统架构概览](./architecture-overview.md) 了解整体设计
 2. 阅读 [系统启动过程详解](./system-startup-guide.md) 理解启动流程
-3. 学习 [依赖注入容器使用指南](./dependency-injection-guide.md) 掌握DI容器
+3. 学习 [Go 1.24泛型DI容器使用指南](./di-container-guide.md) 掌握现代DI容器
 4. 参考 [中间件系统详解](./middleware-guide.md) 学习中间件使用
 
 ### 开发人员
 
 1. **前端开发**: 查看 [模板函数使用指南](./template-functions-guide.md)
-2. **后端开发**: 查看 [依赖注入容器使用指南](./dependency-injection-guide.md) 和 [错误处理和响应服务示例](./error-handling-examples.md)
+2. **后端开发**: 查看 [Go 1.24泛型DI容器使用指南](./di-container-guide.md) 和 [错误处理和响应服务示例](./error-handling-examples.md)
 3. **运维人员**: 查看 [日志系统增强功能指南](./logging-enhancement-guide.md)
 
 ### 架构师

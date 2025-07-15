@@ -12,7 +12,7 @@ import (
 // Initializer 核心基础设施初始化器
 type Initializer struct {
 	config    *config.Config
-	container di.ContainerInterface
+	container *di.Container
 }
 
 // NewInitializer 创建核心初始化器
@@ -43,7 +43,7 @@ func (i *Initializer) InitializeCore() error {
 }
 
 // GetContainer 获取DI容器
-func (i *Initializer) GetContainer() di.ContainerInterface {
+func (i *Initializer) GetContainer() *di.Container {
 	return i.container
 }
 
@@ -64,7 +64,7 @@ func (i *Initializer) initDatabase() error {
 
 // initContainer 初始化DI容器
 func (i *Initializer) initContainer() error {
-	i.container = di.NewContainer()
+	i.container = di.New()
 
 	slog.Info("成功初始化DI容器")
 	return nil

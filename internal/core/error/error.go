@@ -108,9 +108,6 @@ var (
 	// 6250-6269: DI容器错误 (500)
 	DIServiceAlreadyRegistered = ErrorDef{6251, "di_service_already_registered", 500}
 	DIServiceNotRegistered     = ErrorDef{6252, "di_service_not_registered", 500}
-	DIInvalidFactory           = ErrorDef{6253, "di_invalid_factory", 500}
-	DIContainerNotInitialized  = ErrorDef{6254, "di_container_not_initialized", 500}
-	DITypeConversionError      = ErrorDef{6255, "di_type_conversion_error", 500}
 
 	// 6300-6399: 系统负载错误 (500)
 	RateLimitExceeded = ErrorDef{6301, "rate_limit_exceeded", 500}

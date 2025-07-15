@@ -22,7 +22,7 @@ import (
 type Application struct {
 	config    *config.Config
 	server    *gin.Engine
-	container di.ContainerInterface
+	container *di.Container
 	coreInit  *bootstrap.Initializer
 }
 
@@ -103,12 +103,9 @@ func (a *Application) initApplicationLayer() error {
 // registerAppServices 注册应用层服务到DI容器
 func (a *Application) registerAppServices() error {
 	// 注册RenderService（合并了原来的ViewService和ResponseService）
-	err := di.RegisterSingleton[render.RenderServiceInterface](a.container, func(c di.ContainerInterface) (render.RenderServiceInterface, error) {
-		return render.NewRenderService(a.config), nil
+	di.Singleton(a.container, func() render.RenderServiceInterface {
+		return render.NewRenderService(a.config)
 	})
-	if err != nil {
-		return fmt.Errorf("注册RenderService失败: %w", err)
-	}
 
 	slog.Info("成功注册应用层服务")
 	return nil
