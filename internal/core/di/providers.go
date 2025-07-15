@@ -1,11 +1,11 @@
 package di
 
 import (
+	"fmt"
 	"reflect"
 	"sync"
 
-	"github.com/biuren/hebe/internal/app/render"
-	"github.com/biuren/hebe/internal/core/config"
+	errors "github.com/biuren/hebe/internal/core/error"
 )
 
 // FactoryFunc 工厂函数类型
@@ -58,26 +58,26 @@ func (p *provider) isSingleton() bool {
 // ValidateFactory 验证工厂函数签名
 func ValidateFactory(factory interface{}) error {
 	if factory == nil {
-		return NewInvalidFactoryError(reflect.TypeOf(factory))
+		return newInvalidFactoryError(reflect.TypeOf(factory))
 	}
 
 	factoryType := reflect.TypeOf(factory)
 	if factoryType.Kind() != reflect.Func {
-		return NewInvalidFactoryError(factoryType)
+		return newInvalidFactoryError(factoryType)
 	}
 
 	if factoryType.NumIn() != 1 || factoryType.NumOut() != 2 {
-		return NewInvalidFactoryError(factoryType)
+		return newInvalidFactoryError(factoryType)
 	}
 
 	containerType := reflect.TypeOf((*ContainerInterface)(nil)).Elem()
 	if !factoryType.In(0).Implements(containerType) {
-		return NewInvalidFactoryError(factoryType)
+		return newInvalidFactoryError(factoryType)
 	}
 
 	errorType := reflect.TypeOf((*error)(nil)).Elem()
 	if !factoryType.Out(1).Implements(errorType) {
-		return NewInvalidFactoryError(factoryType)
+		return newInvalidFactoryError(factoryType)
 	}
 
 	return nil
@@ -102,16 +102,9 @@ func WrapFactory(factory interface{}) (FactoryFunc, error) {
 	}, nil
 }
 
-// RegisterAppServices 注册App层服务
-func RegisterAppServices(container ContainerInterface) error {
-	// 注册RenderService（合并了原来的ViewService和ResponseService）
-	err := RegisterSingleton[render.RenderServiceInterface](container, func(c ContainerInterface) (render.RenderServiceInterface, error) {
-		cfg := config.GetConfig()
-		return render.NewRenderService(cfg), nil
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
+// newInvalidFactoryError 创建无效工厂函数错误
+func newInvalidFactoryError(factoryType reflect.Type) error {
+	return errors.DIInvalidFactoryErr().WithDetails(
+		fmt.Sprintf("invalid factory function type: %s", factoryType.String()),
+	)
 }

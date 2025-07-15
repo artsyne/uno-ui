@@ -18,6 +18,11 @@ func initTestConfig(t *testing.T) {
 	os.Setenv("IDIARY_TIMEZONES", `["Asia/Shanghai","UTC","America/New_York"]`)
 	os.Setenv("IDIARY_PARAMS", `[{"key":"test_key","val":"test_value"}]`)
 	os.Setenv("IDIARY_ENV", "test")
+	os.Setenv("IDIARY_LOCALES_DIR", "website/locales")
+	os.Setenv("IDIARY_DEFAULT_LANG", "zh-cn")
+	os.Setenv("IDIARY_APP_NAME", "Test App")
+	os.Setenv("IDIARY_PORT", "8080")
+	os.Setenv("IDIARY_GIN_MODE", "test")
 	os.Setenv("IDIARY_GIN_MODE", "debug")
 	os.Setenv("IDIARY_DOMAIN", "http://localhost:8080")
 	os.Setenv("IDIARY_PORT", "8080")
@@ -74,9 +79,13 @@ func TestDIContainerIntegration(t *testing.T) {
 	// 创建DI容器
 	container := di.NewContainer()
 
-	// 注册App层服务
-	if err := di.RegisterAppServices(container); err != nil {
-		t.Fatalf("注册App层服务失败: %v", err)
+	// 注册RenderService（替换原来的RegisterAppServices调用）
+	err := di.RegisterSingleton[render.RenderServiceInterface](container, func(c di.ContainerInterface) (render.RenderServiceInterface, error) {
+		cfg := config.GetConfig()
+		return render.NewRenderService(cfg), nil
+	})
+	if err != nil {
+		t.Fatalf("注册RenderService失败: %v", err)
 	}
 
 	t.Run("测试RenderService解析", func(t *testing.T) {
@@ -99,39 +108,38 @@ func TestHandlerCreation(t *testing.T) {
 	// 创建DI容器
 	container := di.NewContainer()
 
-	// 注册App层服务
-	if err := di.RegisterAppServices(container); err != nil {
-		t.Fatalf("注册App层服务失败: %v", err)
+	// 注册RenderService
+	err := di.RegisterSingleton[render.RenderServiceInterface](container, func(c di.ContainerInterface) (render.RenderServiceInterface, error) {
+		cfg := config.GetConfig()
+		return render.NewRenderService(cfg), nil
+	})
+	if err != nil {
+		t.Fatalf("注册RenderService失败: %v", err)
 	}
 
 	// 测试获取服务用于创建handlers
-	responseService, err := di.Resolve[response.ResponseServiceInterface](container)
+	renderService, err := di.Resolve[render.RenderServiceInterface](container)
 	if err != nil {
-		t.Fatalf("解析ResponseService失败: %v", err)
-	}
-
-	viewService, err := di.Resolve[view.ViewServiceInterface](container)
-	if err != nil {
-		t.Fatalf("解析ViewService失败: %v", err)
+		t.Fatalf("解析RenderService失败: %v", err)
 	}
 
 	// 验证能够成功创建各模块的Handler
 	t.Run("测试创建UserHandler", func(t *testing.T) {
 		// 这里只是验证能够获取到服务，实际的Handler创建会在路由测试中完成
-		if responseService == nil || viewService == nil {
-			t.Fatal("创建UserHandler所需的服务不完整")
+		if renderService == nil {
+			t.Fatal("创建UserHandler所需的RenderService不存在")
 		}
 	})
 
 	t.Run("测试创建DiaryHandler", func(t *testing.T) {
-		if responseService == nil || viewService == nil {
-			t.Fatal("创建DiaryHandler所需的服务不完整")
+		if renderService == nil {
+			t.Fatal("创建DiaryHandler所需的RenderService不存在")
 		}
 	})
 
 	t.Run("测试创建PostHandler", func(t *testing.T) {
-		if responseService == nil || viewService == nil {
-			t.Fatal("创建PostHandler所需的服务不完整")
+		if renderService == nil {
+			t.Fatal("创建PostHandler所需的RenderService不存在")
 		}
 	})
 }
@@ -147,15 +155,9 @@ func TestConfigDependency(t *testing.T) {
 		t.Fatal("配置未正确加载")
 	}
 
-	// 创建ViewService验证配置依赖
-	viewService := view.NewViewService(cfg)
-	if viewService == nil {
-		t.Fatal("使用配置创建ViewService失败")
-	}
-
-	// 创建ResponseService验证依赖关系
-	responseService := response.NewResponseService(viewService)
-	if responseService == nil {
-		t.Fatal("创建ResponseService失败")
+	// 创建RenderService验证配置依赖
+	renderService := render.NewRenderService(cfg)
+	if renderService == nil {
+		t.Fatal("使用配置创建RenderService失败")
 	}
 }

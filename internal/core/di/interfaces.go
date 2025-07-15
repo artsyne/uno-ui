@@ -2,7 +2,10 @@ package di
 
 import (
 	"context"
+	"fmt"
 	"reflect"
+
+	errors "github.com/biuren/hebe/internal/core/error"
 )
 
 // ContainerInterface 定义依赖注入容器的核心接口
@@ -82,7 +85,9 @@ func Resolve[T any](container ContainerInterface) (T, error) {
 
 	result, ok := instance.(T)
 	if !ok {
-		return zero, NewTypeError(serviceType, reflect.TypeOf(instance))
+		return zero, errors.DITypeConversionErr().WithDetails(
+			fmt.Sprintf("type conversion failed: expected %v, got %v", serviceType, reflect.TypeOf(instance)),
+		)
 	}
 
 	return result, nil
@@ -93,4 +98,3 @@ func IsRegistered[T any](container ContainerInterface) bool {
 	serviceType := reflect.TypeOf((*T)(nil)).Elem()
 	return container.IsRegistered(serviceType)
 }
- 

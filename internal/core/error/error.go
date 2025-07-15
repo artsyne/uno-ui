@@ -83,6 +83,13 @@ const (
 	ServiceUnavailable   = 6202 // 服务不可用
 	ExternalServiceError = 6203 // 外部服务错误
 
+	// 6250-6269: DI容器错误 (400/500)
+	DIServiceAlreadyRegistered = 6251 // DI服务已注册
+	DIServiceNotRegistered     = 6252 // DI服务未注册
+	DIInvalidFactory           = 6253 // DI工厂函数无效
+	DIContainerNotInitialized  = 6254 // DI容器未初始化
+	DITypeConversionError      = 6255 // DI类型转换错误
+
 	// 6300-6399: 系统负载错误 (500)
 	RateLimitExceeded = 6301 // 频率限制超出
 	ServerOverloaded  = 6302 // 服务器过载
@@ -170,6 +177,13 @@ var errorKeyMap = map[int]string{
 	ConfigError:          "config_error",
 	ServiceUnavailable:   "service_unavailable",
 	ExternalServiceError: "external_service_error",
+
+	// DI容器错误
+	DIServiceAlreadyRegistered: "di_service_already_registered",
+	DIServiceNotRegistered:     "di_service_not_registered",
+	DIInvalidFactory:           "di_invalid_factory",
+	DIContainerNotInitialized:  "di_container_not_initialized",
+	DITypeConversionError:      "di_type_conversion_error",
 
 	// 系统负载错误
 	RateLimitExceeded: "rate_limit_exceeded",
@@ -281,3 +295,10 @@ func FileFormatUnsupportedErr() *AppError { return NewAppError(FileFormatUnsuppo
 func DatabaseErr() *AppError { return NewAppError(DatabaseError) }
 func RedisErr() *AppError    { return NewAppError(RedisError) }
 func InternalErr() *AppError { return NewAppError(InternalError) }
+
+// DI容器错误
+func DIServiceAlreadyRegisteredErr() *AppError { return NewAppError(DIServiceAlreadyRegistered) }
+func DIServiceNotRegisteredErr() *AppError     { return NewAppError(DIServiceNotRegistered) }
+func DIInvalidFactoryErr() *AppError           { return NewAppError(DIInvalidFactory) }
+func DIContainerNotInitializedErr() *AppError  { return NewAppError(DIContainerNotInitialized) }
+func DITypeConversionErr() *AppError           { return NewAppError(DITypeConversionError) }

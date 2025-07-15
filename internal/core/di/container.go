@@ -2,8 +2,11 @@ package di
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"sync"
+
+	errors "github.com/biuren/hebe/internal/core/error"
 )
 
 // Container 轻量级依赖注入容器
@@ -49,11 +52,11 @@ func (c *Container) Register(serviceType reflect.Type, factory interface{}) erro
 	defer c.mu.Unlock()
 
 	if c.initialized {
-		return NewAlreadyInitializedError()
+		return errors.DIContainerNotInitializedErr().WithDetails("container is already initialized")
 	}
 
 	if _, exists := c.providers[serviceType]; exists {
-		return NewAlreadyRegisteredError(serviceType)
+		return newAlreadyRegisteredError(serviceType)
 	}
 
 	// 包装工厂函数
@@ -86,11 +89,11 @@ func (c *Container) RegisterSingleton(serviceType reflect.Type, factory interfac
 	defer c.mu.Unlock()
 
 	if c.initialized {
-		return NewAlreadyInitializedError()
+		return errors.DIContainerNotInitializedErr().WithDetails("container is already initialized")
 	}
 
 	if _, exists := c.providers[serviceType]; exists {
-		return NewAlreadyRegisteredError(serviceType)
+		return newAlreadyRegisteredError(serviceType)
 	}
 
 	// 包装工厂函数
@@ -123,11 +126,11 @@ func (c *Container) RegisterInstance(serviceType reflect.Type, instance interfac
 	defer c.mu.Unlock()
 
 	if c.initialized {
-		return NewAlreadyInitializedError()
+		return errors.DIContainerNotInitializedErr().WithDetails("container is already initialized")
 	}
 
 	if _, exists := c.providers[serviceType]; exists {
-		return NewAlreadyRegisteredError(serviceType)
+		return newAlreadyRegisteredError(serviceType)
 	}
 
 	// 创建单例提供者
@@ -161,7 +164,7 @@ func (c *Container) Resolve(serviceType reflect.Type) (interface{}, error) {
 	c.mu.RUnlock()
 
 	if !exists {
-		return nil, NewNotRegisteredError(serviceType)
+		return nil, newNotRegisteredError(serviceType)
 	}
 
 	return provider.provide(c)
@@ -202,7 +205,7 @@ func (c *Container) Initialize(ctx context.Context) error {
 	defer c.mu.Unlock()
 
 	if c.initialized {
-		return NewAlreadyInitializedError()
+		return errors.DIContainerNotInitializedErr().WithDetails("container is already initialized")
 	}
 
 	// 预加载所有单例
@@ -210,7 +213,9 @@ func (c *Container) Initialize(ctx context.Context) error {
 		if provider.isSingleton() {
 			instance, err := provider.provide(c)
 			if err != nil {
-				return NewInitializationFailedError(err)
+				return errors.DIContainerNotInitializedErr().WithDetails(
+					fmt.Sprintf("container initialization failed: %v", err),
+				)
 			}
 			c.singletons[serviceType] = instance
 		}
@@ -237,7 +242,7 @@ func (c *Container) Shutdown(ctx context.Context) error {
 	defer c.mu.Unlock()
 
 	if !c.initialized {
-		return NewNotInitializedError()
+		return errors.DIContainerNotInitializedErr().WithDetails("container is not initialized")
 	}
 
 	// 清理单例实例
@@ -245,4 +250,18 @@ func (c *Container) Shutdown(ctx context.Context) error {
 	c.initialized = false
 
 	return nil
+}
+
+// newAlreadyRegisteredError 创建已注册错误
+func newAlreadyRegisteredError(serviceType reflect.Type) error {
+	return errors.DIServiceAlreadyRegisteredErr().WithDetails(
+		fmt.Sprintf("service type %s is already registered", serviceType.String()),
+	)
+}
+
+// newNotRegisteredError 创建未注册错误
+func newNotRegisteredError(serviceType reflect.Type) error {
+	return errors.DIServiceNotRegisteredErr().WithDetails(
+		fmt.Sprintf("service type %s is not registered", serviceType.String()),
+	)
 }

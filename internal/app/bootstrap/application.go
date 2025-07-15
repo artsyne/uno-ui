@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/biuren/hebe/internal/app/render"
 	"github.com/biuren/hebe/internal/app/route"
 	"github.com/biuren/hebe/internal/core/bootstrap"
 	"github.com/biuren/hebe/internal/core/config"
@@ -76,21 +77,40 @@ func (a *Application) Shutdown() error {
 
 // initApplicationLayer 初始化应用层组件
 func (a *Application) initApplicationLayer() error {
-	// 1. 设置 Cookie 默认值
+	// 1. 注册应用层服务到DI容器
+	if err := a.registerAppServices(); err != nil {
+		return err
+	}
+
+	// 2. 设置 Cookie 默认值
 	if err := a.initCookie(); err != nil {
 		return err
 	}
 
-	// 2. 启动定时任务
+	// 3. 启动定时任务
 	if err := a.initScheduler(); err != nil {
 		return err
 	}
 
-	// 3. 初始化 Gin 服务器
+	// 4. 初始化 Gin 服务器
 	if err := a.initGinServer(); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// registerAppServices 注册应用层服务到DI容器
+func (a *Application) registerAppServices() error {
+	// 注册RenderService（合并了原来的ViewService和ResponseService）
+	err := di.RegisterSingleton[render.RenderServiceInterface](a.container, func(c di.ContainerInterface) (render.RenderServiceInterface, error) {
+		return render.NewRenderService(a.config), nil
+	})
+	if err != nil {
+		return fmt.Errorf("注册RenderService失败: %w", err)
+	}
+
+	slog.Info("成功注册应用层服务")
 	return nil
 }
 

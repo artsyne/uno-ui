@@ -66,11 +66,6 @@ func (i *Initializer) initDatabase() error {
 func (i *Initializer) initContainer() error {
 	i.container = di.NewContainer()
 
-	// 注册App层服务
-	if err := di.RegisterAppServices(i.container); err != nil {
-		return fmt.Errorf("注册App层服务失败: %w", err)
-	}
-
-	slog.Info("成功注册DI服务")
+	slog.Info("成功初始化DI容器")
 	return nil
 }
