@@ -10,43 +10,52 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// MiddlewareInterface 用户中间件接口
-// 定义了用户认证中间件相关的核心方法
-type MiddlewareInterface interface {
-	// ParseUserFromCookie 从Cookie中解析用户登录信息
-	ParseUserFromCookie(c *gin.Context) *AuthUser
-
-	// GetAuthHelper 获取认证助手实例
-	GetAuthHelper() AuthHelperInterface
-}
-
-// middleware 用户中间件结构体，用于缓存配置
-type middleware struct {
-	config *config.Config
-	auth   AuthHelperInterface
-}
-
-// NewMiddleware 创建用户中间件实例
-func NewMiddleware() MiddlewareInterface {
-	config := config.GetConfig()
-	if config == nil {
-		panic("Failed to get config during user middleware initialization - config is nil")
-	}
-
-	return &middleware{
-		config: config,
-		auth:   NewAuthHelper(),
+// AuthRequired 需要登录访问的中间件
+func AuthRequired() gin.HandlerFunc {
+	auth := NewAuthHelper()
+	return func(c *gin.Context) {
+		if isAuth, _ := auth.IsAuthenticated(c); isAuth {
+			c.Next()
+		} else {
+			slog.Warn("User not authorized", "uri", c.Request.RequestURI)
+			c.HTML(http.StatusForbidden, "error", nil)
+			c.Abort()
+		}
 	}
 }
 
-// ParseUserFromCookie 从Cookie中解析用户登录信息
-func (m *middleware) ParseUserFromCookie(c *gin.Context) *AuthUser {
+// SharedData 共享数据中间件
+func SharedData() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// 解析用户登录信息
+		authUser := parseUserFromCookie(c)
+
+		// 注入登录状态和用户数据到上下文
+		if authUser != nil {
+			c.Set("IsLogin", true)
+			c.Set("AuthUser", authUser)
+		} else {
+			c.Set("IsLogin", false)
+		}
+
+		c.Next()
+	}
+}
+
+
+// parseUserFromCookie 从Cookie中解析用户登录信息
+func parseUserFromCookie(c *gin.Context) *AuthUser {
 	cookieEnUserData := pkg.ReadCookie(c.Request, "ud")
 	if len(cookieEnUserData) < 1 {
 		return nil
 	}
 
-	byteUserData, err := pkg.AESDecrypt(cookieEnUserData, m.config.Cookie.Secret)
+	config := config.GetConfig()
+	if config == nil {
+		return nil
+	}
+
+	byteUserData, err := pkg.AESDecrypt(cookieEnUserData, config.Cookie.Secret)
 	if err != nil || byteUserData == nil {
 		return nil
 	}
@@ -58,44 +67,4 @@ func (m *middleware) ParseUserFromCookie(c *gin.Context) *AuthUser {
 	}
 
 	return &userData
-}
-
-// GetAuthHelper 获取认证助手实例
-func (m *middleware) GetAuthHelper() AuthHelperInterface {
-	return m.auth
-}
-
-// AuthRequired 需要登录访问的中间件
-// 包级别函数，提供全局可用的认证中间件
-func AuthRequired() gin.HandlerFunc {
-	middleware := NewMiddleware()
-	return func(c *gin.Context) {
-		if isAuth, _ := middleware.GetAuthHelper().IsAuthenticated(c); isAuth {
-			c.Next()
-		} else {
-			slog.Warn("User not authorized", "uri", c.Request.RequestURI)
-			c.HTML(http.StatusForbidden, "error", nil)
-			c.Abort()
-		}
-	}
-}
-
-// SharedData 共享数据中间件
-// 包级别函数，提供全局可用的共享数据中间件
-func SharedData() gin.HandlerFunc {
-	middleware := NewMiddleware()
-	return func(c *gin.Context) {
-		// 解析用户登录信息
-		authUser := middleware.ParseUserFromCookie(c)
-
-		// 注入登录状态和用户数据到上下文
-		if authUser != nil {
-			c.Set("IsLogin", true)
-			c.Set("AuthUser", authUser) 
-		} else {
-			c.Set("IsLogin", false)
-		}
-
-		c.Next()
-	}
 }

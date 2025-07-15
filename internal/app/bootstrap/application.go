@@ -7,12 +7,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/biuren/hebe/internal/app/middleware"
 	"github.com/biuren/hebe/internal/app/render"
 	"github.com/biuren/hebe/internal/app/route"
 	"github.com/biuren/hebe/internal/core/bootstrap"
 	"github.com/biuren/hebe/internal/core/config"
 	"github.com/biuren/hebe/internal/core/di"
-	"github.com/biuren/hebe/internal/core/middleware"
 	"github.com/biuren/hebe/internal/module/task"
 	"github.com/biuren/hebe/internal/module/user"
 	"github.com/biuren/hebe/pkg"
@@ -142,9 +142,9 @@ func (a *Application) initGinServer() error {
 	server := gin.New()
 
 	// 初始化中间件
-	server.Use(middleware.PanicRecoveryMiddleware())   // panic recovery中间件
-	server.Use(middleware.AppErrorHandlerMiddleware()) // 应用错误处理中间件
-	server.Use(user.SharedData())                      // 用户共享数据中间件
+	server.Use(middleware.PanicRecovery())   // panic recovery中间件
+	server.Use(middleware.AppErrorHandler()) // 应用错误处理中间件
+	server.Use(user.SharedData())            // 用户共享数据中间件
 	slog.Info("成功初始化中间件")
 
 	// 初始化路由
