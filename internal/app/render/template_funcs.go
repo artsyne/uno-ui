@@ -23,7 +23,7 @@ func NewTemplateFuncs(service *RenderService) *TemplateFuncs {
 func (tf *TemplateFuncs) RegisterFuncs() template.FuncMap {
 	return template.FuncMap{
 		"renderBreadcrumb": tf.RenderBreadcrumb,
-		"getMessage":       tf.service.Message,
+		"getMessage":       tf.service.localizationManager.GetMessage,
 		"formatTime":       tf.FormatTime,
 
 		// 用户认证相关函数

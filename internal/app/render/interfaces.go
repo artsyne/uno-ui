@@ -13,10 +13,7 @@ type RenderServiceInterface interface {
 	// PageData 创建页面数据
 	PageData(c *gin.Context, titleKey string) *PageData
 
-	// Message 获取国际化消息
-	Message(key string, args ...interface{}) string
-
-	// ===================== HTTP响应处理（原response功能） =====================
+	// ===================== HTTP响应处理 =====================
 
 	// JSON响应
 	JSON(c *gin.Context, code int, data interface{})
@@ -30,23 +27,8 @@ type RenderServiceInterface interface {
 	// 其他响应
 	Redirect(c *gin.Context, url string)
 
-	// ===================== 模板函数（原template功能） =====================
+	// ===================== 模板函数=====================
 
 	// RegisterFuncs 注册模板函数
 	RegisterFuncs() template.FuncMap
-
-	// RenderBreadcrumb 渲染面包屑导航
-	RenderBreadcrumb(breadcrumb []BreadcrumbItem) template.HTML
-
-	// GetUserAvatar 获取用户头像URL
-	GetUserAvatar(user interface{}, size string) string
-
-	// IsUserLoggedIn 检查用户是否已登录
-	IsUserLoggedIn(user interface{}) bool
-
-	// GetCurrentLanguage 获取当前有效语言
-	GetCurrentLanguage(c *gin.Context, user interface{}) string
-
-	// FormatTime 格式化时间
-	FormatTime(timestamp int64, format string, timezone ...string) string
 }

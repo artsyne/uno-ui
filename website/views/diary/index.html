@@ -22,8 +22,10 @@
             </ul>
         </div>
         <div>
+              {{if .Data.IsOwner}}
             <button class="mr-3 btn" data-action="showDiaryBox" data-form-action="diary.edit"
                 data-diary-id="{{.Data.Diary.DiaryID}}"><i class="mdi mdi-cogs"></i> 日记本设置</button>
+                {{end}}
             <button class="btn" href="#"><i class="mdi mdi-heart-outline"></i> 点赞</button>
         </div>
     </section>

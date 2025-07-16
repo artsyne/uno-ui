@@ -50,9 +50,11 @@
     <section class="flex justify-between mb-10">
         <div class="text-lg">日记本</div>
         <div>
+            {{if .Data.IsOwner}}
             <button class="btn" data-action="showDiaryBox" data-form-action="diary.add">
                 <i class="mdi mdi-plus"></i> 新增日记本
             </button>
+            {{end}}
         </div>
     </section>
 
