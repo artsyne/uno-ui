@@ -126,14 +126,10 @@ type AppError struct {
 
 // Error 实现error接口
 func (e *AppError) Error() string {
-	if e.Details != "" {
-		return e.Details
-	}
-	return fmt.Sprintf("[%d] %s", e.Code, e.Key)
-}
-
-// WithDetails 添加详细描述
-func (e *AppError) WithDetails(details string) *AppError {
-	e.Details = details
-	return e
+    if e.Details != "" {
+        // 如果有详细信息，则输出：[Code] Key: Details
+        return fmt.Sprintf("[%d] %s: %s", e.Code, e.Key, e.Details)
+    }
+    // 否则只输出：[Code] Key
+    return fmt.Sprintf("[%d] %s", e.Code, e.Key)
 }

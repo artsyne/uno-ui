@@ -113,17 +113,17 @@ func key[T any]() string {
 func checkConflict[T any](c *Container, k string) error {
 	// 检查各种注册类型是否存在冲突
 	if _, exists := c.factories[k]; exists {
-		return errors.DIServiceAlreadyRegistered.Err().WithDetails(
+		return errors.DIServiceAlreadyRegistered.WithDetails(
 			fmt.Sprintf("transient service %T already registered", (*T)(nil)),
 		)
 	}
 	if _, exists := c.singletons[k]; exists {
-		return errors.DIServiceAlreadyRegistered.Err().WithDetails(
+		return errors.DIServiceAlreadyRegistered.WithDetails(
 			fmt.Sprintf("singleton service %T already registered", (*T)(nil)),
 		)
 	}
 	if _, exists := c.instances[k]; exists {
-		return errors.DIServiceAlreadyRegistered.Err().WithDetails(
+		return errors.DIServiceAlreadyRegistered.WithDetails(
 			fmt.Sprintf("instance service %T already registered", (*T)(nil)),
 		)
 	}
@@ -398,7 +398,7 @@ func TryGet[T any](c *Container) (T, error) {
 	}
 
 	c.mu.RUnlock()
-	return zero, errors.DIServiceNotRegistered.Err().WithDetails(
+	return zero, errors.DIServiceNotRegistered.WithDetails(
 		fmt.Sprintf("service %T not registered", (*T)(nil)),
 	)
 }
