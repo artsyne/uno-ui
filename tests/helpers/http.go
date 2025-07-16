@@ -11,31 +11,36 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/biuren/hebe/internal/module/user"
 	"github.com/gin-gonic/gin"
 )
 
 // HTTPTestHelper HTTP测试辅助工具
 type HTTPTestHelper struct {
 	router *gin.Engine
+	suite  *TestSuite
 }
 
 // SetupHTTPTest 初始化HTTP测试环境
-func SetupHTTPTest() *HTTPTestHelper {
+func SetupHTTPTest(suite *TestSuite) *HTTPTestHelper {
 	gin.SetMode(gin.TestMode)
 
 	router := gin.New()
-	// 添加必要的中间件
-	router.Use(user.SharedData())
+	// 根据需要添加中间件
 
 	return &HTTPTestHelper{
 		router: router,
+		suite:  suite,
 	}
 }
 
 // GetRouter 获取路由器实例
 func (h *HTTPTestHelper) GetRouter() *gin.Engine {
 	return h.router
+}
+
+// GetSuite 获取测试套件实例
+func (h *HTTPTestHelper) GetSuite() *TestSuite {
+	return h.suite
 }
 
 // GET 发送GET请求

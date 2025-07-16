@@ -4,20 +4,25 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/biuren/hebe/internal/core/config"
 	"github.com/biuren/hebe/internal/core/database"
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // DatabaseTestHelper 数据库测试辅助工具
 type DatabaseTestHelper struct {
-	db *sql.DB
-	tx *sql.Tx
+	db         *sql.DB
+	tx         *sql.Tx
+	testDBName string
 }
 
 // setupTestEnvironment 设置测试环境变量
-func setupTestEnvironment() {
+func setupTestEnvironment(testDBName string) {
 	// 设置必需的JSON格式环境变量（使用IDIARY_前缀）
 	os.Setenv("IDIARY_SUPPORT_LANGS", `[{"code":"zh-cn","label":"中文","local-text":"中文"},{"code":"en","label":"English","local-text":"English"}]`)
 	os.Setenv("IDIARY_TIMEZONES", `["Asia/Shanghai","UTC","America/New_York"]`)
@@ -34,19 +39,21 @@ func setupTestEnvironment() {
 	os.Setenv("IDIARY_MAX_DAYBOOK_LIMIT", "100")
 	os.Setenv("IDIARY_HASH_SALT", "test_salt_12345")
 	os.Setenv("IDIARY_STATIC_DIR", "website/static")
+	os.Setenv("IDIARY_LOCALES_DIR", "website/locales")
+	os.Setenv("IDIARY_DEFAULT_LANG", "zh-cn")
 
-	// 数据库配置
-	os.Setenv("IDIARY_DB_HOST", "localhost")
+	// 数据库配置 - 使用.env.local中的真实配置
+	os.Setenv("IDIARY_DB_HOST", "127.0.0.1")
 	os.Setenv("IDIARY_DB_PORT", "3306")
-	os.Setenv("IDIARY_DB_NAME", "test_db")
-	os.Setenv("IDIARY_DB_USER", "test_user")
-	os.Setenv("IDIARY_DB_PASSWORD", "test_password")
-	os.Setenv("IDIARY_DB_CONN", "mysql")
+	os.Setenv("IDIARY_DB_NAME", testDBName)
+	os.Setenv("IDIARY_DB_USER", "root")
+	os.Setenv("IDIARY_DB_PASSWORD", "123123")
+	os.Setenv("IDIARY_DB_CONN", "%s:%s@tcp(%s:3306)/%s?parseTime=true&loc=Local&charset=utf8mb4&collation=utf8mb4_general_ci")
 
 	// Redis配置
-	os.Setenv("IDIARY_REDIS_HOST", "localhost")
+	os.Setenv("IDIARY_REDIS_HOST", "127.0.0.1")
 	os.Setenv("IDIARY_REDIS_PORT", "6379")
-	os.Setenv("IDIARY_REDIS_PASSWORD", "test_redis_password")
+	os.Setenv("IDIARY_REDIS_PASSWORD", "woaibeijingtiananmeng")
 
 	// 邮件配置
 	os.Setenv("IDIARY_SMTP_SERVER", "smtp.test.com")
@@ -59,7 +66,7 @@ func setupTestEnvironment() {
 
 	// Cookie配置
 	os.Setenv("IDIARY_COOKIE_DOMAIN", "localhost")
-	os.Setenv("IDIARY_COOKIE_SECRET", "test_secret_key_12345")
+	os.Setenv("IDIARY_COOKIE_SECRET", "test_secret_key_12345678901234567890")
 	os.Setenv("IDIARY_COOKIE_EXPIRE_DAYS", "30")
 	os.Setenv("IDIARY_COOKIE_HTTP_ONLY", "true")
 
@@ -80,13 +87,101 @@ func setupTestEnvironment() {
 	os.Setenv("IDIARY_LOG_LOCAL_TIME", "true")
 }
 
+// createTestDatabase 创建测试数据库
+func createTestDatabase(testDBName string) error {
+	// 连接到 MySQL 服务器（不指定数据库）- 使用.env.local中的真实配置
+	dsn := "root:123123@tcp(127.0.0.1:3306)/?charset=utf8mb4&parseTime=True&loc=Local"
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return fmt.Errorf("连接 MySQL 服务器失败: %v", err)
+	}
+	defer db.Close()
+
+	// 创建测试数据库
+	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", testDBName))
+	if err != nil {
+		return fmt.Errorf("创建测试数据库失败: %v", err)
+	}
+
+	return nil
+}
+
+// loadDatabaseSchema 加载数据库 schema
+func loadDatabaseSchema(db *sql.DB) error {
+	// 获取项目根目录
+	projectRoot := getProjectRoot()
+
+	// 读取 schema 文件
+	schemaPath := filepath.Join(projectRoot, "sql", "schema.sql")
+	schemaBytes, err := os.ReadFile(schemaPath)
+	if err != nil {
+		return fmt.Errorf("读取 schema 文件失败: %v", err)
+	}
+
+	schemaSQL := string(schemaBytes)
+
+	// 分割 SQL 语句（简单分割，按分号）
+	statements := strings.Split(schemaSQL, ";")
+
+	for _, stmt := range statements {
+		stmt = strings.TrimSpace(stmt)
+		if stmt == "" || strings.HasPrefix(stmt, "--") || strings.HasPrefix(stmt, "/*") {
+			continue
+		}
+
+		// 跳过一些 MySQL 特定的语句
+		if strings.Contains(stmt, "/*!") || strings.Contains(stmt, "SET @") || strings.Contains(stmt, "SET NAMES") {
+			continue
+		}
+
+		_, err := db.Exec(stmt)
+		if err != nil {
+			// 忽略一些常见的错误（如表已存在）
+			if !strings.Contains(err.Error(), "already exists") &&
+				!strings.Contains(err.Error(), "Table") &&
+				!strings.Contains(err.Error(), "Unknown table") {
+				return fmt.Errorf("执行 SQL 语句失败 [%s]: %v", stmt, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// dropTestDatabase 删除测试数据库
+func dropTestDatabase(testDBName string) error {
+	// 连接到 MySQL 服务器 - 使用.env.local中的真实配置
+	dsn := "root:123123@tcp(127.0.0.1:3306)/?charset=utf8mb4&parseTime=True&loc=Local"
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return fmt.Errorf("连接 MySQL 服务器失败: %v", err)
+	}
+	defer db.Close()
+
+	// 删除测试数据库
+	_, err = db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS `%s`", testDBName))
+	if err != nil {
+		return fmt.Errorf("删除测试数据库失败: %v", err)
+	}
+
+	return nil
+}
+
 // SetupTestDatabase 初始化测试数据库连接
 // 在测试开始前调用，确保数据库连接正常
 func SetupTestDatabase(t *testing.T) *DatabaseTestHelper {
 	t.Helper()
 
+	// 使用固定的测试数据库名称
+	testDBName := "hebe_test"
+
+	// 确保测试数据库存在并已加载schema
+	if err := ensureTestDatabase(testDBName); err != nil {
+		t.Fatalf("确保测试数据库存在失败: %v", err)
+	}
+
 	// 设置测试环境变量
-	setupTestEnvironment()
+	setupTestEnvironment(testDBName)
 
 	// 初始化配置
 	if err := config.InitConfig(); err != nil {
@@ -102,7 +197,8 @@ func SetupTestDatabase(t *testing.T) *DatabaseTestHelper {
 	}
 
 	return &DatabaseTestHelper{
-		db: db,
+		db:         db,
+		testDBName: testDBName,
 	}
 }
 
@@ -237,4 +333,128 @@ func (h *DatabaseTestHelper) Cleanup(t *testing.T) {
 
 	// 回滚未提交的事务
 	h.RollbackTransaction(t)
+
+	// 关闭数据库连接
+	if h.db != nil {
+		h.db.Close()
+	}
+}
+
+// WithDatabaseTest 提供独立的数据库测试环境
+// 适用于只需要数据库连接的测试，无需完整的测试套件
+func WithDatabaseTest(t *testing.T, testFunc func(*DatabaseTestHelper)) {
+	t.Helper()
+
+	db := SetupTestDatabase(t)
+	defer db.Cleanup(t)
+
+	testFunc(db)
+}
+
+// GetDSN 生成数据库连接字符串
+func GetDSN(dbName string) string {
+	return fmt.Sprintf("root:@tcp(localhost:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbName)
+}
+
+// GetDB 获取数据库连接（用于直接数据库操作）
+func (h *DatabaseTestHelper) GetDB() *sql.DB {
+	return h.db
+}
+
+// getProjectRoot 获取项目根目录
+func getProjectRoot() string {
+	// 从当前文件位置开始，向上查找包含go.mod的目录
+	dir, _ := os.Getwd()
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			// 到达根目录，回退到默认路径
+			return "/Users/yasong.cy/go/src/idiary.ai/hebe"
+		}
+		dir = parent
+	}
+}
+
+// ensureTestDatabase 确保测试数据库存在并已加载schema
+func ensureTestDatabase(testDBName string) error {
+	// 连接到 MySQL 服务器（不指定数据库）
+	dsn := "root:123123@tcp(127.0.0.1:3306)/?charset=utf8mb4&parseTime=True&loc=Local"
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return fmt.Errorf("连接 MySQL 服务器失败: %v", err)
+	}
+	defer db.Close()
+
+	// 创建测试数据库（如果不存在）
+	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", testDBName))
+	if err != nil {
+		return fmt.Errorf("创建测试数据库失败: %v", err)
+	}
+
+	// 连接到测试数据库
+	testDSN := fmt.Sprintf("root:123123@tcp(127.0.0.1:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local", testDBName)
+	testDB, err := sql.Open("mysql", testDSN)
+	if err != nil {
+		return fmt.Errorf("连接测试数据库失败: %v", err)
+	}
+	defer testDB.Close()
+
+	// 检查是否需要加载schema（检查是否存在某个关键表）
+	var tableCount int
+	err = testDB.QueryRow("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = ? AND table_name = 'br_user'", testDBName).Scan(&tableCount)
+	if err != nil {
+		return fmt.Errorf("检查表是否存在失败: %v", err)
+	}
+
+	// 如果表不存在，加载schema
+	if tableCount == 0 {
+		if err := loadDatabaseSchema(testDB); err != nil {
+			return fmt.Errorf("加载数据库schema失败: %v", err)
+		}
+	}
+
+	return nil
+}
+
+// CleanupAllTables 清理所有表的数据（保留结构）
+func (h *DatabaseTestHelper) CleanupAllTables(t *testing.T) {
+	t.Helper()
+
+	// 获取所有表名
+	rows, err := h.db.Query("SHOW TABLES")
+	if err != nil {
+		t.Errorf("获取表列表失败: %v", err)
+		return
+	}
+	defer rows.Close()
+
+	var tables []string
+	for rows.Next() {
+		var tableName string
+		if err := rows.Scan(&tableName); err != nil {
+			t.Errorf("扫描表名失败: %v", err)
+			continue
+		}
+		tables = append(tables, tableName)
+	}
+
+	// 禁用外键约束检查
+	if _, err := h.db.Exec("SET FOREIGN_KEY_CHECKS = 0"); err != nil {
+		t.Errorf("禁用外键约束检查失败: %v", err)
+	}
+
+	// 清空所有表
+	for _, table := range tables {
+		if _, err := h.db.Exec(fmt.Sprintf("TRUNCATE TABLE `%s`", table)); err != nil {
+			t.Errorf("清空表 %s 失败: %v", table, err)
+		}
+	}
+
+	// 重新启用外键约束检查
+	if _, err := h.db.Exec("SET FOREIGN_KEY_CHECKS = 1"); err != nil {
+		t.Errorf("启用外键约束检查失败: %v", err)
+	}
 }
