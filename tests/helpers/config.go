@@ -1,6 +1,7 @@
 package testhelpers
 
 import (
+	"os"
 	"testing"
 
 	"github.com/biuren/hebe/internal/core/config"
@@ -15,6 +16,9 @@ type ConfigTestHelper struct {
 // 基于.env.local的值，无需环境变量设置
 func SetupTestConfig(t *testing.T) *ConfigTestHelper {
 	t.Helper()
+
+	// 确保必要的目录存在
+	ensureTestDirectories(t)
 
 	// 创建测试配置（基于实际配置结构）
 	testConfig := &config.Config{
@@ -77,11 +81,12 @@ func SetupTestConfig(t *testing.T) *ConfigTestHelper {
 			LocalTime:  true,
 		},
 		SupportLangs: []config.SupportLang{
-			{Code: "zh-cn", Label: "中文", LocalText: "中文"},
+			{Code: "zh-cn", Label: "简体中文", LocalText: "简体中文"},
 			{Code: "en", Label: "English", LocalText: "English"},
 		},
 		Timezones: []string{"Asia/Shanghai", "UTC", "America/New_York"},
 		Params: []config.Param{
+			{Key: "site_name", Val: "iDiary"},
 			{Key: "test_key", Val: "test_value"},
 		},
 	}
@@ -94,6 +99,62 @@ func SetupTestConfig(t *testing.T) *ConfigTestHelper {
 
 	return &ConfigTestHelper{
 		originalConfig: originalConfig,
+	}
+}
+
+// ensureTestDirectories 确保测试所需的目录存在
+func ensureTestDirectories(t *testing.T) {
+	t.Helper()
+
+	directories := []string{
+		"website/locales",
+		"website/static",
+		"test_uploads",
+		"test_logs",
+	}
+
+	for _, dir := range directories {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			t.Fatalf("Failed to create test directory %s: %v", dir, err)
+		}
+	}
+
+	// 创建基本的本地化文件
+	createBasicLocalizationFiles(t)
+}
+
+// createBasicLocalizationFiles 创建基本的本地化文件
+func createBasicLocalizationFiles(t *testing.T) {
+	t.Helper()
+
+	// 创建中文本地化文件
+	zhCNContent := `{
+		"nav": {
+			"home": "首页"
+		},
+		"common": {
+			"default_page_desc": "默认页面描述"
+		}
+	}`
+
+	zhCNFile := "website/locales/zh-cn.json"
+	if err := os.WriteFile(zhCNFile, []byte(zhCNContent), 0644); err != nil {
+		t.Logf("Warning: Failed to create %s: %v", zhCNFile, err)
+	}
+
+	// 创建英文本地化文件
+	enContent := `{
+		"nav": {
+			"home": "Home"
+		},
+		"common": {
+			"default_page_desc": "Default page description"
+		}
+	}`
+
+	enFile := "website/locales/en.json"
+	if err := os.WriteFile(enFile, []byte(enContent), 0644); err != nil {
+		t.Logf("Warning: Failed to create %s: %v", enFile, err)
 	}
 }
 

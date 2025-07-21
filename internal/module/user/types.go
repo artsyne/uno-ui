@@ -1,8 +1,6 @@
 package user
 
-import (
-	"github.com/biuren/hebe/internal/app/render"
-)
+import "github.com/biuren/hebe/internal/app/render/types"
 
 // AuthUser 已认证用户信息结构体
 type AuthUser struct {
@@ -35,8 +33,8 @@ func (u *AuthUser) GetTimeZone() string    { return u.TimeZone }
 func (u *AuthUser) GetLang() string        { return u.Lang }
 func (u *AuthUser) GetStatus() int8        { return u.Status }
 
-// 编译时检查：确保 AuthUser 实现了 render.RenderUser 接口
-var _ render.RenderUser = (*AuthUser)(nil)
+// 编译时检查：确保 AuthUser 实现了 types.RenderUser 接口
+var _ types.RenderUser = (*AuthUser)(nil)
 
 // User 用户信息结构体
 type User struct {

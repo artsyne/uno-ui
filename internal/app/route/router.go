@@ -9,6 +9,8 @@ import (
 
 	"github.com/biuren/hebe/internal/app/controller"
 	"github.com/biuren/hebe/internal/app/render"
+	"github.com/biuren/hebe/internal/app/render/localization"
+	"github.com/biuren/hebe/internal/app/templates"
 	"github.com/biuren/hebe/internal/core/config"
 	"github.com/biuren/hebe/internal/core/di"
 	"github.com/biuren/hebe/internal/module/diary"
@@ -65,19 +67,21 @@ func createPostHandler(container *di.Container) post.HandlerInterface {
 // #region 加载模版文件，并注入全局变量
 // 通过原生 Go 能力加载 "views" 目录中的模版文件
 func setTemplate(server *gin.Engine, basePath string, container *di.Container) {
-	// 从DI容器获取RenderService
-	renderService := di.Get[render.RenderServiceInterface](container)
+	// 1. 获取配置
+	cfg := di.Get[*config.Config](container)
 
-	// 注册所有模版函数
-	tmpl := template.New("").Funcs(renderService.RegisterFuncs())
+	// 2. 初始化本地化管理器（消息会自动加载到全局缓存）
+	localization.NewManager(cfg)
 
-	// 加载所有 .html 文件
-	err := loadTemplates(tmpl, basePath)
-	if err != nil {
+	// 3. 注册所有模版函数（直接使用templates包）
+	tmpl := template.New("").Funcs(templates.RegisterAllFuncs())
+
+	// 6. 加载所有 .html 文件
+	if err := loadTemplates(tmpl, basePath); err != nil {
 		panic(err)
 	}
 
-	// 设置 Gin 原生的 HTML 渲染器
+	// 7. 设置 Gin 原生的 HTML 渲染器
 	server.SetHTMLTemplate(tmpl)
 }
 

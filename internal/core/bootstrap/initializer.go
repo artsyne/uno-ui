@@ -66,6 +66,11 @@ func (i *Initializer) initDatabase() error {
 func (i *Initializer) initContainer() error {
 	i.container = di.New()
 
-	slog.Info("成功初始化DI容器")
+	// 注册配置到DI容器
+	if err := di.Value(i.container, i.config); err != nil {
+		return fmt.Errorf("注册配置到DI容器失败: %w", err)
+	}
+
+	slog.Info("成功初始化DI容器并注册配置")
 	return nil
 }

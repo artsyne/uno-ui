@@ -14,33 +14,22 @@
 // - 用户体验: 自动处理SEO元数据、面包屑导航等
 package render
 
-// RenderUser 渲染用户接口 - 抽象 AuthUser 除 Pwd 外的所有属性
-type RenderUser interface {
-	GetLoginName() string
-	GetAccessUrl() string
-	GetUserID() int64
-	GetUserName() string
-	GetFullName() string
-	GetEmail() string
-	GetUserGroup() int8
-	GetFaceUrl() string
-	GetLoginUTCTime() int64
-	GetTimeZone() string
-	GetLang() string
-	GetStatus() int8
-}
+import (
+	"github.com/biuren/hebe/internal/app/render/localization"
+	"github.com/biuren/hebe/internal/app/render/types"
+)
 
-// RenderContext 渲染上下文
-// 包含页面渲染所需的普适性、非业务相关的状态信息。
-type RenderContext struct {
-	IsLogin bool `json:"is_login"` // 用户是否登录
-
-	// AuthUser 抽象了当前登录的用户信息，通过接口避免循环依赖。
-	// 允许渲染层访问认证用户的通用属性，而无需了解具体实现。
-	AuthUser RenderUser `json:"auth_user,omitempty"`
-
-	// Lang 当前页面使用的语言代码，通过智能检测获得
-	Lang string `json:"lang"`
+// NewPageData 构造函数，统一初始化流程
+func NewPageData(title, description, keywords string, data map[string]interface{}, breadcrumb []types.BreadcrumbItem, context *types.RenderContext, localizationManager localization.ManagerInterface) *PageData {
+	return &PageData{
+		Title:               title,
+		Description:         description,
+		Keywords:            keywords,
+		Data:                data,
+		Breadcrumb:          breadcrumb,
+		Context:             context,
+		localizationManager: localizationManager,
+	}
 }
 
 // PageData 页面数据结构 - 用于渲染HTML页面的完整数据集合
@@ -77,17 +66,17 @@ type PageData struct {
 
 	// Breadcrumb 面包屑导航，帮助用户了解当前页面在网站中的位置
 	// 自动根据URL路径和用户状态生成，提升导航体验
-	Breadcrumb []BreadcrumbItem `json:"breadcrumb,omitempty"`
+	Breadcrumb []types.BreadcrumbItem `json:"breadcrumb,omitempty"`
 
 	// Context 渲染上下文，包含页面渲染所需的全局状态信息
-	// 包括: 用户登录状态、用户信息、当前语言等
+	// 包括: 用户登录状态、用户信息、语言设置等全局状态
 	// 所有模板都可以访问这些通用状态
-	Context *RenderContext `json:"context,omitempty"`
+	Context *types.RenderContext `json:"context,omitempty"`
 
 	// localizationManager 本地化管理器引用，不序列化到JSON响应中
 	// 提供模板内的翻译功能: .T("key") 和 .TWithParams("key", params)
 	// 自动根据用户语言偏好、Cookie或浏览器设置选择合适的语言
-	localizationManager *LocalizationManager `json:"-"`
+	localizationManager localization.ManagerInterface `json:"-"`
 }
 
 // ===================== PageData 便捷访问方法 =====================
@@ -104,7 +93,7 @@ func (p *PageData) IsAuthenticated() bool {
 // 业务用途: 在模板中访问用户头像、用户名、权限等信息
 // 使用示例: {{.GetAuthUser.GetUserName}} 或 {{.GetAuthUser.GetFaceUrl}}
 // 注意: 使用前应先检查 .IsAuthenticated 确保用户已登录
-func (p *PageData) GetAuthUser() RenderUser {
+func (p *PageData) GetAuthUser() types.RenderUser {
 	if p.Context != nil {
 		return p.Context.AuthUser
 	}
@@ -125,7 +114,7 @@ func (p *PageData) GetLang() string {
 // GetRenderContext 获取完整的渲染上下文
 // 业务用途: 访问完整的页面状态信息，通常在复杂模板逻辑中使用
 // 包含: 登录状态、用户信息、语言设置等全局状态
-func (p *PageData) GetRenderContext() *RenderContext {
+func (p *PageData) GetRenderContext() *types.RenderContext {
 	return p.Context
 }
 
@@ -158,50 +147,5 @@ func (p *PageData) TWithParams(key string, params map[string]string) string {
 	return p.localizationManager.GetMessageWithParams(key, p.Context.Lang, params)
 }
 
-// BreadcrumbItem 面包屑导航项 - 用于构建页面导航路径
-// 业务逻辑: 帮助用户了解当前页面在网站层级中的位置，提升导航体验
-// 自动生成规则:
-// - 首页 > 用户页面 > 具体功能页面
-// - 首页 > 日记本 > 具体日记
-// - 支持多级嵌套，最后一项通常不包含URL(当前页面)
-type BreadcrumbItem struct {
-	// Name 导航项显示名称，支持多语言翻译
-	Name string `json:"name"`
-
-	// URL 导航项链接地址，可选字段
-	// 如果为空，表示当前页面，不可点击
-	URL string `json:"url,omitempty"`
-}
-
-// JSONResponse 标准JSON响应结构 - 用于API接口统一响应格式
-// 业务逻辑: 保证前后端交互的数据格式一致性，便于前端统一处理
-// 使用场景: AJAX请求、移动端API、第三方集成等
-type JSONResponse struct {
-	// Code 响应状态码，通常遵循HTTP状态码规范
-	// 200: 成功, 400: 客户端错误, 500: 服务器错误等
-	Code int `json:"code"`
-
-	// Message 响应消息，给用户的提示信息
-	// 支持多语言，根据用户语言偏好返回对应文本
-	Message string `json:"message"`
-
-	// Data 响应数据载体，根据不同接口返回相应的业务数据
-	// 可以是对象、数组、字符串等任意类型
-	Data interface{} `json:"data,omitempty"`
-}
-
-// ErrorResponse 错误响应结构 - 专门用于错误情况的响应
-// 业务逻辑: 统一错误信息格式，便于错误处理和用户提示
-// 使用场景: 表单验证失败、权限不足、资源不存在等错误情况
-type ErrorResponse struct {
-	// Code 错误状态码，用于程序判断错误类型
-	Code int `json:"code"`
-
-	// Message 错误描述信息，给用户的错误提示
-	// 应该是用户友好的语言，避免技术术语
-	Message string `json:"message"`
-
-	// Data 错误详细信息，可选字段
-	// 例如: 表单验证错误的具体字段信息
-	Data interface{} `json:"data,omitempty"`
-}
+// 注意：JSONResponse 和 ErrorResponse 已移动到 response 包中
+// 这里只保留 PageData 相关定义

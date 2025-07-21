@@ -1,19 +1,17 @@
 package render
 
 import (
-	"html/template"
-
 	"github.com/gin-gonic/gin"
 )
 
-// RenderServiceInterface 渲染服务接口（合并response、view、template功能）
+// RenderServiceInterface 渲染服务接口
 type RenderServiceInterface interface {
-	// ===================== 页面数据组装（原view功能） =====================
+	// ===================== 页面数据组装 =====================
 
 	// PageData 创建页面数据
 	PageData(c *gin.Context, titleKey string) *PageData
 
-	// ===================== HTTP响应处理 =====================
+	// ===================== 响应处理门面 =====================
 
 	// JSON响应
 	JSON(c *gin.Context, code int, data interface{})
@@ -26,9 +24,4 @@ type RenderServiceInterface interface {
 
 	// 其他响应
 	Redirect(c *gin.Context, url string)
-
-	// ===================== 模板函数=====================
-
-	// RegisterFuncs 注册模板函数
-	RegisterFuncs() template.FuncMap
 }
