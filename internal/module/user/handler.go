@@ -12,54 +12,58 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// HandlerInterface 用户HTTP处理层接口
+// UserController 用户HTTP处理层接口
 // 定义所有与用户相关的HTTP处理操作，包括认证、注册、设置等
-type HandlerInterface interface {
+type UserController interface {
 	// RegisterRoutes 注册所有用户相关路由
 	RegisterRoutes(router *gin.Engine)
 
 	// ===================== 页面渲染方法 =====================
 
-	// RenderLogin 渲染登录页面
-	RenderLogin(c *gin.Context)
+	// ShowLoginPage 显示登录页面
+	ShowLoginPage(c *gin.Context)
 
-	// RenderRegister 渲染注册页面
-	RenderRegister(c *gin.Context)
+	// ShowRegisterPage 显示注册页面
+	ShowRegisterPage(c *gin.Context)
 
-	// RenderFindPwd 渲染找回密码页面
-	RenderFindPwd(c *gin.Context)
+	// ShowPasswordResetPage 显示找回密码页面
+	ShowPasswordResetPage(c *gin.Context)
 
-	// RenderResetPwd 渲染重置密码页面
-	RenderResetPwd(c *gin.Context)
+	// ShowPasswordResetForm 显示重置密码表单页面
+	ShowPasswordResetForm(c *gin.Context)
 
-	// RenderActivateUser 渲染激活用户页面
-	RenderActivateUser(c *gin.Context)
+	// ShowUserActivationPage 显示激活用户页面
+	ShowUserActivationPage(c *gin.Context)
 
-	// RenderUserSettings 渲染用户设置页面
-	RenderUserSettings(c *gin.Context)
+	// ShowUserSettingsPage 显示用户设置页面
+	ShowUserSettingsPage(c *gin.Context)
 
-	// ===================== 请求处理方法 =====================
+	// ===================== 认证相关方法 =====================
 
-	// HandleLogin 处理用户登录请求
-	HandleLogin(c *gin.Context)
+	// Login 处理用户登录请求
+	Login(c *gin.Context)
 
-	// HandleUserReg 处理用户注册请求
-	HandleUserReg(c *gin.Context)
+	// Register 处理用户注册请求
+	Register(c *gin.Context)
 
-	// HandleCheckUserName 检查用户名是否存在
-	HandleCheckUserName(c *gin.Context)
+	// Logout 处理用户退出登录请求
+	Logout(c *gin.Context)
 
-	// HandleCheckEmail 检查邮箱是否存在
-	HandleCheckEmail(c *gin.Context)
+	// ===================== 验证方法 =====================
 
-	// HandleFindPwd 处理找回密码请求
-	HandleFindPwd(c *gin.Context)
+	// ValidateUsername 验证用户名是否可用
+	ValidateUsername(c *gin.Context)
 
-	// HandleResetPwd 处理重置密码请求
-	HandleResetPwd(c *gin.Context)
+	// ValidateEmail 验证邮箱是否可用
+	ValidateEmail(c *gin.Context)
 
-	// HandleLoginOut 处理用户退出登录请求
-	HandleLoginOut(c *gin.Context)
+	// ===================== 密码管理方法 =====================
+
+	// RequestPasswordReset 处理找回密码请求
+	RequestPasswordReset(c *gin.Context)
+
+	// ResetPassword 处理重置密码请求
+	ResetPassword(c *gin.Context)
 
 	// ===================== 用户设置相关方法 =====================
 
@@ -69,8 +73,8 @@ type HandlerInterface interface {
 	// UpdateEmail 更新用户邮箱
 	UpdateEmail(c *gin.Context)
 
-	// ChangePassword 修改用户密码
-	ChangePassword(c *gin.Context)
+	// UpdatePassword 修改用户密码
+	UpdatePassword(c *gin.Context)
 }
 
 // handler 用户HTTP处理层实现
@@ -82,7 +86,7 @@ type handler struct {
 }
 
 // NewHandlerWithServices 通过DI容器创建用户HTTP处理层实例
-func NewHandlerWithServices(renderService render.RenderServiceInterface, _ render.RenderServiceInterface) HandlerInterface {
+func NewHandlerWithServices(renderService render.RenderServiceInterface, _ render.RenderServiceInterface) UserController {
 	return &handler{
 		service:       NewService(),
 		auth:          NewAuthHelper(),
@@ -95,39 +99,39 @@ func NewHandlerWithServices(renderService render.RenderServiceInterface, _ rende
 // 保持与原系统完全一致的路由路径
 func (h *handler) RegisterRoutes(router *gin.Engine) {
 	// 用户认证相关路由（无需鉴权）
-	router.GET("/register", h.RenderRegister)
-	router.POST("/register", h.HandleUserReg)
-	router.POST("/check-username", h.HandleCheckUserName)
-	router.POST("/check-email", h.HandleCheckEmail)
+	router.GET("/register", h.ShowRegisterPage)
+	router.POST("/register", h.Register)
+	router.POST("/check-username", h.ValidateUsername)
+	router.POST("/check-email", h.ValidateEmail)
 
-	router.GET("/login", h.RenderLogin)
-	router.POST("/login", h.HandleLogin)
+	router.GET("/login", h.ShowLoginPage)
+	router.POST("/login", h.Login)
 
-	router.POST("/loginout", h.HandleLoginOut)
+	router.POST("/loginout", h.Logout)
 
-	router.GET("/findpwd", h.RenderFindPwd)
-	router.POST("/findpwd", h.HandleFindPwd)
+	router.GET("/findpwd", h.ShowPasswordResetPage)
+	router.POST("/findpwd", h.RequestPasswordReset)
 
-	router.GET("/resetpwd", h.RenderResetPwd)
-	router.POST("/resetpwd", h.HandleResetPwd)
+	router.GET("/resetpwd", h.ShowPasswordResetForm)
+	router.POST("/resetpwd", h.ResetPassword)
 
-	router.GET("/activateuser", h.RenderActivateUser)
+	router.GET("/activateuser", h.ShowUserActivationPage)
 
 	// 用户设置相关路由（需要鉴权）
 	authGroup := router.Group("/u")
 	authGroup.Use(AuthRequired())
 	{
-		authGroup.GET("/:uid/settings", h.RenderUserSettings)
+		authGroup.GET("/:uid/settings", h.ShowUserSettingsPage)
 		authGroup.POST("/:uid/settings/profile", h.UpdateProfile)
 		authGroup.POST("/:uid/settings/email", h.UpdateEmail)
-		authGroup.POST("/:uid/settings/password", h.ChangePassword)
+		authGroup.POST("/:uid/settings/password", h.UpdatePassword)
 	}
 }
 
 // ===================== 页面渲染方法 =====================
 
-// RenderLogin 渲染登录页面
-func (h *handler) RenderLogin(c *gin.Context) {
+// ShowLoginPage 显示登录页面
+func (h *handler) ShowLoginPage(c *gin.Context) {
 	// 如果已登录则跳转首页
 	if isAuth, _ := h.auth.IsAuthenticated(c); isAuth {
 		h.renderService.Redirect(c, "/")
@@ -138,8 +142,8 @@ func (h *handler) RenderLogin(c *gin.Context) {
 	h.renderService.HTML(c, "passport/login", data)
 }
 
-// RenderRegister 渲染注册页面
-func (h *handler) RenderRegister(c *gin.Context) {
+// ShowRegisterPage 显示注册页面
+func (h *handler) ShowRegisterPage(c *gin.Context) {
 	// 如果已登录则跳转首页
 	if isAuth, _ := h.auth.IsAuthenticated(c); isAuth {
 		h.renderService.Redirect(c, "/")
@@ -152,8 +156,8 @@ func (h *handler) RenderRegister(c *gin.Context) {
 	h.renderService.HTML(c, "passport/register", data)
 }
 
-// RenderFindPwd 渲染找回密码页面
-func (h *handler) RenderFindPwd(c *gin.Context) {
+// ShowPasswordResetPage 显示找回密码页面
+func (h *handler) ShowPasswordResetPage(c *gin.Context) {
 	// 如果已登录则跳转首页
 	if isAuth, _ := h.auth.IsAuthenticated(c); isAuth {
 		h.renderService.Redirect(c, "/")
@@ -164,8 +168,8 @@ func (h *handler) RenderFindPwd(c *gin.Context) {
 	h.renderService.HTML(c, "passport/findpwd", data)
 }
 
-// RenderResetPwd 渲染重置密码页面
-func (h *handler) RenderResetPwd(c *gin.Context) {
+// ShowPasswordResetForm 显示重置密码表单页面
+func (h *handler) ShowPasswordResetForm(c *gin.Context) {
 	uid := c.Query("uid")
 	sign := c.Query("sign")
 
@@ -173,7 +177,7 @@ func (h *handler) RenderResetPwd(c *gin.Context) {
 		data := h.renderService.PageData(c, "error")
 		data.Data["title"] = "参数错误"
 		data.Data["message"] = "缺少必要参数"
-		h.renderService.HTML(c, "error.html", data)
+		h.renderService.HTML(c, "error", data)
 		return
 	}
 
@@ -183,7 +187,7 @@ func (h *handler) RenderResetPwd(c *gin.Context) {
 		data := h.renderService.PageData(c, "error")
 		data.Data["title"] = "参数错误"
 		data.Data["message"] = "用户ID格式错误"
-		h.renderService.HTML(c, "error.html", data)
+		h.renderService.HTML(c, "error", data)
 		return
 	}
 
@@ -199,11 +203,11 @@ func (h *handler) RenderResetPwd(c *gin.Context) {
 	data := h.renderService.PageData(c, "user.resetpwd.title")
 	data.Data["uid"] = uid
 	data.Data["sign"] = sign
-	h.renderService.HTML(c, "passport/resetpwd.html", data)
+	h.renderService.HTML(c, "passport/resetpwd", data)
 }
 
-// RenderActivateUser 渲染激活用户页面
-func (h *handler) RenderActivateUser(c *gin.Context) {
+// ShowUserActivationPage 显示激活用户页面
+func (h *handler) ShowUserActivationPage(c *gin.Context) {
 	uid := c.Query("uid")
 	sign := c.Query("sign")
 
@@ -211,24 +215,24 @@ func (h *handler) RenderActivateUser(c *gin.Context) {
 
 	if uid == "" || sign == "" {
 		data.Data["message"] = "缺少必要参数"
-		h.renderService.HTML(c, "passport/activateuser.html", data)
+		h.renderService.HTML(c, "passport/activateuser", data)
 		return
 	}
 
 	// 激活用户
 	if h.service.ActivateUser(uid, sign) {
 		data.Data["message"] = "账户激活成功，请登录"
-		h.renderService.HTML(c, "passport/activateuser.html", data)
+		h.renderService.HTML(c, "passport/activateuser", data)
 	} else {
 		data.Data["message"] = "激活链接已过期或无效"
-		h.renderService.HTML(c, "passport/activateuser.html", data)
+		h.renderService.HTML(c, "passport/activateuser", data)
 	}
 }
 
 // ===================== 请求处理方法 =====================
 
-// HandleLogin 处理用户登录请求
-func (h *handler) HandleLogin(c *gin.Context) {
+// Login 处理用户登录请求
+func (h *handler) Login(c *gin.Context) {
 	// 解析登录表单数据
 	login := &AuthUser{}
 	if err := c.Bind(login); err != nil {
@@ -279,8 +283,8 @@ func (h *handler) HandleLogin(c *gin.Context) {
 	h.renderService.JSONSuccess(c, responseData)
 }
 
-// HandleUserReg 处理用户注册请求
-func (h *handler) HandleUserReg(c *gin.Context) {
+// Register 处理用户注册请求
+func (h *handler) Register(c *gin.Context) {
 	// 如果已登录则跳转首页
 	if isAuth, _ := h.auth.IsAuthenticated(c); isAuth {
 		h.renderService.Redirect(c, "/")
@@ -310,8 +314,8 @@ func (h *handler) HandleUserReg(c *gin.Context) {
 	h.renderService.JSONSuccess(c, responseData)
 }
 
-// HandleCheckUserName 检查用户名是否已存在
-func (h *handler) HandleCheckUserName(c *gin.Context) {
+// ValidateUsername 验证用户名是否可用
+func (h *handler) ValidateUsername(c *gin.Context) {
 	userName, _ := c.GetPostForm("username")
 
 	// 验证用户名格式
@@ -329,8 +333,8 @@ func (h *handler) HandleCheckUserName(c *gin.Context) {
 	h.renderService.JSONSuccess(c, nil)
 }
 
-// HandleCheckEmail 检查邮箱地址是否已存在
-func (h *handler) HandleCheckEmail(c *gin.Context) {
+// ValidateEmail 验证邮箱是否可用
+func (h *handler) ValidateEmail(c *gin.Context) {
 	email, _ := c.GetPostForm("email")
 
 	// 验证邮箱格式
@@ -348,8 +352,8 @@ func (h *handler) HandleCheckEmail(c *gin.Context) {
 	h.renderService.JSONSuccess(c, nil)
 }
 
-// HandleFindPwd 处理找回密码请求
-func (h *handler) HandleFindPwd(c *gin.Context) {
+// RequestPasswordReset 处理找回密码请求
+func (h *handler) RequestPasswordReset(c *gin.Context) {
 	email, _ := c.GetPostForm("email")
 
 	// 验证邮箱格式
@@ -380,8 +384,8 @@ func (h *handler) HandleFindPwd(c *gin.Context) {
 	h.renderService.JSONSuccess(c, nil)
 }
 
-// HandleResetPwd 处理重置密码请求
-func (h *handler) HandleResetPwd(c *gin.Context) {
+// ResetPassword 处理重置密码请求
+func (h *handler) ResetPassword(c *gin.Context) {
 	uid, _ := c.GetPostForm("uid")
 	sign, _ := c.GetPostForm("sign")
 	newPwd, _ := c.GetPostForm("new_pwd")
@@ -429,8 +433,8 @@ func (h *handler) HandleResetPwd(c *gin.Context) {
 	h.renderService.JSONSuccess(c, nil)
 }
 
-// HandleLoginOut 处理登出请求
-func (h *handler) HandleLoginOut(c *gin.Context) {
+// Logout 处理登出请求
+func (h *handler) Logout(c *gin.Context) {
 	// 清除登录cookie
 	pkg.DelCookie(c.Writer, "ud")
 	c.Redirect(http.StatusFound, "/passport/login")
@@ -475,9 +479,9 @@ func (h *handler) setLoginCookie(c *gin.Context, login *AuthUser) error {
 
 // ===================== Member 相关处理方法 =====================
 
-// RenderUserSettings 渲染用户设置页面
+// ShowUserSettingsPage 显示用户设置页面
 // 从website/controllers/member.go中迁移的RenderMemberSettings方法
-func (h *handler) RenderUserSettings(c *gin.Context) {
+func (h *handler) ShowUserSettingsPage(c *gin.Context) {
 	// 确保用户已登录
 	isAuth, authUser := h.auth.IsAuthenticated(c)
 	if !isAuth {
@@ -562,8 +566,8 @@ func (h *handler) UpdateEmail(c *gin.Context) {
 	h.renderService.JSONSuccess(c, gin.H{"message": "邮箱更新成功"})
 }
 
-// ChangePassword 修改用户密码
-func (h *handler) ChangePassword(c *gin.Context) {
+// UpdatePassword 更新用户密码
+func (h *handler) UpdatePassword(c *gin.Context) {
 	// 获取url中的uid
 	uid, err := h.parseUserID(c.Param("uid"))
 	if err != nil {

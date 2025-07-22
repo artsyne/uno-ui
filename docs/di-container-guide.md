@@ -196,7 +196,7 @@ func createController(container *di.Container) *controller.Controller {
     return controller.NewController(renderService)
 }
 
-func createUserHandler(container *di.Container) user.HandlerInterface {
+func createUserHandler(container *di.Container) user.UserController {
     renderService := di.Get[render.RenderServiceInterface](container)
     return user.NewHandlerWithServices(renderService, renderService)
 }

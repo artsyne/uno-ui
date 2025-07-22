@@ -47,7 +47,7 @@ func createController(container *di.Container) *controller.Controller {
 }
 
 // createUserHandler 通过DI容器创建UserHandler
-func createUserHandler(container *di.Container) user.HandlerInterface {
+func createUserHandler(container *di.Container) user.UserController {
 	renderService := di.Get[render.RenderServiceInterface](container)
 	return user.NewHandlerWithServices(renderService, renderService)
 }

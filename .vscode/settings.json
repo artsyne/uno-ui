@@ -2,9 +2,6 @@
 {
     //测试代码有log 输出
     "go.testFlags": ["-v"],
-    "gopls": {
-      "semanticTokens": true
-    },
     "sqltools.connections": [
       {
         "mysqlOptions": {
