@@ -3,8 +3,7 @@ package templates
 import (
 	"html/template"
 
-	"github.com/biuren/hebe/internal/app/render"
-	"github.com/biuren/hebe/internal/app/render/types"
+	"github.com/biuren/hebe/internal/shared/types"
 )
 
 // GetAuthFuncs 获取认证相关的模板函数
@@ -27,52 +26,49 @@ func GetAuthFuncs() template.FuncMap {
 }
 
 // isLogin 检查用户是否已登录
-func isLogin(data *render.PageData) bool {
-	return data != nil && data.IsAuthenticated()
+func isLogin(data *types.PageData[map[string]interface{}]) bool {
+	return data.IsAuthenticated()
 }
 
 // authUser 获取认证用户对象
-func authUser(data *render.PageData) types.RenderUser {
-	if data == nil {
-		return nil
-	}
+func authUser(data *types.PageData[map[string]interface{}]) *types.AuthUser {
 	return data.GetAuthUser()
 }
 
 // getLoginName 获取登录名
-func getLoginName(data *render.PageData) string {
+func getLoginName(data *types.PageData[map[string]interface{}]) string {
 	if u := authUser(data); u != nil {
-		return u.GetLoginName()
+		return u.LoginName
 	}
 	return ""
 }
 
 // getUserName 获取用户名
-func getUserName(data *render.PageData) string {
+func getUserName(data *types.PageData[map[string]interface{}]) string {
 	if u := authUser(data); u != nil {
-		return u.GetUserName()
+		return u.UserName
 	}
 	return ""
 }
 
 // getEmail 获取邮箱
-func getEmail(data *render.PageData) string {
+func getEmail(data *types.PageData[map[string]interface{}]) string {
 	if u := authUser(data); u != nil {
-		return u.GetEmail()
+		return u.Email
 	}
 	return ""
 }
 
 // getFaceUrl 获取头像URL
-func getFaceUrl(data *render.PageData) string {
+func getFaceUrl(data *types.PageData[map[string]interface{}]) string {
 	if u := authUser(data); u != nil {
-		return u.GetFaceUrl()
+		return u.FaceUrl
 	}
 	return ""
 }
 
 // getUserAvatar 获取用户头像（兼容性函数）
-func getUserAvatar(data *render.PageData) string {
+func getUserAvatar(data *types.PageData[map[string]interface{}]) string {
 	if url := getFaceUrl(data); url != "" {
 		return url
 	}
@@ -80,49 +76,49 @@ func getUserAvatar(data *render.PageData) string {
 }
 
 // getUserID 获取用户ID
-func getUserID(data *render.PageData) int64 {
+func getUserID(data *types.PageData[map[string]interface{}]) int64 {
 	if u := authUser(data); u != nil {
-		return u.GetUserID()
+		return u.UserId
 	}
 	return 0
 }
 
 // getFullName 获取全名
-func getFullName(data *render.PageData) string {
+func getFullName(data *types.PageData[map[string]interface{}]) string {
 	if u := authUser(data); u != nil {
-		return u.GetFullName()
+		return u.FullName
 	}
 	return ""
 }
 
 // getUserGroup 获取用户组
-func getUserGroup(data *render.PageData) int8 {
+func getUserGroup(data *types.PageData[map[string]interface{}]) int8 {
 	if u := authUser(data); u != nil {
-		return u.GetUserGroup()
+		return u.UserGroup
 	}
 	return 0
 }
 
 // getTimeZone 获取时区
-func getTimeZone(data *render.PageData) string {
+func getTimeZone(data *types.PageData[map[string]interface{}]) string {
 	if u := authUser(data); u != nil {
-		return u.GetTimeZone()
+		return u.TimeZone
 	}
 	return ""
 }
 
 // getLang 获取语言
-func getLang(data *render.PageData) string {
+func getLang(data *types.PageData[map[string]interface{}]) string {
 	if u := authUser(data); u != nil {
-		return u.GetLang()
+		return u.Lang
 	}
 	return ""
 }
 
 // getStatus 获取状态
-func getStatus(data *render.PageData) int8 {
+func getStatus(data *types.PageData[map[string]interface{}]) int8 {
 	if u := authUser(data); u != nil {
-		return u.GetStatus()
+		return u.Status
 	}
 	return 0
 }

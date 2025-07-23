@@ -1,15 +1,19 @@
-package render
+package view
 
 import (
+	"github.com/biuren/hebe/internal/shared/types"
 	"github.com/gin-gonic/gin"
 )
 
-// RenderServiceInterface 渲染服务接口
-type RenderServiceInterface interface {
+// ViewServiceInterface 视图服务接口
+type ViewServiceInterface interface {
 	// ===================== 页面数据组装 =====================
 
 	// PageData 创建页面数据
-	PageData(c *gin.Context, titleKey string) *PageData
+	PageData(c *gin.Context, titleKey string) *types.PageData[map[string]interface{}]
+
+	// BuildPageData 创建页面数据
+	BuildPageData(c *gin.Context, titleKey string, data interface{}) *types.PageData[interface{}]
 
 	// ===================== 响应处理门面 =====================
 

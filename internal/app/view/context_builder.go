@@ -1,20 +1,20 @@
-package page
+package view
 
 import (
 	"log/slog"
 
-	"github.com/biuren/hebe/internal/app/render/localization"
-	"github.com/biuren/hebe/internal/app/render/types"
+	"github.com/biuren/hebe/internal/shared/i18n"
+	"github.com/biuren/hebe/internal/shared/types"
 	"github.com/gin-gonic/gin"
 )
 
 // ContextBuilder 上下文构建器
 type ContextBuilder struct {
-	localizationManager localization.ManagerInterface
+	localizationManager i18n.I18nManager
 }
 
 // NewContextBuilder 创建上下文构建器
-func NewContextBuilder(localizationManager localization.ManagerInterface) *ContextBuilder {
+func NewContextBuilder(localizationManager i18n.I18nManager) *ContextBuilder {
 	return &ContextBuilder{
 		localizationManager: localizationManager,
 	}
@@ -26,16 +26,16 @@ func NewContextBuilder(localizationManager localization.ManagerInterface) *Conte
 // todo：客户端cookie 处理可能有安全风险
 func (cb *ContextBuilder) BuildContext(c *gin.Context) *types.RenderContext {
 	ctx := &types.RenderContext{
-		IsLogin:  cb.extractLoginStatus(c),
-		AuthUser: cb.extractAuthUser(c),
+		IsLogin:  cb.getLoginStatus(c),
+		AuthUser: cb.getAuthUser(c),
 		Lang:     cb.localizationManager.GetLocaleFromContext(c),
 	}
 
 	return ctx
 }
 
-// extractLoginStatus 提取登录状态
-func (cb *ContextBuilder) extractLoginStatus(c *gin.Context) bool {
+// getLoginStatus 提取登录状态
+func (cb *ContextBuilder) getLoginStatus(c *gin.Context) bool {
 	if isLogin, exists := c.Get("IsLogin"); exists {
 		if login, ok := isLogin.(bool); ok {
 			return login
@@ -45,11 +45,11 @@ func (cb *ContextBuilder) extractLoginStatus(c *gin.Context) bool {
 	return false
 }
 
-// extractAuthUser 提取认证用户信息
-func (cb *ContextBuilder) extractAuthUser(c *gin.Context) types.RenderUser {
+// getAuthUser 提取认证用户信息
+func (cb *ContextBuilder) getAuthUser(c *gin.Context) *types.AuthUser {
 	if authUserRaw, exists := c.Get("AuthUser"); exists && authUserRaw != nil {
-		if renderUser, ok := authUserRaw.(types.RenderUser); ok {
-			return renderUser
+		if authUser, ok := authUserRaw.(*types.AuthUser); ok {
+			return authUser
 		}
 		slog.Warn("AuthUser 类型断言失败", "value", authUserRaw)
 	}

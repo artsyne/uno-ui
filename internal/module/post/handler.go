@@ -5,11 +5,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/biuren/hebe/internal/app/render"
+	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/core/config"
 	errors "github.com/biuren/hebe/internal/core/error"
 	"github.com/biuren/hebe/internal/module/diary"
 	"github.com/biuren/hebe/internal/module/user"
+	"github.com/biuren/hebe/internal/shared/types"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -36,11 +37,11 @@ type handler struct {
 	service       ServiceInterface
 	auth          user.AuthHelperInterface
 	config        *config.Config
-	renderService render.RenderServiceInterface
+	renderService view.ViewServiceInterface
 }
 
 // NewHandlerWithServices 通过DI容器创建日记处理器实例
-func NewHandlerWithServices(renderService render.RenderServiceInterface, _ render.RenderServiceInterface) HandlerInterface {
+func NewHandlerWithServices(renderService view.ViewServiceInterface, _ view.ViewServiceInterface) HandlerInterface {
 	return &handler{
 		service:       NewService(),
 		auth:          user.NewAuthHelper(),
@@ -186,7 +187,7 @@ func (h *handler) HandlePost(c *gin.Context) {
 //   - c: Gin上下文
 //   - postForm: 解析后的表单数据
 //   - user: 当前登录用户信息
-func (h *handler) handleCreatePost(c *gin.Context, postForm *PostRequest, user *user.AuthUser) {
+func (h *handler) handleCreatePost(c *gin.Context, postForm *PostRequest, user *types.AuthUser) {
 	nowTime := pkg.GetNowTimeUnixMilli()
 
 	// 构建新日记对象，设置所有必要字段
@@ -235,7 +236,7 @@ func (h *handler) handleCreatePost(c *gin.Context, postForm *PostRequest, user *
 //   - c: Gin上下文
 //   - postForm: 解析后的表单数据
 //   - user: 当前登录用户信息
-func (h *handler) handleEditPost(c *gin.Context, postForm *PostRequest, user *user.AuthUser) {
+func (h *handler) handleEditPost(c *gin.Context, postForm *PostRequest, user *types.AuthUser) {
 	// 获取要编辑的日记ID
 	postIdStr, _ := c.GetPostForm("post_id")
 	postId, err := h.parsePostID(postIdStr)

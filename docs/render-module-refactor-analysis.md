@@ -107,7 +107,8 @@ graph TD
 - **职责单一**: 每个 Go 包（或模块）都应只关注一项明确的职责。
 - **依赖倒置**: 高层模块应依赖抽象（接口），而不是低层模块的具体实现。
 - **高内聚低耦合**: 模块内部高内聚，模块之间低耦合。
-- **分阶段实施**: 采用渐进式重构，每个阶段都要验证，降低风险。
+- **面向未来**: 采用最新的Go语言特性和最佳实践，不考虑向后兼容性。
+- **渐进式重构**: 分阶段实施重构，但最终一次性提交所有变更。
 
 ### 2.2 最终目标目录结构
 
@@ -248,173 +249,187 @@ graph TD
 
 **核心原则**：箭头永远从高层指向低层，**绝不允许逆向依赖或循环依赖**。
 
-### 2.5 重构实施步骤 (分阶段进行，降低风险)
+### 2.5 重构实施步骤 (面向未来的最佳实践)
 
-为了确保重构过程可控且成功，采用**分阶段渐进式重构**，每个阶段都要验证通过。
+采用**渐进式重构**策略，分阶段实施但最终一次性提交所有变更，不考虑向后兼容性，专注于建立最佳的架构实践。
 
-#### 阶段1：准备阶段 (1天)
+#### 阶段1：准备阶段
 
-**目标**: 确保重构基础稳固
+**目标**: 建立重构基础
 
-1.  **全面测试覆盖**: 确保现有项目有足够的单元测试、集成测试和端到端测试，它们将是重构成功的"安全网"。
-2.  **熟悉 DI 容器**: 确保熟悉 `internal/core/di` 的使用方式，所有拆分后的组件都将通过它进行依赖注入。
-3.  **创建新目录结构**:
+1.  **测试覆盖验证**: 确保现有项目有足够的测试覆盖，作为重构的安全网。
+2.  **创建新目录结构**:
     ```bash
     mkdir -p internal/shared/types
     mkdir -p internal/shared/i18n
     mkdir -p internal/shared/response
     mkdir -p internal/app/view
     ```
+3.  **准备新的接口定义**: 基于Go 1.24的最新特性设计接口。
 
-#### 阶段2：迁移共享类型 (1天)
+#### 阶段2：创建共享类型层
 
-**目标**: 解决循环依赖的核心问题
+**目标**: 建立新的类型系统，彻底解决循环依赖
 
-1.  **迁移类型定义**:
-    ```bash
-    # 迁移类型定义到shared层
-    cp internal/app/render/types/types.go internal/shared/types/structs.go
-    cp internal/app/render/types/types.go internal/shared/types/interfaces.go
-    ```
-2.  **更新import路径**:
-    ```bash
-    find . -name "*.go" -exec sed -i '' 's/internal\/app\/render\/types/internal\/shared\/types/g' {} \;
-    ```
-3.  **验证编译**:
-    ```bash
-    go build ./cmd/idiary
-    go test ./internal/shared/types/...
-    ```
+1.  **创建新的类型定义**:
+    - 在 `internal/shared/types/interfaces.go` 中定义所有共享接口
+    - 在 `internal/shared/types/structs.go` 中定义所有共享结构体
+    - 使用Go 1.24的最新特性（泛型、类型约束等）
 
-#### 阶段3：迁移国际化服务 (1天)
-
-**目标**: 将通用能力下沉到共享层
-
-1.  **迁移国际化服务**:
-    ```bash
-    cp internal/app/render/localization/* internal/shared/i18n/
-    ```
-2.  **更新import路径**:
-    ```bash
-    find . -name "*.go" -exec sed -i '' 's/internal\/app\/render\/localization/internal\/shared\/i18n/g' {} \;
-    ```
-3.  **验证编译**:
-    ```bash
-    go build ./cmd/idiary
-    go test ./internal/shared/i18n/...
-    ```
-
-#### 阶段4：迁移响应处理 (1天)
-
-**目标**: 分离HTTP响应处理职责
-
-1.  **迁移响应处理**:
-    ```bash
-    cp internal/app/render/response/* internal/shared/response/
-    ```
-2.  **更新import路径**:
-    ```bash
-    find . -name "*.go" -exec sed -i '' 's/internal\/app\/render\/response/internal\/shared\/response/g' {} \;
-    ```
-3.  **验证编译**:
-    ```bash
-    go build ./cmd/idiary
-    go test ./internal/shared/response/...
-    ```
-
-#### 阶段5：重构视图服务 (2天)
-
-**目标**: 创建专注的页面数据组装服务
-
-1.  **迁移页面构建逻辑**:
-    ```bash
-    cp internal/app/render/page/* internal/app/view/
-    cp internal/app/render/types.go internal/app/view/
-    ```
-2.  **重构ViewService**:
-
+2.  **设计面向未来的接口**:
     ```go
-    // internal/app/view/service.go
-    type ViewService struct {
-        config *config.Config
-        i18n   *i18n.LocalizationManager
+    // 使用泛型和现代Go特性
+    type RenderUser interface {
+        GetLoginName() string
+        GetUserID() int64
+        GetUserName() string
+        GetLang() string
+        // 面向未来的扩展方法
+        GetPreferences() map[string]any
+        GetContext() context.Context
     }
+    ```
 
-    func NewViewService(cfg *config.Config, i18n *i18n.LocalizationManager) *ViewService {
-        return &ViewService{
-            config: cfg,
-            i18n:   i18n,
+#### 阶段3：重构国际化服务
+
+**目标**: 创建现代化的国际化服务
+
+1.  **重新设计国际化架构**:
+    - 使用Go 1.24的embed特性加载语言文件
+    - 实现基于context的语言检测
+    - 支持动态语言切换和缓存优化
+
+2.  **实现现代化接口**:
+    ```go
+    type I18nManager interface {
+        GetMessage(ctx context.Context, key string, args ...any) string
+        GetMessageWithLang(lang, key string, args ...any) string
+        SetLanguage(ctx context.Context, lang string) context.Context
+        GetSupportedLanguages() []string
+    }
+    ```
+
+#### 阶段4：重构响应处理服务
+
+**目标**: 创建现代化的HTTP响应处理
+
+1.  **设计类型安全的响应接口**:
+    ```go
+    type ResponseHandler[T any] interface {
+        JSON(c *gin.Context, data T) error
+        JSONSuccess(c *gin.Context, data T) error
+        JSONError(c *gin.Context, err error) error
+        HTML(c *gin.Context, template string, data T) error
+        Redirect(c *gin.Context, url string) error
+    }
+    ```
+
+2.  **利用Go 1.24特性**:
+    - 使用泛型确保类型安全
+    - 实现结构化错误处理
+    - 支持中间件链式处理
+
+#### 阶段5：重构视图服务
+
+**目标**: 创建现代化的视图构建服务
+
+1.  **设计基于泛型的视图服务**:
+    ```go
+    type ViewService[T any] interface {
+        BuildPageData(ctx context.Context, template string, data T) (*PageData[T], error)
+        RegisterTemplateFunc(name string, fn any) error
+        RenderTemplate(ctx context.Context, template string, data T) (string, error)
+    }
+    ```
+
+2.  **实现现代化特性**:
+    - 使用Go 1.24的类型推断
+    - 支持异步模板渲染
+    - 实现模板缓存和热重载
+    - 集成结构化日志记录
+
+3.  **重构控制器架构**:
+    ```go
+    type Controller[T any] struct {
+        viewService     ViewService[T]
+        responseHandler ResponseHandler[T]
+        logger         *slog.Logger
+    }
+    ```
+
+#### 阶段6：重构DI容器配置
+
+**目标**: 建立现代化的依赖注入架构
+
+1.  **利用Go 1.24泛型优化DI**:
+    ```go
+    func RegisterServices(container *di.Container) error {
+        // 使用泛型确保类型安全的服务注册
+        if err := di.Singleton(container, func() i18n.I18nManager {
+            return i18n.NewManager(config.GetConfig())
+        }); err != nil {
+            return err
         }
-    }
 
-    func (v *ViewService) BuildPageData(c *gin.Context, titleKey string) *types.PageData {
-        // 实现页面数据构建逻辑
+        if err := di.Singleton(container, func() response.ResponseHandler[any] {
+            return response.NewHandler[any]()
+        }); err != nil {
+            return err
+        }
+
+        if err := di.Singleton(container, func() view.ViewService[any] {
+            return view.NewService[any](
+                di.Get[*config.Config](container),
+                di.Get[i18n.I18nManager](container),
+            )
+        }); err != nil {
+            return err
+        }
+
+        return nil
     }
     ```
 
-3.  **更新控制器依赖**:
+2.  **实现服务生命周期管理**:
+    - 支持服务的优雅启动和关闭
+    - 实现健康检查接口
+    - 添加性能监控和指标收集
+
+#### 阶段7：完成重构和优化
+
+**目标**: 完成重构并优化性能
+
+1.  **更新所有模块引用**:
+    - 将所有handler更新为使用新的服务接口
+    - 移除对旧render模块的所有引用
+    - 更新路由配置以使用新的DI容器
+
+2.  **性能优化**:
     ```go
-    // internal/app/controller/index.go
-    type Controller struct {
-        viewService     *view.ViewService
-        responseHandler *response.ResponseHandler
-    }
-    ```
-4.  **验证编译**:
-    ```bash
-    go build ./cmd/idiary
-    go test ./internal/app/view/...
-    ```
-
-#### 阶段6：更新DI容器 (1天)
-
-**目标**: 确保依赖注入正确配置
-
-1.  **更新DI注册**:
-
-    ```go
-    // internal/core/di/container.go
-    func RegisterServices(container *Container) {
-        // 注册共享服务（通过接口依赖注入）
-        container.Register("i18n", i18n.NewLocalizationManager(config.GetConfig()))
-        container.Register("response", response.NewResponseHandler())
-
-        // 注册视图服务
-        container.Register("view", view.NewViewService(
-            config.GetConfig(),
-            container.Get("i18n").(i18n.I18nManager),
-        ))
-
-        // 注册控制器
-        container.Register("controller", controller.NewController(
-            container.Get("view").(*view.ViewService),
-            container.Get("response").(response.ResponseHandler),
-        ))
+    // 使用Go 1.24的性能优化特性
+    func (s *ViewService[T]) BuildPageData(ctx context.Context, template string, data T) (*PageData[T], error) {
+        // 使用clear()函数优化内存管理
+        // 利用新的slices和maps包
+        // 实现零分配的模板渲染
     }
     ```
 
-2.  **验证DI配置**:
+3.  **清理和验证**:
     ```bash
-    go build ./cmd/idiary
-    go test ./internal/core/di/...
-    ```
-
-#### 阶段7：删除旧模块 (1天)
-
-**目标**: 清理历史包袱
-
-1.  **删除旧的render模块**:
-    ```bash
+    # 删除旧模块
     rm -rf internal/app/render
-    ```
-2.  **清理无用import**:
-    ```bash
+    
+    # 更新依赖
     go mod tidy
-    ```
-3.  **最终验证**:
-    ```bash
-    go build ./cmd/idiary
+    
+    # 运行所有测试
     go test ./...
+    
+    # 构建应用
+    go build ./cmd/idiary
+    
+    # 运行性能基准测试
+    go test -bench=. ./...
     ```
 
 ### 2.6 性能优化建议
@@ -488,28 +503,41 @@ graph TD
     }
     ```
 
-### 2.7 风险控制措施
+### 2.7 质量保证措施
 
-1.  **每个阶段都要验证**:
+1.  **持续验证**:
+    - 每个阶段完成后运行完整测试套件
+    - 使用Go 1.24的新测试特性进行更精确的测试
+    - 运行性能基准测试确保无性能回退
+    - 使用静态分析工具验证代码质量
 
-    - 编译通过
-    - 单元测试通过
-    - 集成测试通过
-    - 功能测试通过
-
-2.  **保持代码备份**:
-
-    ```bash
-    # 每个阶段开始前备份
-    git add .
-    git commit -m "Before stage X: [stage description]"
+2.  **现代化测试策略**:
+    ```go
+    // 使用Go 1.24的测试增强功能
+    func TestViewService(t *testing.T) {
+        t.Parallel() // 并行测试
+        
+        // 使用泛型测试辅助函数
+        testCases := []struct{
+            name string
+            data any
+            want *PageData[any]
+        }{
+            // 测试用例
+        }
+        
+        for _, tc := range testCases {
+            t.Run(tc.name, func(t *testing.T) {
+                // 测试实现
+            })
+        }
+    }
     ```
 
-3.  **回滚计划**:
-    ```bash
-    # 如果出现问题，可以快速回滚
-    git reset --hard HEAD~1
-    ```
+3.  **最终提交策略**:
+    - 完成所有阶段后进行一次性提交
+    - 提交信息包含完整的重构说明
+    - 包含性能对比和架构改进说明
 
 ## 3. 总结
 

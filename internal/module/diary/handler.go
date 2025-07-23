@@ -5,10 +5,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/biuren/hebe/internal/app/render"
+	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/core/config"
 	errors "github.com/biuren/hebe/internal/core/error"
 	"github.com/biuren/hebe/internal/module/user"
+	"github.com/biuren/hebe/internal/shared/types"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -44,11 +45,11 @@ type handler struct {
 	service       ServiceInterface
 	auth          user.AuthHelperInterface
 	config        *config.Config
-	renderService render.RenderServiceInterface
+	renderService view.ViewServiceInterface
 }
 
 // NewHandlerWithServices 通过DI容器创建日记本处理器实例
-func NewHandlerWithServices(renderService render.RenderServiceInterface, _ render.RenderServiceInterface) HandlerInterface {
+func NewHandlerWithServices(renderService view.ViewServiceInterface, _ view.ViewServiceInterface) HandlerInterface {
 	return &handler{
 		service:       NewService(),
 		auth:          user.NewAuthHelper(),
@@ -181,7 +182,7 @@ func (h *handler) HandleDiary(c *gin.Context) {
 //   - c: Gin上下文
 //   - formData: 解析后的表单数据
 //   - user: 当前登录用户信息
-func (h *handler) handleCreateDiary(c *gin.Context, formData *Diary, user *user.AuthUser) {
+func (h *handler) handleCreateDiary(c *gin.Context, formData *Diary, user *types.AuthUser) {
 	nowTime := pkg.GetNowTimeUnixMilli()
 
 	// 使用结构体字面量创建完整的日记本对象
@@ -231,7 +232,7 @@ func (h *handler) handleCreateDiary(c *gin.Context, formData *Diary, user *user.
 //   - c: Gin上下文
 //   - diary: 解析后的日记本数据
 //   - user: 当前登录用户信息
-func (h *handler) handleEditDiary(c *gin.Context, diary *Diary, user *user.AuthUser) {
+func (h *handler) handleEditDiary(c *gin.Context, diary *Diary, user *types.AuthUser) {
 	// 验证日记本所有权
 	originalDiary, err := h.validateDiaryOwnership(diary.DiaryID, user.UserId)
 	if err != nil {
@@ -350,12 +351,12 @@ func (h *handler) RenderUserProfile(c *gin.Context) {
 	}
 
 	// 创建页面数据
-	data := h.renderService.PageData(c, "user.profile")
+	data := h.renderService.PageData(c, "user.profile.title")
 
 	// 判断是否为页面所有者
 	isOwner := false
 	if data.IsAuthenticated() {
-		isOwner = (data.GetAuthUser().GetUserID() == uid)
+		isOwner = (data.GetAuthUser().UserId == uid)
 	}
 
 	// 获取URL中的pageIndex

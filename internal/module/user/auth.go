@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/gin-gonic/gin"
+	"github.com/biuren/hebe/internal/shared/types"
 )
 
 /**
@@ -28,7 +29,7 @@ import (
 // 定义了所有与用户认证相关的操作方法
 type AuthHelperInterface interface {
 	// IsAuthenticated 检查用户是否已通过认证
-	IsAuthenticated(c *gin.Context) (bool, *AuthUser)
+	IsAuthenticated(c *gin.Context) (bool, *types.AuthUser)
 
 	// RequireGuest 中间件：要求用户处于游客状态（未登录）
 	RequireGuest(redirectURL ...string) gin.HandlerFunc
@@ -37,10 +38,10 @@ type AuthHelperInterface interface {
 	RequireAuth(loginURL ...string) gin.HandlerFunc
 
 	// GetCurrentUser 安全地获取当前登录用户信息
-	GetCurrentUser(c *gin.Context) (*AuthUser, bool)
+	GetCurrentUser(c *gin.Context) (*types.AuthUser, bool)
 
 	// MustGetCurrentUser 强制获取当前登录用户信息
-	MustGetCurrentUser(c *gin.Context) *AuthUser
+	MustGetCurrentUser(c *gin.Context) *types.AuthUser
 
 	// IsLogin 检查用户是否已登录（简化版本）
 	IsLogin(c *gin.Context) bool
@@ -49,7 +50,7 @@ type AuthHelperInterface interface {
 	IfLoginGotoIndex(c *gin.Context)
 
 	// GetLogin 获取登录用户信息（兼容性方法）
-	GetLogin(c *gin.Context) *AuthUser
+	GetLogin(c *gin.Context) *types.AuthUser
 }
 
 // authHelper 认证助手结构体
@@ -89,7 +90,7 @@ func NewAuthHelper() AuthHelperInterface {
 //	if isAuth {
 //	    fmt.Printf("用户 %s 已登录", user.Username)
 //	}
-func (a *authHelper) IsAuthenticated(c *gin.Context) (bool, *AuthUser) {
+func (a *authHelper) IsAuthenticated(c *gin.Context) (bool, *types.AuthUser) {
 	// 检查登录状态标志
 	isLogin, exists := c.Get("IsLogin")
 	if !exists || isLogin != true {
@@ -103,7 +104,7 @@ func (a *authHelper) IsAuthenticated(c *gin.Context) (bool, *AuthUser) {
 	}
 
 	// 类型断言，确保数据类型正确
-	userData, ok := userSession.(*AuthUser)
+	userData, ok := userSession.(*types.AuthUser)
 	if !ok {
 		return false, nil
 	}
@@ -202,7 +203,7 @@ func (a *authHelper) RequireAuth(loginURL ...string) gin.HandlerFunc {
 //	}
 //	// 使用用户信息
 //	fmt.Printf("当前用户：%s", user.Username)
-func (a *authHelper) GetCurrentUser(c *gin.Context) (*AuthUser, bool) {
+func (a *authHelper) GetCurrentUser(c *gin.Context) (*types.AuthUser, bool) {
 	isAuth, userData := a.IsAuthenticated(c)
 	return userData, isAuth
 }
@@ -225,7 +226,7 @@ func (a *authHelper) GetCurrentUser(c *gin.Context) (*AuthUser, bool) {
 //	// 在已认证的路由中使用
 //	user := helpers.Auth.MustGetCurrentUser(c)
 //	fmt.Printf("当前用户：%s", user.Username)
-func (a *authHelper) MustGetCurrentUser(c *gin.Context) *AuthUser {
+func (a *authHelper) MustGetCurrentUser(c *gin.Context) *types.AuthUser {
 	userData, ok := a.GetCurrentUser(c)
 	if !ok {
 		panic("用户未认证：在未认证的上下文中调用了 MustGetCurrentUser")
@@ -286,7 +287,7 @@ func (a *authHelper) IfLoginGotoIndex(c *gin.Context) {
 //	if user != nil {
 //	    fmt.Printf("当前用户：%s", user.Username)
 //	}
-func (a *authHelper) GetLogin(c *gin.Context) *AuthUser {
+func (a *authHelper) GetLogin(c *gin.Context) *types.AuthUser {
 	userData, _ := a.GetCurrentUser(c)
 	return userData
 }

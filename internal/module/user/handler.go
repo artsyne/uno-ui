@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/biuren/hebe/internal/app/render"
+	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/core/config"
 	errors "github.com/biuren/hebe/internal/core/error"
+	"github.com/biuren/hebe/internal/shared/types"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -82,11 +83,11 @@ type handler struct {
 	service       ServiceInterface
 	auth          AuthHelperInterface
 	config        *config.Config // 缓存配置，避免重复调用全局变量
-	renderService render.RenderServiceInterface
+	renderService view.ViewServiceInterface
 }
 
 // NewHandlerWithServices 通过DI容器创建用户HTTP处理层实例
-func NewHandlerWithServices(renderService render.RenderServiceInterface, _ render.RenderServiceInterface) UserController {
+func NewHandlerWithServices(renderService view.ViewServiceInterface, _ view.ViewServiceInterface) UserController {
 	return &handler{
 		service:       NewService(),
 		auth:          NewAuthHelper(),
@@ -234,7 +235,7 @@ func (h *handler) ShowUserActivationPage(c *gin.Context) {
 // Login 处理用户登录请求
 func (h *handler) Login(c *gin.Context) {
 	// 解析登录表单数据
-	login := &AuthUser{}
+	login := &types.AuthUser{}
 	if err := c.Bind(login); err != nil {
 		h.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
 		return
@@ -255,7 +256,7 @@ func (h *handler) Login(c *gin.Context) {
 	}
 
 	// 创建完整的登录会话数据
-	loginSession := &AuthUser{
+	loginSession := &types.AuthUser{
 		UserId:       user.UserId,
 		FullName:     user.FullName,
 		LoginUTCTime: pkg.GetNowTimeUnixMilli(),
@@ -459,7 +460,7 @@ func (h *handler) validateUserNameFormat(userName string) bool {
 }
 
 // setLoginCookie 设置登录会话cookie
-func (h *handler) setLoginCookie(c *gin.Context, login *AuthUser) error {
+func (h *handler) setLoginCookie(c *gin.Context, login *types.AuthUser) error {
 	// 序列化登录对象
 	ud, err := json.Marshal(login)
 	if err != nil {
@@ -520,7 +521,7 @@ func (h *handler) UpdateProfile(c *gin.Context) {
 		h.renderService.JSONError(c, errors.Unauthorized.WithDetails("用户认证信息不存在"))
 		return
 	}
-	userLogin := userData.(AuthUser)
+	userLogin := userData.(types.AuthUser)
 
 	// 获取表单数据
 	fullName := c.PostForm("full_name")
@@ -551,7 +552,7 @@ func (h *handler) UpdateEmail(c *gin.Context) {
 		h.renderService.JSONError(c, errors.Unauthorized.WithDetails("用户认证信息不存在"))
 		return
 	}
-	userLogin := userData.(AuthUser)
+	userLogin := userData.(types.AuthUser)
 
 	// 获取表单数据
 	email := c.PostForm("email")
@@ -581,7 +582,7 @@ func (h *handler) UpdatePassword(c *gin.Context) {
 		h.renderService.JSONError(c, errors.Unauthorized.WithDetails("用户认证信息不存在"))
 		return
 	}
-	userLogin := userData.(AuthUser)
+	userLogin := userData.(types.AuthUser)
 
 	// 获取表单数据
 	currentPwd := c.PostForm("current_pwd")

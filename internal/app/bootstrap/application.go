@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/biuren/hebe/internal/app/middleware"
-	"github.com/biuren/hebe/internal/app/render"
+	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/app/route"
 	"github.com/biuren/hebe/internal/core/bootstrap"
 	"github.com/biuren/hebe/internal/core/config"
@@ -102,9 +102,9 @@ func (a *Application) initApplicationLayer() error {
 
 // registerAppServices 注册应用层服务到DI容器
 func (a *Application) registerAppServices() error {
-	// 注册RenderService（合并了原来的ViewService和ResponseService）
-	di.Singleton(a.container, func() render.RenderServiceInterface {
-		return render.NewRenderService(a.config)
+	// 注册新版本的ViewService（重构后的模块化服务）
+	di.Singleton(a.container, func() view.ViewServiceInterface {
+		return view.NewViewService(a.config)
 	})
 
 	slog.Info("成功注册应用层服务")

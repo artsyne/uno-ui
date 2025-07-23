@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/internal/app/controller"
-	"github.com/biuren/hebe/internal/app/render"
-	"github.com/biuren/hebe/internal/app/render/localization"
+	"github.com/biuren/hebe/internal/app/view"
+	"github.com/biuren/hebe/internal/shared/i18n"
 	"github.com/biuren/hebe/internal/app/templates"
 	"github.com/biuren/hebe/internal/core/config"
 	"github.com/biuren/hebe/internal/core/di"
@@ -42,25 +42,25 @@ func setPath(server *gin.Engine, container *di.Container) {
 
 // createController 通过DI容器创建Controller
 func createController(container *di.Container) *controller.Controller {
-	renderService := di.Get[render.RenderServiceInterface](container)
+	renderService := di.Get[view.ViewServiceInterface](container)
 	return controller.NewController(renderService)
 }
 
 // createUserHandler 通过DI容器创建UserHandler
 func createUserHandler(container *di.Container) user.UserController {
-	renderService := di.Get[render.RenderServiceInterface](container)
+	renderService := di.Get[view.ViewServiceInterface](container)
 	return user.NewHandlerWithServices(renderService, renderService)
 }
 
 // createDiaryHandler 通过DI容器创建DiaryHandler
 func createDiaryHandler(container *di.Container) diary.HandlerInterface {
-	renderService := di.Get[render.RenderServiceInterface](container)
+	renderService := di.Get[view.ViewServiceInterface](container)
 	return diary.NewHandlerWithServices(renderService, renderService)
 }
 
 // createPostHandler 通过DI容器创建PostHandler
 func createPostHandler(container *di.Container) post.HandlerInterface {
-	renderService := di.Get[render.RenderServiceInterface](container)
+	renderService := di.Get[view.ViewServiceInterface](container)
 	return post.NewHandlerWithServices(renderService, renderService)
 }
 
@@ -71,7 +71,8 @@ func setTemplate(server *gin.Engine, basePath string, container *di.Container) {
 	cfg := di.Get[*config.Config](container)
 
 	// 2. 初始化本地化管理器（消息会自动加载到全局缓存）
-	localization.NewManager(cfg)
+	i18nManager := i18n.NewLocalizationManager(cfg)
+	templates.SetGlobalManager(i18nManager)
 
 	// 3. 注册所有模版函数（直接使用templates包）
 	tmpl := template.New("").Funcs(templates.RegisterAllFuncs())

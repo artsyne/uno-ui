@@ -1,17 +1,17 @@
 package controller
 
 import (
-	"github.com/biuren/hebe/internal/app/render"
+	"github.com/biuren/hebe/internal/app/view"
 	"github.com/gin-gonic/gin"
 )
 
 // Controller 基础控制器，包含公共服务
 type Controller struct {
-	renderService render.RenderServiceInterface
+	renderService view.ViewServiceInterface
 }
 
 // NewController 创建控制器实例
-func NewController(renderService render.RenderServiceInterface) *Controller {
+func NewController(renderService view.ViewServiceInterface) *Controller {
 	return &Controller{
 		renderService: renderService,
 	}

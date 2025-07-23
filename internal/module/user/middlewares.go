@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/shared/types"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -44,7 +45,7 @@ func SharedData() gin.HandlerFunc {
 
 
 // parseUserFromCookie 从Cookie中解析用户登录信息
-func parseUserFromCookie(c *gin.Context) *AuthUser {
+func parseUserFromCookie(c *gin.Context) *types.AuthUser {
 	cookieEnUserData := pkg.ReadCookie(c.Request, "ud")
 	if len(cookieEnUserData) < 1 {
 		return nil
@@ -60,7 +61,7 @@ func parseUserFromCookie(c *gin.Context) *AuthUser {
 		return nil
 	}
 
-	var userData AuthUser
+	var userData types.AuthUser
 	err = json.Unmarshal(byteUserData, &userData)
 	if err != nil {
 		return nil
