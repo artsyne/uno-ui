@@ -13,8 +13,8 @@ import (
 	"github.com/biuren/hebe/internal/core/bootstrap"
 	"github.com/biuren/hebe/internal/core/config"
 	"github.com/biuren/hebe/internal/core/di"
-	"github.com/biuren/hebe/internal/module/task"
-	"github.com/biuren/hebe/internal/module/user"
+	"github.com/biuren/hebe/internal/domain/task"
+	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/pkg"
 )
 

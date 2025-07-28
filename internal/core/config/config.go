@@ -93,7 +93,7 @@ func InitConfig() error {
 	globalConfig.Redis = RedisConfig{
 		Host:     requireString(v, "REDIS_HOST"),
 		Port:     requireInt(v, "REDIS_PORT"),
-		Password: requireString(v, "REDIS_PASSWORD"),
+		Password: v.GetString("REDIS_PASSWORD"), // Redis密码可以为空
 	}
 
 	// Email配置

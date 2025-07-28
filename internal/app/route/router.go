@@ -13,9 +13,6 @@ import (
 	"github.com/biuren/hebe/internal/app/templates"
 	"github.com/biuren/hebe/internal/core/config"
 	"github.com/biuren/hebe/internal/core/di"
-	"github.com/biuren/hebe/internal/module/diary"
-	"github.com/biuren/hebe/internal/module/post"
-	"github.com/biuren/hebe/internal/module/user"
 	"github.com/gin-gonic/gin"
 )
 
@@ -34,10 +31,10 @@ func setPath(server *gin.Engine, container *di.Container) {
 	// 基础页面路由
 	server.GET("/index", controllerInstance.RenderIndex)
 
-	// 通过DI容器创建handlers，注册模块路由
-	createUserHandler(container).RegisterRoutes(server)
-	createDiaryHandler(container).RegisterRoutes(server)
-	createPostHandler(container).RegisterRoutes(server)
+	// 通过DI容器创建controllers，注册模块路由
+	createUserController(container).RegisterRoutes(server)
+	createDiaryController(container).RegisterRoutes(server)
+	createPostController(container).RegisterRoutes(server)
 }
 
 // createController 通过DI容器创建Controller
@@ -46,22 +43,19 @@ func createController(container *di.Container) *controller.Controller {
 	return controller.NewController(renderService)
 }
 
-// createUserHandler 通过DI容器创建UserHandler
-func createUserHandler(container *di.Container) user.UserController {
-	renderService := di.Get[view.ViewServiceInterface](container)
-	return user.NewHandlerWithServices(renderService, renderService)
+// createUserController 通过DI容器创建UserController
+func createUserController(container *di.Container) controller.UserController {
+	return controller.NewUserController()
 }
 
-// createDiaryHandler 通过DI容器创建DiaryHandler
-func createDiaryHandler(container *di.Container) diary.HandlerInterface {
-	renderService := di.Get[view.ViewServiceInterface](container)
-	return diary.NewHandlerWithServices(renderService, renderService)
+// createDiaryController 通过DI容器创建DiaryController
+func createDiaryController(container *di.Container) controller.DiaryController {
+	return controller.NewDiaryController()
 }
 
-// createPostHandler 通过DI容器创建PostHandler
-func createPostHandler(container *di.Container) post.HandlerInterface {
-	renderService := di.Get[view.ViewServiceInterface](container)
-	return post.NewHandlerWithServices(renderService, renderService)
+// createPostController 通过DI容器创建PostController
+func createPostController(container *di.Container) controller.PostController {
+	return controller.NewPostController()
 }
 
 // #region 加载模版文件，并注入全局变量

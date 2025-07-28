@@ -22,7 +22,13 @@ type DatabaseTestHelper struct {
 }
 
 // setupTestEnvironment 设置测试环境变量
+// 基于.env.local文件配置，但使用测试数据库
 func setupTestEnvironment(testDBName string) {
+	// 设置环境变量指向.env.local文件
+	projectRoot := getProjectRoot()
+	envFile := filepath.Join(projectRoot, ".env.local")
+	os.Setenv("ENV_FILE", envFile)
+
 	// 设置必需的JSON格式环境变量（使用IDIARY_前缀）
 	os.Setenv("IDIARY_SUPPORT_LANGS", `[{"code":"zh-cn","label":"中文","local-text":"中文"},{"code":"en","label":"English","local-text":"English"}]`)
 	os.Setenv("IDIARY_TIMEZONES", `["Asia/Shanghai","UTC","America/New_York"]`)
@@ -42,7 +48,7 @@ func setupTestEnvironment(testDBName string) {
 	os.Setenv("IDIARY_LOCALES_DIR", "website/locales")
 	os.Setenv("IDIARY_DEFAULT_LANG", "zh-cn")
 
-	// 数据库配置 - 使用.env.local中的真实配置
+	// 数据库配置 - 使用测试数据库名称覆盖.env.local配置
 	os.Setenv("IDIARY_DB_HOST", "127.0.0.1")
 	os.Setenv("IDIARY_DB_PORT", "3306")
 	os.Setenv("IDIARY_DB_NAME", testDBName)
@@ -419,42 +425,29 @@ func ensureTestDatabase(testDBName string) error {
 	return nil
 }
 
-// CleanupAllTables 清理所有表的数据（保留结构）
-func (h *DatabaseTestHelper) CleanupAllTables(t *testing.T) {
+// CleanupAllTables 清理所有表数据
+// 用于测试前的全面数据清理，支持可选的表清理
+func (h *DatabaseTestHelper) CleanupAllTables(t *testing.T, tables ...string) {
 	t.Helper()
 
-	// 获取所有表名
-	rows, err := h.db.Query("SHOW TABLES")
-	if err != nil {
-		t.Errorf("获取表列表失败: %v", err)
-		return
-	}
-	defer rows.Close()
-
-	var tables []string
-	for rows.Next() {
-		var tableName string
-		if err := rows.Scan(&tableName); err != nil {
-			t.Errorf("扫描表名失败: %v", err)
-			continue
+	// 如果没有指定表，使用默认的表列表
+	if len(tables) == 0 {
+		tables = []string{
+			"posts",
+			"diaries",
+			"tasks",
+			"users",
 		}
-		tables = append(tables, tableName)
 	}
 
-	// 禁用外键约束检查
-	if _, err := h.db.Exec("SET FOREIGN_KEY_CHECKS = 0"); err != nil {
-		t.Errorf("禁用外键约束检查失败: %v", err)
-	}
+	// 禁用外键检查
+	h.ExecuteSQL(t, "SET FOREIGN_KEY_CHECKS = 0")
 
-	// 清空所有表
+	// 清理指定的表
 	for _, table := range tables {
-		if _, err := h.db.Exec(fmt.Sprintf("TRUNCATE TABLE `%s`", table)); err != nil {
-			t.Errorf("清空表 %s 失败: %v", table, err)
-		}
+		h.TruncateTable(t, table)
 	}
 
-	// 重新启用外键约束检查
-	if _, err := h.db.Exec("SET FOREIGN_KEY_CHECKS = 1"); err != nil {
-		t.Errorf("启用外键约束检查失败: %v", err)
-	}
+	// 重新启用外键检查
+	h.ExecuteSQL(t, "SET FOREIGN_KEY_CHECKS = 1")
 }

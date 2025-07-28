@@ -4,7 +4,7 @@ import (
 	"log/slog"
 
 	"github.com/biuren/hebe/internal/shared/i18n"
-	"github.com/biuren/hebe/internal/shared/types"
+	"github.com/biuren/hebe/internal/shared/contracts"
 	"github.com/gin-gonic/gin"
 )
 

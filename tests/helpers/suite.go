@@ -6,60 +6,117 @@ import (
 	"testing"
 
 	"github.com/biuren/hebe/internal/core/di"
+	"github.com/biuren/hebe/internal/domain/user"
+	"github.com/biuren/hebe/internal/domain/diary"
+	"github.com/biuren/hebe/internal/domain/post"
+	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/tests/testdata/mock"
 )
 
-// TestSuite 测试套件，提供完整的测试环境
+// TestSuite 测试套件
+// 提供完整的测试环境，包括配置、DI容器、数据库等
 type TestSuite struct {
 	Config    *ConfigTestHelper
 	Container *di.Container
 	Database  *DatabaseTestHelper
-	User      *mock.UserServiceMock
-	Diary     *mock.DiaryServiceMock
-	Post      *mock.PostServiceMock
-	Task      *mock.TaskServiceMock
+	HTTP      *HTTPTestHelper
+
+	// 真实服务接口（用于集成测试）
+	UserService  user.ServiceInterface
+	DiaryService diary.ServiceInterface
+	PostService  post.ServiceInterface
+	TaskService  task.ServiceInterface
+
+	// Mock服务（用于单元测试）
+	UserServiceMock  *mock.UserServiceMock
+	DiaryServiceMock *mock.DiaryServiceMock
+	PostServiceMock  *mock.PostServiceMock
+	TaskServiceMock  *mock.TaskServiceMock
+
+	// 是否使用真实数据库
+	UseRealDB bool
 }
 
 // SetupTestSuite 设置完整的测试套件
+// 根据环境变量或测试名称决定是否使用真实数据库
 func SetupTestSuite(t *testing.T) *TestSuite {
 	t.Helper()
 
-	// 创建独立的测试DI容器
-	container := di.New()
+	suite := &TestSuite{}
 
-	// 设置配置（如果需要真实数据库，先设置数据库）
-	var config *ConfigTestHelper
-	var database *DatabaseTestHelper
+	// 设置配置
+	suite.Config = SetupTestConfig(t)
 
-	// 检查是否需要真实数据库（通过环境变量控制）
-	if os.Getenv("USE_REAL_DB") == "true" || strings.Contains(t.Name(), "Database") {
-		// 设置真实数据库
-		database = SetupTestDatabase(t)
-		// 数据库设置会修改环境变量，所以配置在数据库之后初始化
-		config = &ConfigTestHelper{} // 配置已经在数据库设置中初始化
+	// 设置DI容器
+	suite.Container = di.New()
+
+	// 根据环境变量或测试名称决定是否使用真实数据库
+	useRealDB := os.Getenv("USE_REAL_DB") == "true" || strings.Contains(t.Name(), "Integration")
+	suite.UseRealDB = useRealDB
+
+	if useRealDB {
+		// 使用真实数据库进行集成测试
+		suite.Database = SetupTestDatabase(t)
+		suite.setupRealServices(t)
 	} else {
-		// 设置配置
-		config = SetupTestConfig(t)
-		// 设置模拟数据库
-		mockDB := mock.SetupMockDatabase(t, container)
-		_ = mockDB // 使用模拟数据库的场景暂时保留原有逻辑
+		// 使用Mock数据库进行单元测试
+		suite.setupMockServices(t)
 	}
 
-	// 设置模拟服务
-	user := mock.SetupMockUserService(t, container)
-	diary := mock.SetupMockDiaryService(t, container)
-	post := mock.SetupMockPostService(t, container)
-	task := mock.SetupMockTaskService(t, container)
+	// 设置HTTP测试助手（需要在服务设置之后）
+	suite.HTTP = SetupHTTPTest(suite)
 
-	return &TestSuite{
-		Config:    config,
-		Container: container,
-		Database:  database,
-		User:      user,
-		Diary:     diary,
-		Post:      post,
-		Task:      task,
-	}
+	return suite
+}
+
+// setupRealServices 设置真实服务（用于集成测试）
+func (s *TestSuite) setupRealServices(t *testing.T) {
+	t.Helper()
+
+	// 注册真实的域服务到DI容器
+	di.Singleton(s.Container, func() user.ServiceInterface {
+		return user.NewService()
+	})
+
+	di.Singleton(s.Container, func() diary.ServiceInterface {
+		return diary.NewService()
+	})
+
+	di.Singleton(s.Container, func() post.ServiceInterface {
+		return post.NewService()
+	})
+
+	di.Singleton(s.Container, func() task.ServiceInterface {
+		return task.NewService()
+	})
+
+	// 获取注册的真实服务
+	s.UserService = di.Get[user.ServiceInterface](s.Container)
+	s.DiaryService = di.Get[diary.ServiceInterface](s.Container)
+	s.PostService = di.Get[post.ServiceInterface](s.Container)
+	s.TaskService = di.Get[task.ServiceInterface](s.Container)
+}
+
+// setupMockServices 设置Mock服务（用于单元测试）
+func (s *TestSuite) setupMockServices(t *testing.T) {
+	t.Helper()
+
+	s.UserServiceMock = mock.NewUserServiceMock()
+	s.DiaryServiceMock = mock.NewDiaryServiceMock()
+	s.PostServiceMock = mock.NewPostServiceMock()
+	s.TaskServiceMock = mock.NewTaskServiceMock()
+
+	// 设置Mock服务的容器引用
+	s.UserServiceMock.Container = s.Container
+	s.DiaryServiceMock.Container = s.Container
+	s.PostServiceMock.Container = s.Container
+	s.TaskServiceMock.Container = s.Container
+
+	// 将Mock服务注册到DI容器
+	di.Value[user.ServiceInterface](s.Container, s.UserServiceMock)
+	di.Value[diary.ServiceInterface](s.Container, s.DiaryServiceMock)
+	di.Value[post.ServiceInterface](s.Container, s.PostServiceMock)
+	di.Value[task.ServiceInterface](s.Container, s.TaskServiceMock)
 }
 
 // Cleanup 清理测试套件

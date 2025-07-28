@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/biuren/hebe/internal/shared/i18n"
-	"github.com/biuren/hebe/internal/shared/types"
+	"github.com/biuren/hebe/internal/shared/contracts"
 	"github.com/biuren/hebe/internal/core/config"
 	"github.com/gin-gonic/gin"
 )

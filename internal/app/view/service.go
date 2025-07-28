@@ -3,16 +3,19 @@ package view
 import (
 	"github.com/biuren/hebe/internal/core/config"
 	"github.com/biuren/hebe/internal/shared/i18n"
-	"github.com/biuren/hebe/internal/shared/response"
-	"github.com/biuren/hebe/internal/shared/types"
+	"github.com/biuren/hebe/internal/shared/http"
+	"github.com/biuren/hebe/internal/shared/contracts"
 	"github.com/gin-gonic/gin"
 )
 
-// ViewService 视图服务实现
+// ViewService 视图服务实现 - 组合各个专门的服务
 type ViewService struct {
-	config          *config.Config
-	responseHandler *response.Handler
-	i18nManager     i18n.I18nManager
+	config *config.Config
+	
+	// 组合的服务
+	pageDataService PageDataService
+	responseService ResponseService
+	i18nService     I18nService
 }
 
 // NewViewService 创建视图服务
@@ -23,92 +26,86 @@ func NewViewService(cfg *config.Config) *ViewService {
 	// 初始化响应处理器
 	responseHandler := response.NewHandler()
 
+	// 创建各个专门的服务
+	pageDataService := NewPageDataService(i18nManager)
+	responseService := NewResponseService(responseHandler)
+	i18nService := NewI18nService(i18nManager)
+
 	return &ViewService{
 		config:          cfg,
-		responseHandler: responseHandler,
-		i18nManager:     i18nManager,
+		pageDataService: pageDataService,
+		responseService: responseService,
+		i18nService:     i18nService,
 	}
 }
 
-// ===================== 页面数据组装 ====================// PageData 创建页面数据（保持原有接口）
+// ===================== 页面数据组装 =====================
+// 委托给 pageDataService
+
+// PageData 创建页面数据（保持向后兼容）
 func (s *ViewService) PageData(c *gin.Context, titleKey string) *types.PageData[map[string]interface{}] {
-	// 构建渲染上下文
-	ctx := s.buildRenderContext(c)
-	
-	// 获取翻译后的标题
-	title := s.i18nManager.GetMessage(titleKey, ctx.Lang)
-	
-	return &types.PageData[map[string]interface{}]{
-		Title:   title,
-		Context: ctx,
-		Data:    make(map[string]interface{}),
-	}
+	return s.pageDataService.PageData(c, titleKey)
 }
 
-// BuildPageData 创建页面数据
+// BuildPageData 创建页面数据（保持向后兼容）
 func (s *ViewService) BuildPageData(c *gin.Context, titleKey string, data interface{}) *types.PageData[interface{}] {
-	// 构建渲染上下文
-	ctx := s.buildRenderContext(c)
-	
-	// 获取翻译后的标题
-	title := s.i18nManager.GetMessage(titleKey, ctx.Lang)
-	
-	return &types.PageData[interface{}]{
-		Title:   title,
-		Context: ctx,
-		Data:    data,
-	}
+	return s.pageDataService.BuildPageData(c, titleKey, data)
 }
 
-// buildRenderContext 构建渲染上下文
-func (s *ViewService) buildRenderContext(c *gin.Context) *types.RenderContext {
-	// 检测语言
-	lang := s.i18nManager.GetLocaleFromContext(c)
-	
-	// 检查登录状态
-	isLogin := false
-	var authUser *types.AuthUser
-	if isLoginValue, exists := c.Get("IsLogin"); exists {
-		isLogin = isLoginValue.(bool)
-	}
-	if authUserValue, exists := c.Get("AuthUser"); exists && authUserValue != nil {
-		if user, ok := authUserValue.(*types.AuthUser); ok {
-			authUser = user
-		}
-	}
-	
-	return &types.RenderContext{
-		IsLogin:  isLogin,
-		AuthUser: authUser,
-		Lang:     lang,
-	}
+// BuildRenderContext 构建渲染上下文
+func (s *ViewService) BuildRenderContext(c *gin.Context) *types.RenderContext {
+	return s.pageDataService.BuildRenderContext(c)
 }
 
 // ===================== 响应处理门面 =====================
+// 委托给 responseService
 
-// JSON响应
+// JSON 返回JSON响应
 func (s *ViewService) JSON(c *gin.Context, code int, data interface{}) {
-	s.responseHandler.JSON(c, code, data)
+	s.responseService.JSON(c, code, data)
 }
 
+// JSONSuccess 返回成功JSON响应
 func (s *ViewService) JSONSuccess(c *gin.Context, data interface{}) {
-	s.responseHandler.JSONSuccess(c, data)
+	s.responseService.JSONSuccess(c, data)
 }
 
+// JSONError 返回错误JSON响应
 func (s *ViewService) JSONError(c *gin.Context, err error, data ...interface{}) {
-	s.responseHandler.JSONError(c, err, data...)
+	s.responseService.JSONError(c, err, data...)
 }
 
-// HTML响应
+// HTML 渲染HTML模板
 func (s *ViewService) HTML(c *gin.Context, name string, data interface{}) {
-	s.responseHandler.HTML(c, name, data)
+	s.responseService.HTML(c, name, data)
 }
 
+// HTMLError 渲染错误页面
 func (s *ViewService) HTMLError(c *gin.Context, title, message string) {
-	s.responseHandler.HTMLError(c, title, message)
+	s.responseService.HTMLError(c, title, message)
 }
 
-// 其他响应
+// Redirect 重定向响应
 func (s *ViewService) Redirect(c *gin.Context, url string) {
-	s.responseHandler.Redirect(c, url)
+	s.responseService.Redirect(c, url)
+}
+
+// ===================== 国际化服务 =====================
+// 委托给 i18nService
+
+// GetMessage 获取国际化消息
+func (s *ViewService) GetMessage(key, lang string) string {
+	return s.i18nService.GetMessage(key, lang)
+}
+
+// GetLocaleFromContext 从上下文获取语言设置
+func (s *ViewService) GetLocaleFromContext(c *gin.Context) string {
+	return s.i18nService.GetLocaleFromContext(c)
+}
+
+// ===================== 配置访问 =====================
+
+// GetConfig 获取配置（用于向后兼容）
+func (s *ViewService) GetConfig() *config.Config {
+	return s.config
 }

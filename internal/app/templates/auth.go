@@ -3,7 +3,7 @@ package templates
 import (
 	"html/template"
 
-	"github.com/biuren/hebe/internal/shared/types"
+	"github.com/biuren/hebe/internal/shared/contracts"
 )
 
 // GetAuthFuncs 获取认证相关的模板函数
