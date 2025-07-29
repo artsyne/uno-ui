@@ -8,7 +8,7 @@
         <div id="page-nav">
             <ul class="flex text-lg">
                 <li>
-                    <a href="/u/{{.Data.User.UserId}}">{{.Data.User.UserName}}</a>
+                    <a href="/u/{{getUserID .}}">{{getUserName .}}</a>
                 </li>
                 <li class="mx-2">
                     <span class="mdi mdi-slash-forward"></span>
@@ -50,7 +50,6 @@
 
                     <!-- Save buttons -->
                     <div class="flex justify-end mt-6">
-                        <button type="button" class="btn-gray mr-2" data-action="discard-profile">Cancel</button>
                         <button type="submit" class="btn-red" data-action="save-profile">Save changes</button>
                     </div>
                 </div>
@@ -72,7 +71,6 @@
 
                     <!-- Save buttons -->
                     <div class="flex justify-end mt-6">
-                        <button type="button" class="btn-gray mr-2" data-action="discard-email">Cancel</button>
                         <button type="submit" class="btn-red" data-action="save-email">Save changes</button>
                     </div>
                 </div>
@@ -88,14 +86,14 @@
                     <div class="mb-4">
                         <label class="form-title" for="current_pwd">Current password</label>
                         <input type="password" class="form-control" id="current_pwd" name="current_pwd"
-                            placeholder="Current password" valid='[{"type":"required"},{"type":"pwd"}]'>
+                            placeholder="Current password" valid='[{"type":"required"},{"type":"limit","min":6,"max":30}]'>
                     </div>
 
                     <!-- New password -->
                     <div class="mb-4">
                         <label class="form-title" for="new_pwd">New password</label>
                         <input type="password" class="form-control" id="new_pwd" name="new_pwd"
-                            placeholder="New password" valid='[{"type":"required"},{"type":"strongpwd"}]'>
+                            placeholder="New password" valid='[{"type":"required"},{"type":"limit","min":6,"max":30}]'>
                     </div>
 
                     <!-- Confirm password -->

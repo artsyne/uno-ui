@@ -108,11 +108,6 @@ func TestUserService_RegisterUser(t *testing.T) {
 			if tt.user.Pwd == "password123" {
 				t.Error("密码应该已加密，不应该是明文")
 			}
-
-			// 验证盐值已生成
-			if tt.user.PwdSalt == "" {
-				t.Error("密码盐值应该已生成")
-			}
 		})
 	}
 }
@@ -378,7 +373,7 @@ func TestUserService_ChangeUserPassword(t *testing.T) {
 
 	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := userService.ChangeUserPassword(tt.uid, tt.uid, tt.currentPwd, tt.newPwd)
+			err := userService.ChangeUserPassword(tt.uid, tt.currentPwd, tt.newPwd)
 
 			if tt.wantErr {
 				if err == nil {

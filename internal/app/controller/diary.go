@@ -56,7 +56,7 @@ func NewDiaryController() DiaryController {
 	return &diaryController{
 		diaryService:  diary.NewService(),
 		userService:   user.NewService(),
-		auth:          user.NewAuthHelper(),
+		auth:          user.NewAuthHelper(config),
 		config:        config,
 		renderService: view.NewViewService(config),
 	}

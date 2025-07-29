@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -92,7 +91,7 @@ func NewUserController() UserController {
 	config := config.GetConfig()
 	return &userController{
 		service:       user.NewService(),
-		auth:          user.NewAuthHelper(),
+		auth:          user.NewAuthHelper(config),
 		config:        config,
 		renderService: view.NewViewService(config),
 	}
@@ -124,10 +123,10 @@ func (h *userController) RegisterRoutes(router *gin.Engine) {
 	authGroup := router.Group("/u")
 	authGroup.Use(h.auth.RequireAuth())
 	{
-		authGroup.GET("/:uid/settings", h.ShowUserSettingsPage)
-		authGroup.POST("/:uid/settings/profile", h.UpdateProfile)
-		authGroup.POST("/:uid/settings/email", h.UpdateEmail)
-		authGroup.POST("/:uid/settings/password", h.UpdatePassword)
+		authGroup.GET("/settings", h.ShowUserSettingsPage)
+		authGroup.POST("/settings/profile", h.UpdateProfile)
+		authGroup.POST("/settings/email", h.UpdateEmail)
+		authGroup.POST("/settings/password", h.UpdatePassword)
 	}
 }
 
@@ -236,21 +235,11 @@ func (h *userController) ShowUserActivationPage(c *gin.Context) {
 
 // ShowUserSettingsPage 显示用户设置页面
 func (h *userController) ShowUserSettingsPage(c *gin.Context) {
-	uid := c.Param("uid")
-	currentUser := h.auth.MustGetCurrentUser(c)
-
-	// 解析用户ID
-	userID, err := h.service.ParseUserID(uid)
-	if err != nil {
-		data := h.renderService.PageData(c, "error")
-		data.Data["title"] = "参数错误"
-		data.Data["message"] = "用户ID格式错误"
-		h.renderService.HTML(c, "error", data)
-		return
-	}
+	// 读取用户认证信息
+	authUser := h.auth.MustGetCurrentUser(c)
 
 	// 获取用户设置信息
-	userInfo, err := h.service.GetUserSettings(userID, currentUser.UserId)
+	userInfo, err := h.service.GetUserSettings(authUser.UserId)
 	if err != nil {
 		data := h.renderService.PageData(c, "error")
 		data.Data["title"] = "错误"
@@ -263,29 +252,30 @@ func (h *userController) ShowUserSettingsPage(c *gin.Context) {
 	data.Data["UserInfo"] = userInfo
 	data.Data["SupportLangs"] = config.GetSupportLangs()
 	data.Data["TimeZones"] = config.GetTimeZone()
-	h.renderService.HTML(c, "user/settings", data)
+	h.renderService.HTML(c, "member/settings", data)
 }
 
 // ===================== 认证相关方法 =====================
 
 // Login 处理用户登录请求
 func (h *userController) Login(c *gin.Context) {
-	// 解析登录表单数据
-	login := &types.AuthUser{}
-	if err := c.Bind(login); err != nil {
+	// 解析登录表单数据，创建 LoginRequest 对象
+	req := &user.LoginRequest{}
+	
+	if err := c.Bind(req); err != nil {
 		h.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
 		return
 	}
 
 	// 验证输入参数长度
-	if len(login.LoginName) < 6 || len(login.Pwd) < 6 {
+	if len(req.LoginName) < 6 || len(req.Pwd) < 6 {
 		h.renderService.JSONError(c, errors.ValidationError.WithDetails("用户名和密码长度至少6位"))
 		return
 	}
 
 	// 验证用户名和密码，登录名统一转为小写
-	login.LoginName = strings.ToLower(login.LoginName)
-	user, err := h.service.CheckNameAndPassword(login.LoginName, login.Pwd)
+	req.LoginName = strings.ToLower(req.LoginName)
+	user, err := h.service.CheckNameAndPassword(req.LoginName, req.Pwd)
 	if err != nil {
 		h.renderService.JSONError(c, errors.PasswordIncorrect.WithDetails(err.Error()))
 		return
@@ -302,7 +292,7 @@ func (h *userController) Login(c *gin.Context) {
 	}
 
 	// 设置登录Cookie
-	h.setLoginCookie(c, authUser)
+	h.auth.SetLoginCookie(c, authUser)
 
 	// 返回登录成功响应
 	responseData := map[string]interface{}{
@@ -514,7 +504,7 @@ func (h *userController) UpdateProfile(c *gin.Context) {
 	authUser.FullName = req.FullName
 	authUser.Lang = req.Lang
 	authUser.TimeZone = req.TimeZone
-	h.setLoginCookie(c, authUser)
+	h.auth.SetLoginCookie(c, authUser)
 
 	h.renderService.JSONSuccess(c, nil)
 }
@@ -551,52 +541,35 @@ func (h *userController) UpdateEmail(c *gin.Context) {
 
 // UpdatePassword 修改用户密码
 func (h *userController) UpdatePassword(c *gin.Context) {
-	// 获取URL中的uid
-	uid, err := h.parseUserID(c.Param("uid"))
-	if err != nil {
+	// 读取用户认证信息
+	authUser := h.auth.MustGetCurrentUser(c)
+
+	// 绑定请求数据
+	req := &user.ChangePasswordRequest{}
+	if err := c.Bind(req); err != nil {
 		h.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
 		return
 	}
 
-	// 读取用户认证信息
-	userData, exists := c.Get("UserData")
-	if !exists {
-		h.renderService.JSONError(c, errors.Unauthorized.WithDetails("用户认证信息不存在"))
+	// 判断输入密码是否正确
+	if req.NewPwd != req.ConfirmPwd {
+		h.renderService.JSONError(c, errors.ValidationError.WithDetails("两次输入密码不一致"))
 		return
-	}
-	userLogin := userData.(types.AuthUser)
-
-	// 获取表单数据
-	currentPwd := c.PostForm("current_pwd")
-	newPwd := c.PostForm("new_pwd")
-
+	}	
 	// 调用service更改密码
-	err = h.service.ChangeUserPassword(uid, userLogin.UserId, currentPwd, newPwd)
+	err := h.service.ChangeUserPassword(authUser.UserId,  req.CurrentPwd, req.NewPwd)
 	if err != nil {
-		h.renderService.JSONError(c, errors.DatabaseError.WithDetails(err.Error()))
+		h.renderService.JSONError(c, err)
 		return
 	}
+
+	// 更新 cookie
+	h.auth.SetLoginCookie(c, authUser)
 
 	h.renderService.JSONSuccess(c, gin.H{"message": "密码修改成功"})
 }
 
 // ===================== 辅助方法 =====================
-
-// setLoginCookie 设置登录Cookie
-func (h *userController) setLoginCookie(c *gin.Context, authUser *types.AuthUser) {
-	// 序列化用户数据
-	userData, _ := json.Marshal(authUser)
-
-	// 加密用户数据
-	encryptedData, err := pkg.AESEncrypt(string(userData), h.config.Cookie.Secret)
-	if err != nil {
-		return
-	}
-
-	// 设置登录cookie
-	pkg.WriteCookie(c.Writer, "ud", encryptedData)
-}
-
 // validateUserNameFormat 验证用户名格式
 func (h *userController) validateUserNameFormat(userName string) bool {
 	return pkg.IsValidUserName(userName)

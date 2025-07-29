@@ -1,20 +1,17 @@
 package middleware
 
 import (
-	"encoding/json"
 	"log/slog"
 	"net/http"
 
 	"github.com/biuren/hebe/internal/core/config"
 	"github.com/biuren/hebe/internal/domain/user"
-	"github.com/biuren/hebe/internal/shared/contracts"
-	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
 
 // AuthRequired 需要登录访问的中间件
 func AuthRequired() gin.HandlerFunc {
-	auth := user.NewAuthHelper()
+	auth := user.NewAuthHelper(config.GetConfig())
 	return func(c *gin.Context) {
 		if isAuth, _ := auth.IsAuthenticated(c); isAuth {
 			c.Next()
@@ -29,8 +26,9 @@ func AuthRequired() gin.HandlerFunc {
 // SharedData 共享数据中间件
 func SharedData() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		auth := user.NewAuthHelper(config.GetConfig())
 		// 解析用户登录信息
-		authUser := parseUserFromCookie(c)
+		authUser := auth.ParseUserFromCookie(c)
 
 		// 注入登录状态和用户数据到上下文
 		if authUser != nil {
@@ -42,30 +40,4 @@ func SharedData() gin.HandlerFunc {
 
 		c.Next()
 	}
-}
-
-// parseUserFromCookie 从Cookie中解析用户登录信息
-func parseUserFromCookie(c *gin.Context) *types.AuthUser {
-	cookieEnUserData := pkg.ReadCookie(c.Request, "ud")
-	if len(cookieEnUserData) < 1 {
-		return nil
-	}
-
-	config := config.GetConfig()
-	if config == nil {
-		return nil
-	}
-
-	byteUserData, err := pkg.AESDecrypt(cookieEnUserData, config.Cookie.Secret)
-	if err != nil || byteUserData == nil {
-		return nil
-	}
-
-	var userData types.AuthUser
-	err = json.Unmarshal(byteUserData, &userData)
-	if err != nil {
-		return nil
-	}
-
-	return &userData
 }

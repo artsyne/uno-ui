@@ -21,7 +21,7 @@
       "program": "${workspaceFolder}/__debug_bin/debug.idiary.site",
       "cwd": "${workspaceFolder}/",
       "showLog": true,
-      "preLaunchTask": "build:css-js",
+      "preLaunchTask": "build:frontend",
       "dlvFlags": ["--log", "--log-output=rpc"],
       "envFile": "${workspaceFolder}/.env.local"
     },

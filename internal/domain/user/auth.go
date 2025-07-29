@@ -1,12 +1,15 @@
 package user
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 
-	"github.com/gin-gonic/gin"
+	"github.com/biuren/hebe/internal/core/config"
 	"github.com/biuren/hebe/internal/shared/contracts"
+	"github.com/biuren/hebe/pkg"
+	"github.com/gin-gonic/gin"
 )
 
 /**
@@ -51,19 +54,29 @@ type AuthHelperInterface interface {
 
 	// GetLogin 获取登录用户信息（兼容性方法）
 	GetLogin(c *gin.Context) *types.AuthUser
+
+	// SetLoginCookie 设置登录Cookie
+	SetLoginCookie(c *gin.Context, authUser *types.AuthUser)
+
+	// ParseUserFromCookie 从Cookie中解析用户登录信息
+	ParseUserFromCookie(c *gin.Context) *types.AuthUser
 }
 
 // authHelper 认证助手结构体
 // 封装了所有与用户认证相关的操作，提供类型安全和错误处理
-type authHelper struct{}
+type authHelper struct {
+	config *config.Config
+}
 
 // NewAuthHelper 创建新的认证助手实例
 // 虽然提供了全局实例，但也可以通过此方法创建独立实例
 //
 // Returns:
 //   - AuthHelperInterface: 认证助手接口实例
-func NewAuthHelper() AuthHelperInterface {
-	return &authHelper{}
+func NewAuthHelper(cfg *config.Config) AuthHelperInterface {
+	return &authHelper{
+		config: cfg,
+	}
 }
 
 // IsAuthenticated 检查用户是否已通过认证
@@ -290,4 +303,40 @@ func (a *authHelper) IfLoginGotoIndex(c *gin.Context) {
 func (a *authHelper) GetLogin(c *gin.Context) *types.AuthUser {
 	userData, _ := a.GetCurrentUser(c)
 	return userData
+}
+
+// SetLoginCookie 设置登录Cookie
+func (a *authHelper) SetLoginCookie(c *gin.Context, authUser *types.AuthUser) {
+	// 序列化用户数据
+	userData, _ := json.Marshal(authUser)
+
+	// 加密用户数据
+	encryptedData, err := pkg.AESEncrypt(string(userData), a.config.Cookie.Secret)
+	if err != nil {
+		return
+	}
+
+	// 设置登录cookie
+	pkg.WriteCookie(c.Writer, "ud", encryptedData)
+}
+
+// ParseUserFromCookie 
+func (a *authHelper) ParseUserFromCookie(c *gin.Context) *types.AuthUser {
+	cookieEnUserData := pkg.ReadCookie(c.Request, "ud")
+	if len(cookieEnUserData) < 1 {
+		return nil
+	}
+
+	byteUserData, err := pkg.AESDecrypt(cookieEnUserData, a.config.Cookie.Secret)
+	if err != nil || byteUserData == nil {
+		return nil
+	}
+
+	var userData types.AuthUser
+	err = json.Unmarshal(byteUserData, &userData)
+	if err != nil {
+		return nil
+	}
+
+	return &userData
 }

@@ -7,7 +7,6 @@ type User struct {
 	FullName         string `form:"full_name" json:"full_name" db:"full_name"`
 	UserGroup        int8   `form:"user_group" json:"user_group" db:"user_group"`
 	Pwd              string `form:"pwd" json:"pwd" db:"pwd"`
-	PwdSalt          string `form:"pwd_salt" json:"pwd_salt" db:"pwd_salt"`
 	ProfileUrl       string `form:"profile_url" json:"profile_url" db:"profile_url"`
 	FaceUrl          string `form:"face_url" json:"face_url" db:"face_url"`
 	Email            string `form:"email" json:"email" db:"email"`
@@ -74,8 +73,9 @@ type UpdateEmailRequest struct {
 
 // ChangePasswordRequest 修改密码请求
 type ChangePasswordRequest struct {
-	CurrentPassword string `form:"current_password" json:"current_password"`
-	NewPassword     string `form:"new_password" json:"new_password"`
+	CurrentPwd string `form:"current_pwd" json:"current_pwd"`
+	NewPwd     string `form:"new_pwd" json:"new_pwd"`
+	ConfirmPwd string `form:"confirm_pwd" json:"confirm_pwd"`
 }
 
 // ActivateUserParams 激活用户参数

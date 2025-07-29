@@ -49,11 +49,14 @@ type RepositoryInterface interface {
 	// GetUserByEmail 根据邮箱获取用户信息
 	GetUserByEmail(email string) (*User, error)
 
+	// GetUserEncryptPwd 获取用户加密密码
+	GetUserEncryptPwd(userId int64) (string, error)
+
 	// UpdateUserProfile 更新用户基本资料
 	UpdateUserProfile(userId int64, fullName, remark string) (int64, error)
 
-	// UpdateUserPasswordAndSalt 更新用户密码和盐值
-	UpdateUserPasswordAndSalt(userId int64, pwd, salt string) (int64, error)
+	// UpdateUserPassword 更新用户密码
+	UpdateUserPassword(userId int64, pwd string) (int64, error)
 
 	// ===================== ValidCode 相关方法 =====================
 
@@ -94,7 +97,6 @@ func (r *Repository) InsertUser(user *User) (int64, error) {
                     full_name,
                     user_group,
                     pwd,
-                    pwd_salt,
                     profile_url,
                     face_url,
                     email,
@@ -124,7 +126,6 @@ func (r *Repository) InsertUser(user *User) (int64, error) {
                     ?,
                     ?,
                     ?,
-                    ?,
                     ?
                 )
                 `
@@ -134,7 +135,6 @@ func (r *Repository) InsertUser(user *User) (int64, error) {
 		user.FullName,
 		user.UserGroup,
 		user.Pwd,
-		user.PwdSalt,
 		user.ProfileUrl,
 		user.FaceUrl,
 		user.Email,
@@ -165,7 +165,6 @@ func (r *Repository) UpdateUser(user *User) (int64, error) {
                         full_name = ?,
                         user_group = ?,
                         pwd = ?,
-                        pwd_salt = ?,
                         profile_url = ?,
                         face_url = ?,
                         email = ?,
@@ -186,7 +185,6 @@ func (r *Repository) UpdateUser(user *User) (int64, error) {
 		user.FullName,
 		user.UserGroup,
 		user.Pwd,
-		user.PwdSalt,
 		user.ProfileUrl,
 		user.FaceUrl,
 		user.Email,
@@ -415,12 +413,23 @@ func (r *Repository) UpdateUserProfile(userId int64, fullName, remark string) (i
 }
 
 // UpdateUserPasswordAndSalt 更新用户密码和盐值
-func (r *Repository) UpdateUserPasswordAndSalt(userId int64, pwd, salt string) (int64, error) {
-	sql := "UPDATE br_user SET pwd = ?, pwd_salt = ? WHERE user_id = ?"
-	res, err := r.db.Exec(sql, pwd, salt, userId)
+func (r *Repository) UpdateUserPassword(userId int64, pwd string) (int64, error) {
+	sql := "UPDATE br_user SET pwd = ? WHERE user_id = ?"
+	res, err := r.db.Exec(sql, pwd, userId)
 	if err != nil {
 		return 0, err
 	}
 	rows, err := res.RowsAffected()
 	return rows, err
+}
+
+// GetUserEncryptPwd 根据用户id获取加密密码
+func (r *Repository) GetUserEncryptPwd(userId int64) (string, error) {
+	sql := "SELECT pwd FROM br_user WHERE user_id = ?"
+	var pwd string
+	err := r.db.Get(&pwd, sql, userId)
+	if err != nil {
+		return "", err
+	}
+	return pwd, nil
 }

@@ -34,6 +34,7 @@ var (
 	MissingRequiredField = ErrorDef{1003, "missing_required_field", 400}
 	InvalidFormat        = ErrorDef{1004, "invalid_format", 400}
 	ValueOutOfRange      = ErrorDef{1005, "value_out_of_range", 400}
+	InvalidPassword      = ErrorDef{1006, "invalid_password", 400}
 
 	// 1100-1199: 认证错误 (401)
 	Unauthorized       = ErrorDef{1101, "unauthorized", 401}

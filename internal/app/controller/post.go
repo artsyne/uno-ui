@@ -48,7 +48,7 @@ func NewPostController() PostController {
 	return &postController{
 		postService:   post.NewService(),
 		diaryService:  diary.NewService(),
-		auth:          user.NewAuthHelper(),
+		auth:          user.NewAuthHelper(config),
 		config:        config,
 		renderService: view.NewViewService(config),
 	}

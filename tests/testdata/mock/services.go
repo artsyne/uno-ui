@@ -9,6 +9,7 @@ import (
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/domain/task"
+	"github.com/biuren/hebe/pkg"
 )
 
 
@@ -44,10 +45,13 @@ func (m *UserServiceMock) RegisterUser(u *user.User) error {
 		u.UserId = int64(len(m.users) + 1)
 	}
 
-	// 模拟密码加密
+	// 使用 Bcrypt 加密密码
 	originalPwd := u.Pwd
-	u.Pwd = "encrypted_" + originalPwd
-	u.PwdSalt = "salt_" + fmt.Sprintf("%d", u.UserId)
+	hash, err := pkg.BcryptHash(originalPwd)
+	if err != nil {
+		return fmt.Errorf("密码加密失败: %v", err)
+	}
+	u.Pwd = hash
 
 	m.users[u.UserId] = u
 	return nil
@@ -56,9 +60,8 @@ func (m *UserServiceMock) RegisterUser(u *user.User) error {
 func (m *UserServiceMock) CheckNameAndPassword(name string, pwd string) (*user.User, error) {
 	for _, u := range m.users {
 		if u.UserName == name || u.Email == name {
-			// 验证密码（处理加密格式）
-			expectedPwd := "encrypted_" + pwd
-			if u.Pwd == expectedPwd {
+			// 使用 Bcrypt 验证密码
+			if pkg.BcryptVerify(pwd, u.Pwd) {
 				return u, nil
 			}
 			return nil, fmt.Errorf("密码错误")
@@ -97,9 +100,9 @@ func (m *UserServiceMock) SendResetPasswordEmail(u *user.User) error {
 	return nil
 }
 
-func (m *UserServiceMock) ChangeUserPassword(uid int64, currentUserID int64, currentPwd, newPwd string) error {
+func (m *UserServiceMock) ChangeUserPassword(currentUserID int64, currentPwd, newPwd string) error {
 	// 检查用户是否存在
-	user, exists := m.users[uid]
+	user, exists := m.users[currentUserID]
 	if !exists {
 		return fmt.Errorf("用户不存在")
 	}
@@ -109,14 +112,17 @@ func (m *UserServiceMock) ChangeUserPassword(uid int64, currentUserID int64, cur
 		return fmt.Errorf("新密码长度不能少于6位")
 	}
 
-	// 验证当前密码（处理加密格式）
-	expectedCurrentPwd := "encrypted_" + currentPwd
-	if user.Pwd != expectedCurrentPwd {
+	// 使用 Bcrypt 验证当前密码
+	if !pkg.BcryptVerify(currentPwd, user.Pwd) {
 		return fmt.Errorf("当前密码错误")
 	}
 
-	// 更新密码（加密新密码）
-	user.Pwd = "encrypted_" + newPwd
+	// 使用 Bcrypt 加密新密码
+	hash, err := pkg.BcryptHash(newPwd)
+	if err != nil {
+		return fmt.Errorf("新密码加密失败: %v", err)
+	}
+	user.Pwd = hash
 	return nil
 }
 
@@ -159,7 +165,7 @@ func (m *UserServiceMock) GetUserProfile(uid int64, currentUserID int64) (*user.
 	return nil, false, fmt.Errorf("用户不存在")
 }
 
-func (m *UserServiceMock) GetUserSettings(uid int64, currentUserID int64) (*user.User, error) {
+func (m *UserServiceMock) GetUserSettings(uid int64) (*user.User, error) {
 	if u, exists := m.users[uid]; exists {
 		return u, nil
 	}

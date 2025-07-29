@@ -20,9 +20,7 @@ const Settings = {
     this.baseUrl = baseUrl;
     return [
       this.saveProfileAction,
-      this.discardProfileAction,
       this.saveEmailAction,
-      this.discardEmailAction,
       this.changePasswordAction,
     ];
   },
@@ -59,42 +57,6 @@ const Settings = {
   },
 
   /**
-   * 放弃个人资料更改行为
-   * @type {Object}
-   */
-  discardProfileAction: {
-    id: 'discard-profile',
-    type: 'function',
-
-    /**
-     * 处理放弃更改请求
-     */
-    handler: function (id, target, eventData) {
-      const form = $('#profile-form');
-
-      // 从表单元素的data属性或原始值获取初始数据
-      const fullNameField = form.find('#full_name');
-      const remarkField = form.find('#remark');
-
-      // 重置表单到原始值
-      // 如果元素有data-original-value属性，使用它；否则使用当前值作为原始值
-      const originalFullName =
-        fullNameField.data('original-value') || fullNameField.val();
-      const originalRemark =
-        remarkField.data('original-value') || remarkField.val();
-
-      fullNameField.val(originalFullName);
-      remarkField.val(originalRemark);
-
-      // 清除验证状态
-      form.find('input, textarea').removeClass('is-invalid is-valid');
-      form.find('.invalid-feedback').text('');
-
-      kiko.ui.notify.info(appI18n.getMessage('operation.cancelled'));
-    },
-  },
-
-  /**
    * 保存邮箱行为
    * @type {Object}
    */
@@ -125,36 +87,6 @@ const Settings = {
   },
 
   /**
-   * 放弃邮箱更改行为
-   * @type {Object}
-   */
-  discardEmailAction: {
-    id: 'discard-email',
-    type: 'function',
-
-    /**
-     * 处理放弃邮箱更改请求
-     */
-    handler: function (id, target, eventData) {
-      const form = $('#email-form');
-
-      // 从表单元素的data属性获取原始数据
-      const emailField = form.find('#email');
-
-      // 重置表单到原始值
-      const originalEmail =
-        emailField.data('original-value') || emailField.val();
-      emailField.val(originalEmail);
-
-      // 清除验证状态
-      form.find('input').removeClass('is-invalid is-valid');
-      form.find('.invalid-feedback').text('');
-
-      kiko.ui.notify.info(appI18n.getMessage('operation.cancelled'));
-    },
-  },
-
-  /**
    * 修改密码行为
    * @type {Object}
    */
@@ -181,11 +113,20 @@ const Settings = {
       };
 
       // TODO: 实现服务端保存逻辑
-      log('修改密码:', data);
-      kiko.ui.notify.success(appI18n.getMessage('operation.success'));
-
-      // 清空密码字段
-      form.find('#current_pwd, #new_pwd, #confirm_pwd').val('');
+      $.ajax({
+        url: '/u/settings/password',
+        method: 'POST',
+        data: data,
+        success: function (response) {
+          log('修改密码:', response);
+          kiko.ui.notify.success(appI18n.getMessage('operation.success'));
+          // 清空密码字段
+          form.find('#current_pwd, #new_pwd, #confirm_pwd').val('');
+        },
+        error: function (response) {
+          kiko.ui.notify.error(appI18n.getMessage('operation.fail'));
+        },
+      });
     },
   },
 };

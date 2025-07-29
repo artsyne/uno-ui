@@ -15,7 +15,6 @@ import (
 // AuthUser 已认证用户信息结构体
 type AuthUser struct {
 	LoginName    string `form:"login_name" json:"login_name"`
-	Pwd          string `form:"pwd" json:"pwd"`
 	AccessUrl    string `form:"access_url" json:"access_url"`
 	UserId       int64  `form:"user_id" json:"user_id"`
 	UserName     string `form:"user_name" json:"user_name"`

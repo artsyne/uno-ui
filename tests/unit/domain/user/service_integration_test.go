@@ -46,7 +46,6 @@ func TestUserService_Integration_RegisterAndLogin(t *testing.T) {
 		assert.NoError(t, err, "用户注册失败")
 		assert.Greater(t, testUser.UserId, int64(0), "用户ID应该大于0")
 		assert.NotEqual(t, "password123", testUser.Pwd, "密码应该已加密")
-		assert.NotEmpty(t, testUser.PwdSalt, "密码盐值应该已生成")
 
 		// 2. 测试用户名重复检查
 		err = userService.IsExistUserName("integration_test_user")
@@ -87,7 +86,7 @@ func TestUserService_Integration_RegisterAndLogin(t *testing.T) {
 		assert.Equal(t, "新的备注", updatedUser.Remark, "备注未更新")
 
 		// 9. 测试修改密码
-		err = userService.ChangeUserPassword(testUser.UserId, testUser.UserId, "password123", "newpassword456")
+		err = userService.ChangeUserPassword(testUser.UserId, "password123", "newpassword456")
 		assert.NoError(t, err, "修改密码失败")
 
 		// 验证新密码可以登录
@@ -127,7 +126,7 @@ func TestUserService_Integration_ErrorCases(t *testing.T) {
 		assert.Error(t, err, "期望获取不存在用户时返回错误")
 
 		// 测试修改不存在用户的密码
-		err = userService.ChangeUserPassword(999999, 999999, "oldpwd", "newpwd")
+		err = userService.ChangeUserPassword(999999, "oldpwd", "newpwd")
 		assert.Error(t, err, "期望修改不存在用户密码时返回错误")
 
 		// 测试更新不存在用户的资料
