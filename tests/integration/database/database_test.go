@@ -47,9 +47,9 @@ func TestUserTable(t *testing.T) {
 
 		// 插入测试用户
 		result := db.ExecuteSQL(t, `
-			INSERT INTO br_user (user_name, email, pwd, pwd_salt, status, created_utc_time) 
-			VALUES (?, ?, ?, ?, ?, ?)
-		`, "testuser", "test@example.com", "hashed_password", "salt123", 1, 1642680000)
+			INSERT INTO br_user (user_name, email, pwd, status, created_utc_time) 
+			VALUES (?, ?, ?, ?, ?)
+		`, "testuser", "test@example.com", "hashed_password", 1, 1642680000)
 
 		// 检查插入结果
 		rowsAffected, err := result.RowsAffected()
@@ -106,9 +106,9 @@ func TestDiaryTable(t *testing.T) {
 
 		// 先插入用户（日记需要关联用户）
 		db.ExecuteSQL(t, `
-			INSERT INTO br_user (user_name, email, pwd, pwd_salt, status, created_utc_time) 
-			VALUES (?, ?, ?, ?, ?, ?)
-		`, "diaryuser", "diary@example.com", "hashed_password", "salt123", 1, 1642680000)
+			INSERT INTO br_user (user_name, email, pwd, status, created_utc_time) 
+			VALUES (?, ?, ?, ?, ?)
+		`, "diaryuser", "diary@example.com", "hashed_password", 1, 1642680000)
 
 		// 获取用户ID
 		row := db.QueryRow(t, "SELECT user_id FROM br_user WHERE user_name = ?", "diaryuser")

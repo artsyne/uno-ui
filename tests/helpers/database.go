@@ -24,79 +24,83 @@ type DatabaseTestHelper struct {
 // setupTestEnvironment 设置测试环境变量
 // 基于.env.local文件配置，但使用测试数据库
 func setupTestEnvironment(testDBName string) {
-	// 设置环境变量指向.env.local文件
-	projectRoot := getProjectRoot()
-	envFile := filepath.Join(projectRoot, ".env.local")
-	os.Setenv("ENV_FILE", envFile)
+	// 使用统一的环境变量设置
+	SetupTestEnvironment()
 
-	// 设置必需的JSON格式环境变量（使用IDIARY_前缀）
-	os.Setenv("IDIARY_SUPPORT_LANGS", `[{"code":"zh-cn","label":"中文","local-text":"中文"},{"code":"en","label":"English","local-text":"English"}]`)
-	os.Setenv("IDIARY_TIMEZONES", `["Asia/Shanghai","UTC","America/New_York"]`)
-	os.Setenv("IDIARY_PARAMS", `[{"key":"test_key","val":"test_value"}]`)
-
-	// 设置其他必需的配置项
-	os.Setenv("IDIARY_ENV", "test")
-	os.Setenv("IDIARY_GIN_MODE", "debug")
-	os.Setenv("IDIARY_DOMAIN", "http://localhost:8080")
-	os.Setenv("IDIARY_PORT", "8080")
-	os.Setenv("IDIARY_SUMMARY_MAX", "200")
-	os.Setenv("IDIARY_SUFFIX", "...")
-	os.Setenv("IDIARY_PAGE_SIZE", "10")
-	os.Setenv("IDIARY_MAX_DAYBOOK_LIMIT", "100")
-	os.Setenv("IDIARY_HASH_SALT", "test_salt_12345")
-	os.Setenv("IDIARY_STATIC_DIR", "website/static")
-	os.Setenv("IDIARY_LOCALES_DIR", "website/locales")
-	os.Setenv("IDIARY_DEFAULT_LANG", "zh-cn")
-
-	// 数据库配置 - 使用测试数据库名称覆盖.env.local配置
-	os.Setenv("IDIARY_DB_HOST", "127.0.0.1")
-	os.Setenv("IDIARY_DB_PORT", "3306")
+	// 覆盖数据库名称为测试数据库
 	os.Setenv("IDIARY_DB_NAME", testDBName)
-	os.Setenv("IDIARY_DB_USER", "root")
-	os.Setenv("IDIARY_DB_PASSWORD", "123123")
-	os.Setenv("IDIARY_DB_CONN", "%s:%s@tcp(%s:3306)/%s?parseTime=true&loc=Local&charset=utf8mb4&collation=utf8mb4_general_ci")
+}
 
-	// Redis配置
-	os.Setenv("IDIARY_REDIS_HOST", "127.0.0.1")
-	os.Setenv("IDIARY_REDIS_PORT", "6379")
-	os.Setenv("IDIARY_REDIS_PASSWORD", "woaibeijingtiananmeng")
+// buildDSN 根据配置构建数据库连接字符串
+func buildDSN(dbName string) string {
+	// 使用环境变量中的配置
+	SetupTestEnvironment() // 确保环境变量已设置
 
-	// 邮件配置
-	os.Setenv("IDIARY_SMTP_SERVER", "smtp.test.com")
-	os.Setenv("IDIARY_SMTP_USER", "test@test.com")
-	os.Setenv("IDIARY_SMTP_PASSWORD", "test_password")
-	os.Setenv("IDIARY_SMTP_PORT", "587")
-	os.Setenv("IDIARY_SMTP_FROM", "test@test.com")
-	os.Setenv("IDIARY_EMAIL_MAX_RETRIES", "3")
-	os.Setenv("IDIARY_EMAIL_BATCH_SIZE", "10")
+	// 初始化配置以获取数据库配置
+	if err := config.InitConfig(); err != nil {
+		// 如果配置初始化失败，使用默认值
+		host := os.Getenv("IDIARY_DB_HOST")
+		if host == "" {
+			host = "127.0.0.1"
+		}
+		port := os.Getenv("IDIARY_DB_PORT")
+		if port == "" {
+			port = "3306"
+		}
+		user := os.Getenv("IDIARY_DB_USER")
+		if user == "" {
+			user = "root"
+		}
+		password := os.Getenv("IDIARY_DB_PASSWORD")
+		if password == "" {
+			password = "123123"
+		}
 
-	// Cookie配置
-	os.Setenv("IDIARY_COOKIE_DOMAIN", "localhost")
-	os.Setenv("IDIARY_COOKIE_SECRET", "test_secret_key_12345678901234567890")
-	os.Setenv("IDIARY_COOKIE_EXPIRE_DAYS", "30")
-	os.Setenv("IDIARY_COOKIE_HTTP_ONLY", "true")
+		if dbName == "" {
+			return fmt.Sprintf("%s:%s@tcp(%s:%s)/?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port)
+		}
+		return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port, dbName)
+	}
 
-	// 上传配置
-	os.Setenv("IDIARY_UPLOAD_PATH", "uploads")
-	os.Setenv("IDIARY_UPLOAD_TYPES", "jpg,jpeg,png,gif")
-	os.Setenv("IDIARY_UPLOAD_MAX_SIZE", "10485760")
+	cfg := config.GetConfig()
+	if cfg == nil {
+		// 回退到环境变量
+		host := os.Getenv("IDIARY_DB_HOST")
+		if host == "" {
+			host = "127.0.0.1"
+		}
+		port := os.Getenv("IDIARY_DB_PORT")
+		if port == "" {
+			port = "3306"
+		}
+		user := os.Getenv("IDIARY_DB_USER")
+		if user == "" {
+			user = "root"
+		}
+		password := os.Getenv("IDIARY_DB_PASSWORD")
+		if password == "" {
+			password = "123123"
+		}
 
-	// 日志配置
-	os.Setenv("IDIARY_LOG_LEVEL", "info")
-	os.Setenv("IDIARY_LOG_FORMAT", "json")
-	os.Setenv("IDIARY_LOG_PATH", "logs")
-	os.Setenv("IDIARY_LOG_FILENAME", "test.log")
-	os.Setenv("IDIARY_LOG_MAX_SIZE", "100")
-	os.Setenv("IDIARY_LOG_MAX_AGE", "7")
-	os.Setenv("IDIARY_LOG_MAX_BACKUPS", "5")
-	os.Setenv("IDIARY_LOG_COMPRESS", "true")
-	os.Setenv("IDIARY_LOG_LOCAL_TIME", "true")
+		if dbName == "" {
+			return fmt.Sprintf("%s:%s@tcp(%s:%s)/?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port)
+		}
+		return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port, dbName)
+	}
+
+	// 使用配置对象构建DSN
+	if dbName == "" {
+		return fmt.Sprintf("%s:%s@tcp(%s:%d)/?charset=utf8mb4&parseTime=True&loc=Local",
+			cfg.Database.User, cfg.Database.Password, cfg.Database.Host, cfg.Database.Port)
+	}
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		cfg.Database.User, cfg.Database.Password, cfg.Database.Host, cfg.Database.Port, dbName)
 }
 
 // createTestDatabase 创建测试数据库
 func createTestDatabase(testDBName string) error {
-	// 连接到 MySQL 服务器（不指定数据库）- 使用.env.local中的真实配置
-	dsn := "root:123123@tcp(127.0.0.1:3306)/?charset=utf8mb4&parseTime=True&loc=Local"
+	// 连接到 MySQL 服务器（不指定数据库）- 使用配置中的真实配置
+	dsn := buildDSN("")
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return fmt.Errorf("连接 MySQL 服务器失败: %v", err)
@@ -156,8 +160,8 @@ func loadDatabaseSchema(db *sql.DB) error {
 
 // dropTestDatabase 删除测试数据库
 func dropTestDatabase(testDBName string) error {
-	// 连接到 MySQL 服务器 - 使用.env.local中的真实配置
-	dsn := "root:123123@tcp(127.0.0.1:3306)/?charset=utf8mb4&parseTime=True&loc=Local"
+	// 连接到 MySQL 服务器 - 使用配置中的真实配置
+	dsn := buildDSN("")
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return fmt.Errorf("连接 MySQL 服务器失败: %v", err)
@@ -340,6 +344,15 @@ func (h *DatabaseTestHelper) Cleanup(t *testing.T) {
 	// 回滚未提交的事务
 	h.RollbackTransaction(t)
 
+	// 根据命令行参数决定是否清理数据库
+	if ShouldCleanupDatabase() {
+		// 清理测试数据（如果指定了cleanup-db参数）
+		h.CleanupAllTables(t)
+		t.Logf("数据库已清理（使用了 -cleanup-db 参数）")
+	} else {
+		t.Logf("数据库数据保留，便于观察测试结果（使用 -cleanup-db 参数可强制清理）")
+	}
+
 	// 关闭数据库连接
 	if h.db != nil {
 		h.db.Close()
@@ -367,27 +380,10 @@ func (h *DatabaseTestHelper) GetDB() *sql.DB {
 	return h.db
 }
 
-// getProjectRoot 获取项目根目录
-func getProjectRoot() string {
-	// 从当前文件位置开始，向上查找包含go.mod的目录
-	dir, _ := os.Getwd()
-	for {
-		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
-			return dir
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			// 到达根目录，回退到默认路径
-			return "/Users/yasong.cy/go/src/idiary.ai/hebe"
-		}
-		dir = parent
-	}
-}
-
 // ensureTestDatabase 确保测试数据库存在并已加载schema
 func ensureTestDatabase(testDBName string) error {
 	// 连接到 MySQL 服务器（不指定数据库）
-	dsn := "root:123123@tcp(127.0.0.1:3306)/?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := buildDSN("")
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return fmt.Errorf("连接 MySQL 服务器失败: %v", err)
@@ -401,7 +397,7 @@ func ensureTestDatabase(testDBName string) error {
 	}
 
 	// 连接到测试数据库
-	testDSN := fmt.Sprintf("root:123123@tcp(127.0.0.1:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local", testDBName)
+	testDSN := buildDSN(testDBName)
 	testDB, err := sql.Open("mysql", testDSN)
 	if err != nil {
 		return fmt.Errorf("连接测试数据库失败: %v", err)
@@ -430,13 +426,13 @@ func ensureTestDatabase(testDBName string) error {
 func (h *DatabaseTestHelper) CleanupAllTables(t *testing.T, tables ...string) {
 	t.Helper()
 
-	// 如果没有指定表，使用默认的表列表
+	// 如果没有指定表，使用默认的表列表（使用实际的数据库表名）
 	if len(tables) == 0 {
 		tables = []string{
-			"posts",
-			"diaries",
-			"tasks",
-			"users",
+			"br_comment",
+			"br_diary",
+			"br_follow",
+			"br_user",
 		}
 	}
 

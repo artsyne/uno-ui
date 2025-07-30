@@ -221,7 +221,6 @@ CREATE TABLE br_user (
   full_name varchar(128) COLLATE utf8mb4_general_ci DEFAULT '',
   user_group tinyint unsigned NOT NULL DEFAULT '1',
   pwd varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  pwd_salt varchar(64) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   profile_url varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   face_url varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   email varchar(128) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',

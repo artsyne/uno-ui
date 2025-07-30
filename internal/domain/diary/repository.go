@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/biuren/hebe/internal/core/database"
+	errors "github.com/biuren/hebe/internal/core/error"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -168,7 +169,7 @@ func (r *Repository) GetByDiaryID(diaryID int64) (*Diary, error) {
 	sqlstr := "SELECT * FROM br_diary WHERE diary_id = ?"
 	err := r.db.Get(diary, sqlstr, diaryID)
 	if err == sql.ErrNoRows {
-		return nil, nil
+		return nil, errors.DiaryNotFound.WithDetails("日记本不存在")
 	}
 	return diary, err
 }

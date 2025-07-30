@@ -2,8 +2,10 @@ package post
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/biuren/hebe/internal/core/database"
+	errors "github.com/biuren/hebe/internal/core/error"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -81,10 +83,23 @@ func (r *Repository) Update(post *Post) error {
 			update_utc_time = ?, status = ?, info_type = ? 
 		WHERE post_id = ?
 	`
-	_, err := r.db.Exec(sqlstr, post.DiaryID, post.IsTop, post.Title, post.Summary, post.Body,
+	result, err := r.db.Exec(sqlstr, post.DiaryID, post.IsTop, post.Title, post.Summary, post.Body,
 		post.ViewNum, post.LikeNum, post.CommentNum, post.UpdateUTCTime, post.Status, post.InfoType,
 		post.PostID)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// 检查是否有行被更新
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.PostNotFound.WithDetails(fmt.Sprintf("post_id: %d", post.PostID))
+	}
+
+	return nil
 }
 
 // ListByUserID 根据用户ID和日记本ID分页查询日记信息
@@ -127,7 +142,7 @@ func (r *Repository) GetByID(postID int64) (*Post, error) {
 	post := &Post{}
 	err := r.db.Get(post, sqlstr, postID)
 	if err == sql.ErrNoRows {
-		return nil, nil // 如果没有找到记录，返回nil
+		return nil, errors.PostNotFound.WithDetails(fmt.Sprintf("post_id: %d", postID))
 	}
 	return post, err
 }
@@ -142,16 +157,42 @@ func (r *Repository) UpdateByID(post *Post) error {
 			update_utc_time = ?, status = ?, info_type = ? 
 		WHERE post_id = ?
 	`
-	_, err := r.db.Exec(sqlstr, post.DiaryID, post.IsTop, post.Title, post.Summary, post.Body,
+	result, err := r.db.Exec(sqlstr, post.DiaryID, post.IsTop, post.Title, post.Summary, post.Body,
 		post.ViewNum, post.LikeNum, post.CommentNum, post.AddUserID, post.AddUserName,
 		post.AddUserIP, post.AddUTCTime, post.UpdateUTCTime, post.Status, post.InfoType,
 		post.PostID)
-	return err
+	if err != nil {
+		return err
+	}
+	
+	// 检查是否有行被更新
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.PostNotFound.WithDetails(fmt.Sprintf("post_id: %d", post.PostID))
+	}
+	
+	return nil
 }
 
 // DeleteByID 根据日记ID删除日记信息
 func (r *Repository) DeleteByID(postID int64) error {
 	sqlstr := "DELETE FROM br_post WHERE post_id = ?"
-	_, err := r.db.Exec(sqlstr, postID)
-	return err
+	result, err := r.db.Exec(sqlstr, postID)
+	if err != nil {
+		return err
+	}
+	
+	// 检查是否有行被删除
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.PostNotFound.WithDetails(fmt.Sprintf("post_id: %d", postID))
+	}
+	
+	return nil
 }

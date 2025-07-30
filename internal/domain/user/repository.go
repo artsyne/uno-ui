@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/biuren/hebe/internal/core/database"
+	errors "github.com/biuren/hebe/internal/core/error"
 	"github.com/biuren/hebe/pkg"
 	"github.com/jmoiron/sqlx"
 )
@@ -289,7 +290,7 @@ func (r *Repository) GetUserByUserId(userId int64) (*User, error) {
 	user := &User{}
 	err := r.db.Get(user, sqlstr, userId)
 	if err == sql.ErrNoRows {
-		return nil, nil
+		return nil, errors.UserNotFound.WithDetails("用户不存在")
 	}
 	return user, err
 }

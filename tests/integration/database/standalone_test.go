@@ -61,15 +61,15 @@ func TestUserTableConstraints(t *testing.T) {
 
 		// 插入正常用户
 		db.ExecuteSQL(t, `
-			INSERT INTO br_user (user_name, email, pwd, pwd_salt, status, created_utc_time) 
-			VALUES (?, ?, ?, ?, ?, ?)
-		`, "uniqueuser", "unique@example.com", "password", "salt", 1, 1642680000)
+			INSERT INTO br_user (user_name, email, pwd, status, created_utc_time) 
+			VALUES (?, ?, ?, ?, ?)
+		`, "uniqueuser", "unique@example.com", "password", 1, 1642680000)
 
 		// 测试用户名唯一约束
 		_, err := db.GetDB().Exec(`
-			INSERT INTO br_user (user_name, email, pwd, pwd_salt, status, created_utc_time) 
-			VALUES (?, ?, ?, ?, ?, ?)
-		`, "uniqueuser", "another@example.com", "password", "salt", 1, 1642680000)
+			INSERT INTO br_user (user_name, email, pwd, status, created_utc_time) 
+			VALUES (?, ?, ?, ?, ?)
+		`, "uniqueuser", "another@example.com", "password", 1, 1642680000)
 
 		if err == nil {
 			t.Error("期望用户名重复时报错，但没有报错")
@@ -77,9 +77,9 @@ func TestUserTableConstraints(t *testing.T) {
 
 		// 测试邮箱唯一约束
 		_, err = db.GetDB().Exec(`
-			INSERT INTO br_user (user_name, email, pwd, pwd_salt, status, created_utc_time) 
-			VALUES (?, ?, ?, ?, ?, ?)
-		`, "anotheruser", "unique@example.com", "password", "salt", 1, 1642680000)
+			INSERT INTO br_user (user_name, email, pwd, status, created_utc_time) 
+			VALUES (?, ?, ?, ?, ?)
+		`, "anotheruser", "unique@example.com", "password", 1, 1642680000)
 
 		if err == nil {
 			t.Error("期望邮箱重复时报错，但没有报错")
@@ -95,9 +95,9 @@ func TestTransactionIsolation(t *testing.T) {
 
 		// 在事务中插入数据
 		db.ExecuteSQL(t, `
-			INSERT INTO br_user (user_name, email, pwd, pwd_salt, status, created_utc_time) 
-			VALUES (?, ?, ?, ?, ?, ?)
-		`, "txuser", "tx@example.com", "password", "salt", 1, 1642680000)
+			INSERT INTO br_user (user_name, email, pwd, status, created_utc_time) 
+			VALUES (?, ?, ?, ?, ?)
+		`, "txuser", "tx@example.com", "password", 1, 1642680000)
 
 		// 在事务内部可以查询到数据
 		count := db.CountRows(t, "br_user")

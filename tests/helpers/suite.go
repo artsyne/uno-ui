@@ -1,37 +1,30 @@
 package testhelpers
 
 import (
-	"os"
 	"strings"
 	"testing"
 
 	"github.com/biuren/hebe/internal/core/di"
-	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/domain/task"
-	"github.com/biuren/hebe/tests/testdata/mock"
+	"github.com/biuren/hebe/internal/domain/user"
 )
 
 // TestSuite 测试套件
 // 提供完整的测试环境，包括配置、DI容器、数据库等
+// 统一使用真实服务进行测试，确保测试的真实性
 type TestSuite struct {
 	Config    *ConfigTestHelper
 	Container *di.Container
 	Database  *DatabaseTestHelper
 	HTTP      *HTTPTestHelper
 
-	// 真实服务接口（用于集成测试）
+	// 真实服务接口（所有测试都使用真实服务）
 	UserService  user.ServiceInterface
 	DiaryService diary.ServiceInterface
 	PostService  post.ServiceInterface
 	TaskService  task.ServiceInterface
-
-	// Mock服务（用于单元测试）
-	UserServiceMock  *mock.UserServiceMock
-	DiaryServiceMock *mock.DiaryServiceMock
-	PostServiceMock  *mock.PostServiceMock
-	TaskServiceMock  *mock.TaskServiceMock
 
 	// 是否使用真实数据库
 	UseRealDB bool
@@ -50,18 +43,19 @@ func SetupTestSuite(t *testing.T) *TestSuite {
 	// 设置DI容器
 	suite.Container = di.New()
 
-	// 根据环境变量或测试名称决定是否使用真实数据库
-	useRealDB := os.Getenv("USE_REAL_DB") == "true" || strings.Contains(t.Name(), "Integration")
+	// 检查是否使用真实数据库
+	useRealDB := ShouldUseRealDB() ||
+		strings.Contains(t.Name(), "Integration") ||
+		strings.Contains(t.Name(), "Database")
 	suite.UseRealDB = useRealDB
 
+	// 设置数据库（如果需要）
 	if useRealDB {
-		// 使用真实数据库进行集成测试
 		suite.Database = SetupTestDatabase(t)
-		suite.setupRealServices(t)
-	} else {
-		// 使用Mock数据库进行单元测试
-		suite.setupMockServices(t)
 	}
+
+	// 始终设置真实服务
+	suite.setupRealServices(t)
 
 	// 设置HTTP测试助手（需要在服务设置之后）
 	suite.HTTP = SetupHTTPTest(suite)
@@ -95,28 +89,6 @@ func (s *TestSuite) setupRealServices(t *testing.T) {
 	s.DiaryService = di.Get[diary.ServiceInterface](s.Container)
 	s.PostService = di.Get[post.ServiceInterface](s.Container)
 	s.TaskService = di.Get[task.ServiceInterface](s.Container)
-}
-
-// setupMockServices 设置Mock服务（用于单元测试）
-func (s *TestSuite) setupMockServices(t *testing.T) {
-	t.Helper()
-
-	s.UserServiceMock = mock.NewUserServiceMock()
-	s.DiaryServiceMock = mock.NewDiaryServiceMock()
-	s.PostServiceMock = mock.NewPostServiceMock()
-	s.TaskServiceMock = mock.NewTaskServiceMock()
-
-	// 设置Mock服务的容器引用
-	s.UserServiceMock.Container = s.Container
-	s.DiaryServiceMock.Container = s.Container
-	s.PostServiceMock.Container = s.Container
-	s.TaskServiceMock.Container = s.Container
-
-	// 将Mock服务注册到DI容器
-	di.Value[user.ServiceInterface](s.Container, s.UserServiceMock)
-	di.Value[diary.ServiceInterface](s.Container, s.DiaryServiceMock)
-	di.Value[post.ServiceInterface](s.Container, s.PostServiceMock)
-	di.Value[task.ServiceInterface](s.Container, s.TaskServiceMock)
 }
 
 // Cleanup 清理测试套件

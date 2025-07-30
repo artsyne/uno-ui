@@ -3,536 +3,448 @@ package user_test
 import (
 	"testing"
 
-	"github.com/biuren/hebe/internal/core/di"
 	"github.com/biuren/hebe/internal/domain/user"
 	testhelpers "github.com/biuren/hebe/tests/helpers"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
+// TestUserService_RegisterUser 测试用户注册功能
 func TestUserService_RegisterUser(t *testing.T) {
-	// 初始化测试环境
-	suite := testhelpers.SetupTestSuite(t)
-	defer suite.Cleanup(t)
+	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
+		// 开始事务，确保测试数据隔离
+		db.BeginTransaction(t)
+		defer db.RollbackTransaction(t)
 
-	// 清理测试表
-	if suite.Database != nil {
-		suite.Database.CleanupAllTables(t, "users", "valid_codes")
-	}
+		// 创建真实的用户服务
+		userService := user.NewService()
 
-	// 获取用户服务
-	userService, err := di.TryGet[user.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取用户服务失败: %v", err)
-	}
+		// 准备测试数据 - 使用随机数据避免冲突
+		newUser := &user.User{
+			UserName: testhelpers.GenerateRandomUsername(),
+			Email:    testhelpers.GenerateRandomEmail(),
+			Pwd:      "password123",
+			FullName: testhelpers.GenerateRandomFullName(),
+			TimeZone: "Asia/Shanghai",
+			Lang:     "zh-cn",
+		}
 
-	tests := []struct {
-		name    string
-		user    *user.User
-		wantErr bool
-		errType string
-	}{
-		{
-			name: "正常注册",
-			user: &user.User{
-				UserName: "testuser",
-				Email:    "test@example.com",
-				Pwd:      "password123",
-				TimeZone: "Asia/Shanghai",
-				Lang:     "zh-cn",
-				LastIp:   "127.0.0.1",
-			},
-			wantErr: false,
-		},
-		{
-			name: "用户名太短",
-			user: &user.User{
-				UserName: "ab", // 太短
-				Email:    "test2@example.com",
-				Pwd:      "password123",
-				TimeZone: "Asia/Shanghai",
-				Lang:     "zh-cn",
-				LastIp:   "127.0.0.1",
-			},
-			wantErr: true,
-			errType: "输入参数错误",
-		},
-		{
-			name: "密码太短",
-			user: &user.User{
-				UserName: "testuser2",
-				Email:    "test3@example.com",
-				Pwd:      "123", // 太短
-				TimeZone: "Asia/Shanghai",
-				Lang:     "zh-cn",
-				LastIp:   "127.0.0.1",
-			},
-			wantErr: true,
-			errType: "输入参数错误",
-		},
-		{
-			name: "无效时区",
-			user: &user.User{
-				UserName: "testuser3",
-				Email:    "test4@example.com",
-				Pwd:      "password123",
-				TimeZone: "Invalid/TimeZone", // 无效时区
-				Lang:     "zh-cn",
-				LastIp:   "127.0.0.1",
-			},
-			wantErr: true,
-			errType: "输入参数错误",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := userService.RegisterUser(tt.user)
-
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("期望有错误，但没有错误")
-				}
-				return
-			}
-
-			if err != nil {
-				t.Errorf("不期望有错误，但有错误: %v", err)
-				return
-			}
-
-			// 验证用户ID已生成
-			if tt.user.UserId <= 0 {
-				t.Error("用户ID应该大于0")
-			}
-
-			// 验证密码已加密（不应该是明文）
-			if tt.user.Pwd == "password123" {
-				t.Error("密码应该已加密，不应该是明文")
-			}
+		t.Run("成功注册用户", func(t *testing.T) {
+			err := userService.RegisterUser(newUser)
+			require.NoError(t, err)
+			assert.True(t, newUser.UserId > 0)
+			assert.NotEqual(t, "password123", newUser.Pwd) // 密码应该被加密
 		})
-	}
+
+		t.Run("用户名太短", func(t *testing.T) {
+			invalidUser := &user.User{
+				UserName: "ab",
+				Email:    testhelpers.GenerateRandomEmail(),
+				Pwd:      "password123",
+				TimeZone: "Asia/Shanghai",
+			}
+			err := userService.RegisterUser(invalidUser)
+			assert.Error(t, err)
+		})
+
+		t.Run("密码太短", func(t *testing.T) {
+			invalidUser := &user.User{
+				UserName: testhelpers.GenerateRandomUsername(),
+				Email:    testhelpers.GenerateRandomEmail(),
+				Pwd:      "123",
+				TimeZone: "Asia/Shanghai",
+			}
+			err := userService.RegisterUser(invalidUser)
+			assert.Error(t, err)
+		})
+
+		t.Run("无效时区", func(t *testing.T) {
+			invalidUser := &user.User{
+				UserName: testhelpers.GenerateRandomUsername(),
+				Email:    testhelpers.GenerateRandomEmail(),
+				Pwd:      "password123",
+				TimeZone: "Invalid/TimeZone",
+			}
+			err := userService.RegisterUser(invalidUser)
+			assert.Error(t, err)
+		})
+
+		t.Run("重复用户名", func(t *testing.T) {
+			duplicateUser := &user.User{
+				UserName: "testuser", // 与第一个测试相同的用户名
+				Email:    "test5@example.com",
+				Pwd:      "password123",
+				TimeZone: "Asia/Shanghai",
+			}
+			err := userService.RegisterUser(duplicateUser)
+			assert.Error(t, err)
+		})
+
+		t.Run("重复邮箱", func(t *testing.T) {
+			duplicateUser := &user.User{
+				UserName: testhelpers.GenerateRandomUsername(),
+				Email:    newUser.Email, // 与第一个测试相同的邮箱
+				Pwd:      "password123",
+				TimeZone: "Asia/Shanghai",
+			}
+			err := userService.RegisterUser(duplicateUser)
+			assert.Error(t, err)
+		})
+	})
 }
 
+// TestUserService_CheckNameAndPassword 测试用户登录验证
 func TestUserService_CheckNameAndPassword(t *testing.T) {
-	// 初始化测试环境
-	suite := testhelpers.SetupTestSuite(t)
-	defer suite.Cleanup(t)
+	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
+		// 开始事务，确保测试数据隔离
+		db.BeginTransaction(t)
+		defer db.RollbackTransaction(t)
 
-	// 清理测试表
-	if suite.Database != nil {
-		suite.Database.CleanupAllTables(t, "users", "valid_codes")
-	}
+		// 创建真实的用户服务
+		userService := user.NewService()
 
-	// 获取用户服务
-	userService, err := di.TryGet[user.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取用户服务失败: %v", err)
-	}
+		// 先注册一个用户 - 使用随机数据
+		newUser := &user.User{
+			UserName: testhelpers.GenerateRandomUsername(),
+			Email:    testhelpers.GenerateRandomEmail(),
+			Pwd:      "loginpass123",
+			FullName: testhelpers.GenerateRandomFullName(),
+			TimeZone: "UTC",
+			Lang:     "en",
+		}
 
-	// 先注册一个用户
-	testUser := &user.User{
-		UserName: "testuser_check",
-		Email:    "test_check@example.com",
-		Pwd:      "password123",
-		TimeZone: "Asia/Shanghai",
-		Lang:     "zh-cn",
-		LastIp:   "127.0.0.1",
-	}
+		err := userService.RegisterUser(newUser)
+		require.NoError(t, err)
+		require.True(t, newUser.UserId > 0)
 
-	err = userService.RegisterUser(testUser)
-	if err != nil {
-		t.Fatalf("注册用户失败: %v", err)
-	}
-
-	tests := []struct {
-		name     string
-		username string
-		password string
-		wantErr  bool
-	}{
-		{
-			name:     "用户名登录成功",
-			username: "testuser_check",
-			password: "password123",
-			wantErr:  false,
-		},
-		{
-			name:     "邮箱登录成功",
-			username: "test_check@example.com",
-			password: "password123",
-			wantErr:  false,
-		},
-		{
-			name:     "密码错误",
-			username: "testuser_check",
-			password: "wrongpassword",
-			wantErr:  true,
-		},
-		{
-			name:     "用户不存在",
-			username: "nonexistent",
-			password: "password123",
-			wantErr:  true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := userService.CheckNameAndPassword(tt.username, tt.password)
-
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("期望有错误，但没有错误")
-				}
-				return
-			}
-
-			if err != nil {
-				t.Errorf("不期望有错误，但有错误: %v", err)
-				return
-			}
-
-			if result == nil {
-				t.Error("结果不应为空")
-				return
-			}
-
-			// 验证返回的用户信息
-			if result.UserId != testUser.UserId {
-				t.Errorf("用户ID不匹配: 期望 %d, 实际 %d", testUser.UserId, result.UserId)
-			}
-
-			if result.UserName != testUser.UserName {
-				t.Errorf("用户名不匹配: 期望 '%s', 实际 '%s'", testUser.UserName, result.UserName)
-			}
+		t.Run("用户名密码正确", func(t *testing.T) {
+			user, err := userService.CheckNameAndPassword(newUser.UserName, "loginpass123")
+			require.NoError(t, err)
+			assert.NotNil(t, user)
+			assert.Equal(t, newUser.UserName, user.UserName)
+			assert.Equal(t, newUser.Email, user.Email)
 		})
-	}
+
+		t.Run("邮箱密码正确", func(t *testing.T) {
+			user, err := userService.CheckNameAndPassword(newUser.Email, "loginpass123")
+			require.NoError(t, err)
+			assert.NotNil(t, user)
+			assert.Equal(t, newUser.UserName, user.UserName)
+		})
+
+		t.Run("密码错误", func(t *testing.T) {
+			user, err := userService.CheckNameAndPassword(newUser.UserName, "wrongpassword")
+			assert.Error(t, err)
+			assert.Nil(t, user)
+		})
+
+		t.Run("用户不存在", func(t *testing.T) {
+			user, err := userService.CheckNameAndPassword("nonexistent", "loginpass123")
+			assert.Error(t, err)
+			assert.Nil(t, user)
+		})
+	})
 }
 
+// TestUserService_UpdateUserProfile 测试用户资料更新
 func TestUserService_UpdateUserProfile(t *testing.T) {
-	// 初始化测试环境
-	suite := testhelpers.SetupTestSuite(t)
-	defer suite.Cleanup(t)
+	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
+		// 开始事务，确保测试数据隔离
+		db.BeginTransaction(t)
+		defer db.RollbackTransaction(t)
 
-	// 清理测试表
-	if suite.Database != nil {
-		suite.Database.CleanupAllTables(t, "users", "valid_codes")
-	}
+		// 创建真实的用户服务
+		userService := user.NewService()
 
-	// 获取用户服务
-	userService, err := di.TryGet[user.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取用户服务失败: %v", err)
-	}
+		// 先注册一个用户 - 使用随机数据
+		newUser := &user.User{
+			UserName: testhelpers.GenerateRandomUsername(),
+			Email:    testhelpers.GenerateRandomEmail(),
+			Pwd:      "password123",
+			FullName: "Original Name",
+			Remark:   "Original Remark",
+			TimeZone: "Asia/Shanghai",
+		}
 
-	// 先注册一个用户
-	testUser := &user.User{
-		UserName: "testuser_profile",
-		Email:    "test_profile@example.com",
-		Pwd:      "password123",
-		TimeZone: "Asia/Shanghai",
-		Lang:     "zh-cn",
-		LastIp:   "127.0.0.1",
-	}
+		err := userService.RegisterUser(newUser)
+		require.NoError(t, err)
+		require.True(t, newUser.UserId > 0)
 
-	err = userService.RegisterUser(testUser)
-	if err != nil {
-		t.Fatalf("注册用户失败: %v", err)
-	}
-
-	tests := []struct {
-		name     string
-		uid      int64
-		fullName string
-		remark   string
-		wantErr  bool
-	}{
-		{
-			name:     "更新全名和备注",
-			uid:      testUser.UserId,
-			fullName: "测试用户",
-			remark:   "这是测试用户",
-			wantErr:  false,
-		},
-		{
-			name:     "只更新全名",
-			uid:      testUser.UserId,
-			fullName: "新的全名",
-			remark:   "",
-			wantErr:  false,
-		},
-		{
-			name:     "用户不存在",
-			uid:      999999, // 不存在的用户ID
-			fullName: "测试",
-			remark:   "测试",
-			wantErr:  true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := userService.UpdateUserProfile(tt.uid, tt.uid, tt.fullName, tt.remark)
-
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("期望有错误，但没有错误")
-				}
-				return
-			}
-
-			if err != nil {
-				t.Errorf("不期望有错误，但有错误: %v", err)
-				return
-			}
+		t.Run("成功更新资料", func(t *testing.T) {
+			err := userService.UpdateUserProfile(newUser.UserId, newUser.UserId, "Updated Name", "Updated Remark")
+			assert.NoError(t, err)
 
 			// 验证更新是否成功
-			updatedUser, err := userService.GetUserByUserId(tt.uid)
-			if err != nil {
-				t.Errorf("获取更新后的用户失败: %v", err)
-				return
-			}
-
-			if tt.fullName != "" && updatedUser.FullName != tt.fullName {
-				t.Errorf("全名未更新: 期望 '%s', 实际 '%s'", tt.fullName, updatedUser.FullName)
-			}
-
-			if tt.remark != "" && updatedUser.Remark != tt.remark {
-				t.Errorf("备注未更新: 期望 '%s', 实际 '%s'", tt.remark, updatedUser.Remark)
-			}
+			updatedUser, err := userService.GetUserByUserId(newUser.UserId)
+			require.NoError(t, err)
+			assert.Equal(t, "Updated Name", updatedUser.FullName)
+			assert.Equal(t, "Updated Remark", updatedUser.Remark)
 		})
-	}
+
+		t.Run("用户不存在", func(t *testing.T) {
+			err := userService.UpdateUserProfile(99999, 99999, "Name", "Remark")
+			assert.Error(t, err)
+		})
+	})
 }
 
+// TestUserService_ChangeUserPassword 测试密码修改
 func TestUserService_ChangeUserPassword(t *testing.T) {
-	// 初始化测试环境
-	suite := testhelpers.SetupTestSuite(t)
-	defer suite.Cleanup(t)
+	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
+		// 开始事务，确保测试数据隔离
+		db.BeginTransaction(t)
+		defer db.RollbackTransaction(t)
 
-	// 清理测试表
-	if suite.Database != nil {
-		suite.Database.CleanupAllTables(t, "users", "valid_codes")
-	}
+		// 创建真实的用户服务
+		userService := user.NewService()
 
-	// 获取用户服务
-	userService, err := di.TryGet[user.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取用户服务失败: %v", err)
-	}
+		// 先注册一个用户 - 使用随机数据
+		newUser := &user.User{
+			UserName: testhelpers.GenerateRandomUsername(),
+			Email:    testhelpers.GenerateRandomEmail(),
+			Pwd:      "oldpassword123",
+			TimeZone: "UTC",
+		}
 
-	// 先注册一个用户
-	testUser := &user.User{
-		UserName: "testuser_password",
-		Email:    "test_password@example.com",
-		Pwd:      "oldpassword123",
-		TimeZone: "Asia/Shanghai",
-		Lang:     "zh-cn",
-		LastIp:   "127.0.0.1",
-	}
+		err := userService.RegisterUser(newUser)
+		require.NoError(t, err)
+		require.True(t, newUser.UserId > 0)
 
-	err = userService.RegisterUser(testUser)
-	if err != nil {
-		t.Fatalf("注册用户失败: %v", err)
-	}
+		t.Run("成功修改密码", func(t *testing.T) {
+			err := userService.ChangeUserPassword(newUser.UserId, "oldpassword123", "newpassword123")
+			assert.NoError(t, err)
 
-	tests := []struct {
-		name       string
-		uid        int64
-		currentPwd string
-		newPwd     string
-		wantErr    bool
-	}{
-		{
-			name:       "正常修改密码",
-			uid:        testUser.UserId,
-			currentPwd: "oldpassword123",
-			newPwd:     "newpassword123",
-			wantErr:    false,
-		},
-		{
-			name:       "当前密码错误",
-			uid:        testUser.UserId,
-			currentPwd: "wrongpassword",
-			newPwd:     "newpassword123",
-			wantErr:    true,
-		},
-		{
-			name:       "新密码太短",
-			uid:        testUser.UserId,
-			currentPwd: "oldpassword123",
-			newPwd:     "123", // 太短
-			wantErr:    true,
-		},
-		{
-			name:       "用户不存在",
-			uid:        999999, // 不存在的用户ID
-			currentPwd: "oldpassword123",
-			newPwd:     "newpassword123",
-			wantErr:    true,
-		},
-	}
+			// 验证新密码可以登录
+			user, err := userService.CheckNameAndPassword(newUser.UserName, "newpassword123")
+			require.NoError(t, err)
+			assert.NotNil(t, user)
 
-	for i, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := userService.ChangeUserPassword(tt.uid, tt.currentPwd, tt.newPwd)
-
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("期望有错误，但没有错误")
-				}
-				return
-			}
-
-			if err != nil {
-				t.Errorf("不期望有错误，但有错误: %v", err)
-				return
-			}
-
-			// 只有第一个测试用例（正常修改密码）需要验证密码是否已更改
-			if i == 0 {
-				// 验证新密码是否可以登录
-				_, loginErr := userService.CheckNameAndPassword(testUser.UserName, tt.newPwd)
-				if loginErr != nil {
-					t.Errorf("使用新密码登录失败: %v", loginErr)
-				}
-
-				// 验证旧密码不能登录
-				_, oldLoginErr := userService.CheckNameAndPassword(testUser.UserName, tt.currentPwd)
-				if oldLoginErr == nil {
-					t.Error("旧密码仍然可以登录，密码修改失败")
-				}
-			}
+			// 验证旧密码不能登录
+			user, err = userService.CheckNameAndPassword(newUser.UserName, "oldpassword123")
+			assert.Error(t, err)
+			assert.Nil(t, user)
 		})
-	}
+
+		t.Run("当前密码错误", func(t *testing.T) {
+			err := userService.ChangeUserPassword(newUser.UserId, "wrongpassword", "newpassword456")
+			assert.Error(t, err)
+		})
+
+		t.Run("新密码太短", func(t *testing.T) {
+			err := userService.ChangeUserPassword(newUser.UserId, "newpassword123", "123")
+			assert.Error(t, err)
+		})
+
+		t.Run("用户不存在", func(t *testing.T) {
+			err := userService.ChangeUserPassword(99999, "oldpassword123", "newpassword123")
+			assert.Error(t, err)
+		})
+	})
 }
 
+// TestUserService_IsExistUserName 测试用户名存在检查
 func TestUserService_IsExistUserName(t *testing.T) {
-	// 初始化测试环境
-	suite := testhelpers.SetupTestSuite(t)
-	defer suite.Cleanup(t)
+	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
+		// 开始事务，确保测试数据隔离
+		db.BeginTransaction(t)
+		defer db.RollbackTransaction(t)
 
-	// 清理测试表
-	if suite.Database != nil {
-		suite.Database.CleanupAllTables(t, "users", "valid_codes")
-	}
+		// 创建真实的用户服务
+		userService := user.NewService()
 
-	// 获取用户服务
-	userService, err := di.TryGet[user.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取用户服务失败: %v", err)
-	}
+		// 先注册一个用户 - 使用随机数据
+		newUser := &user.User{
+			UserName: testhelpers.GenerateRandomUsername(),
+			Email:    testhelpers.GenerateRandomEmail(),
+			Pwd:      "password123",
+			TimeZone: "Asia/Shanghai",
+		}
 
-	// 先注册一个用户
-	testUser := &user.User{
-		UserName: "existinguser",
-		Email:    "existing@example.com",
-		Pwd:      "password123",
-		TimeZone: "Asia/Shanghai",
-		Lang:     "zh-cn",
-		LastIp:   "127.0.0.1",
-	}
+		err := userService.RegisterUser(newUser)
+		require.NoError(t, err)
 
-	err = userService.RegisterUser(testUser)
-	if err != nil {
-		t.Fatalf("注册用户失败: %v", err)
-	}
+		t.Run("已存在的用户名", func(t *testing.T) {
+			err := userService.IsExistUserName(newUser.UserName)
+			assert.Error(t, err)
+		})
+
+		t.Run("不存在的用户名", func(t *testing.T) {
+			err := userService.IsExistUserName(testhelpers.GenerateRandomUsername())
+			assert.NoError(t, err)
+		})
+	})
+}
+
+// TestUserService_IsExistEmail 测试邮箱存在检查
+func TestUserService_IsExistEmail(t *testing.T) {
+	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
+		// 开始事务，确保测试数据隔离
+		db.BeginTransaction(t)
+		defer db.RollbackTransaction(t)
+
+		// 创建真实的用户服务
+		userService := user.NewService()
+
+		// 先注册一个用户 - 使用随机数据
+		newUser := &user.User{
+			UserName: testhelpers.GenerateRandomUsername(),
+			Email:    testhelpers.GenerateRandomEmail(),
+			Pwd:      "password123",
+			TimeZone: "Asia/Shanghai",
+		}
+
+		err := userService.RegisterUser(newUser)
+		require.NoError(t, err)
+
+		t.Run("已存在的邮箱", func(t *testing.T) {
+			err := userService.IsExistEmail(newUser.Email)
+			assert.Error(t, err)
+		})
+
+		t.Run("不存在的邮箱", func(t *testing.T) {
+			err := userService.IsExistEmail(testhelpers.GenerateRandomEmail())
+			assert.NoError(t, err)
+		})
+	})
+}
+
+// TestUserService_GetUserByUserId 测试根据ID获取用户
+func TestUserService_GetUserByUserId(t *testing.T) {
+	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
+		// 开始事务，确保测试数据隔离
+		db.BeginTransaction(t)
+		defer db.RollbackTransaction(t)
+
+		// 创建真实的用户服务
+		userService := user.NewService()
+
+		// 先注册一个用户 - 使用随机数据
+		newUser := &user.User{
+			UserName: testhelpers.GenerateRandomUsername(),
+			Email:    testhelpers.GenerateRandomEmail(),
+			Pwd:      "password123",
+			FullName: testhelpers.GenerateRandomFullName(),
+			TimeZone: "UTC",
+		}
+
+		err := userService.RegisterUser(newUser)
+		require.NoError(t, err)
+		require.True(t, newUser.UserId > 0)
+
+		t.Run("成功获取用户", func(t *testing.T) {
+			user, err := userService.GetUserByUserId(newUser.UserId)
+			require.NoError(t, err)
+			assert.NotNil(t, user)
+			assert.Equal(t, newUser.UserName, user.UserName)
+			assert.Equal(t, newUser.Email, user.Email)
+			assert.Equal(t, newUser.FullName, user.FullName)
+		})
+
+		t.Run("用户不存在", func(t *testing.T) {
+			user, err := userService.GetUserByUserId(99999)
+			assert.Error(t, err)
+			assert.Nil(t, user)
+		})
+	})
+}
+
+// TestUserService_GetUserByEmail 测试根据邮箱获取用户
+func TestUserService_GetUserByEmail(t *testing.T) {
+	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
+		// 开始事务，确保测试数据隔离
+		db.BeginTransaction(t)
+		defer db.RollbackTransaction(t)
+
+		// 创建真实的用户服务
+		userService := user.NewService()
+
+		// 先注册一个用户 - 使用随机数据
+		newUser := &user.User{
+			UserName: testhelpers.GenerateRandomUsername(),
+			Email:    testhelpers.GenerateRandomEmail(),
+			Pwd:      "password123",
+			FullName: testhelpers.GenerateRandomFullName(),
+			TimeZone: "Asia/Shanghai",
+		}
+
+		err := userService.RegisterUser(newUser)
+		require.NoError(t, err)
+
+		t.Run("成功获取用户", func(t *testing.T) {
+			user, err := userService.GetUserByEmail(newUser.Email)
+			require.NoError(t, err)
+			assert.NotNil(t, user)
+			assert.Equal(t, newUser.UserName, user.UserName)
+			assert.Equal(t, newUser.Email, user.Email)
+		})
+
+		t.Run("邮箱不存在", func(t *testing.T) {
+			user, err := userService.GetUserByEmail(testhelpers.GenerateRandomEmail())
+			assert.Error(t, err)
+			assert.Nil(t, user)
+		})
+	})
+}
+
+// TestUserService_UpdateUserEmail 测试邮箱更新
+func TestUserService_UpdateUserEmail(t *testing.T) {
+	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
+		// 开始事务，确保测试数据隔离
+		db.BeginTransaction(t)
+		defer db.RollbackTransaction(t)
+
+		// 创建真实的用户服务
+		userService := user.NewService()
+
+		// 先注册一个用户 - 使用随机数据
+		newUser := &user.User{
+			UserName: testhelpers.GenerateRandomUsername(),
+			Email:    testhelpers.GenerateRandomEmail(),
+			Pwd:      "password123",
+			TimeZone: "UTC",
+		}
+
+		err := userService.RegisterUser(newUser)
+		require.NoError(t, err)
+
+		t.Run("成功更新邮箱", func(t *testing.T) {
+			newEmail := testhelpers.GenerateRandomEmail()
+			err := userService.UpdateUserEmail(newUser.UserId, newUser.UserId, newEmail)
+			assert.NoError(t, err)
+
+			// 验证更新是否成功
+			user, err := userService.GetUserByUserId(newUser.UserId)
+			require.NoError(t, err)
+			assert.Equal(t, newEmail, user.Email)
+		})
+
+		t.Run("用户不存在", func(t *testing.T) {
+			err := userService.UpdateUserEmail(99999, 99999, testhelpers.GenerateRandomEmail())
+			assert.Error(t, err)
+		})
+	})
+}
+
+// TestUserService_GetSupportedLang 测试语言支持检查
+func TestUserService_GetSupportedLang(t *testing.T) {
+	userService := user.NewService()
 
 	tests := []struct {
 		name     string
-		username string
-		wantErr  bool
+		input    string
+		expected string
 	}{
-		{
-			name:     "用户名已存在",
-			username: "existinguser",
-			wantErr:  true,
-		},
-		{
-			name:     "用户名不存在",
-			username: "newuser",
-			wantErr:  false,
-		},
+		{"支持的中文简体", "zh-cn", "zh-cn"},
+		{"支持的中文繁体", "zh-tw", "zh-tw"},
+		{"支持的英文", "en", "en"},
+		{"不支持的语言", "fr", "zh-cn"}, // 默认返回中文
+		{"空字符串", "", "zh-cn"},     // 默认返回中文
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := userService.IsExistUserName(tt.username)
-
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("期望有错误（用户名已存在），但没有错误")
-				}
-				return
-			}
-
-			if err != nil {
-				t.Errorf("不期望有错误，但有错误: %v", err)
-			}
-		})
-	}
-}
-
-func TestUserService_IsExistEmail(t *testing.T) {
-	// 初始化测试环境
-	suite := testhelpers.SetupTestSuite(t)
-	defer suite.Cleanup(t)
-
-	// 清理测试表
-	if suite.Database != nil {
-		suite.Database.CleanupAllTables(t, "users", "valid_codes")
-	}
-
-	// 获取用户服务
-	userService, err := di.TryGet[user.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取用户服务失败: %v", err)
-	}
-
-	// 先注册一个用户
-	testUser := &user.User{
-		UserName: "testuser_email",
-		Email:    "existing_email@example.com",
-		Pwd:      "password123",
-		TimeZone: "Asia/Shanghai",
-		Lang:     "zh-cn",
-		LastIp:   "127.0.0.1",
-	}
-
-	err = userService.RegisterUser(testUser)
-	if err != nil {
-		t.Fatalf("注册用户失败: %v", err)
-	}
-
-	tests := []struct {
-		name    string
-		email   string
-		wantErr bool
-	}{
-		{
-			name:    "邮箱已存在",
-			email:   "existing_email@example.com",
-			wantErr: true,
-		},
-		{
-			name:    "邮箱不存在",
-			email:   "new@example.com",
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := userService.IsExistEmail(tt.email)
-
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("期望有错误（邮箱已存在），但没有错误")
-				}
-				return
-			}
-
-			if err != nil {
-				t.Errorf("不期望有错误，但有错误: %v", err)
-			}
+			result := userService.GetSupportedLang(tt.input)
+			assert.Equal(t, tt.expected, result)
 		})
 	}
 }

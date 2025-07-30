@@ -437,14 +437,7 @@ func (s *Service) GetUserByEmail(email string) (*User, error) {
 
 // GetUserByUserId 根据用户ID获取用户信息
 func (s *Service) GetUserByUserId(userId int64) (*User, error) {
-	user, err := s.repo.GetUserByUserId(userId)
-	if err != nil {
-		return nil, err
-	}
-	if user == nil {
-		return nil, fmt.Errorf("用户不存在")
-	}
-	return user, nil
+	return s.repo.GetUserByUserId(userId)
 }
 
 // ParseUserID 解析用户ID

@@ -2,868 +2,596 @@ package post_test
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
-	"github.com/biuren/hebe/internal/core/di"
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
-	"github.com/biuren/hebe/pkg"
+	"github.com/biuren/hebe/internal/domain/user"
 	testhelpers "github.com/biuren/hebe/tests/helpers"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
+// setupTestUserAndDiary 创建测试用的用户和日记本
+func setupTestUserAndDiary(t *testing.T, userService user.ServiceInterface, diaryService diary.ServiceInterface) (*user.User, *diary.Diary) {
+	t.Helper()
+
+	// 创建用户 - 使用随机数据
+	testUser := &user.User{
+		UserName: testhelpers.GenerateRandomUsername(),
+		Email:    testhelpers.GenerateRandomEmail(),
+		Pwd:      "password123",
+		TimeZone: "UTC",
+	}
+	err := userService.RegisterUser(testUser)
+	require.NoError(t, err)
+
+	// 创建日记本 - 使用随机数据
+	testDiary := &diary.Diary{
+		Title:         testhelpers.GenerateRandomDiaryTitle(),
+		Remark:        "用于文章测试",
+		ViewSetting:   1, // 必需字段：1-公开，2-私有
+		SocialSetting: 1, // 必需字段：1-允许社交，2-不允许社交
+		ThemeID:       1, // 必需字段：主题ID，范围1-16
+		AddUserID:     testUser.UserId,
+		AddUserName:   testUser.UserName,
+		AddUTCTime:    1642680000,
+		Status:        1,
+	}
+	diaryID, err := diaryService.AddDiary(testDiary)
+	require.NoError(t, err)
+	testDiary.DiaryID = diaryID
+
+	return testUser, testDiary
+}
+
+// TestPostService_AddPost 测试添加文章功能
 func TestPostService_AddPost(t *testing.T) {
-	// 初始化测试环境
-	suite := testhelpers.SetupTestSuite(t)
-	defer suite.Cleanup(t)
+	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
+		// 开始事务，确保测试数据隔离
+		db.BeginTransaction(t)
+		defer db.RollbackTransaction(t)
 
-	// 清理表数据
-	if suite.Database != nil {
-		suite.Database.CleanupAllTables(t, "posts", "diaries")
-	}
+		// 创建真实的服务
+		userService := user.NewService()
+		diaryService := diary.NewService()
+		postService := post.NewService()
 
-	// 获取服务
-	diaryService, err := di.TryGet[diary.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取日记服务失败: %v", err)
-	}
+		// 设置测试数据
+		testUser, testDiary := setupTestUserAndDiary(t, userService, diaryService)
 
-	postService, err := di.TryGet[post.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取帖子服务失败: %v", err)
-	}
-
-	// 先创建一个日记本
-	testDiary := &diary.Diary{
-		Title:         "测试日记本",
-		Remark:        "用于测试日记内容的日记本",
-		ViewSetting:   1,
-		SocialSetting: 1,
-		ThemeID:       1,
-		AddUserID:     1,
-		AddUserName:   "testuser",
-		AddUTCTime:    pkg.GetNowTimeUnixMilli(),
-		Status:        1,
-	}
-
-	diaryID, err := diaryService.AddDiary(testDiary)
-	if err != nil {
-		t.Fatalf("创建日记本失败: %v", err)
-	}
-
-	tests := []struct {
-		name    string
-		post    *post.Post
-		wantErr bool
-	}{
-		{
-			name: "创建新文本日记",
-			post: &post.Post{
-				Title:       "我的第一篇日记",
-				Body:        "今天是个好天气，心情很不错。这是详细的日记内容。",
-				DiaryID:     diaryID,
-				AddUserID:   1,
-				AddUserName: "testuser",
-				AddUTCTime:  pkg.GetNowTimeUnixMilli(),
-				Status:      3, // 正常状态
-				InfoType:    1, // 文本类型
-				IsTop:       0, // 不置顶
-			},
-			wantErr: false,
-		},
-		{
-			name: "创建图片日记",
-			post: &post.Post{
-				Title:       "图片日记",
-				Body:        "分享一些美丽的风景照片，记录生活的美好瞬间。",
-				DiaryID:     diaryID,
-				AddUserID:   1,
-				AddUserName: "testuser",
-				AddUTCTime:  pkg.GetNowTimeUnixMilli(),
-				Status:      3,
-				InfoType:    2, // 图片类型
-				IsTop:       0,
-			},
-			wantErr: false,
-		},
-		{
-			name: "创建置顶日记",
-			post: &post.Post{
-				Title:       "重要日记",
-				Body:        "这是一篇重要的日记，需要置顶显示。",
-				DiaryID:     diaryID,
-				AddUserID:   1,
-				AddUserName: "testuser",
-				AddUTCTime:  pkg.GetNowTimeUnixMilli(),
-				Status:      3,
-				InfoType:    1,
-				IsTop:       1, // 置顶
-			},
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			postID, err := postService.AddPost(tt.post)
-
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("期望有错误，但没有错误")
-				}
-				return
+		t.Run("成功添加文章", func(t *testing.T) {
+			newPost := &post.Post{
+				Title:       testhelpers.GenerateRandomPostTitle(),
+				Body:        testhelpers.GenerateRandomDiaryContent(),
+				DiaryID:     testDiary.DiaryID,
+				AddUserID:   testUser.UserId,
+				AddUserName: testUser.UserName,
+				AddUTCTime:  1642680000,
+				Status:      1,
 			}
 
-			if err != nil {
-				t.Errorf("不期望有错误，但有错误: %v", err)
-				return
-			}
-
-			// 验证日记内容ID已生成
-			if postID <= 0 {
-				t.Error("日记内容ID应该大于0")
-			}
-
-			// 验证日记内容对象已更新
-			if tt.post.PostID != postID {
-				t.Errorf("日记内容对象的ID未更新: 期望 %d, 实际 %d", postID, tt.post.PostID)
-			}
-
-			// 验证摘要已生成（从Body中自动生成）
-			if tt.post.Summary == "" {
-				t.Error("摘要应该已生成")
-			}
-
-			// 验证摘要是Body的截取
-			if !strings.Contains(tt.post.Body, strings.TrimSuffix(tt.post.Summary, "...")) {
-				t.Error("摘要应该是正文的截取")
-			}
+			postID, err := postService.AddPost(newPost)
+			require.NoError(t, err)
+			assert.True(t, postID > 0)
+			assert.Equal(t, postID, newPost.PostID)
 		})
-	}
-}
 
-func TestPostService_GetPostByID(t *testing.T) {
-	// 初始化测试环境
-	suite := testhelpers.SetupTestSuite(t)
-	defer suite.Cleanup(t)
-
-	// 清理表数据
-	if suite.Database != nil {
-		suite.Database.CleanupAllTables(t, "posts", "diaries")
-	}
-
-	// 获取服务
-	diaryService, err := di.TryGet[diary.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取日记服务失败: %v", err)
-	}
-
-	postService, err := di.TryGet[post.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取帖子服务失败: %v", err)
-	}
-
-	// 创建日记本
-	testDiary := &diary.Diary{
-		Title:         "测试日记本",
-		Remark:        "测试用",
-		ViewSetting:   1,
-		SocialSetting: 1,
-		ThemeID:       1,
-		AddUserID:     1,
-		AddUserName:   "testuser",
-		AddUTCTime:    pkg.GetNowTimeUnixMilli(),
-		Status:        1,
-	}
-
-	diaryID, err := diaryService.AddDiary(testDiary)
-	if err != nil {
-		t.Fatalf("创建日记本失败: %v", err)
-	}
-
-	// 创建日记内容
-	testPost := &post.Post{
-		Title:       "测试日记内容",
-		Body:        "这是用于测试的日记内容，包含详细的文字描述。",
-		DiaryID:     diaryID,
-		AddUserID:   1,
-		AddUserName: "testuser",
-		AddUTCTime:  pkg.GetNowTimeUnixMilli(),
-		Status:      3,
-		InfoType:    1,
-		IsTop:       0,
-	}
-
-	postID, err := postService.AddPost(testPost)
-	if err != nil {
-		t.Fatalf("创建日记内容失败: %v", err)
-	}
-
-	tests := []struct {
-		name    string
-		postID  int64
-		wantErr bool
-	}{
-		{
-			name:    "获取存在的日记内容",
-			postID:  postID,
-			wantErr: false,
-		},
-		{
-			name:    "获取不存在的日记内容",
-			postID:  999999, // 不存在的ID
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := postService.GetPostByID(tt.postID)
-
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("期望有错误，但没有错误")
-				}
-				return
+		t.Run("标题为空", func(t *testing.T) {
+			invalidPost := &post.Post{
+				Title:       "", // 空标题
+				Body:        "内容",
+				DiaryID:     testDiary.DiaryID,
+				AddUserID:   testUser.UserId,
+				AddUserName: testUser.UserName,
+				AddUTCTime:  1642680100,
+				Status:      1,
 			}
 
-			if err != nil {
-				t.Errorf("不期望有错误，但有错误: %v", err)
-				return
-			}
-
-			if result == nil {
-				t.Error("结果不应为空")
-				return
-			}
-
-			// 验证日记内容数据
-			if result.PostID != tt.postID {
-				t.Errorf("日记内容ID不匹配: 期望 %d, 实际 %d", tt.postID, result.PostID)
-			}
-
-			if result.Title != testPost.Title {
-				t.Errorf("日记内容标题不匹配: 期望 '%s', 实际 '%s'", testPost.Title, result.Title)
-			}
-
-			if result.Body != testPost.Body {
-				t.Errorf("日记内容不匹配: 期望 '%s', 实际 '%s'", testPost.Body, result.Body)
-			}
-
-			if result.DiaryID != diaryID {
-				t.Errorf("日记本ID不匹配: 期望 %d, 实际 %d", diaryID, result.DiaryID)
-			}
+			_, err := postService.AddPost(invalidPost)
+			assert.Error(t, err)
 		})
-	}
-}
 
-func TestPostService_UpdatePost(t *testing.T) {
-	// 初始化测试环境
-	suite := testhelpers.SetupTestSuite(t)
-	defer suite.Cleanup(t)
-
-	// 清理表数据
-	if suite.Database != nil {
-		suite.Database.CleanupAllTables(t, "posts", "diaries")
-	}
-
-	// 获取服务
-	diaryService, err := di.TryGet[diary.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取日记服务失败: %v", err)
-	}
-
-	postService, err := di.TryGet[post.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取帖子服务失败: %v", err)
-	}
-
-	// 创建日记本
-	testDiary := &diary.Diary{
-		Title:         "测试日记本",
-		Remark:        "测试用",
-		ViewSetting:   1,
-		SocialSetting: 1,
-		ThemeID:       1,
-		AddUserID:     1,
-		AddUserName:   "testuser",
-		AddUTCTime:    pkg.GetNowTimeUnixMilli(),
-		Status:        1,
-	}
-
-	diaryID, err := diaryService.AddDiary(testDiary)
-	if err != nil {
-		t.Fatalf("创建日记本失败: %v", err)
-	}
-
-	// 创建原始日记内容
-	originalPost := &post.Post{
-		Title:       "原始标题",
-		Body:        "原始内容，这是最初的日记正文。",
-		DiaryID:     diaryID,
-		AddUserID:   1,
-		AddUserName: "testuser",
-		AddUTCTime:  pkg.GetNowTimeUnixMilli(),
-		Status:      3,
-		InfoType:    1,
-		IsTop:       0,
-	}
-
-	postID, err := postService.AddPost(originalPost)
-	if err != nil {
-		t.Fatalf("创建日记内容失败: %v", err)
-	}
-
-	tests := []struct {
-		name    string
-		post    *post.Post
-		wantErr bool
-	}{
-		{
-			name: "更新标题和内容",
-			post: &post.Post{
-				PostID:        postID,
-				Title:         "更新后的标题",
-				Body:          "更新后的内容，更加详细和丰富，包含更多有用信息。",
-				DiaryID:       diaryID,
-				AddUserID:     1,
-				AddUserName:   "testuser",
-				AddUTCTime:    pkg.GetNowTimeUnixMilli(),
-				UpdateUTCTime: pkg.GetNowTimeUnixMilli(),
-				Status:        3,
-				InfoType:      1,
-				IsTop:         0,
-			},
-			wantErr: false,
-		},
-		{
-			name: "设置为置顶",
-			post: &post.Post{
-				PostID:        postID,
-				Title:         "重要日记",
-				Body:          "这是一篇重要的日记，需要置顶显示给所有人看到。",
-				DiaryID:       diaryID,
-				AddUserID:     1,
-				AddUserName:   "testuser",
-				AddUTCTime:    pkg.GetNowTimeUnixMilli(),
-				UpdateUTCTime: pkg.GetNowTimeUnixMilli(),
-				Status:        3,
-				InfoType:      1,
-				IsTop:         1, // 置顶
-			},
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := postService.UpdatePost(tt.post)
-
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("期望有错误，但没有错误")
-				}
-				return
+		t.Run("内容为空", func(t *testing.T) {
+			invalidPost := &post.Post{
+				Title:       "标题",
+				Body:        "", // 空内容
+				DiaryID:     testDiary.DiaryID,
+				AddUserID:   testUser.UserId,
+				AddUserName: testUser.UserName,
+				AddUTCTime:  1642680100,
+				Status:      1,
 			}
 
-			if err != nil {
-				t.Errorf("不期望有错误，但有错误: %v", err)
-				return
-			}
-
-			// 验证更新是否成功
-			updated, err := postService.GetPostByID(tt.post.PostID)
-			if err != nil {
-				t.Errorf("获取更新后的日记内容失败: %v", err)
-				return
-			}
-
-			if updated.Title != tt.post.Title {
-				t.Errorf("日记内容标题未更新: 期望 '%s', 实际 '%s'", tt.post.Title, updated.Title)
-			}
-
-			if updated.Body != tt.post.Body {
-				t.Errorf("日记内容未更新: 期望 '%s', 实际 '%s'", tt.post.Body, updated.Body)
-			}
-
-			if updated.IsTop != tt.post.IsTop {
-				t.Errorf("置顶设置未更新: 期望 %d, 实际 %d", tt.post.IsTop, updated.IsTop)
-			}
+			_, err := postService.AddPost(invalidPost)
+			assert.Error(t, err)
 		})
-	}
-}
 
-func TestPostService_ListPostsByUserID(t *testing.T) {
-	// 初始化测试环境
-	suite := testhelpers.SetupTestSuite(t)
-	defer suite.Cleanup(t)
-
-	// 清理表数据
-	if suite.Database != nil {
-		suite.Database.CleanupAllTables(t, "posts", "diaries")
-	}
-
-	// 获取服务
-	diaryService, err := di.TryGet[diary.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取日记服务失败: %v", err)
-	}
-
-	postService, err := di.TryGet[post.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取帖子服务失败: %v", err)
-	}
-
-	// 创建两个日记本
-	diary1 := &diary.Diary{
-		Title:         "日记本1",
-		Remark:        "第一个日记本",
-		ViewSetting:   1,
-		SocialSetting: 1,
-		ThemeID:       1,
-		AddUserID:     1,
-		AddUserName:   "testuser",
-		AddUTCTime:    pkg.GetNowTimeUnixMilli(),
-		Status:        1,
-	}
-
-	diaryID1, err := diaryService.AddDiary(diary1)
-	if err != nil {
-		t.Fatalf("创建日记本1失败: %v", err)
-	}
-
-	diary2 := &diary.Diary{
-		Title:         "日记本2",
-		Remark:        "第二个日记本",
-		ViewSetting:   1,
-		SocialSetting: 1,
-		ThemeID:       1,
-		AddUserID:     2,
-		AddUserName:   "otheruser",
-		AddUTCTime:    pkg.GetNowTimeUnixMilli(),
-		Status:        1,
-	}
-
-	diaryID2, err := diaryService.AddDiary(diary2)
-	if err != nil {
-		t.Fatalf("创建日记本2失败: %v", err)
-	}
-
-	// 在第一个日记本中创建多篇日记
-	userID := int64(1)
-	totalPostsInDiary1 := 5
-	for i := 0; i < totalPostsInDiary1; i++ {
-		post := &post.Post{
-			Title:       fmt.Sprintf("日记本1的第%d篇日记", i+1),
-			Body:        fmt.Sprintf("这是第%d篇日记的详细内容，记录了生活中的点点滴滴。", i+1),
-			DiaryID:     diaryID1,
-			AddUserID:   userID,
-			AddUserName: "testuser",
-			AddUTCTime:  pkg.GetNowTimeUnixMilli(),
-			Status:      3,
-			InfoType:    1,
-			IsTop:       0,
-		}
-
-		_, err := postService.AddPost(post)
-		if err != nil {
-			t.Fatalf("创建日记内容%d失败: %v", i+1, err)
-		}
-	}
-
-	// 在第二个日记本中创建一篇日记（其他用户）
-	postInDiary2 := &post.Post{
-		Title:       "日记本2的日记",
-		Body:        "这是日记本2中的内容，属于其他用户。",
-		DiaryID:     diaryID2,
-		AddUserID:   2,
-		AddUserName: "otheruser",
-		AddUTCTime:  pkg.GetNowTimeUnixMilli(),
-		Status:      3,
-		InfoType:    1,
-		IsTop:       0,
-	}
-
-	_, err = postService.AddPost(postInDiary2)
-	if err != nil {
-		t.Fatalf("创建日记本2的日记内容失败: %v", err)
-	}
-
-	tests := []struct {
-		name          string
-		userID        int64
-		diaryID       int64
-		pageIndex     int
-		pageSize      int
-		expectedCount int
-		expectedTotal int
-	}{
-		{
-			name:          "获取用户1在日记本1的第一页",
-			userID:        userID,
-			diaryID:       diaryID1,
-			pageIndex:     0,
-			pageSize:      3,
-			expectedCount: 3,
-			expectedTotal: totalPostsInDiary1,
-		},
-		{
-			name:          "获取用户1在日记本1的第二页",
-			userID:        userID,
-			diaryID:       diaryID1,
-			pageIndex:     1,
-			pageSize:      3,
-			expectedCount: 2, // 剩余2篇
-			expectedTotal: totalPostsInDiary1,
-		},
-		{
-			name:          "获取用户1在不存在的日记本",
-			userID:        userID,
-			diaryID:       999999,
-			pageIndex:     0,
-			pageSize:      10,
-			expectedCount: 0,
-			expectedTotal: 0,
-		},
-		{
-			name:          "获取不存在的用户",
-			userID:        999,
-			diaryID:       diaryID1,
-			pageIndex:     0,
-			pageSize:      10,
-			expectedCount: 0,
-			expectedTotal: 0,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, total, err := postService.ListPostsByUserID(tt.userID, tt.diaryID, tt.pageIndex, tt.pageSize)
-			if err != nil {
-				t.Fatalf("获取用户日记内容失败: %v", err)
+		t.Run("无效的日记本ID", func(t *testing.T) {
+			invalidPost := &post.Post{
+				Title:       "标题",
+				Body:        "内容",
+				DiaryID:     99999, // 不存在的日记本ID
+				AddUserID:   testUser.UserId,
+				AddUserName: testUser.UserName,
+				AddUTCTime:  1642680100,
+				Status:      1,
 			}
 
-			if len(result) != tt.expectedCount {
-				t.Errorf("期望获取到%d篇日记，实际获取到%d篇", tt.expectedCount, len(result))
-			}
-
-			if total != tt.expectedTotal {
-				t.Errorf("期望总数为%d，实际为%d", tt.expectedTotal, total)
-			}
-
-			// 验证所有日记都属于指定用户和日记本
-			for i, post := range result {
-				if post.DiaryID != tt.diaryID {
-					t.Errorf("日记%d不属于指定日记本: 期望日记本ID %d, 实际 %d", i, tt.diaryID, post.DiaryID)
-				}
-
-				if post.AddUserID != tt.userID {
-					t.Errorf("日记%d不属于指定用户: 期望用户ID %d, 实际 %d", i, tt.userID, post.AddUserID)
-				}
-
-				if post.PostID <= 0 {
-					t.Errorf("日记%d的ID应该大于0", i)
-				}
-			}
+			_, err := postService.AddPost(invalidPost)
+			assert.Error(t, err)
 		})
-	}
-}
 
-func TestPostService_GetPostCountByUserID(t *testing.T) {
-	// 初始化测试环境
-	dbHelper := testhelpers.SetupTestDatabase(t)
-	defer dbHelper.Cleanup(t)
-
-	// 开始事务
-	dbHelper.BeginTransaction(t)
-	defer dbHelper.RollbackTransaction(t)
-
-	// 创建必要的服务和数据
-	diaryService := diary.NewService()
-	postService := post.NewService()
-
-	// 创建日记本
-	testDiary := &diary.Diary{
-		Title:         "测试日记本",
-		Remark:        "用于统计测试",
-		ViewSetting:   1,
-		SocialSetting: 1,
-		ThemeID:       1,
-		AddUserID:     1,
-		AddUserName:   "testuser",
-		AddUTCTime:    pkg.GetNowTimeUnixMilli(),
-		Status:        1,
-	}
-
-	diaryID, err := diaryService.AddDiary(testDiary)
-	if err != nil {
-		t.Fatalf("创建日记本失败: %v", err)
-	}
-
-	// 创建多篇日记
-	userID := int64(1)
-	totalPosts := 3
-
-	for i := 0; i < totalPosts; i++ {
-		post := &post.Post{
-			Title:       fmt.Sprintf("测试日记%d", i+1),
-			Body:        fmt.Sprintf("这是第%d篇测试日记的内容。", i+1),
-			DiaryID:     diaryID,
-			AddUserID:   userID,
-			AddUserName: "testuser",
-			AddUTCTime:  pkg.GetNowTimeUnixMilli(),
-			Status:      3,
-			InfoType:    1,
-			IsTop:       0,
-		}
-
-		_, err := postService.AddPost(post)
-		if err != nil {
-			t.Fatalf("创建日记内容%d失败: %v", i+1, err)
-		}
-	}
-
-	tests := []struct {
-		name          string
-		userID        int64
-		diaryID       int64
-		expectedCount int
-	}{
-		{
-			name:          "统计存在的用户和日记本",
-			userID:        userID,
-			diaryID:       diaryID,
-			expectedCount: totalPosts,
-		},
-		{
-			name:          "统计不存在的用户",
-			userID:        999,
-			diaryID:       diaryID,
-			expectedCount: 0,
-		},
-		{
-			name:          "统计不存在的日记本",
-			userID:        userID,
-			diaryID:       999999,
-			expectedCount: 0,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			count, err := postService.GetPostCountByUserID(tt.userID, tt.diaryID)
-			if err != nil {
-				t.Fatalf("统计日记数量失败: %v", err)
+		t.Run("无效的用户ID", func(t *testing.T) {
+			invalidPost := &post.Post{
+				Title:       "标题",
+				Body:        "内容",
+				DiaryID:     testDiary.DiaryID,
+				AddUserID:   0, // 无效用户ID
+				AddUserName: "invalid",
+				AddUTCTime:  1642680100,
+				Status:      1,
 			}
 
-			if count != tt.expectedCount {
-				t.Errorf("期望统计到%d篇日记，实际统计到%d篇", tt.expectedCount, count)
-			}
+			_, err := postService.AddPost(invalidPost)
+			assert.Error(t, err)
 		})
-	}
-}
-
-func TestPostService_UpdatePostByID(t *testing.T) {
-	// 初始化测试环境
-	suite := testhelpers.SetupTestSuite(t)
-	defer suite.Cleanup(t)
-
-	// 清理表数据
-	if suite.Database != nil {
-		suite.Database.CleanupAllTables(t, "posts", "diaries")
-	}
-
-	// 获取服务
-	diaryService, err := di.TryGet[diary.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取日记服务失败: %v", err)
-	}
-
-	postService, err := di.TryGet[post.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取帖子服务失败: %v", err)
-	}
-
-	// 创建日记本
-	testDiary := &diary.Diary{
-		Title:         "测试日记本",
-		Remark:        "测试用",
-		ViewSetting:   1,
-		SocialSetting: 1,
-		ThemeID:       1,
-		AddUserID:     1,
-		AddUserName:   "testuser",
-		AddUTCTime:    pkg.GetNowTimeUnixMilli(),
-		Status:        1,
-	}
-
-	diaryID, err := diaryService.AddDiary(testDiary)
-	if err != nil {
-		t.Fatalf("创建日记本失败: %v", err)
-	}
-
-	// 创建日记内容
-	originalPost := &post.Post{
-		Title:       "原始标题",
-		Body:        "原始内容",
-		DiaryID:     diaryID,
-		AddUserID:   1,
-		AddUserName: "testuser",
-		AddUTCTime:  pkg.GetNowTimeUnixMilli(),
-		Status:      3,
-		InfoType:    1,
-		IsTop:       0,
-		ViewNum:     0,
-		LikeNum:     0,
-		CommentNum:  0,
-	}
-
-	postID, err := postService.AddPost(originalPost)
-	if err != nil {
-		t.Fatalf("创建日记内容失败: %v", err)
-	}
-
-	// 测试按ID更新
-	t.Run("按ID更新日记", func(t *testing.T) {
-		updatePost := &post.Post{
-			PostID:        postID,
-			Title:         "按ID更新的标题",
-			Body:          "按ID更新的内容",
-			DiaryID:       diaryID,
-			AddUserID:     1,
-			AddUserName:   "testuser",
-			UpdateUTCTime: pkg.GetNowTimeUnixMilli(),
-			Status:        3,
-			InfoType:      1,
-			IsTop:         1, // 设置为置顶
-			ViewNum:       10,
-			LikeNum:       5,
-			CommentNum:    2,
-		}
-
-		err := postService.UpdatePostByID(updatePost)
-		if err != nil {
-			t.Fatalf("按ID更新日记失败: %v", err)
-		}
-
-		// 验证更新是否成功
-		updated, err := postService.GetPostByID(postID)
-		if err != nil {
-			t.Fatalf("获取更新后的日记失败: %v", err)
-		}
-
-		if updated.Title != updatePost.Title {
-			t.Errorf("标题未更新: 期望 '%s', 实际 '%s'", updatePost.Title, updated.Title)
-		}
-
-		if updated.IsTop != updatePost.IsTop {
-			t.Errorf("置顶状态未更新: 期望 %d, 实际 %d", updatePost.IsTop, updated.IsTop)
-		}
-
-		if updated.ViewNum != updatePost.ViewNum {
-			t.Errorf("查看数量未更新: 期望 %d, 实际 %d", updatePost.ViewNum, updated.ViewNum)
-		}
 	})
 }
 
-func TestPostService_DeletePostByID(t *testing.T) {
-	// 初始化测试环境
-	suite := testhelpers.SetupTestSuite(t)
-	defer suite.Cleanup(t)
+// TestPostService_GetPostByID 测试根据ID获取文章
+func TestPostService_GetPostByID(t *testing.T) {
+	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
+		// 开始事务，确保测试数据隔离
+		db.BeginTransaction(t)
+		defer db.RollbackTransaction(t)
 
-	// 清理表数据
-	if suite.Database != nil {
-		suite.Database.CleanupAllTables(t, "posts", "diaries")
-	}
+		// 创建真实的服务
+		userService := user.NewService()
+		diaryService := diary.NewService()
+		postService := post.NewService()
 
-	// 获取服务
-	diaryService, err := di.TryGet[diary.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取日记服务失败: %v", err)
-	}
+		// 设置测试数据
+		testUser, testDiary := setupTestUserAndDiary(t, userService, diaryService)
 
-	postService, err := di.TryGet[post.ServiceInterface](suite.Container)
-	if err != nil {
-		t.Fatalf("获取帖子服务失败: %v", err)
-	}
+		// 添加一篇文章
+		newPost := &post.Post{
+			Title:       "可获取的文章",
+			Body:     "测试获取功能的文章内容",
+			Summary:     "测试摘要",
+			DiaryID:     testDiary.DiaryID,
+			AddUserID:   testUser.UserId,
+			AddUserName: testUser.UserName,
+			AddUTCTime:  1642680100,
+			Status:      1,
+		}
+		postID, err := postService.AddPost(newPost)
+		require.NoError(t, err)
 
-	// 创建日记本
-	testDiary := &diary.Diary{
-		Title:         "测试日记本",
-		Remark:        "测试用",
-		ViewSetting:   1,
-		SocialSetting: 1,
-		ThemeID:       1,
-		AddUserID:     1,
-		AddUserName:   "testuser",
-		AddUTCTime:    pkg.GetNowTimeUnixMilli(),
-		Status:        1,
-	}
+		t.Run("成功获取文章", func(t *testing.T) {
+			retrievedPost, err := postService.GetPostByID(postID)
+			require.NoError(t, err)
+			assert.NotNil(t, retrievedPost)
+			assert.Equal(t, "可获取的文章", retrievedPost.Title)
+			assert.Equal(t, "测试获取功能的文章内容", retrievedPost.Body)
+			assert.Equal(t, testUser.UserId, retrievedPost.AddUserID)
+			assert.Equal(t, testDiary.DiaryID, retrievedPost.DiaryID)
+		})
 
-	diaryID, err := diaryService.AddDiary(testDiary)
-	if err != nil {
-		t.Fatalf("创建日记本失败: %v", err)
-	}
+		t.Run("文章不存在", func(t *testing.T) {
+			retrievedPost, err := postService.GetPostByID(99999)
+			assert.Error(t, err)
+			assert.Nil(t, retrievedPost)
+		})
+	})
+}
 
-	// 创建待删除的日记内容
-	testPost := &post.Post{
-		Title:       "待删除的日记",
-		Body:        "这篇日记将被删除",
-		DiaryID:     diaryID,
-		AddUserID:   1,
-		AddUserName: "testuser",
-		AddUTCTime:  pkg.GetNowTimeUnixMilli(),
-		Status:      3,
-		InfoType:    1,
-		IsTop:       0,
-	}
+// TestPostService_UpdatePost 测试更新文章
+func TestPostService_UpdatePost(t *testing.T) {
+	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
+		// 开始事务，确保测试数据隔离
+		db.BeginTransaction(t)
+		defer db.RollbackTransaction(t)
 
-	postID, err := postService.AddPost(testPost)
-	if err != nil {
-		t.Fatalf("创建日记内容失败: %v", err)
-	}
+		// 创建真实的服务
+		userService := user.NewService()
+		diaryService := diary.NewService()
+		postService := post.NewService()
 
-	tests := []struct {
-		name    string
-		postID  int64
-		wantErr bool
-	}{
-		{
-			name:    "正常删除日记内容",
-			postID:  postID,
-			wantErr: false,
-		},
-		{
-			name:    "删除不存在的日记内容",
-			postID:  999999, // 不存在的ID
-			wantErr: true,
-		},
-	}
+		// 设置测试数据
+		testUser, testDiary := setupTestUserAndDiary(t, userService, diaryService)
 
-	for i, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := postService.DeletePostByID(tt.postID)
+		// 添加一篇文章
+		originalPost := &post.Post{
+			Title:       "原始标题",
+			Body:     "原始内容",
+			Summary:     "原始摘要",
+			DiaryID:     testDiary.DiaryID,
+			AddUserID:   testUser.UserId,
+			AddUserName: testUser.UserName,
+			AddUTCTime:  1642680100,
+			Status:      1,
+		}
+		postID, err := postService.AddPost(originalPost)
+		require.NoError(t, err)
 
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("期望有错误，但没有错误")
-				}
-				return
+		t.Run("成功更新文章", func(t *testing.T) {
+			updatedPost := &post.Post{
+				PostID:      postID,
+				Title:       "更新后的标题",
+				Body:     "更新后的内容",
+				Summary:     "更新后的摘要",
+				DiaryID:     testDiary.DiaryID,
+				AddUserID:   testUser.UserId,
+				AddUserName: testUser.UserName,
+				AddUTCTime:  1642680100,
+				UpdateUTCTime: 1642680200,
+				Status:      1,
 			}
 
-			if err != nil {
-				t.Errorf("不期望有错误，但有错误: %v", err)
-				return
+			err := postService.UpdatePost(updatedPost)
+			assert.NoError(t, err)
+
+			// 验证更新是否成功
+			retrievedPost, err := postService.GetPostByID(postID)
+			require.NoError(t, err)
+			assert.Equal(t, "更新后的标题", retrievedPost.Title)
+			assert.Equal(t, "更新后的内容", retrievedPost.Body)
+			assert.Equal(t, "更新后的摘要", retrievedPost.Summary)
+		})
+
+		t.Run("更新不存在的文章", func(t *testing.T) {
+			nonExistentPost := &post.Post{
+				PostID:      99999,
+				Title:       "不存在的文章",
+				Body:     "测试",
+				DiaryID:     testDiary.DiaryID,
+				AddUserID:   testUser.UserId,
+				AddUserName: testUser.UserName,
+				AddUTCTime:  1642680100,
+				Status:      1,
 			}
 
-			// 只有第一个测试用例（正常删除）需要验证删除是否成功
-			if i == 0 {
-				// 尝试获取已删除的日记内容，应该失败
-				_, getErr := postService.GetPostByID(tt.postID)
-				if getErr == nil {
-					t.Error("删除后仍能获取到日记内容，删除失败")
-				}
+			err := postService.UpdatePost(nonExistentPost)
+			assert.Error(t, err)
+		})
+
+		t.Run("标题为空时更新失败", func(t *testing.T) {
+			invalidPost := &post.Post{
+				PostID:      postID,
+				Title:       "", // 空标题
+				Body:     "内容",
+				DiaryID:     testDiary.DiaryID,
+				AddUserID:   testUser.UserId,
+				AddUserName: testUser.UserName,
+				AddUTCTime:  1642680100,
+				Status:      1,
+			}
+
+			err := postService.UpdatePost(invalidPost)
+			assert.Error(t, err)
+		})
+
+		t.Run("内容为空时更新失败", func(t *testing.T) {
+			invalidPost := &post.Post{
+				PostID:      postID,
+				Title:       "标题",
+				Body:     "", // 空内容
+				DiaryID:     testDiary.DiaryID,
+				AddUserID:   testUser.UserId,
+				AddUserName: testUser.UserName,
+				AddUTCTime:  1642680100,
+				Status:      1,
+			}
+
+			err := postService.UpdatePost(invalidPost)
+			assert.Error(t, err)
+		})
+	})
+}
+
+// TestPostService_ListPostsByUserID 测试分页获取用户文章列表
+func TestPostService_ListPostsByUserID(t *testing.T) {
+	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
+		// 开始事务，确保测试数据隔离
+		db.BeginTransaction(t)
+		defer db.RollbackTransaction(t)
+
+		// 创建真实的服务
+		userService := user.NewService()
+		diaryService := diary.NewService()
+		postService := post.NewService()
+
+		// 设置测试数据
+		testUser, testDiary := setupTestUserAndDiary(t, userService, diaryService)
+
+		// 创建另一个用户和日记本
+		otherUser := &user.User{
+			UserName: testhelpers.GenerateRandomUsername(),
+			Email:    testhelpers.GenerateRandomEmail(),
+			Pwd:      "password123",
+			TimeZone: "UTC",
+		}
+		err := userService.RegisterUser(otherUser)
+		require.NoError(t, err)
+
+		otherDiary := &diary.Diary{
+			Title:         "其他用户的日记本",
+			Remark:        "测试",
+			AddUserID:     otherUser.UserId,
+			AddUserName:   otherUser.UserName,
+			AddUTCTime:    1642680000,
+			Status:        1,
+			ViewSetting:   1,
+			SocialSetting: 1,
+			ThemeID:       1,
+		}
+		otherDiaryID, err := diaryService.AddDiary(otherDiary)
+		require.NoError(t, err)
+
+		// 为testUser添加5篇文章
+		for i := 1; i <= 5; i++ {
+			post := &post.Post{
+				Title:       fmt.Sprintf("文章%d", i),
+				Body:     fmt.Sprintf("第%d篇文章内容", i),
+				Summary:     fmt.Sprintf("第%d篇文章摘要", i),
+				DiaryID:     testDiary.DiaryID,
+				AddUserID:   testUser.UserId,
+				AddUserName: testUser.UserName,
+				AddUTCTime:  int64(1642680100 + i),
+				Status:      1,
+				InfoType:    1,
+			}
+			_, err := postService.AddPost(post)
+			require.NoError(t, err)
+		}
+
+		// 为otherUser添加1篇文章
+		otherPost := &post.Post{
+			Title:       "其他用户的文章",
+			Body:     "其他用户的文章内容",
+			Summary:     "其他用户的文章摘要",
+			DiaryID:     otherDiaryID,
+			AddUserID:   otherUser.UserId,
+			AddUserName: otherUser.UserName,
+			AddUTCTime:  1642680200,
+			Status:      1,
+			InfoType:    1,
+		}
+		_, err = postService.AddPost(otherPost)
+		require.NoError(t, err)
+
+		t.Run("第一页，每页3篇", func(t *testing.T) {
+			posts, total, err := postService.ListPostsByUserID(testUser.UserId, testDiary.DiaryID, 1, 3)
+			require.NoError(t, err)
+			assert.Len(t, posts, 3)
+			assert.Equal(t, 5, total)
+
+			// 验证返回的都是指定用户和日记本的文章
+			for _, p := range posts {
+				assert.Equal(t, testUser.UserId, p.AddUserID)
+				assert.Equal(t, testDiary.DiaryID, p.DiaryID)
 			}
 		})
-	}
+
+		t.Run("第二页，每页3篇", func(t *testing.T) {
+			posts, total, err := postService.ListPostsByUserID(testUser.UserId, testDiary.DiaryID, 2, 3)
+			require.NoError(t, err)
+			assert.Len(t, posts, 2) // 剩余2篇
+			assert.Equal(t, 5, total)
+		})
+
+		t.Run("获取所有文章", func(t *testing.T) {
+			posts, total, err := postService.ListPostsByUserID(testUser.UserId, testDiary.DiaryID, 1, 10)
+			require.NoError(t, err)
+			assert.Len(t, posts, 5)
+			assert.Equal(t, 5, total)
+		})
+
+		t.Run("获取其他用户的文章", func(t *testing.T) {
+			posts, total, err := postService.ListPostsByUserID(otherUser.UserId, otherDiaryID, 1, 10)
+			require.NoError(t, err)
+			assert.Len(t, posts, 1)
+			assert.Equal(t, 1, total)
+			assert.Equal(t, "其他用户的文章", posts[0].Title)
+		})
+
+		t.Run("不存在的用户", func(t *testing.T) {
+			posts, total, err := postService.ListPostsByUserID(99999, testDiary.DiaryID, 1, 10)
+			assert.NoError(t, err) // 应该返回空列表而不是错误
+			assert.Len(t, posts, 0)
+			assert.Equal(t, 0, total)
+		})
+
+		t.Run("不存在的日记本", func(t *testing.T) {
+			posts, total, err := postService.ListPostsByUserID(testUser.UserId, 99999, 1, 10)
+			assert.NoError(t, err) // 应该返回空列表而不是错误
+			assert.Len(t, posts, 0)
+			assert.Equal(t, 0, total)
+		})
+	})
+}
+
+// TestPostService_GetPostCountByUserID 测试获取用户文章数量
+func TestPostService_GetPostCountByUserID(t *testing.T) {
+	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
+		// 开始事务，确保测试数据隔离
+		db.BeginTransaction(t)
+		defer db.RollbackTransaction(t)
+
+		// 创建真实的服务
+		userService := user.NewService()
+		diaryService := diary.NewService()
+		postService := post.NewService()
+
+		// 设置测试数据
+		testUser, testDiary := setupTestUserAndDiary(t, userService, diaryService)
+
+		t.Run("初始文章数量为0", func(t *testing.T) {
+			count, err := postService.GetPostCountByUserID(testUser.UserId, testDiary.DiaryID)
+			require.NoError(t, err)
+			assert.Equal(t, 0, count)
+		})
+
+		// 添加3篇文章
+		for i := 1; i <= 3; i++ {
+			post := &post.Post{
+				Title:       fmt.Sprintf("文章%d", i),
+				Body:     fmt.Sprintf("第%d篇文章内容", i),
+				DiaryID:     testDiary.DiaryID,
+				AddUserID:   testUser.UserId,
+				AddUserName: testUser.UserName,
+				AddUTCTime:  int64(1642680100 + i),
+				Status:      1,
+			}
+			_, err := postService.AddPost(post)
+			require.NoError(t, err)
+		}
+
+		t.Run("添加文章后的数量", func(t *testing.T) {
+			count, err := postService.GetPostCountByUserID(testUser.UserId, testDiary.DiaryID)
+			require.NoError(t, err)
+			assert.Equal(t, 3, count)
+		})
+
+		t.Run("不存在的用户", func(t *testing.T) {
+			count, err := postService.GetPostCountByUserID(99999, testDiary.DiaryID)
+			require.NoError(t, err)
+			assert.Equal(t, 0, count)
+		})
+
+		t.Run("不存在的日记本", func(t *testing.T) {
+			count, err := postService.GetPostCountByUserID(testUser.UserId, 99999)
+			require.NoError(t, err)
+			assert.Equal(t, 0, count)
+		})
+	})
+}
+
+// TestPostService_UpdatePostByID 测试根据ID更新文章
+func TestPostService_UpdatePostByID(t *testing.T) {
+	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
+		// 开始事务，确保测试数据隔离
+		db.BeginTransaction(t)
+		defer db.RollbackTransaction(t)
+
+		// 创建真实的服务
+		userService := user.NewService()
+		diaryService := diary.NewService()
+		postService := post.NewService()
+
+		// 设置测试数据
+		testUser, testDiary := setupTestUserAndDiary(t, userService, diaryService)
+
+		// 添加一篇文章
+		originalPost := &post.Post{
+			Title:       "待更新的文章",
+			Body:     "原始内容",
+			Summary:     "原始摘要",
+			DiaryID:     testDiary.DiaryID,
+			AddUserID:   testUser.UserId,
+			AddUserName: testUser.UserName,
+			AddUTCTime:  1642680100,
+			Status:      1,
+		}
+		postID, err := postService.AddPost(originalPost)
+		require.NoError(t, err)
+
+		t.Run("成功更新文章", func(t *testing.T) {
+			updatedPost := &post.Post{
+				PostID:      postID,
+				Title:       "已更新的文章",
+				Body:     "更新后的内容",
+				Summary:     "更新后的摘要",
+				DiaryID:     testDiary.DiaryID,
+				AddUserID:   testUser.UserId,
+				AddUserName: testUser.UserName,
+				AddUTCTime:  1642680100,
+				UpdateUTCTime: 1642680300,
+				Status:      1,
+			}
+
+			err := postService.UpdatePostByID(updatedPost)
+			assert.NoError(t, err)
+
+			// 验证更新是否成功
+			retrievedPost, err := postService.GetPostByID(postID)
+			require.NoError(t, err)
+			assert.Equal(t, "已更新的文章", retrievedPost.Title)
+			assert.Equal(t, "更新后的内容", retrievedPost.Body)
+			assert.Equal(t, "更新后的摘要", retrievedPost.Summary)
+		})
+
+		t.Run("更新不存在的文章", func(t *testing.T) {
+			nonExistentPost := &post.Post{
+				PostID:      99999,
+				Title:       "不存在",
+				Body:     "测试",
+				DiaryID:     testDiary.DiaryID,
+				AddUserID:   testUser.UserId,
+				AddUserName: testUser.UserName,
+				AddUTCTime:  1642680100,
+				Status:      1,
+			}
+
+			err := postService.UpdatePostByID(nonExistentPost)
+			assert.Error(t, err)
+		})
+	})
+}
+
+// TestPostService_DeletePostByID 测试删除文章
+func TestPostService_DeletePostByID(t *testing.T) {
+	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
+		// 开始事务，确保测试数据隔离
+		db.BeginTransaction(t)
+		defer db.RollbackTransaction(t)
+
+		// 创建真实的服务
+		userService := user.NewService()
+		diaryService := diary.NewService()
+		postService := post.NewService()
+
+		// 设置测试数据
+		testUser, testDiary := setupTestUserAndDiary(t, userService, diaryService)
+
+		// 添加一篇文章
+		newPost := &post.Post{
+			Title:       "待删除的文章",
+			Body:     "这篇文章将被删除",
+			Summary:     "删除测试",
+			DiaryID:     testDiary.DiaryID,
+			AddUserID:   testUser.UserId,
+			AddUserName: testUser.UserName,
+			AddUTCTime:  1642680100,
+			Status:      1,
+		}
+		postID, err := postService.AddPost(newPost)
+		require.NoError(t, err)
+
+		// 验证文章存在
+		retrievedPost, err := postService.GetPostByID(postID)
+		require.NoError(t, err)
+		assert.NotNil(t, retrievedPost)
+
+		t.Run("成功删除文章", func(t *testing.T) {
+			err := postService.DeletePostByID(postID)
+			assert.NoError(t, err)
+
+			// 验证文章已被删除
+			deletedPost, err := postService.GetPostByID(postID)
+			assert.Error(t, err)
+			assert.Nil(t, deletedPost)
+		})
+
+		t.Run("删除不存在的文章", func(t *testing.T) {
+			err := postService.DeletePostByID(99999)
+			assert.Error(t, err)
+		})
+
+		t.Run("删除已删除的文章", func(t *testing.T) {
+			err := postService.DeletePostByID(postID)
+			assert.Error(t, err)
+		})
+	})
 }
