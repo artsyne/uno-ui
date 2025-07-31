@@ -23,7 +23,7 @@ type ServiceInterface interface {
 	CheckNameAndPassword(name string, pwd string) (*User, error)
 
 	// ActivateUser 激活用户
-	ActivateUser(uid string, sign string) bool
+	ActivateUser(uid string, sign string) error
 
 	// ===================== 用户信息验证 =====================
 
@@ -46,6 +46,9 @@ type ServiceInterface interface {
 
 	// ResetUserPassword 重置用户密码
 	ResetUserPassword(userId int64, newPassword string) error
+
+	// UpdateUserPassword 更新用户密码
+	UpdateUserPassword(userId int64, hashedPassword string) error
 
 	// ===================== 验证码管理 =====================
 
@@ -113,6 +116,8 @@ func NewService() ServiceInterface {
 	}
 }
 
+// ===================== 用户注册和认证 =====================
+
 // RegisterUser 注册新用户
 func (s *Service) RegisterUser(user *User) error {
 	// 转换用户名和邮件地址为小写并去除空格
@@ -128,132 +133,12 @@ func (s *Service) RegisterUser(user *User) error {
 
 	// 插入数据库
 	if err := s.insertUserIntoDB(user); err != nil {
-		return errors.DatabaseError.WithDetails(err.Error())
+		return errors.DatabaseError.WithDetails(fmt.Sprintf("用户注册失败: %v", err))
 	}
 
 	// 发送激活邮件
 	s.addActivateUserEmailTask(user)
 
-	return nil
-}
-
-// validateUserInput 验证用户输入参数
-func (s *Service) validateUserInput(user *User) error {
-	// 判断参数是否到位
-	if len(user.UserName) < 6 || len(user.Pwd) < 6 {
-		return errors.ValidationError.WithDetails("用户名和密码长度至少6位")
-	}
-
-	// 判断用户时区与语言是否正确
-	if !pkg.IsTimeZone(user.TimeZone) {
-		return errors.ValidationError.WithDetails("时区格式不正确")
-	}
-
-	// 判断用户名是否存在
-	if err := s.isExistUserName(user.UserName); err != nil {
-		return err
-	}
-
-	// 判断邮件地址是否存在
-	if err := s.isExistEmail(user.Email); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// isExistEmail 判断邮件地址是否存在
-func (s *Service) isExistEmail(email string) error {
-	// 判断邮件地址是否存在
-	if isExistEmail, err := s.repo.IsExistsEmail(email); err == nil && isExistEmail {
-		return errors.EmailExists.WithDetails("邮箱: " + email)
-	} else if err != nil {
-		return errors.DatabaseError.WithDetails(err.Error())
-	}
-	return nil
-}
-
-// IsExistEmail 对外暴露的检查邮箱是否存在的方法
-func (s *Service) IsExistEmail(email string) error {
-	return s.isExistEmail(email)
-}
-
-// isExistUserName 判断用户名是否存在
-func (s *Service) isExistUserName(userName string) error {
-	// 判断用户名是否存在
-	if isExistName, err := s.repo.IsExistUserName(userName); err == nil && isExistName {
-		return errors.UserExists.WithDetails("用户名: " + userName)
-	} else if err != nil {
-		return errors.DatabaseError.WithDetails(err.Error())
-	}
-	return nil
-}
-
-// IsExistUserName 对外暴露的检查用户名是否存在的方法
-func (s *Service) IsExistUserName(userName string) error {
-	return s.isExistUserName(userName)
-}
-
-// normalizeUserInput 转换用户名和邮件地址为小写并去除空格
-func (s *Service) normalizeUserInput(user *User) {
-	user.UserName = strings.TrimSpace(strings.ToLower(user.UserName))
-	user.Email = strings.TrimSpace(strings.ToLower(user.Email))
-}
-
-// generatePasswordHash 生成密码哈希
-// 使用 bcrypt 算法，不再需要单独的盐值
-func (s *Service) generatePasswordHash(password string) (string, error) {
-	// 使用 bcrypt 哈希密码
-	hash, err := pkg.BcryptHash(password)
-	if err != nil {
-		return "", err
-	}
-	
-	return hash, nil
-}
-
-// verifyPassword 验证密码
-// 使用 bcrypt 验证，不再需要盐值参数
-func (s *Service) verifyPassword(password, hash string) bool {
-	// 使用 bcrypt 验证密码
-	return pkg.BcryptVerify(password, hash)
-}
-
-// updateUserPassword 更新用户密码
-// 内部方法，用于密码修改时更新密码
-func (s *Service) updateUserPassword(userId int64, hashedPassword string) error {
-	_, err := s.repo.UpdateUserPassword(userId, hashedPassword)
-	return err
-}
-
-// initUserRegInfo 初始化用户注册信息
-func (s *Service) initUserRegInfo(user *User) {
-	// 使用统一的密码加密逻辑
-	hashedPwd, err := s.generatePasswordHash(user.Pwd)
-	if err != nil {
-		// 在这里处理错误，但由于原方法没有返回错误，我们暂时忽略
-		// 在实际应用中应该修改方法签名来处理错误
-	}
-	user.Pwd = hashedPwd
-
-	// 用户默认分组为1
-	user.UserGroup = config.DEFAULT_USER_GROUP
-	// 获取当前UTC时间
-	nowTime := pkg.GetNowTimeUnixMilli()
-	user.CreatedUTCTime = nowTime
-	user.LastLoginUTCTime = nowTime
-	// 设置默认语言
-	user.Lang = s.getSupportedLang(user.Lang)
-	user.Status = config.USER_STATUS_WAIT_ACTIVE
-}
-
-// insertUserIntoDB 将用户插入数据库
-func (s *Service) insertUserIntoDB(user *User) error {
-	uid, err := s.repo.InsertUser(user)
-	if err != nil {
-		return err
-	}
-	user.UserId = uid
 	return nil
 }
 
@@ -286,85 +171,57 @@ func (s *Service) CheckNameAndPassword(name string, pwd string) (*User, error) {
 }
 
 // ActivateUser 激活用户
-func (s *Service) ActivateUser(uid string, sign string) bool {
+func (s *Service) ActivateUser(uid string, sign string) error {
 	// 将字符串转换为整数类型的用户ID
 	userID, err := strconv.ParseInt(uid, 10, 64)
 	if err != nil {
-		return false
+		return errors.InvalidParams.WithDetails("无效的用户ID格式")
 	}
 
 	// 检查验证码是否有效
 	result, validID := s.repo.CheckValidCode(userID, sign, config.VALID_CODE_ACTIVE_USER_EMAIL)
 	if !result {
-		return false
+		return errors.InvalidParams.WithDetails("验证码无效或已过期")
 	}
 
 	// 更新用户状态
 	if rows, err := s.repo.UpdateUserStatus(userID, config.USER_STATUS_OK); err != nil || rows != 1 {
-		return false
+		return errors.DatabaseError.WithDetails(fmt.Sprintf("更新用户状态失败: %v", err))
 	}
 
 	// 删除验证码
 	if rows, err := s.repo.DeleteValidCode(validID); err != nil || rows != 1 {
-		return false
+		return errors.DatabaseError.WithDetails(fmt.Sprintf("删除验证码失败: %v", err))
 	}
 
-	return true
+	return nil
 }
 
-// addActivateUserEmailTask 增加发送激活用户邮件任务
-func (s *Service) addActivateUserEmailTask(user *User) error {
-	// 插入激活码
-	validCode, err := s.insertValidCode(user.UserId)
-	if err != nil {
-		return err
+// ===================== 用户信息验证 =====================
+
+// IsExistEmail 判断邮件地址是否存在
+func (s *Service) IsExistEmail(email string) error {
+	// 判断邮件地址是否存在
+	if isExistEmail, err := s.repo.IsExistsEmail(email); err == nil && isExistEmail {
+		return errors.EmailExists.WithDetails("邮箱: " + email)
+	} else if err != nil {
+		return errors.DatabaseError.WithDetails(err.Error())
 	}
-
-	// 生成激活链接
-	activateUrl := fmt.Sprintf("http://%s/passport/activateuser?uid=%d&sign=%s",
-		s.config.App.Domain, user.UserId, validCode.ValidCode)
-
-	// 调用task模块创建邮件任务
-	taskService := task.NewService()
-	return taskService.CreateEmailTask(
-		user.Email,
-		"账户激活",
-		fmt.Sprintf("请点击以下链接激活账户：%s", activateUrl),
-	)
+	return nil
 }
 
-// insertValidCode 插入有效验证码
-func (s *Service) insertValidCode(userID int64) (*ValidCode, error) {
-	validCode := &ValidCode{
-		ValidCode:     string(pkg.Rand(config.VALID_CODE_LEN, pkg.RAND_KIND_ALL)),
-		UserId:        userID,
-		ValidTypeId:   config.VALID_CODE_ACTIVE_USER_EMAIL,
-		CreateUTCTime: pkg.GetNowTime().UnixMilli(),
-		ExpireUTCTime: pkg.GetNowTime().AddDate(0, 0, config.REG_EMAIL_VAILID_CODE_EXPIRE_DAY).UnixMilli(),
+// IsExistUserName 判断用户名是否存在
+func (s *Service) IsExistUserName(userName string) error {
+	// 判断用户名是否存在
+	if isExistName, err := s.repo.IsExistUserName(userName); err == nil && isExistName {
+		return errors.UserExists.WithDetails("用户名: " + userName)
+	} else if err != nil {
+		return errors.DatabaseError.WithDetails(err.Error())
 	}
-
-	if _, err := s.repo.InsertValidCode(validCode); err != nil {
-		return nil, err
-	}
-
-	return validCode, nil
+	return nil
 }
 
-// getSupportedLang 获取支持的语言
-func (s *Service) getSupportedLang(language string) string {
-	supportedLangs := []string{"zh-cn", "zh-tw", "en"}
-	for _, lang := range supportedLangs {
-		if lang == language {
-			return language
-		}
-	}
-	return "zh-cn" // 默认中文
-}
-
-// GetSupportedLang 获取支持的语言（公开方法，供测试使用）
-func (s *Service) GetSupportedLang(language string) string {
-	return s.getSupportedLang(language)
-}
+// ===================== 密码管理 =====================
 
 // CreateResetPasswordCode 创建重置密码验证码
 func (s *Service) CreateResetPasswordCode(userID int64) error {
@@ -410,25 +267,81 @@ func (s *Service) SendResetPasswordEmail(user *User) error {
 	)
 }
 
+// ChangeUserPassword 修改用户密码
+// 验证当前密码后更新为新密码，使用与initUserRegInfo相同的加密逻辑
+func (s *Service) ChangeUserPassword(currentUserID int64, currentPwd, newPwd string) error {
+	// 获取用户当前密码
+	currentEncryptPwd, err := s.repo.GetUserEncryptPwd(currentUserID)
+	if err != nil {
+		return err
+	}
+
+	// 验证当前密码,有权限后才能修改数据库中的密码 - 使用统一的密码验证逻辑
+	if !s.verifyPassword(currentPwd, currentEncryptPwd) {
+		return errors.InvalidPassword.WithDetails("当前密码不正确")
+	}
+	
+	// 验证新密码强度
+	if len(newPwd) < config.PWD_MIN_LEN || len(newPwd) > config.PWD_MAX_LEN {
+		return errors.ValidationError.WithDetails(fmt.Sprintf("新密码长度必须在%d-%d个字符之间", config.PWD_MIN_LEN, config.PWD_MAX_LEN))
+	}
+
+	// 使用统一的密码生成逻辑
+	newPwdHash, err := s.generatePasswordHash(newPwd)
+	if err != nil {
+		return errors.DatabaseError.WithDetails(err.Error())
+	}
+
+	// 更新用户密码
+	if err := s.UpdateUserPassword(currentUserID, newPwdHash); err != nil {
+		return errors.DatabaseError.WithDetails(err.Error())
+	}
+
+	return nil
+}
+
+// ResetUserPassword 重置用户密码
+// 用于忘记密码后通过验证码重置密码，使用统一的密码生成逻辑
+func (s *Service) ResetUserPassword(userId int64, newPassword string) error {
+	// 验证新密码强度
+	if len(newPassword) < config.PWD_MIN_LEN || len(newPassword) > config.PWD_MAX_LEN {
+		return errors.ValidationError.WithDetails(fmt.Sprintf("新密码长度必须在%d-%d个字符之间", config.PWD_MIN_LEN, config.PWD_MAX_LEN))
+	}
+
+	// 使用统一的密码生成逻辑
+	newPwdHash, err := s.generatePasswordHash(newPassword)
+	if err != nil {
+		return errors.DatabaseError.WithDetails(fmt.Sprintf("密码哈希生成失败: %v", err))
+	}
+
+	// 更新用户密码
+	if err := s.UpdateUserPassword(userId, newPwdHash); err != nil {
+		return errors.DatabaseError.WithDetails(fmt.Sprintf("密码重置失败: %v", err))
+	}
+
+	return nil
+}
+
+// UpdateUserPassword 更新用户密码
+// 内部方法，用于密码修改时更新密码
+func (s *Service) UpdateUserPassword(userId int64, hashedPassword string) error {
+	_, err := s.repo.UpdateUserPassword(userId, hashedPassword)
+	return err
+}
+
+// ===================== 验证码管理 =====================
+
 // CheckValidCode 检查验证码
 func (s *Service) CheckValidCode(userID int64, sign string, validType int8) (bool, int64) {
 	return s.repo.CheckValidCode(userID, sign, validType)
-}
-
-// UpdateUserStatus 更新用户状态
-func (s *Service) UpdateUserStatus(userId int64, status int8) (int64, error) {
-	return s.repo.UpdateUserStatus(userId, status)
-}
-
-// UpdateUserPwd 更新用户密码
-func (s *Service) UpdateUserPwd(userId int64, pwd string) (int64, error) {
-	return s.repo.UpdateUserPwd(userId, pwd)
 }
 
 // DeleteValidCode 删除验证码
 func (s *Service) DeleteValidCode(id int64) (int64, error) {
 	return s.repo.DeleteValidCode(id)
 }
+
+// ===================== 用户信息获取 =====================
 
 // GetUserByEmail 根据邮箱获取用户信息
 func (s *Service) GetUserByEmail(email string) (*User, error) {
@@ -447,10 +360,10 @@ func (s *Service) ParseUserID(idStr string) (int64, error) {
 		return id, nil
 	}
 
-	return 0, fmt.Errorf("无效的用户ID格式")
+	return 0, errors.InvalidParams.WithDetails("无效的用户ID格式")
 }
 
-// ===================== Member 相关业务逻辑 =====================
+// ===================== 个人资料管理 =====================
 
 // GetUserProfile 获取用户个人档案信息
 // 用于渲染用户个人主页，包含基本信息验证
@@ -484,7 +397,7 @@ func (s *Service) GetUserSettings(uid int64) (*User, error) {
 func (s *Service) UpdateUserProfile(uid int64, currentUserID int64, fullName, remark string) error {
 	// 验证权限：只能修改自己的资料
 	if currentUserID != uid {
-		return fmt.Errorf("无权修改他人的资料")
+		return errors.PermissionDenied.WithDetails("无权修改他人的资料")
 	}
 
 	// 验证输入参数
@@ -498,12 +411,12 @@ func (s *Service) UpdateUserProfile(uid int64, currentUserID int64, fullName, re
 	// 调用repository更新用户资料
 	rowsAffected, err := s.repo.UpdateUserProfile(uid, fullName, remark)
 	if err != nil {
-		return err
+		return errors.DatabaseError.WithDetails(fmt.Sprintf("更新用户资料失败: %v", err))
 	}
 
 	// 检查是否真的更新了用户
 	if rowsAffected == 0 {
-		return fmt.Errorf("用户不存在")
+		return errors.DatabaseError.WithDetails("未找到用户或资料未修改")
 	}
 
 	return nil
@@ -514,77 +427,182 @@ func (s *Service) UpdateUserProfile(uid int64, currentUserID int64, fullName, re
 func (s *Service) UpdateUserEmail(uid int64, currentUserID int64, email string) error {
 	// 验证权限：只能修改自己的邮箱
 	if currentUserID != uid {
-		return fmt.Errorf("无权修改他人的邮箱")
+		return errors.PermissionDenied.WithDetails("无权修改他人的邮箱")
 	}
 
 	// 验证邮箱格式 - 使用与注册时相同的验证逻辑
 	regexCheck := &pkg.RegexCheck{}
 	if !regexCheck.IsEmail(email) {
-		return fmt.Errorf("邮箱格式不正确")
+		return errors.ValidationError.WithDetails("邮箱格式不正确")
 	}
 
 	// 检查邮箱是否已被其他用户使用
 	existingUser, err := s.repo.GetUserByEmail(email)
 	if err == nil && existingUser != nil && existingUser.UserId != uid {
-		return fmt.Errorf("该邮箱已被其他用户使用")
+		return errors.EmailExists.WithDetails("该邮箱已被其他用户使用")
 	}
 
 	// 调用repository更新邮箱
 	_, err = s.repo.UpdateEmailByUserId(uid, email)
-	return err
+	if err != nil {
+		return errors.DatabaseError.WithDetails(fmt.Sprintf("更新用户邮箱失败: %v", err))
+	}
+	return nil
 }
 
-// ChangeUserPassword 修改用户密码
-// 验证当前密码后更新为新密码，使用与initUserRegInfo相同的加密逻辑
-func (s *Service) ChangeUserPassword(currentUserID int64, currentPwd, newPwd string) error {
-	// 获取用户当前密码
-	currentEncryptPwd, err := s.repo.GetUserEncryptPwd(currentUserID)
+// ===================== 系统管理相关 =====================
+
+// UpdateUserStatus 更新用户状态
+func (s *Service) UpdateUserStatus(userId int64, status int8) (int64, error) {
+	rowsAffected, err := s.repo.UpdateUserStatus(userId, status)
+	if err != nil {
+		return 0, errors.DatabaseError.WithDetails(fmt.Sprintf("更新用户状态失败: %v", err))
+	}
+	// 检查是否更新成功
+	if rowsAffected == 0 {
+		return 0, errors.DatabaseError.WithDetails("未找到用户或状态未修改")
+	}
+	return rowsAffected, nil
+}
+
+// UpdateUserPwd 更新用户密码
+func (s *Service) UpdateUserPwd(userId int64, pwd string) (int64, error) {
+	rowsAffected, err := s.repo.UpdateUserPwd(userId, pwd)
+	if err != nil {
+		return 0, errors.DatabaseError.WithDetails(fmt.Sprintf("更新用户密码失败: %v", err))
+	}
+	return rowsAffected, nil
+}
+
+// GetSupportedLang 获取支持的语言
+func (s *Service) GetSupportedLang(language string) string {
+	supportedLangs := []string{"zh-cn", "zh-tw", "en"}
+	for _, lang := range supportedLangs {
+		if lang == language {
+			return language
+		}
+	}
+	return "en" // 默认英文
+}
+
+// ===================== 私有辅助方法 =====================
+
+// validateUserInput 验证用户输入参数
+func (s *Service) validateUserInput(user *User) error {
+	// 判断参数是否到位
+	if len(user.UserName) < 6 || len(user.Pwd) < 6 {
+		return errors.ValidationError.WithDetails("用户名和密码长度至少6位")
+	}
+
+	// 判断用户时区与语言是否正确
+	if !pkg.IsTimeZone(user.TimeZone) {
+		return errors.ValidationError.WithDetails("时区格式不正确")
+	}
+
+	// 判断用户名是否存在
+	if err := s.IsExistUserName(user.UserName); err != nil {
+		return err
+	}
+
+	// 判断邮件地址是否存在
+	if err := s.IsExistEmail(user.Email); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// normalizeUserInput 转换用户名和邮件地址为小写并去除空格
+func (s *Service) normalizeUserInput(user *User) {
+	user.UserName = strings.TrimSpace(strings.ToLower(user.UserName))
+	user.Email = strings.TrimSpace(strings.ToLower(user.Email))
+}
+
+// generatePasswordHash 生成密码哈希
+// 使用 bcrypt 算法，不再需要单独的盐值
+func (s *Service) generatePasswordHash(password string) (string, error) {
+	// 使用 bcrypt 哈希密码
+	hash, err := pkg.BcryptHash(password)
+	if err != nil {
+		return "", err
+	}
+	
+	return hash, nil
+}
+
+// verifyPassword 验证密码
+// 使用 bcrypt 验证，不再需要盐值参数
+func (s *Service) verifyPassword(password, hash string) bool {
+	// 使用 bcrypt 验证密码
+	return pkg.BcryptVerify(password, hash)
+}
+
+// initUserRegInfo 初始化用户注册信息
+func (s *Service) initUserRegInfo(user *User) {
+	// 使用统一的密码加密逻辑
+	hashedPwd, err := s.generatePasswordHash(user.Pwd)
+	if err != nil {
+		// 在这里处理错误，但由于原方法没有返回错误，我们暂时忽略
+		// 在实际应用中应该修改方法签名来处理错误
+	}
+	user.Pwd = hashedPwd
+
+	// 用户默认分组为1
+	user.UserGroup = config.DEFAULT_USER_GROUP
+	// 获取当前UTC时间
+	nowTime := pkg.GetNowTimeUnixMilli()
+	user.CreatedUTCTime = nowTime
+	user.LastLoginUTCTime = nowTime
+	// 设置默认语言
+	user.Lang = s.GetSupportedLang(user.Lang)
+	user.Status = config.USER_STATUS_WAIT_ACTIVE
+}
+
+// insertUserIntoDB 将用户插入数据库
+func (s *Service) insertUserIntoDB(user *User) error {
+	uid, err := s.repo.InsertUser(user)
+	if err != nil {
+		return err
+	}
+	user.UserId = uid
+	return nil
+}
+
+// addActivateUserEmailTask 增加发送激活用户邮件任务
+func (s *Service) addActivateUserEmailTask(user *User) error {
+	// 插入激活码
+	validCode, err := s.insertValidCode(user.UserId)
 	if err != nil {
 		return err
 	}
 
-	// 验证当前密码,有权限后才能修改数据库中的密码 - 使用统一的密码验证逻辑
-	if !s.verifyPassword(currentPwd, currentEncryptPwd) {
-		return errors.InvalidPassword.WithDetails("当前密码不正确")
-	}
-	
-	// 验证新密码强度
-	if len(newPwd) < config.PWD_MIN_LEN || len(newPwd) > config.PWD_MAX_LEN {
-		return errors.InvalidPassword.WithDetails(fmt.Sprintf("新密码长度必须在%d-%d个字符之间", config.PWD_MIN_LEN, config.PWD_MAX_LEN))
-	}
+	// 生成激活链接
+	activateUrl := fmt.Sprintf("http://%s/passport/activateuser?uid=%d&sign=%s",
+		s.config.App.Domain, user.UserId, validCode.ValidCode)
 
-	// 使用统一的密码生成逻辑
-	newPwdHash, err := s.generatePasswordHash(newPwd)
-	if err != nil {
-		return errors.DatabaseError.WithDetails(err.Error())
-	}
-
-	// 更新用户密码
-	if err := s.updateUserPassword(currentUserID, newPwdHash); err != nil {
-		return errors.DatabaseError.WithDetails(err.Error())
-	}
-
-	return nil
+	// 调用task模块创建邮件任务
+	taskService := task.NewService()
+	return taskService.CreateEmailTask(
+		user.Email,
+		"账户激活",
+		fmt.Sprintf("请点击以下链接激活账户：%s", activateUrl),
+	)
 }
 
-// ResetUserPassword 重置用户密码
-// 用于忘记密码后通过验证码重置密码，使用统一的密码生成逻辑
-func (s *Service) ResetUserPassword(userId int64, newPassword string) error {
-	// 验证新密码强度
-	if len(newPassword) < config.PWD_MIN_LEN || len(newPassword) > config.PWD_MAX_LEN {
-		return fmt.Errorf("新密码长度必须在%d-%d个字符之间", config.PWD_MIN_LEN, config.PWD_MAX_LEN)
+// insertValidCode 插入有效验证码
+func (s *Service) insertValidCode(userID int64) (*ValidCode, error) {
+	validCode := &ValidCode{
+		ValidCode:     string(pkg.Rand(config.VALID_CODE_LEN, pkg.RAND_KIND_ALL)),
+		UserId:        userID,
+		ValidTypeId:   config.VALID_CODE_ACTIVE_USER_EMAIL,
+		CreateUTCTime: pkg.GetNowTime().UnixMilli(),
+		ExpireUTCTime: pkg.GetNowTime().AddDate(0, 0, config.REG_EMAIL_VAILID_CODE_EXPIRE_DAY).UnixMilli(),
 	}
 
-	// 使用统一的密码生成逻辑
-	newPwdHash, err := s.generatePasswordHash(newPassword)
-	if err != nil {
-		return fmt.Errorf("密码哈希生成失败: %v", err)
+	if _, err := s.repo.InsertValidCode(validCode); err != nil {
+		return nil, err
 	}
 
-	// 更新用户密码
-	if err := s.updateUserPassword(userId, newPwdHash); err != nil {
-		return fmt.Errorf("密码重置失败: %v", err)
-	}
-
-	return nil
+	return validCode, nil
 }
+

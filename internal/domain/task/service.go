@@ -2,9 +2,11 @@ package task
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 
 	"github.com/biuren/hebe/internal/core/config"
+	errors "github.com/biuren/hebe/internal/core/error"
 	"github.com/biuren/hebe/pkg"
 	"github.com/jasonlvhit/gocron"
 )
@@ -44,6 +46,8 @@ func NewService() ServiceInterface {
 	}
 }
 
+// ===================== 接口实现方法 =====================
+
 // StartScheduler 启动定时任务调度器
 // 初始化并启动所有定时任务
 func (s *service) StartScheduler() {
@@ -73,6 +77,39 @@ func (s *service) ProcessEmailTasks() {
 		s.processEmailTask(val, s.config)
 	}
 }
+
+// CreateEmailTask 创建邮件任务
+// 将邮件任务添加到队列中等待处理
+func (s *service) CreateEmailTask(to, subject, body string) error {
+	emailTask := &EmailTask{
+		To:      to,
+		Subject: subject,
+		Body:    body,
+	}
+
+	taskBody, err := json.Marshal(emailTask)
+	if err != nil {
+		return errors.ValidationError.WithDetails(fmt.Sprintf("邮件任务序列化失败: %v", err))
+	}
+
+	nowTime := pkg.GetNowTimeUnixMilli()
+	jobQueue := &JobQueue{
+		JobType:     "email",
+		Body:        string(taskBody),
+		AddUTCTime:  nowTime,
+		PlanUTCTime: nowTime,
+		Result:      0,
+		TryNum:      0,
+	}
+
+	_, err = s.repo.InsertJobQueue(jobQueue)
+	if err != nil {
+		return errors.DatabaseError.WithDetails(fmt.Sprintf("邮件任务创建失败: %v", err))
+	}
+	return nil
+}
+
+// ===================== 私有辅助方法 =====================
 
 // processEmailTask 处理单个邮件任务
 // 解析任务内容，发送邮件，处理结果
@@ -109,32 +146,4 @@ func (s *service) processEmailTask(task JobQueue, config *config.Config) {
 	if err != nil {
 		slog.Error("任务删除到历史表失败", "job_id", task.JobId, "error", err)
 	}
-}
-
-// CreateEmailTask 创建邮件任务
-// 将邮件任务添加到队列中等待处理
-func (s *service) CreateEmailTask(to, subject, body string) error {
-	emailTask := &EmailTask{
-		To:      to,
-		Subject: subject,
-		Body:    body,
-	}
-
-	taskBody, err := json.Marshal(emailTask)
-	if err != nil {
-		return err
-	}
-
-	nowTime := pkg.GetNowTimeUnixMilli()
-	jobQueue := &JobQueue{
-		JobType:     "email",
-		Body:        string(taskBody),
-		AddUTCTime:  nowTime,
-		PlanUTCTime: nowTime,
-		Result:      0,
-		TryNum:      0,
-	}
-
-	_, err = s.repo.InsertJobQueue(jobQueue)
-	return err
 }

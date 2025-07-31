@@ -158,30 +158,29 @@ Kiko UI是一个轻量级的UI框架，为iDiary提供界面交互功能。最�
 │       └── main.go        # 程序入口点
 ├── internal/              # 内部应用逻辑
 │   ├── app/               # 应用层
+│   │   ├── bootstrap/     # 应用启动
 │   │   ├── controller/    # 控制器
 │   │   ├── middleware/    # 中间件
-│   │   ├── render/        # 渲染系统 (重构后)
-│   │   │   ├── service.go       # 核心渲染服务
-│   │   │   ├── page_builder.go  # 页面构建器
-│   │   │   ├── i18n.go          # 国际化管理
-│   │   │   ├── template_funcs.go # 模板函数
-│   │   │   ├── response_handler.go # 响应处理
-│   │   │   ├── context_builder.go  # 上下文构建
-│   │   │   ├── utils.go         # 工具函数
-│   │   │   ├── types.go         # 类型定义
-│   │   │   └── interfaces.go    # 接口定义
-│   │   └── route/         # 路由配置
+│   │   ├── route/         # 路由配置
+│   │   ├── templates/     # 模板文件
+│   │   └── view/          # 视图层
 │   ├── core/              # 核心系统
+│   │   ├── bootstrap/     # 核心启动
 │   │   ├── config/        # 配置管理
 │   │   ├── database/      # 数据库连接
 │   │   ├── di/            # 依赖注入
 │   │   ├── error/         # 错误处理
-│   │   └── middleware/    # 核心中间件
-│   └── module/            # 业务模块
-│       ├── diary/         # 日记模块
-│       ├── post/          # 文章模块
-│       ├── task/          # 任务模块
-│       └── user/          # 用户模块
+│   │   ├── middleware/    # 核心中间件
+│   │   └── validation/    # 数据验证
+│   ├── domain/            # 业务领域
+│   │   ├── diary/         # 日记模块
+│   │   ├── post/          # 文章模块
+│   │   ├── task/          # 任务模块
+│   │   └── user/          # 用户模块
+│   └── shared/            # 共享组件
+│       ├── contracts/     # 接口契约
+│       ├── http/          # HTTP工具
+│       └── i18n/          # 国际化
 ├── pkg/                   # 可重用的包
 │   ├── cookie.go          # Cookie 工具
 │   ├── crypto.go          # 加密工具
@@ -205,6 +204,18 @@ Kiko UI是一个轻量级的UI框架，为iDiary提供界面交互功能。最�
 │   └── deploy/            # 部署脚本
 ├── sql/                   # 数据库脚本
 ├── tests/                 # 测试代码
+│   ├── COMPREHENSIVE_TEST_GUIDE.md # 测试指南
+│   ├── coverage.out       # 测试覆盖率报告
+│   ├── helpers/           # 测试辅助工具
+│   ├── integration/       # 集成测试
+│   │   ├── app/           # 应用层集成测试
+│   │   ├── database/      # 数据库集成测试
+│   │   └── services/      # 服务集成测试
+│   └── unit/              # 单元测试
+│       ├── app/           # 应用层单元测试
+│       ├── core/          # 核心层单元测试
+│       ├── domain/        # 业务领域单元测试
+│       └── pkg/           # 工具包单元测试
 ├── logs/                  # 日志文件
 └── __debug_bin/           # 调试构建输出
 ```
@@ -249,37 +260,47 @@ go build -o bin/idiary ./cmd/idiary/main.go
 
 ### 添加新的业务模块
 
-1. 在 `internal/module/` 下创建新模块目录
-2. 实现 `handler.go`, `service.go`, `repository.go`, `types.go`
+1. 在 `internal/domain/` 下创建新模块目录
+2. 实现 `service.go`, `handler.go`, `repository.go`, `types.go`
 3. 在 `internal/app/route/` 中注册路由
-4. 如需模板访问，在 `types.go` 中实现 `RenderUser` 接口
+4. 在 `tests/unit/domain/` 和 `tests/integration/` 中添加相应测试
 
-### 添加新的模板函数
+### 运行测试
 
-1. 在 `internal/app/render/template_funcs.go` 中添加函数
-2. 在 `RegisterFuncs()` 方法中注册函数
-3. 优先使用 `RenderUser` 接口访问用户信息
+```bash
+# 运行所有测试
+go test ./tests/...
+
+# 运行特定模块的单元测试
+go test ./tests/unit/domain/post/
+
+# 运行集成测试
+go test ./tests/integration/...
+
+# 生成测试覆盖率报告
+go test -coverprofile=tests/coverage.out ./tests/...
+```
 
 ### 添加国际化消息
 
-1. 在 `internal/app/render/i18n.go` 中使用 `SetMessage()` 方法
-2. 或在 `website/static/messages/` 目录下创建语言文件
-3. 在模板中使用 `{{ getMessage "key" }}` 访问消息
+1. 在 `website/locales/` 目录下的语言文件中添加消息
+2. 在模板中使用国际化函数访问消息
+3. 前端JavaScript使用Kiko框架的i18n功能
 
 ## 最新架构特性
 
-### 渲染系统重构 (2024.07)
+### 领域驱动设计 (DDD)
 
-- **模块化设计**: 将单一的 `service.go` 拆分为7个职责单一的文件
-- **依赖注入**: 使用依赖注入模式，提高代码可测试性
-- **接口抽象**: 通过 `RenderUser` 和 `MessageService` 接口实现松耦合
-- **线程安全**: `I18nManager` 支持并发安全的消息管理
+- **领域分离**: 将业务逻辑从 `internal/module/` 迁移到 `internal/domain/`
+- **依赖注入**: 使用DI容器管理组件依赖关系
+- **接口抽象**: 通过接口实现松耦合设计
+- **测试驱动**: 完善的单元测试和集成测试覆盖
 
-### 用户认证抽象
+### 验证系统优化
 
-- 引入 `RenderUser` 接口，统一用户信息访问
-- `RenderContext` 仅包含认证相关信息
-- 页面数据通过 `Data` 字段传递，避免循环依赖
+- **分离验证逻辑**: 针对不同操作使用不同的验证方法
+- **用户ID验证**: `AddPost` 操作包含用户ID验证，`UpdatePost` 操作不包含
+- **错误处理**: 统一的错误处理机制和错误码管理
 
 ## icon copyright
 
@@ -326,11 +347,19 @@ go build -o bin/idiary ./cmd/idiary/main.go
 
 ## 数据库连接信息
 
+### 开发环境
 - 主机: 127.0.0.1
 - 端口: 3306
 - 用户名: root
 - 密码: 123123
 - 数据库名: cd
+
+### 测试环境
+- 主机: 127.0.0.1
+- 端口: 3306
+- 用户名: root
+- 密码: 123123
+- 数据库名: hebe_test
 
 ### 🎯 中间件系统 (Middleware System)
 

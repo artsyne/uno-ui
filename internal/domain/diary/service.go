@@ -55,6 +55,8 @@ func NewService() ServiceInterface {
 	}
 }
 
+// ===================== 接口实现方法 =====================
+
 // AddDiary 创建一个新的日记本
 // 参数: diary - 要创建的日记本对象
 // 返回: 新创建的日记本ID和可能的错误
@@ -132,6 +134,24 @@ func (s *Service) DecrementPostCount(diaryID int64, userID int64, userName strin
 	return s.repo.DecrementPostNum(diaryID, userID, userName, actionTime)
 }
 
+// CheckDiaryLimit 检查用户日记本数量是否超过限制
+// 参数: userID - 用户ID
+// 返回: 可能的错误
+func (s *Service) CheckDiaryLimit(userID int64) error {
+	daybookNum, err := s.repo.GetCountByUserID(userID)
+	if err != nil {
+		return errors.InvalidParams.Err()
+	}
+
+	if daybookNum > s.config.App.MaxDaybookLimit {
+		return errors.DiaryLimitExceeded.Err()
+	}
+
+	return nil
+}
+
+// ===================== 私有辅助方法 =====================
+
 // validateDiary 校验日记本参数
 // 参数: diary - 要校验的日记本对象
 // 返回: 可能的错误
@@ -148,21 +168,5 @@ func (s *Service) validateDiary(diary *Diary) error {
 	if diary.ThemeID < 1 || diary.ThemeID > 16 {
 		return errors.InvalidParams.Err()
 	}
-	return nil
-}
-
-// CheckDiaryLimit 检查用户日记本数量是否超过限制
-// 参数: userID - 用户ID
-// 返回: 可能的错误
-func (s *Service) CheckDiaryLimit(userID int64) error {
-	daybookNum, err := s.repo.GetCountByUserID(userID)
-	if err != nil {
-		return errors.InvalidParams.Err()
-	}
-
-	if daybookNum > s.config.App.MaxDaybookLimit {
-		return errors.DiaryLimitExceeded.Err()
-	}
-
 	return nil
 }

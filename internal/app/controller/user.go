@@ -222,15 +222,15 @@ func (h *userController) ShowUserActivationPage(c *gin.Context) {
 	}
 
 	// 激活用户
-	if h.service.ActivateUser(uid, sign) {
-		data := h.renderService.PageData(c, "user.activate.success.title")
-		data.Data["message"] = "账户激活成功，请登录"
-		h.renderService.HTML(c, "passport/activate_success", data)
-	} else {
+	if err := h.service.ActivateUser(uid, sign); err != nil {
 		data := h.renderService.PageData(c, "user.activate.failed.title")
 		data.Data["message"] = "激活链接无效或已过期"
 		h.renderService.HTML(c, "passport/activate_failed", data)
-	}
+	} else {
+		data := h.renderService.PageData(c, "user.activate.success.title")
+		data.Data["message"] = "账户激活成功，请登录"
+		h.renderService.HTML(c, "passport/activate_success", data)
+	} 
 }
 
 // ShowUserSettingsPage 显示用户设置页面

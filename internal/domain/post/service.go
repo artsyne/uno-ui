@@ -59,6 +59,8 @@ func NewService() ServiceInterface {
 	}
 }
 
+// ===================== 接口实现方法 =====================
+
 // AddPost 增加新的日记（post）
 // 返回新增日记ID
 // 注意：此方法不再处理日记本数量更新，需要在调用方处理
@@ -123,6 +125,8 @@ func (s *Service) UpdatePostByID(post *Post) error {
 func (s *Service) DeletePostByID(postID int64) error {
 	return s.repo.DeleteByID(postID)
 }
+
+// ===================== 私有辅助方法 =====================
 
 // validatePost 验证文章参数
 func (s *Service) validatePost(post *Post) error {
