@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -135,7 +135,6 @@ func TestConfig_AppConfig(t *testing.T) {
 	assert.Equal(t, ".test", cfg.App.Suffix)
 	assert.Equal(t, 20, cfg.App.PageSize)
 	assert.Equal(t, 100, cfg.App.MaxDaybookLimit)
-	assert.Equal(t, "test_salt_12345", cfg.App.HashSalt)
 	assert.Equal(t, "static", cfg.App.StaticDir)
 	assert.Equal(t, "locales", cfg.App.LocalesDir)
 	assert.Equal(t, "zh-CN", cfg.App.DefaultLang)

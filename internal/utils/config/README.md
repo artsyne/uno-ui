@@ -26,7 +26,7 @@ export IDIARY_DB_HOST=localhost
 ### 2. 在应用中使用配置
 
 ```go
-import "github.com/biuren/hebe/internal/core/config"
+import "github.com/biuren/hebe/internal/utils/config"
 
 func main() {
     // 初始化配置

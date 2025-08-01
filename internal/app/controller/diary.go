@@ -6,11 +6,11 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/internal/app/view"
-	"github.com/biuren/hebe/internal/core/config"
-	errors "github.com/biuren/hebe/internal/core/error"
+	"github.com/biuren/hebe/internal/utils/config"
+	errors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/user"
-	"github.com/biuren/hebe/internal/shared/contracts"
+	"github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -118,7 +118,7 @@ func (ctrl *diaryController) RenderDiaryForm(c *gin.Context) {
 	// 获取当前登录用户信息
 	loginUser := ctrl.auth.MustGetCurrentUser(c)
 
-	data := ctrl.renderService.PageData(c, "diary.form.title")
+	data := ctrl.renderService.CreatePageData(c, "diary.form.title")
 
 	// 根据action参数处理不同的表单渲染逻辑
 	action := c.Query("action")
@@ -142,7 +142,7 @@ func (ctrl *diaryController) RenderDiaryForm(c *gin.Context) {
 // 参数:
 //   - c: Gin上下文，包含请求信息和响应操作
 func (ctrl *diaryController) RenderDiary(c *gin.Context) {
-	data := ctrl.renderService.PageData(c, "diary.detail.title")
+	data := ctrl.renderService.CreatePageData(c, "diary.detail.title")
 	data.Data["Active"] = "users"
 	ctrl.renderService.HTML(c, "diary/diary", data)
 }
@@ -355,7 +355,7 @@ func (ctrl *diaryController) RenderUserProfile(c *gin.Context) {
 	}
 
 	// 创建页面数据
-	data := ctrl.renderService.PageData(c, "user.profile.title")
+	data := ctrl.renderService.CreatePageData(c, "user.profile.title")
 
 	// 判断是否为页面所有者
 	isOwner := false
@@ -447,7 +447,7 @@ func (ctrl *diaryController) ShowDiaryForm(c *gin.Context) {
 	}
 
 	// 构建表单数据
-	data := ctrl.renderService.PageData(c, "diary.form.title")
+	data := ctrl.renderService.CreatePageData(c, "diary.form.title")
 	data.Data["FormAction"] = formAction
 	data.Data["Diary"] = diaryData
 	data.Data["SupportLangs"] = config.GetSupportLangs()
@@ -484,7 +484,7 @@ func (ctrl *diaryController) ShowDiaryDetail(c *gin.Context) {
 	isOwner := isAuth && (authUser.UserId == diaryData.AddUserID)
 
 	// 构建页面数据
-	data := ctrl.renderService.PageData(c, "diary.detail.title")
+	data := ctrl.renderService.CreatePageData(c, "diary.detail.title")
 	data.Data["Diary"] = diaryData
 	data.Data["IsOwner"] = isOwner
 

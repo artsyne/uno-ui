@@ -2,9 +2,10 @@ package diary
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/biuren/hebe/internal/core/database"
-	errors "github.com/biuren/hebe/internal/core/error"
+	errors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -120,13 +121,27 @@ func (r *Repository) Update(diary *Diary) error {
 		WHERE diary_id = ?
 	`
 
-	_, err := r.db.Exec(sql,
+	result, err := r.db.Exec(sql,
 		diary.Title, diary.Remark,
 		diary.ViewSetting, diary.SocialSetting, diary.ThemeID,
 		diary.LastActionUTCTime, diary.LastActionUserID, diary.LastActionUserName,
 		diary.DiaryID)
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	// 检查是否有行被更新
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return errors.DiaryNotFound.WithDetails(fmt.Sprintf("diary with ID %d not found", diary.DiaryID))
+	}
+
+	return nil
 }
 
 // IncrementPostNum 增加日记本的日记数量

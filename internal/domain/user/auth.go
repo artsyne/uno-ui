@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/biuren/hebe/internal/core/config"
-	"github.com/biuren/hebe/internal/shared/contracts"
+	"github.com/biuren/hebe/internal/utils/config"
+	"github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )

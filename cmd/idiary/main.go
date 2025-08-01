@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/biuren/hebe/internal/app/bootstrap"
-	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/app/startup"
+	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/pkg"
 )
 

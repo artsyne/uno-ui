@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/biuren/hebe/internal/app/controller"
-	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/core/database"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"

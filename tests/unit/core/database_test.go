@@ -3,7 +3,7 @@ package core
 import (
 	"testing"
 
-	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/core/database"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -34,7 +34,6 @@ type AppConfig struct {
 	Suffix          string `json:"suffix" mapstructure:"SUFFIX" validate:"required"`
 	PageSize        int    `json:"page_size" mapstructure:"PAGE_SIZE" validate:"required,min=1,max=100"`
 	MaxDaybookLimit int    `json:"max_daybook_limit" mapstructure:"MAX_DAYBOOK_LIMIT" validate:"required,min=1,max=1000"`
-	HashSalt        string `json:"hash_salt" mapstructure:"HASH_SALT" validate:"required,min=8"`
 	StaticDir       string `json:"static_dir" mapstructure:"STATIC_DIR" validate:"required,dir"`
 	LocalesDir      string `json:"locales_dir" mapstructure:"LOCALES_DIR" validate:"required,dir"`
 	DefaultLang     string `json:"default_lang" mapstructure:"DEFAULT_LANG" validate:"required"`

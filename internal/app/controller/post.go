@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/internal/app/view"
-	"github.com/biuren/hebe/internal/core/config"
-	errors "github.com/biuren/hebe/internal/core/error"
+	"github.com/biuren/hebe/internal/utils/config"
+	errors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/domain/user"
-	"github.com/biuren/hebe/internal/shared/contracts"
+	"github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -144,7 +144,7 @@ func (ctrl *postController) RenderPostForm(c *gin.Context) {
 	// 创建模式：直接渲染空表单
 
 	// 初始化页面数据
-	data := ctrl.renderService.PageData(c, "post.form.title")
+	data := ctrl.renderService.CreatePageData(c, "post.form.title")
 	data.Data["Active"] = "users"
 	data.Data["Post"] = postData
 	// 注意：用户信息现在通过 data.Context.AuthUser 在模板中访问，无需在 Data 中设置 UserData
@@ -399,7 +399,7 @@ func (ctrl *postController) RenderDiaryIndex(c *gin.Context) {
 	isOwner := isAuth && loginUser.UserId == diaryInfo.AddUserID
 
 	// 构建页面数据
-	data := ctrl.renderService.PageData(c, "diary.index.title")
+	data := ctrl.renderService.CreatePageData(c, "diary.index.title")
 	data.Title = diaryInfo.Title + " - " + diaryInfo.AddUserName
 	data.Data["Diary"] = diaryInfo
 	data.Data["Posts"] = posts
@@ -421,7 +421,7 @@ func (ctrl *postController) RenderDiaryIndex(c *gin.Context) {
 //   - title: 错误标题
 //   - message: 错误详细信息
 func (ctrl *postController) renderErrorPage(c *gin.Context, title, message string) {
-	data := ctrl.renderService.PageData(c, "error")
+	data := ctrl.renderService.CreatePageData(c, "error")
 	data.Data["title"] = title
 	data.Data["message"] = message
 	ctrl.renderService.HTML(c, "error", data)

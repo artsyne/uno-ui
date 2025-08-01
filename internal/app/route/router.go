@@ -9,9 +9,9 @@ import (
 
 	"github.com/biuren/hebe/internal/app/controller"
 	"github.com/biuren/hebe/internal/app/view"
-	"github.com/biuren/hebe/internal/shared/i18n"
+	"github.com/biuren/hebe/internal/utils/i18n"
 	"github.com/biuren/hebe/internal/app/templates"
-	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/core/di"
 	"github.com/gin-gonic/gin"
 )

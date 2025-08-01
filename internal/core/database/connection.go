@@ -6,7 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/utils/config"
 )
 
 // 全局数据库连接

@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/utils/config"
 )
 
 // ConfigManager 配置管理器单例
@@ -120,7 +120,7 @@ func forceSetupTestEnvironment() {
 	os.Setenv("IDIARY_COOKIE_HTTP_ONLY", "true")
 	
 	// 上传配置
-	os.Setenv("IDIARY_UPLOAD_PATH", "test_uploads")
+	os.Setenv("IDIARY_UPLOAD_PATH", "tests/test_uploads")
 	os.Setenv("IDIARY_UPLOAD_TYPES", "jpg,jpeg,png,gif")
 	os.Setenv("IDIARY_UPLOAD_MAX_SIZE", "10485760")
 	
@@ -141,7 +141,7 @@ func forceSetupTestEnvironment() {
 	// 日志配置
 	os.Setenv("IDIARY_LOG_LEVEL", "info")
 	os.Setenv("IDIARY_LOG_FORMAT", "json")
-	os.Setenv("IDIARY_LOG_PATH", "test_logs")
+	os.Setenv("IDIARY_LOG_PATH", "tests/test_logs")
 	os.Setenv("IDIARY_LOG_FILENAME", "test.log")
 	os.Setenv("IDIARY_LOG_MAX_SIZE", "100")
 	os.Setenv("IDIARY_LOG_MAX_BACKUPS", "3")

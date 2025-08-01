@@ -3,8 +3,8 @@ package templates
 import (
 	"html/template"
 
-	"github.com/biuren/hebe/internal/shared/i18n"
-	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/utils/i18n"
+	"github.com/biuren/hebe/internal/utils/config"
 )
 
 // 全局本地化管理器实例（用于需要manager方法的函数）

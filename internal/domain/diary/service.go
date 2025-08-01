@@ -1,8 +1,8 @@
 package diary
 
 import (
-	"github.com/biuren/hebe/internal/core/config"
-	errors "github.com/biuren/hebe/internal/core/error"
+	"github.com/biuren/hebe/internal/utils/config"
+	errors "github.com/biuren/hebe/internal/utils/error"
 )
 
 // ServiceInterface 日记本业务逻辑层接口

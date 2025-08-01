@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/biuren/hebe/internal/core/validation"
+	"github.com/biuren/hebe/internal/utils/validation"
 	testhelpers "github.com/biuren/hebe/tests/helpers"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"

@@ -3,7 +3,7 @@ package core
 import (
 	"testing"
 
-	"github.com/biuren/hebe/internal/core/bootstrap"
+	"github.com/biuren/hebe/internal/core/initializer"
 	testhelpers "github.com/biuren/hebe/tests/helpers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

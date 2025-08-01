@@ -4,7 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/biuren/hebe/internal/core/database"
-	errors "github.com/biuren/hebe/internal/core/error"
+	errors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/pkg"
 	"github.com/jmoiron/sqlx"
 )
@@ -300,10 +300,13 @@ func (r *Repository) GetUserByUserName(userName string) (*User, error) {
 	sqlstr := "SELECT * FROM br_user WHERE user_name = ?"
 	user := &User{}
 	err := r.db.Get(user, sqlstr, userName)
-	if err == sql.ErrNoRows {
-		return nil, nil
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.UserNotFound.WithDetails("用户不存在")
+		}
+		return nil, errors.DatabaseError.WithDetails(err.Error())
 	}
-	return user, err
+	return user, nil
 }
 
 // GetUserByEmail 根据邮箱获取用户信息
@@ -311,10 +314,13 @@ func (r *Repository) GetUserByEmail(email string) (*User, error) {
 	sqlstr := "SELECT * FROM br_user WHERE email = ?"
 	user := &User{}
 	err := r.db.Get(user, sqlstr, email)
-	if err == sql.ErrNoRows {
-		return nil, nil
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.UserNotFound.WithDetails("用户不存在")
+		}
+		return nil, errors.DatabaseError.WithDetails(err.Error())
 	}
-	return user, err
+	return user, nil
 }
 
 // ===================== ValidCode 相关方法 =====================

@@ -3,24 +3,24 @@ package view
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/biuren/hebe/internal/core/config"
-	"github.com/biuren/hebe/internal/shared/contracts"
+	contracts "github.com/biuren/hebe/internal/contracts"
 )
 
-// PageDataService 负责页面数据组装
-type PageDataService interface {
-	// PageData 创建页面数据（保持向后兼容）
-	PageData(c *gin.Context, titleKey string) *types.PageData[map[string]interface{}]
+// ViewServiceInterface 视图服务接口，提供完整的视图服务功能
+type ViewServiceInterface interface {
+	// ===================== 页面数据组装 =====================
 	
-	// BuildPageData 创建页面数据（保持向后兼容）
-	BuildPageData(c *gin.Context, titleKey string, data interface{}) *types.PageData[interface{}]
+	// CreatePageData 创建页面数据
+	CreatePageData(c *gin.Context, titleKey string) *contracts.PageData[map[string]interface{}]
+	
+	// CreatePageDataWithData 创建带数据的页面数据
+	CreatePageDataWithData(c *gin.Context, titleKey string, data interface{}) *contracts.PageData[interface{}]
 	
 	// BuildRenderContext 构建渲染上下文
-	BuildRenderContext(c *gin.Context) *types.RenderContext
-}
-
-// ResponseService 负责HTTP响应处理
-type ResponseService interface {
+	BuildRenderContext(c *gin.Context) *contracts.RenderContext
+	
+	// ===================== 响应处理 =====================
+	
 	// JSON 返回JSON响应
 	JSON(c *gin.Context, code int, data interface{})
 	
@@ -38,24 +38,12 @@ type ResponseService interface {
 	
 	// Redirect 重定向响应
 	Redirect(c *gin.Context, url string)
-}
-
-// I18nService 负责国际化处理
-type I18nService interface {
+	
+	// ===================== 国际化服务 =====================
+	
 	// GetMessage 获取国际化消息
 	GetMessage(key, lang string) string
 	
-	// GetLocaleFromContext 从上下文获取语言设置
+	// GetLocaleFromContext 获取当前请求的语言环境
 	GetLocaleFromContext(c *gin.Context) string
-}
-
-// ViewServiceInterface 组合接口，提供完整的视图服务功能
-// 保持向后兼容，现有代码无需修改
-type ViewServiceInterface interface {
-	PageDataService
-	ResponseService
-	I18nService
-	
-	// GetConfig 获取配置（用于向后兼容）
-	GetConfig() *config.Config
 }

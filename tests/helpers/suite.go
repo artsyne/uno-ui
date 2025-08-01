@@ -86,9 +86,21 @@ func (s *TestSuite) setupRealServices(t *testing.T) {
 
 	// 获取注册的真实服务
 	s.UserService = di.Get[user.ServiceInterface](s.Container)
+	if s.UserService == nil {
+		t.Fatal("UserService 未能从DI容器中获取")
+	}
 	s.DiaryService = di.Get[diary.ServiceInterface](s.Container)
+	if s.DiaryService == nil {
+		t.Fatal("DiaryService 未能从DI容器中获取")
+	}
 	s.PostService = di.Get[post.ServiceInterface](s.Container)
+	if s.PostService == nil {
+		t.Fatal("PostService 未能从DI容器中获取")
+	}
 	s.TaskService = di.Get[task.ServiceInterface](s.Container)
+	if s.TaskService == nil {
+		t.Fatal("TaskService 未能从DI容器中获取")
+	}
 }
 
 // Cleanup 清理测试套件

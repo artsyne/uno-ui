@@ -95,7 +95,7 @@
         * 验证规则、业务决策点。
         * 任何会改变最终输出结果或产生副作用的行为。
     * **错误处理逻辑：**
-        * **禁止** 改变现有错误返回的条件、类型、顺序和内容（特别是 `github.com/biuren/hebe/internal/core/error` 包定义的 `*errors.AppError` 类型及其 `Code` 和 `Key`）。
+        * **禁止** 改变现有错误返回的条件、类型、顺序和内容（特别是 `github.com/biuren/hebe/internal/utils/error` 包定义的 `*errors.AppError` 类型及其 `Code` 和 `Key`）。
         * **禁止** 增加或删除现有公共 API 的错误返回路径。
     * **总之，在相同输入条件下，重构后的代码必须产生与原代码完全相同的输出和副作用。**
 

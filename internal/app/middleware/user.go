@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/gin-gonic/gin"
 )

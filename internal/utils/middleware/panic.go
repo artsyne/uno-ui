@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	errors "github.com/biuren/hebe/internal/core/error"
+	errors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/gin-gonic/gin"
 )
 

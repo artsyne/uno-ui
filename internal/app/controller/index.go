@@ -19,7 +19,7 @@ func NewController(renderService view.ViewServiceInterface) *Controller {
 
 // RenderIndex 渲染网站首页
 func (ctrl *Controller) RenderIndex(c *gin.Context) {
-	data := ctrl.renderService.PageData(c, "home.title")
+	data := ctrl.renderService.CreatePageData(c, "home.title")
 	data.Data["Active"] = "users"
 	ctrl.renderService.HTML(c, "index.html", data)
 }

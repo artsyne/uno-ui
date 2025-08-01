@@ -11,6 +11,11 @@ type ErrorDef struct {
 	HttpCode int    `json:"http_code"` // HTTP状态码
 }
 
+// Error 实现 error 接口，返回 Key 作为错误字符串
+func (def ErrorDef) Error() string {
+	return def.Key
+}
+
 // Err 创建应用错误
 func (def ErrorDef) Err() *AppError {
 	return &AppError{

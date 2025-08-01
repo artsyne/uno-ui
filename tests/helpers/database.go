@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/core/database"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mattn/go-sqlite3"

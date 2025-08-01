@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/biuren/hebe/internal/app/view"
-	types "github.com/biuren/hebe/internal/shared/contracts"
+	types "github.com/biuren/hebe/internal/contracts"
 	testhelpers "github.com/biuren/hebe/tests/helpers"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -38,7 +38,7 @@ func TestRenderService_Integration(t *testing.T) {
 		c.Set("AuthUser", getMockAuthUser())
 
 		// 创建页面数据
-		pageData := viewService.PageData(c, "nav.home")
+		pageData := viewService.CreatePageData(c, "nav.home")
 
 		// 验证结果
 		assert.NotNil(t, pageData)
@@ -142,7 +142,7 @@ func TestRenderService_PageDataWithDifferentLanguages(t *testing.T) {
 			c.Request = req
 
 			// 创建页面数据
-			pageData := viewService.PageData(c, "nav.home")
+			pageData := viewService.CreatePageData(c, "nav.home")
 
 			// 验证语言设置
 			assert.NotNil(t, pageData)
@@ -227,7 +227,7 @@ func TestRenderService_BreadcrumbGeneration(t *testing.T) {
 			tt.setupContext(c)
 
 			// 创建页面数据
-			pageData := viewService.PageData(c, "nav.home")
+			pageData := viewService.CreatePageData(c, "nav.home")
 
 			// 验证面包屑
 			assert.NotNil(t, pageData)

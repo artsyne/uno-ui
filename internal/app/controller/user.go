@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/internal/app/view"
-	"github.com/biuren/hebe/internal/core/config"
-	errors "github.com/biuren/hebe/internal/core/error"
+	"github.com/biuren/hebe/internal/utils/config"
+	errors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/internal/domain/user"
-	"github.com/biuren/hebe/internal/shared/contracts"
+	"github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -140,7 +140,7 @@ func (h *userController) ShowLoginPage(c *gin.Context) {
 		return
 	}
 
-	data := h.renderService.PageData(c, "user.login.title")
+	data := h.renderService.CreatePageData(c, "user.login.title")
 	h.renderService.HTML(c, "passport/login", data)
 }
 
@@ -152,7 +152,7 @@ func (h *userController) ShowRegisterPage(c *gin.Context) {
 		return
 	}
 
-	data := h.renderService.PageData(c, "user.register.title")
+	data := h.renderService.CreatePageData(c, "user.register.title")
 	data.Data["SupportLangs"] = config.GetSupportLangs()
 	data.Data["TimeZones"] = config.GetTimeZone()
 	h.renderService.HTML(c, "passport/register", data)
@@ -166,7 +166,7 @@ func (h *userController) ShowPasswordResetPage(c *gin.Context) {
 		return
 	}
 
-	data := h.renderService.PageData(c, "user.findpwd.title")
+	data := h.renderService.CreatePageData(c, "user.findpwd.title")
 	h.renderService.HTML(c, "passport/findpwd", data)
 }
 
@@ -176,7 +176,7 @@ func (h *userController) ShowPasswordResetForm(c *gin.Context) {
 	sign := c.Query("sign")
 
 	if uid == "" || sign == "" {
-		data := h.renderService.PageData(c, "error")
+		data := h.renderService.CreatePageData(c, "error")
 		data.Data["title"] = "参数错误"
 		data.Data["message"] = "缺少必要参数"
 		h.renderService.HTML(c, "error", data)
@@ -186,7 +186,7 @@ func (h *userController) ShowPasswordResetForm(c *gin.Context) {
 	// 解析用户ID
 	userID, err := h.service.ParseUserID(uid)
 	if err != nil {
-		data := h.renderService.PageData(c, "error")
+		data := h.renderService.CreatePageData(c, "error")
 		data.Data["title"] = "参数错误"
 		data.Data["message"] = "用户ID格式错误"
 		h.renderService.HTML(c, "error", data)
@@ -195,14 +195,14 @@ func (h *userController) ShowPasswordResetForm(c *gin.Context) {
 
 	// 检查验证码
 	if valid, _ := h.service.CheckValidCode(userID, sign, config.VALID_CODE_RESET_PWD_EMAIL); !valid {
-		data := h.renderService.PageData(c, "error")
+		data := h.renderService.CreatePageData(c, "error")
 		data.Data["title"] = "验证码无效"
 		data.Data["message"] = "验证码已过期或无效"
 		h.renderService.HTML(c, "error.html", data)
 		return
 	}
 
-	data := h.renderService.PageData(c, "user.resetpwd.title")
+	data := h.renderService.CreatePageData(c, "user.resetpwd.title")
 	data.Data["uid"] = uid
 	data.Data["sign"] = sign
 	h.renderService.HTML(c, "passport/resetpwd", data)
@@ -214,7 +214,7 @@ func (h *userController) ShowUserActivationPage(c *gin.Context) {
 	sign := c.Query("sign")
 
 	if uid == "" || sign == "" {
-		data := h.renderService.PageData(c, "error")
+		data := h.renderService.CreatePageData(c, "error")
 		data.Data["title"] = "参数错误"
 		data.Data["message"] = "缺少必要参数"
 		h.renderService.HTML(c, "error", data)
@@ -223,11 +223,11 @@ func (h *userController) ShowUserActivationPage(c *gin.Context) {
 
 	// 激活用户
 	if err := h.service.ActivateUser(uid, sign); err != nil {
-		data := h.renderService.PageData(c, "user.activate.failed.title")
+		data := h.renderService.CreatePageData(c, "user.activate.failed.title")
 		data.Data["message"] = "激活链接无效或已过期"
 		h.renderService.HTML(c, "passport/activate_failed", data)
 	} else {
-		data := h.renderService.PageData(c, "user.activate.success.title")
+		data := h.renderService.CreatePageData(c, "user.activate.success.title")
 		data.Data["message"] = "账户激活成功，请登录"
 		h.renderService.HTML(c, "passport/activate_success", data)
 	} 
@@ -241,14 +241,14 @@ func (h *userController) ShowUserSettingsPage(c *gin.Context) {
 	// 获取用户设置信息
 	userInfo, err := h.service.GetUserSettings(authUser.UserId)
 	if err != nil {
-		data := h.renderService.PageData(c, "error")
+		data := h.renderService.CreatePageData(c, "error")
 		data.Data["title"] = "错误"
 		data.Data["message"] = "获取用户信息失败"
 		h.renderService.HTML(c, "error", data)
 		return
 	}
 
-	data := h.renderService.PageData(c, "user.settings.title")
+	data := h.renderService.CreatePageData(c, "user.settings.title")
 	data.Data["UserInfo"] = userInfo
 	data.Data["SupportLangs"] = config.GetSupportLangs()
 	data.Data["TimeZones"] = config.GetTimeZone()
@@ -275,7 +275,7 @@ func (h *userController) Login(c *gin.Context) {
 
 	// 验证用户名和密码，登录名统一转为小写
 	req.LoginName = strings.ToLower(req.LoginName)
-	user, err := h.service.CheckNameAndPassword(req.LoginName, req.Pwd)
+	user, err := h.service.LoginWithUsernameOrEmail(req.LoginName, req.Pwd)
 	if err != nil {
 		h.renderService.JSONError(c, errors.PasswordIncorrect.WithDetails(err.Error()))
 		return
@@ -353,7 +353,12 @@ func (h *userController) ValidateUsername(c *gin.Context) {
 	}
 
 	// 检查用户名是否已存在
-	if h.service.IsExistUserName(userName) != nil {
+	isExistUserName, err := h.service.IsExistUserName(userName)
+	if err != nil {
+		h.renderService.JSONError(c, err)
+		return
+	}
+	if isExistUserName {
 		h.renderService.JSONError(c, errors.UserExists.WithDetails("用户名: "+userName))
 		return
 	}
@@ -372,7 +377,12 @@ func (h *userController) ValidateEmail(c *gin.Context) {
 	}
 
 	// 检查邮箱是否已存在
-	if h.service.IsExistEmail(email) != nil {
+	isExistEmail, err := h.service.IsExistEmail(email)
+	if err != nil {
+		h.renderService.JSONError(c, err)
+		return
+	}
+	if isExistEmail {
 		h.renderService.JSONError(c, errors.EmailExists.WithDetails("邮箱: "+email))
 		return
 	}

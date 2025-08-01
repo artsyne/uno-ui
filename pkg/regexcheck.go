@@ -134,7 +134,7 @@ func (ic *RegexCheck) IsEnglish(str ...string) bool {
 func (ic *RegexCheck) IsEmail(str ...string) bool {
 	var b bool
 	for _, s := range str {
-		b, _ = regexp.MatchString("^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,6})$", s)
+		b, _ = regexp.MatchString("^[a-zA-Z0-9_\\.-]+@([\\da-zA-Z\\.-]+)\\.([a-z\\.]{2,6})$", s)
 		if false == b {
 			return b
 		}

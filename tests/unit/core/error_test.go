@@ -3,7 +3,7 @@ package core
 import (
 	"testing"
 
-	errorsPkg "github.com/biuren/hebe/internal/core/error"
+	errorsPkg "github.com/biuren/hebe/internal/utils/error"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

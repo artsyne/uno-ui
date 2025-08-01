@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/biuren/hebe/internal/app/view"
-	types "github.com/biuren/hebe/internal/shared/contracts"
+	types "github.com/biuren/hebe/internal/contracts"
 	testhelpers "github.com/biuren/hebe/tests/helpers"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -45,7 +45,7 @@ func TestViewService_PageData(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Request = req
 
-		pageData := viewService.PageData(c, "nav.home")
+		pageData := viewService.CreatePageData(c, "nav.home")
 
 		assert.NotNil(t, pageData)
 		assert.False(t, pageData.IsAuthenticated())
@@ -63,7 +63,7 @@ func TestViewService_PageData(t *testing.T) {
 		c.Set("IsLogin", true)
 		c.Set("AuthUser", getMockAuthUser())
 
-		pageData := viewService.PageData(c, "nav.home")
+		pageData := viewService.CreatePageData(c, "nav.home")
 
 		assert.NotNil(t, pageData)
 		assert.True(t, pageData.IsAuthenticated())
@@ -92,7 +92,7 @@ func TestViewService_PageData(t *testing.T) {
 				c, _ := gin.CreateTestContext(w)
 				c.Request = req
 
-				pageData := viewService.PageData(c, "nav.home")
+				pageData := viewService.CreatePageData(c, "nav.home")
 
 				assert.NotNil(t, pageData)
 				assert.NotEmpty(t, pageData.Context.Lang)
@@ -190,7 +190,7 @@ func TestViewService_I18n(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Request = req
 
-		pageData := viewService.PageData(c, "nav.home")
+		pageData := viewService.CreatePageData(c, "nav.home")
 
 		assert.NotNil(t, pageData)
 		assert.NotNil(t, pageData.Context)
@@ -218,7 +218,7 @@ func TestViewService_WithRealDatabase(t *testing.T) {
 				c, _ := gin.CreateTestContext(w)
 				c.Request = req
 
-				pageData := viewService.PageData(c, "nav.home")
+				pageData := viewService.CreatePageData(c, "nav.home")
 
 				assert.NotNil(t, pageData)
 				assert.NotEmpty(t, pageData.Context.Lang)

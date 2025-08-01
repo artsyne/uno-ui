@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/biuren/hebe/internal/core/config"
+	"github.com/biuren/hebe/internal/utils/config"
 )
 
 // ConfigTestHelper 配置测试辅助工具
@@ -52,8 +52,8 @@ func ensureTestDirectories(t *testing.T) {
 	directories := []string{
 		filepath.Join(projectRoot, "website/locales"),
 		filepath.Join(projectRoot, "website/static"),
-		filepath.Join(projectRoot, "test_uploads"),
-		filepath.Join(projectRoot, "test_logs"),
+		filepath.Join(projectRoot, "tests/test_uploads"),
+		filepath.Join(projectRoot, "tests/test_logs"),
 	}
 
 	for _, dir := range directories {
