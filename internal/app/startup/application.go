@@ -1,7 +1,6 @@
 package bootstrap
 
 import (
-	"fmt"
 	"log/slog"
 	"os"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/biuren/hebe/internal/core/di"
 	"github.com/biuren/hebe/internal/domain/task"
 	utilsMiddleware "github.com/biuren/hebe/internal/utils/middleware"
+	"github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/pkg"
 )
 
@@ -38,16 +38,24 @@ func NewApplication() *Application {
 func (a *Application) Bootstrap() error {
 	// 1. 初始化核心基础设施
 	if err := a.coreInit.InitializeCore(); err != nil {
-		return fmt.Errorf("核心初始化失败: %w", err)
+		return err // 已经是统一错误格式
 	}
 
 	// 2. 获取核心组件
 	a.config = a.coreInit.GetConfig()
 	a.container = a.coreInit.GetContainer()
 
+	// 验证核心组件是否正确初始化
+	if a.config == nil {
+		return errors.ConfigError.WithDetails("配置获取失败")
+	}
+	if a.container == nil {
+		return errors.DIServiceNotRegistered.WithDetails("DI容器获取失败")
+	}
+
 	// 3. 初始化应用层组件
 	if err := a.initApplicationLayer(); err != nil {
-		return fmt.Errorf("应用层初始化失败: %w", err)
+		return err // 已经是统一错误格式
 	}
 
 	return nil

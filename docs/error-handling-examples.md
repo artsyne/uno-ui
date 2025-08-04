@@ -1,13 +1,99 @@
 # iDiary 错误处理和响应服务使用示例
 
-本文档提供了iDiary项目中错误处理和响应服务的完整使用示例，展示了如何在实际业务场景中使用新的错误处理体系。
+本文档提供了iDiary项目中错误处理和响应服务的完整使用示例，展示了如何在实际业务场景中使用新的错误处理体系。系统已全面采用统一的错误处理机制，包括初始化过程、业务逻辑和HTTP响应。
 
 ## 目录
 
-1. [ResponseService 使用示例](#responseservice-使用示例)
-2. [增强版错误处理示例](#增强版错误处理示例)
-3. [实际业务场景](#实际业务场景)
-4. [最佳实践指南](#最佳实践指南)
+1. [统一错误处理概述](#统一错误处理概述)
+2. [初始化过程错误处理](#初始化过程错误处理)
+3. [ResponseService 使用示例](#responseservice-使用示例)
+4. [增强版错误处理示例](#增强版错误处理示例)
+5. [实际业务场景](#实际业务场景)
+6. [最佳实践指南](#最佳实践指南)
+
+## 统一错误处理概述
+
+iDiary采用统一的错误处理体系，基于<mcfile name="error.go" path="internal/utils/error/error.go"></mcfile>包提供的<mcsymbol name="ErrorDef" filename="error.go" path="internal/utils/error/error.go" startline="10" type="class"></mcsymbol>和<mcsymbol name="AppError" filename="error.go" path="internal/utils/error/error.go" startline="17" type="class"></mcsymbol>类型。所有错误都使用预定义的错误码和标准化的错误格式。
+
+### 错误定义结构
+
+```go
+// ErrorDef 错误定义结构体
+type ErrorDef struct {
+    Code     int    `json:"code"`      // 错误数字码
+    Key      string `json:"key"`       // 错误标识符
+    HttpCode int    `json:"http_code"` // HTTP状态码
+}
+
+// AppError 应用错误
+type AppError struct {
+    ErrorDef        // 嵌入错误定义
+    Details  string `json:"-"` // 错误详情
+}
+```
+
+## 初始化过程错误处理
+
+### 核心初始化器错误处理
+
+**文件位置**: `internal/core/initializer/initializer.go`
+
+```go
+// internal/core/initializer/initializer.go
+func (i *Initializer) InitializeCore() error {
+    // 配置验证
+    i.config = utils.config.GetConfig()
+    if i.config == nil {
+        return errors.ConfigError.WithDetails("配置未初始化")
+    }
+
+    // 数据库初始化
+    if err := i.initDatabase(); err != nil {
+        return err // 已经是统一错误格式
+    }
+
+    // DI容器初始化
+    if err := i.initContainer(); err != nil {
+        return err // 已经是统一错误格式
+    }
+
+    return nil
+}
+
+func (i *Initializer) initDatabase() error {
+    if err := database.Connect(); err != nil {
+        return errors.DatabaseError.WithDetails("数据库连接失败: " + err.Error())
+    }
+    return nil
+}
+```
+
+### 应用层初始化错误处理
+
+```go
+// internal/app/startup/application.go
+func (a *Application) Startup() error {
+    // 核心初始化
+    if err := a.coreInit.InitializeCore(); err != nil {
+        return err // 已经是统一错误格式
+    }
+
+    // 验证核心组件
+    if a.config == nil {
+        return errors.ConfigError.WithDetails("配置获取失败")
+    }
+    if a.container == nil {
+        return errors.DIServiceNotRegistered.WithDetails("DI容器获取失败")
+    }
+
+    // 应用层初始化
+    if err := a.initApplicationLayer(); err != nil {
+        return err // 已经是统一错误格式
+    }
+
+    return nil
+}
+```
 
 ## ResponseService 使用示例
 

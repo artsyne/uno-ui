@@ -2,7 +2,7 @@
 
 ## 概述
 
-现在 `PageData` 已经集成了翻译功能，您可以在模板中直接使用 `{{.T "key"}}` 和 `{{.TWithParams "key" .params}}` 来获取多语言文本。
+现在 `ViewData` 已经集成了翻译功能，您可以在模板中直接使用 `{{.T "key"}}` 和 `{{.TWithParams "key" .params}}` 来获取多语言文本。
 
 ## 可用的翻译方法
 

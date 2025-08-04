@@ -154,7 +154,7 @@ di.Rebind(container, func() UserService {
 
 ### 1. 核心层初始化
 
-**文件**: `internal/core/bootstrap/initializer.go`
+**文件**: `internal/core/startup/initializer.go`
 
 ```go
 func (i *Initializer) initContainer() error {
@@ -171,7 +171,7 @@ func (i *Initializer) GetContainer() *di.Container {
 
 ### 2. 应用层服务注册
 
-**文件**: `internal/app/bootstrap/application.go`
+**文件**: `internal/app/startup/application.go`
 
 ```go
 func (a *Application) registerAppServices() error {

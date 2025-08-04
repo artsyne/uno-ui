@@ -7,7 +7,8 @@ import (
 	"testing"
 
 	"github.com/biuren/hebe/internal/core/di"
-	testhelpers "github.com/biuren/hebe/tests/helpers"
+	// "github.com/biuren/hebe/internal/utils/config"
+	framework "github.com/biuren/hebe/tests/framework/core"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,8 +17,8 @@ import (
 func TestRecoveryMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	// 使用配置管理器确保配置正确初始化
-	testhelpers.SetupTestConfigSafe(t)
+	ctx := framework.NewTestContext("TestRecoveryMiddleware")
+	defer ctx.Cleanup()
 
 	t.Run("panic恢复", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -69,8 +70,8 @@ func TestRecoveryMiddleware(t *testing.T) {
 func TestCustomErrorHandling(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	// 使用配置管理器确保配置正确初始化
-	testhelpers.SetupTestConfigSafe(t)
+	ctx := framework.NewTestContext("TestCustomErrorHandling")
+	defer ctx.Cleanup()
 
 	// 自定义错误处理中间件
 	errorHandlerMiddleware := func() gin.HandlerFunc {
@@ -143,8 +144,8 @@ func TestCustomErrorHandling(t *testing.T) {
 func TestMiddlewareChain(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	// 使用配置管理器确保配置正确初始化
-	testhelpers.SetupTestConfigSafe(t)
+	ctx := framework.NewTestContext("TestMiddlewareChain")
+	defer ctx.Cleanup()
 
 	t.Run("中间件执行顺序", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -222,8 +223,8 @@ func TestMiddlewareChain(t *testing.T) {
 func TestAuthenticationMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	// 使用配置管理器确保配置正确初始化
-	testhelpers.SetupTestConfigSafe(t)
+	ctx := framework.NewTestContext("TestAuthenticationMiddleware")
+	defer ctx.Cleanup()
 
 	// 模拟认证中间件
 	authMiddleware := func() gin.HandlerFunc {
@@ -327,8 +328,8 @@ func TestAuthenticationMiddleware(t *testing.T) {
 func TestCORSMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	// 使用配置管理器确保配置正确初始化
-	testhelpers.SetupTestConfigSafe(t)
+	ctx := framework.NewTestContext("TestCORSMiddleware")
+	defer ctx.Cleanup()
 
 	// 模拟CORS中间件
 	corsMiddleware := func() gin.HandlerFunc {
@@ -394,16 +395,12 @@ func TestCORSMiddleware(t *testing.T) {
 
 // TestMiddlewareWithRealServices 测试中间件与真实服务的集成
 func TestMiddlewareWithRealServices(t *testing.T) {
-	// 使用配置管理器确保配置正确初始化
-	testhelpers.SetupTestConfigSafe(t)
-
-	// 设置测试配置
-	configHelper := testhelpers.SetupTestConfig(t)
-	defer configHelper.Cleanup(t)
+	ctx := framework.NewTestContext("TestMiddlewareWithRealServices")
+	defer ctx.Cleanup()
 
 	// 创建一个简化的测试套件组件
 	container := di.New()
-	cfg := configHelper.GetTestConfig()
+	cfg := ctx.GetConfig()
 
 	gin.SetMode(gin.TestMode)
 
@@ -445,7 +442,7 @@ func TestMiddlewareWithRealServices(t *testing.T) {
 		// 创建使用配置的中间件
 		router.Use(func(c *gin.Context) {
 			c.Set("config", cfg)
-			c.Set("env", cfg.Env)
+			c.Set("env", "test")
 			c.Next()
 		})
 

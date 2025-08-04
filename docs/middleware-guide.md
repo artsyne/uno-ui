@@ -29,7 +29,7 @@ Handler Processing
 
 ### 1. PanicRecoveryMiddleware
 
-**文件位置**: `internal/core/middleware/error.go`
+**文件位置**: `internal/utils/middleware/recovery.go`
 
 **职责**: 捕获和处理panic，防止应用崩溃
 
@@ -66,7 +66,7 @@ func PanicRecoveryMiddleware() gin.HandlerFunc {
 
 ### 2. AppErrorHandlerMiddleware
 
-**文件位置**: `internal/core/middleware/error.go`
+**文件位置**: `internal/utils/middleware/error_handler.go`
 
 **职责**: 处理业务错误，统一错误响应格式
 
@@ -294,7 +294,7 @@ func ModeratorRequired() gin.HandlerFunc {
 
 ### 1. 全局中间件注册
 
-**文件位置**: `internal/app/bootstrap/application.go`
+**文件位置**: `internal/app/startup/application.go`
 
 ```go
 func (a *Application) initGinServer() error {

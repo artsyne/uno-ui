@@ -199,36 +199,33 @@ func (r *Repository) ListForWriteByUserID(userID int64) ([]Diary, error) {
 		ORDER BY last_action_utc_time DESC, diary_id DESC`
 	err := r.db.Select(&diaryArray, sqlstr, userID)
 	if err == sql.ErrNoRows {
-		return nil, nil
+		return []Diary{}, nil
 	}
 	return diaryArray, err
 }
 
 // ListByUserID 根据特定用户ID检索分页的日记本列表
-// 参数: userID - 要检索其日记本的用户ID, pageIndex - 页索引（从1开始）, pageSize - 每页项目数
-// 返回: 日记本对象切片、总数和可能的错误
+// 参数: userID - 用户ID, pageIndex - 页索引, pageSize - 每页大小
+// 返回: 日记本列表、总数和可能的错误
 func (r *Repository) ListByUserID(userID int64, pageIndex, pageSize int) ([]Diary, int, error) {
-	infoArray := []Diary{}
-	totalRecords := 0
-
-	// 计算偏移量，注意：页码通常从1开始，所以需要减1
+	diaryArray := []Diary{}
 	offset := (pageIndex - 1) * pageSize
-
-	sqlstr := `SELECT * FROM br_diary WHERE add_user_id = ? 
-		ORDER BY diary_id DESC LIMIT ? offset ?`
-
-	err := r.db.Select(&infoArray, sqlstr, userID, pageSize, offset)
+	sqlstr := `SELECT * FROM br_diary WHERE add_user_id = ?
+		ORDER BY last_action_utc_time DESC, diary_id DESC LIMIT ? OFFSET ?`
+	err := r.db.Select(&diaryArray, sqlstr, userID, pageSize, offset)
 	if err == sql.ErrNoRows {
-		return nil, 0, nil
+		return []Diary{}, 0, nil
 	}
-
-	//获取总记录数
-	totalRecords, err = r.GetCountByUserID(userID)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return infoArray, totalRecords, err
+	count, err := r.GetCountByUserID(userID)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return diaryArray, count, nil
 }
 
 // GetCountByUserID 获取用户的日记本数量
@@ -236,7 +233,13 @@ func (r *Repository) ListByUserID(userID int64, pageIndex, pageSize int) ([]Diar
 // 返回: 日记本数量和可能的错误
 func (r *Repository) GetCountByUserID(userID int64) (int, error) {
 	var count int
-	sqlstr := "SELECT COUNT(*) FROM br_diary WHERE add_user_id = ?"
+	sqlstr := "SELECT count(*) FROM br_diary WHERE add_user_id = ?"
 	err := r.db.Get(&count, sqlstr, userID)
-	return count, err
+	if err == sql.ErrNoRows {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }

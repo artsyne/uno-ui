@@ -18,16 +18,16 @@ iDiary是一个基于Go语言和Gin框架的智能日记管理系统，采用DDD
 ┌─────────────────────────────────────────────────────────────┐
 │                App Layer (应用服务层)                      │
 │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐           │
-│  │Bootstrap│ │ Route   │ │ Render  │ │Controller│           │
-│  │(启动器) │ │(路由)   │ │(渲染)   │ │(控制器) │           │
+│  │Startup  │ │ Route   │ │  View   │ │Controller│           │
+│  │(启动器) │ │(路由)   │ │(视图)   │ │(控制器) │           │
 │  └─────────┘ └─────────┘ └─────────┘ └─────────┘           │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
-│                Module Layer (业务模块层)                   │
+│                Domain Layer (业务领域层)                   │
 │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐           │
 │  │  User   │ │  Diary  │ │  Post   │ │  Task   │           │
-│  │(用户模块)│ │(日记本) │ │(内容)   │ │(任务)   │           │
+│  │(用户领域)│ │(日记领域)│ │(内容领域)│ │(任务领域)│           │
 │  │H-S-R    │ │H-S-R    │ │H-S-R    │ │Service  │           │
 │  └─────────┘ └─────────┘ └─────────┘ └─────────┘           │
 └─────────────────────────────────────────────────────────────┘
@@ -43,10 +43,12 @@ iDiary是一个基于Go语言和Gin框架的智能日记管理系统，采用DDD
 ┌─────────────────────────────────────────────────────────────┐
 │                Pkg Layer (工具层)                          │
 │  ┌─────────────────┐  ┌─────────────────┐                 │
-│  │   Utilities     │  │   Pure Helpers  │                 │
-│  │   (工具函数)    │  │   (助手函数)     │                 │
+│  │ Internal Utilities│  │ External Utilities│                 │
+│  │   (内部工具)    │  │   (外部工具)     │                 │
 │  └─────────────────┘  └─────────────────┘                 │
 └─────────────────────────────────────────────────────────────┘
+                              │
+
 ```
 
 **依赖方向**: Website → App → Module → Core → Pkg (严禁反向依赖)
@@ -57,10 +59,10 @@ iDiary是一个基于Go语言和Gin框架的智能日记管理系统，采用DDD
 
 **核心职责**: 应用编排、HTTP处理、渲染服务
 
-#### Bootstrap 模块
+#### Startup 模块
 
 - **职责**: 应用生命周期管理
-- **位置**: `internal/app/bootstrap/`
+- **位置**: `internal/app/startup/`
 - **功能**:
   - 应用启动和关闭流程编排
   - 组件初始化顺序管理
@@ -75,13 +77,12 @@ iDiary是一个基于Go语言和Gin框架的智能日记管理系统，采用DDD
   - 中间件配置
   - 静态资源路由
 
-#### Render 模块
+#### View 模块
 
-- **职责**: 统一渲染服务（整合response、view、template功能）
-- **位置**: `internal/app/render/`
+- **职责**: 统一视图服务（整合视图渲染、数据绑定和模板函数）
+- **位置**: `internal/app/view/`
 - **功能**:
-  - JSON/HTML响应处理
-  - 页面数据组装
+  - 视图渲染和数据绑定
   - 模板函数管理
   - 国际化支持
   - 错误页面渲染
@@ -235,9 +236,9 @@ Repository (数据组装)
     ↓
 Service (业务逻辑处理)
     ↓
-Handler (调用RenderService)
+Handler (调用ViewService)
     ↓
-RenderService (页面数据组装、模板渲染)
+ViewService (页面数据组装、模板渲染)
     ↓
 HTTP Response (JSON/HTML)
 ```
@@ -248,13 +249,13 @@ HTTP Response (JSON/HTML)
 
 ```go
 // 服务注册
-container.RegisterSingleton(func(c di.ContainerInterface) render.RenderServiceInterface {
+container.RegisterSingleton(func(c di.ContainerInterface) view.ViewServiceInterface {
     config := di.Resolve[*config.Config](c)
-    return render.NewRenderService(config)
+    return view.NewViewService(config)
 })
 
 // 服务解析
-renderService := di.Resolve[render.RenderServiceInterface](container)
+viewService := di.Resolve[view.ViewServiceInterface](container)
 ```
 
 ### 2. 策略模式 (错误处理)
@@ -283,17 +284,17 @@ func (e *AppError) Handle(c *gin.Context) {
 ```go
 type Handler struct {
     service     Service
-    renderSvc   render.RenderServiceInterface
+    viewSvc     view.ViewServiceInterface
 }
 
 // 统一的处理模板
 func (h *Handler) handleRequest(c *gin.Context, businessLogic func() (interface{}, error)) {
     data, err := businessLogic()
     if err != nil {
-        h.renderSvc.JSONError(c, err)
+        h.viewSvc.JSONError(c, err)
         return
     }
-    h.renderSvc.JSONSuccess(c, data)
+    h.viewSvc.JSONSuccess(c, data)
 }
 ```
 
@@ -367,7 +368,7 @@ slog.Info("用户登录",
 ### 错误处理流程
 
 1. **业务层**: 创建AppError
-2. **Handler层**: 调用RenderService处理错误
+2. **Handler层**: 调用ViewService处理错误
 3. **中间件层**: 统一错误格式和日志记录
 4. **客户端**: 接收统一格式的错误响应
 

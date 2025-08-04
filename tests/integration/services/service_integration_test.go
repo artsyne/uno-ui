@@ -6,29 +6,27 @@ import (
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/domain/user"
-	testhelpers "github.com/biuren/hebe/tests/helpers"
+	framework "github.com/biuren/hebe/tests/framework/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 // TestUserDiaryIntegration 测试用户和日记服务的集成
 func TestUserDiaryIntegration(t *testing.T) {
-	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
-		// 开始事务，确保测试数据隔离
-		db.BeginTransaction(t)
-		defer db.RollbackTransaction(t)
+	ctx := framework.NewTestContext("TestUserDiaryIntegration", framework.WithDatabase())
+	defer ctx.Cleanup()
 
-		// 创建真实的服务
-		userService := user.NewService()
-		diaryService := diary.NewService()
+	// 创建真实的服务
+	userService := user.NewService()
+	diaryService := diary.NewService()
 
-		t.Run("用户创建和日记本操作流程", func(t *testing.T) {
+	t.Run("用户创建和日记本操作流程", func(t *testing.T) {
 			// 1. 注册用户 - 使用随机数据
 			testUser := &user.User{
-				UserName: testhelpers.GenerateRandomUsername(),
-				Email:    testhelpers.GenerateRandomEmail(),
+				UserName: ctx.GetDataGenerator().GenerateUniqueString("user"),
+				Email:    ctx.GetDataGenerator().GenerateUniqueEmail("user"),
 				Pwd:      "password123",
-				FullName: testhelpers.GenerateRandomFullName(),
+				FullName: ctx.GetDataGenerator().GenerateUniqueString("fullname"),
 				TimeZone: "Asia/Shanghai",
 				Lang:     "zh-cn",
 			}
@@ -43,7 +41,7 @@ func TestUserDiaryIntegration(t *testing.T) {
 
 			// 3. 为用户创建日记本 - 使用随机数据
 			testDiary := &diary.Diary{
-				Title:         testhelpers.GenerateRandomDiaryTitle(),
+				Title:         ctx.GetDataGenerator().GenerateUniqueString("diary"),
 				Remark:        "用于集成测试的日记本",
 				AddUserID:     testUser.UserId,
 				AddUserName:   testUser.UserName,
@@ -77,28 +75,25 @@ func TestUserDiaryIntegration(t *testing.T) {
 			assert.Equal(t, "Updated Name", updatedUser.FullName)
 			assert.Equal(t, "Updated Remark", updatedUser.Remark)
 		})
-	})
 }
 
 // TestUserPostDiaryIntegration 测试用户、日记和文章服务的完整集成
 func TestUserPostDiaryIntegration(t *testing.T) {
-	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
-		// 开始事务，确保测试数据隔离
-		db.BeginTransaction(t)
-		defer db.RollbackTransaction(t)
+	ctx := framework.NewTestContext("TestUserPostDiaryIntegration", framework.WithDatabase())
+	defer ctx.Cleanup()
 
-		// 创建真实的服务
-		userService := user.NewService()
-		diaryService := diary.NewService()
-		postService := post.NewService()
+	// 创建真实的服务
+	userService := user.NewService()
+	diaryService := diary.NewService()
+	postService := post.NewService()
 
-		t.Run("完整的内容创建流程", func(t *testing.T) {
+	t.Run("完整的内容创建流程", func(t *testing.T) {
 			// 1. 创建用户 - 使用随机数据
 			testUser := &user.User{
-				UserName: testhelpers.GenerateRandomUsername(),
-				Email:    testhelpers.GenerateRandomEmail(),
+				UserName: ctx.GetDataGenerator().GenerateUniqueString("user"),
+				Email:    ctx.GetDataGenerator().GenerateUniqueEmail("user"),
 				Pwd:      "password123",
-				FullName: testhelpers.GenerateRandomFullName(),
+				FullName: ctx.GetDataGenerator().GenerateUniqueString("fullname"),
 				TimeZone: "UTC",
 				Lang:     "en",
 			}
@@ -107,7 +102,7 @@ func TestUserPostDiaryIntegration(t *testing.T) {
 
 			// 2. 创建日记本 - 使用随机数据
 			testDiary := &diary.Diary{
-				Title:        testhelpers.GenerateRandomDiaryTitle(),
+				Title:        ctx.GetDataGenerator().GenerateUniqueString("diary"),
 				Remark:       "用于内容测试",
 				AddUserID:    testUser.UserId,
 				AddUserName:  testUser.UserName,
@@ -122,8 +117,8 @@ func TestUserPostDiaryIntegration(t *testing.T) {
 
 			// 3. 在日记本中创建文章 - 使用随机数据
 			testPost := &post.Post{
-				Title:       testhelpers.GenerateRandomPostTitle(),
-				Body:        testhelpers.GenerateRandomDiaryContent(),
+				Title:       ctx.GetDataGenerator().GenerateUniqueString("post"),
+				Body:        ctx.GetDataGenerator().GenerateUniqueString("content"),
 				DiaryID:     diaryID,
 				AddUserID:   testUser.UserId,
 				AddUserName: testUser.UserName,
@@ -208,26 +203,23 @@ func TestUserPostDiaryIntegration(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, 2, finalCount) // 删除一篇后剩2篇
 		})
-	})
 }
 
 // TestMultiUserScenario 测试多用户场景
 func TestMultiUserScenario(t *testing.T) {
-	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
-		// 开始事务，确保测试数据隔离
-		db.BeginTransaction(t)
-		defer db.RollbackTransaction(t)
+	ctx := framework.NewTestContext("TestMultiUserScenario", framework.WithDatabase())
+	defer ctx.Cleanup()
 
-		// 创建真实的服务
-		userService := user.NewService()
-		diaryService := diary.NewService()
-		postService := post.NewService()
+	// 创建真实的服务
+	userService := user.NewService()
+	diaryService := diary.NewService()
+	postService := post.NewService()
 
-		t.Run("多用户数据隔离", func(t *testing.T) {
+	t.Run("多用户数据隔离", func(t *testing.T) {
 			// 创建两个用户
 			user1 := &user.User{
-				UserName: "testuser1",
-				Email:    "user1@example.com",
+				UserName: ctx.GetDataGenerator().GenerateUniqueString("testuser1"),
+				Email:    ctx.GetDataGenerator().GenerateUniqueEmail("user1"),
 				Pwd:      "password123",
 				TimeZone: "Asia/Shanghai",
 			}
@@ -235,8 +227,8 @@ func TestMultiUserScenario(t *testing.T) {
 			require.NoError(t, err)
 
 			user2 := &user.User{
-				UserName: "testuser2",
-				Email:    "user2@example.com",
+				UserName: ctx.GetDataGenerator().GenerateUniqueString("testuser2"),
+				Email:    ctx.GetDataGenerator().GenerateUniqueEmail("user2"),
 				Pwd:      "password123",
 				TimeZone: "UTC",
 			}
@@ -325,22 +317,19 @@ func TestMultiUserScenario(t *testing.T) {
 			require.NoError(t, err)
 			assert.Len(t, crossUserPosts, 0) // 用户1不能访问用户2的日记本中的文章
 		})
-	})
 }
 
 // TestServiceErrorHandling 测试服务错误处理
 func TestServiceErrorHandling(t *testing.T) {
-	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
-		// 开始事务，确保测试数据隔离
-		db.BeginTransaction(t)
-		defer db.RollbackTransaction(t)
+	ctx := framework.NewTestContext("TestServiceErrorHandling", framework.WithDatabase())
+	defer ctx.Cleanup()
 
-		// 创建真实的服务
-		userService := user.NewService()
-		diaryService := diary.NewService()
-		postService := post.NewService()
+	// 创建真实的服务
+	userService := user.NewService()
+	diaryService := diary.NewService()
+	postService := post.NewService()
 
-		t.Run("服务间错误传播", func(t *testing.T) {
+	t.Run("服务间错误传播", func(t *testing.T) {
 			// 1. 尝试为不存在的用户创建日记本
 			invalidDiary := &diary.Diary{
 				Title:        "无效日记本",
@@ -371,9 +360,10 @@ func TestServiceErrorHandling(t *testing.T) {
 			assert.Error(t, err) // 应该出错
 
 			// 3. 尝试重复注册相同的用户名
+			duplicateUserName := ctx.GetDataGenerator().GenerateUniqueString("duplicateuser")
 			user1 := &user.User{
-				UserName: "duplicateuser",
-				Email:    "dup1@example.com",
+				UserName: duplicateUserName,
+				Email:    ctx.GetDataGenerator().GenerateUniqueEmail("dup1"),
 				Pwd:      "password123",
 				TimeZone: "UTC",
 			}
@@ -381,8 +371,8 @@ func TestServiceErrorHandling(t *testing.T) {
 			require.NoError(t, err)
 
 			user2 := &user.User{
-				UserName: "duplicateuser", // 重复的用户名
-				Email:    "dup2@example.com",
+				UserName: duplicateUserName, // 重复的用户名
+				Email:    ctx.GetDataGenerator().GenerateUniqueEmail("dup2"),
 				Pwd:      "password123",
 				TimeZone: "UTC",
 			}
@@ -399,26 +389,23 @@ func TestServiceErrorHandling(t *testing.T) {
 			err = userService.RegisterUser(user3)
 			assert.Error(t, err) // 应该出错
 		})
-	})
 }
 
 // TestServicePerformance 测试服务性能
 func TestServicePerformance(t *testing.T) {
-	testhelpers.WithDatabaseTest(t, func(db *testhelpers.DatabaseTestHelper) {
-		// 开始事务，确保测试数据隔离
-		db.BeginTransaction(t)
-		defer db.RollbackTransaction(t)
+	ctx := framework.NewTestContext("TestServicePerformance", framework.WithDatabase())
+	defer ctx.Cleanup()
 
-		// 创建真实的服务
-		userService := user.NewService()
-		diaryService := diary.NewService()
-		postService := post.NewService()
+	// 创建真实的服务
+	userService := user.NewService()
+	diaryService := diary.NewService()
+	postService := post.NewService()
 
-		t.Run("批量操作性能", func(t *testing.T) {
+	t.Run("批量操作性能", func(t *testing.T) {
 			// 创建一个用户
 			testUser := &user.User{
-				UserName: "perfuser123",
-				Email:    "perf@example.com",
+				UserName: ctx.GetDataGenerator().GenerateUniqueString("perfuser"),
+				Email:    ctx.GetDataGenerator().GenerateUniqueEmail("perf"),
 				Pwd:      "password123",
 				TimeZone: "UTC",
 			}
@@ -468,5 +455,4 @@ func TestServicePerformance(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, articleCount, count)
 		})
-	})
 }

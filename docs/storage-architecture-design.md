@@ -1,12 +1,12 @@
-# 多云盘存储架构设计方案
+# 存储架构设计
 
 ## 1. 项目背景
 
 ### 1.1 项目概述
 
 - **项目名称**: idiary.ai - 智能日记管理系统
-- **核心竞争力**: 支持多云盘个人存储，用户可以将日记内容存储到自己的云盘中
-- **技术栈**: Go + Gin + MySQL + 多云盘API集成
+- **核心竞争力**: 支持多云盘个人存储，用户可以将日记内容存储到自己的云盘中，并提供统一的存储抽象层
+- **技术栈**: Go + Gin + MySQL + Redis + 多云盘API集成
 
 ### 1.2 业务特点
 
@@ -22,16 +22,14 @@
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Web层 (Gin Router)                   │
+│                    App Layer (Gin Router)               │
 ├─────────────────────────────────────────────────────────┤
-│  User模块    │  Diary模块   │  Post模块    │  Task模块   │
-│  用户管理    │  日记本管理   │  内容管理    │  任务处理   │
-│  云盘授权    │  存储配置    │  多存储支持   │  后台作业   │
+│  User        │  Diary       │  Post        │  Task       │
 ├─────────────────────────────────────────────────────────┤
-│              存储抽象层 (Storage Layer)                  │
-│    Database    │   Dropbox   │  GoogleDrive │  AliDrive │
+│              Storage Abstraction Layer (Core Layer)     │
+│    Local       │   Dropbox   │  GoogleDrive │             │
 ├─────────────────────────────────────────────────────────┤
-│                数据持久层 (MySQL)                        │
+│                Database Layer (MySQL)                   │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -44,7 +42,7 @@
   - 云盘授权管理（OAuth流程、Token刷新）
   - 用户存储偏好设置
   - 存储配额监控
-  - 认证中间件提供
+  - 提供统一的认证和授权中间件
 
 #### Diary模块
 
@@ -56,7 +54,8 @@
 
 #### Post模块
 
-- **基础职责**: 内容CRUD操作（文字、图片、视频、链接等）
+- **基础职责**: 内容CRUD操作
+  - 支持多种内容类型（文字、图片、视频、链接、文件等）
 - **核心职责**:
   - 实现多存储后端支持
   - 内容类型识别和处理
@@ -71,9 +70,9 @@
 ### 2.3 依赖关系
 
 ```
-User模块 (独立模块，提供服务)
+User模块 (独立模块，提供认证和授权服务)
    ↑
-Post模块 (依赖User获取云盘授权)
+Post模块 (依赖User获取云盘授权，并提供统一的存储服务)
    ↑
 Diary模块 (依赖Post获取内容，传递存储配置)
 ```
@@ -93,7 +92,8 @@ Diary模块 (依赖Post获取内容，传递存储配置)
 ```sql
 -- 用户基础信息表，保持现有结构并扩展存储相关字段
 ALTER TABLE br_user ADD COLUMN storage_quota_used bigint unsigned DEFAULT 0 COMMENT '已使用存储空间(字节)';
-ALTER TABLE br_user ADD COLUMN storage_quota_limit bigint unsigned DEFAULT 1073741824 COMMENT '存储配额限制(字节，默认1GB)';
+ALTER TABLE br_user ADD COLUMN storage_quota_limit bigint unsigned DEFAULT 5368709120 COMMENT '存储配额限制(字节，默认5GB)';
+
 ```
 
 #### br_diary (日记本表)
@@ -104,7 +104,7 @@ ALTER TABLE br_diary ADD COLUMN storage_config text DEFAULT NULL COMMENT '存储
 
 -- storage_config JSON结构示例:
 -- {
---   "default_type": "cloud",                    // 默认存储类型: database/cloud
+--   "default_type": "cloud",                    // 默认存储类型: database/cloud/hybrid
 --   "cloud_auth_id": 123,                       // 默认云盘授权ID
 --   "encryption_enabled": true,                 // 是否启用加密
 --   "content_strategies": {                     // 按内容类型的存储策略
@@ -146,6 +146,7 @@ ALTER TABLE br_post ADD COLUMN thumbnail_path varchar(500) DEFAULT '' COMMENT '�
 -- 4: 音频内容
 -- 5: 文件附件
 -- 6-99: 预留扩展
+-- 100: 混合存储内容
 ```
 
 ### 3.2 新增表结构
@@ -156,7 +157,7 @@ ALTER TABLE br_post ADD COLUMN thumbnail_path varchar(500) DEFAULT '' COMMENT '�
 CREATE TABLE br_cloud_authorization (
   auth_id bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '授权ID，主键',
   user_id bigint unsigned NOT NULL COMMENT '用户ID，关联br_user.user_id',
-  provider varchar(50) NOT NULL COMMENT '云盘提供商: dropbox/googledrive/alidrive/baidupan/onedrive等',
+  provider varchar(50) NOT NULL COMMENT '云盘提供商: dropbox/googledrive/alidrive/baidupan/onedrive/webdav等',
   provider_user_id varchar(255) DEFAULT '' COMMENT '云盘平台的用户ID',
   provider_email varchar(255) DEFAULT '' COMMENT '云盘平台的用户邮箱',
   access_token text COMMENT '访问令牌，AES加密存储',
@@ -182,7 +183,7 @@ CREATE TABLE br_cloud_authorization (
 ```sql
 CREATE TABLE br_user_storage_preference (
   user_id bigint unsigned NOT NULL COMMENT '用户ID，主键，关联br_user.user_id',
-  default_storage_type varchar(20) DEFAULT 'database' COMMENT '默认存储类型: database/cloud',
+  default_storage_type varchar(20) DEFAULT 'database' COMMENT '默认存储类型: database/cloud/hybrid',
   default_cloud_auth_id bigint unsigned DEFAULT NULL COMMENT '默认云盘授权ID，关联br_cloud_authorization.auth_id',
   auto_backup_enabled tinyint unsigned DEFAULT 0 COMMENT '是否启用自动备份: 0否 1是',
   backup_cloud_auth_id bigint unsigned DEFAULT NULL COMMENT '备份云盘授权ID，关联br_cloud_authorization.auth_id',
@@ -228,9 +229,9 @@ CREATE TABLE br_cloud_sync_log (
 ### 4.1 存储层级架构
 
 ```
-Service Layer (业务逻辑层)
+App Layer (应用层)
     ↓
-Storage Manager (存储管理器)
+Domain Layer (领域层)
     ↓
 Content Processor (内容处理器) → Encryption Layer (加密层)
     ↓
@@ -245,7 +246,7 @@ Storage Backend (存储后端: DB/Cloud)
 | -------- | -------- | -------- | ---------------- | ---------------- |
 | 文字日记 | Database | ✅       | Markdown渲染     | 快速检索         |
 | 图片     | Cloud    | ✅       | 缩略图生成、压缩 | 节省服务器空间   |
-| 视频     | Cloud    | ❌       | 转码、截图       | 大文件必须云存储 |
+| 视频     | Cloud    | ✅       | 转码、截图       | 大文件优先云存储，支持加密 |
 | 音频     | Cloud    | ✅       | 格式转换         | 支持多种音频格式 |
 | 文件     | Cloud    | ✅       | 病毒扫描         | 通用文件支持     |
 | 链接     | Database | ❌       | 元数据抓取       | 链接预览功能     |
@@ -279,6 +280,11 @@ Storage Backend (存储后端: DB/Cloud)
   - 支持功能: 大文件上传、秒传、分享
   - 特点: 国内访问快、容量大
 
+- **WebDAV Adapter**
+  - 协议: WebDAV
+  - 支持功能: 文件上传/下载、目录管理
+  - 特点: 广泛兼容性，适用于私有云存储
+
 ### 4.4 内容处理器设计
 
 #### Text Processor
@@ -304,7 +310,7 @@ Storage Backend (存储后端: DB/Cloud)
   - 视频压缩 (多码率)
   - 截图生成 (封面和预览)
   - 时长和分辨率检测
-- **加密**: 暂不支持 (处理复杂度高)
+- **加密**: 支持 (性能考虑可选)
 - **存储**: 必须云盘存储
 
 #### File Processor
@@ -359,6 +365,10 @@ func (m *StorageManager) RouteStorage(post *Post, config *StorageConfig) Storage
         return m.databaseAdapter
     case "cloud":
         return m.getCloudAdapter(config.CloudAuthID)
+    case "hybrid":
+        // 混合存储逻辑，例如：小文件存数据库，大文件存云盘
+        // 这里需要更复杂的判断逻辑，根据文件大小、类型等决定
+        return m.getHybridAdapter(config.CloudAuthID)
     default:
         return m.databaseAdapter // 默认回退
     }
@@ -411,8 +421,8 @@ storage:
       redirect_uri: 'https://yourdomain.com/auth/google/callback'
 
   quotas:
-    free_user: 1073741824 # 1GB
-    premium_user: 10737418240 # 10GB
+    free_user: 5368709120 # 5GB
+    premium_user: 53687091200 # 50GB
 
   processing:
     image:
@@ -475,12 +485,12 @@ storage:
 ### 9.1 短期扩展 (3个月)
 
 - 完成核心存储架构实现
-- 支持Dropbox和Google Drive
+- 支持主流云盘（Dropbox, Google Drive, 阿里云盘, WebDAV）
 - 基础的图片和视频处理
 
 ### 9.2 中期扩展 (6个月)
 
-- 新增国内云盘支持 (阿里云盘、百度网盘)
+- 支持更多云盘（如百度网盘）
 - 高级内容处理功能 (OCR、语音识别)
 - 协作功能增强
 
@@ -489,6 +499,7 @@ storage:
 - AI内容分析和推荐
 - 企业级功能 (团队协作、权限管理)
 - 开放API和第三方集成
+- 支持去中心化存储（IPFS、Filecoin等）
 
 ---
 

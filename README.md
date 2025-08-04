@@ -383,6 +383,51 @@ go test -coverprofile=tests/coverage.out ./tests/...
 - 支持AJAX表单提交
 - 响应式设计和组件化
 
+## 测试框架
+
+### 测试类型
+
+- **单元测试**: 测试单个函数和方法
+- **集成测试**: 测试模块间的交互
+- **性能基准测试**: 评估系统性能
+
+### 运行测试
+
+```bash
+# 运行所有测试
+go test ./...
+
+# 运行单元测试
+go test ./tests/unit/...
+
+# 运行集成测试
+go test ./tests/integration/...
+
+# 运行性能基准测试
+./scripts/benchmark.sh
+
+# 运行特定类型的基准测试
+./scripts/benchmark.sh user    # 用户相关测试
+./scripts/benchmark.sh diary   # 日记相关测试
+./scripts/benchmark.sh post    # 文章相关测试
+./scripts/benchmark.sh db      # 数据库相关测试
+./scripts/benchmark.sh concurrent # 并发测试
+
+# 生成测试覆盖率报告
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out
+```
+
+### 测试框架特性
+
+- **数据隔离**: 每个测试使用独立的数据库
+- **动态数据生成**: 自动生成唯一的测试数据
+- **HTTP测试助手**: 简化API测试
+- **性能监控**: 内置性能指标收集
+- **清理机制**: 自动清理测试数据
+
+详细使用指南请参考: [测试框架指南](docs/testing-framework-guide.md)
+
 ## 技术栈
 
 - **后端**: Go 1.21+, Gin Web Framework
@@ -391,6 +436,7 @@ go test -coverprofile=tests/coverage.out ./tests/...
 - **前端**: Kiko UI, jQuery 4.0, HTML5/CSS3
 - **模板**: Go HTML Template
 - **构建**: npm, Go modules
+- **测试**: Go testing, 自定义测试框架
 
 ## 特色功能
 

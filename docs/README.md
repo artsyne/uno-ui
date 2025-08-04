@@ -17,6 +17,8 @@
 - [模板函数使用指南](./template-functions-guide.md) - 丰富的模板函数和实际使用示例
 - [模板开发最佳实践](./template-usage-guide.md) - 模板开发的架构模式和最佳实践
 - [错误处理和响应服务示例](./error-handling-examples.md) - 统一错误处理体系的使用方法
+- [国际化系统指南](./internationalization-guide.md) - 多语言支持和智能语言检测
+
 
 ### 系统功能
 
@@ -27,9 +29,9 @@
 ### 分层架构
 
 - **App Layer**: 应用编排、HTTP处理、渲染服务
-- **Module Layer**: 业务逻辑实现（User、Diary、Post、Task）
+- **Domain Layer**: 业务逻辑实现（User、Diary、Post、Task）
 - **Core Layer**: 基础设施服务（Config、DI、Database、Error、Middleware）
-- **Pkg Layer**: 纯函数工具库
+- **Pkg Layer**: 纯函数工具库（通用工具和辅助功能）
 
 ### 核心技术栈
 
@@ -59,9 +61,10 @@
 
 ### 开发人员
 
-1. **前端开发**: 查看 [模板函数使用指南](./template-functions-guide.md)
+1. **前端开发**: 查看 [模板函数使用指南](./template-functions-guide.md) 和 [国际化系统指南](./internationalization-guide.md)
 2. **后端开发**: 查看 [Go 1.24泛型DI容器使用指南](./di-container-guide.md) 和 [错误处理和响应服务示例](./error-handling-examples.md)
-3. **运维人员**: 查看 [日志系统增强功能指南](./logging-enhancement-guide.md)
+3.
+4. **运维人员**: 查看 [日志系统增强功能指南](./logging-enhancement-guide.md)
 
 ### 架构师
 
@@ -152,11 +155,10 @@
 - 零内存分配
 - 类型安全的泛型接口
 
-### 统一渲染服务
-
-- 整合response、view、template功能
-- 统一的页面数据结构
-- 丰富的模板函数支持
+- **统一视图服务**
+  - 整合视图渲染、数据绑定和模板函数
+  - 统一的视图数据结构
+  - 丰富的模板函数支持
 
 ### 分层中间件
 

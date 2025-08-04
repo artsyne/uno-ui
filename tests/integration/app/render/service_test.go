@@ -7,7 +7,7 @@ import (
 
 	"github.com/biuren/hebe/internal/app/view"
 	types "github.com/biuren/hebe/internal/contracts"
-	testhelpers "github.com/biuren/hebe/tests/helpers"
+	framework "github.com/biuren/hebe/tests/framework/core"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,12 +16,11 @@ func TestRenderService_Integration(t *testing.T) {
 	// 设置测试环境
 	gin.SetMode(gin.TestMode)
 
-	// 使用测试配置辅助工具
-	configHelper := testhelpers.SetupTestConfig(t)
-	defer configHelper.Cleanup(t)
+	ctx := framework.NewTestContext("TestRenderService_Integration")
+	defer ctx.Cleanup()
 
-	// 获取测试配置
-	cfg := configHelper.GetTestConfig()
+	// 获取全局配置
+	cfg := framework.GetGlobalConfig()
 
 	// 创建视图服务
 	viewService := view.NewViewService(cfg)
@@ -98,12 +97,11 @@ func TestRenderService_PageDataWithDifferentLanguages(t *testing.T) {
 	// 设置测试环境
 	gin.SetMode(gin.TestMode)
 
-	// 使用测试配置辅助工具
-	configHelper := testhelpers.SetupTestConfig(t)
-	defer configHelper.Cleanup(t)
+	ctx := framework.NewTestContext("TestRenderService_PageDataWithDifferentLanguages")
+	defer ctx.Cleanup()
 
-	// 获取测试配置
-	cfg := configHelper.GetTestConfig()
+	// 获取全局配置
+	cfg := framework.GetGlobalConfig()
 
 	// 创建视图服务
 	viewService := view.NewViewService(cfg)
@@ -167,12 +165,11 @@ func TestRenderService_BreadcrumbGeneration(t *testing.T) {
 	// 设置测试环境
 	gin.SetMode(gin.TestMode)
 
-	// 使用测试配置辅助工具
-	configHelper := testhelpers.SetupTestConfig(t)
-	defer configHelper.Cleanup(t)
+	ctx := framework.NewTestContext("TestRenderService_BreadcrumbGeneration")
+	defer ctx.Cleanup()
 
-	// 获取测试配置
-	cfg := configHelper.GetTestConfig()
+	// 获取全局配置
+	cfg := framework.GetGlobalConfig()
 
 	// 创建视图服务
 	viewService := view.NewViewService(cfg)

@@ -10,7 +10,7 @@
 
 ```go
 // 初始化时会自动测试
-err := pkg.SetLogger(logConfig)
+err := utils.logger.SetLogger(logConfig)
 if err != nil {
     // 如果日志文件不可写，会立即返回错误
     slog.Error("日志系统初始化失败", "error", err)
@@ -24,11 +24,11 @@ if err != nil {
 
 ```go
 // 检查日志文件健康状态
-if err := pkg.CheckLogFileExists(logConfig); err != nil {
+if err := utils.logger.CheckLogFileExists(logConfig); err != nil {
     slog.Error("日志文件健康检查失败", "error", err)
 
     // 尝试恢复日志系统
-    if recoverErr := pkg.RecoverLogSystem(logConfig); recoverErr != nil {
+    if recoverErr := utils.logger.RecoverLogSystem(logConfig); recoverErr != nil {
         slog.Error("日志系统恢复失败", "error", recoverErr)
     }
 }
@@ -40,7 +40,7 @@ if err := pkg.CheckLogFileExists(logConfig); err != nil {
 
 ```go
 // 恢复日志系统
-err := pkg.RecoverLogSystem(logConfig)
+err := utils.logger.RecoverLogSystem(logConfig)
 if err != nil {
     // 恢复失败的处理
     fmt.Printf("日志系统恢复失败: %v\n", err)

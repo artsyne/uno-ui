@@ -1,9 +1,0 @@
-ok  	github.com/biuren/hebe/tests/unit/app	(cached)
-ok  	github.com/biuren/hebe/tests/unit/core	(cached)
-ok  	github.com/biuren/hebe/tests/unit/core/di	(cached)
-ok  	github.com/biuren/hebe/tests/unit/domain/diary	(cached)
-ok  	github.com/biuren/hebe/tests/unit/domain/post	(cached)
-ok  	github.com/biuren/hebe/tests/unit/domain/task	(cached)
-ok  	github.com/biuren/hebe/tests/unit/domain/user	(cached)
-ok  	github.com/biuren/hebe/tests/unit/pkg	(cached)
-Exit code: 0

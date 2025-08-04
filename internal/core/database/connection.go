@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -26,6 +27,12 @@ func Connect() error {
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
+
+	// 设置连接池参数
+	db.SetMaxOpenConns(25)                      // 最大打开连接数
+	db.SetMaxIdleConns(5)                       // 最大空闲连接数
+	db.SetConnMaxLifetime(time.Hour)            // 连接最大生存时间
+	db.SetConnMaxIdleTime(time.Minute * 10)     // 连接最大空闲时间
 
 	// 测试连接
 	if err = db.Ping(); err != nil {

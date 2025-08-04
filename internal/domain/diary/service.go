@@ -117,7 +117,21 @@ func (s *Service) ListDiariesForWrite(userID int64) ([]Diary, error) {
 // 参数: userID - 用户ID, pageIndex - 页索引, pageSize - 每页大小
 // 返回: 日记本列表、总数和可能的错误
 func (s *Service) ListDiariesByUser(userID int64, pageIndex, pageSize int) ([]Diary, int, error) {
-	return s.repo.ListByUserID(userID, pageIndex, pageSize)
+	diaries, _, err := s.repo.ListByUserID(userID, pageIndex, pageSize)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if len(diaries) == 0 {
+		return []Diary{}, 0, nil
+	}
+
+	count, err := s.repo.GetCountByUserID(userID)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return diaries, count, nil
 }
 
 // IncrementPostCount 增加日记本的日记数量

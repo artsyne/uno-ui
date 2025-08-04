@@ -1,0 +1,312 @@
+package framework
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"log/slog"
+	"os"
+	"strings"
+	"sync"
+	"time"
+
+	. "github.com/biuren/hebe/tests/framework/types"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
+)
+
+// DatabaseManager 数据库管理器
+// 提供统一的数据库连接管理，替代当前混乱的数据库连接机制
+type DatabaseManager struct {
+	db       *sqlx.DB
+	rawDB    *sql.DB
+	config   *TestConfig
+	dsn      string
+	mu       sync.RWMutex
+	healthy  bool
+	initOnce sync.Once
+}
+
+var (
+	globalDBManager   *DatabaseManager
+	dbManagerInitOnce sync.Once
+)
+
+// GetDatabaseManager 获取数据库管理器单例
+func GetDatabaseManager() *DatabaseManager {
+	dbManagerInitOnce.Do(func() {
+		config := GetTestConfig()
+		globalDBManager = &DatabaseManager{
+			config: config,
+		}
+	})
+	return globalDBManager
+}
+
+// Initialize 初始化数据库连接
+func (dm *DatabaseManager) Initialize() error {
+	var initErr error
+	dm.initOnce.Do(func() {
+		initErr = dm.doInitialize()
+	})
+	return initErr
+}
+
+// doInitialize 执行实际的初始化
+func (dm *DatabaseManager) doInitialize() error {
+	dm.mu.Lock()
+	defer dm.mu.Unlock()
+
+	// 构建DSN
+	dm.dsn = dm.buildDSN(dm.config.Database.Name)
+
+	// 确保测试数据库存在
+	if err := dm.ensureTestDatabase(); err != nil {
+		return fmt.Errorf("确保测试数据库存在失败: %w", err)
+	}
+
+	// 创建数据库连接
+	db, err := sqlx.Connect("mysql", dm.dsn)
+	if err != nil {
+		return fmt.Errorf("连接数据库失败: %w", err)
+	}
+
+	// 配置连接池
+	db.SetMaxOpenConns(dm.config.Database.MaxConns)
+	db.SetMaxIdleConns(dm.config.Database.MaxIdle)
+	db.SetConnMaxLifetime(5 * time.Minute)
+	db.SetConnMaxIdleTime(1 * time.Minute)
+
+	// 测试连接
+	if err := db.Ping(); err != nil {
+		db.Close()
+		return fmt.Errorf("数据库连接测试失败: %w", err)
+	}
+
+	dm.db = db
+	dm.rawDB = db.DB
+	dm.healthy = true
+
+	slog.Debug("数据库管理器初始化成功",
+		"database", dm.config.Database.Name,
+		"max_conns", dm.config.Database.MaxConns,
+		"max_idle", dm.config.Database.MaxIdle)
+
+	return nil
+}
+
+// buildDSN 构建数据库连接字符串
+func (dm *DatabaseManager) buildDSN(dbName string) string {
+	cfg := dm.config.Database
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=true&loc=Local&collation=%s_general_ci",
+		cfg.User, cfg.Password, cfg.Host, cfg.Port, dbName, cfg.Charset, cfg.Charset)
+}
+
+// ensureTestDatabase 确保测试数据库存在并加载schema
+func (dm *DatabaseManager) ensureTestDatabase() error {
+	// 连接到MySQL服务器（不指定数据库）
+	serverDSN := dm.buildDSN("")
+	serverDB, err := sql.Open("mysql", serverDSN)
+	if err != nil {
+		return fmt.Errorf("连接MySQL服务器失败: %w", err)
+	}
+	defer serverDB.Close()
+
+	// 创建测试数据库（如果不存在）
+	createDBSQL := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET %s COLLATE %s_unicode_ci",
+		dm.config.Database.Name, dm.config.Database.Charset, dm.config.Database.Charset)
+
+	if _, err := serverDB.Exec(createDBSQL); err != nil {
+		return fmt.Errorf("创建测试数据库失败: %w", err)
+	}
+
+	// 连接到测试数据库检查是否需要加载schema
+	testDSN := dm.buildDSN(dm.config.Database.Name)
+	testDB, err := sql.Open("mysql", testDSN)
+	if err != nil {
+		return fmt.Errorf("连接测试数据库失败: %w", err)
+	}
+	defer testDB.Close()
+
+	// 检查是否存在关键表
+	var tableCount int
+	err = testDB.QueryRow("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = ? AND table_name = 'br_user'",
+		dm.config.Database.Name).Scan(&tableCount)
+	if err != nil {
+		return fmt.Errorf("检查表是否存在失败: %w", err)
+	}
+
+	// 如果表不存在，加载schema
+	if tableCount == 0 {
+		if err := dm.loadDatabaseSchema(testDB); err != nil {
+			return fmt.Errorf("加载数据库schema失败: %w", err)
+		}
+		slog.Info("数据库schema加载完成", "database", dm.config.Database.Name)
+	}
+
+	return nil
+}
+
+// loadDatabaseSchema 加载数据库schema
+func (dm *DatabaseManager) loadDatabaseSchema(db *sql.DB) error {
+	// 读取schema文件
+	schemaPath := fmt.Sprintf("%s/sql/schema.sql", GetProjectRoot())
+	schemaBytes, err := os.ReadFile(schemaPath)
+	if err != nil {
+		return fmt.Errorf("读取schema文件失败: %w", err)
+	}
+
+	schemaSQL := string(schemaBytes)
+
+	// 分割SQL语句并执行
+	statements := splitSQL(schemaSQL)
+
+	for _, stmt := range statements {
+		stmt = strings.TrimSpace(stmt)
+		if stmt == "" || strings.HasPrefix(stmt, "--") || strings.HasPrefix(stmt, "/*") {
+			continue
+		}
+
+		// 跳过MySQL特定的语句
+		if strings.Contains(stmt, "/*!") || strings.Contains(stmt, "SET @") ||
+			strings.Contains(stmt, "SET NAMES") || strings.Contains(stmt, "LOCK TABLES") ||
+			strings.Contains(stmt, "UNLOCK TABLES") {
+			continue
+		}
+
+		if _, err := db.Exec(stmt); err != nil {
+			// 忽略一些常见的错误
+			if !strings.Contains(err.Error(), "already exists") &&
+				!strings.Contains(err.Error(), "Unknown table") {
+				slog.Warn("执行SQL语句失败", "stmt", stmt, "error", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// splitSQL 分割SQL语句
+func splitSQL(sqlContent string) []string {
+	// 简单的SQL分割，按分号分割
+	statements := strings.Split(sqlContent, ";")
+	var result []string
+
+	for _, stmt := range statements {
+		stmt = strings.TrimSpace(stmt)
+		if stmt != "" {
+			result = append(result, stmt)
+		}
+	}
+
+	return result
+}
+
+// GetDB 获取sqlx数据库连接
+func (dm *DatabaseManager) GetDB() *sqlx.DB {
+	dm.mu.RLock()
+	defer dm.mu.RUnlock()
+	return dm.db
+}
+
+// GetRawDB 获取原始数据库连接
+func (dm *DatabaseManager) GetRawDB() *sql.DB {
+	dm.mu.RLock()
+	defer dm.mu.RUnlock()
+	return dm.rawDB
+}
+
+// IsHealthy 检查数据库是否健康
+func (dm *DatabaseManager) IsHealthy() bool {
+	dm.mu.RLock()
+	defer dm.mu.RUnlock()
+
+	if !dm.healthy || dm.db == nil {
+		return false
+	}
+
+	// 尝试ping数据库
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	if err := dm.db.PingContext(ctx); err != nil {
+		dm.healthy = false
+		return false
+	}
+
+	return true
+}
+
+// Close 关闭数据库连接
+func (dm *DatabaseManager) Close() error {
+	dm.mu.Lock()
+	defer dm.mu.Unlock()
+
+	if dm.db != nil {
+		err := dm.db.Close()
+		dm.db = nil
+		dm.rawDB = nil
+		dm.healthy = false
+		return err
+	}
+
+	return nil
+}
+
+// Execute 执行SQL语句
+func (dm *DatabaseManager) Execute(query string, args ...interface{}) (sql.Result, error) {
+	if !dm.IsHealthy() {
+		return nil, fmt.Errorf("数据库连接不健康")
+	}
+
+	return dm.db.Exec(query, args...)
+}
+
+// Query 查询数据
+func (dm *DatabaseManager) Query(query string, args ...interface{}) (*sql.Rows, error) {
+	if !dm.IsHealthy() {
+		return nil, fmt.Errorf("数据库连接不健康")
+	}
+
+	return dm.db.Query(query, args...)
+}
+
+// QueryRow 查询单行数据
+func (dm *DatabaseManager) QueryRow(query string, args ...interface{}) *sql.Row {
+	return dm.db.QueryRow(query, args...)
+}
+
+// WithTransaction 在事务中执行函数
+// 注意：新框架中我们尽量避免使用事务，但保留此方法用于特殊需求
+func (dm *DatabaseManager) WithTransaction(fn func(*sql.Tx) error) error {
+	if !dm.IsHealthy() {
+		return fmt.Errorf("数据库连接不健康")
+	}
+
+	tx, err := dm.db.Begin()
+	if err != nil {
+		return fmt.Errorf("开始事务失败: %w", err)
+	}
+
+	defer func() {
+		if p := recover(); p != nil {
+			tx.Rollback()
+			panic(p)
+		}
+	}()
+
+	if err := fn(tx); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
+}
+
+// GetStats 获取数据库连接池统计信息
+func (dm *DatabaseManager) GetStats() sql.DBStats {
+	if dm.rawDB == nil {
+		return sql.DBStats{}
+	}
+	return dm.rawDB.Stats()
+}

@@ -43,7 +43,7 @@
 
 ```html
 <!-- 判断是否为页面所有者 -->
-{{ if .Data.IsOwner }}
+{{ if .IsOwner }}
 <button class="btn" data-action="showDiaryBox" data-form-action="diary.add">
   <i class="mdi mdi-plus"></i> 新增日记本
 </button>
