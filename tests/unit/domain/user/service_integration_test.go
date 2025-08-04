@@ -3,7 +3,10 @@ package user_test
 import (
 	"testing"
 
+	"github.com/biuren/hebe/internal/domain/user"
 	framework "github.com/biuren/hebe/tests/framework/core"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestUserService_Integration 使用真实数据库的集成测试示例
@@ -12,78 +15,78 @@ func TestUserService_Integration_RegisterAndLogin(t *testing.T) {
 	ctx := framework.NewTestContext("TestUserService_Integration_RegisterAndLogin", framework.WithDatabase())
 	defer ctx.Cleanup()
 
-	// 暂时跳过这个测试，因为需要重新设计服务获取方式
-	t.Skip("需要重新设计服务获取方式")
+	// 获取用户服务
+	userService := ctx.GetServices().GetUserService()
 
-		// 测试用户注册
-		// testUser := &user.User{
-		//	UserName: "integration_test_user",
-		//	Email:    "integration@example.com",
-		//	Pwd:      "password123",
-		//	TimeZone: "Asia/Shanghai",
-		//	Lang:     "zh-cn",
-		//	LastIp:   "127.0.0.1",
-		//	FullName: "集成测试用户",
-		//	Remark:   "这是一个集成测试用户",
-		// }
+	// 测试用户注册
+	testUser := &user.User{
+		UserName: ctx.GetIsolator().IsolateUsername("integration_test_user"),
+		Email:    ctx.GetIsolator().IsolateEmail("integration@example.com"),
+		Pwd:      "password123",
+		TimeZone: "Asia/Shanghai",
+		Lang:     "zh-cn",
+		LastIp:   "127.0.0.1",
+		FullName: "集成测试用户",
+		Remark:   "这是一个集成测试用户",
+	}
 
-		// 1. 测试用户注册
-		// err := userService.RegisterUser(testUser)
-		// assert.NoError(t, err, "用户注册失败")
-		// assert.Greater(t, testUser.UserId, int64(0), "用户ID应该大于0")
-		// assert.NotEqual(t, "password123", testUser.Pwd, "密码应该已加密")
+	// 1. 测试用户注册
+	err := userService.RegisterUser(testUser)
+	assert.NoError(t, err, "用户注册失败")
+	assert.Greater(t, testUser.UserId, int64(0), "用户ID应该大于0")
+	assert.NotEqual(t, "password123", testUser.Pwd, "密码应该已加密")
 
-		// 2. 测试用户名重复检查
-		// isExistUserName, err := userService.IsExistUserName("integration_test_user")
-		// assert.NoError(t, err, "检查用户名存在时出错")
-		// assert.True(t, isExistUserName, "期望用户名已存在")
+	// 2. 测试用户名重复检查
+	isExistUserName, err := userService.IsExistUserName(testUser.UserName)
+	assert.NoError(t, err, "检查用户名存在时出错")
+	assert.True(t, isExistUserName, "期望用户名已存在")
 
-		// 3. 测试邮箱重复检查
-		// isExistEmail, err := userService.IsExistEmail("integration@example.com")
-		// assert.NoError(t, err, "检查邮箱存在时出错")
-		// assert.True(t, isExistEmail, "期望邮箱已存在")
+	// 3. 测试邮箱重复检查
+	isExistEmail, err := userService.IsExistEmail(testUser.Email)
+	assert.NoError(t, err, "检查邮箱存在时出错")
+	assert.True(t, isExistEmail, "期望邮箱已存在")
 
-		// 4. 测试用户登录（用户名）
-		// loginUser, err := userService.LoginWithUsernameOrEmail("integration_test_user", "password123")
-		// require.NoError(t, err, "用户名登录失败")
-		// assert.Equal(t, testUser.UserId, loginUser.UserId, "登录用户ID不匹配")
+	// 4. 测试用户登录（用户名）
+	loginUser, err := userService.LoginWithUsernameOrEmail(testUser.UserName, "password123")
+	require.NoError(t, err, "用户名登录失败")
+	assert.Equal(t, testUser.UserId, loginUser.UserId, "登录用户ID不匹配")
 
-		// 5. 测试用户登录（邮箱）
-		// loginUser2, err := userService.LoginWithUsernameOrEmail("integration@example.com", "password123")
-		// require.NoError(t, err, "邮箱登录失败")
-		// assert.Equal(t, testUser.UserId, loginUser2.UserId, "登录用户ID不匹配")
+	// 5. 测试用户登录（邮箱）
+	loginUser2, err := userService.LoginWithUsernameOrEmail(testUser.Email, "password123")
+	require.NoError(t, err, "邮箱登录失败")
+	assert.Equal(t, testUser.UserId, loginUser2.UserId, "登录用户ID不匹配")
 
-		// 6. 测试错误密码
-		// _, err = userService.LoginWithUsernameOrEmail("integration_test_user", "wrongpassword")
-		// assert.Error(t, err, "期望密码错误")
+	// 6. 测试错误密码
+	_, err = userService.LoginWithUsernameOrEmail(testUser.UserName, "wrongpassword")
+	assert.Error(t, err, "期望密码错误")
 
-		// 7. 测试获取用户信息
-		// userInfo, err := userService.GetUserByUserId(testUser.UserId)
-		// require.NoError(t, err, "获取用户信息失败")
-		// assert.Equal(t, "integration_test_user", userInfo.UserName, "用户名不匹配")
-		// assert.Equal(t, "integration@example.com", userInfo.Email, "邮箱不匹配")
+	// 7. 测试获取用户信息
+	userInfo, err := userService.GetUserByUserId(testUser.UserId)
+	require.NoError(t, err, "获取用户信息失败")
+	assert.Equal(t, testUser.UserName, userInfo.UserName, "用户名不匹配")
+	assert.Equal(t, testUser.Email, userInfo.Email, "邮箱不匹配")
 
-		// 8. 测试更新用户资料
-		// err = userService.UpdateUserProfile(testUser.UserId, testUser.UserId, "新的全名", "新的备注")
-		// assert.NoError(t, err, "更新用户资料失败")
+	// 8. 测试更新用户资料
+	err = userService.UpdateUserProfile(testUser.UserId, testUser.UserId, "新的全名", "新的备注")
+	assert.NoError(t, err, "更新用户资料失败")
 
-		// 验证更新是否成功
-		// updatedUser, err := userService.GetUserByUserId(testUser.UserId)
-		// require.NoError(t, err, "获取更新后的用户信息失败")
-		// assert.Equal(t, "新的全名", updatedUser.FullName, "全名未更新")
-		// assert.Equal(t, "新的备注", updatedUser.Remark, "备注未更新")
+	// 验证更新是否成功
+	updatedUser, err := userService.GetUserByUserId(testUser.UserId)
+	require.NoError(t, err, "获取更新后的用户信息失败")
+	assert.Equal(t, "新的全名", updatedUser.FullName, "全名未更新")
+	assert.Equal(t, "新的备注", updatedUser.Remark, "备注未更新")
 
-		// 9. 测试修改密码
-		// err = userService.ChangeUserPassword(testUser.UserId, "password123", "newpassword456")
-		// assert.NoError(t, err, "修改密码失败")
+	// 9. 测试修改密码
+	err = userService.ChangeUserPassword(testUser.UserId, "password123", "newpassword456")
+	assert.NoError(t, err, "修改密码失败")
 
-		// 验证新密码可以登录
-		// _, err = userService.LoginWithUsernameOrEmail("integration_test_user", "newpassword456")
-		// require.NoError(t, err, "使用新密码登录失败")
+	// 验证新密码可以登录
+	_, err = userService.LoginWithUsernameOrEmail(testUser.UserName, "newpassword456")
+	require.NoError(t, err, "使用新密码登录失败")
 
-		// 验证旧密码不能登录
-		// _, err = userService.LoginWithUsernameOrEmail("integration_test_user", "password123")
-		// assert.Error(t, err, "旧密码仍然可以登录，密码修改失败")
+	// 验证旧密码不能登录
+	_, err = userService.LoginWithUsernameOrEmail(testUser.UserName, "password123")
+	assert.Error(t, err, "旧密码仍然可以登录，密码修改失败")
 
 	t.Log("集成测试完成：用户注册、登录、资料更新、密码修改等功能均正常")
 }
@@ -93,20 +96,20 @@ func TestUserService_Integration_ErrorCases(t *testing.T) {
 	ctx := framework.NewTestContext("TestUserService_Integration_ErrorCases", framework.WithDatabase())
 	defer ctx.Cleanup()
 
-	// 暂时跳过这个测试，因为需要重新设计服务获取方式
-	t.Skip("需要重新设计服务获取方式")
+	// 获取用户服务
+	userService := ctx.GetServices().GetUserService()
 
-		// 测试获取不存在的用户
-		// _, err := userService.GetUserByUserId(999999)
-		// assert.Error(t, err, "期望获取不存在用户时返回错误")
+	// 测试获取不存在的用户
+	_, err := userService.GetUserByUserId(999999)
+	assert.Error(t, err, "期望获取不存在用户时返回错误")
 
-		// 测试修改不存在用户的密码
-		// err = userService.ChangeUserPassword(999999, "oldpwd", "newpwd")
-		// assert.Error(t, err, "期望修改不存在用户密码时返回错误")
+	// 测试修改不存在用户的密码
+	err = userService.ChangeUserPassword(999999, "oldpwd", "newpwd")
+	assert.Error(t, err, "期望修改不存在用户密码时返回错误")
 
-		// 测试更新不存在用户的资料
-		// err = userService.UpdateUserProfile(999999, 999999, "新名字", "新备注")
-		// assert.Error(t, err, "期望更新不存在用户资料时返回错误")
+	// 测试更新不存在用户的资料
+	err = userService.UpdateUserProfile(999999, 999999, "新名字", "新备注")
+	assert.Error(t, err, "期望更新不存在用户资料时返回错误")
 
 	t.Log("错误情况测试完成：所有错误情况都正确处理")
 }

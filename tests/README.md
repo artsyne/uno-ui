@@ -310,20 +310,20 @@ func TestWithoutAutoCleanup(t *testing.T) {
  
 ### 命令行参数控制
 
-测试框架支持通过命令行参数控制清理行为：
+测试框架支持标准的 `go test` 语法传递参数：
 
 ```bash
-# 编译测试二进制文件并传递自定义参数
-go test -c ./tests/framework/examples/ -o test-binary
-./test-binary -test.v -test.run TestCommandLineFlagsExample -- -cleardb
-rm -f test-binary
-
-# 支持的自定义参数：
-# -cleardb      强制清理数据库
-# -verbose      详细输出
-# -parallel=false  禁用并行执行
-# -timeout=60   设置超时时间(秒)
+# 使用标准 go test 语法，需要在测试包中添加 TestMain
+go test ./tests/framework/examples/ -v -cleandb
+go test ./tests/framework/examples/ -v -cleandb -timeout=60
+go test ./tests/... -v -cleandb -parallel=false
 ```
+
+#### 支持的参数：
+- `-cleandb` - 强制清理数据库
+- `-verbose` - 详细输出
+- `-parallel=false` - 禁用并行执行
+- `-timeout=60` - 设置超时时间(秒)
 
 ### 性能基准测试
 
@@ -430,6 +430,8 @@ IDIARY_DB_PASSWORD=123123
 
 ## 📊 测试命令
 
+### 基本测试命令
+
 ```bash
 # 运行所有测试
 go test ./tests/...
@@ -440,22 +442,45 @@ go test ./tests/unit/...
 # 运行集成测试
 go test ./tests/integration/...
 
-# 强制清理数据库运行测试（需要编译二进制文件）
-go test -c ./tests/framework/examples/ -o test-binary
-./test-binary -test.v -- -cleardb
-rm -f test-binary
+# 启用详细输出
+go test ./tests/... -v
+```
 
-# 运行特定测试并强制清理
-go test -c ./tests/framework/examples/ -o test-binary
-./test-binary -test.v -test.run TestCommandLineFlagsExample -- -cleardb
-rm -f test-binary
+### 数据库清理测试
 
+```bash
+# 使用标准语法
+go test ./tests/framework/examples/ -v -cleandb
+go test ./tests/integration/... -v -cleandb
+go test ./tests/... -v -cleandb -timeout=60
+```
+
+### 性能和覆盖率测试
+
+```bash
 # 运行性能基准测试
-./scripts/benchmark.sh
+./tests/benchmark.sh
 
 # 生成覆盖率报告
 go test -coverprofile=coverage.out ./tests/...
 go tool cover -html=coverage.out
+
+# 运行特定测试
+go test ./tests/unit/core/... -v -run TestConfig
+go test ./tests/integration/... -v -cleandb -run TestUserService
+```
+
+### 高级用法
+
+```bash
+# 禁用并行测试
+go test ./tests/... -v -cleandb -parallel=false
+
+# 设置自定义超时
+go test ./tests/... -v -cleandb -timeout=120
+
+# 调试模式（保留测试数据）
+go test ./tests/integration/... -v  # 不使用 -cleandb
 ```
 
 ---

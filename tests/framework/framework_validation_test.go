@@ -181,14 +181,16 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 	})
 
 	t.Run("性能基准测试", func(t *testing.T) {
+		// 简化性能测试，减少迭代次数以适应常规测试
+		iterations := 10
 		if testing.Short() {
-			t.Skip("跳过性能测试")
+			iterations = 3 // 短模式下进一步减少
 		}
 
 		start := time.Now()
 
-		// 创建和销毁100个测试上下文
-		for i := 0; i < 100; i++ {
+		// 创建和销毁多个测试上下文
+		for i := 0; i < iterations; i++ {
 			ctx := core.NewTestContext("perf_test")
 
 			// 执行一些基本操作
