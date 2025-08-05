@@ -66,8 +66,16 @@ type FindPasswordRequest struct {
 	Email string `form:"email" json:"email"`
 }
 
+// UpdateProfileRequest 更新用户信息请求
+type UpdateProfileRequest struct {
+	UserId   int64  `form:"user_id" json:"user_id"`
+	FullName string `form:"full_name" json:"full_name"`
+	Remark   string `form:"remark" json:"remark"`
+}
+
 // UpdateEmailRequest 更新邮箱请求
 type UpdateEmailRequest struct {
+	UserId int64  `form:"user_id" json:"user_id"`
 	Email string `form:"email" json:"email"`
 }
 

@@ -19,7 +19,9 @@
                 <div>
                     <a id="user_drop" href="#" class="text-gray-500 p-0" data-tooltip-target="user_menu"
                         data-tooltip-position="bottom" data-tooltip-event="click,mouseover">
-                        <img class="w-10 h-10 rounded-full" src="{{getUserAvatar .}}" />
+                        <div class="avatar">
+                            {{getFirstCharOfName .}}
+                        </div>
                     </a>
                     <div id="user_menu" class="bg-white border border-gray-200 p-3" style="display:none;">
                         <ul>

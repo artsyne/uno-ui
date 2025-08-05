@@ -4,6 +4,8 @@ import (
 	"html/template"
 
 	"github.com/biuren/hebe/internal/contracts"
+	"strings"
+	"github.com/biuren/hebe/pkg"
 )
 
 // GetAuthFuncs 获取认证相关的模板函数
@@ -22,6 +24,8 @@ func GetAuthFuncs() template.FuncMap {
 		"getTimeZone":   getTimeZone,
 		"getLang":       getLang,
 		"getStatus":     getStatus,
+		"getFirstCharOfName": getFirstCharOfName,
+		"getRandomVersion":   getRandomVersion,
 	}
 }
 
@@ -121,4 +125,28 @@ func getStatus(data *types.PageData[map[string]interface{}]) int8 {
 		return u.Status
 	}
 	return 0
+}
+
+// getFirstCharOfName 获取用户全名或用户名的首字符，并返回大写形式，默认返回 "I"
+func getFirstCharOfName(data *types.PageData[map[string]interface{}]) string {
+	if u := authUser(data); u != nil {
+		name := ""
+		if u.FullName != "" {
+			name = u.FullName
+		} else if u.UserName != "" {
+			name = u.UserName
+		}
+
+		if name != "" {
+			for _, r := range name {
+				return strings.ToUpper(string(r))
+			}
+		}
+	}
+	return "I" // 如果没有全名或用户名，返回默认值 "I"
+}
+
+// getRandomVersion 获取随机版本号
+func getRandomVersion(data *types.PageData[map[string]interface{}]) string {
+	return pkg.Rand(32,pkg.RAND_KIND_LOWER)
 }

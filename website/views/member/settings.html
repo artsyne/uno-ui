@@ -26,10 +26,22 @@
             <div class="card-title">Profile</div>
             <form id="profile-form">
                 <div>
-                    <div class="mb-6 text-center">
-                        <img class="rounded-full w-32 h-32 mx-auto"
-                            src="https://img.alicdn.com/imgextra/i3/2215558368627/O1CN01NeBWNY2DbDmCqibhj_!!2215558368627.jpg"
-                            alt="Profile" />
+                    <!-- Avatar -->
+                    <div class="my-10 text-center">
+                        <div class="avatar-lg">
+                            {{getFirstCharOfName .}}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-title" >User Name</label>
+                        <input type="text" class="form-control" id="user_name" name="user_name" placeholder="User Name"
+                            value="{{.Data.User.UserName}}"
+                            readonly
+                          />
+                        <p class="form-info">
+                            用户名是您在 idiary.ai 的唯一标识，不能修改。
+                        </p>
                     </div>
 
                     <!-- Full name -->
@@ -37,15 +49,17 @@
                         <label class="form-title" for="full_name">Full name</label>
                         <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Full name"
                             valid='[{"type":"required"},{"type":"limit","max":50}]' value="{{.Data.User.FullName}}"
-                            data-original-value="{{.Data.User.FullName}}">
+                            data-original-value="{{.Data.User.FullName}}" />
+                        <p class="form-info">
+                            您可以在 idiary.ai 上展示您的真实姓名，如果为空则显示用户名。
+                        </p>
                     </div>
 
                     <!-- Bio -->
                     <div class="mb-4">
                         <label class="form-title" for="remark">Bio</label>
-                        <textarea class="form-control" id="remark" name="remark" placeholder="Bio" rows="3"
-                            valid='[{"type":"limit","max":250,"show":true}]' style="height: 120px;"
-                            data-original-value="I've found a way to get paid for my favorite hobby, and do so while following my dream of traveling the world.">I've found a way to get paid for my favorite hobby, and do so while following my dream of traveling the world.</textarea>
+                        <textarea class="form-control" id="remark" name="remark" 
+                            valid='[{"type":"limit","max":250,"show":true}]' style="height: 120px;">{{.Data.User.Remark}}</textarea>
                     </div>
 
                     <!-- Save buttons -->
@@ -105,8 +119,7 @@
                     <!-- Change password button -->
                     <div class="flex justify-end mt-6">
                         <button type="submit" class="btn-red" data-action="change-password">Change password</button>
-                    </div>
-                </div>
+                    </div>                </div>
             </form>
         </div>
     </section>

@@ -67,7 +67,7 @@ func TestUserService_Integration_RegisterAndLogin(t *testing.T) {
 	assert.Equal(t, testUser.Email, userInfo.Email, "邮箱不匹配")
 
 	// 8. 测试更新用户资料
-	err = userService.UpdateUserProfile(testUser.UserId, testUser.UserId, "新的全名", "新的备注")
+	err = userService.UpdateUserProfile(testUser.UserId, "新的全名", "新的备注")
 	assert.NoError(t, err, "更新用户资料失败")
 
 	// 验证更新是否成功
@@ -108,7 +108,7 @@ func TestUserService_Integration_ErrorCases(t *testing.T) {
 	assert.Error(t, err, "期望修改不存在用户密码时返回错误")
 
 	// 测试更新不存在用户的资料
-	err = userService.UpdateUserProfile(999999, 999999, "新名字", "新备注")
+	err = userService.UpdateUserProfile(999999, "新名字", "新备注")
 	assert.Error(t, err, "期望更新不存在用户资料时返回错误")
 
 	t.Log("错误情况测试完成：所有错误情况都正确处理")

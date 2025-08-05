@@ -313,17 +313,37 @@ func TestWithoutAutoCleanup(t *testing.T) {
 测试框架支持标准的 `go test` 语法传递参数：
 
 ```bash
-# 使用标准 go test 语法，需要在测试包中添加 TestMain
-go test ./tests/framework/examples/ -v -cleandb
+# 运行使用测试框架的包并清理数据库
+go test ./tests/framework/... ./tests/unit/domain/... -v -cleandb
+
+# 运行特定包的测试并清理数据库
 go test ./tests/framework/examples/ -v -cleandb -timeout=60
-go test ./tests/... -v -cleandb -parallel=false
 ```
 
 #### 支持的参数：
-- `-cleandb` - 强制清理数据库
+- `-cleandb` - 强制清理数据库（仅对使用测试框架的包有效）
 - `-verbose` - 详细输出
 - `-parallel=false` - 禁用并行执行
 - `-timeout=60` - 设置超时时间(秒)
+
+#### 重要说明
+
+**注意**: `-cleandb` 参数只对使用了测试框架的包有效。以下包使用了测试框架：
+- `./tests/framework/...` - 测试框架相关的包
+- `./tests/unit/domain/...` - 领域层测试包
+
+以下包是标准的 Go 测试文件，不支持 `-cleandb` 参数：
+- `./tests/unit/pkg/...` - 工具包测试
+
+如果要运行所有测试（包括不支持 `-cleandb` 的包），请分别运行：
+
+```bash
+# 运行使用测试框架的包（支持 -cleandb）
+go test ./tests/framework/... ./tests/unit/domain/... -v -cleandb
+
+# 运行标准测试包（不支持 -cleandb）
+go test ./tests/unit/pkg/... -v
+```
 
 ### 性能基准测试
 

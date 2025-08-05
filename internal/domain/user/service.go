@@ -72,20 +72,11 @@ type ServiceInterface interface {
 	ParseUserID(idStr string) (int64, error)
 
 	// ===================== 个人资料管理 =====================
-
-	// GetUserProfile 获取用户个人档案信息
-	GetUserProfile(uid int64, currentUserID int64) (*User, bool, error)
-
-	// GetUserSettings 获取用户设置信息
-	GetUserSettings(currentUserID int64) (*User, error)
-
 	// UpdateUserProfile 更新用户基本资料
-	UpdateUserProfile(uid int64, currentUserID int64, fullName, remark string) error
+	UpdateUserProfile(uid int64, fullName, remark string) error
 
 	// UpdateUserEmail 更新用户邮箱
-	UpdateUserEmail(uid int64, currentUserID int64, email string) error
-
-	// ===================== 系统管理相关 =====================
+	UpdateUserEmail(uid int64, email string) error
 
 	// UpdateUserStatus 更新用户状态
 	UpdateUserStatus(userId int64, status int8) (int64, error)
@@ -368,48 +359,15 @@ func (s *Service) ParseUserID(idStr string) (int64, error) {
 }
 
 // ===================== 个人资料管理 =====================
-
-// GetUserProfile 获取用户个人档案信息
-// 用于渲染用户个人主页，包含基本信息验证
-func (s *Service) GetUserProfile(uid int64, currentUserID int64) (*User, bool, error) {
-	// 获取目标用户信息
-	user, err := s.GetUserByUserId(uid)
-	if err != nil {
-		return nil, false, err
-	}
-
-	// 判断是否为用户本人
-	isOwner := (currentUserID == uid)
-
-	return user, isOwner, nil
-}
-
-// GetUserSettings 获取用户设置信息
-// 仅允许用户本人访问，返回完整的用户信息用于设置页面
-func (s *Service) GetUserSettings(uid int64) (*User, error) {
-	// 获取用户信息
-	user, err := s.GetUserByUserId(uid)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
-}
-
 // UpdateUserProfile 更新用户基本资料
 // 更新用户的全名和个人简介等信息
-func (s *Service) UpdateUserProfile(uid int64, currentUserID int64, fullName, remark string) error {
-	// 验证权限：只能修改自己的资料
-	if currentUserID != uid {
-		return appErrors.PermissionDenied.WithDetails("无权修改他人的资料")
-	}
-
+func (s *Service) UpdateUserProfile(uid int64, fullName, remark string) error {
 	// 验证输入参数
 	if len(fullName) > 50 {
-		return fmt.Errorf("全名长度不能超过50个字符")
+		return appErrors.InvalidParams.WithDetails("全名长度不能超过50个字符")
 	}
 	if len(remark) > 250 {
-		return fmt.Errorf("个人简介长度不能超过250个字符")
+		return appErrors.InvalidParams.WithDetails("个人简介长度不能超过250个字符")
 	}
 
 	// 调用repository更新用户资料
@@ -427,12 +385,7 @@ func (s *Service) UpdateUserProfile(uid int64, currentUserID int64, fullName, re
 }
 
 // UpdateUserEmail 更新用户邮箱
-func (s *Service) UpdateUserEmail(uid int64, currentUserID int64, email string) error {
-	// 验证权限：只能修改自己的邮箱
-	if uid != currentUserID {
-		return appErrors.PermissionDenied.WithDetails("无权修改他人邮箱")
-	}
-
+func (s *Service) UpdateUserEmail(uid int64, email string) error {
 	// 验证邮箱格式
 	if !s.regexCheck.IsEmail(email) {
 		return appErrors.InvalidFormat.WithDetails("邮箱格式不正确")
@@ -467,7 +420,6 @@ func (s *Service) UpdateUserEmail(uid int64, currentUserID int64, email string) 
 	return nil
 }
 
-// ===================== 系统管理相关 =====================
 
 // UpdateUserStatus 更新用户状态
 	func (s *Service) UpdateUserStatus(userId int64, status int8) (int64, error) {

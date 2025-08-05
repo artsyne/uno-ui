@@ -10,6 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestMain(m *testing.M) {
+	framework.RunTestsWithFlags(m)
+}
+
 // TestUserService_RegisterUser 测试用户注册功能
 func TestUserService_RegisterUser(t *testing.T) {
 	ctx := framework.NewTestContext("TestUserService_RegisterUser", framework.WithDatabase())
@@ -183,7 +187,7 @@ func TestUserService_UpdateUserProfile(t *testing.T) {
 	require.True(t, newUser.UserId > 0)
 
 	t.Run("成功更新资料", func(t *testing.T) {
-		err := userService.UpdateUserProfile(newUser.UserId, newUser.UserId, "Updated Name", "Updated Remark")
+		err := userService.UpdateUserProfile(newUser.UserId, "Updated Name", "Updated Remark")
 		assert.NoError(t, err)
 
 		// 验证更新是否成功
@@ -194,7 +198,7 @@ func TestUserService_UpdateUserProfile(t *testing.T) {
 	})
 
 	t.Run("用户不存在", func(t *testing.T) {
-		err := userService.UpdateUserProfile(99999, 99999, "Name", "Remark")
+		err := userService.UpdateUserProfile(99999, "Name", "Remark")
 		assert.Error(t, err)
 	})
 }
@@ -407,7 +411,7 @@ func TestUserService_UpdateUserStatus(t *testing.T) {
 
 	t.Run("成功更新邮箱", func(t *testing.T) {
 		newEmail := ctx.GetDataGenerator().GenerateUniqueEmail("user")
-		err := userService.UpdateUserEmail(newUser.UserId, newUser.UserId, newEmail)
+		err := userService.UpdateUserEmail(newUser.UserId, newEmail)
 		assert.NoError(t, err)
 
 		// 验证更新是否成功
@@ -417,7 +421,7 @@ func TestUserService_UpdateUserStatus(t *testing.T) {
 	})
 
 	t.Run("用户不存在", func(t *testing.T) {
-		err := userService.UpdateUserEmail(99999, 99999, ctx.GetDataGenerator().GenerateUniqueEmail("user"))
+		err := userService.UpdateUserEmail(99999, ctx.GetDataGenerator().GenerateUniqueEmail("user"))
 		assert.Error(t, err)
 	})
 }

@@ -69,7 +69,42 @@ go test ./tests/... -v -cleandb -timeout=60
    # ✅ 所有测试通过，包括数据库清理功能
    ```
 
+### 包兼容性修复
+
+在优化过程中发现并解决了以下问题：
+
+**问题**: 部分使用测试框架的包（如 `tests/unit/domain/user`）缺少 TestMain 函数，导致无法识别 `-cleandb` 参数。
+
+**解决方案**: 为这些包添加了 TestMain 函数：
+```go
+func TestMain(m *testing.M) {
+    framework.RunTestsWithFlags(m)
+}
+```
+
+**包分类**:
+- ✅ **支持 `-cleandb`**: `./tests/framework/...`, `./tests/unit/domain/...`
+- ❌ **不支持 `-cleandb`**: `./tests/unit/pkg/...` (标准 Go 测试文件)
+
 ## 🚀 使用指南
+
+### 基本用法
+
+```bash
+# 运行使用测试框架的包（支持 -cleandb）
+go test ./tests/framework/... ./tests/unit/domain/... -v -cleandb
+
+# 运行特定包的测试
+go test ./tests/framework/examples/ -v -cleandb
+go test ./tests/unit/domain/user/ -v -cleandb
+
+# 运行标准测试包（不支持 -cleandb）
+go test ./tests/unit/pkg/... -v
+
+# 运行所有测试（分别执行）
+go test ./tests/framework/... ./tests/unit/domain/... -v -cleandb
+go test ./tests/unit/pkg/... -v
+```
 
 ### 快速开始
 

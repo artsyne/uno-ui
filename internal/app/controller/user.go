@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/internal/app/view"
+	types "github.com/biuren/hebe/internal/contracts"
+	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/config"
 	errors "github.com/biuren/hebe/internal/utils/error"
-	"github.com/biuren/hebe/internal/domain/user"
-	"github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -230,7 +230,7 @@ func (h *userController) ShowUserActivationPage(c *gin.Context) {
 		data := h.renderService.CreatePageData(c, "user.activate.success.title")
 		data.Data["message"] = "账户激活成功，请登录"
 		h.renderService.HTML(c, "passport/activate_success", data)
-	} 
+	}
 }
 
 // ShowUserSettingsPage 显示用户设置页面
@@ -239,7 +239,7 @@ func (h *userController) ShowUserSettingsPage(c *gin.Context) {
 	authUser := h.auth.MustGetCurrentUser(c)
 
 	// 获取用户设置信息
-	userInfo, err := h.service.GetUserSettings(authUser.UserId)
+	userInfo, err := h.service.GetUserByUserId(authUser.UserId)
 	if err != nil {
 		data := h.renderService.CreatePageData(c, "error")
 		data.Data["title"] = "错误"
@@ -249,9 +249,7 @@ func (h *userController) ShowUserSettingsPage(c *gin.Context) {
 	}
 
 	data := h.renderService.CreatePageData(c, "user.settings.title")
-	data.Data["UserInfo"] = userInfo
-	data.Data["SupportLangs"] = config.GetSupportLangs()
-	data.Data["TimeZones"] = config.GetTimeZone()
+	data.Data["User"] = userInfo
 	h.renderService.HTML(c, "member/settings", data)
 }
 
@@ -261,7 +259,7 @@ func (h *userController) ShowUserSettingsPage(c *gin.Context) {
 func (h *userController) Login(c *gin.Context) {
 	// 解析登录表单数据，创建 LoginRequest 对象
 	req := &user.LoginRequest{}
-	
+
 	if err := c.Bind(req); err != nil {
 		h.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
 		return
@@ -474,28 +472,17 @@ func (h *userController) ResetPassword(c *gin.Context) {
 
 // UpdateProfile 更新用户基本资料
 func (h *userController) UpdateProfile(c *gin.Context) {
-	// 获取URL中的uid
-	uid, err := h.parseUserID(c.Param("uid"))
-	if err != nil {
-		h.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
-		return
-	}
-
-	// 检查用户是否已登录
-	isAuth, authUser := h.auth.IsAuthenticated(c)
-	if !isAuth {
-		h.renderService.JSONError(c, errors.Unauthorized.Err())
-		return
-	}
+	// 获取用户登录信息
+	authUser := h.auth.MustGetCurrentUser(c)
 
 	// 解析更新资料请求
-	req := &user.User{}
+	req := &user.UpdateProfileRequest{}
 	if err := c.Bind(req); err != nil {
 		h.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
 		return
 	}
 
-	// 设置用户ID
+	// 设置用户ID,只能修改登录用户 profile
 	req.UserId = authUser.UserId
 
 	// 验证全名格式
@@ -505,15 +492,13 @@ func (h *userController) UpdateProfile(c *gin.Context) {
 	}
 
 	// 调用service更新资料
-	if err := h.service.UpdateUserProfile(uid, authUser.UserId, req.FullName, req.Remark); err != nil {
+	if err := h.service.UpdateUserProfile(req.UserId, req.FullName, req.Remark); err != nil {
 		h.renderService.JSONError(c, err)
 		return
 	}
 
-	// 更新登录cookie中的用户信息
+	// 设置新的cookie
 	authUser.FullName = req.FullName
-	authUser.Lang = req.Lang
-	authUser.TimeZone = req.TimeZone
 	h.auth.SetLoginCookie(c, authUser)
 
 	h.renderService.JSONSuccess(c, nil)
@@ -521,27 +506,18 @@ func (h *userController) UpdateProfile(c *gin.Context) {
 
 // UpdateEmail 更新用户邮箱
 func (h *userController) UpdateEmail(c *gin.Context) {
-	// 获取URL中的uid
-	uid, err := h.parseUserID(c.Param("uid"))
-	if err != nil {
-		h.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
-		return
-	}
+	// 获取用户登录信息
+	authUser := h.auth.MustGetCurrentUser(c)
 
-	// 读取用户认证信息
-	userData, exists := c.Get("UserData")
-	if !exists {
-		h.renderService.JSONError(c, errors.Unauthorized.WithDetails("用户认证信息不存在"))
-		return
-	}
-	userLogin := userData.(types.AuthUser)
+	req := &user.UpdateEmailRequest{}
+
+	req.UserId = authUser.UserId
 
 	// 获取表单数据
-	email := c.PostForm("email")
+	req.Email = c.PostForm("email")
 
 	// 调用service更新邮箱
-	err = h.service.UpdateUserEmail(uid, userLogin.UserId, email)
-	if err != nil {
+	if err := h.service.UpdateUserEmail(req.UserId, req.Email); err != nil {
 		h.renderService.JSONError(c, errors.DatabaseError.WithDetails(err.Error()))
 		return
 	}
@@ -565,9 +541,9 @@ func (h *userController) UpdatePassword(c *gin.Context) {
 	if req.NewPwd != req.ConfirmPwd {
 		h.renderService.JSONError(c, errors.ValidationError.WithDetails("两次输入密码不一致"))
 		return
-	}	
+	}
 	// 调用service更改密码
-	err := h.service.ChangeUserPassword(authUser.UserId,  req.CurrentPwd, req.NewPwd)
+	err := h.service.ChangeUserPassword(authUser.UserId, req.CurrentPwd, req.NewPwd)
 	if err != nil {
 		h.renderService.JSONError(c, err)
 		return

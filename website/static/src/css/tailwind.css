@@ -68,3 +68,11 @@
 .card-title {
   @apply h-8 mb-2 border-b border-b-gray-300;
 }
+
+.avatar-lg {
+  @apply rounded-full w-32 h-32 mx-auto bg-gray-300 flex items-center justify-center text-4xl;
+}
+
+.avatar {
+  @apply rounded-full w-10 h-10 bg-gray-300 flex items-center justify-center text-xl;
+}

@@ -44,15 +44,24 @@ const Settings = {
         return;
       }
 
-      // 收集表单数据
       const data = {
-        full_name: form.find('#full_name').val(),
-        remark: form.find('#remark').val(),
-      };
+          full_name: form.find('#full_name').val(),
+          remark: form.find('#remark').val(),
+        };
 
-      // TODO: 实现服务端保存逻辑
-      log('保存个人资料:', data);
-      kiko.ui.notify.success(appI18n.getMessage('operation.success'));
+      // 发送POST请求保存数据
+      $.ajax({
+        url: '/u/settings/profile',
+        method: 'POST',
+        data: data,
+        success: function (response) {
+          log('保存个人资料:', response);
+          kiko.ui.notify.success(appI18n.getMessage('operation.success'));
+        },
+        error: function (response) {
+          kiko.ui.notify.error(appI18n.getMessage('operation.fail'));
+        },
+      });
     },
   },
 
