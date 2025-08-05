@@ -141,12 +141,13 @@ if err != nil {
 }
 ```
 
-#### 强制覆盖 (测试场景)
+#### 测试环境配置
 
 ```go
-// 在测试中强制覆盖生产服务
-di.Rebind(container, func() UserService {
-    return &MockUserService{}
+// 在测试中使用真实的测试数据库
+di.Rebind(container, func() DatabaseService {
+    testDB := setupTestDatabase()
+    return &PostgreSQLService{DB: testDB}
 })
 ```
 
@@ -267,16 +268,16 @@ if err := di.Bind(container, func() UserService {
 
 ```go
 func ConfigureTestServices(container *di.Container) error {
-    // 使用mock替换真实服务
-    if err := di.Bind(container, func() UserService {
-        return &MockUserService{}
+    // 使用真实的测试数据库
+    if err := di.Singleton(container, func() DatabaseService {
+        testDB := setupTestDatabase()
+        return &PostgreSQLService{DB: testDB}
     }); err != nil {
         return err
     }
 
-    if err := di.Singleton(container, func() DatabaseService {
-        return &InMemoryDatabase{}
-    }); err != nil {
+    // 使用真实的测试配置
+    if err := di.Value(container, loadTestConfig()); err != nil {
         return err
     }
 

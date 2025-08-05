@@ -2,7 +2,7 @@
 
 ## 概述
 
-Hebe 项目采用统一的测试框架，提供了一致的测试体验和强大的功能支持。本指南将帮助您快速上手并有效使用测试框架。
+Hebe 项目采用统一的测试框架，强调真实场景测试，减少Mock的使用，提供了一致的测试体验和强大的功能支持。本指南将帮助您快速上手并有效使用测试框架。
 
 ## 🚀 快速开始
 
@@ -199,32 +199,57 @@ func BenchmarkUserRegistration(b *testing.B) {
 
 ### 单元测试
 
-位于 `tests/unit/` 目录，测试单个函数或方法：
+位于 `tests/unit/` 目录，测试单个函数或方法，使用真实配置：
 
 ```go
 func TestUserValidation(t *testing.T) {
-    ctx := framework.NewTestContext("TestUserValidation")
+    ctx := framework.NewTestContext("TestUserValidation", framework.WithConfig())
     defer ctx.Cleanup()
+    
+    // 加载真实的测试配置
+    config := ctx.GetConfig()
     
     // 测试用户验证逻辑
     user := &user.User{Email: "invalid-email"}
-    err := user.Validate()
+    validator := user.NewValidator(config)
+    err := validator.Validate(user)
     assert.Error(t, err)
 }
 ```
 
 ### 集成测试
 
-位于 `tests/integration/` 目录，测试组件间的交互：
+位于 `tests/integration/` 目录，测试组件间的交互，使用真实数据库：
 
 ```go
 func TestUserServiceIntegration(t *testing.T) {
-    ctx := framework.NewTestContext("TestUserServiceIntegration", framework.WithDatabase())
+    ctx := framework.NewTestContext("TestUserServiceIntegration", 
+        framework.WithDatabase(), 
+        framework.WithConfig())
     defer ctx.Cleanup()
     
-    // 测试用户服务与数据库的集成
-    userService := user.NewService()
-    // 集成测试代码...
+    // 获取真实的测试数据库和配置
+    db := ctx.GetDatabase()
+    config := ctx.GetConfig()
+    
+    // 创建真实的仓储和服务
+    userRepo := repository.NewUserRepository(db)
+    userService := service.NewUserService(userRepo, config)
+    
+    // 测试真实场景
+    testUser := &domain.User{
+        Email:    ctx.GenerateEmail(),
+        Password: "ValidPassword123!",
+    }
+    
+    err := userService.CreateUser(testUser)
+    assert.NoError(t, err)
+    assert.NotZero(t, testUser.ID)
+    
+    // 验证数据库中的数据
+    savedUser, err := userRepo.FindByEmail(testUser.Email)
+    assert.NoError(t, err)
+    assert.Equal(t, testUser.Email, savedUser.Email)
 }
 ```
 
@@ -385,10 +410,12 @@ func TestErrorHandling(t *testing.T) {
 
 测试框架提供了：
 
+- ✅ **真实场景测试** - 使用真实数据库和配置，减少Mock依赖
 - ✅ **统一的测试体验** - 一致的API和模式
 - ✅ **自动数据管理** - 数据生成、隔离和清理
 - ✅ **强大的工具支持** - HTTP客户端、配置管理等
 - ✅ **性能测试支持** - 内置基准测试工具
 - ✅ **调试友好** - 灵活的数据保留和日志
+- ✅ **高可信度** - 真实环境测试确保代码在生产环境中的可靠性
 
-遵循本指南的最佳实践，您可以编写出高质量、可维护的测试代码。
+遵循本指南的最佳实践，您可以编写出高质量、可维护、高可信度的测试代码。
