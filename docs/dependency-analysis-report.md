@@ -430,13 +430,13 @@ internal/
 **立即行动项（本周内）**:
 ```bash
 # 创建基础设施层
-mkdir -p internal/infrastructure/{repository,external,cache}
+mkdir -p internal/infra/{repository,external,cache}
 
 # 移动仓储实现
-mv internal/domain/user/repository.go internal/infrastructure/repository/user_repository.go
-mv internal/domain/diary/repository.go internal/infrastructure/repository/diary_repository.go
-mv internal/domain/post/repository.go internal/infrastructure/repository/post_repository.go
-mv internal/domain/task/repository.go internal/infrastructure/repository/task_repository.go
+mv internal/domain/user/repository.go internal/infra/repository/user_repository.go
+mv internal/domain/diary/repository.go internal/infra/repository/diary_repository.go
+mv internal/domain/post/repository.go internal/infra/repository/post_repository.go
+mv internal/domain/task/repository.go internal/infra/repository/task_repository.go
 ```
 
 **简化方案**:
@@ -449,7 +449,7 @@ internal/
 │   │   ├── service.go     # 领域服务
 │   │   └── types.go       # 实体定义
 │   └── ...
-├── infrastructure/         # 新增：基础设施层
+├── infra/         # 新增：基础设施层
 │   └── repository/         # 仓储实现
 │       ├── user.go        # 用户仓储实现
 │       ├── diary.go       # 日记仓储实现
@@ -792,7 +792,7 @@ func TestUserService_ValidatePassword(t *testing.T) {
     defer cleanupTestDatabase(t, testDB)
     
     // 创建真实的仓储实现
-    userRepo := infrastructure.NewUserRepository(testDB)
+    userRepo := infra.NewUserRepository(testDB)
     
     // 使用真实配置创建服务
     service := domain.NewUserService(userRepo, testConfig, testConfig)
@@ -866,7 +866,7 @@ func (c *UserController) Register(ctx *gin.Context) {
 **目标**: 将仓储实现移出领域层
 
 **具体步骤**:
-1. 创建 `internal/infrastructure/repository/` 目录
+1. 创建 `internal/infra/repository/` 目录
 2. 将各领域的仓储实现移动到基础设施层
 3. 在领域层保留仓储接口
 4. 更新DI容器注册
@@ -880,7 +880,7 @@ type RepositoryInterface interface {
     // ... 其他方法
 }
 
-// infrastructure/repository/user.go (实现)
+// infra/repository/user.go (实现)
 type UserRepository struct {
     db *sqlx.DB
 }
@@ -1084,7 +1084,7 @@ func (c *UserController) createDefaultUserData(userID int64) error {
 - 违反DDD基本原则
 
 **重构后改进**:
-- 仓储实现独立在基础设施层
+- 仓储实现独立在Infra层
 - 领域层通过构造函数接收配置参数
 - 控制器层协调多领域交互
 - 符合DDD分层原则
@@ -1115,11 +1115,11 @@ func (c *UserController) createDefaultUserData(userID int64) error {
 | `domain/diary/repository.go` | 220行 | 18行 | -202行 | 仅保留接口定义 |
 | `domain/post/repository.go` | 150行 | 12行 | -138行 | 仅保留接口定义 |
 | `domain/task/repository.go` | 95行 | 10行 | -85行 | 仅保留接口定义 |
-| **新增基础设施层** | | | | |
-| `infrastructure/repository/user.go` | 0行 | 165行 | +165行 | 仓储实现迁移 |
-| `infrastructure/repository/diary.go` | 0行 | 202行 | +202行 | 仓储实现迁移 |
-| `infrastructure/repository/post.go` | 0行 | 138行 | +138行 | 仓储实现迁移 |
-| `infrastructure/repository/task.go` | 0行 | 85行 | +85行 | 仓储实现迁移 |
+| **新增Infra层** | | | | |
+| `infra/repository/user.go` | 0行 | 165行 | +165行 | 仓储实现迁移 |
+| `infra/repository/diary.go` | 0行 | 202行 | +202行 | 仓储实现迁移 |
+| `infra/repository/post.go` | 0行 | 138行 | +138行 | 仓储实现迁移 |
+| `infra/repository/task.go` | 0行 | 85行 | +85行 | 仓储实现迁移 |
 | **领域服务优化** | | | | |
 | `domain/user/service.go` | 120行 | 95行 | -25行 | 移除配置直接依赖 |
 | `domain/diary/service.go` | 85行 | 70行 | -15行 | 移除配置直接依赖 |
@@ -1127,7 +1127,7 @@ func (c *UserController) createDefaultUserData(userID int64) error {
 
 **关键指标**:
 - **领域层纯净度**: 从65%提升到95%（移除590行基础设施代码）
-- **模块内聚性**: 仓储实现集中在infrastructure层
+- **模块内聚性**: 仓储实现集中在infra层
 - **依赖复杂度**: 减少40%的跨层直接依赖
 
 ### 4. 简化的最佳实践
@@ -1226,7 +1226,7 @@ func (c *UserController) Register(ctx *gin.Context) {
 - **风险**: 低（仅移动代码）
 - **收益**: 符合DDD原则，架构评分+1.0
 - **关键任务**:
-  - 创建infrastructure目录
+  - 创建infra目录
   - 移动仓储实现
   - 更新DI注册
 
@@ -1281,7 +1281,7 @@ func TestUserService_CreateUser(t *testing.T) {
 // 重构后测试代码
 func TestUserService_CreateUser(t *testing.T) {
     // 现在使用基础设施层实现
-    repo := infrastructure.NewUserRepository(testDB)
+    repo := infra.NewUserRepository(testDB)
     service := domain.NewUserService(repo, maxAttempts)
     
     // 测试逻辑保持完全不变
@@ -1300,7 +1300,7 @@ func TestUserService_CreateUser_Integration(t *testing.T) {
     testConfig := loadTestConfig(t)
     
     // 创建真实服务
-    repo := infrastructure.NewUserRepository(testDB)
+    repo := infra.NewUserRepository(testDB)
     service := domain.NewUserService(repo, testConfig)
     
     // 测试真实场景
@@ -1413,7 +1413,7 @@ git merge refactor-phase-1
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Domain Layer  │───▶│   Contracts      │◀───│ Infrastructure  │
+│   Domain Layer  │───▶│   Contracts      │◀───│ Infra  │
 │                 │    │  (Interfaces)    │    │     Layer       │
 │ - UserService   │    │                  │    │                 │
 │ - DaybookSvc    │    │ - AuthConfig     │    │ - AppConfig     │
@@ -1507,12 +1507,12 @@ git merge refactor-phase-1
 │              Domain Layer               │
 │         (Pure Business Logic)           │
 ├─────────────────────────────────────────┤
-│           Infrastructure Layer          │
+│              Infra Layer              │
 │    (Config Implementation & Loading)    │
 └─────────────────────────────────────────┘
 
-配置流向：Infrastructure → Contracts → Domain
-依赖方向：Domain → Contracts ← Infrastructure
+配置流向：Infra → Contracts → Domain
+依赖方向：Domain → Contracts ← Infra
 ```
 
 **核心特征**：
@@ -1595,16 +1595,16 @@ iDiary.ai Hebe项目展现了良好的架构基础，采用了DDD分层架构和
 
 #### 重构后理想依赖矩阵
 
-| 层级 | App | Domain | Infrastructure | Utils | Contracts |
+| 层级 | App | Domain | Infra | Utils | Contracts |
 |------|-----|--------|----------------|-------|-----------|
 | App | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Domain | ❌ | ✅ | ❌ | ✅ | ✅ |
-| Infrastructure | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Infra | ❌ | ✅ | ✅ | ✅ | ✅ |
 | Utils | ❌ | ❌ | ❌ | ✅ | ✅ |
 | Contracts | ❌ | ❌ | ❌ | ❌ | ✅ |
 
 **优化效果**：
-- ✅ **新增Infrastructure层**：承接所有仓储实现，形成清晰的基础设施边界
+- ✅ **新增Infra层**：承接所有仓储实现，形成清晰的Infra边界
 - ✅ **配置依赖优化**：通过细粒度配置接口替代直接依赖，实现配置解耦
 - ✅ **Domain层纯净化**：移除对Core的直接依赖，仅保留对Utils和Contracts的合理依赖
 - ✅ **依赖方向单一化**：所有依赖指向下层，符合DDD分层原则
@@ -1616,7 +1616,7 @@ iDiary.ai Hebe项目展现了良好的架构基础，采用了DDD分层架构和
 ### C. 重构检查清单（简化版）
 
 **Phase 1: 仓储分离（1-2周）**:
-- [ ] 创建 `internal/infrastructure/repository/` 目录
+- [ ] 创建 `internal/infra/repository/` 目录
 - [ ] 移动 `domain/*/repository.go` 到基础设施层
 - [ ] 保持接口定义在领域层
 - [ ] 更新DI容器注册仓储实现
@@ -1648,7 +1648,7 @@ iDiary.ai Hebe项目展现了良好的架构基础，采用了DDD分层架构和
 
 ### D. 报告生成信息
 
-- **生成时间**: 2024年12月
+- **生成时间**: 2025年07月
 - **分析工具**: 手动代码审查 + 依赖分析
 - **报告版本**: v1.0
 - **下次更新**: 重构完成后
