@@ -5,7 +5,9 @@ import (
 
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
+	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
+	"github.com/biuren/hebe/internal/infra/repository"
 	core "github.com/biuren/hebe/tests/framework/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,9 +27,14 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		defer ctx.Cleanup() // 正常清理
 
 		// 创建服务
-		userService := user.NewService()
-		diaryService := diary.NewService()
-		postService := post.NewService()
+		userRepo := repository.NewUserRepository()
+		taskRepo := repository.NewTaskRepository()
+		taskService := task.NewService(taskRepo)
+		userService := user.NewService(userRepo, taskService)
+		diaryRepo := repository.NewDiaryRepository()
+		diaryService := diary.NewService(diaryRepo)
+		postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+		postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
 
 		// 创建一些测试数据
 		generator := ctx.GetDataGenerator()
@@ -65,8 +72,12 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		ctx := core.NewTestContext("force_cleanup_example", core.WithDatabase(), core.WithCleanupEnabled(false))
 
 		// 创建服务
-		userService := user.NewService()
-		diaryService := diary.NewService()
+		userRepo := repository.NewUserRepository()
+		taskRepo := repository.NewTaskRepository()
+		taskService := task.NewService(taskRepo)
+		userService := user.NewService(userRepo, taskService)
+		diaryRepo := repository.NewDiaryRepository()
+		diaryService := diary.NewService(diaryRepo)
 
 		// 创建一些测试数据
 		generator := ctx.GetDataGenerator()
@@ -103,7 +114,10 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		ctx := core.NewTestContext("manual_cleanup_example", core.WithDatabase())
 
 		// 创建服务
-		userService := user.NewService()
+		userRepo := repository.NewUserRepository()
+		taskRepo := repository.NewTaskRepository()
+		taskService := task.NewService(taskRepo)
+		userService := user.NewService(userRepo, taskService)
 
 		// 创建第一批测试数据
 		generator := ctx.GetDataGenerator()
@@ -146,7 +160,10 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		defer ctx.Cleanup()
 
 		// 创建服务
-		userService := user.NewService()
+		userRepo := repository.NewUserRepository()
+		taskRepo := repository.NewTaskRepository()
+		taskService := task.NewService(taskRepo)
+		userService := user.NewService(userRepo, taskService)
 
 		// 创建测试数据
 		generator := ctx.GetDataGenerator()

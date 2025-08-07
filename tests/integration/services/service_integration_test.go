@@ -5,7 +5,9 @@ import (
 
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
+	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
+	"github.com/biuren/hebe/internal/infra/repository"
 	framework "github.com/biuren/hebe/tests/framework/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,8 +19,12 @@ func TestUserDiaryIntegration(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
-	userService := user.NewService()
-	diaryService := diary.NewService()
+	userRepo := repository.NewUserRepository()
+	taskRepo := repository.NewTaskRepository()
+	diaryRepo := repository.NewDiaryRepository()
+	taskService := task.NewService(taskRepo)
+	userService := user.NewService(userRepo, taskService)
+	diaryService := diary.NewService(diaryRepo)
 
 	t.Run("用户创建和日记本操作流程", func(t *testing.T) {
 			// 1. 注册用户 - 使用随机数据
@@ -83,9 +89,14 @@ func TestUserPostDiaryIntegration(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
-	userService := user.NewService()
-	diaryService := diary.NewService()
-	postService := post.NewService()
+	userRepo := repository.NewUserRepository()
+	taskRepo := repository.NewTaskRepository()
+	diaryRepo := repository.NewDiaryRepository()
+	taskService := task.NewService(taskRepo)
+	userService := user.NewService(userRepo, taskService)
+	diaryService := diary.NewService(diaryRepo)
+	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
 
 	t.Run("完整的内容创建流程", func(t *testing.T) {
 			// 1. 创建用户 - 使用随机数据
@@ -211,9 +222,14 @@ func TestMultiUserScenario(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
-	userService := user.NewService()
-	diaryService := diary.NewService()
-	postService := post.NewService()
+	userRepo := repository.NewUserRepository()
+	taskRepo := repository.NewTaskRepository()
+	diaryRepo := repository.NewDiaryRepository()
+	taskService := task.NewService(taskRepo)
+	userService := user.NewService(userRepo, taskService)
+	diaryService := diary.NewService(diaryRepo)
+	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
 
 	t.Run("多用户数据隔离", func(t *testing.T) {
 			// 创建两个用户
@@ -325,9 +341,14 @@ func TestServiceErrorHandling(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
-	userService := user.NewService()
-	diaryService := diary.NewService()
-	postService := post.NewService()
+	userRepo := repository.NewUserRepository()
+	taskRepo := repository.NewTaskRepository()
+	diaryRepo := repository.NewDiaryRepository()
+	taskService := task.NewService(taskRepo)
+	userService := user.NewService(userRepo, taskService)
+	diaryService := diary.NewService(diaryRepo)
+	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
 
 	t.Run("服务间错误传播", func(t *testing.T) {
 			// 1. 尝试为不存在的用户创建日记本
@@ -397,9 +418,14 @@ func TestServicePerformance(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
-	userService := user.NewService()
-	diaryService := diary.NewService()
-	postService := post.NewService()
+	userRepo := repository.NewUserRepository()
+	taskRepo := repository.NewTaskRepository()
+	diaryRepo := repository.NewDiaryRepository()
+	taskService := task.NewService(taskRepo)
+	userService := user.NewService(userRepo, taskService)
+	diaryService := diary.NewService(diaryRepo)
+	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
 
 	t.Run("批量操作性能", func(t *testing.T) {
 			// 创建一个用户

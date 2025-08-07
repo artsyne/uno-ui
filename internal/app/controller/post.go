@@ -6,11 +6,14 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/internal/app/view"
+	"github.com/biuren/hebe/internal/core/database"
 	"github.com/biuren/hebe/internal/utils/config"
 	errors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
+	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
+	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
@@ -45,9 +48,14 @@ type postController struct {
 // NewPostController 创建新的日记控制器实例
 func NewPostController() PostController {
 	config := config.GetConfig()
+	userRepo := repository.NewUserRepository()
+	taskRepo := repository.NewTaskRepository()
+	taskService := task.NewService(taskRepo)
+	diaryRepo := repository.NewDiaryRepository()
+	postRepo := repository.NewPostRepository(database.GetDB())
 	return &postController{
-		postService:   post.NewService(),
-		diaryService:  diary.NewService(),
+		postService:   post.NewService(userRepo, taskService, diaryRepo, postRepo),
+		diaryService:  diary.NewService(diaryRepo),
 		auth:          user.NewAuthHelper(config),
 		config:        config,
 		renderService: view.NewViewService(config),

@@ -4,6 +4,7 @@ import (
 	"github.com/biuren/hebe/internal/utils/config"
 	errors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/internal/domain/diary"
+	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/pkg"
 )
@@ -42,8 +43,8 @@ type Service struct {
 	diaryService diary.ServiceInterface
 }
 
-// NewService 创建新的日记业务逻辑层实例
-func NewService() ServiceInterface {
+// NewService 创建新的文章业务逻辑层实例
+func NewService(userRepo user.RepositoryInterface, taskService task.ServiceInterface, diaryRepo diary.RepositoryInterface, postRepo RepositoryInterface) ServiceInterface {
 	config := config.GetConfig()
 	if config == nil {
 		// 在初始化时就检查配置，如果配置未正确加载则panic
@@ -52,10 +53,10 @@ func NewService() ServiceInterface {
 	}
 
 	return &Service{
-		repo:         NewRepository(),
+		repo:         postRepo,
 		config:       config, // 缓存配置
-		userService:  user.NewService(),
-		diaryService: diary.NewService(),
+		userService:  user.NewService(userRepo, taskService),
+		diaryService: diary.NewService(diaryRepo),
 	}
 }
 

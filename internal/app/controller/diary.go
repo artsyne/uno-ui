@@ -9,7 +9,9 @@ import (
 	"github.com/biuren/hebe/internal/utils/config"
 	errors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/internal/domain/diary"
+	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
+	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
@@ -53,9 +55,13 @@ type diaryController struct {
 // NewDiaryController 创建新的日记本控制器实例
 func NewDiaryController() DiaryController {
 	config := config.GetConfig()
+	userRepo := repository.NewUserRepository()
+	taskRepo := repository.NewTaskRepository()
+	diaryRepo := repository.NewDiaryRepository()
+	taskService := task.NewService(taskRepo)
 	return &diaryController{
-		diaryService:  diary.NewService(),
-		userService:   user.NewService(),
+		diaryService:  diary.NewService(diaryRepo),
+		userService:   user.NewService(userRepo, taskService),
 		auth:          user.NewAuthHelper(config),
 		config:        config,
 		renderService: view.NewViewService(config),

@@ -41,7 +41,7 @@ type Service struct {
 }
 
 // NewService 创建新的日记本业务逻辑层实例
-func NewService() ServiceInterface {
+func NewService(repo RepositoryInterface) ServiceInterface {
 	config := config.GetConfig()
 	if config == nil {
 		// 在初始化时就检查配置，如果配置未正确加载则panic
@@ -50,7 +50,7 @@ func NewService() ServiceInterface {
 	}
 
 	return &Service{
-		repo:   NewRepository(),
+		repo:   repo,
 		config: config, // 缓存配置
 	}
 }

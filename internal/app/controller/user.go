@@ -6,7 +6,9 @@ import (
 
 	"github.com/biuren/hebe/internal/app/view"
 	types "github.com/biuren/hebe/internal/contracts"
+	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
+	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/utils/config"
 	errors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/pkg"
@@ -89,8 +91,11 @@ type userController struct {
 // NewUserController 创建用户HTTP处理层实例
 func NewUserController() UserController {
 	config := config.GetConfig()
+	userRepo := repository.NewUserRepository()
+	taskRepo := repository.NewTaskRepository()
+	taskService := task.NewService(taskRepo)
 	return &userController{
-		service:       user.NewService(),
+		service:       user.NewService(userRepo, taskService),
 		auth:          user.NewAuthHelper(config),
 		config:        config,
 		renderService: view.NewViewService(config),

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/biuren/hebe/internal/utils/config"
 	errors "github.com/biuren/hebe/internal/utils/error"
@@ -32,7 +33,7 @@ type service struct {
 }
 
 // NewService 创建新的任务业务逻辑层实例
-func NewService() ServiceInterface {
+func NewService(repo RepositoryInterface) ServiceInterface {
 	config := config.GetConfig()
 	if config == nil {
 		// 在初始化时就检查配置，如果配置未正确加载则panic
@@ -41,7 +42,7 @@ func NewService() ServiceInterface {
 	}
 
 	return &service{
-		repo:   NewRepository(),
+		repo:   repo,
 		config: config, // 缓存配置
 	}
 }
@@ -92,14 +93,14 @@ func (s *service) CreateEmailTask(to, subject, body string) error {
 		return errors.ValidationError.WithDetails(fmt.Sprintf("邮件任务序列化失败: %v", err))
 	}
 
-	nowTime := pkg.GetNowTimeUnixMilli()
+	nowTime := time.Now().Unix()
 	jobQueue := &JobQueue{
 		JobType:     "email",
 		Body:        string(taskBody),
-		AddUTCTime:  nowTime,
-		PlanUTCTime: nowTime,
 		Result:      0,
 		TryNum:      0,
+		AddUTCTime:  nowTime,
+		PlanUTCTime: nowTime,
 	}
 
 	_, err = s.repo.InsertJobQueue(jobQueue)

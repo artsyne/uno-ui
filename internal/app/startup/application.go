@@ -13,6 +13,7 @@ import (
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/core/di"
 	"github.com/biuren/hebe/internal/domain/task"
+	"github.com/biuren/hebe/internal/infra/repository"
 	utilsMiddleware "github.com/biuren/hebe/internal/utils/middleware"
 	"github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/pkg"
@@ -133,7 +134,8 @@ func (a *Application) initCookie() error {
 
 // initScheduler 启动定时任务
 func (a *Application) initScheduler() error {
-	task.NewService().StartScheduler()
+	taskRepo := repository.NewTaskRepository()
+	task.NewService(taskRepo).StartScheduler()
 	slog.Info("成功启动定时任务")
 	return nil
 }

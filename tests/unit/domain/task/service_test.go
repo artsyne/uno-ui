@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/biuren/hebe/internal/domain/task"
+	"github.com/biuren/hebe/internal/infra/repository"
 	framework "github.com/biuren/hebe/tests/framework/core"
 	"github.com/stretchr/testify/assert"
 )
@@ -14,7 +15,8 @@ func TestTaskService_CreateEmailTask(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建任务服务
-	taskService := task.NewService()
+	taskRepo := repository.NewTaskRepository()
+	taskService := task.NewService(taskRepo)
 
 		tests := []struct {
 		name    string
@@ -70,7 +72,8 @@ func TestTaskService_ProcessEmailTasks(t *testing.T) {
 	defer ctx.Cleanup()
 	
 	// 创建任务服务
-	taskService := task.NewService()
+	taskRepo := repository.NewTaskRepository()
+	taskService := task.NewService(taskRepo)
 
 	// 先创建一些邮件任务
 	emailTasks := []struct {
@@ -113,7 +116,8 @@ func TestEmailTaskSerialization(t *testing.T) {
 	// 测试邮件任务的序列化和反序列化
 	t.Run("邮件任务结构", func(t *testing.T) {
 		// 由于task包可能没有公开的EmailTask结构，我们只测试基本功能
-		taskService := task.NewService()
+		taskRepo := repository.NewTaskRepository()
+		taskService := task.NewService(taskRepo)
 		assert.NotNil(t, taskService, "任务服务应该能创建")
 	})
 }
@@ -140,7 +144,8 @@ func TestJobHistoryStructure(t *testing.T) {
 
 func TestTaskService_StartScheduler(t *testing.T) {
 	// 测试任务调度器启动
-	taskService := task.NewService()
+	taskRepo := repository.NewTaskRepository()
+	taskService := task.NewService(taskRepo)
 	
 	// 由于StartScheduler可能没有返回值或者需要特殊环境，我们只测试服务创建
 	assert.NotNil(t, taskService, "任务服务应该能创建")
@@ -153,7 +158,8 @@ func TestEmailTaskWorkflow(t *testing.T) {
 	defer ctx.Cleanup()
 	
 	// 创建任务服务
-	taskService := task.NewService()
+	taskRepo := repository.NewTaskRepository()
+	taskService := task.NewService(taskRepo)
 
 	// 创建邮件任务
 	err := taskService.CreateEmailTask("workflow@example.com", "工作流测试", "这是工作流测试邮件")

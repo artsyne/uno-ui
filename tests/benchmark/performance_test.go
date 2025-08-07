@@ -8,7 +8,9 @@ import (
 
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
+	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
+	"github.com/biuren/hebe/internal/infra/repository"
 	framework "github.com/biuren/hebe/tests/framework/core"
 )
 
@@ -17,7 +19,10 @@ func BenchmarkUserRegistration(b *testing.B) {
 	ctx := framework.NewTestContext("BenchmarkUserRegistration", framework.WithDatabase())
 	defer ctx.Cleanup()
 
-	userService := user.NewService()
+	userRepo := repository.NewUserRepository()
+	taskRepo := repository.NewTaskRepository()
+	taskService := task.NewService(taskRepo)
+	userService := user.NewService(userRepo, taskService)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -40,8 +45,12 @@ func BenchmarkDiaryCreation(b *testing.B) {
 	ctx := framework.NewTestContext("BenchmarkDiaryCreation", framework.WithDatabase())
 	defer ctx.Cleanup()
 
-	userService := user.NewService()
-	diaryService := diary.NewService()
+	userRepo := repository.NewUserRepository()
+	taskRepo := repository.NewTaskRepository()
+	taskService := task.NewService(taskRepo)
+	userService := user.NewService(userRepo, taskService)
+	diaryRepo := repository.NewDiaryRepository()
+	diaryService := diary.NewService(diaryRepo)
 
 	// 创建测试用户
 	testUser := &user.User{
@@ -81,9 +90,14 @@ func BenchmarkPostCreation(b *testing.B) {
 	ctx := framework.NewTestContext("BenchmarkPostCreation", framework.WithDatabase())
 	defer ctx.Cleanup()
 
-	userService := user.NewService()
-	diaryService := diary.NewService()
-	postService := post.NewService()
+	userRepo := repository.NewUserRepository()
+	taskRepo := repository.NewTaskRepository()
+	taskService := task.NewService(taskRepo)
+	userService := user.NewService(userRepo, taskService)
+	diaryRepo := repository.NewDiaryRepository()
+	diaryService := diary.NewService(diaryRepo)
+	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
 
 	// 创建测试用户
 	testUser := &user.User{
@@ -158,7 +172,10 @@ func BenchmarkConcurrentUserRegistration(b *testing.B) {
 	ctx := framework.NewTestContext("BenchmarkConcurrentUserRegistration", framework.WithDatabase())
 	defer ctx.Cleanup()
 
-	userService := user.NewService()
+	userRepo := repository.NewUserRepository()
+	taskRepo := repository.NewTaskRepository()
+	taskService := task.NewService(taskRepo)
+	userService := user.NewService(userRepo, taskService)
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {

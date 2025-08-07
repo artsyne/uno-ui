@@ -14,7 +14,9 @@ import (
 	"github.com/biuren/hebe/internal/core/database"
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
+	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
+	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/utils/config"
 	framework "github.com/biuren/hebe/tests/framework/helpers"
 	. "github.com/biuren/hebe/tests/framework/types"
@@ -339,10 +341,19 @@ func (sr *ServiceRegistry) InitializeServices(db *sqlx.DB) error {
 		return nil
 	}
 
-	// 初始化各个服务
-	sr.userService = user.NewService()
-	sr.diaryService = diary.NewService()
-	sr.postService = post.NewService()
+	// 创建基础设施层仓储
+	userRepo := repository.NewUserRepository()
+	taskRepo := repository.NewTaskRepository()
+	
+	// 创建任务服务
+	taskService := task.NewService(taskRepo)
+	
+	// 初始化各个服务，注入仓储依赖
+	sr.userService = user.NewService(userRepo, taskService)
+	diaryRepo := repository.NewDiaryRepository()
+	sr.diaryService = diary.NewService(diaryRepo)
+	postRepo := repository.NewPostRepository(db)
+	sr.postService = post.NewService(userRepo, taskService, diaryRepo, postRepo)
 
 	sr.initialized = true
 

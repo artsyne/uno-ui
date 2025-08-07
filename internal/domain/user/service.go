@@ -93,10 +93,12 @@ type Service struct {
 	repo       RepositoryInterface
 	config     *config.Config // 缓存配置，避免重复调用全局变量
 	regexCheck *pkg.RegexCheck
+	taskService task.ServiceInterface
 }
 
 // NewService 创建用户业务逻辑层实例
-func NewService() ServiceInterface {
+// NewService 创建用户服务实例，使用依赖注入
+func NewService(repo RepositoryInterface, taskService task.ServiceInterface) ServiceInterface {
 	config := config.GetConfig()
 	if config == nil {
 		// 在初始化时就检查配置，如果配置未正确加载则panic
@@ -105,9 +107,10 @@ func NewService() ServiceInterface {
 	}
 
 	return &Service{
-		repo:       NewRepository(),
+		repo:       repo,
 		config:     config, // 缓存配置
 		regexCheck: &pkg.RegexCheck{},
+		taskService: taskService,
 	}
 }
 
@@ -253,13 +256,8 @@ func (s *Service) SendResetPasswordEmail(user *User) error {
 	resetUrl := fmt.Sprintf("http://%s/passport/resetpwd?uid=%d&sign=%s",
 		s.config.App.Domain, user.UserId, validCode.ValidCode)
 
-	// 调用task模块创建邮件任务
-	taskService := task.NewService()
-	return taskService.CreateEmailTask(
-		user.Email,
-		"重置密码",
-		fmt.Sprintf("请点击以下链接重置密码：%s", resetUrl),
-	)
+	// 调用task服务创建邮件任务
+	return s.taskService.CreateEmailTask(user.Email, "重置密码", fmt.Sprintf("请点击以下链接重置密码：%s", resetUrl))
 }
 
 // ChangeUserPassword 修改用户密码
@@ -557,13 +555,8 @@ func (s *Service) addActivateUserEmailTask(user *User) error {
 	activateUrl := fmt.Sprintf("http://%s/passport/activateuser?uid=%d&sign=%s",
 		s.config.App.Domain, user.UserId, validCode.ValidCode)
 
-	// 调用task模块创建邮件任务
-	taskService := task.NewService()
-	return taskService.CreateEmailTask(
-		user.Email,
-		"账户激活",
-		fmt.Sprintf("请点击以下链接激活账户：%s", activateUrl),
-	)
+	// 调用task服务创建邮件任务
+	return s.taskService.CreateEmailTask(user.Email, "账户激活", fmt.Sprintf("请点击以下链接激活账户：%s", activateUrl))
 }
 
 // insertValidCode 插入有效验证码
