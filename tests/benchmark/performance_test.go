@@ -28,9 +28,12 @@ func BenchmarkUserRegistration(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
+		timestamp := time.Now().UnixNano()
+		randomNum := rand.Int63()
+		uniqueID := fmt.Sprintf("%d_%d", timestamp, randomNum)
 		testUser := &user.User{
-			UserName: ctx.GetDataGenerator().GenerateUniqueString("benchuser"),
-			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("bench"),
+			UserName: fmt.Sprintf("%s_%s", ctx.GetDataGenerator().GenerateUniqueString("benchuser"), uniqueID),
+			Email:    fmt.Sprintf("%s_%s@example.com", ctx.GetDataGenerator().GenerateUniqueString("bench"), uniqueID),
 			Pwd:      "password123",
 			TimeZone: "UTC",
 			Lang:     "en",

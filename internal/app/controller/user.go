@@ -13,81 +13,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// UserController 用户HTTP处理层接口
-// 定义所有与用户相关的HTTP处理操作，包括认证、注册、设置等
-type UserController interface {
-	// RegisterRoutes 注册所有用户相关路由
-	RegisterRoutes(router *gin.Engine)
 
-	// ===================== 页面渲染方法 =====================
-
-	// ShowLoginPage 显示登录页面
-	ShowLoginPage(c *gin.Context)
-
-	// ShowRegisterPage 显示注册页面
-	ShowRegisterPage(c *gin.Context)
-
-	// ShowPasswordResetPage 显示找回密码页面
-	ShowPasswordResetPage(c *gin.Context)
-
-	// ShowPasswordResetForm 显示重置密码表单页面
-	ShowPasswordResetForm(c *gin.Context)
-
-	// ShowUserActivationPage 显示激活用户页面
-	ShowUserActivationPage(c *gin.Context)
-
-	// ShowUserSettingsPage 显示用户设置页面
-	ShowUserSettingsPage(c *gin.Context)
-
-	// ===================== 认证相关方法 =====================
-
-	// Login 处理用户登录请求
-	Login(c *gin.Context)
-
-	// Register 处理用户注册请求
-	Register(c *gin.Context)
-
-	// Logout 处理用户退出登录请求
-	Logout(c *gin.Context)
-
-	// ===================== 验证方法 =====================
-
-	// ValidateUsername 验证用户名是否可用
-	ValidateUsername(c *gin.Context)
-
-	// ValidateEmail 验证邮箱是否可用
-	ValidateEmail(c *gin.Context)
-
-	// ===================== 密码管理方法 =====================
-
-	// RequestPasswordReset 处理找回密码请求
-	RequestPasswordReset(c *gin.Context)
-
-	// ResetPassword 处理重置密码请求
-	ResetPassword(c *gin.Context)
-
-	// ===================== 用户设置相关方法 =====================
-
-	// UpdateProfile 更新用户基本资料
-	UpdateProfile(c *gin.Context)
-
-	// UpdateEmail 更新用户邮箱
-	UpdateEmail(c *gin.Context)
-
-	// UpdatePassword 修改用户密码
-	UpdatePassword(c *gin.Context)
-}
 
 // userController 用户HTTP处理层实现
-type userController struct {
+type UserController struct {
 	service       user.ServiceInterface
 	auth          user.AuthHelperInterface
-	renderService view.ViewServiceInterface
+	renderService *view.ViewService
 }
 
 // NewUserController 创建用户HTTP处理层实例
-func NewUserController(service user.ServiceInterface, renderService view.ViewServiceInterface, auth user.AuthHelperInterface) UserController {
-	return &userController{
+func NewUserController(service user.ServiceInterface, renderService *view.ViewService, auth user.AuthHelperInterface) *UserController {
+	return &UserController{
 		service:       service,
 		renderService: renderService,
 		auth:          auth,
@@ -96,7 +33,7 @@ func NewUserController(service user.ServiceInterface, renderService view.ViewSer
 
 // RegisterRoutes 注册所有用户相关路由
 // 保持与原系统完全一致的路由路径
-func (h *userController) RegisterRoutes(router *gin.Engine) {
+func (h *UserController) RegisterRoutes(router *gin.Engine) {
 	// 用户认证相关路由（无需鉴权）
 	router.GET("/register", h.ShowRegisterPage)
 	router.POST("/register", h.Register)
@@ -130,7 +67,7 @@ func (h *userController) RegisterRoutes(router *gin.Engine) {
 // ===================== 页面渲染方法 =====================
 
 // ShowLoginPage 显示登录页面
-func (h *userController) ShowLoginPage(c *gin.Context) {
+func (h *UserController) ShowLoginPage(c *gin.Context) {
 	// 如果已登录则跳转首页
 	if isAuth, _ := h.auth.IsAuthenticated(c); isAuth {
 		h.renderService.Redirect(c, "/")
@@ -142,7 +79,7 @@ func (h *userController) ShowLoginPage(c *gin.Context) {
 }
 
 // ShowRegisterPage 显示注册页面
-func (h *userController) ShowRegisterPage(c *gin.Context) {
+func (h *UserController) ShowRegisterPage(c *gin.Context) {
 	// 如果已登录则跳转首页
 	if isAuth, _ := h.auth.IsAuthenticated(c); isAuth {
 		h.renderService.Redirect(c, "/")
@@ -164,7 +101,7 @@ func (h *userController) ShowRegisterPage(c *gin.Context) {
 }
 
 // ShowPasswordResetPage 显示找回密码页面
-func (h *userController) ShowPasswordResetPage(c *gin.Context) {
+func (h *UserController) ShowPasswordResetPage(c *gin.Context) {
 	// 如果已登录则跳转首页
 	if isAuth, _ := h.auth.IsAuthenticated(c); isAuth {
 		h.renderService.Redirect(c, "/")
@@ -176,7 +113,7 @@ func (h *userController) ShowPasswordResetPage(c *gin.Context) {
 }
 
 // ShowPasswordResetForm 显示重置密码表单页面
-func (h *userController) ShowPasswordResetForm(c *gin.Context) {
+func (h *UserController) ShowPasswordResetForm(c *gin.Context) {
 	uid := c.Query("uid")
 	sign := c.Query("sign")
 
@@ -214,7 +151,7 @@ func (h *userController) ShowPasswordResetForm(c *gin.Context) {
 }
 
 // ShowUserActivationPage 显示激活用户页面
-func (h *userController) ShowUserActivationPage(c *gin.Context) {
+func (h *UserController) ShowUserActivationPage(c *gin.Context) {
 	uid := c.Query("uid")
 	sign := c.Query("sign")
 
@@ -239,7 +176,7 @@ func (h *userController) ShowUserActivationPage(c *gin.Context) {
 }
 
 // ShowUserSettingsPage 显示用户设置页面
-func (h *userController) ShowUserSettingsPage(c *gin.Context) {
+func (h *UserController) ShowUserSettingsPage(c *gin.Context) {
 	// 读取用户认证信息
 	authUser := h.auth.MustGetCurrentUser(c)
 
@@ -261,7 +198,7 @@ func (h *userController) ShowUserSettingsPage(c *gin.Context) {
 // ===================== 认证相关方法 =====================
 
 // Login 处理用户登录请求
-func (h *userController) Login(c *gin.Context) {
+func (h *UserController) Login(c *gin.Context) {
 	// 解析登录表单数据，创建 LoginRequest 对象
 	req := &user.LoginRequest{}
 
@@ -306,7 +243,7 @@ func (h *userController) Login(c *gin.Context) {
 }
 
 // Register 处理用户注册请求
-func (h *userController) Register(c *gin.Context) {
+func (h *UserController) Register(c *gin.Context) {
 	// 如果已登录则跳转首页
 	if isAuth, _ := h.auth.IsAuthenticated(c); isAuth {
 		h.renderService.Redirect(c, "/")
@@ -337,7 +274,7 @@ func (h *userController) Register(c *gin.Context) {
 }
 
 // Logout 处理登出请求
-func (h *userController) Logout(c *gin.Context) {
+func (h *UserController) Logout(c *gin.Context) {
 	// 清除登录cookie
 	pkg.DelCookie(c.Writer, "ud")
 	c.Redirect(http.StatusFound, "/passport/login")
@@ -346,7 +283,7 @@ func (h *userController) Logout(c *gin.Context) {
 // ===================== 验证方法 =====================
 
 // ValidateUsername 验证用户名是否可用
-func (h *userController) ValidateUsername(c *gin.Context) {
+func (h *UserController) ValidateUsername(c *gin.Context) {
 	userName, _ := c.GetPostForm("username")
 
 	// 验证用户名格式
@@ -370,7 +307,7 @@ func (h *userController) ValidateUsername(c *gin.Context) {
 }
 
 // ValidateEmail 验证邮箱是否可用
-func (h *userController) ValidateEmail(c *gin.Context) {
+func (h *UserController) ValidateEmail(c *gin.Context) {
 	email, _ := c.GetPostForm("email")
 
 	// 验证邮箱格式
@@ -396,7 +333,7 @@ func (h *userController) ValidateEmail(c *gin.Context) {
 // ===================== 密码管理方法 =====================
 
 // RequestPasswordReset 处理找回密码请求
-func (h *userController) RequestPasswordReset(c *gin.Context) {
+func (h *UserController) RequestPasswordReset(c *gin.Context) {
 	// 解析请求数据
 	req := &user.FindPasswordRequest{}
 	if err := c.Bind(req); err != nil {
@@ -433,7 +370,7 @@ func (h *userController) RequestPasswordReset(c *gin.Context) {
 }
 
 // ResetPassword 处理重置密码请求
-func (h *userController) ResetPassword(c *gin.Context) {
+func (h *UserController) ResetPassword(c *gin.Context) {
 	// 解析重置密码请求
 	req := &user.ResetPasswordRequest{}
 	if err := c.Bind(req); err != nil {
@@ -476,7 +413,7 @@ func (h *userController) ResetPassword(c *gin.Context) {
 // ===================== 用户设置相关方法 =====================
 
 // UpdateProfile 更新用户基本资料
-func (h *userController) UpdateProfile(c *gin.Context) {
+func (h *UserController) UpdateProfile(c *gin.Context) {
 	// 获取用户登录信息
 	authUser := h.auth.MustGetCurrentUser(c)
 
@@ -510,7 +447,7 @@ func (h *userController) UpdateProfile(c *gin.Context) {
 }
 
 // UpdateEmail 更新用户邮箱
-func (h *userController) UpdateEmail(c *gin.Context) {
+func (h *UserController) UpdateEmail(c *gin.Context) {
 	// 获取用户登录信息
 	authUser := h.auth.MustGetCurrentUser(c)
 
@@ -531,7 +468,7 @@ func (h *userController) UpdateEmail(c *gin.Context) {
 }
 
 // UpdatePassword 修改用户密码
-func (h *userController) UpdatePassword(c *gin.Context) {
+func (h *UserController) UpdatePassword(c *gin.Context) {
 	// 读取用户认证信息
 	authUser := h.auth.MustGetCurrentUser(c)
 
@@ -562,27 +499,27 @@ func (h *userController) UpdatePassword(c *gin.Context) {
 
 // ===================== 辅助方法 =====================
 // validateUserNameFormat 验证用户名格式
-func (h *userController) validateUserNameFormat(userName string) bool {
+func (h *UserController) validateUserNameFormat(userName string) bool {
 	return pkg.IsValidUserName(userName)
 }
 
 // parseUserID 解析用户ID
-func (h *userController) parseUserID(idStr string) (int64, error) {
+func (h *UserController) parseUserID(idStr string) (int64, error) {
 	return h.service.ParseUserID(idStr)
 }
 
 // validateEmailFormat 验证邮箱格式
-func (h *userController) validateEmailFormat(email string) bool {
+func (h *UserController) validateEmailFormat(email string) bool {
 	regexCheck := &pkg.RegexCheck{}
 	return regexCheck.IsEmail(email)
 }
 
 // validatePasswordFormat 验证密码格式
-func (h *userController) validatePasswordFormat(password string) bool {
+func (h *UserController) validatePasswordFormat(password string) bool {
 	return pkg.IsValidPassword(password)
 }
 
 // validateFullNameFormat 验证全名格式
-func (h *userController) validateFullNameFormat(fullName string) bool {
+func (h *UserController) validateFullNameFormat(fullName string) bool {
 	return len(strings.TrimSpace(fullName)) > 0 && len(fullName) <= 50
 }

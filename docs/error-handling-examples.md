@@ -111,11 +111,11 @@ import (
 // ExampleHandler 示例Handler，展示如何使用ResponseService
 type ExampleHandler struct {
 	responseService ResponseServiceInterface
-	viewService     view.ViewServiceInterface
+	viewService     *view.ViewService
 }
 
 // NewExampleHandler 创建示例Handler
-func NewExampleHandler(responseService ResponseServiceInterface, viewService view.ViewServiceInterface) *ExampleHandler {
+func NewExampleHandler(responseService ResponseServiceInterface, viewService *view.ViewService) *ExampleHandler {
 	return &ExampleHandler{
 		responseService: responseService,
 		viewService:     viewService,

@@ -249,13 +249,13 @@ HTTP Response (JSON/HTML)
 
 ```go
 // 服务注册
-container.RegisterSingleton(func(c di.ContainerInterface) view.ViewServiceInterface {
+container.RegisterSingleton(func(c di.ContainerInterface) *view.ViewService {
     config := di.Resolve[*config.Config](c)
     return view.NewViewService(config)
 })
 
 // 服务解析
-viewService := di.Resolve[view.ViewServiceInterface](container)
+viewService := di.Resolve[*view.ViewService](container)
 ```
 
 ### 2. 策略模式 (错误处理)
@@ -284,7 +284,7 @@ func (e *AppError) Handle(c *gin.Context) {
 ```go
 type Handler struct {
     service     Service
-    viewSvc     view.ViewServiceInterface
+    viewSvc     *view.ViewService
 }
 
 // 统一的处理模板

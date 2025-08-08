@@ -9,11 +9,11 @@ require (
 	github.com/go-sql-driver/mysql v1.9.2
 	github.com/jasonlvhit/gocron v0.0.1
 	github.com/jmoiron/sqlx v1.4.0
-	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/rs/xid v1.6.0
 	github.com/speps/go-hashids/v2 v2.0.1
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
+	github.com/subosito/gotenv v1.6.0
 	golang.org/x/crypto v0.38.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
@@ -44,7 +44,6 @@ require (
 	github.com/spf13/afero v1.14.0 // indirect
 	github.com/spf13/cast v1.8.0 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
-	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	go.uber.org/multierr v1.11.0 // indirect

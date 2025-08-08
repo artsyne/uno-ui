@@ -40,25 +40,25 @@ func setPath(server *gin.Engine, container *di.Container) {
 
 // createController 通过DI容器创建Controller
 func createController(container *di.Container) *controller.Controller {
-	renderService := di.Get[view.ViewServiceInterface](container)
+	renderService := di.Get[*view.ViewService](container)
 	return controller.NewController(renderService)
 }
 
 // createUserController 通过DI容器创建UserController
-func createUserController(container *di.Container) controller.UserController {
+func createUserController(container *di.Container) *controller.UserController {
 	userService := di.Get[user.ServiceInterface](container)
-	renderService := di.Get[view.ViewServiceInterface](container)
+	renderService := di.Get[*view.ViewService](container)
 	authHelper := di.Get[user.AuthHelperInterface](container)
 	return controller.NewUserController(userService, renderService, authHelper)
 }
 
 // createDiaryController 通过DI容器创建DiaryController
-func createDiaryController(container *di.Container) controller.DiaryController {
+func createDiaryController(container *di.Container) *controller.DiaryController {
 	return controller.NewDiaryController()
 }
 
 // createPostController 通过DI容器创建PostController
-func createPostController(container *di.Container) controller.PostController {
+func createPostController(container *di.Container) *controller.PostController {
 	return controller.NewPostController()
 }
 

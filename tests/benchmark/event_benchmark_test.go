@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"log/slog"
+
 	"github.com/biuren/hebe/internal/core/event"
 )
 
@@ -69,7 +71,7 @@ func (e *SystemBenchmarkEvent) Timestamp() time.Time {
 
 // BenchmarkEventBus_Publish 基准测试事件发布
 func BenchmarkEventBus_Publish(b *testing.B) {
-	bus := event.NewEventBus[*BenchmarkEvent](nil)
+	bus := event.NewEventBus[*BenchmarkEvent](slog.Default())
 	defer bus.Close()
 
 	ctx := context.Background()
@@ -85,7 +87,7 @@ func BenchmarkEventBus_Publish(b *testing.B) {
 
 // BenchmarkEventBus_PublishWithHandlers 基准测试带处理器的事件发布
 func BenchmarkEventBus_PublishWithHandlers(b *testing.B) {
-	bus := event.NewEventBus[*BenchmarkEvent](nil)
+	bus := event.NewEventBus[*BenchmarkEvent](slog.Default())
 	defer bus.Close()
 
 	// 添加多个处理器
@@ -111,7 +113,7 @@ func BenchmarkEventBus_PublishWithHandlers(b *testing.B) {
 
 // BenchmarkEventBus_Subscribe 基准测试事件订阅
 func BenchmarkEventBus_Subscribe(b *testing.B) {
-	bus := event.NewEventBus[*BenchmarkEvent](nil)
+	bus := event.NewEventBus[*BenchmarkEvent](slog.Default())
 	defer bus.Close()
 
 	b.ResetTimer()
@@ -125,7 +127,7 @@ func BenchmarkEventBus_Subscribe(b *testing.B) {
 
 // BenchmarkEventBus_Unsubscribe 基准测试事件取消订阅
 func BenchmarkEventBus_Unsubscribe(b *testing.B) {
-	bus := event.NewEventBus[*BenchmarkEvent](nil)
+	bus := event.NewEventBus[*BenchmarkEvent](slog.Default())
 	defer bus.Close()
 
 	// 预先订阅处理器
@@ -145,7 +147,7 @@ func BenchmarkEventBus_Unsubscribe(b *testing.B) {
 
 // BenchmarkEventBus_ConcurrentPublish 基准测试并发事件发布
 func BenchmarkEventBus_ConcurrentPublish(b *testing.B) {
-	bus := event.NewEventBus[*BenchmarkEvent](nil)
+	bus := event.NewEventBus[*BenchmarkEvent](slog.Default())
 	defer bus.Close()
 
 	// 添加处理器
@@ -168,12 +170,11 @@ func BenchmarkEventBus_ConcurrentPublish(b *testing.B) {
 
 	// 等待所有事件处理完成
 	time.Sleep(100 * time.Millisecond)
-	b.Logf("Processed events: %d", atomic.LoadInt64(&processedCount))
 }
 
 // BenchmarkEventBus_HighThroughput 基准测试高吞吐量场景
 func BenchmarkEventBus_HighThroughput(b *testing.B) {
-	bus := event.NewEventBus[*BenchmarkEvent](nil)
+	bus := event.NewEventBus[*BenchmarkEvent](slog.Default())
 	defer bus.Close()
 
 	// 添加多个处理器模拟真实场景
@@ -198,12 +199,11 @@ func BenchmarkEventBus_HighThroughput(b *testing.B) {
 
 	// 等待所有事件处理完成
 	time.Sleep(500 * time.Millisecond)
-	b.Logf("Total processed events: %d", atomic.LoadInt64(&totalProcessed))
 }
 
 // BenchmarkEventBus_MemoryUsage 基准测试内存使用
 func BenchmarkEventBus_MemoryUsage(b *testing.B) {
-	bus := event.NewEventBus[*BenchmarkEvent](nil)
+	bus := event.NewEventBus[*BenchmarkEvent](slog.Default())
 	defer bus.Close()
 
 	// 添加处理器
@@ -224,12 +224,12 @@ func BenchmarkEventBus_MemoryUsage(b *testing.B) {
 
 // BenchmarkTypedEventBusManager 基准测试类型化事件总线管理器
 func BenchmarkTypedEventBusManager(b *testing.B) {
-	// 获取类型化事件总线管理器
-	manager := event.GetTypedEventBusManager[*BenchmarkEvent]("benchmark", nil)
+	// 直接创建管理器实例，避免全局状态问题
+	manager := event.NewTypedEventBusManager[*BenchmarkEvent](slog.Default())
 	defer manager.CloseAll()
 
 	// 创建事件总线
-	err := manager.CreateBus("benchmark.event", nil)
+	err := manager.CreateBus("benchmark.event", slog.Default())
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -262,13 +262,14 @@ func BenchmarkTypedEventBusManager(b *testing.B) {
 
 // BenchmarkEventBusManager 基准测试事件总线管理器
 func BenchmarkEventBusManager(b *testing.B) {
-	manager := event.GetTypedEventBusManager[*BenchmarkEvent]("benchmark", nil)
+	// 直接创建管理器实例，避免全局状态问题
+	manager := event.NewTypedEventBusManager[*BenchmarkEvent](slog.Default())
 	defer manager.CloseAll()
 
 	// 创建多个事件总线
 	for i := 0; i < 10; i++ {
 		busName := fmt.Sprintf("bus-%d", i)
-		err := manager.CreateBus(busName, nil)
+		err := manager.CreateBus(busName, slog.Default())
 		if err != nil {
 			b.Fatalf("Failed to create bus %s: %v", busName, err)
 		}
@@ -297,7 +298,7 @@ func BenchmarkEventTypes(b *testing.B) {
 	ctx := context.Background()
 
 	b.Run("BaseEvent", func(b *testing.B) {
-		bus := event.NewEventBus[*BenchmarkEvent](nil)
+		bus := event.NewEventBus[*BenchmarkEvent](slog.Default())
 		defer bus.Close()
 		
 		handler := func(ctx context.Context, e *BenchmarkEvent) error {
@@ -315,7 +316,7 @@ func BenchmarkEventTypes(b *testing.B) {
 	})
 
 	b.Run("DomainEvent", func(b *testing.B) {
-		bus := event.NewEventBus[*DomainBenchmarkEvent](nil)
+		bus := event.NewEventBus[*DomainBenchmarkEvent](slog.Default())
 		defer bus.Close()
 
 		handler := func(ctx context.Context, e *DomainBenchmarkEvent) error {
@@ -339,7 +340,7 @@ func BenchmarkEventTypes(b *testing.B) {
 	})
 
 	b.Run("SystemEvent", func(b *testing.B) {
-		bus := event.NewEventBus[*SystemBenchmarkEvent](nil)
+		bus := event.NewEventBus[*SystemBenchmarkEvent](slog.Default())
 		defer bus.Close()
 		ctx := context.Background()
 
@@ -365,7 +366,7 @@ func BenchmarkEventTypes(b *testing.B) {
 
 // BenchmarkEventBus_ErrorHandling 基准测试错误处理性能
 func BenchmarkEventBus_ErrorHandling(b *testing.B) {
-	bus := event.NewEventBus[*BenchmarkEvent](nil)
+	bus := event.NewEventBus[*BenchmarkEvent](slog.Default())
 	defer bus.Close()
 
 	// 添加会产生错误的处理器
@@ -385,6 +386,7 @@ func BenchmarkEventBus_ErrorHandling(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
+		// 忽略错误，这是错误处理性能测试，不应打印错误日志
 		bus.Publish(ctx, testEvent)
 	}
 }

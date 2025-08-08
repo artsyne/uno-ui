@@ -17,49 +17,26 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// DiaryController 日记本模块HTTP处理器接口
-// 定义所有与日记本相关的HTTP处理操作
-type DiaryController interface {
-	// RegisterRoutes 注册所有日记本相关路由
-	RegisterRoutes(router *gin.Engine)
 
-	// RenderDiaryForm 渲染日记本创建/编辑表单页面
-	RenderDiaryForm(c *gin.Context)
-
-	// RenderDiary 渲染日记详细信息页面
-	RenderDiary(c *gin.Context)
-
-	// HandleDiary 处理日记本的创建和编辑请求
-	HandleDiary(c *gin.Context)
-
-	// RenderUserProfile 渲染用户个人主页
-	RenderUserProfile(c *gin.Context)
-
-	// ShowDiaryForm 显示创建/编辑日记表单页面
-	ShowDiaryForm(c *gin.Context)
-
-	// ShowDiaryDetail 显示日记详情页面
-	ShowDiaryDetail(c *gin.Context)
-}
 
 // diaryController 日记本模块HTTP处理器实现
 // 负责处理所有与日记本相关的HTTP请求，包括渲染列表、表单、创建日记本、编辑日记本等操作
-type diaryController struct {
+type DiaryController struct {
 	diaryService  diary.ServiceInterface
 	userService   user.ServiceInterface
 	auth          user.AuthHelperInterface
 	config        *config.Config
-	renderService view.ViewServiceInterface
+	renderService *view.ViewService
 }
 
 // NewDiaryController 创建新的日记本控制器实例
-func NewDiaryController() DiaryController {
+func NewDiaryController() *DiaryController {
 	config := config.GetConfig()
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
 	taskService := task.NewService(taskRepo, config)
-	return &diaryController{
+	return &DiaryController{
 		diaryService:  diary.NewService(diaryRepo),
 		userService:   user.NewService(userRepo, taskService, config),
 		auth:          user.NewAuthHelper(config),
@@ -70,7 +47,7 @@ func NewDiaryController() DiaryController {
 
 // RegisterRoutes 注册所有日记本相关路由
 // 将所有diary相关路由聚合在一个地方，实现高内聚
-func (ctrl *diaryController) RegisterRoutes(router *gin.Engine) {
+func (ctrl *DiaryController) RegisterRoutes(router *gin.Engine) {
 	// 日记相关路由组（无需鉴权）
 	diaryGroup := router.Group("/diary")
 	{
@@ -106,7 +83,7 @@ func (ctrl *diaryController) RegisterRoutes(router *gin.Engine) {
 // 返回值:
 //   - int64: 解析后的ID
 //   - error: 解析失败时的错误信息
-func (ctrl *diaryController) parseDiaryID(idStr string) (int64, error) {
+func (ctrl *DiaryController) parseDiaryID(idStr string) (int64, error) {
 	id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
 	if err != nil || id <= 0 {
 		return 0, errors.InvalidParams.Err()
@@ -120,7 +97,7 @@ func (ctrl *diaryController) parseDiaryID(idStr string) (int64, error) {
 // URL参数:
 //   - action: 操作类型，"diary.add"表示创建，"diary.edit"表示编辑
 //   - diary_id: 当action为edit时需要提供的日记本ID
-func (ctrl *diaryController) RenderDiaryForm(c *gin.Context) {
+func (ctrl *DiaryController) RenderDiaryForm(c *gin.Context) {
 	// 获取当前登录用户信息
 	loginUser := ctrl.auth.MustGetCurrentUser(c)
 
@@ -147,7 +124,7 @@ func (ctrl *diaryController) RenderDiaryForm(c *gin.Context) {
 //
 // 参数:
 //   - c: Gin上下文，包含请求信息和响应操作
-func (ctrl *diaryController) RenderDiary(c *gin.Context) {
+func (ctrl *DiaryController) RenderDiary(c *gin.Context) {
 	data := ctrl.renderService.CreatePageData(c, "diary.detail.title")
 	data.Data["Active"] = "users"
 	ctrl.renderService.HTML(c, "diary/diary", data)
@@ -162,7 +139,7 @@ func (ctrl *diaryController) RenderDiary(c *gin.Context) {
 // 支持的表单action值:
 //   - "diary.add": 创建新日记本
 //   - "diary.edit": 编辑现有日记本
-func (ctrl *diaryController) HandleDiary(c *gin.Context) {
+func (ctrl *DiaryController) HandleDiary(c *gin.Context) {
 	// 获取当前登录用户信息
 	loginUser := ctrl.auth.MustGetCurrentUser(c)
 
@@ -192,7 +169,7 @@ func (ctrl *diaryController) HandleDiary(c *gin.Context) {
 //   - c: Gin上下文
 //   - formData: 解析后的表单数据
 //   - user: 当前登录用户信息
-func (ctrl *diaryController) handleCreateDiary(c *gin.Context, formData *diary.Diary, user *types.AuthUser) {
+func (ctrl *DiaryController) handleCreateDiary(c *gin.Context, formData *diary.Diary, user *types.AuthUser) {
 	nowTime := pkg.GetNowTimeUnixMilli()
 
 	// 使用结构体字面量创建完整的日记本对象
@@ -242,41 +219,41 @@ func (ctrl *diaryController) handleCreateDiary(c *gin.Context, formData *diary.D
 //   - c: Gin上下文
 //   - diaryData: 解析后的日记本数据
 //   - user: 当前登录用户信息
-func (ctrl *diaryController) handleEditDiary(c *gin.Context, diaryData *diary.Diary, user *types.AuthUser) {
+func (ctrl *DiaryController) handleEditDiary(c *gin.Context, formData *diary.Diary, loginUser *types.AuthUser) {
 	// 验证日记本所有权
-	originalDiary, err := ctrl.validateDiaryOwnership(diaryData.DiaryID, user.UserId)
+	originalDiary, err := ctrl.validateDiaryOwnership(formData.DiaryID, loginUser.UserId)
 	if err != nil {
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
 
 	// 保留原有字段值，只更新可编辑字段
-	diaryData.AddUTCTime = originalDiary.AddUTCTime
-	diaryData.AddUserID = originalDiary.AddUserID
-	diaryData.AddUserName = originalDiary.AddUserName
-	diaryData.AccessURL = originalDiary.AccessURL
-	diaryData.CoverURL = originalDiary.CoverURL
-	diaryData.CoverMidURL = originalDiary.CoverMidURL
-	diaryData.LikeNum = originalDiary.LikeNum
-	diaryData.MemberNum = originalDiary.MemberNum
-	diaryData.ViewNum = originalDiary.ViewNum
-	diaryData.InfoNum = originalDiary.InfoNum
-	diaryData.Status = originalDiary.Status
-	diaryData.AccessPwd = originalDiary.AccessPwd
+	formData.AddUTCTime = originalDiary.AddUTCTime
+	formData.AddUserID = originalDiary.AddUserID
+	formData.AddUserName = originalDiary.AddUserName
+	formData.AccessURL = originalDiary.AccessURL
+	formData.CoverURL = originalDiary.CoverURL
+	formData.CoverMidURL = originalDiary.CoverMidURL
+	formData.LikeNum = originalDiary.LikeNum
+	formData.MemberNum = originalDiary.MemberNum
+	formData.ViewNum = originalDiary.ViewNum
+	formData.InfoNum = originalDiary.InfoNum
+	formData.Status = originalDiary.Status
+	formData.AccessPwd = originalDiary.AccessPwd
 
 	// 更新最后操作时间和操作用户
-	diaryData.LastActionUTCTime = pkg.GetNowTimeUnixMilli()
-	diaryData.LastActionUserID = user.UserId
-	diaryData.LastActionUserName = user.UserName
+	formData.LastActionUTCTime = pkg.GetNowTimeUnixMilli()
+	formData.LastActionUserID = loginUser.UserId
+	formData.LastActionUserName = loginUser.UserName
 
 	// 调用服务层更新日记本
-	if err := ctrl.diaryService.UpdateDiary(diaryData); err != nil {
+	if err := ctrl.diaryService.UpdateDiary(formData); err != nil {
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
 
 	// 返回成功响应
-	ctrl.respondSuccess(c, diaryData)
+	ctrl.respondSuccess(c, formData)
 }
 
 // getAndValidateDiary 获取并验证日记本权限（用于表单渲染）
@@ -289,7 +266,7 @@ func (ctrl *diaryController) handleEditDiary(c *gin.Context, diaryData *diary.Di
 // 返回值:
 //   - *diary.Diary: 日记本对象，如果验证失败返回nil
 //   - error: 错误信息
-func (ctrl *diaryController) getAndValidateDiary(c *gin.Context, userID int64) (*diary.Diary, error) {
+func (ctrl *DiaryController) getAndValidateDiary(c *gin.Context, userID int64) (*diary.Diary, error) {
 	diaryID, err := ctrl.parseDiaryID(c.Query("diary_id"))
 	if err != nil {
 		return nil, err
@@ -308,7 +285,7 @@ func (ctrl *diaryController) getAndValidateDiary(c *gin.Context, userID int64) (
 // 返回值:
 //   - *diary.Diary: 日记本对象，如果验证失败返回nil
 //   - error: 错误信息
-func (ctrl *diaryController) validateDiaryOwnership(diaryID, userID int64) (*diary.Diary, error) {
+func (ctrl *DiaryController) validateDiaryOwnership(diaryID, userID int64) (*diary.Diary, error) {
 	diaryData, err := ctrl.diaryService.GetDiaryByID(diaryID)
 	if err != nil {
 		return nil, errors.DiaryNotFound.Err()
@@ -328,7 +305,7 @@ func (ctrl *diaryController) validateDiaryOwnership(diaryID, userID int64) (*dia
 // 参数:
 //   - c: Gin上下文
 //   - diaryData: 日记本数据
-func (ctrl *diaryController) respondSuccess(c *gin.Context, diaryData *diary.Diary) {
+func (ctrl *DiaryController) respondSuccess(c *gin.Context, diaryData *diary.Diary) {
 	ctrl.renderService.JSONSuccess(c, diaryData)
 }
 
@@ -339,7 +316,7 @@ func (ctrl *diaryController) respondSuccess(c *gin.Context, diaryData *diary.Dia
 //   - c: Gin上下文
 //   - title: 错误标题
 //   - message: 错误消息
-func (ctrl *diaryController) renderErrorPage(c *gin.Context, title, message string) {
+func (ctrl *DiaryController) renderErrorPage(c *gin.Context, title, message string) {
 	ctrl.renderService.HTMLError(c, title, message)
 }
 
@@ -352,7 +329,7 @@ func (ctrl *diaryController) renderErrorPage(c *gin.Context, title, message stri
 //
 // 参数:
 //   - c: Gin上下文，包含请求信息和响应操作
-func (ctrl *diaryController) RenderUserProfile(c *gin.Context) {
+func (ctrl *DiaryController) RenderUserProfile(c *gin.Context) {
 	// 获取url中的uid
 	uid, err := ctrl.parseDiaryID(c.Param("uid")) // 复用parseDiaryID方法
 	if err != nil {
@@ -415,7 +392,7 @@ func (ctrl *diaryController) RenderUserProfile(c *gin.Context) {
 }
 
 // ShowDiaryForm 显示创建/编辑日记表单页面
-func (ctrl *diaryController) ShowDiaryForm(c *gin.Context) {
+func (ctrl *DiaryController) ShowDiaryForm(c *gin.Context) {
 	// 获取当前登录用户（中间件保证已登录）
 	authUser := ctrl.auth.MustGetCurrentUser(c)
 
@@ -464,7 +441,7 @@ func (ctrl *diaryController) ShowDiaryForm(c *gin.Context) {
 }
 
 // ShowDiaryDetail 显示日记详情页面
-func (ctrl *diaryController) ShowDiaryDetail(c *gin.Context) {
+func (ctrl *DiaryController) ShowDiaryDetail(c *gin.Context) {
 	diaryIdStr := c.Param("id")
 	if diaryIdStr == "" {
 		ctrl.renderService.Redirect(c, "/")

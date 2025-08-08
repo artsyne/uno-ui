@@ -19,41 +19,27 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// PostController 日记模块HTTP处理器接口
-// 定义所有与日记相关的HTTP处理操作
-type PostController interface {
-	// RegisterRoutes 注册所有日记相关路由
-	RegisterRoutes(router *gin.Engine)
 
-	// RenderPostForm 渲染日记编辑表单页面
-	RenderPostForm(c *gin.Context)
-
-	// HandlePost 处理日记的创建和编辑请求
-	HandlePost(c *gin.Context)
-
-	// RenderDiaryIndex 渲染日记本列表页面
-	RenderDiaryIndex(c *gin.Context)
-}
 
 // postController 日记模块HTTP处理器实现
 // 负责处理所有与日记相关的HTTP请求，包括渲染表单、创建日记、编辑日记等操作
-type postController struct {
+type PostController struct {
 	postService   post.ServiceInterface
 	diaryService  diary.ServiceInterface
 	auth          user.AuthHelperInterface
 	config        *config.Config
-	renderService view.ViewServiceInterface
+	renderService *view.ViewService
 }
 
 // NewPostController 创建新的日记控制器实例
-func NewPostController() PostController {
+func NewPostController() *PostController {
 	config := config.GetConfig()
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(taskRepo, config)
 	diaryRepo := repository.NewDiaryRepository()
 	postRepo := repository.NewPostRepository(database.GetDB())
-	return &postController{
+	return &PostController{
 		postService:   post.NewService(userRepo, taskService, diaryRepo, postRepo),
 		diaryService:  diary.NewService(diaryRepo),
 		auth:          user.NewAuthHelper(config),
@@ -64,7 +50,7 @@ func NewPostController() PostController {
 
 // RegisterRoutes 注册所有日记相关路由
 // 将所有post相关路由聚合在一个地方，实现高内聚
-func (ctrl *postController) RegisterRoutes(router *gin.Engine) {
+func (ctrl *PostController) RegisterRoutes(router *gin.Engine) {
 	// 日记本页面路由组（无需鉴权，支持公开访问）
 	// 显示日记本下的日记列表
 	daybook := router.Group("/d")
@@ -98,7 +84,7 @@ func (ctrl *postController) RegisterRoutes(router *gin.Engine) {
 // 返回值:
 //   - int64: 解析后的ID
 //   - error: 解析失败时的错误信息
-func (ctrl *postController) parsePostID(idStr string) (int64, error) {
+func (ctrl *PostController) parsePostID(idStr string) (int64, error) {
 	id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
 	if err != nil || id <= 0 {
 		return 0, errors.InvalidParams.Err()
@@ -115,7 +101,7 @@ func (ctrl *postController) parsePostID(idStr string) (int64, error) {
 // 返回值:
 //   - int64: 解析后的ID
 //   - error: 解析失败时的错误信息
-func (ctrl *postController) parseDiaryID(idStr string) (int64, error) {
+func (ctrl *PostController) parseDiaryID(idStr string) (int64, error) {
 	id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
 	if err != nil || id <= 0 {
 		return 0, errors.InvalidParams.Err()
@@ -132,7 +118,7 @@ func (ctrl *postController) parseDiaryID(idStr string) (int64, error) {
 // 支持的URL参数:
 //   - action: "post.create" 或 "post.edit"
 //   - post_id: 当action为edit时需要提供的日记ID
-func (ctrl *postController) RenderPostForm(c *gin.Context) {
+func (ctrl *PostController) RenderPostForm(c *gin.Context) {
 	// 获取当前登录用户信息，如果未登录会panic（由中间件保证已登录）
 	loginUser := ctrl.auth.MustGetCurrentUser(c)
 
@@ -169,7 +155,7 @@ func (ctrl *postController) RenderPostForm(c *gin.Context) {
 // 支持的表单action值:
 //   - "post.create": 创建新日记
 //   - "post.edit": 编辑现有日记
-func (ctrl *postController) HandlePost(c *gin.Context) {
+func (ctrl *PostController) HandlePost(c *gin.Context) {
 	// 获取当前登录用户信息
 	loginUser := ctrl.auth.MustGetCurrentUser(c)
 
@@ -199,7 +185,7 @@ func (ctrl *postController) HandlePost(c *gin.Context) {
 //   - c: Gin上下文
 //   - postForm: 解析后的表单数据
 //   - user: 当前登录用户信息
-func (ctrl *postController) handleCreatePost(c *gin.Context, postForm *post.PostRequest, user *types.AuthUser) {
+func (ctrl *PostController) handleCreatePost(c *gin.Context, postForm *post.PostRequest, loginUser *types.AuthUser) {
 	nowTime := pkg.GetNowTimeUnixMilli()
 
 	// 构建新日记对象，设置所有必要字段
@@ -211,8 +197,8 @@ func (ctrl *postController) handleCreatePost(c *gin.Context, postForm *post.Post
 		IsTop:         0,
 		InfoType:      1, // 默认为文本类型
 		AddUTCTime:    nowTime,
-		AddUserID:     user.UserId,
-		AddUserName:   user.UserName,
+		AddUserID:     loginUser.UserId,
+		AddUserName:   loginUser.UserName,
 		AddUserIP:     c.ClientIP(),
 		UpdateUTCTime: nowTime,
 		Status:        1, // 默认状态为正常
@@ -247,7 +233,7 @@ func (ctrl *postController) handleCreatePost(c *gin.Context, postForm *post.Post
 //   - c: Gin上下文
 //   - postForm: 解析后的表单数据
 //   - user: 当前登录用户信息
-func (ctrl *postController) handleEditPost(c *gin.Context, postForm *post.PostRequest, user *types.AuthUser) {
+func (ctrl *PostController) handleEditPost(c *gin.Context, postForm *post.PostRequest, loginUser *types.AuthUser) {
 	// 获取要编辑的日记ID
 	postIdStr, _ := c.GetPostForm("post_id")
 	postId, err := ctrl.parsePostID(postIdStr)
@@ -257,7 +243,7 @@ func (ctrl *postController) handleEditPost(c *gin.Context, postForm *post.PostRe
 	}
 
 	// 验证日记所有权
-	originalPost, err := ctrl.validatePostOwnership(postId, user.UserId)
+	originalPost, err := ctrl.validatePostOwnership(postId, loginUser.UserId)
 	if err != nil {
 		ctrl.renderService.JSONError(c, err)
 		return
@@ -299,7 +285,7 @@ func (ctrl *postController) handleEditPost(c *gin.Context, postForm *post.PostRe
 // 返回值:
 //   - *post.Post: 日记对象，如果验证失败返回nil
 //   - error: 错误信息
-func (ctrl *postController) getAndValidatePost(c *gin.Context, userID int64) (*post.Post, error) {
+func (ctrl *PostController) getAndValidatePost(c *gin.Context, userID int64) (*post.Post, error) {
 	postID, err := ctrl.parsePostID(c.Query("post_id"))
 	if err != nil {
 		return nil, err
@@ -318,7 +304,7 @@ func (ctrl *postController) getAndValidatePost(c *gin.Context, userID int64) (*p
 // 返回值:
 //   - *post.Post: 日记对象
 //   - error: 验证失败时的错误信息
-func (ctrl *postController) validatePostOwnership(postID, userID int64) (*post.Post, error) {
+func (ctrl *PostController) validatePostOwnership(postID, userID int64) (*post.Post, error) {
 	postData, err := ctrl.postService.GetPostByID(postID)
 	if err != nil || postData == nil {
 		return nil, errors.InvalidParams.Err()
@@ -338,7 +324,7 @@ func (ctrl *postController) validatePostOwnership(postID, userID int64) (*post.P
 // 参数:
 //   - c: Gin上下文
 //   - postData: 操作成功的日记对象
-func (ctrl *postController) respondSuccess(c *gin.Context, postData *post.Post) {
+func (ctrl *PostController) respondSuccess(c *gin.Context, postData *post.Post) {
 	ctrl.renderService.JSONSuccess(c, postData)
 }
 
@@ -351,7 +337,7 @@ func (ctrl *postController) respondSuccess(c *gin.Context, postData *post.Post) 
 //
 // 参数:
 //   - c: Gin上下文，包含请求信息和响应操作
-func (ctrl *postController) RenderDiaryIndex(c *gin.Context) {
+func (ctrl *PostController) RenderDiaryIndex(c *gin.Context) {
 	// 解析日记本ID
 	diaryIDStr := c.Param("spaceid")
 	diaryID, err := ctrl.parseDiaryID(diaryIDStr)
@@ -428,7 +414,7 @@ func (ctrl *postController) RenderDiaryIndex(c *gin.Context) {
 //   - c: Gin上下文
 //   - title: 错误标题
 //   - message: 错误详细信息
-func (ctrl *postController) renderErrorPage(c *gin.Context, title, message string) {
+func (ctrl *PostController) renderErrorPage(c *gin.Context, title, message string) {
 	data := ctrl.renderService.CreatePageData(c, "error")
 	data.Data["title"] = title
 	data.Data["message"] = message

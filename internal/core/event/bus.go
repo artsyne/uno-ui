@@ -2,19 +2,9 @@
 package event
 
 import (
-	"sync"
+	"log/slog"
 	"sync/atomic"
 )
-
-// GlobalEventBusRegistry 全局事件总线注册表
-type GlobalEventBusRegistry struct {
-	// managers 存储不同类型的事件总线管理器
-	managers map[string]interface{}
-	// mu 保护并发操作的互斥锁
-	mu sync.RWMutex
-	// closed 标识注册表是否已关闭
-	closed int32
-}
 
 var (
 	// globalRegistry 全局事件总线注册表实例
@@ -25,7 +15,7 @@ var (
 
 // GetTypedEventBusManager 获取特定类型的事件总线管理器
 // 如果不存在则创建一个新的
-func GetTypedEventBusManager[T Event](eventTypeName string, logger Logger) *TypedEventBusManager[T] {
+func GetTypedEventBusManager[T Event](eventTypeName string, logger *slog.Logger) *TypedEventBusManager[T] {
 	if atomic.LoadInt32(&globalRegistry.closed) == 1 {
 		return nil
 	}

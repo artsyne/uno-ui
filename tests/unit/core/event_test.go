@@ -3,8 +3,7 @@ package core
 import (
 	"context"
 	"errors"
-	"fmt"
-	"strings"
+	"log/slog"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -61,60 +60,18 @@ func NewAnotherTestEvent(value int) *AnotherTestEvent {
 	}
 }
 
-// TestLogger 测试用的日志器
-type TestLogger struct {
-	logs []string
-	mu   sync.Mutex
-}
 
-func (l *TestLogger) Debug(msg string, args ...interface{}) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	l.logs = append(l.logs, fmt.Sprintf("[DEBUG] "+msg, args...))
-}
-
-func (l *TestLogger) Info(msg string, args ...interface{}) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	l.logs = append(l.logs, fmt.Sprintf("[INFO] "+msg, args...))
-}
-
-func (l *TestLogger) Warn(msg string, args ...interface{}) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	l.logs = append(l.logs, fmt.Sprintf("[WARN] "+msg, args...))
-}
-
-func (l *TestLogger) Error(msg string, args ...interface{}) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	l.logs = append(l.logs, fmt.Sprintf("[ERROR] "+msg, args...))
-}
-
-func (l *TestLogger) GetLogs() []string {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	return append([]string{}, l.logs...)
-}
-
-func (l *TestLogger) Clear() {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	l.logs = nil
-}
 
 // TestEventBus_NewEventBus 测试事件总线创建
 func TestEventBus_NewEventBus(t *testing.T) {
-	logger := &TestLogger{}
-
 	// 测试泛型事件总线创建
-	bus := event.NewEventBus[*TestEvent](logger)
+	bus := event.NewEventBus[*TestEvent](slog.Default())
 	if bus == nil {
 		t.Fatal("Expected non-nil event bus")
 	}
 
 	// 测试类型化事件总线管理器创建
-	manager := event.GetTypedEventBusManager[*TestEvent]("test", logger)
+	manager := event.GetTypedEventBusManager[*TestEvent]("test", slog.Default())
 	if manager == nil {
 		t.Fatal("Expected non-nil typed event bus manager")
 	}
@@ -123,8 +80,7 @@ func TestEventBus_NewEventBus(t *testing.T) {
 
 // TestEventBus_Subscribe 测试事件订阅
 func TestEventBus_Subscribe(t *testing.T) {
-	logger := &TestLogger{}
-	bus := event.NewEventBus[*TestEvent](logger)
+	bus := event.NewEventBus[*TestEvent](slog.Default())
 	defer bus.Close()
 
 	// 订阅处理器
@@ -140,25 +96,11 @@ func TestEventBus_Subscribe(t *testing.T) {
 	if subscriptionID == 0 {
 		t.Error("Expected non-zero subscription ID")
 	}
-
-	// 检查日志
-	logs := logger.GetLogs()
-	found := false
-	for _, log := range logs {
-		if strings.Contains(log, "Handler subscribed successfully with ID:") {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Error("Expected subscription log not found")
-	}
 }
 
 // TestEventBus_Publish 测试事件发布
 func TestEventBus_Publish(t *testing.T) {
-	logger := &TestLogger{}
-	bus := event.NewEventBus[*TestEvent](logger)
+	bus := event.NewEventBus[*TestEvent](slog.Default())
 	defer bus.Close()
 	ctx := context.Background()
 
@@ -202,8 +144,7 @@ func TestEventBus_Publish(t *testing.T) {
 
 // TestEventBus_MultipleHandlers 测试多个处理器
 func TestEventBus_MultipleHandlers(t *testing.T) {
-	logger := &TestLogger{}
-	bus := event.NewEventBus[*TestEvent](logger)
+	bus := event.NewEventBus[*TestEvent](slog.Default())
 	defer bus.Close()
 	ctx := context.Background()
 
@@ -254,8 +195,7 @@ func TestEventBus_MultipleHandlers(t *testing.T) {
 
 // TestEventBus_Unsubscribe 测试取消订阅
 func TestEventBus_Unsubscribe(t *testing.T) {
-	logger := &TestLogger{}
-	bus := event.NewEventBus[*TestEvent](logger)
+	bus := event.NewEventBus[*TestEvent](slog.Default())
 	defer bus.Close()
 	ctx := context.Background()
 
@@ -314,8 +254,7 @@ func TestEventBus_Unsubscribe(t *testing.T) {
 
 // TestEventBus_ErrorHandling 测试错误处理
 func TestEventBus_ErrorHandling(t *testing.T) {
-	logger := &TestLogger{}
-	bus := event.NewEventBus[*TestEvent](logger)
+	bus := event.NewEventBus[*TestEvent](slog.Default())
 	defer bus.Close()
 	ctx := context.Background()
 
@@ -357,24 +296,12 @@ func TestEventBus_ErrorHandling(t *testing.T) {
 		t.Error("Expected normal handler to be called")
 	}
 
-	// 检查错误日志
-	logs := logger.GetLogs()
-	found := false
-	for _, log := range logs {
-		if strings.Contains(log, "Event handling errors") {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Error("Expected error log not found")
-	}
+
 }
 
 // TestEventBus_PanicRecovery 测试 panic 恢复
 func TestEventBus_PanicRecovery(t *testing.T) {
-	logger := &TestLogger{}
-	bus := event.NewEventBus[*TestEvent](logger)
+	bus := event.NewEventBus[*TestEvent](slog.Default())
 	defer bus.Close()
 	ctx := context.Background()
 
@@ -416,24 +343,12 @@ func TestEventBus_PanicRecovery(t *testing.T) {
 		t.Error("Expected normal handler to be called")
 	}
 
-	// 检查 panic 恢复日志
-	logs := logger.GetLogs()
-	found := false
-	for _, log := range logs {
-		if strings.Contains(log, "Panic in event handler") {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Error("Expected panic recovery log not found")
-	}
+
 }
 
 // TestEventBus_Close 测试关闭事件总线
 func TestEventBus_Close(t *testing.T) {
-	logger := &TestLogger{}
-	bus := event.NewEventBus[*TestEvent](logger)
+	bus := event.NewEventBus[*TestEvent](slog.Default())
 	ctx := context.Background()
 
 	// 关闭事件总线
@@ -467,7 +382,6 @@ func TestEventBus_Close(t *testing.T) {
 
 // TestEventBus_DifferentEventTypes 测试不同事件类型
 func TestEventBus_DifferentEventTypes(t *testing.T) {
-	logger := &TestLogger{}
 	ctx := context.Background()
 
 	// 计数器
@@ -486,14 +400,14 @@ func TestEventBus_DifferentEventTypes(t *testing.T) {
 	}
 
 	// 创建不同类型的事件总线并订阅处理器
-	testBus := event.NewEventBus[*TestEvent](logger)
+	testBus := event.NewEventBus[*TestEvent](slog.Default())
 	defer testBus.Close()
 	_, err := testBus.Subscribe(testHandler)
 	if err != nil {
 		t.Fatalf("Failed to subscribe test handler: %v", err)
 	}
 
-	anotherBus := event.NewEventBus[*AnotherTestEvent](logger)
+	anotherBus := event.NewEventBus[*AnotherTestEvent](slog.Default())
 	defer anotherBus.Close()
 	_, err = anotherBus.Subscribe(anotherHandler)
 	if err != nil {

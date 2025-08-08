@@ -7,11 +7,11 @@ import (
 
 // Controller 基础控制器，包含公共服务
 type Controller struct {
-	renderService view.ViewServiceInterface
+	renderService *view.ViewService
 }
 
 // NewController 创建控制器实例
-func NewController(renderService view.ViewServiceInterface) *Controller {
+func NewController(renderService *view.ViewService) *Controller {
 	return &Controller{
 		renderService: renderService,
 	}

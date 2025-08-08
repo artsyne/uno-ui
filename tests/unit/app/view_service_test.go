@@ -26,7 +26,7 @@ func TestViewService_Creation(t *testing.T) {
 	require.NotNil(t, viewService)
 
 	// 验证服务实现了接口
-	var _ view.ViewServiceInterface = viewService
+	var _ *view.ViewService = viewService
 }
 
 // TestViewService_PageData 测试页面数据创建
