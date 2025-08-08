@@ -9,6 +9,7 @@ import (
 
 	"github.com/biuren/hebe/internal/app/controller"
 	"github.com/biuren/hebe/internal/app/view"
+	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/i18n"
 	"github.com/biuren/hebe/internal/app/templates"
 	"github.com/biuren/hebe/internal/utils/config"
@@ -45,7 +46,10 @@ func createController(container *di.Container) *controller.Controller {
 
 // createUserController 通过DI容器创建UserController
 func createUserController(container *di.Container) controller.UserController {
-	return controller.NewUserController()
+	userService := di.Get[user.ServiceInterface](container)
+	renderService := di.Get[view.ViewServiceInterface](container)
+	authHelper := di.Get[user.AuthHelperInterface](container)
+	return controller.NewUserController(userService, renderService, authHelper)
 }
 
 // createDiaryController 通过DI容器创建DiaryController

@@ -50,7 +50,7 @@ func NewPostController() PostController {
 	config := config.GetConfig()
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
+	taskService := task.NewService(taskRepo, config)
 	diaryRepo := repository.NewDiaryRepository()
 	postRepo := repository.NewPostRepository(database.GetDB())
 	return &postController{

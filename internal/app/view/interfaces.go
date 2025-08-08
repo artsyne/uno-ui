@@ -1,8 +1,8 @@
 package view
 
 import (
+	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/gin-gonic/gin"
-
 	contracts "github.com/biuren/hebe/internal/contracts"
 )
 
@@ -46,4 +46,10 @@ type ViewServiceInterface interface {
 	
 	// GetLocaleFromContext 获取当前请求的语言环境
 	GetLocaleFromContext(c *gin.Context) string
+
+	// GetSupportLangs 获取支持的语言列表
+	GetSupportLangs() []config.SupportLang
+
+	// GetTimeZones 获取时区列表
+	GetTimeZones() []string
 }

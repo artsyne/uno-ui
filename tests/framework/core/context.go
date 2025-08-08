@@ -346,10 +346,11 @@ func (sr *ServiceRegistry) InitializeServices(db *sqlx.DB) error {
 	taskRepo := repository.NewTaskRepository()
 	
 	// 创建任务服务
-	taskService := task.NewService(taskRepo)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
 	
 	// 初始化各个服务，注入仓储依赖
-	sr.userService = user.NewService(userRepo, taskService)
+	sr.userService = user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
 	sr.diaryService = diary.NewService(diaryRepo)
 	postRepo := repository.NewPostRepository(db)

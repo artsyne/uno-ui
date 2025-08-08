@@ -58,10 +58,10 @@ func NewDiaryController() DiaryController {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	taskService := task.NewService(taskRepo)
+	taskService := task.NewService(taskRepo, config)
 	return &diaryController{
 		diaryService:  diary.NewService(diaryRepo),
-		userService:   user.NewService(userRepo, taskService),
+		userService:   user.NewService(userRepo, taskService, config),
 		auth:          user.NewAuthHelper(config),
 		config:        config,
 		renderService: view.NewViewService(config),

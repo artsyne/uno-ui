@@ -8,6 +8,7 @@ import (
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
+	"github.com/biuren/hebe/internal/utils/config"
 	framework "github.com/biuren/hebe/tests/framework/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,8 +23,9 @@ func TestUserDiaryIntegration(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryService := diary.NewService(diaryRepo)
 
 	t.Run("用户创建和日记本操作流程", func(t *testing.T) {
@@ -92,8 +94,9 @@ func TestUserPostDiaryIntegration(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryService := diary.NewService(diaryRepo)
 	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
 	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
@@ -225,8 +228,9 @@ func TestMultiUserScenario(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryService := diary.NewService(diaryRepo)
 	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
 	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
@@ -344,8 +348,9 @@ func TestServiceErrorHandling(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryService := diary.NewService(diaryRepo)
 	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
 	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
@@ -421,8 +426,9 @@ func TestServicePerformance(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryService := diary.NewService(diaryRepo)
 	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
 	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)

@@ -33,17 +33,11 @@ type service struct {
 }
 
 // NewService 创建新的任务业务逻辑层实例
-func NewService(repo RepositoryInterface) ServiceInterface {
-	config := config.GetConfig()
-	if config == nil {
-		// 在初始化时就检查配置，如果配置未正确加载则panic
-		// 这是合理的，因为没有配置应用无法正常运行
-		panic("Failed to get config during task service initialization - config is nil")
-	}
+func NewService(repo RepositoryInterface, cfg *config.Config) ServiceInterface {
 
 	return &service{
 		repo:   repo,
-		config: config, // 缓存配置
+		config: cfg, // 缓存配置
 	}
 }
 
@@ -54,11 +48,16 @@ func NewService(repo RepositoryInterface) ServiceInterface {
 func (s *service) StartScheduler() {
 	slog.Info("开始初始化定时任务...")
 
+	// 清除之前的任务，避免重复注册
+	gocron.Clear()
+	
 	// 设置定时任务
 	gocron.Every(10).Seconds().Do(s.ProcessEmailTasks)
 
-	// 启动定时任务
-	gocron.Start()
+	// 在后台启动定时任务，避免阻塞主线程
+	go func() {
+		gocron.Start()
+	}()
 
 	slog.Info("定时任务已启动，每10秒执行一次邮件任务")
 }

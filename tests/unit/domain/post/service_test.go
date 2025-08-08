@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
 	framework "github.com/biuren/hebe/tests/framework/core"
-	
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -55,10 +56,11 @@ func TestPostService_AddPost(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
+	config := config.GetConfig()
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(diaryRepo)
 	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
@@ -147,10 +149,11 @@ func TestPostService_GetPostByID(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
+	config := config.GetConfig()
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
 		diaryService := diary.NewService(diaryRepo)
 		postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
@@ -196,10 +199,11 @@ func TestPostService_UpdatePost(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
+	config := config.GetConfig()
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
 		diaryService := diary.NewService(diaryRepo)
 		postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
@@ -298,10 +302,11 @@ func TestPostService_ListPostsByUserID(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
+	config := config.GetConfig()
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(diaryRepo)
 	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
@@ -421,10 +426,11 @@ func TestPostService_GetPostCountByUserID(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
+	config := config.GetConfig()
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
 		diaryService := diary.NewService(diaryRepo)
 		postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
@@ -479,10 +485,11 @@ func TestPostService_UpdatePostByID(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
+	config := config.GetConfig()
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
 		diaryService := diary.NewService(diaryRepo)
 		postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
@@ -551,10 +558,11 @@ func TestPostService_DeletePostByID(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
+	config := config.GetConfig()
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
 		diaryService := diary.NewService(diaryRepo)
 		postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())

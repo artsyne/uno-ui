@@ -6,12 +6,10 @@ import (
 
 	"github.com/biuren/hebe/internal/app/view"
 	types "github.com/biuren/hebe/internal/contracts"
-	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
-	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/utils/config"
 	errors "github.com/biuren/hebe/internal/utils/error"
-	"github.com/biuren/hebe/pkg"
+	pkg "github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
 
@@ -84,21 +82,15 @@ type UserController interface {
 type userController struct {
 	service       user.ServiceInterface
 	auth          user.AuthHelperInterface
-	config        *config.Config // 缓存配置，避免重复调用全局变量
 	renderService view.ViewServiceInterface
 }
 
 // NewUserController 创建用户HTTP处理层实例
-func NewUserController() UserController {
-	config := config.GetConfig()
-	userRepo := repository.NewUserRepository()
-	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
+func NewUserController(service user.ServiceInterface, renderService view.ViewServiceInterface, auth user.AuthHelperInterface) UserController {
 	return &userController{
-		service:       user.NewService(userRepo, taskService),
-		auth:          user.NewAuthHelper(config),
-		config:        config,
-		renderService: view.NewViewService(config),
+		service:       service,
+		renderService: renderService,
+		auth:          auth,
 	}
 }
 
@@ -158,8 +150,16 @@ func (h *userController) ShowRegisterPage(c *gin.Context) {
 	}
 
 	data := h.renderService.CreatePageData(c, "user.register.title")
-	data.Data["SupportLangs"] = config.GetSupportLangs()
-	data.Data["TimeZones"] = config.GetTimeZone()
+	supportLangs := h.renderService.GetSupportLangs()
+	langMaps := make([]map[string]string, len(supportLangs))
+	for i, lang := range supportLangs {
+		langMaps[i] = map[string]string{
+			"Code": lang.Code,
+			"Name": lang.Label,
+		}
+	}
+	data.Data["SupportLangs"] = langMaps
+	data.Data["TimeZones"] = h.renderService.GetTimeZones()
 	h.renderService.HTML(c, "passport/register", data)
 }
 

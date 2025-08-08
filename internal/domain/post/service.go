@@ -55,7 +55,7 @@ func NewService(userRepo user.RepositoryInterface, taskService task.ServiceInter
 	return &Service{
 		repo:         postRepo,
 		config:       config, // 缓存配置
-		userService:  user.NewService(userRepo, taskService),
+		userService:  user.NewService(userRepo, taskService, config),
 		diaryService: diary.NewService(diaryRepo),
 	}
 }

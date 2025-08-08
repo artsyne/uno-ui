@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+	"github.com/subosito/gotenv"
 )
 
 // 全局配置实例
@@ -19,6 +20,12 @@ var (
 
 // InitConfig 初始化配置
 func InitConfig() error {
+	// 加载 .env.local 文件
+	if err := gotenv.Load(".env.local"); err != nil {
+		// .env.local 文件不存在时不报错，继续使用环境变量
+		fmt.Printf("Warning: .env.local file not found: %v\n", err)
+	}
+
 	v = viper.New()
 
 	// 环境变量支持
@@ -191,6 +198,16 @@ func GetTimeZone() []string {
 // GetSupportLangs 获取支持的语言
 func GetSupportLangs() []SupportLang {
 	return globalConfig.SupportLangs
+}
+
+// GetSupportLangs 获取支持的语言 (Config 方法)
+func (c *Config) GetSupportLangs() []SupportLang {
+	return c.SupportLangs
+}
+
+// GetTimeZone 获取时区配置 (Config 方法)
+func (c *Config) GetTimeZone() []string {
+	return c.Timezones
 }
 
 // GetStaticPath 获取 static 目录

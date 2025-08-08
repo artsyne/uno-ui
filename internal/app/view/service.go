@@ -127,6 +127,18 @@ func (s *ViewService) GetLocaleFromContext(c *gin.Context) string {
 	return s.i18nManager.GetLocaleFromContext(c)
 }
 
+// ===================== 配置服务 =====================
+
+// GetSupportLangs 获取支持的语言列表
+func (s *ViewService) GetSupportLangs() []config.SupportLang {
+	return s.config.GetSupportLangs()
+}
+
+// GetTimeZones 获取时区列表
+func (s *ViewService) GetTimeZones() []string {
+	return s.config.GetTimeZone()
+}
+
 // ===================== 内部辅助方法 =====================
 
 // getLoginStatus 获取登录状态

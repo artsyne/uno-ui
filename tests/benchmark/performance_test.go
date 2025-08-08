@@ -11,6 +11,7 @@ import (
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
+	"github.com/biuren/hebe/internal/utils/config"
 	framework "github.com/biuren/hebe/tests/framework/core"
 )
 
@@ -21,8 +22,9 @@ func BenchmarkUserRegistration(b *testing.B) {
 
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -47,8 +49,9 @@ func BenchmarkDiaryCreation(b *testing.B) {
 
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(diaryRepo)
 
@@ -92,8 +95,9 @@ func BenchmarkPostCreation(b *testing.B) {
 
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(diaryRepo)
 	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
@@ -174,8 +178,9 @@ func BenchmarkConcurrentUserRegistration(b *testing.B) {
 
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {

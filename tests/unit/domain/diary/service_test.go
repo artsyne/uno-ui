@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
@@ -37,10 +38,11 @@ func TestDiaryService_AddDiary(t *testing.T) {
 		
 		// 创建测试用户
 		testUser := ctx.GetDataGenerator().CreateUser()
+		config := config.GetConfig()
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		taskService := task.NewService(taskRepo)
-		userService := user.NewService(userRepo, taskService)
+		taskService := task.NewService(taskRepo, config)
+		userService := user.NewService(userRepo, taskService, config)
 		err := userService.RegisterUser(testUser)
 		require.NoError(t, err)
 
@@ -97,10 +99,11 @@ func TestDiaryService_AddDiary(t *testing.T) {
 
 		// 创建测试用户
 		testUser := ctx.GetDataGenerator().CreateUser()
+		config := config.GetConfig()
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		taskService := task.NewService(taskRepo)
-		userService := user.NewService(userRepo, taskService)
+		taskService := task.NewService(taskRepo, config)
+		userService := user.NewService(userRepo, taskService, config)
 		err := userService.RegisterUser(testUser)
 		require.NoError(t, err)
 
@@ -148,8 +151,9 @@ func TestDiaryService_AddDiary_EmptyTitle(t *testing.T) {
 	}
 	userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		taskService := task.NewService(taskRepo)
-		userService := user.NewService(userRepo, taskService)
+		config := config.GetConfig()
+		taskService := task.NewService(taskRepo, config)
+		userService := user.NewService(userRepo, taskService, config)
 	err := userService.RegisterUser(testUser)
 	require.NoError(t, err)
 
@@ -175,10 +179,11 @@ func TestDiaryService_GetDiaryByID(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
+		config := config.GetConfig()
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		taskService := task.NewService(taskRepo)
-		userService := user.NewService(userRepo, taskService)
+		taskService := task.NewService(taskRepo, config)
+		userService := user.NewService(userRepo, taskService, config)
 		diaryRepo := repository.NewDiaryRepository()
 		diaryService := diary.NewService(diaryRepo)
 
@@ -230,10 +235,11 @@ func TestDiaryService_UpdateDiary(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
+	config := config.GetConfig()
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(diaryRepo)
 
@@ -333,8 +339,9 @@ func TestDiaryService_ListDiariesForWrite(t *testing.T) {
 
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		taskService := task.NewService(taskRepo)
-		userService := user.NewService(userRepo, taskService)
+		config := config.GetConfig()
+		taskService := task.NewService(taskRepo, config)
+		userService := user.NewService(userRepo, taskService, config)
 		diaryRepo := repository.NewDiaryRepository()
 		diaryService := diary.NewService(diaryRepo)
 
@@ -391,8 +398,9 @@ func TestDiaryService_ListDiariesForWrite(t *testing.T) {
 	// 创建真实的服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(diaryRepo)
 
@@ -450,8 +458,9 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 		diaryService := diary.NewService(diaryRepo)
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		taskService := task.NewService(taskRepo)
-		userService := user.NewService(userRepo, taskService)
+		config := config.GetConfig()
+		taskService := task.NewService(taskRepo, config)
+		userService := user.NewService(userRepo, taskService, config)
 
 		// 创建测试用户
 		testUser := &user.User{
@@ -495,8 +504,9 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 		diaryService := diary.NewService(diaryRepo)
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		taskService := task.NewService(taskRepo)
-		userService := user.NewService(userRepo, taskService)
+		config := config.GetConfig()
+		taskService := task.NewService(taskRepo, config)
+		userService := user.NewService(userRepo, taskService, config)
 
 		// 创建测试用户
 		testUser := &user.User{
@@ -540,8 +550,9 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 		diaryService := diary.NewService(diaryRepo)
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		taskService := task.NewService(taskRepo)
-		userService := user.NewService(userRepo, taskService)
+		config := config.GetConfig()
+		taskService := task.NewService(taskRepo, config)
+		userService := user.NewService(userRepo, taskService, config)
 
 		// 创建测试用户
 		testUser := &user.User{
@@ -593,15 +604,15 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 
 // TestDiaryService_PostCountOperations 测试文章数量操作
 func TestDiaryService_PostCountOperations(t *testing.T) {
-	// 使用新测试框架
 	ctx := framework.NewTestContext("TestDiaryService_PostCountOperations", framework.WithDatabase())
 	defer ctx.Cleanup()
 
-	// 创建真实的服务
+	// 创建服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(diaryRepo)
 

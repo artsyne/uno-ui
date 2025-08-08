@@ -8,6 +8,7 @@ import (
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
+	"github.com/biuren/hebe/internal/utils/config"
 	core "github.com/biuren/hebe/tests/framework/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,8 +30,9 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		// 创建服务
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		taskService := task.NewService(taskRepo)
-		userService := user.NewService(userRepo, taskService)
+		config := config.GetConfig()
+		taskService := task.NewService(taskRepo, config)
+		userService := user.NewService(userRepo, taskService, config)
 		diaryRepo := repository.NewDiaryRepository()
 		diaryService := diary.NewService(diaryRepo)
 		postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
@@ -74,8 +76,9 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		// 创建服务
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		taskService := task.NewService(taskRepo)
-		userService := user.NewService(userRepo, taskService)
+		config := config.GetConfig()
+		taskService := task.NewService(taskRepo, config)
+		userService := user.NewService(userRepo, taskService, config)
 		diaryRepo := repository.NewDiaryRepository()
 		diaryService := diary.NewService(diaryRepo)
 
@@ -116,8 +119,9 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		// 创建服务
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		taskService := task.NewService(taskRepo)
-		userService := user.NewService(userRepo, taskService)
+		config := config.GetConfig()
+		taskService := task.NewService(taskRepo, config)
+		userService := user.NewService(userRepo, taskService, config)
 
 		// 创建第一批测试数据
 		generator := ctx.GetDataGenerator()
@@ -162,8 +166,9 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		// 创建服务
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		taskService := task.NewService(taskRepo)
-		userService := user.NewService(userRepo, taskService)
+		config := config.GetConfig()
+		taskService := task.NewService(taskRepo, config)
+		userService := user.NewService(userRepo, taskService, config)
 
 		// 创建测试数据
 		generator := ctx.GetDataGenerator()

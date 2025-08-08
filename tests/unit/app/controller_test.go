@@ -9,7 +9,10 @@ import (
 	"testing"
 
 	"github.com/biuren/hebe/internal/app/controller"
+	"github.com/biuren/hebe/internal/app/view"
 	types "github.com/biuren/hebe/internal/contracts"
+	"github.com/biuren/hebe/internal/domain/user"
+	"github.com/biuren/hebe/internal/utils/config"
 	framework "github.com/biuren/hebe/tests/framework/core"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +24,11 @@ func TestUserControllerCreation(t *testing.T) {
 	ctx := framework.NewTestContext("TestUserControllerCreation", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 	assert.NotNil(t, userController)
 }
 
@@ -29,7 +36,11 @@ func TestShowLoginPage(t *testing.T) {
 	ctx := framework.NewTestContext("TestShowLoginPage", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -54,7 +65,11 @@ func TestShowRegisterPage(t *testing.T) {
 	ctx := framework.NewTestContext("TestShowRegisterPage", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -79,7 +94,11 @@ func TestShowPasswordResetPage(t *testing.T) {
 	ctx := framework.NewTestContext("TestShowPasswordResetPage", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -104,7 +123,11 @@ func TestShowUserSettingsPage(t *testing.T) {
 	ctx := framework.NewTestContext("TestShowUserSettingsPage", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -138,7 +161,11 @@ func TestLoginPOST(t *testing.T) {
 	ctx := framework.NewTestContext("TestLoginPOST", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -163,7 +190,11 @@ func TestLoginPOSTEmptyData(t *testing.T) {
 	ctx := framework.NewTestContext("TestLoginPOSTEmptyData", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -183,7 +214,11 @@ func TestRegisterPOST(t *testing.T) {
 	ctx := framework.NewTestContext("TestRegisterPOST", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -212,7 +247,11 @@ func TestLogout(t *testing.T) {
 	ctx := framework.NewTestContext("TestLogout", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -230,7 +269,11 @@ func TestValidateUsername(t *testing.T) {
 	ctx := framework.NewTestContext("TestValidateUsername", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -253,7 +296,11 @@ func TestValidateUsernameEmpty(t *testing.T) {
 	ctx := framework.NewTestContext("TestValidateUsernameEmpty", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -273,7 +320,11 @@ func TestValidateEmail(t *testing.T) {
 	ctx := framework.NewTestContext("TestValidateEmail", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -296,7 +347,11 @@ func TestValidateEmailEmpty(t *testing.T) {
 	ctx := framework.NewTestContext("TestValidateEmailEmpty", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -316,7 +371,11 @@ func TestUpdatePasswordEmpty(t *testing.T) {
 	ctx := framework.NewTestContext("TestUpdatePasswordEmpty", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -348,7 +407,11 @@ func TestUpdateProfileEmpty(t *testing.T) {
 	ctx := framework.NewTestContext("TestUpdateProfileEmpty", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -381,7 +444,11 @@ func TestRouteRegistration(t *testing.T) {
 	ctx := framework.NewTestContext("TestRouteRegistration", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
@@ -415,7 +482,11 @@ func TestContentTypeHandling(t *testing.T) {
 	ctx := framework.NewTestContext("TestContentTypeHandling", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
@@ -453,7 +524,11 @@ func TestJSONResponseFormat(t *testing.T) {
 	ctx := framework.NewTestContext("TestJSONResponseFormat", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	userController := controller.NewUserController()
+	config := config.GetConfig()
+	userService := ctx.GetServices().GetUserService()
+	renderService := view.NewViewService(config)
+	authHelper := user.NewAuthHelper(config)
+	userController := controller.NewUserController(userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()

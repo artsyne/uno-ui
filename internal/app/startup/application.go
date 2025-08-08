@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/core/di"
 	"github.com/biuren/hebe/internal/domain/task"
+	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
 	utilsMiddleware "github.com/biuren/hebe/internal/utils/middleware"
 	"github.com/biuren/hebe/internal/utils/error"
@@ -111,9 +113,28 @@ func (a *Application) initApplicationLayer() error {
 
 // registerAppServices 注册应用层服务到DI容器
 func (a *Application) registerAppServices() error {
-	// 注册新版本的ViewService（重构后的模块化服务）
+	// 注册 ViewService 为单例服务
 	di.Singleton(a.container, func() view.ViewServiceInterface {
 		return view.NewViewService(a.config)
+	})
+	
+	// 创建仓储实例
+	userRepo := repository.NewUserRepository()
+	taskRepo := repository.NewTaskRepository()
+	
+	// 创建服务实例
+	taskService := task.NewService(taskRepo, a.config)
+	userService := user.NewService(userRepo, taskService, a.config)
+	
+	// 注册为预创建实例，避免循环依赖
+	di.Value(a.container, userRepo)
+	di.Value(a.container, taskRepo)
+	di.Value(a.container, taskService)
+	di.Value(a.container, userService)
+
+	// 注册 AuthHelper 为单例服务
+	di.Singleton(a.container, func() user.AuthHelperInterface {
+		return user.NewAuthHelper(a.config)
 	})
 
 	slog.Info("成功注册应用层服务")
@@ -134,8 +155,12 @@ func (a *Application) initCookie() error {
 
 // initScheduler 启动定时任务
 func (a *Application) initScheduler() error {
-	taskRepo := repository.NewTaskRepository()
-	task.NewService(taskRepo).StartScheduler()
+	// 从 DI 容器安全获取 TaskService 实例并启动调度器
+	taskService, err := di.TryGet[task.ServiceInterface](a.container)
+	if err != nil {
+		return fmt.Errorf("获取TaskService失败: %w", err)
+	}
+	taskService.StartScheduler()
 	slog.Info("成功启动定时任务")
 	return nil
 }

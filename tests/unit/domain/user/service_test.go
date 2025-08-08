@@ -6,6 +6,7 @@ import (
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
+	"github.com/biuren/hebe/internal/utils/config"
 	framework "github.com/biuren/hebe/tests/framework/core"
 	
 	"github.com/stretchr/testify/assert"
@@ -24,8 +25,9 @@ func TestUserService_RegisterUser(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 
 	// 准备测试数据 - 使用随机数据避免冲突
 	newUser := &user.User{
@@ -108,8 +110,9 @@ func TestUserService_LoginWithUsernameOrEmail(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -179,9 +182,10 @@ func TestUserService_UpdateUserProfile(t *testing.T) {
 
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
-	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+		taskRepo := repository.NewTaskRepository()
+		config := config.GetConfig()
+		taskService := task.NewService(taskRepo, config)
+		userService := user.NewService(userRepo, taskService, config)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -222,8 +226,9 @@ func TestUserService_ChangeUserPassword(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -276,8 +281,9 @@ func TestUserService_IsExistUserName(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -311,8 +317,9 @@ func TestUserService_IsExistEmail(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -346,8 +353,9 @@ func TestUserService_GetUserByUserId(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -386,8 +394,9 @@ func TestUserService_GetUserByEmail(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -424,8 +433,9 @@ func TestUserService_UpdateUserStatus(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -462,8 +472,9 @@ func TestUserService_GetSupportedLang(t *testing.T) {
 	
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo)
-	userService := user.NewService(userRepo, taskService)
+	config := config.GetConfig()
+	taskService := task.NewService(taskRepo, config)
+	userService := user.NewService(userRepo, taskService, config)
 
 	tests := []struct {
 			name     string

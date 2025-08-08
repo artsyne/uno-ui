@@ -98,17 +98,11 @@ type Service struct {
 
 // NewService 创建用户业务逻辑层实例
 // NewService 创建用户服务实例，使用依赖注入
-func NewService(repo RepositoryInterface, taskService task.ServiceInterface) ServiceInterface {
-	config := config.GetConfig()
-	if config == nil {
-		// 在初始化时就检查配置，如果配置未正确加载则panic
-		// 这是合理的，因为没有配置应用无法正常运行
-		panic("Failed to get config during user service initialization - config is nil")
-	}
+func NewService(repo RepositoryInterface, taskService task.ServiceInterface, cfg *config.Config) ServiceInterface {
 
 	return &Service{
 		repo:       repo,
-		config:     config, // 缓存配置
+		config:     cfg, // 缓存配置
 		regexCheck: &pkg.RegexCheck{},
 		taskService: taskService,
 	}
