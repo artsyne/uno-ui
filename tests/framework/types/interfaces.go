@@ -64,9 +64,9 @@ type DataGeneratorInterface interface {
 
 // ServiceRegistryInterface 服务注册表接口
 type ServiceRegistryInterface interface {
-	GetUserService() user.ServiceInterface
-	GetDiaryService() diary.ServiceInterface
-	GetPostService() post.ServiceInterface
+	GetUserService() *user.Service
+	GetDiaryService() *diary.Service
+	GetPostService() *post.Service
 	InitializeServices(db *sqlx.DB) error
 }
 

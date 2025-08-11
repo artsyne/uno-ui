@@ -9,42 +9,19 @@ import (
 	"github.com/biuren/hebe/pkg"
 )
 
-// ServiceInterface 日记业务逻辑层接口
-// 定义所有与日记相关的业务逻辑操作
-type ServiceInterface interface {
-	// AddPost 增加新的日记（post）
-	AddPost(post *Post) (int64, error)
 
-	// GetPostByID 根据id获取post
-	GetPostByID(postId int64) (*Post, error)
-
-	// UpdatePost 更新 post
-	UpdatePost(post *Post) error
-
-	// ListPostsByUserID 根据用户ID和日记本ID分页查询日记信息
-	ListPostsByUserID(userID int64, diaryID int64, pageIndex, pageSize int) ([]Post, int, error)
-
-	// GetPostCountByUserID 根据用户ID和日记本ID统计信息数量
-	GetPostCountByUserID(userID int64, diaryID int64) (int, error)
-
-	// UpdatePostByID 根据日记ID更新日记信息
-	UpdatePostByID(post *Post) error
-
-	// DeletePostByID 根据日记ID删除日记信息
-	DeletePostByID(postID int64) error
-}
 
 // Service 日记业务逻辑层实现
 // 负责处理所有与日记相关的业务逻辑和规则验证
 type Service struct {
 	repo        RepositoryInterface
 	config      *config.Config // 缓存配置，避免重复调用全局变量
-	userService user.ServiceInterface
-	diaryService diary.ServiceInterface
+	userService *user.Service
+	diaryService *diary.Service
 }
 
 // NewService 创建新的文章业务逻辑层实例
-func NewService(userRepo user.RepositoryInterface, taskService task.ServiceInterface, diaryRepo diary.RepositoryInterface, postRepo RepositoryInterface) ServiceInterface {
+func NewService(userRepo user.RepositoryInterface, taskService *task.Service, diaryRepo diary.RepositoryInterface, postRepo RepositoryInterface) *Service {
 	config := config.GetConfig()
 	if config == nil {
 		// 在初始化时就检查配置，如果配置未正确加载则panic

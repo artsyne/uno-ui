@@ -320,9 +320,9 @@ func WithTimeout(timeout time.Duration) TestContextOption {
 
 // ServiceRegistry 服务注册表
 type ServiceRegistry struct {
-	userService  user.ServiceInterface
-	diaryService diary.ServiceInterface
-	postService  post.ServiceInterface
+	userService  *user.Service
+	diaryService *diary.Service
+	postService  *post.Service
 	initialized  bool
 	mu           sync.RWMutex
 }
@@ -364,21 +364,21 @@ func (sr *ServiceRegistry) InitializeServices(db *sqlx.DB) error {
 }
 
 // GetUserService 获取用户服务
-func (sr *ServiceRegistry) GetUserService() user.ServiceInterface {
+func (sr *ServiceRegistry) GetUserService() *user.Service {
 	sr.mu.RLock()
 	defer sr.mu.RUnlock()
 	return sr.userService
 }
 
 // GetDiaryService 获取日记服务
-func (sr *ServiceRegistry) GetDiaryService() diary.ServiceInterface {
+func (sr *ServiceRegistry) GetDiaryService() *diary.Service {
 	sr.mu.RLock()
 	defer sr.mu.RUnlock()
 	return sr.diaryService
 }
 
 // GetPostService 获取文章服务
-func (sr *ServiceRegistry) GetPostService() post.ServiceInterface {
+func (sr *ServiceRegistry) GetPostService() *post.Service {
 	sr.mu.RLock()
 	defer sr.mu.RUnlock()
 	return sr.postService

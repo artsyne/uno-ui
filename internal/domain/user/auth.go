@@ -28,43 +28,11 @@ import (
  * @version 1.0.0
  */
 
-// AuthHelperInterface 认证助手接口
-// 定义了所有与用户认证相关的操作方法
-type AuthHelperInterface interface {
-	// IsAuthenticated 检查用户是否已通过认证
-	IsAuthenticated(c *gin.Context) (bool, *types.AuthUser)
 
-	// RequireGuest 中间件：要求用户处于游客状态（未登录）
-	RequireGuest(redirectURL ...string) gin.HandlerFunc
 
-	// RequireAuth 中间件：要求用户已通过认证
-	RequireAuth(loginURL ...string) gin.HandlerFunc
-
-	// GetCurrentUser 安全地获取当前登录用户信息
-	GetCurrentUser(c *gin.Context) (*types.AuthUser, bool)
-
-	// MustGetCurrentUser 强制获取当前登录用户信息
-	MustGetCurrentUser(c *gin.Context) *types.AuthUser
-
-	// IsLogin 检查用户是否已登录（简化版本）
-	IsLogin(c *gin.Context) bool
-
-	// IfLoginGotoIndex 如果已登录则跳转到首页
-	IfLoginGotoIndex(c *gin.Context)
-
-	// GetLogin 获取登录用户信息（兼容性方法）
-	GetLogin(c *gin.Context) *types.AuthUser
-
-	// SetLoginCookie 设置登录Cookie
-	SetLoginCookie(c *gin.Context, authUser *types.AuthUser)
-
-	// ParseUserFromCookie 从Cookie中解析用户登录信息
-	ParseUserFromCookie(c *gin.Context) *types.AuthUser
-}
-
-// authHelper 认证助手结构体
+// AuthHelper 认证助手结构体
 // 封装了所有与用户认证相关的操作，提供类型安全和错误处理
-type authHelper struct {
+type AuthHelper struct {
 	config *config.Config
 }
 
@@ -72,9 +40,9 @@ type authHelper struct {
 // 虽然提供了全局实例，但也可以通过此方法创建独立实例
 //
 // Returns:
-//   - AuthHelperInterface: 认证助手接口实例
-func NewAuthHelper(cfg *config.Config) AuthHelperInterface {
-	return &authHelper{
+//   - *AuthHelper: 认证助手实例
+func NewAuthHelper(cfg *config.Config) *AuthHelper {
+	return &AuthHelper{
 		config: cfg,
 	}
 }
@@ -103,7 +71,7 @@ func NewAuthHelper(cfg *config.Config) AuthHelperInterface {
 //	if isAuth {
 //	    fmt.Printf("用户 %s 已登录", user.Username)
 //	}
-func (a *authHelper) IsAuthenticated(c *gin.Context) (bool, *types.AuthUser) {
+func (a *AuthHelper) IsAuthenticated(c *gin.Context) (bool, *types.AuthUser) {
 	// 检查登录状态标志
 	isLogin, exists := c.Get("IsLogin")
 	if !exists || isLogin != true {
@@ -142,7 +110,7 @@ func (a *authHelper) IsAuthenticated(c *gin.Context) (bool, *types.AuthUser) {
 //
 //	// 使用自定义重定向URL
 //	router.Use(helpers.Auth.RequireGuest("/dashboard"))
-func (a *authHelper) RequireGuest(redirectURL ...string) gin.HandlerFunc {
+func (a *AuthHelper) RequireGuest(redirectURL ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if isAuth, _ := a.IsAuthenticated(c); isAuth {
 			// 确定重定向URL
@@ -176,7 +144,7 @@ func (a *authHelper) RequireGuest(redirectURL ...string) gin.HandlerFunc {
 //
 //	// 使用自定义登录页
 //	adminGroup.Use(helpers.Auth.RequireAuth("/admin/login"))
-func (a *authHelper) RequireAuth(loginURL ...string) gin.HandlerFunc {
+func (a *AuthHelper) RequireAuth(loginURL ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if isAuth, _ := a.IsAuthenticated(c); !isAuth {
 			// 确定登录页URL
@@ -216,7 +184,7 @@ func (a *authHelper) RequireAuth(loginURL ...string) gin.HandlerFunc {
 //	}
 //	// 使用用户信息
 //	fmt.Printf("当前用户：%s", user.Username)
-func (a *authHelper) GetCurrentUser(c *gin.Context) (*types.AuthUser, bool) {
+func (a *AuthHelper) GetCurrentUser(c *gin.Context) (*types.AuthUser, bool) {
 	isAuth, userData := a.IsAuthenticated(c)
 	return userData, isAuth
 }
@@ -239,7 +207,7 @@ func (a *authHelper) GetCurrentUser(c *gin.Context) (*types.AuthUser, bool) {
 //	// 在已认证的路由中使用
 //	user := helpers.Auth.MustGetCurrentUser(c)
 //	fmt.Printf("当前用户：%s", user.Username)
-func (a *authHelper) MustGetCurrentUser(c *gin.Context) *types.AuthUser {
+func (a *AuthHelper) MustGetCurrentUser(c *gin.Context) *types.AuthUser {
 	userData, ok := a.GetCurrentUser(c)
 	if !ok {
 		panic("用户未认证：在未认证的上下文中调用了 MustGetCurrentUser")
@@ -262,7 +230,7 @@ func (a *authHelper) MustGetCurrentUser(c *gin.Context) *types.AuthUser {
 //	if helpers.Auth.IsLogin(c) {
 //	    // 用户已登录的逻辑
 //	}
-func (a *authHelper) IsLogin(c *gin.Context) bool {
+func (a *AuthHelper) IsLogin(c *gin.Context) bool {
 	isAuth, _ := a.IsAuthenticated(c)
 	return isAuth
 }
@@ -277,7 +245,7 @@ func (a *authHelper) IsLogin(c *gin.Context) bool {
 //
 //	// 在登录页处理函数开头使用
 //	helpers.Auth.IfLoginGotoIndex(c)
-func (a *authHelper) IfLoginGotoIndex(c *gin.Context) {
+func (a *AuthHelper) IfLoginGotoIndex(c *gin.Context) {
 	if a.IsLogin(c) {
 		c.Redirect(http.StatusFound, "/")
 		c.Abort()
@@ -300,13 +268,13 @@ func (a *authHelper) IfLoginGotoIndex(c *gin.Context) {
 //	if user != nil {
 //	    fmt.Printf("当前用户：%s", user.Username)
 //	}
-func (a *authHelper) GetLogin(c *gin.Context) *types.AuthUser {
+func (a *AuthHelper) GetLogin(c *gin.Context) *types.AuthUser {
 	userData, _ := a.GetCurrentUser(c)
 	return userData
 }
 
 // SetLoginCookie 设置登录Cookie
-func (a *authHelper) SetLoginCookie(c *gin.Context, authUser *types.AuthUser) {
+func (a *AuthHelper) SetLoginCookie(c *gin.Context, authUser *types.AuthUser) {
 	// 序列化用户数据
 	userData, _ := json.Marshal(authUser)
 
@@ -321,7 +289,7 @@ func (a *authHelper) SetLoginCookie(c *gin.Context, authUser *types.AuthUser) {
 }
 
 // ParseUserFromCookie 
-func (a *authHelper) ParseUserFromCookie(c *gin.Context) *types.AuthUser {
+func (a *AuthHelper) ParseUserFromCookie(c *gin.Context) *types.AuthUser {
 	cookieEnUserData := pkg.ReadCookie(c.Request, "ud")
 	if len(cookieEnUserData) < 1 {
 		return nil

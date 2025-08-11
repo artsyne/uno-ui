@@ -11,94 +11,19 @@ import (
 	"github.com/biuren/hebe/pkg"
 )
 
-// ServiceInterface 用户业务逻辑层接口
-// 定义所有与用户相关的业务逻辑操作，包括注册、登录、激活、密码管理、个人资料管理等
-type ServiceInterface interface {
-	// ===================== 用户注册和认证 =====================
 
-	// RegisterUser 注册新用户
-	RegisterUser(user *User) error
-
-	// LoginWithUsernameOrEmail 用户登录验证，支持用户名或邮箱登录
-	LoginWithUsernameOrEmail(usernameOrEmail string, password string) (*User, error)
-
-
-
-	// ActivateUser 激活用户
-	ActivateUser(uid string, sign string) error
-
-	// ===================== 用户信息验证 =====================
-
-	// IsExistEmail 对外暴露的检查邮箱是否存在的方法
-	IsExistEmail(email string) (bool, error)
-
-	// IsExistUserName 对外暴露的检查用户名是否存在的方法
-	IsExistUserName(userName string) (bool, error)
-
-	// ===================== 密码管理 =====================
-
-	// CreateResetPasswordCode 创建重置密码验证码
-	CreateResetPasswordCode(userID int64) error
-
-	// SendResetPasswordEmail 发送重置密码邮件
-	SendResetPasswordEmail(user *User) error
-
-	// ChangeUserPassword 修改用户密码
-	ChangeUserPassword(currentUserID int64, currentPwd, newPwd string) error
-
-	// ResetUserPassword 重置用户密码
-	ResetUserPassword(userId int64, newPassword string) error
-
-	// UpdateUserPassword 更新用户密码
-	UpdateUserPassword(userId int64, hashedPassword string) error
-
-	// ===================== 验证码管理 =====================
-
-	// CheckValidCode 检查验证码
-	CheckValidCode(userID int64, sign string, validType int8) (bool, int64)
-
-	// DeleteValidCode 删除验证码
-	DeleteValidCode(id int64) (int64, error)
-
-	// ===================== 用户信息获取 =====================
-
-	// GetUserByEmail 根据邮箱获取用户信息
-	GetUserByEmail(email string) (*User, error)
-
-	// GetUserByUserId 根据用户ID获取用户信息
-	GetUserByUserId(userId int64) (*User, error)
-
-	// ParseUserID 解析用户ID
-	ParseUserID(idStr string) (int64, error)
-
-	// ===================== 个人资料管理 =====================
-	// UpdateUserProfile 更新用户基本资料
-	UpdateUserProfile(uid int64, fullName, remark string) error
-
-	// UpdateUserEmail 更新用户邮箱
-	UpdateUserEmail(uid int64, email string) error
-
-	// UpdateUserStatus 更新用户状态
-	UpdateUserStatus(userId int64, status int8) (int64, error)
-
-	// UpdateUserPwd 更新用户密码
-	UpdateUserPwd(userId int64, pwd string) (int64, error)
-
-	// GetSupportedLang 获取支持的语言
-	GetSupportedLang(language string) string
-}
 
 // Service 用户业务逻辑层实现
 type Service struct {
 	repo       RepositoryInterface
 	config     *config.Config // 缓存配置，避免重复调用全局变量
 	regexCheck *pkg.RegexCheck
-	taskService task.ServiceInterface
+	taskService *task.Service
 }
 
 // NewService 创建用户业务逻辑层实例
 // NewService 创建用户服务实例，使用依赖注入
-func NewService(repo RepositoryInterface, taskService task.ServiceInterface, cfg *config.Config) ServiceInterface {
+func NewService(repo RepositoryInterface, taskService *task.Service, cfg *config.Config) *Service {
 
 	return &Service{
 		repo:       repo,

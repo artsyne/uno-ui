@@ -21,15 +21,15 @@ import (
 // postController 日记模块HTTP处理器实现
 // 负责处理所有与日记相关的HTTP请求，包括渲染表单、创建日记、编辑日记等操作
 type PostController struct {
-	postService   post.ServiceInterface
-	diaryService  diary.ServiceInterface
-	auth          user.AuthHelperInterface
+	postService   *post.Service
+	diaryService  *diary.Service
+	auth          *user.AuthHelper
 	config        *config.Config
 	renderService *view.ViewService
 }
 
 // NewPostController 创建新的日记控制器实例
-func NewPostController(postService post.ServiceInterface, diaryService diary.ServiceInterface, auth user.AuthHelperInterface, config *config.Config, renderService *view.ViewService) *PostController {
+func NewPostController(postService *post.Service, diaryService *diary.Service, auth *user.AuthHelper, config *config.Config, renderService *view.ViewService) *PostController {
 	return &PostController{
 		postService:   postService,
 		diaryService:  diaryService,

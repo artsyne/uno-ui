@@ -42,10 +42,10 @@ func setPath(server *gin.Engine, container *di.Container) {
 
 // controllerDependencies 控制器通用依赖结构
 type controllerDependencies struct {
-	userService   user.ServiceInterface
-	diaryService  diary.ServiceInterface
-	postService   post.ServiceInterface
-	authHelper    user.AuthHelperInterface
+	userService   *user.Service
+	diaryService  *diary.Service
+	postService   *post.Service
+	authHelper    *user.AuthHelper
 	config        *config.Config
 	renderService *view.ViewService
 }
@@ -53,10 +53,10 @@ type controllerDependencies struct {
 // getControllerDependencies 从DI容器获取控制器通用依赖
 func getControllerDependencies(container *di.Container) *controllerDependencies {
 	return &controllerDependencies{
-		userService:   di.Get[user.ServiceInterface](container),
-		diaryService:  di.Get[diary.ServiceInterface](container),
-		postService:   di.Get[post.ServiceInterface](container),
-		authHelper:    di.Get[user.AuthHelperInterface](container),
+		userService:   di.Get[*user.Service](container),
+		diaryService:  di.Get[*diary.Service](container),
+		postService:   di.Get[*post.Service](container),
+		authHelper:    di.Get[*user.AuthHelper](container),
 		config:        di.Get[*config.Config](container),
 		renderService: di.Get[*view.ViewService](container),
 	}

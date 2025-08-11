@@ -12,30 +12,19 @@ import (
 	"github.com/jasonlvhit/gocron"
 )
 
-// ServiceInterface 任务业务逻辑层接口
-// 定义所有与任务相关的业务逻辑操作
-type ServiceInterface interface {
-	// StartScheduler 启动定时任务调度器
-	StartScheduler()
 
-	// ProcessEmailTasks 处理邮件任务
-	ProcessEmailTasks()
 
-	// CreateEmailTask 创建邮件任务
-	CreateEmailTask(to, subject, body string) error
-}
-
-// service 任务业务逻辑层实现
+// Service 任务业务逻辑层实现
 // 负责处理所有与任务相关的业务逻辑和规则验证
-type service struct {
+type Service struct {
 	repo   RepositoryInterface
 	config *config.Config // 缓存配置，避免重复调用全局变量
 }
 
 // NewService 创建新的任务业务逻辑层实例
-func NewService(repo RepositoryInterface, cfg *config.Config) ServiceInterface {
+func NewService(repo RepositoryInterface, cfg *config.Config) *Service {
 
-	return &service{
+	return &Service{
 		repo:   repo,
 		config: cfg, // 缓存配置
 	}
@@ -45,7 +34,7 @@ func NewService(repo RepositoryInterface, cfg *config.Config) ServiceInterface {
 
 // StartScheduler 启动定时任务调度器
 // 初始化并启动所有定时任务
-func (s *service) StartScheduler() {
+func (s *Service) StartScheduler() {
 	slog.Info("开始初始化定时任务...")
 
 	// 清除之前的任务，避免重复注册
@@ -64,7 +53,7 @@ func (s *service) StartScheduler() {
 
 // ProcessEmailTasks 处理邮件任务
 // 获取待处理的邮件任务，发送邮件，处理结果
-func (s *service) ProcessEmailTasks() {
+func (s *Service) ProcessEmailTasks() {
 	tasks, err := s.repo.GetJobTasks(10, "email")
 	if err != nil {
 		slog.Error("获取邮件任务失败", "error", err)
@@ -80,7 +69,7 @@ func (s *service) ProcessEmailTasks() {
 
 // CreateEmailTask 创建邮件任务
 // 将邮件任务添加到队列中等待处理
-func (s *service) CreateEmailTask(to, subject, body string) error {
+func (s *Service) CreateEmailTask(to, subject, body string) error {
 	emailTask := &EmailTask{
 		To:      to,
 		Subject: subject,
@@ -113,7 +102,7 @@ func (s *service) CreateEmailTask(to, subject, body string) error {
 
 // processEmailTask 处理单个邮件任务
 // 解析任务内容，发送邮件，处理结果
-func (s *service) processEmailTask(task JobQueue, config *config.Config) {
+func (s *Service) processEmailTask(task JobQueue, config *config.Config) {
 	var emailTask EmailTask
 	err := json.Unmarshal([]byte(task.Body), &emailTask)
 	if err != nil {

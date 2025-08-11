@@ -17,7 +17,7 @@ import (
 )
 
 // setupTestUserAndDiary 创建测试用的用户和日记本
-func setupTestUserAndDiary(t *testing.T, ctx *framework.TestContext, userService user.ServiceInterface, diaryService diary.ServiceInterface) (*user.User, *diary.Diary) {
+func setupTestUserAndDiary(t *testing.T, ctx *framework.TestContext, userService *user.Service, diaryService *diary.Service) (*user.User, *diary.Diary) {
 	t.Helper()
 
 	// 创建用户 - 使用随机数据

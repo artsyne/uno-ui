@@ -17,13 +17,13 @@ import (
 
 // userController 用户HTTP处理层实现
 type UserController struct {
-	service       user.ServiceInterface
-	auth          user.AuthHelperInterface
+	service       *user.Service
+	auth          *user.AuthHelper
 	renderService *view.ViewService
 }
 
 // NewUserController 创建用户HTTP处理层实例
-func NewUserController(service user.ServiceInterface, renderService *view.ViewService, auth user.AuthHelperInterface) *UserController {
+func NewUserController(service *user.Service, renderService *view.ViewService, auth *user.AuthHelper) *UserController {
 	return &UserController{
 		service:       service,
 		renderService: renderService,

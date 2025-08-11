@@ -20,15 +20,15 @@ import (
 // diaryController 日记本模块HTTP处理器实现
 // 负责处理所有与日记本相关的HTTP请求，包括渲染列表、表单、创建日记本、编辑日记本等操作
 type DiaryController struct {
-	diaryService  diary.ServiceInterface
-	userService   user.ServiceInterface
-	auth          user.AuthHelperInterface
+	diaryService  *diary.Service
+	userService   *user.Service
+	auth          *user.AuthHelper
 	config        *config.Config
 	renderService *view.ViewService
 }
 
 // NewDiaryController 创建新的日记本控制器实例
-func NewDiaryController(diaryService diary.ServiceInterface, userService user.ServiceInterface, auth user.AuthHelperInterface, config *config.Config, renderService *view.ViewService) *DiaryController {
+func NewDiaryController(diaryService *diary.Service, userService *user.Service, auth *user.AuthHelper, config *config.Config, renderService *view.ViewService) *DiaryController {
 	return &DiaryController{
 		diaryService:  diaryService,
 		userService:   userService,

@@ -4,6 +4,22 @@
 // 使用Go 1.24的现代特性，支持泛型和类型安全。
 package types
 
+// AuthUser 已认证用户信息结构体
+type AuthUser struct {
+	LoginName    string `form:"login_name" json:"login_name"`
+	AccessUrl    string `form:"access_url" json:"access_url"`
+	UserId       int64  `form:"user_id" json:"user_id"`
+	UserName     string `form:"user_name" json:"user_name"`
+	FullName     string `form:"full_name" json:"full_name"`
+	Email        string `form:"email" json:"email" db:"email"`
+	UserGroup    int8   `form:"user_group" json:"user_group"`
+	FaceUrl      string `form:"face_url" json:"face_url"`
+	LoginUTCTime int64  `form:"login_utc_time" json:"login_utc_time"`
+	TimeZone     string `form:"time_zone" json:"time_zone"`
+	Lang         string `form:"lang" json:"lang"`
+	Status       int8   `form:"status" json:"status"`
+}
+
 // PageData 页面数据结构 - 核心页面渲染数据容器
 //
 // 这是整个应用的核心数据结构，用于在控制器和视图之间传递页面渲染所需的所有数据。
@@ -60,26 +76,7 @@ type RenderContext struct {
 	// Lang 当前页面使用的语言代码
 	Lang string `json:"lang"`
 
-	// 请求上下文
-	RequestID string `json:"request_id,omitempty"`
-	UserAgent string `json:"user_agent,omitempty"`
-	IP        string `json:"ip,omitempty"`
-
 	// 主题和布局
 	Theme  string `json:"theme,omitempty"`
 	Layout string `json:"layout,omitempty"`
-
-	// 扩展属性
-	Extensions map[string]any `json:"extensions,omitempty"`
-}
-
-
-
-// ResponseData 通用响应数据结构
-type ResponseData[T any] struct {
-	Success bool   `json:"success"`
-	Message string `json:"message,omitempty"`
-	Data    T      `json:"data,omitempty"`
-	Error   string `json:"error,omitempty"`
-	Code    int    `json:"code,omitempty"`
 }

@@ -144,7 +144,7 @@ func (a *Application) registerAppServices() error {
 	di.Value(a.container, postService)
 
 	// 注册 AuthHelper 为单例服务
-	di.Singleton(a.container, func() user.AuthHelperInterface {
+	di.Singleton(a.container, func() *user.AuthHelper {
 		return user.NewAuthHelper(a.config)
 	})
 
@@ -167,7 +167,7 @@ func (a *Application) initCookie() error {
 // initScheduler 启动定时任务
 func (a *Application) initScheduler() error {
 	// 从 DI 容器安全获取 TaskService 实例并启动调度器
-	taskService, err := di.TryGet[task.ServiceInterface](a.container)
+	taskService, err := di.TryGet[*task.Service](a.container)
 	if err != nil {
 		return fmt.Errorf("获取TaskService失败: %w", err)
 	}

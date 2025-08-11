@@ -5,33 +5,7 @@ import (
 	errors "github.com/biuren/hebe/internal/utils/error"
 )
 
-// ServiceInterface 日记本业务逻辑层接口
-// 定义所有与日记本相关的业务逻辑操作
-type ServiceInterface interface {
-	// AddDiary 创建一个新的日记本
-	AddDiary(diary *Diary) (int64, error)
 
-	// UpdateDiary 更新日记本信息
-	UpdateDiary(diary *Diary) error
-
-	// GetDiaryByID 根据ID获取日记本
-	GetDiaryByID(diaryID int64) (*Diary, error)
-
-	// ListDiariesForWrite 获取用户的日记本列表（用于写日记界面）
-	ListDiariesForWrite(userID int64) ([]Diary, error)
-
-	// ListDiariesByUser 获取用户的分页日记本列表
-	ListDiariesByUser(userID int64, pageIndex, pageSize int) ([]Diary, int, error)
-
-	// IncrementPostCount 增加日记本的日记数量
-	IncrementPostCount(diaryID int64, userID int64, userName string, actionTime int64) error
-
-	// DecrementPostCount 减少日记本的日记数量
-	DecrementPostCount(diaryID int64, userID int64, userName string, actionTime int64) error
-
-	// CheckDiaryLimit 检查用户日记本数量是否超过限制
-	CheckDiaryLimit(userID int64) error
-}
 
 // Service 日记本业务逻辑层实现
 // 负责处理所有与日记本相关的业务逻辑和规则验证
@@ -41,7 +15,7 @@ type Service struct {
 }
 
 // NewService 创建新的日记本业务逻辑层实例
-func NewService(repo RepositoryInterface) ServiceInterface {
+func NewService(repo RepositoryInterface) *Service {
 	config := config.GetConfig()
 	if config == nil {
 		// 在初始化时就检查配置，如果配置未正确加载则panic
