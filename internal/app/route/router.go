@@ -9,6 +9,8 @@ import (
 
 	"github.com/biuren/hebe/internal/app/controller"
 	"github.com/biuren/hebe/internal/app/view"
+	"github.com/biuren/hebe/internal/domain/diary"
+	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/i18n"
 	"github.com/biuren/hebe/internal/app/templates"
@@ -38,28 +40,50 @@ func setPath(server *gin.Engine, container *di.Container) {
 	createPostController(container).RegisterRoutes(server)
 }
 
+// controllerDependencies 控制器通用依赖结构
+type controllerDependencies struct {
+	userService   user.ServiceInterface
+	diaryService  diary.ServiceInterface
+	postService   post.ServiceInterface
+	authHelper    user.AuthHelperInterface
+	config        *config.Config
+	renderService *view.ViewService
+}
+
+// getControllerDependencies 从DI容器获取控制器通用依赖
+func getControllerDependencies(container *di.Container) *controllerDependencies {
+	return &controllerDependencies{
+		userService:   di.Get[user.ServiceInterface](container),
+		diaryService:  di.Get[diary.ServiceInterface](container),
+		postService:   di.Get[post.ServiceInterface](container),
+		authHelper:    di.Get[user.AuthHelperInterface](container),
+		config:        di.Get[*config.Config](container),
+		renderService: di.Get[*view.ViewService](container),
+	}
+}
+
 // createController 通过DI容器创建Controller
 func createController(container *di.Container) *controller.Controller {
-	renderService := di.Get[*view.ViewService](container)
-	return controller.NewController(renderService)
+	deps := getControllerDependencies(container)
+	return controller.NewController(deps.renderService)
 }
 
 // createUserController 通过DI容器创建UserController
 func createUserController(container *di.Container) *controller.UserController {
-	userService := di.Get[user.ServiceInterface](container)
-	renderService := di.Get[*view.ViewService](container)
-	authHelper := di.Get[user.AuthHelperInterface](container)
-	return controller.NewUserController(userService, renderService, authHelper)
+	deps := getControllerDependencies(container)
+	return controller.NewUserController(deps.userService, deps.renderService, deps.authHelper)
 }
 
 // createDiaryController 通过DI容器创建DiaryController
 func createDiaryController(container *di.Container) *controller.DiaryController {
-	return controller.NewDiaryController()
+	deps := getControllerDependencies(container)
+	return controller.NewDiaryController(deps.diaryService, deps.userService, deps.authHelper, deps.config, deps.renderService)
 }
 
 // createPostController 通过DI容器创建PostController
 func createPostController(container *di.Container) *controller.PostController {
-	return controller.NewPostController()
+	deps := getControllerDependencies(container)
+	return controller.NewPostController(deps.postService, deps.diaryService, deps.authHelper, deps.config, deps.renderService)
 }
 
 // #region 加载模版文件，并注入全局变量

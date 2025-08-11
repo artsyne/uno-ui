@@ -6,14 +6,11 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/internal/app/view"
-	"github.com/biuren/hebe/internal/core/database"
 	"github.com/biuren/hebe/internal/utils/config"
 	errors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
-	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
-	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
@@ -32,19 +29,13 @@ type PostController struct {
 }
 
 // NewPostController 创建新的日记控制器实例
-func NewPostController() *PostController {
-	config := config.GetConfig()
-	userRepo := repository.NewUserRepository()
-	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo, config)
-	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository(database.GetDB())
+func NewPostController(postService post.ServiceInterface, diaryService diary.ServiceInterface, auth user.AuthHelperInterface, config *config.Config, renderService *view.ViewService) *PostController {
 	return &PostController{
-		postService:   post.NewService(userRepo, taskService, diaryRepo, postRepo),
-		diaryService:  diary.NewService(diaryRepo),
-		auth:          user.NewAuthHelper(config),
+		postService:   postService,
+		diaryService:  diaryService,
+		auth:          auth,
 		config:        config,
-		renderService: view.NewViewService(config),
+		renderService: renderService,
 	}
 }
 

@@ -11,8 +11,11 @@ import (
 	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/app/route"
 	"github.com/biuren/hebe/internal/core/initializer"
+	"github.com/biuren/hebe/internal/core/database"
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/core/di"
+	"github.com/biuren/hebe/internal/domain/diary"
+	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
@@ -113,6 +116,9 @@ func (a *Application) initApplicationLayer() error {
 
 // registerAppServices 注册应用层服务到DI容器
 func (a *Application) registerAppServices() error {
+	// 注册配置为实例服务
+	di.Value(a.container, a.config)
+	
 	// 注册 ViewService 为单例服务
 	di.Singleton(a.container, func() *view.ViewService {
 		return view.NewViewService(a.config)
@@ -121,16 +127,24 @@ func (a *Application) registerAppServices() error {
 	// 创建仓储实例
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
+	diaryRepo := repository.NewDiaryRepository()
+	postRepo := repository.NewPostRepository(database.GetDB())
 	
 	// 创建服务实例
 	taskService := task.NewService(taskRepo, a.config)
 	userService := user.NewService(userRepo, taskService, a.config)
+	diaryService := diary.NewService(diaryRepo)
+	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
 	
 	// 注册为预创建实例，避免循环依赖
 	di.Value(a.container, userRepo)
 	di.Value(a.container, taskRepo)
+	di.Value(a.container, diaryRepo)
+	di.Value(a.container, postRepo)
 	di.Value(a.container, taskService)
 	di.Value(a.container, userService)
+	di.Value(a.container, diaryService)
+	di.Value(a.container, postService)
 
 	// 注册 AuthHelper 为单例服务
 	di.Singleton(a.container, func() user.AuthHelperInterface {
