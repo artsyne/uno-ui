@@ -2,7 +2,7 @@
 
 ## 概述
 
-iDiary是一个基于Go语言和Gin框架的智能日记管理系统，采用DDD（领域驱动设计）的分层架构，通过依赖注入实现松耦合设计，具备良好的可维护性和可扩展性。
+iDiary是一个基于Go 1.24和Gin框架的现代化日记管理系统，采用DDD（领域驱动设计）的分层架构，通过Go 1.24泛型依赖注入实现松耦合设计，具备高性能、高可维护性和可扩展性。
 
 ## 分层架构
 
@@ -10,8 +10,8 @@ iDiary是一个基于Go语言和Gin框架的智能日记管理系统，采用DDD
 ┌─────────────────────────────────────────────────────────────┐
 │                    Website Layer                            │
 │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐           │
-│  │ Views   │ │ Static  │ │JavaScript│ │   CSS   │           │
-│  │(模板文件)│ │(静态资源)│ │(前端逻辑) │ │(样式文件) │           │
+│  │Templates│ │ Static  │ │ Kiko.js │ │Tailwind │           │
+│  │(模板文件)│ │(静态资源)│ │(前端框架)│ │CSS 4.x  │           │
 │  └─────────┘ └─────────┘ └─────────┘ └─────────┘           │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -21,6 +21,10 @@ iDiary是一个基于Go语言和Gin框架的智能日记管理系统，采用DDD
 │  │Startup  │ │ Route   │ │  View   │ │Controller│           │
 │  │(启动器) │ │(路由)   │ │(视图)   │ │(控制器) │           │
 │  └─────────┘ └─────────┘ └─────────┘ └─────────┘           │
+│  ┌─────────┐ ┌─────────┐                                   │
+│  │Middleware│ │Templates│                                   │
+│  │(中间件) │ │(模板)   │                                   │
+│  └─────────┘ └─────────┘                                   │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
@@ -28,32 +32,51 @@ iDiary是一个基于Go语言和Gin框架的智能日记管理系统，采用DDD
 │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐           │
 │  │  User   │ │  Diary  │ │  Post   │ │  Task   │           │
 │  │(用户领域)│ │(日记领域)│ │(内容领域)│ │(任务领域)│           │
-│  │H-S-R    │ │H-S-R    │ │H-S-R    │ │Service  │           │
+│  │R-S-T    │ │R-S-T    │ │R-S-T    │ │Service  │           │
 │  └─────────┘ └─────────┘ └─────────┘ └─────────┘           │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
-│                Core Layer (核心基础设施层)                 │
+│                Infra Layer (基础设施层)                    │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐                       │
+│  │Repository│ │Database │ │ Cache   │                       │
+│  │(仓储实现)│ │(数据库) │ │(缓存)   │                       │
+│  └─────────┘ └─────────┘ └─────────┘                       │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                Core Layer (核心基础层)                     │
 │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐           │
-│  │ Config  │ │   DI    │ │Database │ │Error &  │           │
-│  │(配置)   │ │(依赖注入)│ │(数据库) │ │Middleware│          │
+│  │   DI    │ │Database │ │Initializer│ │ Config │           │
+│  │(依赖注入)│ │(数据库) │ │(初始化) │ │(配置)   │           │
 │  └─────────┘ └─────────┘ └─────────┘ └─────────┘           │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
-│                Pkg Layer (工具层)                          │
-│  ┌─────────────────┐  ┌─────────────────┐                 │
-│  │ Internal Utilities│  │ External Utilities│                 │
-│  │   (内部工具)    │  │   (外部工具)     │                 │
-│  └─────────────────┘  └─────────────────┘                 │
+│            Utils & Contracts Layer (工具和契约层)          │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐           │
+│  │ Utils   │ │ Error   │ │  I18n   │ │Contracts│           │
+│  │(工具)   │ │(错误)   │ │(国际化) │ │(契约)   │           │
+│  └─────────┘ └─────────┘ └─────────┘ └─────────┘           │
+│  ┌─────────┐ ┌─────────┐                                   │
+│  │Middleware│ │ Config  │                                   │
+│  │(中间件) │ │(配置)   │                                   │
+│  └─────────┘ └─────────┘                                   │
 └─────────────────────────────────────────────────────────────┘
-                              │
-
 ```
 
-**依赖方向**: Website → App → Module → Core → Pkg (严禁反向依赖)
+**依赖方向**: Website → App → Domain → Infra → Core → Utils/Contracts (严禁反向依赖)
 
 ## 分层职责详解
+
+### Website Layer (网站层)
+
+**核心职责**: 前端展示和用户交互
+
+- **Templates**: HTML模板文件，使用Go template语法
+- **Static**: 静态资源文件（CSS、JS、图片等）
+- **Kiko.js**: 自研前端框架，提供组件化和国际化支持
+- **Tailwind CSS 4.x**: 现代化CSS框架，提供响应式设计
 
 ### App Layer (应用服务层)
 
@@ -95,62 +118,79 @@ iDiary是一个基于Go语言和Gin框架的智能日记管理系统，采用DDD
   - 首页等基础页面处理
   - 静态页面渲染
 
-### Module Layer (业务模块层)
+#### Middleware 模块
 
-**核心职责**: 业务逻辑实现，采用Handler-Service-Repository模式
+- **职责**: 应用级中间件
+- **位置**: `internal/app/middleware/`
+- **功能**:
+  - 认证中间件
+  - 权限检查中间件
+  - 业务逻辑中间件
+
+#### Templates 模块
+
+- **职责**: 模板管理和渲染
+- **位置**: `internal/app/templates/`
+- **功能**:
+  - 模板文件管理
+  - 模板函数注册
+  - 模板缓存机制
+
+### Domain Layer (业务领域层)
+
+**核心职责**: 业务逻辑实现，采用Repository-Service-Types模式
 
 #### User 模块
 
 - **职责**: 用户管理和认证
-- **位置**: `internal/module/user/`
+- **位置**: `internal/domain/user/`
 - **组件**:
-  - **Handler**: HTTP请求处理 (注册、登录、设置等)
-  - **Service**: 业务逻辑层 (用户认证、密码加密等)
-  - **Repository**: 数据访问层 (用户CRUD操作)
-  - **Auth**: 认证助手和中间件
-  - **Types**: 数据结构定义
+  - **Repository**: 用户数据访问接口定义
+  - **Service**: 用户业务逻辑层 (用户认证、密码加密等)
+  - **Types**: 用户相关数据结构定义
 
 #### Diary 模块
 
 - **职责**: 日记本管理
-- **位置**: `internal/module/diary/`
+- **位置**: `internal/domain/diary/`
 - **组件**:
-  - **Handler**: 日记本HTTP处理
+  - **Repository**: 日记本数据访问接口定义
   - **Service**: 日记本业务逻辑
-  - **Repository**: 日记本数据访问
   - **Types**: 日记本相关数据结构
 
 #### Post 模块
 
 - **职责**: 日记内容管理
-- **位置**: `internal/module/post/`
+- **位置**: `internal/domain/post/`
 - **组件**:
-  - **Handler**: 内容HTTP处理
+  - **Repository**: 内容数据访问接口定义
   - **Service**: 内容业务逻辑
-  - **Repository**: 内容数据访问
   - **Types**: 内容相关数据结构
 
 #### Task 模块
 
 - **职责**: 后台任务处理
-- **位置**: `internal/module/task/`
+- **位置**: `internal/domain/task/`
 - **组件**:
   - **Service**: 定时任务服务
-  - **Repository**: 任务数据访问
+  - **Types**: 任务相关数据结构
 
-### Core Layer (核心基础设施层)
+### Infra Layer (基础设施层)
 
-**核心职责**: 基础设施服务，为上层提供技术支撑
+**核心职责**: 数据访问和外部服务集成
 
-#### Config 模块
+#### Repository 模块
 
-- **职责**: 配置管理
-- **位置**: `internal/core/config/`
+- **职责**: 数据访问层实现
+- **位置**: `internal/infra/repository/`
 - **功能**:
-  - 配置文件加载和解析
-  - 环境变量处理
-  - 配置验证
-  - 热更新支持
+  - 实现Domain层定义的Repository接口
+  - 数据库操作封装
+  - 缓存策略实现
+
+### Core Layer (核心基础层)
+
+**核心职责**: 核心基础设施服务，为上层提供技术支撑
 
 #### DI 模块
 
@@ -160,7 +200,7 @@ iDiary是一个基于Go语言和Gin框架的智能日记管理系统，采用DDD
   - 零反射泛型设计
   - 三种生命周期 (瞬态/单例/实例)
   - 编译时类型安全
-  - 高并发性能 (~57纳秒解析)
+  - 高并发性能 (~19纳秒解析)
 
 #### Database 模块
 
@@ -170,42 +210,74 @@ iDiary是一个基于Go语言和Gin框架的智能日记管理系统，采用DDD
   - 数据库连接池管理
   - SQL执行辅助函数
   - 事务管理
+  - SQLx集成
+
+#### Initializer 模块
+
+- **职责**: 系统初始化管理
+- **位置**: `internal/core/initializer/`
+- **功能**:
+  - 组件初始化顺序管理
+  - 依赖关系解析
+  - 启动流程编排
+
+### Utils & Contracts Layer (工具和契约层)
+
+**核心职责**: 通用工具和系统契约定义
+
+#### Utils 模块
+
+- **职责**: 通用工具函数
+- **位置**: `internal/utils/`
+- **子模块**:
+  - **Config**: 配置管理和解析
+  - **其他工具**: 文本处理、时间处理等
 
 #### Error 模块
 
 - **职责**: 错误定义和处理
-- **位置**: `internal/core/error/`
+- **位置**: `internal/utils/error/`
 - **功能**:
   - 统一错误码体系 (4位错误码)
   - AppError结构定义
   - 错误分类和处理策略
 
+#### I18n 模块
+
+- **职责**: 国际化支持
+- **位置**: `internal/utils/i18n/`
+- **功能**:
+  - 多语言消息管理
+  - 语言切换机制
+  - 消息格式化
+
+#### Contracts 模块
+
+- **职责**: 系统契约和接口定义
+- **位置**: `internal/contracts/`
+- **功能**:
+  - 共享接口定义
+  - 类型安全保证
+  - 系统契约规范
+
 #### Middleware 模块
 
-- **职责**: 核心中间件
-- **位置**: `internal/core/middleware/`
+- **职责**: 通用中间件
+- **位置**: `internal/utils/middleware/`
 - **功能**:
   - Panic恢复中间件
   - 错误处理中间件
   - 结构化日志记录
 
-### Pkg Layer (工具层)
+#### Config 模块
 
-**核心职责**: 纯函数工具库，无依赖，可复用
-
-**位置**: `pkg/`
-
-**工具模块**:
-
-- `logging.go`: slog日志配置和管理
-- `crypto.go`: 加密解密工具 (AES、3DES、SHA256)
-- `text.go`: 文本处理和智能截断
-- `time.go`: 时间处理工具
-- `image.go`: 图片上传和处理
-- `cookie.go`: Cookie操作工具
-- `helpers.go`: 通用助手函数
-- `worker.go`: 多线程工作容器
-- `session.go`: Redis会话管理
+- **职责**: 配置管理
+- **位置**: `internal/utils/config/`
+- **功能**:
+  - 配置文件加载和解析
+  - 环境变量处理
+  - 配置验证
+  - Viper集成
 
 ## 数据流向
 
@@ -214,15 +286,17 @@ iDiary是一个基于Go语言和Gin框架的智能日记管理系统，采用DDD
 ```
 HTTP Request
     ↓
-Middleware (Panic Recovery, Error Handler, SharedData)
+Middleware (Panic Recovery, Error Handler, Auth, etc.)
     ↓
 Route (路由匹配)
     ↓
-Handler (HTTP处理层)
+Controller/Handler (HTTP处理层)
     ↓
-Service (业务逻辑层)
+Domain Service (业务逻辑层)
     ↓
-Repository (数据访问层)
+Domain Repository Interface (领域仓储接口)
+    ↓
+Infra Repository Implementation (基础设施仓储实现)
     ↓
 Database (数据库)
 ```
@@ -232,33 +306,92 @@ Database (数据库)
 ```
 Database
     ↓
-Repository (数据组装)
+Infra Repository (数据组装)
     ↓
-Service (业务逻辑处理)
+Domain Service (业务逻辑处理)
     ↓
-Handler (调用ViewService)
+Controller (调用ViewService)
     ↓
 ViewService (页面数据组装、模板渲染)
     ↓
 HTTP Response (JSON/HTML)
 ```
 
+### 依赖注入流程
+
+```
+Application Startup
+    ↓
+DI Container Initialization
+    ↓
+Service Registration (按依赖顺序)
+    ↓
+Service Resolution (泛型类型安全)
+    ↓
+Component Injection
+    ↓
+Application Ready
+```
+
 ## 关键设计模式
 
-### 1. 依赖注入 (DI)
+### 1. Go 1.24泛型依赖注入 (DI)
 
 ```go
-// 服务注册
+// 泛型服务注册 - 编译时类型安全
 container.RegisterSingleton(func(c di.ContainerInterface) *view.ViewService {
     config := di.Resolve[*config.Config](c)
     return view.NewViewService(config)
 })
 
-// 服务解析
+// 泛型服务解析 - 零反射，高性能
 viewService := di.Resolve[*view.ViewService](container)
+
+// 生命周期管理
+container.RegisterTransient[UserService](func(c di.ContainerInterface) UserService {
+    repo := di.Resolve[UserRepository](c)
+    return NewUserService(repo)
+})
 ```
 
-### 2. 策略模式 (错误处理)
+### 2. 仓储模式 (Repository Pattern)
+
+```go
+// Domain层接口定义
+type UserRepository interface {
+    GetByID(ctx context.Context, id int) (*User, error)
+    Create(ctx context.Context, user *User) error
+}
+
+// Infra层实现
+type userRepositoryImpl struct {
+    db *sqlx.DB
+}
+
+func (r *userRepositoryImpl) GetByID(ctx context.Context, id int) (*User, error) {
+    // 数据库操作实现
+}
+```
+
+### 3. 领域服务模式 (Domain Service)
+
+```go
+type UserService struct {
+    repo UserRepository
+}
+
+func (s *UserService) AuthenticateUser(ctx context.Context, username, password string) (*User, error) {
+    // 业务逻辑实现
+    user, err := s.repo.GetByUsername(ctx, username)
+    if err != nil {
+        return nil, err
+    }
+    // 密码验证等业务逻辑
+    return user, nil
+}
+```
+
+### 4. 统一错误处理模式
 
 ```go
 type AppError struct {
@@ -268,50 +401,52 @@ type AppError struct {
     Details  string `json:"-"`
 }
 
-// 不同错误类型的处理策略
-func (e *AppError) Handle(c *gin.Context) {
-    switch e.HttpCode {
-    case 400:
-        c.JSON(400, gin.H{"code": e.Code, "message": e.MsgKey})
-    case 500:
-        c.JSON(500, gin.H{"code": e.Code, "message": "internal_error"})
+// 错误处理中间件
+func ErrorHandlerMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        c.Next()
+        if len(c.Errors) > 0 {
+            err := c.Errors.Last().Err
+            if appErr, ok := err.(*AppError); ok {
+                c.JSON(appErr.HttpCode, gin.H{
+                    "code": appErr.Code,
+                    "message": appErr.MsgKey,
+                })
+            }
+        }
     }
 }
 ```
 
-### 3. 模板方法模式 (Handler结构)
+### 5. 视图服务模式 (View Service)
 
 ```go
-type Handler struct {
-    service     Service
-    viewSvc     *view.ViewService
+type ViewService struct {
+    templates *template.Template
+    i18n      *i18n.I18n
 }
 
-// 统一的处理模板
-func (h *Handler) handleRequest(c *gin.Context, businessLogic func() (interface{}, error)) {
-    data, err := businessLogic()
-    if err != nil {
-        h.viewSvc.JSONError(c, err)
-        return
-    }
-    h.viewSvc.JSONSuccess(c, data)
+func (v *ViewService) RenderPage(c *gin.Context, templateName string, data interface{}) {
+    // 统一的页面渲染逻辑
+    pageData := v.buildPageData(c, data)
+    c.HTML(http.StatusOK, templateName, pageData)
 }
 ```
 
-### 4. 装饰器模式 (中间件)
+### 6. 中间件链模式
 
 ```go
-func PanicRecoveryMiddleware() gin.HandlerFunc {
-    return gin.CustomRecovery(func(c *gin.Context, recovered interface{}) {
-        slog.Error("panic recovered", "panic", recovered)
-        c.JSON(500, gin.H{"code": 1000, "message": "internal_error"})
-    })
+func SetupMiddleware(r *gin.Engine) {
+    r.Use(PanicRecoveryMiddleware())
+    r.Use(ErrorHandlerMiddleware())
+    r.Use(LoggingMiddleware())
+    r.Use(AuthMiddleware())
 }
 ```
 
 ## 配置管理
 
-### 配置层级
+### 配置层级 (基于Viper)
 
 1. **默认配置**: 代码中的默认值
 2. **配置文件**: `config/config.yaml`
@@ -322,15 +457,42 @@ func PanicRecoveryMiddleware() gin.HandlerFunc {
 
 ```go
 type Config struct {
-    App      AppConfig      `yaml:"app"`
-    Database DatabaseConfig `yaml:"database"`
-    Log      LogConfig      `yaml:"log"`
-    Cookie   CookieConfig   `yaml:"cookie"`
-    Redis    RedisConfig    `yaml:"redis"`
+    App      AppConfig      `yaml:"app" mapstructure:"app"`
+    Database DatabaseConfig `yaml:"database" mapstructure:"database"`
+    Log      LogConfig      `yaml:"log" mapstructure:"log"`
+    Cookie   CookieConfig   `yaml:"cookie" mapstructure:"cookie"`
+    Redis    RedisConfig    `yaml:"redis" mapstructure:"redis"`
+    I18n     I18nConfig     `yaml:"i18n" mapstructure:"i18n"`
+}
+
+type AppConfig struct {
+    Name    string `yaml:"name" mapstructure:"name"`
+    Version string `yaml:"version" mapstructure:"version"`
+    Port    int    `yaml:"port" mapstructure:"port"`
+    Debug   bool   `yaml:"debug" mapstructure:"debug"`
 }
 ```
 
-## 日志系统
+### 配置加载
+
+```go
+// 使用Viper加载配置
+viper.SetConfigName("config")
+viper.SetConfigType("yaml")
+viper.AddConfigPath("./config")
+viper.AutomaticEnv()
+
+if err := viper.ReadInConfig(); err != nil {
+    return nil, err
+}
+
+var config Config
+if err := viper.Unmarshal(&config); err != nil {
+    return nil, err
+}
+```
+
+## 日志系统 (基于slog)
 
 ### 日志级别
 
@@ -339,20 +501,38 @@ type Config struct {
 - **WARN**: 警告信息
 - **ERROR**: 错误信息
 
-### 日志格式
+### 结构化日志特性
 
-- **结构化日志**: 使用slog库，JSON格式输出
-- **文件轮转**: 基于大小和时间的日志轮转
-- **多输出**: 同时输出到文件和控制台
+- **零分配**: 高性能日志记录
+- **类型安全**: 编译时类型检查
+- **上下文感知**: 自动携带请求上下文
+- **多输出**: 文件、控制台、远程日志服务
+
+### 日志配置
+
+```go
+// 配置slog
+logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+    Level: slog.LevelInfo,
+    AddSource: true,
+}))
+slog.SetDefault(logger)
+```
 
 ### 日志示例
 
 ```go
-slog.Info("用户登录",
-    "user_id", 123,
-    "username", "john_doe",
-    "ip", "192.168.1.100",
-    "duration", "150ms")
+// 结构化日志记录
+slog.Info("用户登录成功",
+    slog.Int("user_id", 123),
+    slog.String("username", "john_doe"),
+    slog.String("ip", "192.168.1.100"),
+    slog.Duration("duration", 150*time.Millisecond))
+
+// 带上下文的日志
+slog.InfoContext(ctx, "处理请求",
+    slog.String("method", "POST"),
+    slog.String("path", "/api/users"))
 ```
 
 ## 错误处理体系
@@ -374,66 +554,115 @@ slog.Info("用户登录",
 
 ## 性能特征
 
-### DI容器性能
+### Go 1.24泛型DI容器性能
 
-- **解析速度**: 19.89纳秒
-- **内存分配**: 零分配
+- **解析速度**: ~19纳秒 (零反射)
+- **内存分配**: 零分配设计
 - **并发安全**: 读写锁保护
+- **类型安全**: 编译时类型检查
+- **生命周期**: 瞬态/单例/实例三种模式
+
+### 前端性能
+
+- **Kiko框架**: 轻量级组件化框架
+- **Tailwind CSS 4.x**: 现代化CSS框架
+- **ES2023**: 现代JavaScript特性
+- **模块化**: 按需加载和缓存
 
 ### 渲染性能
 
-- **模板缓存**: 预编译模板缓存
+- **模板缓存**: Go template预编译缓存
 - **页面数据**: 结构化数据组装
-- **国际化**: 消息缓存机制
+- **国际化**: 多语言消息缓存机制
+- **视图服务**: 统一渲染管道
 
-### 数据库性能
+### 数据库性能 (SQLx + MySQL)
 
-- **连接池**: 数据库连接池管理
-- **预编译语句**: SQL语句预编译
-- **事务管理**: 自动事务管理
+- **连接池**: 高效数据库连接池管理
+- **预编译语句**: SQL语句预编译和缓存
+- **事务管理**: 自动事务管理和回滚
+- **查询优化**: 结构化查询和映射
+
+### 日志性能 (slog)
+
+- **零分配**: 高性能结构化日志
+- **异步写入**: 非阻塞日志记录
+- **类型安全**: 编译时类型检查
+- **上下文传播**: 自动上下文携带
 
 ## 安全机制
 
 ### 认证和授权
 
-- **JWT Token**: 无状态认证
 - **Session管理**: Redis会话存储
-- **权限控制**: 基于用户组的权限管理
+- **Cookie安全**: HttpOnly、Secure、SameSite设置
+- **权限控制**: 基于角色的权限管理
+- **中间件保护**: 认证和授权中间件
 
 ### 数据安全
 
-- **密码加密**: SHA256哈希
+- **密码加密**: 安全哈希算法
 - **数据传输**: HTTPS加密传输
-- **输入验证**: 参数验证和过滤
+- **输入验证**: Gin validator参数验证
+- **SQL注入防护**: SQLx预编译语句
 
 ### 错误处理安全
 
 - **敏感信息**: 不在错误响应中暴露敏感信息
 - **日志脱敏**: 敏感数据脱敏记录
-- **错误码**: 抽象的错误码，不暴露内部实现
+- **错误码**: 抽象的4位错误码，不暴露内部实现
+- **Panic恢复**: 全局Panic恢复中间件
+
+### 前端安全
+
+- **XSS防护**: 模板自动转义
+- **CSRF防护**: CSRF Token验证
+- **内容安全**: CSP头部设置
+- **现代浏览器**: 支持现代安全特性
 
 ## 部署架构
 
-### 单体部署
+### 开发环境
 
 ```
-Load Balancer
+iDiary Application (Go 1.24)
     ↓
-iDiary Application (Go Binary)
+MySQL 8.0+ (本地)
     ↓
-MySQL Database
+Redis 6.0+ (本地)
+```
+
+### 生产环境
+
+```
+Load Balancer (Nginx)
     ↓
-Redis Cache
+iDiary Application Cluster
+    ↓
+MySQL 8.0+ (主从复制)
+    ↓
+Redis Cluster (高可用)
 ```
 
 ### 容器化部署
 
 ```
 Docker Compose:
-- iDiary (Go Application)
-- MySQL (Database)
-- Redis (Cache)
+- iDiary (Go 1.24 Application)
+- MySQL 8.0+ (Database)
+- Redis 6.0+ (Cache)
 - Nginx (Static Files & Reverse Proxy)
+```
+
+### 云原生部署
+
+```
+Kubernetes:
+- iDiary Deployment (多副本)
+- MySQL StatefulSet
+- Redis Cluster
+- Ingress Controller
+- ConfigMap & Secret
 ```
 
 ## 扩展点
@@ -441,19 +670,50 @@ Docker Compose:
 ### 水平扩展
 
 - **无状态设计**: 应用层无状态，支持多实例部署
-- **数据库连接池**: 支持数据库读写分离
-- **缓存层**: Redis集群支持
+- **数据库扩展**: 支持MySQL读写分离和分库分表
+- **缓存扩展**: Redis集群和分片支持
+- **负载均衡**: 支持多种负载均衡策略
 
 ### 功能扩展
 
-- **插件系统**: 预留插件接口
-- **API开放**: RESTful API支持
-- **多租户**: 支持多租户架构
+- **模块化设计**: 基于DDD的模块化架构
+- **API扩展**: RESTful API和GraphQL支持
+- **插件系统**: 预留插件接口和扩展点
+- **多租户**: 支持SaaS多租户架构
+
+### 技术扩展
+
+- **微服务**: 可拆分为微服务架构
+- **消息队列**: 支持异步消息处理
+- **搜索引擎**: 集成Elasticsearch等搜索引擎
+- **监控告警**: 集成Prometheus、Grafana等监控系统
 
 ### 存储扩展
 
-- **云存储**: 支持多云盘存储
-- **文件系统**: 本地和云端文件存储
-- **数据备份**: 自动备份和恢复机制
+- **云存储**: 支持AWS S3、阿里云OSS等云存储
+- **文件系统**: 本地和分布式文件存储
+- **数据备份**: 自动备份和灾难恢复机制
+- **数据同步**: 支持多数据中心同步
+
+## 总结
+
+iDiary系统采用现代化的Go 1.24技术栈，通过DDD分层架构、泛型依赖注入、统一错误处理等设计模式，构建了一个高性能、高可维护性和高可扩展性的日记管理系统。
+
+### 核心优势
+
+- **现代化技术栈**: Go 1.24、Gin 1.10.0、SQLx、Redis等
+- **高性能DI容器**: 零反射、19纳秒解析速度
+- **类型安全**: 编译时类型检查，减少运行时错误
+- **分层清晰**: 严格的依赖方向控制
+- **统一错误处理**: 4位错误码体系
+- **结构化日志**: 基于slog的高性能日志系统
+- **前端现代化**: Kiko框架 + Tailwind CSS 4.x
+
+### 设计理念
+
+- **领域驱动**: 业务逻辑内聚，技术关注点分离
+- **依赖倒置**: 接口与实现分离，便于测试和扩展
+- **单一职责**: 每个模块职责明确，便于维护
+- **开闭原则**: 对扩展开放，对修改封闭
 
 这种架构设计确保了系统的高可维护性、可扩展性和稳定性，为未来的功能扩展和性能优化奠定了坚实的基础。

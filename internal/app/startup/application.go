@@ -116,9 +116,6 @@ func (a *Application) initApplicationLayer() error {
 
 // registerAppServices 注册应用层服务到DI容器
 func (a *Application) registerAppServices() error {
-	// 注册配置为实例服务
-	di.Value(a.container, a.config)
-	
 	// 注册 ViewService 为单例服务
 	di.Singleton(a.container, func() *view.ViewService {
 		return view.NewViewService(a.config)
