@@ -479,6 +479,12 @@ func (h *UserController) UpdatePassword(c *gin.Context) {
 		return
 	}
 
+	// 验证输入字段不能为空
+	if req.CurrentPwd == "" || req.NewPwd == "" || req.ConfirmPwd == "" {
+		h.renderService.JSONError(c, errors.ValidationError.WithDetails("当前密码、新密码和确认密码不能为空"))
+		return
+	}
+
 	// 判断输入密码是否正确
 	if req.NewPwd != req.ConfirmPwd {
 		h.renderService.JSONError(c, errors.ValidationError.WithDetails("两次输入密码不一致"))

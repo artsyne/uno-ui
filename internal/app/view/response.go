@@ -1,7 +1,6 @@
 package view
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -14,6 +13,7 @@ import (
 type JSONResponse struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message"`
+	Code    int         `json:"code"`
 	Data    interface{} `json:"data"`
 }
 
@@ -21,7 +21,7 @@ type JSONResponse struct {
 type ErrorResponse struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message"`
-	Code    string      `json:"code"`
+	Code    int         `json:"code"`
 	Data    interface{} `json:"data,omitempty"`
 }
 
@@ -35,6 +35,7 @@ func (s *ViewService) JSONSuccess(c *gin.Context, data interface{}) {
 	response := JSONResponse{
 		Success: true,
 		Message: "success",
+		Code:    0,
 		Data:    data,
 	}
 	c.JSON(http.StatusOK, response)
@@ -52,19 +53,10 @@ func (s *ViewService) JSONError(c *gin.Context, err error, data ...interface{}) 
 		errorResponse := ErrorResponse{
 			Success: false,
 			Message: appErr.Key,
-			Code:    fmt.Sprintf("%d", appErr.Code),
+			Code:    appErr.Code,
 			Data:    responseData,
 		}
 		c.JSON(appErr.HttpCode, errorResponse)
-	} else {
-		slog.Error("Unexpected error", "error", err.Error())
-		errorResponse := ErrorResponse{
-			Success: false,
-			Message: "Internal server error",
-			Code:    "INTERNAL_ERROR",
-			Data:    responseData,
-		}
-		c.JSON(http.StatusInternalServerError, errorResponse)
 	}
 }
 

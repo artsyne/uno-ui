@@ -13,6 +13,7 @@ import (
 	types "github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/config"
+	appErrors "github.com/biuren/hebe/internal/utils/error"
 	framework "github.com/biuren/hebe/tests/framework/core"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -551,4 +552,95 @@ func TestJSONResponseFormat(t *testing.T) {
 	// 验证响应包含必要字段
 	assert.Contains(t, response, "code", "Response should contain code field")
 	assert.Contains(t, response, "message", "Response should contain message field")
+	assert.Contains(t, response, "success", "Response should contain success field")
+	assert.Contains(t, response, "data", "Response should contain data field")
+
+	// 验证 code 字段是 int 类型
+	code, exists := response["code"]
+	assert.True(t, exists, "Code field should exist")
+	assert.IsType(t, float64(0), code, "Code field should be numeric (JSON unmarshals numbers as float64)")
+
+	// 验证 success 字段是 bool 类型
+	success, exists := response["success"]
+	assert.True(t, exists, "Success field should exist")
+	assert.IsType(t, true, success, "Success field should be boolean")
+}
+
+// TestJSONSuccessResponseFormat 测试成功响应的格式
+func TestJSONSuccessResponseFormat(t *testing.T) {
+	ctx := framework.NewTestContext("TestJSONSuccessResponseFormat", framework.WithDatabase())
+	defer ctx.Cleanup()
+	
+	config := config.GetConfig()
+	renderService := view.NewViewService(config)
+
+	gin.SetMode(gin.TestMode)
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	// 测试数据
+	testData := map[string]interface{}{
+		"test": "data",
+		"number": 123,
+	}
+
+	// 调用 JSONSuccess 方法
+	renderService.JSONSuccess(c, testData)
+
+	// 验证响应
+	var response map[string]interface{}
+	jsonErr := json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoError(t, jsonErr, "Response should be valid JSON")
+
+	// 验证响应结构
+	assert.Equal(t, true, response["success"], "Success should be true")
+	assert.Equal(t, "success", response["message"], "Message should be 'success'")
+	assert.Equal(t, float64(0), response["code"], "Code should be 0 (numeric)")
+	assert.NotNil(t, response["data"], "Data should not be nil")
+
+	// 验证数据内容
+	data, ok := response["data"].(map[string]interface{})
+	assert.True(t, ok, "Data should be a map")
+	assert.Equal(t, "data", data["test"], "Test data should match")
+	assert.Equal(t, float64(123), data["number"], "Number data should match")
+}
+
+// TestJSONErrorResponseFormat 测试错误响应的格式
+func TestJSONErrorResponseFormat(t *testing.T) {
+	ctx := framework.NewTestContext("TestJSONErrorResponseFormat", framework.WithDatabase())
+	defer ctx.Cleanup()
+	
+	config := config.GetConfig()
+	renderService := view.NewViewService(config)
+
+	gin.SetMode(gin.TestMode)
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	// 创建一个 AppError
+	appErr := &appErrors.AppError{
+		ErrorDef: appErrors.ErrorDef{
+			Code:     1001,
+			Key:      "test.error",
+			HttpCode: http.StatusBadRequest,
+		},
+		Details: "Test error details",
+	}
+
+	// 调用 JSONError 方法
+	renderService.JSONError(c, appErr, "error data")
+
+	// 验证响应
+	var response map[string]interface{}
+	jsonErr := json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoError(t, jsonErr, "Response should be valid JSON")
+
+	// 验证响应结构
+	assert.Equal(t, false, response["success"], "Success should be false")
+	assert.Equal(t, "test.error", response["message"], "Message should match error key")
+	assert.Equal(t, float64(1001), response["code"], "Code should be 1001 (numeric)")
+	assert.Equal(t, "error data", response["data"], "Data should match provided error data")
+
+	// 验证 HTTP 状态码
+	assert.Equal(t, http.StatusBadRequest, w.Code, "HTTP status should match AppError.HttpCode")
 }
