@@ -5,30 +5,28 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/utils/config"
 	appErrors "github.com/biuren/hebe/internal/utils/error"
-	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/pkg"
 )
 
-
-
 // Service 用户业务逻辑层实现
 type Service struct {
-	repo       RepositoryInterface
-	config     *config.Config // 缓存配置，避免重复调用全局变量
-	regexCheck *pkg.RegexCheck
+	config      *config.Config
+	repo        RepositoryInterface
+	regexCheck  *pkg.RegexCheck
 	taskService *task.Service
 }
 
 // NewService 创建用户业务逻辑层实例
 // NewService 创建用户服务实例，使用依赖注入
-func NewService(repo RepositoryInterface, taskService *task.Service, cfg *config.Config) *Service {
+func NewService(config *config.Config, repo RepositoryInterface, taskService *task.Service) *Service {
 
 	return &Service{
-		repo:       repo,
-		config:     cfg, // 缓存配置
-		regexCheck: &pkg.RegexCheck{},
+		config:      config,
+		repo:        repo,
+		regexCheck:  &pkg.RegexCheck{},
 		taskService: taskService,
 	}
 }
@@ -86,8 +84,6 @@ func (s *Service) LoginWithUsernameOrEmail(usernameOrEmail string, password stri
 
 	return user, nil
 }
-
-
 
 // ActivateUser 激活用户
 func (s *Service) ActivateUser(uid string, sign string) error {
@@ -192,7 +188,7 @@ func (s *Service) ChangeUserPassword(currentUserID int64, currentPwd, newPwd str
 	if !s.verifyPassword(currentPwd, currentEncryptPwd) {
 		return appErrors.InvalidPassword.WithDetails("当前密码不正确")
 	}
-	
+
 	// 验证新密码强度
 	if len(newPwd) < config.PWD_MIN_LEN || len(newPwd) > config.PWD_MAX_LEN {
 		return appErrors.ValidationError.WithDetails(fmt.Sprintf("新密码长度必须在%d-%d个字符之间", config.PWD_MIN_LEN, config.PWD_MAX_LEN))
@@ -337,28 +333,27 @@ func (s *Service) UpdateUserEmail(uid int64, email string) error {
 	return nil
 }
 
-
 // UpdateUserStatus 更新用户状态
-	func (s *Service) UpdateUserStatus(userId int64, status int8) (int64, error) {
-		rowsAffected, err := s.repo.UpdateUserStatus(userId, status)
-		if err != nil {
-			return 0, appErrors.DatabaseError.WithDetails(fmt.Sprintf("更新用户状态失败: %v", err))
-		}
-		// 检查是否更新成功
-		if rowsAffected == 0 {
-			return 0, appErrors.DatabaseError.WithDetails("未找到用户或状态未修改")
-		}
-		return rowsAffected, nil
+func (s *Service) UpdateUserStatus(userId int64, status int8) (int64, error) {
+	rowsAffected, err := s.repo.UpdateUserStatus(userId, status)
+	if err != nil {
+		return 0, appErrors.DatabaseError.WithDetails(fmt.Sprintf("更新用户状态失败: %v", err))
 	}
+	// 检查是否更新成功
+	if rowsAffected == 0 {
+		return 0, appErrors.DatabaseError.WithDetails("未找到用户或状态未修改")
+	}
+	return rowsAffected, nil
+}
 
 // UpdateUserPwd 更新用户密码
-	func (s *Service) UpdateUserPwd(userId int64, pwd string) (int64, error) {
-		rowsAffected, err := s.repo.UpdateUserPwd(userId, pwd)
-		if err != nil {
-			return 0, appErrors.DatabaseError.WithDetails(fmt.Sprintf("更新用户密码失败: %v", err))
-		}
-		return rowsAffected, nil
+func (s *Service) UpdateUserPwd(userId int64, pwd string) (int64, error) {
+	rowsAffected, err := s.repo.UpdateUserPwd(userId, pwd)
+	if err != nil {
+		return 0, appErrors.DatabaseError.WithDetails(fmt.Sprintf("更新用户密码失败: %v", err))
 	}
+	return rowsAffected, nil
+}
 
 // GetSupportedLang 获取支持的语言
 func (s *Service) GetSupportedLang(language string) string {
@@ -374,37 +369,37 @@ func (s *Service) GetSupportedLang(language string) string {
 // ===================== 私有辅助方法 =====================
 
 // validateUserInput 验证用户输入参数
-	func (s *Service) validateUserInput(user *User) error {
-		// 判断参数是否到位
-		if len(user.UserName) < 6 || len(user.Pwd) < 6 {
-			return appErrors.ValidationError.WithDetails("用户名和密码长度至少6位")
-		}
-
-		// 判断用户时区与语言是否正确
-		if !pkg.IsTimeZone(user.TimeZone) {
-			return appErrors.ValidationError.WithDetails("时区格式不正确")
-		}
-
-		// 判断用户名是否存在
-		isExistUserName, err := s.IsExistUserName(user.UserName)
-		if err != nil {
-			return err
-		}
-		if isExistUserName {
-			return appErrors.UserExists.WithDetails("用户名: " + user.UserName)
-		}
-
-		// 判断邮件地址是否存在
-		isExistEmail, err := s.IsExistEmail(user.Email)
-		if err != nil {
-			return err
-		}
-		if isExistEmail {
-			return appErrors.EmailExists.WithDetails("邮箱: " + user.Email)
-		}
-
-		return nil
+func (s *Service) validateUserInput(user *User) error {
+	// 判断参数是否到位
+	if len(user.UserName) < 6 || len(user.Pwd) < 6 {
+		return appErrors.ValidationError.WithDetails("用户名和密码长度至少6位")
 	}
+
+	// 判断用户时区与语言是否正确
+	if !pkg.IsTimeZone(user.TimeZone) {
+		return appErrors.ValidationError.WithDetails("时区格式不正确")
+	}
+
+	// 判断用户名是否存在
+	isExistUserName, err := s.IsExistUserName(user.UserName)
+	if err != nil {
+		return err
+	}
+	if isExistUserName {
+		return appErrors.UserExists.WithDetails("用户名: " + user.UserName)
+	}
+
+	// 判断邮件地址是否存在
+	isExistEmail, err := s.IsExistEmail(user.Email)
+	if err != nil {
+		return err
+	}
+	if isExistEmail {
+		return appErrors.EmailExists.WithDetails("邮箱: " + user.Email)
+	}
+
+	return nil
+}
 
 // normalizeUserInput 转换用户名和邮件地址为小写并去除空格
 func (s *Service) normalizeUserInput(user *User) {
@@ -420,7 +415,7 @@ func (s *Service) generatePasswordHash(password string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	return hash, nil
 }
 
@@ -494,4 +489,3 @@ func (s *Service) insertValidCode(userID int64) (*ValidCode, error) {
 
 	return validCode, nil
 }
-

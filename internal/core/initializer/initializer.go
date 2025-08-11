@@ -16,25 +16,21 @@ type Initializer struct {
 }
 
 // NewInitializer 创建核心初始化器
-func NewInitializer() *Initializer {
-	return &Initializer{}
+func NewInitializer(config *config.Config) *Initializer {
+	return &Initializer{
+		config: config,
+	}
 }
 
 // InitializeCore 初始化核心基础设施
 // 由于配置和日志已在main.go中初始化，这里只初始化数据库和DI容器
 func (i *Initializer) InitializeCore() error {
-	// 1. 获取已初始化的配置
-	i.config = config.GetConfig()
-	if i.config == nil {
-		return errors.ConfigError.WithDetails("配置未初始化")
-	}
-
-	// 2. 初始化数据库
+	// 1. 初始化数据库
 	if err := i.initDatabase(); err != nil {
 		return err // 已经是统一错误格式
 	}
 
-	// 3. 初始化DI容器
+	// 2. 初始化DI容器
 	if err := i.initContainer(); err != nil {
 		return err // 已经是统一错误格式
 	}
@@ -45,11 +41,6 @@ func (i *Initializer) InitializeCore() error {
 // GetContainer 获取DI容器
 func (i *Initializer) GetContainer() *di.Container {
 	return i.container
-}
-
-// GetConfig 获取配置
-func (i *Initializer) GetConfig() *config.Config {
-	return i.config
 }
 
 // initDatabase 初始化数据库连接

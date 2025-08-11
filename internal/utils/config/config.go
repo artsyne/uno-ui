@@ -20,7 +20,7 @@ var (
 
 // InitConfig 初始化配置
 func InitConfig() error {
-	// 加载 .env.local 文件
+	// 加载 .env.local 文件，正式发布是删除，环境变量会在外部注入
 	if err := gotenv.Load(".env.local"); err != nil {
 		// .env.local 文件不存在时不报错，继续使用环境变量
 		fmt.Printf("Warning: .env.local file not found: %v\n", err)

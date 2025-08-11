@@ -1,39 +1,30 @@
 package post
 
 import (
-	"github.com/biuren/hebe/internal/utils/config"
-	errors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
+	"github.com/biuren/hebe/internal/utils/config"
+	errors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/pkg"
 )
-
-
 
 // Service 日记业务逻辑层实现
 // 负责处理所有与日记相关的业务逻辑和规则验证
 type Service struct {
-	repo        RepositoryInterface
-	config      *config.Config // 缓存配置，避免重复调用全局变量
-	userService *user.Service
+	config       *config.Config 
+	repo         RepositoryInterface
+	userService  *user.Service
 	diaryService *diary.Service
 }
 
 // NewService 创建新的文章业务逻辑层实例
-func NewService(userRepo user.RepositoryInterface, taskService *task.Service, diaryRepo diary.RepositoryInterface, postRepo RepositoryInterface) *Service {
-	config := config.GetConfig()
-	if config == nil {
-		// 在初始化时就检查配置，如果配置未正确加载则panic
-		// 这是合理的，因为没有配置应用无法正常运行
-		panic("Failed to get config during post service initialization - config is nil")
-	}
-
+func NewService(config *config.Config, userRepo user.RepositoryInterface, taskService *task.Service, diaryRepo diary.RepositoryInterface, postRepo RepositoryInterface) *Service {
 	return &Service{
+		config:       config, 
 		repo:         postRepo,
-		config:       config, // 缓存配置
-		userService:  user.NewService(userRepo, taskService, config),
-		diaryService: diary.NewService(diaryRepo),
+		userService:  user.NewService(config, userRepo, taskService),
+		diaryService: diary.NewService(config, diaryRepo),
 	}
 }
 

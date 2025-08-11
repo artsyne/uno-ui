@@ -8,7 +8,6 @@ import (
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
-	"github.com/biuren/hebe/internal/utils/config"
 	framework "github.com/biuren/hebe/tests/framework/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,7 +22,7 @@ func TestUserDiaryIntegration(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 	diaryService := diary.NewService(diaryRepo)
@@ -94,7 +93,7 @@ func TestUserPostDiaryIntegration(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 	diaryService := diary.NewService(diaryRepo)
@@ -228,7 +227,7 @@ func TestMultiUserScenario(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 	diaryService := diary.NewService(diaryRepo)
@@ -348,7 +347,7 @@ func TestServiceErrorHandling(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 	diaryService := diary.NewService(diaryRepo)
@@ -426,7 +425,7 @@ func TestServicePerformance(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 	diaryService := diary.NewService(diaryRepo)

@@ -6,17 +6,15 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/internal/app/view"
-	"github.com/biuren/hebe/internal/utils/config"
-	errors "github.com/biuren/hebe/internal/utils/error"
+	types "github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/domain/user"
-	"github.com/biuren/hebe/internal/contracts"
+	"github.com/biuren/hebe/internal/utils/config"
+	errors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
-
-
 
 // postController 日记模块HTTP处理器实现
 // 负责处理所有与日记相关的HTTP请求，包括渲染表单、创建日记、编辑日记等操作
@@ -29,12 +27,12 @@ type PostController struct {
 }
 
 // NewPostController 创建新的日记控制器实例
-func NewPostController(postService *post.Service, diaryService *diary.Service, auth *user.AuthHelper, config *config.Config, renderService *view.ViewService) *PostController {
+func NewPostController(config *config.Config, postService *post.Service, diaryService *diary.Service, auth *user.AuthHelper, renderService *view.ViewService) *PostController {
 	return &PostController{
+		config:        config,
 		postService:   postService,
 		diaryService:  diaryService,
 		auth:          auth,
-		config:        config,
 		renderService: renderService,
 	}
 }

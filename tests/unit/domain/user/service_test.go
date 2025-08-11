@@ -6,7 +6,6 @@ import (
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
-	"github.com/biuren/hebe/internal/utils/config"
 	framework "github.com/biuren/hebe/tests/framework/core"
 	
 	"github.com/stretchr/testify/assert"
@@ -25,7 +24,7 @@ func TestUserService_RegisterUser(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 
@@ -110,7 +109,7 @@ func TestUserService_LoginWithUsernameOrEmail(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 
@@ -183,7 +182,7 @@ func TestUserService_UpdateUserProfile(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		config := config.GetConfig()
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		taskService := task.NewService(taskRepo, config)
 		userService := user.NewService(userRepo, taskService, config)
 
@@ -226,7 +225,7 @@ func TestUserService_ChangeUserPassword(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 
@@ -281,7 +280,7 @@ func TestUserService_IsExistUserName(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 
@@ -317,7 +316,7 @@ func TestUserService_IsExistEmail(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 
@@ -353,7 +352,7 @@ func TestUserService_GetUserByUserId(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 
@@ -394,7 +393,7 @@ func TestUserService_GetUserByEmail(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 
@@ -433,7 +432,7 @@ func TestUserService_UpdateUserStatus(t *testing.T) {
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 
@@ -472,7 +471,7 @@ func TestUserService_GetSupportedLang(t *testing.T) {
 	
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 

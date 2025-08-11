@@ -137,7 +137,7 @@ func (tc *TestContext) initializeCore() error {
 
 	// 初始化服务注册表
 	tc.services = NewServiceRegistry()
-	if err := tc.services.InitializeServices(tc.database.GetDB()); err != nil {
+	if err := tc.services.InitializeServices(tc.database.GetDB(), tc.config); err != nil {
 		return fmt.Errorf("初始化服务注册表失败: %w", err)
 	}
 
@@ -333,7 +333,7 @@ func NewServiceRegistry() *ServiceRegistry {
 }
 
 // InitializeServices 初始化服务
-func (sr *ServiceRegistry) InitializeServices(db *sqlx.DB) error {
+func (sr *ServiceRegistry) InitializeServices(db *sqlx.DB, testConfig TestConfigInterface) error {
 	sr.mu.Lock()
 	defer sr.mu.Unlock()
 
@@ -346,7 +346,7 @@ func (sr *ServiceRegistry) InitializeServices(db *sqlx.DB) error {
 	taskRepo := repository.NewTaskRepository()
 	
 	// 创建任务服务
-	config := config.GetConfig()
+	config := testConfig.GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	
 	// 初始化各个服务，注入仓储依赖

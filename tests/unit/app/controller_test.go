@@ -12,7 +12,6 @@ import (
 	"github.com/biuren/hebe/internal/app/view"
 	types "github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/internal/domain/user"
-	"github.com/biuren/hebe/internal/utils/config"
 	appErrors "github.com/biuren/hebe/internal/utils/error"
 	framework "github.com/biuren/hebe/tests/framework/core"
 	"github.com/gin-gonic/gin"
@@ -25,7 +24,7 @@ func TestUserControllerCreation(t *testing.T) {
 	ctx := framework.NewTestContext("TestUserControllerCreation", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -37,7 +36,7 @@ func TestShowLoginPage(t *testing.T) {
 	ctx := framework.NewTestContext("TestShowLoginPage", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -66,7 +65,7 @@ func TestShowRegisterPage(t *testing.T) {
 	ctx := framework.NewTestContext("TestShowRegisterPage", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -95,7 +94,7 @@ func TestShowPasswordResetPage(t *testing.T) {
 	ctx := framework.NewTestContext("TestShowPasswordResetPage", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -124,7 +123,7 @@ func TestShowUserSettingsPage(t *testing.T) {
 	ctx := framework.NewTestContext("TestShowUserSettingsPage", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -162,7 +161,7 @@ func TestLoginPOST(t *testing.T) {
 	ctx := framework.NewTestContext("TestLoginPOST", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -191,7 +190,7 @@ func TestLoginPOSTEmptyData(t *testing.T) {
 	ctx := framework.NewTestContext("TestLoginPOSTEmptyData", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -215,7 +214,7 @@ func TestRegisterPOST(t *testing.T) {
 	ctx := framework.NewTestContext("TestRegisterPOST", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -248,7 +247,7 @@ func TestLogout(t *testing.T) {
 	ctx := framework.NewTestContext("TestLogout", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -270,7 +269,7 @@ func TestValidateUsername(t *testing.T) {
 	ctx := framework.NewTestContext("TestValidateUsername", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -297,7 +296,7 @@ func TestValidateUsernameEmpty(t *testing.T) {
 	ctx := framework.NewTestContext("TestValidateUsernameEmpty", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -321,7 +320,7 @@ func TestValidateEmail(t *testing.T) {
 	ctx := framework.NewTestContext("TestValidateEmail", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -348,7 +347,7 @@ func TestValidateEmailEmpty(t *testing.T) {
 	ctx := framework.NewTestContext("TestValidateEmailEmpty", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -372,7 +371,7 @@ func TestUpdatePasswordEmpty(t *testing.T) {
 	ctx := framework.NewTestContext("TestUpdatePasswordEmpty", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -408,7 +407,7 @@ func TestUpdateProfileEmpty(t *testing.T) {
 	ctx := framework.NewTestContext("TestUpdateProfileEmpty", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -445,7 +444,7 @@ func TestRouteRegistration(t *testing.T) {
 	ctx := framework.NewTestContext("TestRouteRegistration", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -483,7 +482,7 @@ func TestContentTypeHandling(t *testing.T) {
 	ctx := framework.NewTestContext("TestContentTypeHandling", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -525,7 +524,7 @@ func TestJSONResponseFormat(t *testing.T) {
 	ctx := framework.NewTestContext("TestJSONResponseFormat", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
@@ -571,7 +570,7 @@ func TestJSONSuccessResponseFormat(t *testing.T) {
 	ctx := framework.NewTestContext("TestJSONSuccessResponseFormat", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	renderService := view.NewViewService(config)
 
 	gin.SetMode(gin.TestMode)
@@ -610,7 +609,7 @@ func TestJSONErrorResponseFormat(t *testing.T) {
 	ctx := framework.NewTestContext("TestJSONErrorResponseFormat", framework.WithDatabase())
 	defer ctx.Cleanup()
 	
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	renderService := view.NewViewService(config)
 
 	gin.SetMode(gin.TestMode)

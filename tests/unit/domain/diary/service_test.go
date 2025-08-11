@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
@@ -38,7 +37,7 @@ func TestDiaryService_AddDiary(t *testing.T) {
 		
 		// 创建测试用户
 		testUser := ctx.GetDataGenerator().CreateUser()
-		config := config.GetConfig()
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		taskService := task.NewService(taskRepo, config)
@@ -99,7 +98,7 @@ func TestDiaryService_AddDiary(t *testing.T) {
 
 		// 创建测试用户
 		testUser := ctx.GetDataGenerator().CreateUser()
-		config := config.GetConfig()
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		taskService := task.NewService(taskRepo, config)
@@ -151,7 +150,7 @@ func TestDiaryService_AddDiary_EmptyTitle(t *testing.T) {
 	}
 	userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		config := config.GetConfig()
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		taskService := task.NewService(taskRepo, config)
 		userService := user.NewService(userRepo, taskService, config)
 	err := userService.RegisterUser(testUser)
@@ -179,7 +178,7 @@ func TestDiaryService_GetDiaryByID(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
-		config := config.GetConfig()
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		taskService := task.NewService(taskRepo, config)
@@ -235,7 +234,7 @@ func TestDiaryService_UpdateDiary(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(taskRepo, config)
@@ -339,7 +338,7 @@ func TestDiaryService_ListDiariesForWrite(t *testing.T) {
 
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		config := config.GetConfig()
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		taskService := task.NewService(taskRepo, config)
 		userService := user.NewService(userRepo, taskService, config)
 		diaryRepo := repository.NewDiaryRepository()
@@ -398,7 +397,7 @@ func TestDiaryService_ListDiariesForWrite(t *testing.T) {
 	// 创建真实的服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
@@ -458,7 +457,7 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 		diaryService := diary.NewService(diaryRepo)
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		config := config.GetConfig()
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		taskService := task.NewService(taskRepo, config)
 		userService := user.NewService(userRepo, taskService, config)
 
@@ -504,7 +503,7 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 		diaryService := diary.NewService(diaryRepo)
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		config := config.GetConfig()
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		taskService := task.NewService(taskRepo, config)
 		userService := user.NewService(userRepo, taskService, config)
 
@@ -550,7 +549,7 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 		diaryService := diary.NewService(diaryRepo)
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		config := config.GetConfig()
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		taskService := task.NewService(taskRepo, config)
 		userService := user.NewService(userRepo, taskService, config)
 
@@ -610,7 +609,7 @@ func TestDiaryService_PostCountOperations(t *testing.T) {
 	// 创建服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()

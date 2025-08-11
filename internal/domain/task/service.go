@@ -17,16 +17,15 @@ import (
 // Service 任务业务逻辑层实现
 // 负责处理所有与任务相关的业务逻辑和规则验证
 type Service struct {
+	config *config.Config
 	repo   RepositoryInterface
-	config *config.Config // 缓存配置，避免重复调用全局变量
 }
 
 // NewService 创建新的任务业务逻辑层实例
-func NewService(repo RepositoryInterface, cfg *config.Config) *Service {
-
+func NewService(config *config.Config, repo RepositoryInterface) *Service {
 	return &Service{
+		config: config,
 		repo:   repo,
-		config: cfg, // 缓存配置
 	}
 }
 

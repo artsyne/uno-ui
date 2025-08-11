@@ -3,7 +3,6 @@ package task_test
 import (
 	"testing"
 
-	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/infra/repository"
 	framework "github.com/biuren/hebe/tests/framework/core"
@@ -16,7 +15,7 @@ func TestTaskService_CreateEmailTask(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建任务服务
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(taskRepo, config)
 
@@ -74,7 +73,7 @@ func TestTaskService_ProcessEmailTasks(t *testing.T) {
 	defer ctx.Cleanup()
 	
 	// 创建任务服务
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(taskRepo, config)
 
@@ -119,7 +118,7 @@ func TestEmailTaskSerialization(t *testing.T) {
 	// 测试邮件任务的序列化和反序列化
 	t.Run("邮件任务结构", func(t *testing.T) {
 		// 由于task包可能没有公开的EmailTask结构，我们只测试基本功能
-		config := config.GetConfig()
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(taskRepo, config)
 		assert.NotNil(t, taskService, "任务服务应该能创建")
@@ -148,7 +147,7 @@ func TestJobHistoryStructure(t *testing.T) {
 
 func TestTaskService_StartScheduler(t *testing.T) {
 	// 测试任务调度器启动
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(taskRepo, config)
 	
@@ -163,7 +162,7 @@ func TestEmailTaskWorkflow(t *testing.T) {
 	defer ctx.Cleanup()
 	
 	// 创建任务服务
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(taskRepo, config)
 

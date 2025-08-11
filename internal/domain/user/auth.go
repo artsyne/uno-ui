@@ -41,9 +41,9 @@ type AuthHelper struct {
 //
 // Returns:
 //   - *AuthHelper: 认证助手实例
-func NewAuthHelper(cfg *config.Config) *AuthHelper {
+func NewAuthHelper(config *config.Config) *AuthHelper {
 	return &AuthHelper{
-		config: cfg,
+		config: config,
 	}
 }
 

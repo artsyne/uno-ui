@@ -42,7 +42,7 @@ func main() {
 	slog.Info("应用启动", "version", "1.0.0")
 
 	// 4. 创建并启动应用
-	app := bootstrap.NewApplication()
+	app := bootstrap.NewApplication(config.GetConfig())
 	if err := app.Bootstrap(); err != nil {
 		slog.Error("应用启动失败", "error", err)
 		os.Exit(1)

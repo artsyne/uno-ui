@@ -10,22 +10,15 @@ import (
 // Service 日记本业务逻辑层实现
 // 负责处理所有与日记本相关的业务逻辑和规则验证
 type Service struct {
+	config *config.Config 
 	repo   RepositoryInterface
-	config *config.Config // 缓存配置，避免重复调用全局变量
 }
 
 // NewService 创建新的日记本业务逻辑层实例
-func NewService(repo RepositoryInterface) *Service {
-	config := config.GetConfig()
-	if config == nil {
-		// 在初始化时就检查配置，如果配置未正确加载则panic
-		// 这是合理的，因为没有配置应用无法正常运行
-		panic("Failed to get config during diary service initialization - config is nil")
-	}
-
+func NewService(config *config.Config, repo RepositoryInterface) *Service {
 	return &Service{
+		config: config,
 		repo:   repo,
-		config: config, // 缓存配置
 	}
 }
 

@@ -33,9 +33,10 @@ type Application struct {
 }
 
 // NewApplication 创建应用程序实例
-func NewApplication() *Application {
+func NewApplication(config *config.Config) *Application {
 	return &Application{
-		coreInit: bootstrap.NewInitializer(),
+		config:    config,
+		coreInit: bootstrap.NewInitializer(config),
 	}
 }
 
@@ -48,7 +49,6 @@ func (a *Application) Bootstrap() error {
 	}
 
 	// 2. 获取核心组件
-	a.config = a.coreInit.GetConfig()
 	a.container = a.coreInit.GetContainer()
 
 	// 验证核心组件是否正确初始化
@@ -128,10 +128,10 @@ func (a *Application) registerAppServices() error {
 	postRepo := repository.NewPostRepository(database.GetDB())
 	
 	// 创建服务实例
-	taskService := task.NewService(taskRepo, a.config)
-	userService := user.NewService(userRepo, taskService, a.config)
-	diaryService := diary.NewService(diaryRepo)
-	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
+	taskService := task.NewService(a.config, taskRepo)
+	userService := user.NewService(a.config, userRepo, taskService)
+	diaryService := diary.NewService(a.config, diaryRepo)
+	postService := post.NewService(a.config, userRepo, taskService, diaryRepo, postRepo)
 	
 	// 注册为预创建实例，避免循环依赖
 	di.Value(a.container, userRepo)

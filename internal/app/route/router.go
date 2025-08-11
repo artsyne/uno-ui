@@ -28,8 +28,8 @@ func SetWithContainer(server *gin.Engine, container *di.Container) {
 
 // setPath 设置站点路由，使用DI容器注入服务
 func setPath(server *gin.Engine, container *di.Container) {
-	// 通过DI容器创建Controller
-	controllerInstance := createController(container)
+	// 通过DI容器创建IndexController
+	controllerInstance := createIndexController(container)
 
 	// 基础页面路由
 	server.GET("/index", controllerInstance.RenderIndex)
@@ -63,27 +63,27 @@ func getControllerDependencies(container *di.Container) *controllerDependencies 
 }
 
 // createController 通过DI容器创建Controller
-func createController(container *di.Container) *controller.Controller {
+func createIndexController(container *di.Container) *controller.IndexController {
 	deps := getControllerDependencies(container)
-	return controller.NewController(deps.renderService)
+	return controller.NewIndexController(deps.config, deps.renderService)
 }
 
 // createUserController 通过DI容器创建UserController
 func createUserController(container *di.Container) *controller.UserController {
 	deps := getControllerDependencies(container)
-	return controller.NewUserController(deps.userService, deps.renderService, deps.authHelper)
+	return controller.NewUserController(deps.config, deps.userService, deps.renderService, deps.authHelper)
 }
 
 // createDiaryController 通过DI容器创建DiaryController
 func createDiaryController(container *di.Container) *controller.DiaryController {
 	deps := getControllerDependencies(container)
-	return controller.NewDiaryController(deps.diaryService, deps.userService, deps.authHelper, deps.config, deps.renderService)
+	return controller.NewDiaryController(deps.config, deps.diaryService, deps.userService, deps.authHelper, deps.renderService)
 }
 
 // createPostController 通过DI容器创建PostController
 func createPostController(container *di.Container) *controller.PostController {
 	deps := getControllerDependencies(container)
-	return controller.NewPostController(deps.postService, deps.diaryService, deps.authHelper, deps.config, deps.renderService)
+	return controller.NewPostController(deps.config, deps.postService, deps.diaryService, deps.authHelper, deps.renderService)
 }
 
 // #region 加载模版文件，并注入全局变量

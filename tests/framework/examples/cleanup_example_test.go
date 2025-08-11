@@ -8,7 +8,6 @@ import (
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
-	"github.com/biuren/hebe/internal/utils/config"
 	core "github.com/biuren/hebe/tests/framework/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,7 +29,7 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		// 创建服务
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		config := config.GetConfig()
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		taskService := task.NewService(taskRepo, config)
 		userService := user.NewService(userRepo, taskService, config)
 		diaryRepo := repository.NewDiaryRepository()
@@ -76,7 +75,7 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		// 创建服务
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		config := config.GetConfig()
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		taskService := task.NewService(taskRepo, config)
 		userService := user.NewService(userRepo, taskService, config)
 		diaryRepo := repository.NewDiaryRepository()
@@ -119,7 +118,7 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		// 创建服务
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		config := config.GetConfig()
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		taskService := task.NewService(taskRepo, config)
 		userService := user.NewService(userRepo, taskService, config)
 
@@ -166,7 +165,7 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		// 创建服务
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		config := config.GetConfig()
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		taskService := task.NewService(taskRepo, config)
 		userService := user.NewService(userRepo, taskService, config)
 

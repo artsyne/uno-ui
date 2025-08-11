@@ -11,7 +11,6 @@ import (
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
-	"github.com/biuren/hebe/internal/utils/config"
 	framework "github.com/biuren/hebe/tests/framework/core"
 )
 
@@ -22,7 +21,7 @@ func BenchmarkUserRegistration(b *testing.B) {
 
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 
@@ -52,7 +51,7 @@ func BenchmarkDiaryCreation(b *testing.B) {
 
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
@@ -98,7 +97,7 @@ func BenchmarkPostCreation(b *testing.B) {
 
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
@@ -181,7 +180,7 @@ func BenchmarkConcurrentUserRegistration(b *testing.B) {
 
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(taskRepo, config)
 	userService := user.NewService(userRepo, taskService, config)
 

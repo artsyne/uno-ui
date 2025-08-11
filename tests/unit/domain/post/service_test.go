@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/domain/task"
@@ -56,7 +55,7 @@ func TestPostService_AddPost(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(taskRepo, config)
@@ -149,7 +148,7 @@ func TestPostService_GetPostByID(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(taskRepo, config)
@@ -199,7 +198,7 @@ func TestPostService_UpdatePost(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(taskRepo, config)
@@ -302,7 +301,7 @@ func TestPostService_ListPostsByUserID(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(taskRepo, config)
@@ -426,7 +425,7 @@ func TestPostService_GetPostCountByUserID(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(taskRepo, config)
@@ -485,7 +484,7 @@ func TestPostService_UpdatePostByID(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(taskRepo, config)
@@ -558,7 +557,7 @@ func TestPostService_DeletePostByID(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
-	config := config.GetConfig()
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(taskRepo, config)

@@ -67,7 +67,7 @@ type ServiceRegistryInterface interface {
 	GetUserService() *user.Service
 	GetDiaryService() *diary.Service
 	GetPostService() *post.Service
-	InitializeServices(db *sqlx.DB) error
+	InitializeServices(db *sqlx.DB, testConfig TestConfigInterface) error
 }
 
 // HTTPTestHelperInterface HTTP测试助手接口
