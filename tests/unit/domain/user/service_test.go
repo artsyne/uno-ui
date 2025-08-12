@@ -6,7 +6,7 @@ import (
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
-	framework "github.com/biuren/hebe/tests/framework/core"
+	framework "github.com/biuren/hebe/tests/framework"
 	
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,15 +18,15 @@ func TestMain(m *testing.M) {
 
 // TestUserService_RegisterUser 测试用户注册功能
 func TestUserService_RegisterUser(t *testing.T) {
-	ctx := framework.NewTestContext("TestUserService_RegisterUser", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
 
 	// 准备测试数据 - 使用随机数据避免冲突
 	newUser := &user.User{
@@ -103,15 +103,15 @@ func TestUserService_RegisterUser(t *testing.T) {
 
 // TestUserService_LoginWithUsernameOrEmail 测试用户登录验证
 func TestUserService_LoginWithUsernameOrEmail(t *testing.T) {
-	ctx := framework.NewTestContext("TestUserService_LoginWithUsernameOrEmail", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -176,15 +176,15 @@ func TestUserService_LoginWithUsernameOrEmail(t *testing.T) {
 
 // TestUserService_UpdateUserProfile 测试用户资料更新
 func TestUserService_UpdateUserProfile(t *testing.T) {
-	ctx := framework.NewTestContext("TestUserService_UpdateUserProfile", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-		taskService := task.NewService(taskRepo, config)
-		userService := user.NewService(userRepo, taskService, config)
+		taskService := task.NewService(config, taskRepo)
+		userService := user.NewService(config, userRepo, taskService)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -219,15 +219,15 @@ func TestUserService_UpdateUserProfile(t *testing.T) {
 
 // TestUserService_ChangeUserPassword 测试密码修改
 func TestUserService_ChangeUserPassword(t *testing.T) {
-	ctx := framework.NewTestContext("TestUserService_ChangeUserPassword", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -274,15 +274,15 @@ func TestUserService_ChangeUserPassword(t *testing.T) {
 
 // TestUserService_IsExistUserName 测试用户名存在检查
 func TestUserService_IsExistUserName(t *testing.T) {
-	ctx := framework.NewTestContext("TestUserService_IsExistUserName", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -310,15 +310,15 @@ func TestUserService_IsExistUserName(t *testing.T) {
 
 // TestUserService_IsExistEmail 测试邮箱存在检查
 func TestUserService_IsExistEmail(t *testing.T) {
-	ctx := framework.NewTestContext("TestUserService_IsExistEmail", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -346,15 +346,15 @@ func TestUserService_IsExistEmail(t *testing.T) {
 
 // TestUserService_GetUserByUserId 测试根据ID获取用户
 func TestUserService_GetUserByUserId(t *testing.T) {
-	ctx := framework.NewTestContext("TestUserService_GetUserByUserId", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -387,15 +387,15 @@ func TestUserService_GetUserByUserId(t *testing.T) {
 
 // TestUserService_GetUserByEmail 测试根据邮箱获取用户
 func TestUserService_GetUserByEmail(t *testing.T) {
-	ctx := framework.NewTestContext("TestUserService_GetUserByEmail", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -426,15 +426,15 @@ func TestUserService_GetUserByEmail(t *testing.T) {
 
 // TestUserService_UpdateUserStatus 测试用户状态更新
 func TestUserService_UpdateUserStatus(t *testing.T) {
-	ctx := framework.NewTestContext("TestUserService_UpdateUserStatus", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -466,14 +466,14 @@ func TestUserService_UpdateUserStatus(t *testing.T) {
 
 // TestUserService_GetSupportedLang 测试语言支持检查
 func TestUserService_GetSupportedLang(t *testing.T) {
-	ctx := framework.NewTestContext("TestUserService_GetSupportedLang", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
 
 	tests := []struct {
 			name     string

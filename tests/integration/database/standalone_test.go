@@ -3,12 +3,12 @@ package database
 import (
 	"testing"
 
-	framework "github.com/biuren/hebe/tests/framework/core"
+	framework "github.com/biuren/hebe/tests/framework"
 )
 
 // TestDatabaseOnly 仅使用数据库的测试示例
 func TestDatabaseOnly(t *testing.T) {
-	ctx := framework.NewTestContext("TestDatabaseOnly", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 获取数据库连接
@@ -32,7 +32,7 @@ func TestDatabaseOnly(t *testing.T) {
 
 // TestTableStructure 测试表结构
 func TestTableStructure(t *testing.T) {
-	ctx := framework.NewTestContext("TestTableStructure", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 获取数据库连接
@@ -62,7 +62,7 @@ func TestTableStructure(t *testing.T) {
 
 // TestUserTableConstraints 测试用户表约束
 func TestUserTableConstraints(t *testing.T) {
-	ctx := framework.NewTestContext("TestUserTableConstraints", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 获取数据库连接
@@ -107,7 +107,7 @@ func TestUserTableConstraints(t *testing.T) {
 
 // TestTransactionIsolation 测试事务隔离
 func TestTransactionIsolation(t *testing.T) {
-	ctx := framework.NewTestContext("TestTransactionIsolation", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 获取数据库连接

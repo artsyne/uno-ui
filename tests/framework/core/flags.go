@@ -5,15 +5,11 @@ import (
 	"os"
 	"sync"
 	"testing"
+
+	. "github.com/biuren/hebe/tests/framework/types"
 )
 
-// TestFlags 测试命令行参数
-type TestFlags struct {
-	ClearDB   bool // -cleardb 强制清理数据库
-	Verbose   bool // -v 详细输出
-	Parallel  bool // -parallel 并行执行
-	Timeout   int  // -timeout 超时时间(秒)
-}
+// TestFlags 类型已在 types/structs.go 中定义
 
 var (
 	testFlags     *TestFlags

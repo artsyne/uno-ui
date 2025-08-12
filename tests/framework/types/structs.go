@@ -62,6 +62,14 @@ type PerformanceConfig struct {
 	SkipSlowTests bool          `json:"skip_slow_tests" default:"false"` // 跳过慢速测试
 }
 
+// TestFlags 测试标志
+type TestFlags struct {
+	ClearDB  bool `json:"cleardb"`  // 是否清理数据库
+	Verbose  bool `json:"verbose"`  // 详细模式
+	Parallel bool `json:"parallel"` // 并行测试
+	Timeout  int  `json:"timeout"`  // 超时时间（秒）
+}
+
 // UserOptions 用户创建选项
 type UserOptions struct {
 	Username string
@@ -135,4 +143,65 @@ func (tc *TestConfig) GetIsolationConfig() IsolationConfig {
 
 func (tc *TestConfig) GetPerformanceConfig() PerformanceConfig {
 	return tc.Performance
+}
+
+func (tc *TestConfig) GetAppConfig() *config.Config {
+	// 返回完整的config.Config结构，包含所有必要的配置字段
+	// 这确保了所有服务都能获得完整的配置信息
+	return &config.Config{
+		Env: "test",
+		App: tc.App,
+		Database: config.DatabaseConfig{
+			Host:     tc.Database.Host,
+			Port:     tc.Database.Port,
+			Name:     tc.Database.Name,
+			User:     tc.Database.User,
+			Password: tc.Database.Password,
+			Conn:     "%s:%s@tcp(%s:3306)/%s?parseTime=true&loc=Local&charset=utf8mb4&collation=utf8mb4_general_ci",
+		},
+		Redis: config.RedisConfig{
+			Host:     "127.0.0.1",
+			Port:     6379,
+			Password: "",
+		},
+		Email: config.EmailConfig{
+			SMTPServer:   "smtp.test.com",
+			SMTPUser:     "test@test.com",
+			SMTPPassword: "test_password",
+			SMTPPort:     25,
+			SMTPFrom:     "test@test.com",
+			MaxRetries:   3,
+			BatchSize:    10,
+		},
+		Cookie: config.CookieConfig{
+			Domain:     "127.0.0.1",
+			Secret:     "test_secret_key_12345678901234567890",
+			ExpireDays: 7,
+			HttpOnly:   true,
+		},
+		Upload: config.UploadConfig{
+			Path:    "/tmp/test_uploads",
+			Types:   "jpg,jpeg,png,gif,pdf,txt",
+			MaxSize: 10485760,
+		},
+		SupportLangs: []config.SupportLang{
+			{Code: "zh-cn", Label: "简体中文", LocalText: "简体中文"},
+			{Code: "en", Label: "English", LocalText: "English"},
+		},
+		Timezones: []string{"Asia/Shanghai", "UTC"},
+		Params: []config.Param{
+			{Key: "test_param", Val: "test_value"},
+		},
+		Log: config.LogConfig{
+			Level:      "debug",
+			Format:     "text",
+			Path:       "/tmp/test_logs",
+			Filename:   "test.log",
+			MaxSize:    100,
+			MaxAge:     30,
+			MaxBackups: 5,
+			Compress:   true,
+			LocalTime:  true,
+		},
+	}
 }

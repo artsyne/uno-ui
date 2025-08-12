@@ -102,7 +102,7 @@ package tests
 
 import (
     "testing"
-    framework "github.com/biuren/hebe/tests/framework/core"
+    framework "github.com/biuren/hebe/tests/framework"
     "github.com/stretchr/testify/assert"
 )
 

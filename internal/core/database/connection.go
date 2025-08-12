@@ -16,11 +16,19 @@ var db *sqlx.DB
 // Connect 建立数据库连接
 func Connect() error {
 	config := config.GetConfig()
-	connection := fmt.Sprintf(config.Database.Conn,
-		config.Database.User,
-		config.Database.Password,
-		config.Database.Host,
-		config.Database.Name)
+	if config == nil {
+		return fmt.Errorf("global config is nil")
+	}
+	return ConnectWithConfig(config.Database)
+}
+
+// ConnectWithConfig 使用指定配置建立数据库连接
+func ConnectWithConfig(dbConfig config.DatabaseConfig) error {
+	connection := fmt.Sprintf(dbConfig.Conn,
+		dbConfig.User,
+		dbConfig.Password,
+		dbConfig.Host,
+		dbConfig.Name)
 
 	var err error
 	db, err = sqlx.Connect("mysql", connection)

@@ -19,6 +19,7 @@ type Initializer struct {
 func NewInitializer(config *config.Config) *Initializer {
 	return &Initializer{
 		config: config,
+
 	}
 }
 
@@ -45,7 +46,13 @@ func (i *Initializer) GetContainer() *di.Container {
 
 // initDatabase 初始化数据库连接
 func (i *Initializer) initDatabase() error {
-	if err := database.Connect(); err != nil {
+	// 检查配置是否存在
+	if i.config == nil {
+		return errors.DatabaseError.WithDetails("配置为空，无法初始化数据库")
+	}
+	
+	// 使用配置中的数据库信息直接连接
+	if err := database.ConnectWithConfig(i.config.Database); err != nil {
 		return errors.DatabaseError.WithDetails("数据库连接失败: " + err.Error())
 	}
 
@@ -55,11 +62,15 @@ func (i *Initializer) initDatabase() error {
 
 // initContainer 初始化DI容器
 func (i *Initializer) initContainer() error {
+
+	// 初始化DI容器
 	i.container = di.New()
 
-	// 注册配置到DI容器
-	if err := di.Value(i.container, i.config); err != nil {
-		return errors.DIServiceAlreadyRegistered.WithDetails("注册配置到DI容器失败: " + err.Error())
+	// 注册配置到DI容器，如果已存在则跳过
+	if !di.Has[*config.Config](i.container) {
+		if err := di.Value(i.container, i.config); err != nil {
+			return errors.DIServiceAlreadyRegistered.WithDetails("注册配置到DI容器失败: " + err.Error())
+		}
 	}
 
 	slog.Info("成功初始化DI容器并注册配置")

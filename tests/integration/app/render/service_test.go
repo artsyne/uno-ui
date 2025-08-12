@@ -7,7 +7,7 @@ import (
 
 	"github.com/biuren/hebe/internal/app/view"
 	types "github.com/biuren/hebe/internal/contracts"
-	framework "github.com/biuren/hebe/tests/framework/core"
+	framework "github.com/biuren/hebe/tests/framework"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )

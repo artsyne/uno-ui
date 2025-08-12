@@ -9,7 +9,7 @@ import (
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
-	framework "github.com/biuren/hebe/tests/framework/core"
+	framework "github.com/biuren/hebe/tests/framework"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,22 +51,23 @@ func setupTestUserAndDiary(t *testing.T, ctx *framework.TestContext, userService
 // TestPostService_AddPost 测试添加文章功能
 func TestPostService_AddPost(t *testing.T) {
 	// 使用新测试框架
-	ctx := framework.NewTestContext("TestPostService_AddPost", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
-	diaryService := diary.NewService(diaryRepo)
 	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
-	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
+	
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
+	diaryService := diary.NewService(config, diaryRepo)
+	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo)
 
 	// 设置测试数据
-	testUser, testDiary := setupTestUserAndDiary(t, ctx, userService, diaryService)
+	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
 
 	t.Run("成功添加文章", func(t *testing.T) {
 		newPost := &post.Post{
@@ -144,22 +145,23 @@ func TestPostService_AddPost(t *testing.T) {
 // TestPostService_GetPostByID 测试根据ID获取文章
 func TestPostService_GetPostByID(t *testing.T) {
 	// 使用新测试框架
-	ctx := framework.NewTestContext("TestPostService_GetPostByID", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(diaryRepo)
-		postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
-	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
+	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
+	diaryService := diary.NewService(config, diaryRepo)
+	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo)
 
 	// 设置测试数据
-	testUser, testDiary := setupTestUserAndDiary(t, ctx, userService, diaryService)
+	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
 
 	// 添加一篇文章
 	newPost := &post.Post{
@@ -194,22 +196,23 @@ func TestPostService_GetPostByID(t *testing.T) {
 // TestPostService_UpdatePost 测试更新文章
 func TestPostService_UpdatePost(t *testing.T) {
 	// 使用新测试框架
-	ctx := framework.NewTestContext("TestPostService_UpdatePost", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(diaryRepo)
-		postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
-		postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
+	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
+	diaryService := diary.NewService(config, diaryRepo)
+	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo)
 
 	// 设置测试数据
-	testUser, testDiary := setupTestUserAndDiary(t, ctx, userService, diaryService)
+	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
 
 	// 添加一篇文章
 	originalPost := &post.Post{
@@ -297,22 +300,22 @@ func TestPostService_UpdatePost(t *testing.T) {
 // TestPostService_ListPostsByUserID 测试分页获取用户文章列表
 func TestPostService_ListPostsByUserID(t *testing.T) {
 	// 使用新测试框架
-	ctx := framework.NewTestContext("TestPostService_ListPostsByUserID", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
 	diaryRepo := repository.NewDiaryRepository()
-	diaryService := diary.NewService(diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo)
 	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
-	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
+	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo)
 
 	// 设置测试数据
-	testUser, testDiary := setupTestUserAndDiary(t, ctx, userService, diaryService)
+	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
 
 	// 创建另一个用户和日记本
 	otherUser := &user.User{
@@ -421,22 +424,22 @@ func TestPostService_ListPostsByUserID(t *testing.T) {
 // TestPostService_GetPostCountByUserID 测试获取用户文章数量
 func TestPostService_GetPostCountByUserID(t *testing.T) {
 	// 使用新测试框架
-	ctx := framework.NewTestContext("TestPostService_GetPostCountByUserID", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
 	diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(diaryRepo)
-		postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
-		postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
+	diaryService := diary.NewService(config, diaryRepo)
+	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo)
 
 	// 设置测试数据
-		testUser, testDiary := setupTestUserAndDiary(t, ctx, userService, diaryService)
+		testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
 
 	t.Run("初始文章数量为0", func(t *testing.T) {
 		count, err := postService.GetPostCountByUserID(testUser.UserId, testDiary.DiaryID)
@@ -480,22 +483,22 @@ func TestPostService_GetPostCountByUserID(t *testing.T) {
 // TestPostService_UpdatePostByID 测试根据ID更新文章
 func TestPostService_UpdatePostByID(t *testing.T) {
 	// 使用新测试框架
-	ctx := framework.NewTestContext("TestPostService_UpdatePostByID", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
 	diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(diaryRepo)
-		postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
-	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
+	diaryService := diary.NewService(config, diaryRepo)
+	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo)
 
 	// 设置测试数据
-	testUser, testDiary := setupTestUserAndDiary(t, ctx, userService, diaryService)
+	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
 
 	// 添加一篇文章
 	originalPost := &post.Post{
@@ -553,24 +556,24 @@ func TestPostService_UpdatePostByID(t *testing.T) {
 // TestPostService_DeletePostByID 测试删除文章
 func TestPostService_DeletePostByID(t *testing.T) {
 	// 使用新测试框架
-	ctx := framework.NewTestContext("TestPostService_DeletePostByID", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
 	diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(diaryRepo)
-		postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
-	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
+	diaryService := diary.NewService(config, diaryRepo)
+	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo)
 
 	// 设置测试数据
-	testUser, testDiary := setupTestUserAndDiary(t, ctx, userService, diaryService)
+	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
 
-	// 添加一篇文章
+	// 添加一篇文章用于删除测试
 	newPost := &post.Post{
 		Title:       "待删除的文章",
 		Body:        "这篇文章将被删除",

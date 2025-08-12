@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/biuren/hebe/internal/domain/user"
-	framework "github.com/biuren/hebe/tests/framework/core"
+	framework "github.com/biuren/hebe/tests/framework"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -12,7 +12,7 @@ import (
 // TestUserService_Integration 使用真实数据库的集成测试示例
 // 这种测试方式可以验证真实的数据库交互和业务逻辑
 func TestUserService_Integration_RegisterAndLogin(t *testing.T) {
-	ctx := framework.NewTestContext("TestUserService_Integration_RegisterAndLogin", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 获取用户服务
@@ -93,7 +93,7 @@ func TestUserService_Integration_RegisterAndLogin(t *testing.T) {
 
 // TestUserService_Integration_ErrorCases 测试各种错误情况
 func TestUserService_Integration_ErrorCases(t *testing.T) {
-	ctx := framework.NewTestContext("TestUserService_Integration_ErrorCases", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 获取用户服务

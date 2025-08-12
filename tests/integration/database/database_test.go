@@ -3,12 +3,12 @@ package database
 import (
 	"testing"
 
-	framework "github.com/biuren/hebe/tests/framework/core"
+	framework "github.com/biuren/hebe/tests/framework"
 )
 
 // TestDatabaseConnection 测试数据库连接
 func TestDatabaseConnection(t *testing.T) {
-	ctx := framework.NewTestContext("TestDatabaseConnection", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 检查数据库连接
@@ -32,7 +32,7 @@ func TestDatabaseConnection(t *testing.T) {
 
 // TestUserTable 测试用户表操作
 func TestUserTable(t *testing.T) {
-	ctx := framework.NewTestContext("TestUserTable", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	dbManager := ctx.GetDatabase()
@@ -90,7 +90,7 @@ func TestUserTable(t *testing.T) {
 
 // TestDiaryTable 测试日记表操作
 func TestDiaryTable(t *testing.T) {
-	ctx := framework.NewTestContext("TestDiaryTable", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	dbManager := ctx.GetDatabase()

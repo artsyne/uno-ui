@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	core "github.com/biuren/hebe/tests/framework/core"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,11 +13,11 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 
 	t.Run("TestContext创建和初始化", func(t *testing.T) {
 		// 创建测试上下文
-		ctx := core.NewTestContext("framework_test")
+		ctx := NewTestContext()
 		assert.NotNil(t, ctx, "TestContext不应该为nil")
 
-		// 验证测试ID
-		assert.Equal(t, "framework_test", ctx.GetTestID())
+		// 验证测试上下文
+		assert.NotNil(t, ctx.GetTestID())
 
 		// 清理
 		defer func() {
@@ -29,7 +28,7 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 	})
 
 	t.Run("数据隔离器功能测试", func(t *testing.T) {
-		ctx := core.NewTestContext("isolation_test")
+		ctx := NewTestContext()
 		defer ctx.Cleanup()
 
 		isolator := ctx.GetIsolator()
@@ -57,7 +56,7 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 	})
 
 	t.Run("数据生成器功能测试", func(t *testing.T) {
-		ctx := core.NewTestContext("generator_test")
+		ctx := NewTestContext()
 		defer ctx.Cleanup()
 
 		generator := ctx.GetDataGenerator()
@@ -89,7 +88,7 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 	})
 
 	t.Run("配置管理器功能测试", func(t *testing.T) {
-		ctx := core.NewTestContext("config_test")
+		ctx := NewTestContext()
 		defer ctx.Cleanup()
 
 		config := ctx.GetConfig()
@@ -117,7 +116,7 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 	})
 
 	t.Run("数据库管理器功能测试", func(t *testing.T) {
-		ctx := core.NewTestContext("database_test")
+		ctx := NewTestContext()
 		defer ctx.Cleanup()
 
 		dbManager := ctx.GetDatabase()
@@ -148,7 +147,7 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 		// 并发创建多个TestContext
 		for i := 0; i < goroutines; i++ {
 			go func(id int) {
-				ctx := core.NewTestContext("concurrent_test")
+				ctx := NewTestContext()
 
 				// 执行一些操作
 			isolator := ctx.GetIsolator()
@@ -191,7 +190,7 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 
 		// 创建和销毁多个测试上下文
 		for i := 0; i < iterations; i++ {
-			ctx := core.NewTestContext("perf_test")
+			ctx := NewTestContext()
 
 			// 执行一些基本操作
 			generator := ctx.GetDataGenerator()
@@ -214,7 +213,7 @@ func TestFrameworkErrorHandling(t *testing.T) {
 	t.Parallel()
 
 	t.Run("无效测试ID处理", func(t *testing.T) {
-		ctx := core.NewTestContext("")
+		ctx := NewTestContext()
 		// 如果允许空ID，应该生成默认ID
 		assert.NotNil(t, ctx)
 		assert.NotEmpty(t, ctx.GetTestID())
@@ -222,7 +221,7 @@ func TestFrameworkErrorHandling(t *testing.T) {
 	})
 
 	t.Run("重复清理处理", func(t *testing.T) {
-		ctx := core.NewTestContext("cleanup_test")
+		ctx := NewTestContext()
 		assert.NotNil(t, ctx)
 
 		// 第一次清理

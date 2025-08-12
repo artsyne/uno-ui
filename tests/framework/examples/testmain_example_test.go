@@ -3,7 +3,7 @@ package examples
 import (
 	"testing"
 
-	core "github.com/biuren/hebe/tests/framework/core"
+	framework "github.com/biuren/hebe/tests/framework"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,7 +12,7 @@ import (
 //   go test ./tests/framework/examples/ -v -cleandb
 //   go test ./tests/framework/examples/ -v -cleandb -timeout=60
 func TestMain(m *testing.M) {
-	core.RunTestsWithFlags(m)
+	framework.RunTestsWithFlags(m)
 }
 
 // TestStandardFlagSyntax 演示标准 flag 语法的使用
@@ -20,15 +20,15 @@ func TestStandardFlagSyntax(t *testing.T) {
 	t.Parallel()
 
 	// 检查命令行参数状态
-	flags := core.GetTestFlags()
+	flags := framework.GetTestFlags()
 	t.Logf("标准flag语法 - 命令行参数状态: cleandb=%v, verbose=%v, parallel=%v, timeout=%d",
 		flags.ClearDB, flags.Verbose, flags.Parallel, flags.Timeout)
 
 	// 检查清理配置
-	shouldCleanup := core.ShouldCleanupDatabase()
+	shouldCleanup := framework.ShouldCleanupDatabase()
 	t.Logf("是否清理数据库: %v", shouldCleanup)
 
-	ctx := core.NewTestContext("standard_flag_syntax_test")
+	ctx := framework.NewTestContext()
 	defer ctx.Cleanup()
 
 	// 创建测试数据
@@ -50,7 +50,7 @@ func TestStandardFlagSyntax(t *testing.T) {
 func TestParameterConfiguration(t *testing.T) {
 	t.Parallel()
 
-	flags := core.GetTestFlags()
+	flags := framework.GetTestFlags()
 	t.Logf("参数配置 - cleandb=%v, verbose=%v, parallel=%v, timeout=%d",
 		flags.ClearDB, flags.Verbose, flags.Parallel, flags.Timeout)
 
@@ -73,7 +73,7 @@ func TestParameterConfiguration(t *testing.T) {
 		t.Logf("⏱️ 自定义超时时间: %d秒", flags.Timeout)
 	}
 
-	ctx := core.NewTestContext("parameter_configuration_test")
+	ctx := framework.NewTestContext()
 	defer ctx.Cleanup()
 
 	// 简单的功能验证

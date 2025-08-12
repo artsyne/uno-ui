@@ -43,6 +43,11 @@ func GetDatabaseManager() *DatabaseManager {
 	return globalDBManager
 }
 
+// GetDatabaseName 获取当前数据库的名称
+func (dm *DatabaseManager) GetDatabaseName() string {
+	return dm.config.Database.Name
+}
+
 // Initialize 初始化数据库连接
 func (dm *DatabaseManager) Initialize() error {
 	var initErr error

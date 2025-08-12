@@ -184,19 +184,27 @@ func GetViper() *viper.Viper {
 // GetParams 获取参数配置
 func GetParams() map[string]string {
 	params := make(map[string]string)
-	for _, p := range globalConfig.Params {
-		params[p.Key] = p.Val
+	if globalConfig != nil {
+		for _, p := range globalConfig.Params {
+			params[p.Key] = p.Val
+		}
 	}
 	return params
 }
 
 // GetTimeZone 获取时区配置
 func GetTimeZone() []string {
+	if globalConfig == nil {
+		return []string{}
+	}
 	return globalConfig.Timezones
 }
 
 // GetSupportLangs 获取支持的语言
 func GetSupportLangs() []SupportLang {
+	if globalConfig == nil {
+		return []SupportLang{}
+	}
 	return globalConfig.SupportLangs
 }
 

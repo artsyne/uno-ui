@@ -8,7 +8,7 @@ import (
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
-	core "github.com/biuren/hebe/tests/framework/core"
+	framework "github.com/biuren/hebe/tests/framework"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,19 +23,20 @@ func TestDatabaseCleanupExample(t *testing.T) {
 
 	t.Run("正常清理流程", func(t *testing.T) {
 		// 创建测试上下文
-		ctx := core.NewTestContext("cleanup_example", core.WithDatabase())
+		ctx := framework.NewTestContext(framework.WithDatabase())
 		defer ctx.Cleanup() // 正常清理
 
 		// 创建服务
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-		taskService := task.NewService(taskRepo, config)
-		userService := user.NewService(userRepo, taskService, config)
 		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(diaryRepo)
 		postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
-		postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
+		
+		taskService := task.NewService(config, taskRepo)
+		userService := user.NewService(config, userRepo, taskService)
+		diaryService := diary.NewService(config, diaryRepo)
+		postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo)
 
 		// 创建一些测试数据
 		generator := ctx.GetDataGenerator()
@@ -70,16 +71,17 @@ func TestDatabaseCleanupExample(t *testing.T) {
 
 	t.Run("强制清理数据库", func(t *testing.T) {
 		// 创建测试上下文，禁用自动清理
-		ctx := core.NewTestContext("force_cleanup_example", core.WithDatabase(), core.WithCleanupEnabled(false))
+		ctx := framework.NewTestContext(framework.WithDatabase(), framework.WithCleanupEnabled(false))
 
 		// 创建服务
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-		taskService := task.NewService(taskRepo, config)
-		userService := user.NewService(userRepo, taskService, config)
 		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(diaryRepo)
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
+		
+		taskService := task.NewService(config, taskRepo)
+		userService := user.NewService(config, userRepo, taskService)
+		diaryService := diary.NewService(config, diaryRepo)
 
 		// 创建一些测试数据
 		generator := ctx.GetDataGenerator()
@@ -113,14 +115,15 @@ func TestDatabaseCleanupExample(t *testing.T) {
 
 	t.Run("手动控制清理时机", func(t *testing.T) {
 		// 创建测试上下文
-		ctx := core.NewTestContext("manual_cleanup_example", core.WithDatabase())
+		ctx := framework.NewTestContext(framework.WithDatabase())
 
 		// 创建服务
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-		taskService := task.NewService(taskRepo, config)
-		userService := user.NewService(userRepo, taskService, config)
+		
+		taskService := task.NewService(config, taskRepo)
+		userService := user.NewService(config, userRepo, taskService)
 
 		// 创建第一批测试数据
 		generator := ctx.GetDataGenerator()
@@ -138,7 +141,7 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		t.Log("中间清理完成")
 
 		// 创建第二批测试数据（使用新的测试上下文以获得新的前缀）
-		ctx2 := core.NewTestContext("manual_cleanup_example_2", core.WithDatabase())
+		ctx2 := framework.NewTestContext(framework.WithDatabase())
 		defer ctx2.Cleanup()
 
 		generator2 := ctx2.GetDataGenerator()
@@ -158,16 +161,17 @@ func TestDatabaseCleanupExample(t *testing.T) {
 	})
 
 	t.Run("清理管理器直接使用", func(t *testing.T) {
-		// 创建测试上下文
-		ctx := core.NewTestContext("cleanup_manager_example", core.WithDatabase())
-		defer ctx.Cleanup()
+			// 创建测试上下文
+			ctx := framework.NewTestContext(framework.WithDatabase())
+			defer ctx.Cleanup()
 
 		// 创建服务
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-		taskService := task.NewService(taskRepo, config)
-		userService := user.NewService(userRepo, taskService, config)
+		
+		taskService := task.NewService(config, taskRepo)
+		userService := user.NewService(config, userRepo, taskService)
 
 		// 创建测试数据
 		generator := ctx.GetDataGenerator()
@@ -197,15 +201,15 @@ func TestCommandLineFlagsExample(t *testing.T) {
 	t.Parallel()
 
 	// 检查命令行参数状态
-	flags := core.GetTestFlags()
+	flags := framework.GetTestFlags()
 	t.Logf("命令行参数状态: cleardb=%v, verbose=%v, parallel=%v", 
 		flags.ClearDB, flags.Verbose, flags.Parallel)
 
 	// 检查清理配置
-	shouldCleanup := core.ShouldCleanupDatabase()
+	shouldCleanup := framework.ShouldCleanupDatabase()
 	t.Logf("是否清理数据库: %v", shouldCleanup)
 
-	ctx := core.NewTestContext("command_line_flags_test")
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建测试数据
@@ -234,7 +238,7 @@ func TestCleanupStrategies(t *testing.T) {
 	t.Parallel()
 
 	t.Run("按前缀清理", func(t *testing.T) {
-		ctx := core.NewTestContext("prefix_cleanup_test")
+		ctx := framework.NewTestContext(framework.WithDatabase())
 		defer ctx.Cleanup()
 
 		// 创建测试数据
@@ -249,7 +253,7 @@ func TestCleanupStrategies(t *testing.T) {
 	})
 
 	t.Run("按跟踪数据清理", func(t *testing.T) {
-		ctx := core.NewTestContext("tracked_cleanup_test")
+		ctx := framework.NewTestContext(framework.WithDatabase())
 		defer ctx.Cleanup()
 
 		// 创建测试数据

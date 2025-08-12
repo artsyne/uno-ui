@@ -3,6 +3,7 @@ package benchmark
 import (
 	"fmt"
 	"math/rand"
+	"sync"
 	"testing"
 	"time"
 
@@ -11,33 +12,65 @@ import (
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
-	framework "github.com/biuren/hebe/tests/framework/core"
+	framework "github.com/biuren/hebe/tests/framework"
 )
+
+// 全局测试上下文和服务，避免重复初始化
+var (
+	benchCtx     *framework.TestContext
+	benchServices *benchmarkServices
+	benchOnce    sync.Once
+)
+
+type benchmarkServices struct {
+	userService  *user.Service
+	diaryService *diary.Service
+	postService  *post.Service
+	taskService  *task.Service
+}
+
+// 初始化基准测试环境
+func initBenchmarkEnv() {
+	benchOnce.Do(func() {
+		benchCtx = framework.NewTestContext(framework.WithDatabase()).(*framework.TestContext)
+		
+		userRepo := repository.NewUserRepository()
+		taskRepo := repository.NewTaskRepository()
+		diaryRepo := repository.NewDiaryRepository()
+		postRepo := repository.NewPostRepository(benchCtx.GetDatabase().GetDB())
+		config := benchCtx.GetConfig().GetAppConfig()
+		
+		taskService := task.NewService(config, taskRepo)
+		userService := user.NewService(config, userRepo, taskService)
+		diaryService := diary.NewService(config, diaryRepo)
+		postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo)
+		
+		benchServices = &benchmarkServices{
+			userService:  userService,
+			diaryService: diaryService,
+			postService:  postService,
+			taskService:  taskService,
+		}
+	})
+}
 
 // BenchmarkUserRegistration 用户注册性能基准测试
 func BenchmarkUserRegistration(b *testing.B) {
-	ctx := framework.NewTestContext("BenchmarkUserRegistration", framework.WithDatabase())
-	defer ctx.Cleanup()
-
-	userRepo := repository.NewUserRepository()
-	taskRepo := repository.NewTaskRepository()
-	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
-
+	initBenchmarkEnv()
+	
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		timestamp := time.Now().UnixNano()
 		randomNum := rand.Int63()
 		uniqueID := fmt.Sprintf("%d_%d", timestamp, randomNum)
 		testUser := &user.User{
-			UserName: fmt.Sprintf("%s_%s", ctx.GetDataGenerator().GenerateUniqueString("benchuser"), uniqueID),
-			Email:    fmt.Sprintf("%s_%s@example.com", ctx.GetDataGenerator().GenerateUniqueString("bench"), uniqueID),
+			UserName: fmt.Sprintf("%s_%s", benchCtx.GetDataGenerator().GenerateUniqueString("benchuser"), uniqueID),
+			Email:    fmt.Sprintf("%s_%s@example.com", benchCtx.GetDataGenerator().GenerateUniqueString("bench"), uniqueID),
 			Pwd:      "password123",
 			TimeZone: "UTC",
 			Lang:     "en",
 		}
-		err := userService.RegisterUser(testUser)
+		err := benchServices.userService.RegisterUser(testUser)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -46,34 +79,29 @@ func BenchmarkUserRegistration(b *testing.B) {
 
 // BenchmarkDiaryCreation 日记本创建性能基准测试
 func BenchmarkDiaryCreation(b *testing.B) {
-	ctx := framework.NewTestContext("BenchmarkDiaryCreation", framework.WithDatabase())
-	defer ctx.Cleanup()
+	initBenchmarkEnv()
 
-	userRepo := repository.NewUserRepository()
-	taskRepo := repository.NewTaskRepository()
-	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
-	diaryRepo := repository.NewDiaryRepository()
-	diaryService := diary.NewService(diaryRepo)
-
-	// 创建测试用户
+	// 创建测试用户 - 使用唯一前缀
+	timestamp := time.Now().UnixNano()
 	testUser := &user.User{
-		UserName: ctx.GetDataGenerator().GenerateUniqueString("benchuser"),
-		Email:    ctx.GetDataGenerator().GenerateUniqueEmail("bench"),
+		UserName: fmt.Sprintf("diary_bench_%d_%s", timestamp, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
+		Email:    fmt.Sprintf("diary_bench_%d_%s@example.com", timestamp, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
 		Pwd:      "password123",
 		TimeZone: "UTC",
 		Lang:     "en",
 	}
-	err := userService.RegisterUser(testUser)
+	err := benchServices.userService.RegisterUser(testUser)
 	if err != nil {
 		b.Fatal(err)
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
+		timestamp := time.Now().UnixNano()
+		randomNum := rand.Int63()
+		uniqueID := fmt.Sprintf("%d_%d", timestamp, randomNum)
 		testDiary := &diary.Diary{
-			Title:         ctx.GetDataGenerator().GenerateUniqueString("benchdiary"),
+			Title:         fmt.Sprintf("%s_%s", benchCtx.GetDataGenerator().GenerateUniqueString("benchdiary"), uniqueID),
 			Remark:        "性能测试日记本",
 			AddUserID:     testUser.UserId,
 			AddUserName:   testUser.UserName,
@@ -83,7 +111,7 @@ func BenchmarkDiaryCreation(b *testing.B) {
 			SocialSetting: 1,
 			ThemeID:       1,
 		}
-		_, err := diaryService.AddDiary(testDiary)
+		_, err := benchServices.diaryService.AddDiary(testDiary)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -92,35 +120,25 @@ func BenchmarkDiaryCreation(b *testing.B) {
 
 // BenchmarkPostCreation 文章创建性能基准测试
 func BenchmarkPostCreation(b *testing.B) {
-	ctx := framework.NewTestContext("BenchmarkPostCreation", framework.WithDatabase())
-	defer ctx.Cleanup()
+	initBenchmarkEnv()
 
-	userRepo := repository.NewUserRepository()
-	taskRepo := repository.NewTaskRepository()
-	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
-	diaryRepo := repository.NewDiaryRepository()
-	diaryService := diary.NewService(diaryRepo)
-	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
-	postService := post.NewService(userRepo, taskService, diaryRepo, postRepo)
-
-	// 创建测试用户
+	// 创建测试用户 - 使用唯一前缀
+	timestamp := time.Now().UnixNano()
 	testUser := &user.User{
-		UserName: ctx.GetDataGenerator().GenerateUniqueString("benchuser"),
-		Email:    ctx.GetDataGenerator().GenerateUniqueEmail("bench"),
+		UserName: fmt.Sprintf("post_bench_%d_%s", timestamp, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
+		Email:    fmt.Sprintf("post_bench_%d_%s@example.com", timestamp, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
 		Pwd:      "password123",
 		TimeZone: "UTC",
 		Lang:     "en",
 	}
-	err := userService.RegisterUser(testUser)
+	err := benchServices.userService.RegisterUser(testUser)
 	if err != nil {
 		b.Fatal(err)
 	}
 
 	// 创建测试日记本
 	testDiary := &diary.Diary{
-		Title:         ctx.GetDataGenerator().GenerateUniqueString("benchdiary"),
+		Title:         benchCtx.GetDataGenerator().GenerateUniqueString("benchdiary"),
 		Remark:        "性能测试日记本",
 		AddUserID:     testUser.UserId,
 		AddUserName:   testUser.UserName,
@@ -130,7 +148,7 @@ func BenchmarkPostCreation(b *testing.B) {
 		SocialSetting: 1,
 		ThemeID:       1,
 	}
-	diaryID, err := diaryService.AddDiary(testDiary)
+	diaryID, err := benchServices.diaryService.AddDiary(testDiary)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -138,7 +156,7 @@ func BenchmarkPostCreation(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		testPost := &post.Post{
-			Title:       ctx.GetDataGenerator().GenerateUniqueString("benchpost"),
+			Title:       benchCtx.GetDataGenerator().GenerateUniqueString("benchpost"),
 			Body:        "这是一篇性能测试文章的内容",
 			Summary:     "性能测试摘要",
 			DiaryID:     diaryID,
@@ -148,25 +166,35 @@ func BenchmarkPostCreation(b *testing.B) {
 			Status:      1,
 			InfoType:    1,
 		}
-		_, err := postService.AddPost(testPost)
+		_, err := benchServices.postService.AddPost(testPost)
 		if err != nil {
 			b.Fatal(err)
 		}
 	}
 }
 
-// BenchmarkDatabaseOperations 数据库操作性能基准测试
-func BenchmarkDatabaseOperations(b *testing.B) {
-	ctx := framework.NewTestContext("BenchmarkDatabaseOperations", framework.WithDatabase())
-	defer ctx.Cleanup()
+// BenchmarkUserQuery 用户查询性能基准测试
+func BenchmarkUserQuery(b *testing.B) {
+	initBenchmarkEnv()
 
-	db := ctx.GetDatabase().GetRawDB()
+	// 创建测试用户 - 使用唯一前缀
+	timestamp := time.Now().UnixNano()
+	testUser := &user.User{
+		UserName: fmt.Sprintf("query_bench_%d_%s", timestamp, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
+		Email:    fmt.Sprintf("query_bench_%d_%s@example.com", timestamp, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
+		Pwd:      "password123",
+		TimeZone: "UTC",
+		Lang:     "en",
+	}
+	err := benchServices.userService.RegisterUser(testUser)
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		// 测试简单查询性能
-		var count int
-		err := db.QueryRow("SELECT COUNT(*) FROM br_user").Scan(&count)
+		// 查询用户
+		_, err := benchServices.userService.GetUserByUserId(testUser.UserId)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -175,31 +203,22 @@ func BenchmarkDatabaseOperations(b *testing.B) {
 
 // BenchmarkConcurrentUserRegistration 并发用户注册性能基准测试
 func BenchmarkConcurrentUserRegistration(b *testing.B) {
-	ctx := framework.NewTestContext("BenchmarkConcurrentUserRegistration", framework.WithDatabase())
-	defer ctx.Cleanup()
-
-	userRepo := repository.NewUserRepository()
-	taskRepo := repository.NewTaskRepository()
-	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
+	initBenchmarkEnv()
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			// 并发用户注册 - 使用时间戳和随机数确保唯一性
 			timestamp := time.Now().UnixNano()
 			randomNum := rand.Int63()
 			uniqueID := fmt.Sprintf("%d_%d", timestamp, randomNum)
-			
 			testUser := &user.User{
-				UserName: fmt.Sprintf("%s_%s", ctx.GetDataGenerator().GenerateUniqueString("concurrent"), uniqueID),
-				Email:    fmt.Sprintf("%s_%s@example.com", ctx.GetDataGenerator().GenerateUniqueString("concurrent"), uniqueID),
+				UserName: fmt.Sprintf("%s_%s", benchCtx.GetDataGenerator().GenerateUniqueString("concurrentuser"), uniqueID),
+				Email:    fmt.Sprintf("%s_%s@example.com", benchCtx.GetDataGenerator().GenerateUniqueString("concurrent"), uniqueID),
 				Pwd:      "password123",
 				TimeZone: "UTC",
 				Lang:     "en",
 			}
-			err := userService.RegisterUser(testUser)
+			err := benchServices.userService.RegisterUser(testUser)
 			if err != nil {
 				b.Fatal(err)
 			}

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/biuren/hebe/internal/app/view"
-	framework "github.com/biuren/hebe/tests/framework/core"
+	framework "github.com/biuren/hebe/tests/framework"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -196,7 +196,7 @@ func TestViewService_WithRealDatabase(t *testing.T) {
 	// 设置测试环境
 	gin.SetMode(gin.TestMode)
 
-	ctx := framework.NewTestContext("TestViewService_WithRealDatabase", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 获取全局配置

@@ -1,4 +1,4 @@
-package framework
+package helpers
 
 import (
 	"crypto/rand"

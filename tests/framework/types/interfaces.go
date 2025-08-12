@@ -7,6 +7,7 @@ import (
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/domain/user"
+	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -19,6 +20,7 @@ type TestConfigInterface interface {
 	GetCleanupConfig() CleanupConfig
 	GetIsolationConfig() IsolationConfig
 	GetPerformanceConfig() PerformanceConfig
+	GetAppConfig() *config.Config
 }
 
 // DatabaseManagerInterface 数据库管理器接口

@@ -8,7 +8,7 @@ import (
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
-	framework "github.com/biuren/hebe/tests/framework/core"
+	framework "github.com/biuren/hebe/tests/framework"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -16,7 +16,7 @@ import (
 // TestHelperImport 测试 framework 包导入
 func TestHelperImport(t *testing.T) {
 	// 简单测试 framework 包是否可用
-	ctx := framework.NewTestContext("test_import", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	if ctx == nil {
@@ -28,20 +28,20 @@ func TestHelperImport(t *testing.T) {
 func TestDiaryService_AddDiary(t *testing.T) {
 	t.Run("成功添加日记本", func(t *testing.T) {
 		// 使用新测试框架
-		ctx := framework.NewTestContext("add_diary_success", framework.WithDatabase())
+		ctx := framework.NewTestContext(framework.WithDatabase())
 		defer ctx.Cleanup()
 
 		// 获取服务
 		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(diaryRepo)
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
+		diaryService := diary.NewService(config, diaryRepo)
 		
 		// 创建测试用户
 		testUser := ctx.GetDataGenerator().CreateUser()
-		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		taskService := task.NewService(taskRepo, config)
-		userService := user.NewService(userRepo, taskService, config)
+		taskService := task.NewService(config, taskRepo)
+		userService := user.NewService(config, userRepo, taskService)
 		err := userService.RegisterUser(testUser)
 		require.NoError(t, err)
 
@@ -67,12 +67,13 @@ func TestDiaryService_AddDiary(t *testing.T) {
 
 	t.Run("用户ID无效", func(t *testing.T) {
 		// 使用新测试框架
-		ctx := framework.NewTestContext("add_diary_invalid_user", framework.WithDatabase())
+		ctx := framework.NewTestContext(framework.WithDatabase())
 		defer ctx.Cleanup()
 
 		// 获取服务
 		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(diaryRepo)
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
+		diaryService := diary.NewService(config, diaryRepo)
 
 		// 尝试创建无效用户ID的日记本
 		invalidDiary := &diary.Diary{
@@ -89,20 +90,20 @@ func TestDiaryService_AddDiary(t *testing.T) {
 
 	t.Run("检查日记本数量限制", func(t *testing.T) {
 		// 使用新测试框架
-		ctx := framework.NewTestContext("add_diary_limit_check", framework.WithDatabase())
+		ctx := framework.NewTestContext(framework.WithDatabase())
 		defer ctx.Cleanup()
 
 		// 获取服务
 	diaryRepo := repository.NewDiaryRepository()
-	diaryService := diary.NewService(diaryRepo)
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
+	diaryService := diary.NewService(config, diaryRepo)
 
 		// 创建测试用户
 		testUser := ctx.GetDataGenerator().CreateUser()
-		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		taskService := task.NewService(taskRepo, config)
-		userService := user.NewService(userRepo, taskService, config)
+		taskService := task.NewService(config, taskRepo)
+		userService := user.NewService(config, userRepo, taskService)
 		err := userService.RegisterUser(testUser)
 		require.NoError(t, err)
 
@@ -133,12 +134,13 @@ func TestDiaryService_AddDiary(t *testing.T) {
 // TestDiaryService_AddDiary_EmptyTitle 测试添加空标题日记本
 func TestDiaryService_AddDiary_EmptyTitle(t *testing.T) {
 	// 使用新测试框架
-	ctx := framework.NewTestContext("add_diary_empty_title", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 获取服务
 	diaryRepo := repository.NewDiaryRepository()
-	diaryService := diary.NewService(diaryRepo)
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
+	diaryService := diary.NewService(config, diaryRepo)
 
 	// 创建测试用户
 	testUser := &user.User{
@@ -149,10 +151,10 @@ func TestDiaryService_AddDiary_EmptyTitle(t *testing.T) {
 		Lang:     "zh-cn",
 	}
 	userRepo := repository.NewUserRepository()
-		taskRepo := repository.NewTaskRepository()
-		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-		taskService := task.NewService(taskRepo, config)
-		userService := user.NewService(userRepo, taskService, config)
+	taskRepo := repository.NewTaskRepository()
+	config = ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
 	err := userService.RegisterUser(testUser)
 	require.NoError(t, err)
 
@@ -174,17 +176,17 @@ func TestDiaryService_AddDiary_EmptyTitle(t *testing.T) {
 // TestDiaryService_GetDiaryByID 测试根据ID获取日记本
 func TestDiaryService_GetDiaryByID(t *testing.T) {
 	// 使用新测试框架
-	ctx := framework.NewTestContext("TestDiaryService_GetDiaryByID", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
-		taskService := task.NewService(taskRepo, config)
-		userService := user.NewService(userRepo, taskService, config)
+		taskService := task.NewService(config, taskRepo)
+		userService := user.NewService(config, userRepo, taskService)
 		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(diaryRepo)
+		diaryService := diary.NewService(config, diaryRepo)
 
 	// 先创建一个用户
 	testUser := &user.User{
@@ -230,17 +232,17 @@ func TestDiaryService_GetDiaryByID(t *testing.T) {
 // TestDiaryService_UpdateDiary 测试更新日记本
 func TestDiaryService_UpdateDiary(t *testing.T) {
 	// 使用新测试框架
-	ctx := framework.NewTestContext("TestDiaryService_UpdateDiary", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
-	diaryRepo := repository.NewDiaryRepository()
-	diaryService := diary.NewService(diaryRepo)
+	taskService := task.NewService(config, taskRepo)
+		userService := user.NewService(config, userRepo, taskService)
+		diaryRepo := repository.NewDiaryRepository()
+		diaryService := diary.NewService(config, diaryRepo)
 
 	// 先创建一个用户
 	testUser := &user.User{
@@ -333,16 +335,16 @@ func TestDiaryService_UpdateDiary(t *testing.T) {
 func TestDiaryService_ListDiariesForWrite(t *testing.T) {
 	t.Run("获取用户1的日记本列表", func(t *testing.T) {
 		// 使用新测试框架
-		ctx := framework.NewTestContext("TestDiaryService_ListDiariesForWrite", framework.WithDatabase())
+		ctx := framework.NewTestContext(framework.WithDatabase())
 		defer ctx.Cleanup()
 
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-		taskService := task.NewService(taskRepo, config)
-		userService := user.NewService(userRepo, taskService, config)
+		taskService := task.NewService(config, taskRepo)
+		userService := user.NewService(config, userRepo, taskService)
 		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(diaryRepo)
+		diaryService := diary.NewService(config, diaryRepo)
 
 		user1 := &user.User{
 			UserName: ctx.GetDataGenerator().GenerateUniqueString("user"),
@@ -391,17 +393,17 @@ func TestDiaryService_ListDiariesForWrite(t *testing.T) {
 
 	t.Run("获取用户2的日记本列表", func(t *testing.T) {
 		// 使用新测试框架
-		ctx := framework.NewTestContext("TestDiaryService_ListDiariesForWrite_User2", framework.WithDatabase())
+		ctx := framework.NewTestContext(framework.WithDatabase())
 		defer ctx.Cleanup()
 
 	// 创建真实的服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
-	diaryRepo := repository.NewDiaryRepository()
-	diaryService := diary.NewService(diaryRepo)
+	taskService := task.NewService(config, taskRepo)
+		userService := user.NewService(config, userRepo, taskService)
+		diaryRepo := repository.NewDiaryRepository()
+		diaryService := diary.NewService(config, diaryRepo)
 
 		user2 := &user.User{
 			UserName: ctx.GetDataGenerator().GenerateUniqueString("user"),
@@ -434,11 +436,12 @@ func TestDiaryService_ListDiariesForWrite(t *testing.T) {
 
 	t.Run("获取不存在用户的日记本列表", func(t *testing.T) {
 		// 使用新测试框架
-		ctx := framework.NewTestContext("TestDiaryService_ListDiariesForWrite_NonExistent", framework.WithDatabase())
+		ctx := framework.NewTestContext(framework.WithDatabase())
 		defer ctx.Cleanup()
 
 		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(diaryRepo)
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
+		diaryService := diary.NewService(config, diaryRepo)
 		// 使用一个极大的用户ID，确保不存在
 		diaries, err := diaryService.ListDiariesForWrite(999999999)
 		assert.NoError(t, err)
@@ -450,16 +453,17 @@ func TestDiaryService_ListDiariesForWrite(t *testing.T) {
 func TestDiaryService_ListDiariesByUser(t *testing.T) {
 	t.Run("第一页，每页3个", func(t *testing.T) {
 		// 使用新测试框架
-		ctx := framework.NewTestContext("list_diaries_page1", framework.WithDatabase())
+		ctx := framework.NewTestContext(framework.WithDatabase())
 		defer ctx.Cleanup()
 
 		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(diaryRepo)
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-		taskService := task.NewService(taskRepo, config)
-		userService := user.NewService(userRepo, taskService, config)
+		
+		diaryService := diary.NewService(config, diaryRepo)
+		taskService := task.NewService(config, taskRepo)
+		userService := user.NewService(config, userRepo, taskService)
 
 		// 创建测试用户
 		testUser := &user.User{
@@ -496,16 +500,17 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 
 	t.Run("第二页，每页3个", func(t *testing.T) {
 		// 使用新测试框架
-		ctx := framework.NewTestContext("list_diaries_page2", framework.WithDatabase())
+		ctx := framework.NewTestContext(framework.WithDatabase())
 		defer ctx.Cleanup()
 
 		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(diaryRepo)
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-		taskService := task.NewService(taskRepo, config)
-		userService := user.NewService(userRepo, taskService, config)
+		
+		diaryService := diary.NewService(config, diaryRepo)
+		taskService := task.NewService(config, taskRepo)
+		userService := user.NewService(config, userRepo, taskService)
 
 		// 创建测试用户
 		testUser := &user.User{
@@ -542,16 +547,17 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 
 	t.Run("获取所有", func(t *testing.T) {
 		// 使用新测试框架
-		ctx := framework.NewTestContext("list_diaries_all", framework.WithDatabase())
+		ctx := framework.NewTestContext(framework.WithDatabase())
 		defer ctx.Cleanup()
 
 		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(diaryRepo)
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-		taskService := task.NewService(taskRepo, config)
-		userService := user.NewService(userRepo, taskService, config)
+		
+		diaryService := diary.NewService(config, diaryRepo)
+		taskService := task.NewService(config, taskRepo)
+		userService := user.NewService(config, userRepo, taskService)
 
 		// 创建测试用户
 		testUser := &user.User{
@@ -588,11 +594,12 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 
 	t.Run("用户不存在", func(t *testing.T) {
 		// 使用新测试框架
-		ctx := framework.NewTestContext("list_diaries_nonexistent", framework.WithDatabase())
+		ctx := framework.NewTestContext(framework.WithDatabase())
 		defer ctx.Cleanup()
 
 		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(diaryRepo)
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
+		diaryService := diary.NewService(config, diaryRepo)
 		// 使用一个极大的用户ID，确保不存在
 		diaries, total, err := diaryService.ListDiariesByUser(999999999, 1, 10)
 		assert.NoError(t, err)
@@ -603,17 +610,18 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 
 // TestDiaryService_PostCountOperations 测试文章数量操作
 func TestDiaryService_PostCountOperations(t *testing.T) {
-	ctx := framework.NewTestContext("TestDiaryService_PostCountOperations", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	// 创建服务
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
-	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(taskRepo, config)
-	userService := user.NewService(userRepo, taskService, config)
 	diaryRepo := repository.NewDiaryRepository()
-	diaryService := diary.NewService(diaryRepo)
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
+	
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
+	diaryService := diary.NewService(config, diaryRepo)
 
 	// 创建一个用户
 	testUser := &user.User{

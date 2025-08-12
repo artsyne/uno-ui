@@ -8,7 +8,7 @@ import (
 
 	"github.com/biuren/hebe/internal/core/di"
 	// "github.com/biuren/hebe/internal/utils/config"
-	framework "github.com/biuren/hebe/tests/framework/core"
+	framework "github.com/biuren/hebe/tests/framework"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )

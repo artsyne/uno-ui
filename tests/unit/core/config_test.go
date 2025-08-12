@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/biuren/hebe/internal/utils/config"
-	framework "github.com/biuren/hebe/tests/framework/core"
+	framework "github.com/biuren/hebe/tests/framework"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

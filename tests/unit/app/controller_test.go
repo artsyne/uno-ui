@@ -13,7 +13,7 @@ import (
 	types "github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/internal/domain/user"
 	appErrors "github.com/biuren/hebe/internal/utils/error"
-	framework "github.com/biuren/hebe/tests/framework/core"
+	framework "github.com/biuren/hebe/tests/framework"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,26 +21,26 @@ import (
 
 
 func TestUserControllerCreation(t *testing.T) {
-	ctx := framework.NewTestContext("TestUserControllerCreation", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 	assert.NotNil(t, userController)
 }
 
 func TestShowLoginPage(t *testing.T) {
-	ctx := framework.NewTestContext("TestShowLoginPage", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -62,14 +62,14 @@ func TestShowLoginPage(t *testing.T) {
 }
 
 func TestShowRegisterPage(t *testing.T) {
-	ctx := framework.NewTestContext("TestShowRegisterPage", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -91,14 +91,14 @@ func TestShowRegisterPage(t *testing.T) {
 }
 
 func TestShowPasswordResetPage(t *testing.T) {
-	ctx := framework.NewTestContext("TestShowPasswordResetPage", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -120,14 +120,14 @@ func TestShowPasswordResetPage(t *testing.T) {
 }
 
 func TestShowUserSettingsPage(t *testing.T) {
-	ctx := framework.NewTestContext("TestShowUserSettingsPage", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -158,14 +158,14 @@ func TestShowUserSettingsPage(t *testing.T) {
 }
 
 func TestLoginPOST(t *testing.T) {
-	ctx := framework.NewTestContext("TestLoginPOST", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -187,14 +187,14 @@ func TestLoginPOST(t *testing.T) {
 }
 
 func TestLoginPOSTEmptyData(t *testing.T) {
-	ctx := framework.NewTestContext("TestLoginPOSTEmptyData", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -211,14 +211,14 @@ func TestLoginPOSTEmptyData(t *testing.T) {
 }
 
 func TestRegisterPOST(t *testing.T) {
-	ctx := framework.NewTestContext("TestRegisterPOST", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -244,14 +244,14 @@ func TestRegisterPOST(t *testing.T) {
 }
 
 func TestLogout(t *testing.T) {
-	ctx := framework.NewTestContext("TestLogout", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -266,14 +266,14 @@ func TestLogout(t *testing.T) {
 }
 
 func TestValidateUsername(t *testing.T) {
-	ctx := framework.NewTestContext("TestValidateUsername", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -293,14 +293,14 @@ func TestValidateUsername(t *testing.T) {
 }
 
 func TestValidateUsernameEmpty(t *testing.T) {
-	ctx := framework.NewTestContext("TestValidateUsernameEmpty", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -317,14 +317,14 @@ func TestValidateUsernameEmpty(t *testing.T) {
 }
 
 func TestValidateEmail(t *testing.T) {
-	ctx := framework.NewTestContext("TestValidateEmail", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -344,14 +344,14 @@ func TestValidateEmail(t *testing.T) {
 }
 
 func TestValidateEmailEmpty(t *testing.T) {
-	ctx := framework.NewTestContext("TestValidateEmailEmpty", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -368,14 +368,14 @@ func TestValidateEmailEmpty(t *testing.T) {
 }
 
 func TestUpdatePasswordEmpty(t *testing.T) {
-	ctx := framework.NewTestContext("TestUpdatePasswordEmpty", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -404,14 +404,14 @@ func TestUpdatePasswordEmpty(t *testing.T) {
 }
 
 func TestUpdateProfileEmpty(t *testing.T) {
-	ctx := framework.NewTestContext("TestUpdateProfileEmpty", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -441,14 +441,14 @@ func TestUpdateProfileEmpty(t *testing.T) {
 }
 
 func TestRouteRegistration(t *testing.T) {
-	ctx := framework.NewTestContext("TestRouteRegistration", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
@@ -479,14 +479,14 @@ func TestRouteRegistration(t *testing.T) {
 }
 
 func TestContentTypeHandling(t *testing.T) {
-	ctx := framework.NewTestContext("TestContentTypeHandling", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
@@ -521,14 +521,14 @@ func TestContentTypeHandling(t *testing.T) {
 }
 
 func TestJSONResponseFormat(t *testing.T) {
-	ctx := framework.NewTestContext("TestJSONResponseFormat", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	userService := ctx.GetServices().GetUserService()
 	renderService := view.NewViewService(config)
 	authHelper := user.NewAuthHelper(config)
-	userController := controller.NewUserController(userService, renderService, authHelper)
+	userController := controller.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -567,7 +567,7 @@ func TestJSONResponseFormat(t *testing.T) {
 
 // TestJSONSuccessResponseFormat 测试成功响应的格式
 func TestJSONSuccessResponseFormat(t *testing.T) {
-	ctx := framework.NewTestContext("TestJSONSuccessResponseFormat", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -606,7 +606,7 @@ func TestJSONSuccessResponseFormat(t *testing.T) {
 
 // TestJSONErrorResponseFormat 测试错误响应的格式
 func TestJSONErrorResponseFormat(t *testing.T) {
-	ctx := framework.NewTestContext("TestJSONErrorResponseFormat", framework.WithDatabase())
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 	
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
