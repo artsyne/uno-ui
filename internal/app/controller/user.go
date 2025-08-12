@@ -136,7 +136,7 @@ func (h *UserController) ShowPasswordResetForm(c *gin.Context) {
 	}
 
 	// 检查验证码
-	if valid, _ := h.service.CheckValidCode(userID, sign, config.VALID_CODE_RESET_PWD_EMAIL); !valid {
+	if valid, _ := h.service.CheckValidCode(userID, sign,h.config.ValidCode.TypeResetPwd); !valid {
 		data := h.renderService.CreatePageData(c, "error")
 		data.Data["title"] = "验证码无效"
 		data.Data["message"] = "验证码已过期或无效"
@@ -392,7 +392,7 @@ func (h *UserController) ResetPassword(c *gin.Context) {
 	}
 
 	// 检查验证码
-	valid, validCodeID := h.service.CheckValidCode(userID, req.Sign, config.VALID_CODE_RESET_PWD_EMAIL)
+	valid, validCodeID := h.service.CheckValidCode(userID, req.Sign, h.config.ValidCode.TypeResetPwd)
 	if !valid {
 		h.renderService.JSONError(c, errors.ValidationError.WithDetails("验证码无效或已过期"))
 		return

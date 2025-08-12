@@ -85,6 +85,24 @@ func InitConfig() error {
 		DefaultLang:     requireString(v, "DEFAULT_LANG"),
 	}
 
+	// 用户配置
+	globalConfig.User = UserConfig{
+		DefaultGroup: int8(requireInt(v, "USER_DEFAULT_GROUP")),
+		PwdMaxLen:    requireInt(v, "PWD_MAX_LEN"),
+		PwdMinLen:    requireInt(v, "PWD_MIN_LEN"),
+		StatusDeleted:    int8(requireInt(v, "USER_STATUS_DEL")),
+		StatusOK:         int8(requireInt(v, "USER_STATUS_OK")),
+		StatusWaitActive: int8(requireInt(v, "USER_STATUS_WAIT_ACTIVE")),
+	}
+
+	// 验证码相关配置
+	globalConfig.ValidCode = ValidCodeConfig{
+		TypeActiveUser:     int8(requireInt(v, "VALID_CODE_ACTIVE_USER")),
+		TypeResetPwd:       int8(requireInt(v, "VALID_CODE_RESET_PWD")),
+		ExpireMinutes:      requireInt(v, "VALID_CODE_EXPIRE_MINUTES"),
+		Length:             requireInt(v, "VALID_CODE_LEN"),
+	}
+
 	// Database配置
 	globalConfig.Database = DatabaseConfig{
 		Host:     requireString(v, "DB_HOST"),

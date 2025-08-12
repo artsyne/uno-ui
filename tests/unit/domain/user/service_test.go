@@ -222,12 +222,8 @@ func TestUserService_ChangeUserPassword(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
-	// 创建真实的用户服务
-	userRepo := repository.NewUserRepository()
-	taskRepo := repository.NewTaskRepository()
-	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(config, taskRepo)
-	userService := user.NewService(config, userRepo, taskService)
+	// 使用测试框架的用户服务（已配置全局配置）
+	userService := ctx.GetServices().GetUserService()
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{

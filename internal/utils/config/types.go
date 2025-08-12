@@ -14,6 +14,8 @@ import (
 type Config struct {
 	Env          string         `json:"env" mapstructure:"ENV" validate:"required,oneof=development production test"`
 	App          AppConfig      `json:"app" validate:"required"`
+	User            UserConfig     `json:"user" validate:"required"`
+    ValidCode       ValidCodeConfig `json:"valid_code" validate:"required"`
 	Database     DatabaseConfig `json:"database" validate:"required"`
 	Redis        RedisConfig    `json:"redis" validate:"required"`
 	Email        EmailConfig    `json:"email" validate:"required"`
@@ -37,6 +39,32 @@ type AppConfig struct {
 	StaticDir       string `json:"static_dir" mapstructure:"STATIC_DIR" validate:"required"`
 	LocalesDir      string `json:"locales_dir" mapstructure:"LOCALES_DIR" validate:"required"`
 	DefaultLang     string `json:"default_lang" mapstructure:"DEFAULT_LANG" validate:"required"`
+}
+
+// UserConfig 用户相关配置
+type UserConfig struct {
+    // 密码规则
+    PwdMinLen int `json:"pwd_min_len" mapstructure:"PWD_MIN_LEN" validate:"required,min=1,max=6"`
+    PwdMaxLen int `json:"pwd_max_len" mapstructure:"PWD_MAX_LEN" validate:"required,min=6,max=100"`
+    
+    // 用户状态
+    StatusOK         int8 `json:"status_ok" mapstructure:"USER_STATUS_OK" validate:"required"`
+    StatusWaitActive int8 `json:"status_wait_active" mapstructure:"USER_STATUS_WAIT_ACTIVE" validate:"required"`
+    StatusDeleted    int8 `json:"status_deleted" mapstructure:"USER_STATUS_DEL" validate:"gte=0"`
+    
+    // 用户分组
+    DefaultGroup int8 `json:"default_group" mapstructure:"DEFAULT_USER_GROUP" validate:"required"`
+}
+
+// ValidCodeConfig 验证码相关配置
+type ValidCodeConfig struct {
+    // 验证码长度
+    Length int `json:"length" mapstructure:"VALID_CODE_LEN" validate:"required,min=6,max=128"`
+    // 验证码类型
+    TypeActiveUser int8 `json:"type_active_user" mapstructure:"VALID_CODE_ACTIVE_USER" validate:"required"`
+    TypeResetPwd   int8 `json:"type_reset_pwd" mapstructure:"VALID_CODE_RESET_PWD" validate:"required"`
+    // 验证码过期分钟
+    ExpireMinutes int `json:"valid_code_expire_minutes" mapstructure:"VALID_CODE_EXPIRE_MINUTES" validate:"required"`
 }
 
 // DatabaseConfig 数据库配置

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/utils/config"
@@ -94,13 +95,13 @@ func (s *Service) ActivateUser(uid string, sign string) error {
 	}
 
 	// 检查验证码是否有效
-	result, validID := s.repo.CheckValidCode(userID, sign, config.VALID_CODE_ACTIVE_USER_EMAIL)
+	result, validID := s.repo.CheckValidCode(userID, sign, s.config.ValidCode.TypeActiveUser)
 	if !result {
 		return appErrors.InvalidParams.WithDetails("验证码无效或已过期")
 	}
 
 	// 更新用户状态
-	if rows, err := s.repo.UpdateUserStatus(userID, config.USER_STATUS_OK); err != nil || rows != 1 {
+	if rows, err := s.repo.UpdateUserStatus(userID, s.config.User.StatusOK); err != nil || rows != 1 {
 		return appErrors.DatabaseError.WithDetails(fmt.Sprintf("更新用户状态失败: %v", err))
 	}
 
@@ -139,11 +140,11 @@ func (s *Service) IsExistUserName(userName string) (bool, error) {
 // CreateResetPasswordCode 创建重置密码验证码
 func (s *Service) CreateResetPasswordCode(userID int64) error {
 	validCode := &ValidCode{
-		ValidCode:     string(pkg.Rand(config.VALID_CODE_LEN, pkg.RAND_KIND_ALL)),
+		ValidCode:     string(pkg.Rand(s.config.ValidCode.Length, pkg.RAND_KIND_ALL)),
 		UserId:        userID,
-		ValidTypeId:   config.VALID_CODE_TYPE_RESET_PWD,
+		ValidTypeId:   s.config.ValidCode.TypeResetPwd,
 		CreateUTCTime: pkg.GetNowTime().UnixMilli(),
-		ExpireUTCTime: pkg.GetNowTime().AddDate(0, 0, 1).UnixMilli(), // 1天有效
+		ExpireUTCTime: pkg.GetNowTime().Add(time.Duration(s.config.ValidCode.ExpireMinutes) * time.Minute).UnixMilli(), // 使用配置中的分钟数
 	}
 
 	_, err := s.repo.InsertValidCode(validCode)
@@ -154,9 +155,9 @@ func (s *Service) CreateResetPasswordCode(userID int64) error {
 func (s *Service) SendResetPasswordEmail(user *User) error {
 	// 创建重置密码验证码
 	validCode := &ValidCode{
-		ValidCode:     string(pkg.Rand(config.VALID_CODE_LEN, pkg.RAND_KIND_ALL)),
+		ValidCode:     string(pkg.Rand(s.config.ValidCode.Length, pkg.RAND_KIND_ALL)),
 		UserId:        user.UserId,
-		ValidTypeId:   config.VALID_CODE_TYPE_RESET_PWD,
+		ValidTypeId:   s.config.ValidCode.TypeResetPwd,
 		CreateUTCTime: pkg.GetNowTime().UnixMilli(),
 		ExpireUTCTime: pkg.GetNowTime().AddDate(0, 0, 1).UnixMilli(), // 1天有效
 	}
@@ -190,8 +191,8 @@ func (s *Service) ChangeUserPassword(currentUserID int64, currentPwd, newPwd str
 	}
 
 	// 验证新密码强度
-	if len(newPwd) < config.PWD_MIN_LEN || len(newPwd) > config.PWD_MAX_LEN {
-		return appErrors.ValidationError.WithDetails(fmt.Sprintf("新密码长度必须在%d-%d个字符之间", config.PWD_MIN_LEN, config.PWD_MAX_LEN))
+	if len(newPwd) < s.config.User.PwdMinLen || len(newPwd) > s.config.User.PwdMaxLen {
+		return appErrors.ValidationError.WithDetails(fmt.Sprintf("新密码长度必须在%d-%d个字符之间", s.config.User.PwdMinLen, s.config.User.PwdMaxLen))
 	}
 
 	// 使用统一的密码生成逻辑
@@ -212,8 +213,8 @@ func (s *Service) ChangeUserPassword(currentUserID int64, currentPwd, newPwd str
 // 用于忘记密码后通过验证码重置密码，使用统一的密码生成逻辑
 func (s *Service) ResetUserPassword(userId int64, newPassword string) error {
 	// 验证新密码强度
-	if len(newPassword) < config.PWD_MIN_LEN || len(newPassword) > config.PWD_MAX_LEN {
-		return appErrors.ValidationError.WithDetails(fmt.Sprintf("新密码长度必须在%d-%d个字符之间", config.PWD_MIN_LEN, config.PWD_MAX_LEN))
+	if len(newPassword) < s.config.User.PwdMinLen || len(newPassword) > s.config.User.PwdMaxLen {
+		return appErrors.ValidationError.WithDetails(fmt.Sprintf("新密码长度必须在%d-%d个字符之间", s.config.User.PwdMinLen, s.config.User.PwdMaxLen))
 	}
 
 	// 使用统一的密码生成逻辑
@@ -437,14 +438,14 @@ func (s *Service) initUserRegInfo(user *User) {
 	user.Pwd = hashedPwd
 
 	// 用户默认分组为1
-	user.UserGroup = config.DEFAULT_USER_GROUP
+	user.UserGroup = s.config.User.DefaultGroup
 	// 获取当前UTC时间
 	nowTime := pkg.GetNowTimeUnixMilli()
 	user.CreatedUTCTime = nowTime
 	user.LastLoginUTCTime = nowTime
 	// 设置默认语言
 	user.Lang = s.GetSupportedLang(user.Lang)
-	user.Status = config.USER_STATUS_WAIT_ACTIVE
+	user.Status = s.config.User.StatusWaitActive
 }
 
 // insertUserIntoDB 将用户插入数据库
@@ -476,11 +477,11 @@ func (s *Service) addActivateUserEmailTask(user *User) error {
 // insertValidCode 插入有效验证码
 func (s *Service) insertValidCode(userID int64) (*ValidCode, error) {
 	validCode := &ValidCode{
-		ValidCode:     string(pkg.Rand(config.VALID_CODE_LEN, pkg.RAND_KIND_ALL)),
+		ValidCode:     string(pkg.Rand(s.config.ValidCode.Length, pkg.RAND_KIND_ALL)),
 		UserId:        userID,
-		ValidTypeId:   config.VALID_CODE_ACTIVE_USER_EMAIL,
+		ValidTypeId:   s.config.ValidCode.TypeActiveUser,
 		CreateUTCTime: pkg.GetNowTime().UnixMilli(),
-		ExpireUTCTime: pkg.GetNowTime().AddDate(0, 0, config.REG_EMAIL_VAILID_CODE_EXPIRE_DAY).UnixMilli(),
+		ExpireUTCTime: pkg.GetNowTime().Add(time.Duration(s.config.ValidCode.ExpireMinutes) * time.Minute).UnixMilli(),
 	}
 
 	if _, err := s.repo.InsertValidCode(validCode); err != nil {

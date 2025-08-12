@@ -12,7 +12,6 @@ import (
 	"github.com/biuren/hebe/internal/app/view"
 	types "github.com/biuren/hebe/internal/contracts"
 	userDomain "github.com/biuren/hebe/internal/domain/user"
-	constants "github.com/biuren/hebe/internal/utils/config"
 	appErrors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/internal/utils/i18n"
 	framework "github.com/biuren/hebe/tests/framework"
@@ -440,7 +439,7 @@ func TestUpdateProfileEmpty(t *testing.T) {
 
 	defer func() {
 		// 清理测试数据
-		_, err := userService.UpdateUserStatus(testUser.UserId, constants.USER_STATUS_DEL)
+		_, err := userService.UpdateUserStatus(testUser.UserId, ctx.GetConfig().GetAppConfig().User.StatusDeleted)
 		assert.NoError(t, err)
 	}()
 

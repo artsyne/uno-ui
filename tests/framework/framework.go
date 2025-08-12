@@ -135,6 +135,10 @@ func NewTestContext(options ...TestOption) TestContextInterface {
 // WithDatabase 数据库选项
 func WithDatabase() TestOption {
 	return func(tc *TestContext) {
+		// 首先初始化全局配置，确保config包的全局配置可用
+		globalConfig := core.GetGlobalConfig()
+		config.SetConfig(globalConfig)
+		
 		// 创建数据库管理器
 		dbManager := &DatabaseManager{
 			config: tc.config.GetDatabaseConfig(),
@@ -362,8 +366,11 @@ func (sr *ServiceRegistry) InitializeServices(db *sqlx.DB, testConfig TestConfig
 	sr.mu.Lock()
 	defer sr.mu.Unlock()
 	
-	// 获取应用配置
-	appConfig := testConfig.GetAppConfig()
+	// 获取全局配置而不是测试配置
+	appConfig := config.GetConfig()
+	if appConfig == nil {
+		return fmt.Errorf("全局配置未初始化")
+	}
 	
 	// 创建 repository 实例
 	userRepo := repository.NewUserRepository()

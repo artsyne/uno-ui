@@ -96,8 +96,16 @@ func loadGlobalConfig() *config.Config {
 			User:     getEnvString("IDIARY_DB_USER", "root"),
 			Password: getEnvString("IDIARY_DB_PASSWORD", "123123"),
 			Conn:     getEnvString("IDIARY_DB_CONN", "%s:%s@tcp(%s:3306)/%s?parseTime=true&loc=Local&charset=utf8mb4&collation=utf8mb4_general_ci"),
-		},
-		Redis: config.RedisConfig{
+	},
+	User: config.UserConfig{
+		PwdMinLen:        getEnvInt("IDIARY_PWD_MIN_LEN", 6),
+		PwdMaxLen:        getEnvInt("IDIARY_PWD_MAX_LEN", 50),
+		DefaultGroup:     int8(getEnvInt("IDIARY_USER_DEFAULT_GROUP", 1)),
+		StatusOK:         int8(getEnvInt("IDIARY_USER_STATUS_OK", 1)),
+		StatusWaitActive: int8(getEnvInt("IDIARY_USER_STATUS_WAIT_ACTIVE", 0)),
+		StatusDeleted:    int8(getEnvInt("IDIARY_USER_STATUS_DEL", 2)),
+	},
+	Redis: config.RedisConfig{
 			Host:     getEnvString("IDIARY_REDIS_HOST", "127.0.0.1"),
 			Port:     getEnvInt("IDIARY_REDIS_PORT", 6379),
 			Password: getEnvString("IDIARY_REDIS_PASSWORD", ""),
@@ -218,6 +226,20 @@ func setupTestEnvironment() {
 	setEnvIfNotExists("IDIARY_STATIC_DIR", filepath.Join(GetProjectRoot(), "website/static"))
 	setEnvIfNotExists("IDIARY_LOCALES_DIR", filepath.Join(GetProjectRoot(), "website/locales"))
 	setEnvIfNotExists("IDIARY_DEFAULT_LANG", "zh-cn")
+
+	// 用户配置
+	setEnvIfNotExists("IDIARY_USER_DEFAULT_GROUP", "1")
+	setEnvIfNotExists("IDIARY_PWD_MIN_LEN", "6")
+	setEnvIfNotExists("IDIARY_PWD_MAX_LEN", "20")
+	setEnvIfNotExists("IDIARY_USER_STATUS_DEL", "0")
+	setEnvIfNotExists("IDIARY_USER_STATUS_OK", "1")
+	setEnvIfNotExists("IDIARY_USER_STATUS_WAIT_ACTIVE", "2")
+
+	// 验证码配置
+	setEnvIfNotExists("IDIARY_VALID_CODE_LEN", "6")
+	setEnvIfNotExists("IDIARY_VALID_CODE_ACTIVE_USER", "1")
+	setEnvIfNotExists("IDIARY_VALID_CODE_RESET_PWD", "2")
+	setEnvIfNotExists("IDIARY_VALID_CODE_EXPIRE_MINUTES", "30")
 
 	// 必需的JSON配置
 	setEnvIfNotExists("IDIARY_SUPPORT_LANGS", `[{"code":"zh-cn","label":"简体中文","local-text":"简体中文"},{"code":"en","label":"English","local-text":"English"}]`)

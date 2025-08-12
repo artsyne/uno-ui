@@ -56,8 +56,14 @@ func (s *Service) ProcessEmailTasks() {
 		slog.Error("获取邮件任务失败", "error", err)
 		return
 	}
-	slog.Debug("获取邮件任务", "count", len(tasks))
 
+	// 没有获取任务退出
+	tasksTotals := len(tasks)
+	slog.Debug("获取邮件任务", "count", tasksTotals)
+	if tasksTotals == 0 {
+		return
+	}
+	
 	//循环发送邮件
 	for _, val := range tasks {
 		s.processEmailTask(val, s.config)
@@ -125,7 +131,7 @@ func (s *Service) processEmailTask(task JobQueue, config *config.Config) {
 		return
 	}
 
-	slog.Info("邮件发送成功", "job_id", task.JobId, "to", emailTask.To, "subject", emailTask.Subject)
+	slog.Debug("邮件发送成功", "job_id", task.JobId, "to", emailTask.To, "subject", emailTask.Subject)
 
 	//删除记录到历史表
 	_, err = s.repo.RemoveJobToHistory(&task)
