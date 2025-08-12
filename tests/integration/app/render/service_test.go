@@ -7,6 +7,7 @@ import (
 
 	"github.com/biuren/hebe/internal/app/view"
 	types "github.com/biuren/hebe/internal/contracts"
+	"github.com/biuren/hebe/internal/utils/i18n"
 	framework "github.com/biuren/hebe/tests/framework"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -22,8 +23,9 @@ func TestRenderService_Integration(t *testing.T) {
 	// 获取全局配置
 	cfg := framework.GetGlobalConfig()
 
-	// 创建视图服务
-	viewService := view.NewViewService(cfg)
+	// 创建i18n管理器和视图服务
+	i18nManager := i18n.NewLocalizationManager(cfg)
+	viewService := view.NewViewService(cfg, i18nManager)
 
 	t.Run("PageData 创建", func(t *testing.T) {
 		// 创建测试请求
@@ -103,8 +105,9 @@ func TestRenderService_PageDataWithDifferentLanguages(t *testing.T) {
 	// 获取全局配置
 	cfg := framework.GetGlobalConfig()
 
-	// 创建视图服务
-	viewService := view.NewViewService(cfg)
+	// 创建i18n管理器和视图服务
+	i18nManager := i18n.NewLocalizationManager(cfg)
+	viewService := view.NewViewService(cfg, i18nManager)
 
 	tests := []struct {
 		name           string
@@ -171,8 +174,9 @@ func TestRenderService_BreadcrumbGeneration(t *testing.T) {
 	// 获取全局配置
 	cfg := framework.GetGlobalConfig()
 
-	// 创建视图服务
-	viewService := view.NewViewService(cfg)
+	// 创建i18n管理器和视图服务
+	i18nManager := i18n.NewLocalizationManager(cfg)
+	viewService := view.NewViewService(cfg, i18nManager)
 
 	tests := []struct {
 		name          string

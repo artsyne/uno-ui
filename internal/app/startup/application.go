@@ -19,6 +19,7 @@ import (
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
+	"github.com/biuren/hebe/internal/utils/i18n"
 	utilsMiddleware "github.com/biuren/hebe/internal/utils/middleware"
 	"github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/pkg"
@@ -81,14 +82,6 @@ func (a *Application) Run() error {
 	return nil
 }
 
-// Shutdown 关闭应用程序
-func (a *Application) Shutdown() error {
-	slog.Info("开始关闭应用程序...")
-	// 此处可以添加资源清理代码
-	slog.Info("应用程序已关闭")
-	return nil
-}
-
 // initApplicationLayer 初始化应用层组件
 func (a *Application) initApplicationLayer() error {
 	// 1. 注册应用层服务到DI容器
@@ -116,10 +109,13 @@ func (a *Application) initApplicationLayer() error {
 
 // registerAppServices 注册应用层服务到DI容器
 func (a *Application) registerAppServices() error {
-	// 注册 ViewService 为单例服务
-	di.Singleton(a.container, func() *view.ViewService {
-		return view.NewViewService(a.config)
-	})
+	// 创建 I18nManager 实例
+	i18nManager := i18n.NewLocalizationManager(a.config)
+	di.Value(a.container, i18nManager)
+	
+	// 创建 ViewService 实例
+	viewService := view.NewViewService(a.config, i18nManager)
+	di.Value(a.container, viewService)
 	
 	// 创建仓储实例
 	userRepo := repository.NewUserRepository()

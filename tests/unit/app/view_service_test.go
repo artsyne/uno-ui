@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/biuren/hebe/internal/app/view"
+	"github.com/biuren/hebe/internal/utils/i18n"
 	framework "github.com/biuren/hebe/tests/framework"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -22,7 +23,8 @@ func TestViewService_Creation(t *testing.T) {
 	require.NotNil(t, cfg)
 
 	// 创建视图服务
-	viewService := view.NewViewService(cfg)
+	i18nManager := i18n.NewLocalizationManager(cfg)
+	viewService := view.NewViewService(cfg, i18nManager)
 	require.NotNil(t, viewService)
 
 	// 验证服务实现了接口
@@ -42,7 +44,8 @@ func TestViewService_PageData(t *testing.T) {
 	require.NotNil(t, cfg)
 
 	// 创建视图服务
-	viewService := view.NewViewService(cfg)
+	i18nManager := i18n.NewLocalizationManager(cfg)
+	viewService := view.NewViewService(cfg, i18nManager)
 	require.NotNil(t, viewService)
 
 	// 创建测试请求
@@ -74,7 +77,8 @@ func TestViewService_JSONResponse(t *testing.T) {
 	require.NotNil(t, cfg)
 
 	// 创建视图服务
-	viewService := view.NewViewService(cfg)
+	i18nManager := i18n.NewLocalizationManager(cfg)
+		viewService := view.NewViewService(cfg, i18nManager)
 	require.NotNil(t, viewService)
 
 	// 创建测试请求
@@ -111,7 +115,8 @@ func TestViewService_Redirect(t *testing.T) {
 	require.NotNil(t, cfg)
 
 	// 创建视图服务
-	viewService := view.NewViewService(cfg)
+	i18nManager := i18n.NewLocalizationManager(cfg)
+			viewService := view.NewViewService(cfg, i18nManager)
 	require.NotNil(t, viewService)
 
 	// 创建测试请求
@@ -141,7 +146,8 @@ func TestViewService_I18n(t *testing.T) {
 	require.NotNil(t, cfg)
 
 	// 创建视图服务
-	viewService := view.NewViewService(cfg)
+	i18nManager := i18n.NewLocalizationManager(cfg)
+		viewService := view.NewViewService(cfg, i18nManager)
 	require.NotNil(t, viewService)
 
 	tests := []struct {
@@ -204,7 +210,8 @@ func TestViewService_WithRealDatabase(t *testing.T) {
 	require.NotNil(t, cfg)
 
 	// 创建视图服务
-	viewService := view.NewViewService(cfg)
+	i18nManager := i18n.NewLocalizationManager(cfg)
+			viewService := view.NewViewService(cfg, i18nManager)
 	require.NotNil(t, viewService)
 
 	// 创建测试请求

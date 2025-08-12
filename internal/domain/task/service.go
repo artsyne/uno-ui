@@ -34,8 +34,6 @@ func NewService(config *config.Config, repo RepositoryInterface) *Service {
 // StartScheduler 启动定时任务调度器
 // 初始化并启动所有定时任务
 func (s *Service) StartScheduler() {
-	slog.Info("开始初始化定时任务...")
-
 	// 清除之前的任务，避免重复注册
 	gocron.Clear()
 	
@@ -58,7 +56,7 @@ func (s *Service) ProcessEmailTasks() {
 		slog.Error("获取邮件任务失败", "error", err)
 		return
 	}
-	slog.Info("获取邮件任务", "count", len(tasks))
+	slog.Debug("获取邮件任务", "count", len(tasks))
 
 	//循环发送邮件
 	for _, val := range tasks {

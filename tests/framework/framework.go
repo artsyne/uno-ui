@@ -83,6 +83,10 @@ type DataGenerator struct {
 
 // NewTestContext 创建新的测试上下文
 func NewTestContext(options ...TestOption) TestContextInterface {
+	// 重置配置单例状态，确保每次测试都能重新加载配置
+	core.ResetGlobalConfig()
+	core.ResetTestConfig()
+
 	// 生成唯一的测试ID
 	testID := generateTestID()
 	

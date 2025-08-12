@@ -12,7 +12,6 @@ import (
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/domain/user"
-	"github.com/biuren/hebe/internal/utils/i18n"
 	"github.com/biuren/hebe/internal/app/templates"
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/core/di"
@@ -89,12 +88,11 @@ func createPostController(container *di.Container) *controller.PostController {
 // #region 加载模版文件，并注入全局变量
 // 通过原生 Go 能力加载 "views" 目录中的模版文件
 func setTemplate(server *gin.Engine, basePath string, container *di.Container) {
-	// 1. 获取配置
-	cfg := di.Get[*config.Config](container)
+	// 1. 从DI容器获取ViewService（已包含i18nManager）
+	viewService := di.Get[*view.ViewService](container)
 
-	// 2. 初始化本地化管理器（消息会自动加载到全局缓存）
-	i18nManager := i18n.NewLocalizationManager(cfg)
-	templates.SetGlobalManager(i18nManager)
+	// 2. 使用ViewService中的i18nManager，避免重复初始化
+	templates.SetGlobalManager(viewService.GetI18nManager())
 
 	// 3. 注册所有模版函数（直接使用templates包）
 	tmpl := template.New("").Funcs(templates.RegisterAllFuncs())

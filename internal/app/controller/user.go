@@ -288,22 +288,22 @@ func (h *UserController) ValidateUsername(c *gin.Context) {
 
 	// 验证用户名格式
 	if !h.validateUserNameFormat(userName) {
-		h.renderService.JSONError(c, errors.ValidationError.WithDetails("用户名格式不正确"))
+		h.renderService.JSONError(c, errors.ValidationError.WithDetails("用户名格式不正确"), map[string]interface{}{})
 		return
 	}
 
 	// 检查用户名是否已存在
 	isExistUserName, err := h.service.IsExistUserName(userName)
 	if err != nil {
-		h.renderService.JSONError(c, err)
+		h.renderService.JSONError(c, err, map[string]interface{}{})
 		return
 	}
 	if isExistUserName {
-		h.renderService.JSONError(c, errors.UserExists.WithDetails("用户名: "+userName))
+		h.renderService.JSONError(c, errors.UserExists.WithDetails("用户名: "+userName), map[string]interface{}{})
 		return
 	}
 
-	h.renderService.JSONSuccess(c, nil)
+	h.renderService.JSONSuccess(c, map[string]interface{}{})
 }
 
 // ValidateEmail 验证邮箱是否可用
@@ -312,22 +312,22 @@ func (h *UserController) ValidateEmail(c *gin.Context) {
 
 	// 验证邮箱格式
 	if !h.validateEmailFormat(email) {
-		h.renderService.JSONError(c, errors.ValidationError.WithDetails("邮箱格式不正确"))
+		h.renderService.JSONError(c, errors.ValidationError.WithDetails("邮箱格式不正确"), map[string]interface{}{})
 		return
 	}
 
 	// 检查邮箱是否已存在
 	isExistEmail, err := h.service.IsExistEmail(email)
 	if err != nil {
-		h.renderService.JSONError(c, err)
+		h.renderService.JSONError(c, err, map[string]interface{}{})
 		return
 	}
 	if isExistEmail {
-		h.renderService.JSONError(c, errors.EmailExists.WithDetails("邮箱: "+email))
+		h.renderService.JSONError(c, errors.EmailExists.WithDetails("邮箱: "+email), map[string]interface{}{})
 		return
 	}
 
-	h.renderService.JSONSuccess(c, nil)
+	h.renderService.JSONSuccess(c, map[string]interface{}{})
 }
 
 // ===================== 密码管理方法 =====================

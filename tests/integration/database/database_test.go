@@ -38,6 +38,9 @@ func TestUserTable(t *testing.T) {
 	dbManager := ctx.GetDatabase()
 	db := dbManager.GetDB()
 
+		// 清理可能存在的测试数据
+		db.Exec("DELETE FROM br_user WHERE user_name = ?", "testuser")
+
 		// 插入测试用户
 		result, err := db.Exec(`
 			INSERT INTO br_user (user_name, email, pwd, status, created_utc_time) 

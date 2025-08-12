@@ -15,26 +15,57 @@ import (
 var (
 	globalTestConfig   *TestConfig
 	globalConfig       *config.Config
-	testConfigInitOnce sync.Once
-	configInitOnce     sync.Once
 	testConfigMutex    sync.RWMutex
+	globalConfigMutex  sync.RWMutex
 )
+
+// ResetGlobalConfig 重置全局配置单例状态（仅用于测试）
+func ResetGlobalConfig() {
+	globalConfigMutex.Lock()
+	defer globalConfigMutex.Unlock()
+	globalConfig = nil
+}
+
+// ResetTestConfig 重置测试配置单例状态（仅用于测试）
+func ResetTestConfig() {
+	testConfigMutex.Lock()
+	defer testConfigMutex.Unlock()
+	globalTestConfig = nil
+}
 
 // GetTestConfig 获取测试配置
 // 单例模式，确保配置只初始化一次，替代当前190次重复的环境变量设置
 func GetTestConfig() *TestConfig {
-	testConfigInitOnce.Do(func() {
+	testConfigMutex.RLock()
+	if globalTestConfig != nil {
+		defer testConfigMutex.RUnlock()
+		return globalTestConfig
+	}
+	testConfigMutex.RUnlock()
+
+	testConfigMutex.Lock()
+	defer testConfigMutex.Unlock()
+	if globalTestConfig == nil {
 		globalTestConfig = loadTestConfig()
-	})
+	}
 	return globalTestConfig
 }
 
 // GetGlobalConfig 获取全局配置对象
 // 使用 config 包中定义的标准配置结构体
 func GetGlobalConfig() *config.Config {
-	configInitOnce.Do(func() {
+	globalConfigMutex.RLock()
+	if globalConfig != nil {
+		defer globalConfigMutex.RUnlock()
+		return globalConfig
+	}
+	globalConfigMutex.RUnlock()
+
+	globalConfigMutex.Lock()
+	defer globalConfigMutex.Unlock()
+	if globalConfig == nil {
 		globalConfig = loadGlobalConfig()
-	})
+	}
 	return globalConfig
 }
 
@@ -54,8 +85,8 @@ func loadGlobalConfig() *config.Config {
 			Suffix:          getEnvString("IDIARY_SUFFIX", "..."),
 			PageSize:        getEnvInt("IDIARY_PAGE_SIZE", 20),
 			MaxDaybookLimit: getEnvInt("IDIARY_MAX_DAYBOOK_LIMIT", 500),
-			StaticDir:       getEnvString("IDIARY_STATIC_DIR", "website/static"),
-			LocalesDir:      getEnvString("IDIARY_LOCALES_DIR", "website/locales"),
+			StaticDir:       getEnvString("IDIARY_STATIC_DIR", filepath.Join(GetProjectRoot(), "website/static")),
+			LocalesDir:      getEnvString("IDIARY_LOCALES_DIR", filepath.Join(GetProjectRoot(), "website/locales")),
 			DefaultLang:     getEnvString("IDIARY_DEFAULT_LANG", "zh-cn"),
 		},
 		Database: config.DatabaseConfig{
@@ -184,8 +215,8 @@ func setupTestEnvironment() {
 	setEnvIfNotExists("IDIARY_SUFFIX", "...")
 	setEnvIfNotExists("IDIARY_PAGE_SIZE", "20")
 	setEnvIfNotExists("IDIARY_MAX_DAYBOOK_LIMIT", "500")
-	setEnvIfNotExists("IDIARY_STATIC_DIR", "website/static")
-	setEnvIfNotExists("IDIARY_LOCALES_DIR", "website/locales")
+	setEnvIfNotExists("IDIARY_STATIC_DIR", filepath.Join(GetProjectRoot(), "website/static"))
+	setEnvIfNotExists("IDIARY_LOCALES_DIR", filepath.Join(GetProjectRoot(), "website/locales"))
 	setEnvIfNotExists("IDIARY_DEFAULT_LANG", "zh-cn")
 
 	// 必需的JSON配置

@@ -15,10 +15,7 @@ type ViewService struct {
 }
 
 // NewViewService 创建视图服务
-func NewViewService(cfg *config.Config) *ViewService {
-	// 初始化国际化管理器
-	i18nManager := i18n.NewLocalizationManager(cfg)
-
+func NewViewService(cfg *config.Config, i18nManager i18n.I18nManager) *ViewService {
 	return &ViewService{
 		config:      cfg,
 		i18nManager: i18nManager,

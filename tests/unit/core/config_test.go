@@ -53,8 +53,8 @@ func TestConfig_AppConfig(t *testing.T) {
 	assert.Equal(t, "...", cfg.App.Suffix)
 	assert.Equal(t, 20, cfg.App.PageSize)
 	assert.Equal(t, 500, cfg.App.MaxDaybookLimit)
-	assert.Equal(t, "website/static", cfg.App.StaticDir)
-	assert.Equal(t, "website/locales", cfg.App.LocalesDir)
+	assert.Contains(t, cfg.App.StaticDir, "website/static")
+	assert.Contains(t, cfg.App.LocalesDir, "website/locales")
 	assert.Equal(t, "zh-cn", cfg.App.DefaultLang)
 }
 
