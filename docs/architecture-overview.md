@@ -1,8 +1,8 @@
-# iDiary 系统架构概览
+# iDiary.ai Hebe 系统架构概览
 
 ## 概述
 
-iDiary是一个基于Go 1.24和Gin框架的现代化日记管理系统，采用DDD（领域驱动设计）的分层架构，通过Go 1.24泛型依赖注入实现松耦合设计，具备高性能、高可维护性和可扩展性。
+iDiary.ai Hebe是一个基于Go 1.24和Gin框架的现代化智能日记管理系统，采用DDD（领域驱动设计）的分层架构，通过Go 1.24泛型依赖注入容器实现松耦合设计，具备高性能、高可维护性和可扩展性。系统支持多种内容类型（文字、图片、视频、链接）和多云盘存储。
 
 ## 分层架构
 
@@ -169,11 +169,12 @@ iDiary是一个基于Go 1.24和Gin框架的现代化日记管理系统，采用D
 
 #### Task 模块
 
-- **职责**: 后台任务处理
+- **职责**: 后台任务处理和异步任务管理
 - **位置**: `internal/domain/task/`
 - **组件**:
-  - **Service**: 定时任务服务
-  - **Types**: 任务相关数据结构
+  - **Repository**: 任务数据访问接口定义
+  - **Service**: 定时任务服务（基于gocron的邮件任务调度）
+  - **Types**: 任务相关数据结构（JobQueue、EmailTask等）
 
 ### Infra Layer (基础设施层)
 
@@ -197,10 +198,12 @@ iDiary是一个基于Go 1.24和Gin框架的现代化日记管理系统，采用D
 - **职责**: Go 1.24泛型依赖注入容器
 - **位置**: `internal/core/di/`
 - **功能**:
-  - 零反射泛型设计
-  - 三种生命周期 (瞬态/单例/实例)
-  - 编译时类型安全
-  - 高并发性能 (~19纳秒解析)
+  - 零反射泛型设计，完全消除反射开销
+  - 三种生命周期管理 (瞬态Bind/单例Singleton/实例Value)
+  - 编译时类型安全，使用泛型确保类型检查
+  - 高并发性能，基于读写锁和sync.Once优化
+  - 重复注册检测，防止意外覆盖服务
+  - 明确覆盖支持，提供Rebind方法用于测试场景
 
 #### Database 模块
 
@@ -335,23 +338,30 @@ Application Ready
 
 ## 关键设计模式
 
-### 1. Go 1.24泛型依赖注入 (DI)
+### 1. Go 1.24泛型依赖注入容器
 
 ```go
-// 泛型服务注册 - 编译时类型安全
-container.RegisterSingleton(func(c di.ContainerInterface) *view.ViewService {
-    config := di.Resolve[*config.Config](c)
+// 创建容器
+container := di.New()
+
+// 瞬态服务注册 - 每次获取都创建新实例
+err := di.Bind(container, func() *user.Service {
+    return user.NewService(config, userRepo, taskService)
+})
+
+// 单例服务注册 - 全局唯一实例，延迟初始化
+err := di.Singleton(container, func() *view.ViewService {
     return view.NewViewService(config)
 })
 
-// 泛型服务解析 - 零反射，高性能
-viewService := di.Resolve[*view.ViewService](container)
+// 实例服务注册 - 预创建实例
+err := di.Value(container, config)
 
-// 生命周期管理
-container.RegisterTransient[UserService](func(c di.ContainerInterface) UserService {
-    repo := di.Resolve[UserRepository](c)
-    return NewUserService(repo)
-})
+// 泛型服务解析 - 零反射，高性能
+userService := di.Get[*user.Service](container)
+
+// 安全获取服务，返回错误而非panic
+viewService, err := di.TryGet[*view.ViewService](container)
 ```
 
 ### 2. 仓储模式 (Repository Pattern)
@@ -376,17 +386,43 @@ func (r *userRepositoryImpl) GetByID(ctx context.Context, id int) (*User, error)
 ### 3. 领域服务模式 (Domain Service)
 
 ```go
-type UserService struct {
-    repo UserRepository
+// 用户服务实现
+type Service struct {
+    config      *config.Config
+    repo        RepositoryInterface
+    regexCheck  *pkg.RegexCheck
+    taskService *task.Service
 }
 
-func (s *UserService) AuthenticateUser(ctx context.Context, username, password string) (*User, error) {
-    // 业务逻辑实现
-    user, err := s.repo.GetByUsername(ctx, username)
+func NewService(config *config.Config, repo RepositoryInterface, taskService *task.Service) *Service {
+    return &Service{
+        config:      config,
+        repo:        repo,
+        regexCheck:  &pkg.RegexCheck{},
+        taskService: taskService,
+    }
+}
+
+func (s *Service) LoginWithUsernameOrEmail(usernameOrEmail, password string) (*User, error) {
+    var user *User
+    var err error
+
+    // 判断输入是否为邮箱地址
+    if s.regexCheck.IsEmail(usernameOrEmail) {
+        user, err = s.repo.GetUserByEmail(usernameOrEmail)
+    } else {
+        user, err = s.repo.GetUserByUserName(usernameOrEmail)
+    }
+
     if err != nil {
         return nil, err
     }
-    // 密码验证等业务逻辑
+
+    // 验证密码
+    if !s.verifyPassword(password, user.Pwd) {
+        return nil, appErrors.PasswordIncorrect.WithDetails("密码不正确")
+    }
+
     return user, nil
 }
 ```
@@ -394,26 +430,50 @@ func (s *UserService) AuthenticateUser(ctx context.Context, username, password s
 ### 4. 统一错误处理模式
 
 ```go
+// 错误定义结构体
+type ErrorDef struct {
+    Code     int    `json:"code"`      // 错误数字码
+    Key      string `json:"key"`       // 错误标识符
+    HttpCode int    `json:"http_code"` // HTTP状态码
+}
+
+// 应用错误
 type AppError struct {
-    Code     int    `json:"code"`
-    MsgKey   string `json:"msg_key"`
-    HttpCode int    `json:"-"`
-    Details  string `json:"-"`
+    ErrorDef        // 嵌入错误定义
+    Details  string `json:"-"` // 错误详情
+}
+
+// 预定义错误
+var (
+    UserNotFound     = ErrorDef{1301, "user_not_found", 404}
+    PasswordIncorrect = ErrorDef{2201, "password_incorrect", 400}
+    DatabaseError    = ErrorDef{6001, "database_error", 500}
+)
+
+// 创建错误
+func (def ErrorDef) WithDetails(details string) *AppError {
+    return &AppError{
+        ErrorDef: def,
+        Details:  details,
+    }
 }
 
 // 错误处理中间件
-func ErrorHandlerMiddleware() gin.HandlerFunc {
+func AppErrorHandler() gin.HandlerFunc {
     return func(c *gin.Context) {
-        c.Next()
-        if len(c.Errors) > 0 {
-            err := c.Errors.Last().Err
-            if appErr, ok := err.(*AppError); ok {
-                c.JSON(appErr.HttpCode, gin.H{
-                    "code": appErr.Code,
-                    "message": appErr.MsgKey,
-                })
+        defer func() {
+            if len(c.Errors) > 0 {
+                lastError := c.Errors.Last()
+                if appErr, ok := lastError.Err.(*AppError); ok {
+                    c.JSON(appErr.HttpCode, gin.H{
+                        "code":    appErr.Code,
+                        "message": appErr.Key,
+                        "data":    nil,
+                    })
+                }
             }
-        }
+        }()
+        c.Next()
     }
 }
 ```
@@ -421,26 +481,88 @@ func ErrorHandlerMiddleware() gin.HandlerFunc {
 ### 5. 视图服务模式 (View Service)
 
 ```go
+// ViewService 视图服务实现
 type ViewService struct {
-    templates *template.Template
-    i18n      *i18n.I18n
+    config      *config.Config
+    i18nManager i18n.I18nManager
 }
 
-func (v *ViewService) RenderPage(c *gin.Context, templateName string, data interface{}) {
-    // 统一的页面渲染逻辑
-    pageData := v.buildPageData(c, data)
-    c.HTML(http.StatusOK, templateName, pageData)
+func NewViewService(cfg *config.Config) *ViewService {
+    i18nManager := i18n.NewLocalizationManager(cfg)
+    return &ViewService{
+        config:      cfg,
+        i18nManager: i18nManager,
+    }
+}
+
+// 创建页面数据（泛型支持）
+func (s *ViewService) CreatePageData(c *gin.Context, titleKey string) *contracts.PageData[map[string]interface{}] {
+    ctx := s.BuildRenderContext(c)
+    title := s.generateTitle(c, titleKey)
+
+    return &contracts.PageData[map[string]interface{}]{
+        Title:   title,
+        Context: ctx,
+        Data:    make(map[string]interface{}),
+    }
+}
+
+// JSON响应
+func (s *ViewService) JSONSuccess(c *gin.Context, data interface{}) {
+    response := JSONResponse{
+        Success: true,
+        Message: "success",
+        Code:    0,
+        Data:    data,
+    }
+    c.JSON(http.StatusOK, response)
+}
+
+// HTML渲染
+func (s *ViewService) HTML(c *gin.Context, name string, data interface{}) {
+    c.HTML(http.StatusOK, name, data)
 }
 ```
 
 ### 6. 中间件链模式
 
 ```go
-func SetupMiddleware(r *gin.Engine) {
-    r.Use(PanicRecoveryMiddleware())
-    r.Use(ErrorHandlerMiddleware())
-    r.Use(LoggingMiddleware())
-    r.Use(AuthMiddleware())
+// 在 initGinServer 中设置中间件
+func (a *Application) initGinServer() error {
+    gin.SetMode(a.config.App.GinMode)
+    server := gin.New()
+
+    // 初始化中间件链
+    server.Use(utilsMiddleware.PanicRecovery())   // panic recovery中间件
+    server.Use(utilsMiddleware.AppErrorHandler()) // 应用错误处理中间件
+    server.Use(middleware.SharedData())           // 用户共享数据中间件
+
+    // 设置路由
+    route.SetWithContainer(server, a.container)
+
+    a.server = server
+    return nil
+}
+
+// PanicRecovery中间件实现
+func PanicRecovery() gin.HandlerFunc {
+    return gin.CustomRecovery(func(c *gin.Context, recovered interface{}) {
+        if recovered != nil {
+            slog.Error("panic recovered",
+                "panic", recovered,
+                "path", c.Request.URL.Path,
+                "method", c.Request.Method,
+                "stack", string(debug.Stack()))
+
+            internalErr := errors.InternalError
+            c.JSON(http.StatusInternalServerError, gin.H{
+                "code":    internalErr.Code,
+                "message": internalErr.Key,
+                "data":    nil,
+            })
+            c.Abort()
+        }
+    })
 }
 ```
 
@@ -556,11 +678,13 @@ slog.InfoContext(ctx, "处理请求",
 
 ### Go 1.24泛型DI容器性能
 
-- **解析速度**: ~19纳秒 (零反射)
-- **内存分配**: 零分配设计
-- **并发安全**: 读写锁保护
-- **类型安全**: 编译时类型检查
-- **生命周期**: 瞬态/单例/实例三种模式
+- **解析速度**: ~57纳秒 (零反射设计)
+- **内存分配**: 最小化内存分配
+- **并发安全**: 读写锁+sync.Once优化
+- **类型安全**: 编译时类型检查，运行时零错误
+- **生命周期**: 瞬态(Bind)/单例(Singleton)/实例(Value)三种模式
+- **错误检测**: 重复注册检查，防止意外覆盖
+- **高级功能**: 安全获取(TryGet)、服务检查(Has)、测试覆盖(Rebind)
 
 ### 前端性能
 
@@ -697,17 +821,19 @@ Kubernetes:
 
 ## 总结
 
-iDiary系统采用现代化的Go 1.24技术栈，通过DDD分层架构、泛型依赖注入、统一错误处理等设计模式，构建了一个高性能、高可维护性和高可扩展性的日记管理系统。
+iDiary.ai Hebe系统采用现代化的Go 1.24技术栈，通过DDD分层架构、泛型依赖注入容器、统一错误处理等设计模式，构建了一个高性能、高可维护性和高可扩展性的智能日记管理系统。
 
 ### 核心优势
 
-- **现代化技术栈**: Go 1.24、Gin 1.10.0、SQLx、Redis等
-- **高性能DI容器**: 零反射、19纳秒解析速度
+- **现代化技术栈**: Go 1.24、Gin 1.10.0、SQLx、Redis、gocron等
+- **高性能DI容器**: 零反射设计、57纳秒解析速度、并发安全
 - **类型安全**: 编译时类型检查，减少运行时错误
-- **分层清晰**: 严格的依赖方向控制
-- **统一错误处理**: 4位错误码体系
+- **分层清晰**: 严格的依赖方向控制，遵循DDD最佳实践
+- **统一错误处理**: 4位错误码体系，结构化错误定义
 - **结构化日志**: 基于slog的高性能日志系统
-- **前端现代化**: Kiko框架 + Tailwind CSS 4.x
+- **前端现代化**: Kiko框架 + Tailwind CSS 4.x + ES2023
+- **智能任务**: 基于gocron的异步邮件任务系统
+- **多云存储**: 预留多云盘存储接口支持
 
 ### 设计理念
 

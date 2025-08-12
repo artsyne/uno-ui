@@ -1,14 +1,59 @@
-# 模板函数使用指南
+# iDiary.ai Hebe 模板函数使用指南
 
 ## 概述
 
-iDiary提供了丰富的模板函数，用于在HTML模板中访问用户信息、格式化数据、国际化消息等。这些函数通过ViewService统一管理，确保模板层的数据访问安全和一致性。
+iDiary.ai Hebe提供了丰富的模板函数，用于在HTML模板中访问用户信息、格式化数据、国际化消息等。这些函数通过ViewService统一管理，基于Go 1.24泛型特性的PageData结构确保模板层的数据访问安全和一致性。
+
+## 模板数据结构
+
+### PageData 泛型结构
+
+iDiary.ai Hebe使用基于Go 1.24泛型的PageData结构来传递模板数据：
+
+```go
+type PageData[T any] struct {
+    Title       string         `json:"title"`       // 页面标题
+    Description string         `json:"description"` // 页面描述
+    Keywords    string         `json:"keywords"`    // 页面关键词
+    Context     *RenderContext `json:"context"`     // 渲染上下文
+    Data        T              `json:"data"`        // 业务数据（泛型）
+}
+
+type RenderContext struct {
+    IsLogin  bool      `json:"is_login"`              // 用户是否登录
+    AuthUser *AuthUser `json:"auth_user,omitempty"`   // 认证用户信息
+    Lang     string    `json:"lang"`                  // 当前语言
+    Theme    string    `json:"theme,omitempty"`       // 主题
+    Layout   string    `json:"layout,omitempty"`      // 布局
+}
+```
+
+### 在控制器中创建PageData
+
+```go
+func (ctrl *DiaryController) ShowDiary(c *gin.Context) {
+    viewService := di.Get[*view.ViewService](ctrl.container)
+
+    // 创建页面数据
+    pageData := viewService.CreatePageData(c, "diary.detail_title")
+
+    // 添加业务数据
+    diary, _ := ctrl.diaryService.GetDiary(diaryID)
+    pageData.Data["diary"] = diary
+    pageData.Data["posts"] = diary.Posts
+
+    // 渲染模板
+    viewService.HTML(c, "diary/detail.html", pageData)
+}
+```
 
 ## 模板函数分类
 
 ### 1. 用户认证相关函数
 
-#### `isLogin .`
+**文件位置**: `internal/app/templates/auth.go`
+
+#### `isLogin pageData`
 
 检查当前用户是否已登录。
 
@@ -20,7 +65,17 @@ iDiary提供了丰富的模板函数，用于在HTML模板中访问用户信息�
 {{end}}
 ```
 
-#### `getUserID .`
+#### `authUser pageData`
+
+获取认证用户对象，返回`*AuthUser`类型。
+
+```html
+{{if isLogin .}} {{$user := authUser .}}
+<span>用户ID: {{$user.UserId}}</span>
+{{end}}
+```
+
+#### `getUserID pageData`
 
 获取当前登录用户的ID。
 
@@ -30,7 +85,7 @@ iDiary提供了丰富的模板函数，用于在HTML模板中访问用户信息�
 {{end}}
 ```
 
-#### `getUserName .`
+#### `getUserName pageData`
 
 获取当前登录用户的用户名。
 
@@ -40,7 +95,7 @@ iDiary提供了丰富的模板函数，用于在HTML模板中访问用户信息�
 {{end}}
 ```
 
-#### `getLoginName .`
+#### `getLoginName pageData`
 
 获取当前登录用户的登录名。
 
@@ -50,39 +105,19 @@ iDiary提供了丰富的模板函数，用于在HTML模板中访问用户信息�
 {{end}}
 ```
 
-#### `getFullName .`
+#### `getEmail pageData`
 
-获取当前登录用户的全名。
-
-```html
-{{if isLogin .}}
-<h1>{{getFullName .}}的日记空间</h1>
-{{end}}
-```
-
-#### `getEmail .`
-
-获取当前登录用户的邮箱。
+获取当前用户的邮箱地址。
 
 ```html
 {{if isLogin .}}
-<span class="email">{{getEmail .}}</span>
+<span>邮箱: {{getEmail .}}</span>
 {{end}}
 ```
 
-#### `getUserGroup .`
+#### `getFaceUrl pageData`
 
-获取当前登录用户的用户组。
-
-```html
-{{if isLogin .}} {{if eq (getUserGroup .) 1}}
-<div class="admin-badge">管理员</div>
-{{end}} {{end}}
-```
-
-#### `getFaceUrl .`
-
-获取当前登录用户的头像URL。
+获取用户头像URL。
 
 ```html
 {{if isLogin .}}
@@ -90,437 +125,444 @@ iDiary提供了丰富的模板函数，用于在HTML模板中访问用户信息�
 {{end}}
 ```
 
-#### `getUserAvatar .`
+#### `getUserAvatar pageData`
 
-获取用户头像（带默认值处理）。
-
-```html
-{{if isLogin .}}
-<img src="{{getUserAvatar .}}" alt="用户头像" class="avatar" />
-{{end}}
-```
-
-#### `getLoginUTCTime .`
-
-获取当前登录用户的登录时间。
+获取用户头像URL，如果没有则返回默认头像。
 
 ```html
 {{if isLogin .}}
-<span>上次登录：{{formatTime (getLoginUTCTime .) "2006-01-02 15:04"}}</span>
+<img src="{{getUserAvatar .}}" alt="用户头像" />
 {{end}}
 ```
 
-#### `getTimeZone .`
+#### `getFullName pageData`
 
-获取当前登录用户的时区设置。
+获取用户全名。
 
 ```html
 {{if isLogin .}}
-<span>时区：{{getTimeZone .}}</span>
+<span>全名: {{getFullName .}}</span>
 {{end}}
 ```
 
-#### `getLang .`
+#### `getUserGroup pageData`
 
-获取当前登录用户的语言设置。
-
-```html
-{{if isLogin .}}
-<span>语言：{{getLang .}}</span>
-{{end}}
-```
-
-#### `getStatus .`
-
-获取当前登录用户的状态。
+获取用户组级别。
 
 ```html
-{{if isLogin .}} {{if eq (getStatus .) 1}}
-<span class="status-active">正常</span>
-{{else}}
-<span class="status-disabled">已禁用</span>
+{{if isLogin .}} {{$group := getUserGroup .}} {{if eq $group 1}}
+<span class="admin-badge">管理员</span>
 {{end}} {{end}}
 ```
 
-### 2. 时间格式化函数
+#### `getFirstCharOfName pageData`
 
-#### `formatTime`
-
-格式化时间戳，支持自定义格式和时区。
+获取用户姓名首字符（大写），用于头像占位符。
 
 ```html
-<!-- 基础用法 -->
-{{formatTime .Data.Post.CreateTime "2006-01-02 15:04"}}
-
-<!-- 使用用户时区 -->
-{{formatTime .Data.Post.CreateTime "2006-01-02 15:04" (getTimeZone .)}}
-
-<!-- 常用格式示例 -->
-{{formatTime .Data.Post.CreateTime "2006-01-02"}}
-<!-- 2024-01-15 -->
-{{formatTime .Data.Post.CreateTime "2006-01-02 15:04"}}
-<!-- 2024-01-15 14:30 -->
-{{formatTime .Data.Post.CreateTime "2006-01-02 15:04:05"}}
-<!-- 2024-01-15 14:30:45 -->
-{{formatTime .Data.Post.CreateTime "01-02 15:04"}}
-<!-- 01-15 14:30 -->
-```
-
-### 3. 国际化函数
-
-#### `getMessage`
-
-获取国际化消息。
-
-```html
-<!-- 基础消息 -->
-<h1>{{getMessage "diary.title"}}</h1>
-
-<!-- 带参数的消息 -->
-<p>{{getMessage "welcome_user" (getUserName .)}}</p>
-
-<!-- 错误消息 -->
-<div class="error">{{getMessage "validation_error"}}</div>
-```
-
-### 4. 导航和面包屑函数
-
-#### `renderBreadcrumb`
-
-渲染面包屑导航。
-
-```html
-{{if .Breadcrumb}}
-<nav class="breadcrumb">{{renderBreadcrumb .Breadcrumb}}</nav>
+{{if isLogin .}}
+<div class="avatar-placeholder">{{getFirstCharOfName .}}</div>
 {{end}}
 ```
 
-### 5. 数据处理函数
+#### `getRandomVersion pageData`
 
-#### `safeHTML`
-
-安全输出HTML内容。
+获取随机版本号，用于资源防缓存。
 
 ```html
-<div class="content">{{safeHTML .Data.Post.Content}}</div>
+<link rel="stylesheet" href="/static/css/app.css?v={{getRandomVersion .}}" />
 ```
 
-#### `truncateText`
+### 2. 国际化相关函数
 
-截断文本到指定长度。
+**文件位置**: `internal/app/templates/localization.go`
+
+#### `getMessage key locale`
+
+获取国际化消息，是最核心的本地化函数。
 
 ```html
-<p class="summary">{{truncateText .Data.Post.Body 150 "..."}}</p>
+<h1>{{getMessage "page.title" "zh-CN"}}</h1>
+<p>{{getMessage "page.description" "en"}}</p>
 ```
 
-#### `formatFileSize`
+#### `getMessageWithDefault key locale defaultMsg`
 
-格式化文件大小。
+带默认值的消息获取，当找不到翻译时使用默认值。
 
 ```html
-<span class="file-size"> 文件大小：{{formatFileSize .Data.File.Size}} </span>
+<span>{{getMessageWithDefault "user.welcome" "zh-CN" "欢迎"}}</span>
+```
+
+#### `getMessages keys locale`
+
+批量获取多个消息。
+
+```html
+{{$messages := getMessages (slice "nav.home" "nav.about" "nav.contact")
+"zh-CN"}} {{range $key, $value := $messages}}
+<li><a href="/{{$key}}">{{$value}}</a></li>
+{{end}}
+```
+
+#### `getSupportedLanguages`
+
+获取系统支持的语言列表。
+
+```html
+<select name="language">
+  {{range getSupportedLanguages}}
+  <option value="{{.Code}}">{{.Name}}</option>
+  {{end}}
+</select>
+```
+
+#### `isLanguageSupported locale`
+
+检查指定语言是否被支持。
+
+```html
+{{if isLanguageSupported "zh-CN"}}
+<div class="lang-support">支持中文</div>
+{{end}}
+```
+
+### 3. 时间格式化函数
+
+**文件位置**: `internal/app/templates/time.go`
+
+#### `formatTime timestamp format timezone...`
+
+格式化时间戳，支持自定义格式和时区。
+
+**参数**:
+
+- `timestamp`: 时间戳（毫秒）
+- `format`: Go时间格式字符串
+- `timezone`: 可选，时区名称
+
+```html
+<!-- 基本用法 -->
+<span>{{formatTime 1672531200000 "2006-01-02 15:04:05"}}</span>
+
+<!-- 带时区转换 -->
+<span>{{formatTime 1672531200000 "2006-01-02 15:04:05" "Asia/Shanghai"}}</span>
+
+<!-- 用户时区 -->
+{{if isLogin .}}
+<span>{{formatTime 1672531200000 "2006-01-02 15:04:05" (getTimeZone .)}}</span>
+{{end}}
+
+<!-- 常用格式示例 -->
+<div>年月日: {{formatTime 1672531200000 "2006-01-02"}}</div>
+<div>时分秒: {{formatTime 1672531200000 "15:04:05"}}</div>
+<div>中文格式: {{formatTime 1672531200000 "2006年01月02日"}}</div>
+```
+
+### 4. UI相关函数
+
+**文件位置**: `internal/app/templates/ui.go`
+
+#### `renderBreadcrumb breadcrumbItems`
+
+渲染面包屑导航。
+
+**参数**: `[]BreadcrumbItem` 面包屑项目数组
+
+```go
+type BreadcrumbItem struct {
+    Name string `json:"name"` // 显示名称
+    URL  string `json:"url"`  // 链接地址
+}
+```
+
+**模板使用**:
+
+```html
+<!-- 在控制器中准备数据 -->
+{{/* 控制器代码: breadcrumb := []templates.BreadcrumbItem{ {Name: "首页", URL:
+"/"}, {Name: "日记", URL: "/diary"}, {Name: "当前日记", URL: ""}, //
+最后一项不需要链接 } pageData.Data["breadcrumb"] = breadcrumb */}}
+
+<!-- 在模板中渲染 -->
+{{if .Data.breadcrumb}} {{renderBreadcrumb .Data.breadcrumb}} {{end}}
+
+<!-- 输出HTML -->
+<nav class="breadcrumb">
+  <a href="/">首页</a> <span class="separator">/</span>
+  <a href="/diary">日记</a> <span class="separator">/</span>
+  <span>当前日记</span>
+</nav>
+```
+
+## 模板函数注册和管理
+
+### 函数注册机制
+
+**文件位置**: `internal/app/templates/registry.go`
+
+```go
+// RegisterAllFuncs 注册所有模板函数
+func RegisterAllFuncs() template.FuncMap {
+    funcs := make(template.FuncMap)
+
+    // 合并所有分类的模板函数
+    for name, fn := range GetLocalizationFuncs() {
+        funcs[name] = fn
+    }
+
+    for name, fn := range GetAuthFuncs() {
+        funcs[name] = fn
+    }
+
+    for name, fn := range GetUIFuncs() {
+        funcs[name] = fn
+    }
+
+    for name, fn := range GetTimeFuncs() {
+        funcs[name] = fn
+    }
+
+    return funcs
+}
+```
+
+### 在ViewService中的使用
+
+模板函数通过ViewService进行统一管理，确保类型安全和上下文正确性：
+
+```go
+// ViewService 中的模板渲染
+func (s *ViewService) HTML(c *gin.Context, name string, data interface{}) {
+    // 模板函数已在初始化时注册
+    c.HTML(http.StatusOK, name, data)
+}
 ```
 
 ## 实际使用示例
 
-### 1. 用户导航栏
+### 1. 完整页面模板示例
 
 ```html
-<!-- website/views/navbar.html -->
-<nav class="navbar">
-  <div class="navbar-brand">
-    <a href="/">iDiary</a>
-  </div>
-
-  <div class="navbar-nav">
-    {{if isLogin .}}
-    <!-- 已登录用户 -->
-    <div class="user-menu">
-      <img src="{{getUserAvatar .}}" alt="头像" class="avatar-sm" />
-      <span>{{getUserName .}}</span>
-      <div class="dropdown">
-        <a href="/u/{{getUserID .}}">我的空间</a>
-        <a href="/settings">设置</a>
-        <a href="/logout">退出</a>
+<!DOCTYPE html>
+<html lang="{{.Context.Lang}}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{.Title}}</title>
+    <meta name="description" content="{{.Description}}" />
+    <link
+      rel="stylesheet"
+      href="/static/css/app.css?v={{getRandomVersion .}}"
+    />
+  </head>
+  <body>
+    <header class="header">
+      {{if isLogin .}}
+      <div class="user-info">
+        <img src="{{getUserAvatar .}}" alt="{{getUserName .}}" class="avatar" />
+        <span class="username">{{getUserName .}}</span>
+        {{if eq (getUserGroup .) 1}}
+        <span class="admin-badge"
+          >{{getMessage "user.admin" .Context.Lang}}</span
+        >
+        {{end}}
       </div>
-    </div>
-    {{else}}
-    <!-- 未登录用户 -->
-    <a href="/login" class="btn">登录</a>
-    <a href="/register" class="btn btn-primary">注册</a>
-    {{end}}
-  </div>
-</nav>
+      {{else}}
+      <div class="auth-links">
+        <a href="/login">{{getMessage "auth.login" .Context.Lang}}</a>
+        <a href="/register">{{getMessage "auth.register" .Context.Lang}}</a>
+      </div>
+      {{end}}
+    </header>
+
+    <main class="main">
+      <!-- 面包屑导航 -->
+      {{if .Data.breadcrumb}} {{renderBreadcrumb .Data.breadcrumb}} {{end}}
+
+      <!-- 页面内容 -->
+      <h1>{{getMessage "page.diary.title" .Context.Lang}}</h1>
+
+      {{if .Data.diary}}
+      <article class="diary">
+        <h2>{{.Data.diary.Title}}</h2>
+        <div class="meta">
+          <span class="author">{{getUserName .}}</span>
+          <span class="date"
+            >{{formatTime .Data.diary.CreateTime "2006-01-02 15:04" (getTimeZone
+            .)}}</span
+          >
+        </div>
+        <div class="content">{{.Data.diary.Content}}</div>
+      </article>
+      {{end}}
+    </main>
+
+    <footer class="footer">
+      <div class="lang-switcher">
+        <select name="language">
+          {{range getSupportedLanguages}}
+          <option
+            value="{{.Code}}"
+            {{if
+            eq
+            .Code
+            $.Context.Lang}}selected{{end}}
+          >
+            {{.Name}}
+          </option>
+          {{end}}
+        </select>
+      </div>
+    </footer>
+  </body>
+</html>
 ```
 
-### 2. 日记列表页面
+### 2. 组件化模板示例
 
 ```html
-<!-- website/views/diary/index.html -->
-<div class="diary-container">
-  <!-- 页面标题 -->
-  <h1>{{.Title}}</h1>
-
-  <!-- 面包屑导航 -->
-  {{if .Breadcrumb}} {{renderBreadcrumb .Breadcrumb}} {{end}}
-
-  <!-- 日记本信息 -->
-  {{with .Data.Diary}}
-  <div class="diary-header">
-    <h2>{{.Title}}</h2>
-    <p class="diary-meta">
-      创建者：{{.AddUserName}} | 创建时间：{{formatTime .CreateTime
-      "2006-01-02"}} | {{.InfoNum}}篇日记
-    </p>
-
-    {{if $.Data.IsOwner}}
-    <div class="owner-actions">
-      <button class="btn" onclick="editDiary()">编辑</button>
-      <button class="btn" onclick="addPost()">写日记</button>
-    </div>
+<!-- 用户卡片组件 -->
+{{define "user-card"}}
+<div class="user-card">
+  {{if isLogin .}}
+  <div class="avatar">
+    {{if getFaceUrl .}}
+    <img src="{{getFaceUrl .}}" alt="{{getUserName .}}" />
+    {{else}}
+    <div class="avatar-placeholder">{{getFirstCharOfName .}}</div>
     {{end}}
   </div>
+  <div class="info">
+    <h3>{{getFullName .}}</h3>
+    <p>@{{getUserName .}}</p>
+    <span class="email">{{getEmail .}}</span>
+  </div>
+  {{else}}
+  <div class="guest-info">
+    <p>{{getMessage "user.guest" .Context.Lang}}</p>
+    <a href="/login">{{getMessage "auth.login" .Context.Lang}}</a>
+  </div>
   {{end}}
+</div>
+{{end}}
 
-  <!-- 日记列表 -->
-  {{range .Data.Posts}}
-  <article class="post-item">
-    <h3><a href="/post/{{.PostID}}">{{.Title}}</a></h3>
-    <div class="post-meta">
-      <time>{{formatTime .CreateTime "2006-01-02 15:04" (getTimeZone $)}}</time>
-      {{if eq .InfoType 1}}
-      <span class="post-type">图片</span>
-      {{else if eq .InfoType 2}}
-      <span class="post-type">视频</span>
-      {{else}}
-      <span class="post-type">文字</span>
-      {{end}}
+<!-- 使用组件 -->
+{{template "user-card" .}}
+```
+
+### 3. 列表渲染示例
+
+```html
+<!-- 日记列表 -->
+{{if .Data.diaries}}
+<div class="diary-list">
+  {{range .Data.diaries}}
+  <article class="diary-item">
+    <h3><a href="/diary/{{.ID}}">{{.Title}}</a></h3>
+    <div class="meta">
+      <span class="date"
+        >{{formatTime .CreateTime "01-02" (getTimeZone $)}}</span
+      >
+      <span class="author">{{.AuthorName}}</span>
     </div>
-    <div class="post-excerpt">{{truncateText .Body 200 "..."}}</div>
+    <p class="excerpt">{{.Excerpt}}</p>
   </article>
   {{end}}
 </div>
-
-<script>
-  {{if isLogin .}}
-    // JavaScript中使用模板函数
-    var currentUserId = {{getUserID .}};
-    var currentUserName = '{{getUserName .}}';
-    var userTimeZone = '{{getTimeZone .}}';
-
-    console.log('当前用户:', currentUserName, '时区:', userTimeZone);
-  {{end}}
-</script>
-```
-
-### 3. 用户设置页面
-
-```html
-<!-- website/views/member/settings.html -->
-<div class="settings-container">
-  <h1>{{getMessage "user.settings"}}</h1>
-
-  {{if isLogin .}}
-  <form class="settings-form" method="post">
-    <div class="form-group">
-      <label>{{getMessage "user.username"}}</label>
-      <input type="text" name="username" value="{{getUserName .}}" readonly />
-    </div>
-
-    <div class="form-group">
-      <label>{{getMessage "user.email"}}</label>
-      <input type="email" name="email" value="{{getEmail .}}" />
-    </div>
-
-    <div class="form-group">
-      <label>{{getMessage "user.full_name"}}</label>
-      <input type="text" name="full_name" value="{{getFullName .}}" />
-    </div>
-
-    <div class="form-group">
-      <label>{{getMessage "user.timezone"}}</label>
-      <select name="timezone">
-        {{range .Data.TimeZones}}
-        <option value="{{.}}" {{if eq . (getTimeZone $)}}selected{{end}}>
-          {{.}}
-        </option>
-        {{end}}
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label>{{getMessage "user.language"}}</label>
-      <select name="language">
-        {{range .Data.Languages}}
-        <option value="{{.Code}}" {{if eq .Code (getLang $)}}selected{{end}}>
-          {{.Name}}
-        </option>
-        {{end}}
-      </select>
-    </div>
-
-    <button type="submit" class="btn btn-primary">{{getMessage "save"}}</button>
-  </form>
-  {{else}}
-  <p>{{getMessage "login_required"}}</p>
-  {{end}}
-</div>
-```
-
-### 4. 错误页面
-
-```html
-<!-- website/views/error.html -->
-<div class="error-container">
-  <h1>{{getMessage "error"}}</h1>
-
-  <div class="error-details">
-    <p>{{.Data.ErrMsg}}</p>
-  </div>
-
-  {{if isLogin .}}
-  <div class="error-actions">
-    <a href="/u/{{getUserID .}}" class="btn">返回我的主页</a>
-    <a href="/" class="btn btn-primary">返回首页</a>
-  </div>
-  {{else}}
-  <div class="error-actions">
-    <a href="/" class="btn btn-primary">返回首页</a>
-    <a href="/login" class="btn">登录</a>
-  </div>
-  {{end}}
-</div>
-```
-
-## 高级用法
-
-### 1. 条件判断组合
-
-```html
-<!-- 管理员功能 -->
-{{if and (isLogin .) (eq (getUserGroup .) 1)}}
-<div class="admin-panel">
-  <h3>管理员功能</h3>
-  <a href="/admin/users">用户管理</a>
-  <a href="/admin/settings">系统设置</a>
-</div>
-{{end}}
-
-<!-- 用户状态检查 -->
-{{if isLogin .}} {{if eq (getStatus .) 1}}
-<div class="user-active">
-  <p>账户状态：正常</p>
-</div>
 {{else}}
-<div class="user-disabled">
-  <p>您的账户已被禁用，请联系管理员</p>
-</div>
-{{end}} {{end}}
-```
-
-### 2. 循环中使用模板函数
-
-```html
-<!-- 在循环中访问当前用户信息 -->
-{{range .Data.Comments}}
-<div class="comment">
-  <div class="comment-meta">
-    <span>{{.UserName}}</span>
-    <time>{{formatTime .CreateTime "2006-01-02 15:04" (getTimeZone $)}}</time>
-
-    {{if and (isLogin $) (eq .UserId (getUserID $))}}
-    <a href="#" class="delete-comment">删除</a>
-    {{end}}
-  </div>
-  <div class="comment-content">{{.Content}}</div>
+<div class="empty-state">
+  <p>{{getMessage "diary.empty" .Context.Lang}}</p>
+  {{if isLogin .}}
+  <a href="/diary/new" class="btn"
+    >{{getMessage "diary.create" .Context.Lang}}</a
+  >
+  {{end}}
 </div>
 {{end}}
-```
-
-### 3. JavaScript集成
-
-```html
-<script>
-  // 用户信息注入
-  window.USER_INFO = {
-    {{if isLogin .}}
-      isLogin: true,
-      userId: {{getUserID .}},
-      userName: '{{getUserName .}}',
-      userGroup: {{getUserGroup .}},
-      timeZone: '{{getTimeZone .}}',
-      language: '{{getLang .}}'
-    {{else}}
-      isLogin: false
-    {{end}}
-  };
-
-  // 国际化消息注入
-  window.MESSAGES = {
-    'save': '{{getMessage "save"}}',
-    'cancel': '{{getMessage "cancel"}}',
-    'confirm': '{{getMessage "confirm"}}',
-    'error': '{{getMessage "error"}}'
-  };
-
-  // 时间格式化函数
-  function formatTime(timestamp) {
-    {{if isLogin .}}
-      return moment.unix(timestamp).tz('{{getTimeZone .}}').format('YYYY-MM-DD HH:mm');
-    {{else}}
-      return moment.unix(timestamp).format('YYYY-MM-DD HH:mm');
-    {{end}}
-  }
-</script>
 ```
 
 ## 最佳实践
 
-### 1. 安全性
-
-- 始终使用模板函数而不是直接访问原始数据
-- 对用户输入使用`safeHTML`函数进行安全处理
-- 在JavaScript中注入数据时注意XSS防护
-
-### 2. 性能优化
-
-- 在模板顶部缓存常用的模板函数结果
-- 避免在循环中重复调用相同的模板函数
-- 使用条件判断减少不必要的函数调用
+### 1. 类型安全使用
 
 ```html
-<!-- 好的做法：缓存结果 -->
-{{$isLoggedIn := isLogin .}} {{$currentUserId := getUserID .}} {{if
-$isLoggedIn}} {{range .Data.Items}} {{if eq .UserId $currentUserId}}
-<!-- 当前用户的项目 -->
-{{end}} {{end}} {{end}}
+<!-- ✅ 正确：检查登录状态 -->
+{{if isLogin .}}
+<span>{{getUserName .}}</span>
+{{end}}
+
+<!-- ❌ 错误：未检查登录状态 -->
+<span>{{getUserName .}}</span>
 ```
 
-### 3. 错误处理
-
-- 使用条件判断检查函数返回值
-- 为模板函数提供默认值
-- 在关键位置添加错误提示
+### 2. 国际化最佳实践
 
 ```html
-{{$userName := getUserName .}} {{if $userName}}
-<span>欢迎，{{$userName}}</span>
+<!-- ✅ 正确：使用上下文语言 -->
+<h1>{{getMessage "page.title" .Context.Lang}}</h1>
+
+<!-- ✅ 正确：带默认值 -->
+<span>{{getMessageWithDefault "custom.message" .Context.Lang "默认文本"}}</span>
+
+<!-- ❌ 避免：硬编码语言 -->
+<h1>{{getMessage "page.title" "zh-CN"}}</h1>
+```
+
+### 3. 时间格式化最佳实践
+
+```html
+<!-- ✅ 正确：使用用户时区 -->
+{{if isLogin .}}
+<time>{{formatTime .Data.timestamp "2006-01-02 15:04" (getTimeZone .)}}</time>
 {{else}}
-<span>游客</span>
+<time>{{formatTime .Data.timestamp "2006-01-02 15:04"}}</time>
+{{end}}
+
+<!-- ✅ 正确：相对时间显示 -->
+<span class="time-ago">{{formatTime .Data.createTime "01-02 15:04"}}</span>
+```
+
+### 4. 性能优化
+
+```html
+<!-- ✅ 正确：缓存用户信息 -->
+{{if isLogin .}} {{$user := authUser .}}
+<div>用户名: {{$user.UserName}}</div>
+<div>邮箱: {{$user.Email}}</div>
+<div>头像: <img src="{{$user.FaceUrl}}" alt="{{$user.UserName}}" /></div>
+{{end}}
+
+<!-- ❌ 避免：重复调用函数 -->
+{{if isLogin .}}
+<div>用户名: {{getUserName .}}</div>
+<div>邮箱: {{getEmail .}}</div>
+<div>头像: <img src="{{getFaceUrl .}}" alt="{{getUserName .}}" /></div>
 {{end}}
 ```
 
-### 4. 国际化
+## 总结
 
-- 所有显示文本都使用`getMessage`函数
-- 时间格式化考虑用户时区
-- 数字和货币格式化遵循用户语言设置
+iDiary.ai Hebe的模板函数系统提供了以下优势：
 
-```html
-<p>
-  {{getMessage "created_at"}}: {{formatTime .CreateTime "2006-01-02"
-  (getTimeZone .)}}
-</p>
-```
+### 🚀 技术特性
 
-这套模板函数体系提供了完整的用户信息访问、数据格式化和国际化支持，确保了模板层的安全性和一致性。
+- **类型安全**: 基于Go 1.24泛型的PageData确保编译时类型检查
+- **模块化设计**: 函数按功能分类，便于维护和扩展
+- **国际化集成**: 完整的多语言支持，智能语言检测
+- **用户上下文**: 自动注入用户认证信息，安全访问
+
+### 🔧 开发友好
+
+- **简洁API**: 直观的函数命名和参数设计
+- **安全访问**: 自动处理未登录状态，避免空指针错误
+- **灵活配置**: 支持时区、语言等个性化设置
+- **组件化**: 支持模板组件化开发，代码复用
+
+### 📈 可扩展性
+
+- **插件化**: 模块化的函数注册机制，易于添加新功能
+- **统一管理**: 通过ViewService统一管理，确保一致性
+- **性能优化**: 合理的缓存策略和函数设计
+
+这套模板函数系统为iDiary.ai Hebe的前端开发提供了强大而灵活的工具，确保了开发效率和代码质量。

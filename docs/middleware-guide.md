@@ -1,589 +1,394 @@
-# 中间件系统详解
+# iDiary.ai Hebe 中间件系统详解
 
 ## 概述
 
-iDiary采用分层中间件架构，通过Gin框架的中间件机制实现请求预处理、错误处理、用户认证等功能。中间件按功能分为核心中间件（Core层）和业务中间件（Module层），确保关注点分离和职责清晰。
+iDiary.ai Hebe采用分层中间件架构，通过Gin框架的中间件机制实现请求预处理、错误处理、用户认证等功能。中间件按功能分为系统级中间件(Utils层)和业务级中间件(App层)，确保关注点分离和职责清晰，与DDD分层架构完美融合。
 
 ## 中间件分层架构
 
 ```
-Gin Request Pipeline
+HTTP Request
     ↓
-┌─────────────────────────────┐
-│    Core Middleware Layer    │  (核心中间件层)
-│  - PanicRecoveryMiddleware  │  ← 最优先级，捕获panic
-│  - AppErrorHandlerMiddleware│  ← 统一错误处理
-└─────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│          系统级中间件层 (Utils Layer)             │
+│   - utilsMiddleware.PanicRecovery()             │  ← 最高优先级，panic恢复
+│   - utilsMiddleware.AppErrorHandler()           │  ← 统一错误处理
+└─────────────────────────────────────────────────┘
     ↓
-┌─────────────────────────────┐
-│  Business Middleware Layer  │  (业务中间件层)
-│  - SharedData              │  ← 用户认证信息注入
-│  - AuthRequired            │  ← 认证检查
-│  - Permission              │  ← 权限验证
-└─────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│          业务级中间件层 (App Layer)               │
+│   - middleware.SharedData()                    │  ← 用户认证信息注入
+│   - middleware.AuthRequired()                  │  ← 认证检查（按需）
+└─────────────────────────────────────────────────┘
     ↓
-Handler Processing
+┌─────────────────────────────────────────────────┐
+│              控制器层 (Controller)                │
+│   - UserController, DiaryController, etc.      │
+└─────────────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────────────┐
+│               服务层 (Service)                   │
+│   - UserService, DiaryService, etc.            │
+└─────────────────────────────────────────────────┘
+    ↓
+HTTP Response (JSON/HTML)
 ```
 
-## 核心中间件详解
+## 系统级中间件详解
 
-### 1. PanicRecoveryMiddleware
+### 1. PanicRecovery 中间件
 
-**文件位置**: `internal/utils/middleware/recovery.go`
+**文件位置**: `internal/utils/middleware/panic.go`
 
-**职责**: 捕获和处理panic，防止应用崩溃
+**职责**: 捕获和处理运行时panic，防止应用崩溃
+
+**优先级**: 最高（第一个加载）
 
 ```go
-func PanicRecoveryMiddleware() gin.HandlerFunc {
+// PanicRecovery panic 恢复中间件
+// 捕获并处理运行时 panic，记录详细的错误信息和堆栈跟踪
+// 使用统一的错误响应格式
+func PanicRecovery() gin.HandlerFunc {
     return gin.CustomRecovery(func(c *gin.Context, recovered interface{}) {
-        // 记录详细的panic信息
-        slog.Error("panic recovered",
-            "panic", recovered,
-            "path", c.Request.URL.Path,
-            "method", c.Request.Method,
-            "client_ip", c.ClientIP(),
-            "user_agent", c.Request.UserAgent(),
-            "stack", string(debug.Stack()))
+        if recovered != nil {
+            // 记录 panic 详细信息
+            slog.Error("panic recovered",
+                "panic", recovered,
+                "path", c.Request.URL.Path,
+                "method", c.Request.Method,
+                "client_ip", c.ClientIP(),
+                "user_agent", c.Request.UserAgent(),
+                "stack", string(debug.Stack()))
 
-        // 返回统一的错误响应
-        errorResponse := gin.H{
-            "code":    1000,
-            "message": "系统内部错误",
-            "data":    nil,
+            // 使用统一的错误响应格式
+            internalErr := errors.InternalError
+            response := gin.H{
+                "code":    internalErr.Code,
+                "message": internalErr.Key,
+                "data":    nil,
+            }
+
+            c.JSON(http.StatusInternalServerError, response)
+            c.Abort()
         }
-
-        c.JSON(http.StatusInternalServerError, errorResponse)
     })
 }
 ```
 
 **特点**:
 
-- 捕获所有未处理的panic
-- 记录完整的调用堆栈
-- 返回用户友好的错误信息
-- 防止敏感信息泄露
+- **详细日志记录**: 记录panic内容、请求路径、客户端信息、完整堆栈
+- **统一错误格式**: 使用预定义的`InternalError`错误码
+- **优雅降级**: 防止整个应用崩溃，返回友好的错误响应
 
-### 2. AppErrorHandlerMiddleware
+### 2. AppErrorHandler 中间件
 
-**文件位置**: `internal/utils/middleware/error_handler.go`
+**文件位置**: `internal/utils/middleware/apperror.go`
 
-**职责**: 处理业务错误，统一错误响应格式
+**职责**: 处理通过`c.Error()`添加的业务错误和应用错误
+
+**优先级**: 系统级第二优先级
 
 ```go
-func AppErrorHandlerMiddleware() gin.HandlerFunc {
-    return gin.HandlerFunc(func(c *gin.Context) {
-        c.Next()
+// AppErrorHandler 应用错误处理中间件
+// 处理通过 c.Error() 添加的业务错误和应用错误
+// 使用统一的错误响应格式
+func AppErrorHandler() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        defer func() {
+            if len(c.Errors) > 0 {
+                lastError := c.Errors.Last()
 
-        // 处理c.Error()收集的错误
-        if len(c.Errors) > 0 {
-            err := c.Errors.Last()
+                // 处理 AppError 类型的业务错误
+                if appErr, ok := lastError.Err.(*errors.AppError); ok {
+                    logAppError(c, appErr)
+                    c.JSON(appErr.HttpCode, gin.H{
+                        "code":    appErr.Code,
+                        "message": appErr.Key,
+                        "data":    nil,
+                    })
+                    return
+                }
 
-            if appErr, ok := err.Err.(*errors.AppError); ok {
-                // 处理AppError类型错误
-                handleAppError(c, appErr)
-            } else {
-                // 处理其他类型错误
-                handleGenericError(c, err.Err)
+                // 处理其他类型的错误
+                slog.Error("未知应用错误",
+                    "error", lastError.Err.Error(),
+                    "path", c.Request.URL.Path,
+                    "method", c.Request.Method,
+                    "user_agent", c.Request.UserAgent(),
+                    "client_ip", c.ClientIP())
+
+                internalErr := errors.InternalError
+                c.JSON(http.StatusInternalServerError, gin.H{
+                    "code":    internalErr.Code,
+                    "message": internalErr.Key,
+                    "data":    nil,
+                })
             }
-        }
-    })
+        }()
+
+        c.Next()
+    }
 }
 
-func handleAppError(c *gin.Context, appErr *errors.AppError) {
-    // 记录错误日志
-    slog.Error("业务错误",
-        "code", appErr.Code,
-        "message", appErr.MsgKey,
-        "http_code", appErr.HttpCode,
+// logAppError 记录应用错误的详细信息
+func logAppError(c *gin.Context, err *errors.AppError) {
+    slog.Error("应用业务错误",
+        "error_code", err.Code,
+        "error_key", err.Key,
+        "http_code", err.HttpCode,
+        "method", c.Request.Method,
         "path", c.Request.URL.Path,
-        "method", c.Request.Method)
-
-    // 返回错误响应
-    c.JSON(appErr.HttpCode, gin.H{
-        "code":    appErr.Code,
-        "message": appErr.MsgKey,
-        "data":    nil,
-    })
+        "user_agent", c.Request.UserAgent(),
+        "client_ip", c.ClientIP(),
+        "details", err.Details)
 }
 ```
 
 **特点**:
 
-- 统一的错误响应格式
-- 结构化错误日志记录
-- 区分业务错误和系统错误
-- 支持国际化错误消息
+- **统一错误格式**: 支持AppError的4位错误码体系
+- **详细错误日志**: 记录错误码、HTTP状态码、请求信息、错误详情
+- **错误分类处理**: 区分AppError和普通错误，分别处理
+- **错误传播**: 不阻止错误向上传播，在defer中统一处理
 
-## 业务中间件详解
+## 业务级中间件详解
 
 ### 1. SharedData 中间件
 
-**文件位置**: `internal/module/user/middlewares.go`
+**文件位置**: `internal/app/middleware/user.go`
 
-**职责**: 注入用户认证信息到请求上下文
+**职责**: 解析用户登录信息并注入到上下文
+
+**优先级**: 业务级第一优先级
 
 ```go
+// SharedData 共享数据中间件
 func SharedData() gin.HandlerFunc {
     return func(c *gin.Context) {
-        // 从session或token中获取用户信息
-        authUser := getUserFromSession(c)
+        auth := user.NewAuthHelper(config.GetConfig())
+        // 解析用户登录信息
+        authUser := auth.ParseUserFromCookie(c)
 
+        // 注入登录状态和用户数据到上下文
         if authUser != nil {
-            // 注入认证用户信息到上下文
-            c.Set("auth_user", authUser)
-            c.Set("user_id", authUser.UserId)
-            c.Set("is_login", true)
+            c.Set("IsLogin", true)
+            c.Set("AuthUser", authUser)
         } else {
-            c.Set("is_login", false)
+            c.Set("IsLogin", false)
         }
 
         c.Next()
     }
 }
-
-func getUserFromSession(c *gin.Context) *AuthUser {
-    // 1. 尝试从JWT token获取
-    if token := c.GetHeader("Authorization"); token != "" {
-        if user := validateJWTToken(token); user != nil {
-            return user
-        }
-    }
-
-    // 2. 尝试从session获取
-    if sessionID := getSessionID(c); sessionID != "" {
-        if user := getSessionUser(sessionID); user != nil {
-            return user
-        }
-    }
-
-    // 3. 尝试从cookie获取记住我信息
-    if rememberToken := c.GetCookie("remember_token"); rememberToken != "" {
-        if user := validateRememberToken(rememberToken); user != nil {
-            return user
-        }
-    }
-
-    return nil
-}
 ```
 
 **特点**:
 
-- 支持多种认证方式（JWT、Session、Remember Token）
-- 自动注入用户信息到上下文
-- 为模板函数提供数据支持
-- 不阻断请求，只是注入信息
+- **用户状态注入**: 自动解析Cookie中的用户信息
+- **上下文共享**: 将用户数据注入到Gin上下文，供后续处理器使用
+- **状态标识**: 提供`IsLogin`布尔值和`AuthUser`对象
+- **无侵入性**: 不阻止请求继续，仅提供用户信息
 
 ### 2. AuthRequired 中间件
 
-**文件位置**: `internal/module/user/middlewares.go`
+**文件位置**: `internal/app/middleware/user.go`
 
-**职责**: 检查用户是否已认证，未认证则拦截请求
+**职责**: 检查用户是否已登录，未登录则拒绝访问
+
+**使用场景**: 保护需要登录的路由
 
 ```go
+// AuthRequired 需要登录访问的中间件
 func AuthRequired() gin.HandlerFunc {
+    auth := user.NewAuthHelper(config.GetConfig())
     return func(c *gin.Context) {
-        // 检查用户是否已登录
-        isLogin, exists := c.Get("is_login")
-        if !exists || !isLogin.(bool) {
-            // 根据请求类型返回不同响应
-            if isAPIRequest(c) {
-                // API请求返回JSON错误
-                c.JSON(http.StatusUnauthorized, gin.H{
-                    "code":    2001,
-                    "message": "未认证",
-                    "data":    nil,
-                })
-            } else {
-                // 页面请求重定向到登录页
-                redirectURL := c.Request.URL.Path
-                if c.Request.URL.RawQuery != "" {
-                    redirectURL += "?" + c.Request.URL.RawQuery
-                }
-
-                loginURL := "/login?redirect=" + url.QueryEscape(redirectURL)
-                c.Redirect(http.StatusTemporaryRedirect, loginURL)
-            }
-
+        if isAuth, _ := auth.IsAuthenticated(c); isAuth {
+            c.Next()
+        } else {
+            slog.Warn("User not authorized", "uri", c.Request.RequestURI)
+            c.HTML(http.StatusForbidden, "error", nil)
             c.Abort()
-            return
         }
-
-        c.Next()
     }
-}
-
-func isAPIRequest(c *gin.Context) bool {
-    // 检查请求头或路径来判断是否为API请求
-    contentType := c.GetHeader("Content-Type")
-    accept := c.GetHeader("Accept")
-    path := c.Request.URL.Path
-
-    return strings.Contains(contentType, "application/json") ||
-           strings.Contains(accept, "application/json") ||
-           strings.HasPrefix(path, "/api/")
 }
 ```
 
 **特点**:
 
-- 区分API请求和页面请求
-- API请求返回JSON错误
-- 页面请求重定向到登录页
-- 支持登录后跳转回原页面
+- **认证检查**: 使用AuthHelper验证用户登录状态
+- **访问控制**: 未登录用户无法访问受保护的路由
+- **友好错误页**: 返回HTML错误页面而非JSON响应
+- **日志记录**: 记录未授权访问尝试
 
-### 3. Permission 中间件
+## 中间件注册和加载顺序
 
-**文件位置**: `internal/module/user/middlewares.go`
-
-**职责**: 检查用户权限
-
-```go
-func Permission(requiredGroup int) gin.HandlerFunc {
-    return func(c *gin.Context) {
-        // 先检查是否已认证
-        isLogin, _ := c.Get("is_login")
-        if !isLogin.(bool) {
-            c.JSON(http.StatusUnauthorized, gin.H{
-                "code":    2001,
-                "message": "未认证",
-            })
-            c.Abort()
-            return
-        }
-
-        // 获取用户信息
-        authUser, exists := c.Get("auth_user")
-        if !exists {
-            c.JSON(http.StatusInternalServerError, gin.H{
-                "code":    1000,
-                "message": "系统错误",
-            })
-            c.Abort()
-            return
-        }
-
-        user := authUser.(*AuthUser)
-
-        // 检查用户组权限
-        if user.UserGroup < requiredGroup {
-            c.JSON(http.StatusForbidden, gin.H{
-                "code":    2003,
-                "message": "权限不足",
-            })
-            c.Abort()
-            return
-        }
-
-        c.Next()
-    }
-}
-
-// 使用示例
-func AdminRequired() gin.HandlerFunc {
-    return Permission(1) // 需要管理员权限
-}
-
-func ModeratorRequired() gin.HandlerFunc {
-    return Permission(2) // 需要版主权限
-}
-```
-
-## 中间件注册和使用
-
-### 1. 全局中间件注册
+### 在应用启动中的配置
 
 **文件位置**: `internal/app/startup/application.go`
 
 ```go
 func (a *Application) initGinServer() error {
+    gin.SetMode(a.config.App.GinMode)
     server := gin.New()
 
-    // 注册核心中间件（按顺序）
-    server.Use(middleware.PanicRecoveryMiddleware())   // 1. Panic恢复
-    server.Use(middleware.AppErrorHandlerMiddleware()) // 2. 错误处理
-    server.Use(user.SharedData())                      // 3. 用户数据注入
+    // 配置中间件链 - 严格按顺序加载
+    server.Use(utilsMiddleware.PanicRecovery())   // 1. panic恢复中间件
+    server.Use(utilsMiddleware.AppErrorHandler()) // 2. 应用错误处理中间件
+    server.Use(middleware.SharedData())           // 3. 共享数据中间件
 
-    // 设置路由
+    // 配置路由 - 通过DI容器创建控制器
     route.SetWithContainer(server, a.container)
 
     a.server = server
+    slog.Info("成功初始化Gin服务器")
     return nil
 }
 ```
 
-### 2. 路由组中间件使用
+### 中间件执行流程
 
-**文件位置**: `internal/app/route/router.go`
-
-```go
-func setupUserRoutes(router *gin.Engine, userHandler *user.Handler) {
-    // 公开路由（无需认证）
-    public := router.Group("/")
-    {
-        public.GET("/login", userHandler.ShowLoginForm)
-        public.POST("/login", userHandler.HandleLogin)
-        public.GET("/register", userHandler.ShowRegisterForm)
-        public.POST("/register", userHandler.HandleRegister)
-    }
-
-    // 需要认证的路由
-    auth := router.Group("/")
-    auth.Use(user.AuthRequired())
-    {
-        auth.GET("/u/:user_id", userHandler.ShowUserProfile)
-        auth.GET("/settings", userHandler.ShowSettings)
-        auth.POST("/settings", userHandler.UpdateSettings)
-        auth.POST("/logout", userHandler.HandleLogout)
-    }
-
-    // 管理员路由
-    admin := router.Group("/admin")
-    admin.Use(user.AuthRequired())
-    admin.Use(user.AdminRequired())
-    {
-        admin.GET("/users", userHandler.ListUsers)
-        admin.POST("/users/:id/disable", userHandler.DisableUser)
-        admin.POST("/users/:id/enable", userHandler.EnableUser)
-    }
-}
+```
+HTTP Request
+    ↓
+1. utilsMiddleware.PanicRecovery()
+   └── 捕获panic，防止应用崩溃
+    ↓
+2. utilsMiddleware.AppErrorHandler()
+   └── 处理业务错误，统一错误响应
+    ↓
+3. middleware.SharedData()
+   └── 解析用户信息，注入上下文
+    ↓
+4. middleware.AuthRequired() (可选，在特定路由使用)
+   └── 检查用户认证状态
+    ↓
+5. Controller Handler
+   └── 业务逻辑处理
+    ↓
+6. ViewService Response
+   └── 统一响应格式
 ```
 
-### 3. 单个路由中间件使用
+**执行顺序解释**:
 
-```go
-// 特定路由使用中间件
-router.GET("/sensitive-data",
-    user.AuthRequired(),
-    user.Permission(1),
-    handler.GetSensitiveData)
-
-// 链式中间件
-router.POST("/admin/action",
-    user.AuthRequired(),
-    user.AdminRequired(),
-    customLoggingMiddleware(),
-    handler.AdminAction)
-```
-
-## 自定义中间件开发
-
-### 1. 请求日志中间件
-
-```go
-func RequestLoggingMiddleware() gin.HandlerFunc {
-    return gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
-        var statusColor, methodColor, resetColor string
-        if param.IsOutputColor() {
-            statusColor = param.StatusCodeColor()
-            methodColor = param.MethodColor()
-            resetColor = param.ResetColor()
-        }
-
-        return fmt.Sprintf("%s[%s] %s \"%s %s %s %d %s\" %s\n%s",
-            statusColor, param.TimeStamp.Format("2006/01/02 - 15:04:05"),
-            methodColor, param.Method, resetColor,
-            param.Path,
-            param.StatusCode,
-            param.Latency,
-            param.ClientIP,
-            param.ErrorMessage,
-        )
-    })
-}
-```
-
-### 2. CORS中间件
-
-```go
-func CORSMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        origin := c.GetHeader("Origin")
-
-        // 检查是否允许该origin
-        if isAllowedOrigin(origin) {
-            c.Header("Access-Control-Allow-Origin", origin)
-        }
-
-        c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-        c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
-        c.Header("Access-Control-Allow-Credentials", "true")
-        c.Header("Access-Control-Max-Age", "86400")
-
-        if c.Request.Method == "OPTIONS" {
-            c.AbortWithStatus(http.StatusNoContent)
-            return
-        }
-
-        c.Next()
-    }
-}
-```
-
-### 3. 限流中间件
-
-```go
-func RateLimitMiddleware(limit int, window time.Duration) gin.HandlerFunc {
-    limiter := make(map[string]*rate.Limiter)
-    mu := sync.RWMutex{}
-
-    return func(c *gin.Context) {
-        ip := c.ClientIP()
-
-        mu.RLock()
-        l, exists := limiter[ip]
-        mu.RUnlock()
-
-        if !exists {
-            mu.Lock()
-            l = rate.NewLimiter(rate.Every(window), limit)
-            limiter[ip] = l
-            mu.Unlock()
-        }
-
-        if !l.Allow() {
-            c.JSON(http.StatusTooManyRequests, gin.H{
-                "code":    4001,
-                "message": "请求频率过高",
-            })
-            c.Abort()
-            return
-        }
-
-        c.Next()
-    }
-}
-```
+1. **PanicRecovery**: 最先执行，确保任何panic都能被捕获，防止应用崩溃
+2. **AppErrorHandler**: 第二执行，处理业务层抛出的错误，统一错误响应格式
+3. **SharedData**: 解析用户认证信息，为后续中间件和控制器提供用户上下文
+4. **AuthRequired**: 按需使用，在需要认证的路由上检查用户状态
 
 ## 中间件最佳实践
 
-### 1. 执行顺序
-
-中间件的执行顺序很重要，遵循以下原则：
-
-1. **Panic恢复** - 最先执行，确保能捕获所有panic
-2. **请求日志** - 记录所有请求
-3. **CORS处理** - 处理跨域请求
-4. **限流控制** - 防止滥用
-5. **用户认证** - 识别用户身份
-6. **权限检查** - 验证用户权限
-7. **业务中间件** - 具体业务逻辑
-
-### 2. 错误处理
+### 1. 错误处理模式
 
 ```go
-func MyMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        // 中间件逻辑
-        if err := doSomething(); err != nil {
-            // 使用统一错误处理
-            appErr := errors.NewAppError(1001, "middleware_error", http.StatusInternalServerError)
-            c.Error(appErr) // 传递给错误处理中间件
-            c.Abort()
-            return
-        }
+// 在控制器中使用中间件错误处理
+func (ctrl *UserController) UpdateProfile(c *gin.Context) {
+    user, err := ctrl.userService.GetCurrentUser(c)
+    if err != nil {
+        // 将错误传递给AppErrorHandler中间件处理
+        _ = c.Error(err)
+        return
+    }
 
+    // 业务逻辑...
+}
+```
+
+### 2. 用户信息获取模式
+
+```go
+// 在控制器中获取SharedData注入的用户信息
+func (ctrl *DiaryController) CreateDiary(c *gin.Context) {
+    // 从上下文获取用户信息
+    isLogin, _ := c.Get("IsLogin")
+    if !isLogin.(bool) {
+        err := errors.AuthRequired.Err()
+        _ = c.Error(err)
+        return
+    }
+
+    authUser, _ := c.Get("AuthUser")
+    user := authUser.(*user.AuthUser)
+
+    // 使用用户信息进行业务处理...
+}
+```
+
+### 3. 路由级中间件使用
+
+```go
+// 在路由注册时使用AuthRequired中间件
+func (ctrl *UserController) RegisterRoutes(router *gin.Engine) {
+    userGroup := router.Group("/user")
+
+    // 公开路由
+    userGroup.POST("/login", ctrl.Login)
+    userGroup.POST("/register", ctrl.Register)
+
+    // 需要认证的路由
+    authGroup := userGroup.Group("").Use(middleware.AuthRequired())
+    authGroup.GET("/profile", ctrl.GetProfile)
+    authGroup.PUT("/profile", ctrl.UpdateProfile)
+}
+```
+
+### 4. 中间件开发规范
+
+```go
+// 标准中间件函数签名
+func CustomMiddleware(params ...interface{}) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // 前置处理逻辑
+
+        // 调用下一个中间件/处理器
         c.Next()
+
+        // 后置处理逻辑（可选）
     }
 }
 ```
 
-### 3. 上下文数据传递
+## 性能考量
 
-```go
-func DataInjectionMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        // 注入数据到上下文
-        c.Set("request_id", generateRequestID())
-        c.Set("start_time", time.Now())
+### 1. 中间件性能优化
 
-        c.Next()
+- **减少内存分配**: 复用对象，避免频繁创建
+- **懒加载**: 只在需要时才进行复杂计算
+- **缓存策略**: 缓存频繁访问的数据（如用户信息）
 
-        // 请求结束后处理
-        duration := time.Since(c.GetTime("start_time"))
-        slog.Info("请求完成",
-            "request_id", c.GetString("request_id"),
-            "duration", duration)
-    }
-}
-```
+### 2. 执行顺序优化
 
-### 4. 性能优化
+- **系统级中间件优先**: 确保错误处理和panic恢复最先执行
+- **业务中间件后置**: 用户认证等业务逻辑在系统级中间件之后
+- **按需使用**: 只在需要的路由上使用AuthRequired等中间件
 
-```go
-func OptimizedMiddleware() gin.HandlerFunc {
-    // 预编译正则表达式
-    pathRegex := regexp.MustCompile(`^/api/v\d+/`)
+### 3. 日志性能
 
-    return func(c *gin.Context) {
-        // 快速路径匹配
-        if !pathRegex.MatchString(c.Request.URL.Path) {
-            c.Next()
-            return
-        }
+- **结构化日志**: 使用slog的零分配特性
+- **日志级别控制**: 生产环境减少DEBUG级别日志
+- **异步日志**: 避免日志记录阻塞请求处理
 
-        // 复杂逻辑只在匹配时执行
-        if err := complexLogic(c); err != nil {
-            c.Error(err)
-            c.Abort()
-            return
-        }
+## 总结
 
-        c.Next()
-    }
-}
-```
+iDiary.ai Hebe的中间件系统展现了以下特点：
 
-## 调试和监控
+### 🚀 架构优势
 
-### 1. 中间件执行追踪
+- **分层清晰**: 系统级中间件处理技术关注点，业务级中间件处理业务逻辑
+- **统一错误处理**: AppError体系与中间件完美集成
+- **高性能设计**: 基于slog的零分配日志，最小化中间件开销
 
-```go
-func TracingMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        startTime := time.Now()
-        middlewareName := "TracingMiddleware"
+### 🔧 开发友好
 
-        slog.Debug("中间件开始",
-            "middleware", middlewareName,
-            "path", c.Request.URL.Path)
+- **简洁API**: 清晰的中间件注册和使用方式
+- **上下文共享**: 自动注入用户信息，简化控制器开发
+- **类型安全**: 结合DI容器提供编译时类型安全
 
-        c.Next()
+### 📈 可扩展性
 
-        duration := time.Since(startTime)
-        slog.Debug("中间件结束",
-            "middleware", middlewareName,
-            "duration", duration,
-            "status", c.Writer.Status())
-    }
-}
-```
+- **可插拔设计**: 中间件可以根据需要灵活添加或移除
+- **标准化接口**: 遵循Gin中间件规范，易于集成第三方中间件
+- **模块化架构**: 与DDD分层架构完美融合
 
-### 2. 性能监控
-
-```go
-func PerformanceMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        start := time.Now()
-
-        c.Next()
-
-        duration := time.Since(start)
-
-        // 记录慢请求
-        if duration > 1*time.Second {
-            slog.Warn("慢请求检测",
-                "path", c.Request.URL.Path,
-                "method", c.Request.Method,
-                "duration", duration,
-                "status", c.Writer.Status())
-        }
-
-        // 发送到监控系统
-        sendMetrics(c.Request.URL.Path, c.Request.Method, duration, c.Writer.Status())
-    }
-}
-```
-
-这套中间件系统为iDiary提供了完整的请求处理流程控制，确保了安全性、可维护性和性能监控。
+这套中间件系统为iDiary.ai Hebe提供了坚实的技术基础，确保了系统的稳定性、可维护性和可扩展性。
