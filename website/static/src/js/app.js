@@ -112,7 +112,7 @@ $(() => {
   $.ajaxSetup({
     beforeSend: (xhr, settings) => {
       // 显示加载指示器
-      kiko.ui.notify.loading(true);
+      kiko.ui.notify.loading(true,'progressbar');
 
       // 只处理POST请求，寻找当前活动表单并禁用
       if (settings.type === 'POST') {

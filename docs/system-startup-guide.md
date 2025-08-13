@@ -4,6 +4,11 @@
 
 iDiary.ai Hebe采用基于DDD分层架构的启动体系，通过核心初始化器(Initializer)和应用启动器(Application)实现清晰的职责分离。系统使用Go 1.24泛型DI容器管理服务生命周期，统一错误处理机制确保启动过程的可靠性和可追踪性。
 
+**配置系统优化亮点**：
+- **消除全局变量**: 通过DI容器注入配置，取代传统的全局访问模式
+- **依赖明确化**: 配置依赖在构造函数中明确声明，提升代码可读性
+- **测试友好**: 支持模拟配置注入，大幅提升代码可测试性
+
 ## 启动流程架构图
 
 ```
@@ -103,16 +108,22 @@ func (i *Initializer) initDatabase() error {
 }
 ```
 
-#### 2.3 Go 1.24泛型DI容器初始化
+#### 2.3 Go 1.24泛型DI容器与配置注入
+
+**配置注入流程**:
 
 ```go
 func (i *Initializer) initContainer() error {
     // 初始化DI容器
     i.container = di.New()
 
-    // 注册配置到DI容器
-    if err := di.Value(i.container, i.config); err != nil {
-        return errors.DIServiceAlreadyRegistered.WithDetails("注册配置到DI容器失败: " + err.Error())
+    // 将配置对象注册为预创建实例到DI容器
+    // 这是配置系统优化的核心：通过DI容器管理配置生命周期
+    if !di.Has[*config.Config](i.container) {
+        if err := di.Value(i.container, i.config); err != nil {
+            return errors.DIServiceAlreadyRegistered.WithDetails(
+                "注册配置到DI容器失败: " + err.Error())
+        }
     }
 
     slog.Info("成功初始化DI容器并注册配置")
@@ -120,11 +131,12 @@ func (i *Initializer) initContainer() error {
 }
 ```
 
-**核心初始化器特点**：
+**配置注入优势**:
 
-- **配置驱动**: 基于Viper的配置管理，支持多环境配置
-- **错误安全**: 使用统一错误处理，详细的错误信息和上下文
-- **DI容器**: 零反射的Go 1.24泛型DI容器，编译时类型安全
+- **依赖反转**: 配置通过DI容器注入，而非全局变量访问
+- **生命周期管理**: DI容器统一管理配置对象的创建和分发
+- **测试友好**: 可在测试中轻松注入模拟配置对象
+- **松耦合**: 组件间通过接口依赖配置，而非直接访问全局状态
 
 ### 阶段3：应用层组件初始化
 
@@ -132,37 +144,32 @@ func (i *Initializer) initContainer() error {
 
 应用启动器(Application)负责应用层组件的初始化，包括服务注册、中间件配置和HTTP服务器设置：
 
-#### 3.1 应用层服务注册
+#### 3.1 应用层服务注册与配置注入
 
 ```go
 func (a *Application) registerAppServices() error {
-    // 注册ViewService为单例 - 全局共享视图服务
-    if err := di.Singleton(a.container, func() *view.ViewService {
-        return view.NewViewService(a.config)
-    }); err != nil {
-        return errors.DIServiceAlreadyRegistered.WithDetails("注册ViewService失败: " + err.Error())
-    }
-
-    // 注册AuthHelper为单例 - 全局共享认证助手
-    if err := di.Singleton(a.container, func() *user.AuthHelper {
-        return user.NewAuthHelper(a.config)
-    }); err != nil {
-        return errors.DIServiceAlreadyRegistered.WithDetails("注册AuthHelper失败: " + err.Error())
-    }
-
-    // 创建仓储实例 - 预创建避免循环依赖
+    // 创建 I18nManager 实例，通过构造函数注入配置
+    i18nManager := i18n.NewLocalizationManager(a.config)
+    di.Value(a.container, i18nManager)
+    
+    // 创建 ViewService 实例，注入配置和i18nManager
+    viewService := view.NewViewService(a.config, i18nManager)
+    di.Value(a.container, viewService)
+    
+    // 创建仓储实例
     userRepo := repository.NewUserRepository()
     taskRepo := repository.NewTaskRepository()
     diaryRepo := repository.NewDiaryRepository()
     postRepo := repository.NewPostRepository(database.GetDB())
-
-    // 创建服务实例 - 按依赖顺序创建
+    
+    // 创建领域服务实例 - 配置通过构造函数注入
+    // 这是配置系统优化的体现：明确的依赖注入而非全局访问
     taskService := task.NewService(a.config, taskRepo)
     userService := user.NewService(a.config, userRepo, taskService)
     diaryService := diary.NewService(a.config, diaryRepo)
     postService := post.NewService(a.config, userRepo, taskService, diaryRepo, postRepo)
-
-    // 注册为预创建实例到DI容器
+    
+    // 注册为预创建实例到DI容器，避免循环依赖
     di.Value(a.container, userRepo)
     di.Value(a.container, taskRepo)
     di.Value(a.container, diaryRepo)
@@ -172,10 +179,22 @@ func (a *Application) registerAppServices() error {
     di.Value(a.container, diaryService)
     di.Value(a.container, postService)
 
+    // 注册 AuthHelper 为单例服务
+    di.Singleton(a.container, func() *user.AuthHelper {
+        return user.NewAuthHelper(a.config)
+    })
+
     slog.Info("成功注册应用层服务")
     return nil
 }
 ```
+
+**配置注入模式优势**:
+
+1. **明确依赖**: 每个服务的配置依赖在构造函数中明确声明
+2. **无全局状态**: 避免了 `config.GetConfig()` 的全局访问
+3. **测试友好**: 可在测试中轻松注入模拟配置
+4. **依赖透明**: 组件间的依赖关系清晰可见
 
 #### 3.2 Cookie配置
 

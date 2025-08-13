@@ -93,23 +93,39 @@ if di.Has[*view.ViewService](container) {
 注册预创建的实例，适用于配置对象、常量等
 
 ```go
-// 注册预创建实例 - 配置对象在启动时已创建好
-config := config.GetConfig() // 获取应用配置
-err := di.Value(container, config)
-if err != nil {
-    log.Fatal("注册失败:", err)
+// 注册预创建实例 - 配置对象在核心初始化阶段创建
+// 在 internal/core/initializer/initializer.go 中注册配置
+func (i *Initializer) initContainer() error {
+    i.container = di.New()
+    
+    // 将配置注册为预创建实例到DI容器
+    if err := di.Value(i.container, i.config); err != nil {
+        return errors.DIServiceAlreadyRegistered.WithDetails(
+            "注册配置到DI容器失败: " + err.Error())
+    }
+    
+    slog.Info("成功初始化DI容器并注册配置")
+    return nil
 }
 
-// 注册多个预创建的仓储实例
-userRepo := repository.NewUserRepository()
-taskRepo := repository.NewTaskRepository()
-di.Value(container, userRepo)
-di.Value(container, taskRepo)
+// 应用层服务通过构造函数接收配置注入
+func (a *Application) registerAppServices() error {
+    // 创建服务实例时注入配置
+    taskService := task.NewService(a.config, taskRepo)
+    userService := user.NewService(a.config, userRepo, taskService)
+    diaryService := diary.NewService(a.config, diaryRepo)
+    
+    // 注册服务到DI容器
+    di.Value(a.container, taskService)
+    di.Value(a.container, userService) 
+    di.Value(a.container, diaryService)
+    return nil
+}
 
-// 直接返回预注册实例，无需创建
+// 从DI容器获取配置对象
 appConfig := di.Get[*config.Config](container)
-userRepository := di.Get[*repository.UserRepository](container)
-// appConfig == config, userRepository == userRepo
+userService := di.Get[*user.Service](container)
+// 配置已通过构造函数注入到userService中
 ```
 
 ### 服务获取
@@ -198,6 +214,169 @@ func TestUserService(t *testing.T) {
 ```go
 // 检查服务是否已注册，避免获取不存在的服务
 if di.Has[*view.ViewService](container) {
+    viewService := di.Get[*view.ViewService](container)
+    // 使用服务
+}
+```
+
+## 🔧 配置系统集成
+
+### 配置对象注入模式
+
+iDiary采用配置对象注入模式，通过DI容器统一管理配置的生命周期和依赖关系，消除了全局变量的使用，提升了代码的可测试性和松耦合性。
+
+#### 配置注册流程
+
+```go
+// 1. 核心初始化阶段注册配置 (internal/core/initializer/initializer.go)
+func (i *Initializer) initContainer() error {
+    // 创建DI容器
+    i.container = di.New()
+    
+    // 将配置作为预创建实例注册到容器
+    if !di.Has[*config.Config](i.container) {
+        if err := di.Value(i.container, i.config); err != nil {
+            return errors.DIServiceAlreadyRegistered.WithDetails(
+                "注册配置到DI容器失败: " + err.Error())
+        }
+    }
+    
+    return nil
+}
+
+// 2. 应用层服务创建时注入配置
+func (a *Application) registerAppServices() error {
+    // 通过构造函数注入配置到领域服务
+    taskService := task.NewService(a.config, taskRepo)
+    userService := user.NewService(a.config, userRepo, taskService)
+    diaryService := diary.NewService(a.config, diaryRepo)
+    
+    // 注册服务实例到DI容器
+    di.Value(a.container, taskService)
+    di.Value(a.container, userService)
+    di.Value(a.container, diaryService)
+    
+    return nil
+}
+```
+
+#### 服务构造函数设计
+
+```go
+// 领域服务构造函数 - 明确配置依赖
+type UserService struct {
+    config *config.Config
+    repo   user.RepositoryInterface
+    taskService *task.Service
+}
+
+func NewUserService(config *config.Config, repo user.RepositoryInterface, 
+                   taskService *task.Service) *UserService {
+    return &UserService{
+        config:      config,  // 配置通过构造函数注入
+        repo:        repo,
+        taskService: taskService,
+    }
+}
+
+// 使用注入的配置
+func (s *UserService) CreateUser(user *User) error {
+    // 直接使用注入的配置，无需全局访问
+    if len(user.Password) < s.config.User.PwdMinLen {
+        return errors.New("密码长度不足")
+    }
+    if len(user.Password) > s.config.User.PwdMaxLen {
+        return errors.New("密码长度超限")
+    }
+    // 其他业务逻辑...
+}
+```
+
+#### 控制器层配置获取
+
+```go
+// 控制器通过DI容器获取配置依赖 (internal/app/route/router.go)
+func createUserController(container *di.Container) *controller.UserController {
+    // 从DI容器获取所有依赖
+    config := di.Get[*config.Config](container)
+    userService := di.Get[*user.Service](container)
+    authHelper := di.Get[*user.AuthHelper](container)
+    renderService := di.Get[*view.ViewService](container)
+    
+    // 通过构造函数注入依赖
+    return controller.NewUserController(config, userService, authHelper, renderService)
+}
+
+// 控制器构造函数
+func NewUserController(config *config.Config, service *user.Service,
+                      authHelper *user.AuthHelper, renderService *view.ViewService) *UserController {
+    return &UserController{
+        config:        config,        // 配置对象注入
+        service:       service,       // 业务服务注入
+        authHelper:    authHelper,    // 认证助手注入
+        renderService: renderService, // 渲染服务注入
+    }
+}
+```
+
+### 配置注入优势
+
+#### 1. 依赖关系明确化
+
+```go
+// ✅ 推荐：明确配置依赖
+type PostService struct {
+    config       *config.Config  // 配置依赖清晰可见
+    repo         RepositoryInterface
+    userService  *user.Service
+}
+
+// ❌ 避免：隐式全局配置访问
+func (s *PostService) CreatePost(post *Post) error {
+    config := config.GetConfig()  // 隐式依赖，难以追踪
+    // ...
+}
+```
+
+#### 2. 测试友好性
+
+```go
+// 单元测试中的配置注入
+func TestUserService_CreateUser(t *testing.T) {
+    // 创建测试专用配置
+    testConfig := &config.Config{
+        User: config.UserConfig{
+            PwdMinLen: 6,
+            PwdMaxLen: 20,
+        },
+    }
+    
+    // 注入测试配置到服务
+    service := user.NewService(testConfig, mockRepo, mockTaskService)
+    
+    // 测试业务逻辑
+    user := &user.User{Password: "123"}  // 密码过短
+    err := service.CreateUser(user)
+    
+    assert.Error(t, err)
+    assert.Contains(t, err.Error(), "密码长度不足")
+}
+```
+
+#### 3. 生命周期管理
+
+```go
+// 配置对象生命周期由DI容器统一管理
+// 1. 在初始化阶段注册为预创建实例
+// 2. 服务创建时注入配置引用
+// 3. 全局唯一，避免重复创建
+// 4. 线程安全，支持并发访问
+
+// 从容器获取配置 - 始终返回同一实例
+config1 := di.Get[*config.Config](container)
+config2 := di.Get[*config.Config](container)
+// config1 == config2 (同一对象引用)
+```
     viewService := di.Get[*view.ViewService](container)
     pageData := viewService.CreatePageData(c, "page.title")
 } else {
