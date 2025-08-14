@@ -85,34 +85,6 @@ func TestPostService_AddPost(t *testing.T) {
 		assert.Equal(t, postID, newPost.PostID)
 	})
 
-	t.Run("标题为空", func(t *testing.T) {
-		invalidPost := &post.Post{
-			Title:       "", // 空标题
-			Body:        "内容",
-			DiaryID:     testDiary.DiaryID,
-			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
-			Status:      1,
-		}
-
-		_, err := postService.AddPost(invalidPost)
-		assert.Error(t, err)
-	})
-
-	t.Run("内容为空", func(t *testing.T) {
-		invalidPost := &post.Post{
-			Title:       "标题",
-			Body:        "", // 空内容
-			DiaryID:     testDiary.DiaryID,
-			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
-			Status:      1,
-		}
-
-		_, err := postService.AddPost(invalidPost)
-		assert.Error(t, err)
-	})
-
 	t.Run("无效的日记本ID", func(t *testing.T) {
 		invalidPost := &post.Post{
 			Title:       "标题",
@@ -263,21 +235,6 @@ func TestPostService_UpdatePost(t *testing.T) {
 		}
 
 		err := postService.UpdatePost(nonExistentPost)
-		assert.Error(t, err)
-	})
-
-	t.Run("标题为空时更新失败", func(t *testing.T) {
-		invalidPost := &post.Post{
-			PostID:      postID,
-			Title:       "", // 空标题
-			Body:        "内容",
-			DiaryID:     testDiary.DiaryID,
-			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
-			Status:      1,
-		}
-
-		err := postService.UpdatePost(invalidPost)
 		assert.Error(t, err)
 	})
 

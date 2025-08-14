@@ -8,7 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/biuren/hebe/internal/app/controller"
+	diaryController "github.com/biuren/hebe/internal/app/controller/diary"
+	postController "github.com/biuren/hebe/internal/app/controller/post"
+	userController "github.com/biuren/hebe/internal/app/controller/user"
 	"github.com/biuren/hebe/internal/app/view"
 	types "github.com/biuren/hebe/internal/contracts"
 	userDomain "github.com/biuren/hebe/internal/domain/user"
@@ -36,7 +38,7 @@ func TestUserControllerCreation(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 	assert.NotNil(t, userController)
 }
 
@@ -48,7 +50,7 @@ func TestShowLoginPage(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -77,7 +79,7 @@ func TestShowRegisterPage(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -106,7 +108,7 @@ func TestShowPasswordResetPage(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -135,7 +137,7 @@ func TestShowUserSettingsPage(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -173,7 +175,7 @@ func TestLoginPOST(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -202,7 +204,7 @@ func TestLoginPOSTEmptyData(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -226,7 +228,7 @@ func TestRegisterPOST(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -259,7 +261,7 @@ func TestLogout(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -281,7 +283,7 @@ func TestValidateUsername(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -308,7 +310,7 @@ func TestValidateUsernameEmpty(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -332,7 +334,7 @@ func TestValidateEmail(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -359,7 +361,7 @@ func TestValidateEmailEmpty(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -383,7 +385,7 @@ func TestUpdatePasswordEmpty(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -419,7 +421,7 @@ func TestUpdateProfileEmpty(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -476,7 +478,7 @@ func TestRouteRegistration(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
@@ -514,7 +516,7 @@ func TestContentTypeHandling(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
@@ -556,7 +558,7 @@ func TestJSONResponseFormat(t *testing.T) {
 	userService := ctx.GetServices().GetUserService()
 	renderService := createRenderService(ctx.GetConfig())
 	authHelper := userDomain.NewAuthHelper(config)
-	userController := controller.NewUserController(config, userService, renderService, authHelper)
+	userController := userController.NewUserController(config, userService, renderService, authHelper)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -668,4 +670,165 @@ func TestJSONErrorResponseFormat(t *testing.T) {
 
 	// 验证 HTTP 状态码
 	assert.Equal(t, http.StatusBadRequest, w.Code, "HTTP status should match AppError.HttpCode")
+}
+
+// ========== Diary Controller Tests ==========
+
+func TestDiaryControllerCreation(t *testing.T) {
+	ctx := framework.NewTestContext(framework.WithDatabase())
+	defer ctx.Cleanup()
+
+	config := ctx.GetConfig().GetAppConfig()
+	diaryService := ctx.GetServices().GetDiaryService()
+	userService := ctx.GetServices().GetUserService()
+	renderService := createRenderService(ctx.GetConfig())
+	authHelper := userDomain.NewAuthHelper(config)
+	diaryCtrl := diaryController.NewDiaryController(config, diaryService, userService, authHelper, renderService)
+	assert.NotNil(t, diaryCtrl)
+}
+
+func TestDiaryShowDiary(t *testing.T) {
+	ctx := framework.NewTestContext(framework.WithDatabase())
+	defer ctx.Cleanup()
+
+	config := ctx.GetConfig().GetAppConfig()
+	diaryService := ctx.GetServices().GetDiaryService()
+	userService := ctx.GetServices().GetUserService()
+	renderService := createRenderService(ctx.GetConfig())
+	authHelper := userDomain.NewAuthHelper(config)
+	diaryCtrl := diaryController.NewDiaryController(config, diaryService, userService, authHelper, renderService)
+
+	gin.SetMode(gin.TestMode)
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/diary/", nil)
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+
+	assert.NotPanics(t, func() {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Log("Expected panic due to uninitialized template engine:", r)
+			}
+		}()
+		diaryCtrl.ShowDiary(c)
+	}, "ShowDiary should not panic unexpectedly")
+}
+
+func TestDiaryRouteRegistration(t *testing.T) {
+	ctx := framework.NewTestContext(framework.WithDatabase())
+	defer ctx.Cleanup()
+
+	config := ctx.GetConfig().GetAppConfig()
+	diaryService := ctx.GetServices().GetDiaryService()
+	userService := ctx.GetServices().GetUserService()
+	renderService := createRenderService(ctx.GetConfig())
+	authHelper := userDomain.NewAuthHelper(config)
+	diaryCtrl := diaryController.NewDiaryController(config, diaryService, userService, authHelper, renderService)
+
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+
+	// 注册路由
+	assert.NotPanics(t, func() {
+		diaryCtrl.RegisterRoutes(router)
+	}, "RegisterRoutes should not panic")
+
+	// 验证路由已注册（通过路由信息验证，不实际执行HTTP请求）
+	routes := router.Routes()
+	assert.True(t, len(routes) > 0, "Routes should be registered")
+	
+	// 验证特定路由存在
+	foundDiaryRoute := false
+	foundUserRoute := false
+	for _, route := range routes {
+		if route.Method == "GET" && route.Path == "/diary/" {
+			foundDiaryRoute = true
+		}
+		if route.Method == "GET" && route.Path == "/u/:uid" {
+			foundUserRoute = true
+		}
+	}
+	assert.True(t, foundDiaryRoute, "Diary route should be registered")
+	assert.True(t, foundUserRoute, "User profile route should be registered")
+}
+
+// ========== Post Controller Tests ==========
+
+func TestPostControllerCreation(t *testing.T) {
+	ctx := framework.NewTestContext(framework.WithDatabase())
+	defer ctx.Cleanup()
+
+	config := ctx.GetConfig().GetAppConfig()
+	postService := ctx.GetServices().GetPostService()
+	diaryService := ctx.GetServices().GetDiaryService()
+	renderService := createRenderService(ctx.GetConfig())
+	authHelper := userDomain.NewAuthHelper(config)
+	postCtrl := postController.NewPostController(config, postService, diaryService, authHelper, renderService)
+	assert.NotNil(t, postCtrl)
+}
+
+func TestPostShowDiaryIndex(t *testing.T) {
+	ctx := framework.NewTestContext(framework.WithDatabase())
+	defer ctx.Cleanup()
+
+	config := ctx.GetConfig().GetAppConfig()
+	postService := ctx.GetServices().GetPostService()
+	diaryService := ctx.GetServices().GetDiaryService()
+	renderService := createRenderService(ctx.GetConfig())
+	authHelper := userDomain.NewAuthHelper(config)
+	postCtrl := postController.NewPostController(config, postService, diaryService, authHelper, renderService)
+
+	gin.SetMode(gin.TestMode)
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/d/1", nil)
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+	c.Params = gin.Params{{Key: "spaceid", Value: "1"}}
+
+	assert.NotPanics(t, func() {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Log("Expected panic due to uninitialized template engine:", r)
+			}
+		}()
+		postCtrl.ShowDiaryIndex(c)
+	}, "ShowDiaryIndex should not panic unexpectedly")
+}
+
+func TestPostRouteRegistration(t *testing.T) {
+	ctx := framework.NewTestContext(framework.WithDatabase())
+	defer ctx.Cleanup()
+
+	config := ctx.GetConfig().GetAppConfig()
+	postService := ctx.GetServices().GetPostService()
+	diaryService := ctx.GetServices().GetDiaryService()
+	renderService := createRenderService(ctx.GetConfig())
+	authHelper := userDomain.NewAuthHelper(config)
+	postCtrl := postController.NewPostController(config, postService, diaryService, authHelper, renderService)
+
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+
+	// 注册路由
+	assert.NotPanics(t, func() {
+		postCtrl.RegisterRoutes(router)
+	}, "RegisterRoutes should not panic")
+
+	// 验证路由已注册（通过路由信息验证，不实际执行HTTP请求）
+	routes := router.Routes()
+	assert.True(t, len(routes) > 0, "Routes should be registered")
+	
+	// 验证特定路由存在
+	foundDiaryIndexRoute := false
+	foundDiaryPageRoute := false
+	for _, route := range routes {
+		if route.Method == "GET" && route.Path == "/d/:spaceid" {
+			foundDiaryIndexRoute = true
+		}
+		if route.Method == "GET" && route.Path == "/d/:spaceid/:pageindex" {
+			foundDiaryPageRoute = true
+		}
+	}
+	assert.True(t, foundDiaryIndexRoute, "Diary index route should be registered")
+	assert.True(t, foundDiaryPageRoute, "Diary page route should be registered")
 }

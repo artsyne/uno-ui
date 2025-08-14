@@ -99,11 +99,6 @@ func (s *Service) DeletePostByID(postID int64) error {
 
 // validatePost 验证文章参数
 func (s *Service) validatePost(post *Post) error {
-	// 验证标题
-	if post.Title == "" {
-		return errors.InvalidParams.WithDetails("标题不能为空")
-	}
-
 	// 验证内容
 	if post.Body == "" {
 		return errors.InvalidParams.WithDetails("内容不能为空")
