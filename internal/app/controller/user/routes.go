@@ -16,7 +16,7 @@ func (ctrl *UserController) RegisterRoutes(router *gin.Engine) {
 	router.GET("/login", ctrl.ShowLoginPage)
 	router.POST("/login", ctrl.Login)
 
-	router.POST("/loginout", ctrl.Logout)
+	router.GET("/loginout", ctrl.Logout)
 
 	router.GET("/findpwd", ctrl.ShowPasswordResetPage)
 	router.POST("/findpwd", ctrl.RequestPasswordReset)

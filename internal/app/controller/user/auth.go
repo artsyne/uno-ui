@@ -91,5 +91,5 @@ func (ctrl *UserController) Register(c *gin.Context) {
 func (ctrl *UserController) Logout(c *gin.Context) {
 	// 清除登录cookie
 	pkg.DelCookie(c.Writer, "ud")
-	c.Redirect(http.StatusFound, "/passport/login")
+	c.Redirect(http.StatusFound, "/index")
 }

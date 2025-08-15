@@ -3,16 +3,16 @@
 <div class="px-4">
     <form id="daybook_editor_form">
         <div class="block mb-4">
-            <label class="form-title">日记本名称 *</label>
+            <label class="form-title">{{getMessage "diary.form.name_required" .Context.Lang}} *</label>
             <input type="text" class="form-control" id="title" name="title"
-                valid='[{"type":"required"},{"type":"limit","min":1,"max":100}]' placeholder="日记本名称" {{if
+                valid='[{"type":"required"},{"type":"limit","min":1,"max":100}]' placeholder="{{getMessage "diary.form.name_required" .Context.Lang}}" {{if
                 .Data.Diary}}value="{{.Data.Diary.Title}}" {{end}}>
             <div class="invalid-feedback"></div>
         </div>
         <div class="block mb-4">
-            <label class="form-title">日记本介绍</label>
+            <label class="form-title">{{getMessage "diary.form.description" .Context.Lang}}</label>
             <textarea class="form-control" valid='[{"type":"limit","max":250,"show":true}]' id="remark" name="remark"
-                placeholder="日记本介绍" style="height: 80px">{{if .Data.Diary}}{{.Data.Diary.Remark}}{{end}}</textarea>
+                placeholder="{{getMessage "diary.form.description" .Context.Lang}}" style="height: 80px">{{if .Data.Diary}}{{.Data.Diary.Remark}}{{end}}</textarea>
             <div class="invalid-feedback"></div>
         </div>
         <div class="block mb-4">
@@ -21,15 +21,15 @@
                     <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Data.Diary (eq .Data.Diary.ViewSetting
                         2)}}checked{{else if not .Data.Diary}}checked{{end}} name="view_setting" id="daybook_view_setting1"
                         value="2">
-                    <label class="text-sm" for="daybook_view_setting1">私人日记本</label>
+                    <label class="text-sm" for="daybook_view_setting1">{{getMessage "diary.form.privacy_private" .Context.Lang}}</label>
                 </div>
                 <div class="flex items-center">
                     <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Data.Diary (eq .Data.Diary.ViewSetting
                         1)}}checked{{end}} name="view_setting" id="daybook_view_setting2" value="1">
-                    <label class="text-sm" for="daybook_view_setting2">公开日记本</label>
+                    <label class="text-sm" for="daybook_view_setting2">{{getMessage "diary.form.privacy_public" .Context.Lang}}</label>
                 </div>
             </div>
-            <p class="text-red-500 text-xs">默认为私人日记本，仅自己与该日记本其它作者可浏览，否则公开日记本</p>
+            <p class="text-red-500 text-xs">{{getMessage "diary.form.privacy_note" .Context.Lang}}</p>
         </div>
         <div class="block mb-4">
             <div class="flex items-center space-x-4 mb-2">
@@ -37,19 +37,19 @@
                     <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Data.Diary (eq
                         .Data.Diary.SocialSetting 2)}}checked{{else if not .Data.Diary}}checked{{end}} name="social_setting"
                         id="daybook_social_setting1" value="2">
-                    <label class="text-sm" for="daybook_social_setting1">关闭社交功能</label>
+                    <label class="text-sm" for="daybook_social_setting1">{{getMessage "diary.form.social_disabled" .Context.Lang}}</label>
                 </div>
                 <div class="flex items-center">
                     <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Data.Diary (eq
                         .Data.Diary.SocialSetting 1)}}checked{{end}} name="social_setting" id="daybook_social_setting2"
                         value="1">
-                    <label class="text-sm" for="daybook_social_setting2">开启社交功能</label>
+                    <label class="text-sm" for="daybook_social_setting2">{{getMessage "diary.form.social_enabled" .Context.Lang}}</label>
                 </div>
             </div>
-            <p class="text-red-500 text-xs">默认为关闭社交功能，关闭评论、点赞功能</p>
+            <p class="text-red-500 text-xs">{{getMessage "diary.form.social_note" .Context.Lang}}</p>
         </div>
         <div class="block mb-4">
-            <label class="form-title mb-2 block">选择风格</label>
+            <label class="form-title mb-2 block">{{getMessage "diary.form.style_selection" .Context.Lang}}</label>
             <div class="d-theme flex flex-wrap gap-3 py-2">
                 {{$selectedTheme := 16}}
                 {{if .Data.Diary}}

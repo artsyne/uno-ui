@@ -16,43 +16,43 @@
     <section class="mb-10">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div>
-                <h1 class="card-title">个人介绍</h1>
+                <h1 class="card-title">{{getMessage "member.profile.introduction" .Context.Lang}}</h1>
                 <div>{{ .Data.User.Remark }}</div>
             </div>
             <div>
-                <h1 class="card-title">目录</h1>
+                <h1 class="card-title">{{getMessage "member.profile.menu" .Context.Lang}}</h1>
                 <div>
                     <ul class="text-black">
                         <li class="py-1">
                             <a href="#">
                                 <i class="mdi mdi-book-outline"></i>
-                                <span>最新公开日记</span>
+                                <span>{{getMessage "member.profile.latest_public_diary" .Context.Lang}}</span>
                             </a>
                         </li>
                         <li class="py-1">
                             <a href="#">
                                 <i class="mdi mdi-book-multiple"></i>
-                                <span>加入日记本</span>
+                                <span>{{getMessage "member.profile.joined_diaries" .Context.Lang}}</span>
                             </a>
                         </li>
                     </ul>
                 </div>
             </div>
             <div class="lg:col-span-2">
-                <h1 class="card-title">我的应用</h1>
+                <h1 class="card-title">{{getMessage "member.profile.my_apps" .Context.Lang}}</h1>
                 <div>
-                    应用列表
+                    {{getMessage "member.profile.app_list" .Context.Lang}}
                 </div>
             </div>
         </div>
     </section>
 
     <section class="flex justify-between mb-10">
-        <div class="text-lg">日记本</div>
+        <div class="text-lg">{{getMessage "member.profile.diary_notebook" .Context.Lang}}</div>
         <div>
             {{if .Data.IsOwner}}
             <button class="btn" data-action="showDiaryBox" data-form-action="diary.add">
-                <i class="mdi mdi-plus"></i> 新增日记本
+                <i class="mdi mdi-plus"></i> {{getMessage "member.profile.add_notebook" .Context.Lang}}
             </button>
             {{end}}
         </div>
@@ -61,6 +61,7 @@
     <section>
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8" id="daybook_list">
             {{ $timeZone := .Data.TimeZone }}
+            {{ $lang := .Context.Lang }}
             {{ range .Data.Diaries }}
             <div class="border h-72 text-center dt{{ .ThemeID }}">
                 <div class="h-full flex flex-col p-3">
@@ -74,7 +75,7 @@
                         </h1>
                         {{ if gt .InfoNum 0 }}
                         <p class="mb-2">
-                            {{ .InfoNum }}篇
+                            {{ .InfoNum }}{{getMessage "member.profile.posts_count" $lang}}
                         </p>
                         <p class="mb-2">
                             {{ formatTime .LastActionUTCTime "2006-01-02 15:04" $timeZone}}

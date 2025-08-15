@@ -3,7 +3,7 @@
 <header class="fixed top-0 left-0 right-0 z-30 mx-auto bg-slate-100">
     <nav class="px-5 py-3 mx-auto flex justify-between">
         <div class="tracking-wide text-xl text-neutral-600 flex items-center">
-            <a href="/">
+            <a href="/index">
                 i<span class="text-red-600">D</span>iary.ai
             </a>
         </div>
@@ -12,8 +12,8 @@
         <div class="text-base/loose">
             {{if not (isLogin .)}}
             <a class="nav-link text-black-50 fs-6" href="/register" role="button"><i class="fa fa-id-card-o"></i>
-                免费注册</a>
-            <a class="nav-link text-black-50 fs-6" href="/login" role="button"><i class="fa fa-sign-in"></i> 登录</a>
+                {{getMessage "auth.button.register_free" .Context.Lang}}</a>
+            <a class="nav-link text-black-50 fs-6" href="/login" role="button"><i class="fa fa-sign-in"></i> {{getMessage "auth.button.login" .Context.Lang}}</a>
             {{else}}
             <div class="flex items-center space-x-3">
                 <div>
@@ -26,12 +26,12 @@
                     <div id="user_menu" class="bg-white border border-gray-200 p-3" style="display:none;">
                         <ul>
                             <li><a href="/u/{{getUserID .}}" class="block px-3 py-2 text-gray-700 hover:bg-gray-100"><i
-                                        class="mdi mdi-home-variant-outline"></i> 我的主页</a></li>
+                                        class="mdi mdi-home-variant-outline"></i> {{getMessage "user.label.my_home" .Context.Lang}}</a></li>
                             <li><a href="/u/settings"
                                     class="block px-3 py-2 text-gray-700 hover:bg-gray-100"><i class="mdi mdi-cogs"></i>
-                                    用户设置</a></li>
+                                    {{getMessage "user.label.settings" .Context.Lang}}</a></li>
                             <li><a href="/loginout" class="block px-3 py-2 text-gray-700 hover:bg-gray-100"><i
-                                        class="mdi mdi-logout"></i> 退出登录</a></li>
+                                        class="mdi mdi-logout"></i> {{getMessage "auth.button.logout" .Context.Lang}}</a></li>
                         </ul>
                     </div>
                 </div>

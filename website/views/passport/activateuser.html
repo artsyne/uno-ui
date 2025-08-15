@@ -10,9 +10,9 @@
                 <div class="card-body my-2">
                     <blockquote class="card-blockquote">
                         {{if not .Data.IsActivated }}
-                        激活失败，可能是激活码过期，请重新获取验证码！
+                        {{getMessage "auth.message.activation_failed" .Context.Lang}}
                         {{else}}
-                        感谢你激活账户，你可以正常使用中国日记网所有功能
+                        {{getMessage "auth.message.activation_success" .Context.Lang}}
                         {{end}}
                     </blockquote>
                 </div>

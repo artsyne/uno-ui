@@ -14,7 +14,7 @@
                     <span class="mdi mdi-slash-forward"></span>
                 </li>
                 <li>
-                    <a href="#">Settings</a>
+                    <a href="#">{{getMessage "member.settings.title" .Context.Lang}}</a>
                 </li>
             </ul>
         </div>
@@ -23,7 +23,7 @@
     <section class="mx-auto lg:w-2/3">
         <!-- Profile Card -->
         <div class="mb-8">
-            <div class="card-title">Profile</div>
+            <div class="card-title">{{getMessage "member.settings.profile_card_title" .Context.Lang}}</div>
             <form id="profile-form">
                 <div>
                     <!-- Avatar -->
@@ -34,37 +34,37 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-title" >User Name</label>
-                        <input type="text" class="form-control" id="user_name" name="user_name" placeholder="User Name"
+                        <label class="form-title" >{{getMessage "member.settings.username_label" .Context.Lang}}</label>
+                        <input type="text" class="form-control" id="user_name" name="user_name"
                             value="{{.Data.User.UserName}}"
                             readonly
-                          />
+                            placeholder="{{getMessage "member.settings.username_placeholder" .Context.Lang}}"/>
                         <p class="form-info">
-                            用户名是您在 idiary.ai 的唯一标识，不能修改。
+                            {{getMessage "member.settings.username_note" .Context.Lang}}
                         </p>
                     </div>
 
                     <!-- Full name -->
                     <div class="mb-4">
-                        <label class="form-title" for="full_name">Full name</label>
-                        <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Full name"
+                        <label class="form-title" for="full_name">{{getMessage "member.settings.full_name_label" .Context.Lang}}</label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" placeholder="{{getMessage "member.settings.full_name_placeholder" .Context.Lang}}"
                             valid='[{"type":"required"},{"type":"limit","max":50}]' value="{{.Data.User.FullName}}"
                             data-original-value="{{.Data.User.FullName}}" />
                         <p class="form-info">
-                            您可以在 idiary.ai 上展示您的真实姓名，如果为空则显示用户名。
+                            {{getMessage "member.settings.display_name_note" .Context.Lang}}
                         </p>
                     </div>
 
                     <!-- Bio -->
                     <div class="mb-4">
-                        <label class="form-title" for="remark">Bio</label>
+                        <label class="form-title" for="remark">{{getMessage "member.settings.bio_label" .Context.Lang}}</label>
                         <textarea class="form-control" id="remark" name="remark" 
-                            valid='[{"type":"limit","max":250,"show":true}]' style="height: 120px;">{{.Data.User.Remark}}</textarea>
+                            valid='[{"type":"limit","max":250,"show":true}]' style="height: 120px;" placeholder="{{getMessage "member.settings.bio_placeholder" .Context.Lang}}">{{.Data.User.Remark}}</textarea>
                     </div>
 
                     <!-- Save buttons -->
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="btn-red" data-action="save-profile">Save changes</button>
+                        <button type="submit" class="btn-red" data-action="save-profile">{{getMessage "member.settings.save_changes_button" .Context.Lang}}</button>
                     </div>
                 </div>
             </form>
@@ -72,18 +72,18 @@
 
         <!-- Email Card -->
         <div class="mb-8">
-            <div class="card-title">Email</div>
+            <div class="card-title">{{getMessage "member.settings.email_card_title" .Context.Lang}}</div>
             <form id="email-form">
                 <div>
                     <div class="mb-4">
-                        <input type="email" class="form-control" id="email" name="email" placeholder="Email"
+                        <input type="email" class="form-control" id="email" name="email" placeholder="{{getMessage "member.settings.email_placeholder" .Context.Lang}}"
                             valid='[{"type":"required"},{"type":"email"}]' value="{{.Data.User.Email}}"
                             data-original-value="{{.Data.User.Email}}">
                     </div>
 
                     <!-- Save buttons -->
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="btn-red" data-action="save-email">Save changes</button>
+                        <button type="submit" class="btn-red" data-action="save-email">{{getMessage "member.settings.save_changes_button" .Context.Lang}}</button>
                     </div>
                 </div>
             </form>
@@ -91,34 +91,34 @@
 
         <!-- Password Card -->
         <div>
-            <div class="card-title">Update password</div>
+            <div class="card-title">{{getMessage "member.settings.update_password_card_title" .Context.Lang}}</div>
             <form id="password-form">
                 <div>
                     <!-- Current password -->
                     <div class="mb-4">
-                        <label class="form-title" for="current_pwd">Current password</label>
+                        <label class="form-title" for="current_pwd">{{getMessage "member.settings.current_password_label" .Context.Lang}}</label>
                         <input type="password" class="form-control" id="current_pwd" name="current_pwd"
-                            placeholder="Current password" valid='[{"type":"required"},{"type":"limit","min":6,"max":30}]'>
+                            placeholder="{{getMessage "member.settings.current_password_placeholder" .Context.Lang}}" valid='[{"type":"required"},{"type":"limit","min":6,"max":30}]'>
                     </div>
 
                     <!-- New password -->
                     <div class="mb-4">
-                        <label class="form-title" for="new_pwd">New password</label>
+                        <label class="form-title" for="new_pwd">{{getMessage "member.settings.new_password_label" .Context.Lang}}</label>
                         <input type="password" class="form-control" id="new_pwd" name="new_pwd"
-                            placeholder="New password" valid='[{"type":"required"},{"type":"limit","min":6,"max":30}]'>
+                            placeholder="{{getMessage "member.settings.new_password_placeholder" .Context.Lang}}" valid='[{"type":"required"},{"type":"limit","min":6,"max":30}]'>
                     </div>
 
                     <!-- Confirm password -->
                     <div class="mb-4">
-                        <label class="form-title" for="confirm_pwd">Confirm new password</label>
+                        <label class="form-title" for="confirm_pwd">{{getMessage "member.settings.confirm_password_label" .Context.Lang}}</label>
                         <input type="password" class="form-control" id="confirm_pwd" name="confirm_pwd"
-                            placeholder="Confirm new password"
+                            placeholder="{{getMessage "member.settings.confirm_password_placeholder" .Context.Lang}}"
                             valid='[{"type":"required"},{"type":"compareto","destid":"new_pwd"}]'>
                     </div>
 
                     <!-- Change password button -->
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="btn-red" data-action="change-password">Change password</button>
+                        <button type="submit" class="btn-red" data-action="change-password">{{getMessage "member.settings.change_password_button" .Context.Lang}}</button>
                     </div>                </div>
             </form>
         </div>

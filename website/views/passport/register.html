@@ -7,31 +7,31 @@
         <form action="/register" id="biurenform" name="biurenform" method="post">
             <div class="mx-auto my-20 flex flex-col lg:w-2/5">
                 <div class="form-group">
-                    <h1 class="form-header">Welcome.</h1>
+                    <h1 class="form-header">{{getMessage "auth.title.register" .Context.Lang}}</h1>
                     <div class="block">
-                        <label class="form-title">用户名</label>
+                        <label class="form-title">{{getMessage "auth.label.username" .Context.Lang}}</label>
                         <input class="form-control" type="text" id="user_name" name="user_name"
-                            valid='[{"type":"limit","min":6,"max":20},{"type":"validname"},{"type":"callback","fn":"checkUsername","msg":"该用户名已被注册"}]' />
+                            valid='[{"type":"limit","min":6,"max":20},{"type":"validname"},{"type":"callback","fn":"checkUsername","msg":"{{getMessage "auth.message.username_taken" .Context.Lang}}"}]' />
                     </div>
                     <div class="block">
-                        <label class="form-title">密码</label>
+                        <label class="form-title">{{getMessage "auth.label.password" .Context.Lang}}</label>
                         <input class="form-control" type="password" id="pwd" name="pwd"
                             valid='[{"type":"limit","min":6,"max":30}]' />
                     </div>
                     <div class="block">
-                        <label class="form-title">电子邮箱地址</label>
+                        <label class="form-title">{{getMessage "auth.label.email_address" .Context.Lang}}</label>
                         <input class="form-control" type="text" id="email" name="email"
-                            valid='[{"type":"required"},{"type":"email"},{"type":"callback","fn":"checkEmail","msg":"该邮箱已被注册"}]' />
+                            valid='[{"type":"required"},{"type":"email"},{"type":"callback","fn":"checkEmail","msg":"{{getMessage "auth.message.email_taken" .Context.Lang}}"}]' />
                         <p class="form-info">
-                            将往您注册E-mail发送一封激活邮件，请点击邮件中链接完成注册。如果激活邮件没有收到，请到垃圾邮箱找找
+                            {{getMessage "auth.message.activation_email_note" .Context.Lang}}
                         </p>
                     </div>
                     <div class="block text-center">
-                        <button  data-action="reg" class="w-full btn-red" type="button">免费注册
+                        <button  data-action="reg" class="w-full btn-red" type="button">{{getMessage "auth.button.register_free" .Context.Lang}}
                         </button>
                     </div>
                     <div class="block text-center">
-                        <a href="/login">已经有了账户？</a>
+                        <a href="/login">{{getMessage "auth.link.already_have_account" .Context.Lang}}</a>
                     </div>
                 </div>
             </div>

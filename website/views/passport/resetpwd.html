@@ -11,24 +11,24 @@
                     <form action="/resetpwd" method="post">
                         <div class="form-floating mb-5">
                             <input class="form-control" type="password" id="new_pwd" name="new_pwd"
-                                placeholder="请输入新的密码" valid='[{"type":"limit","min":6,"max":30}]' />
-                            <label for="new_pwd">请输入新的密码</label>
+                                placeholder="{{getMessage "auth.label.new_password" .Context.Lang}}" valid='[{"type":"limit","min":6,"max":30}]' />
+                            <label for="new_pwd">{{getMessage "auth.label.new_password" .Context.Lang}}</label>
                         </div>
                         <div class="form-floating mb-5">
                             <input class="form-control" type="password" id="confirm_pwd" name="confirm_pwd"
-                                placeholder="请再次输入密码"
-                                valid='[{"type":"compareto","destid":"new_pwd","msg":"密码2次输入不一致，请重新输入"}]' />
-                            <label for="confirem_pwd">请再次输入密码</label>
+                                placeholder="{{getMessage "auth.label.confirm_password" .Context.Lang}}"
+                                valid='[{"type":"compareto","destid":"new_pwd","msg":"{{getMessage "auth.message.password_mismatch" .Context.Lang}}"}]' />
+                            <label for="confirem_pwd">{{getMessage "auth.label.confirm_password" .Context.Lang}}</label>
                         </div>
                         <div class="text-center">
-                            <button class="btn btn-outline-secondary w-25 btn-lg" type="submit">重置密码
+                            <button class="btn btn-outline-secondary w-25 btn-lg" type="submit">{{getMessage "auth.button.reset_password" .Context.Lang}}
                             </button>
                             <input type="hidden" name="uid" value="{{.Data.UID}}" />
                             <input type="hidden" name="sign" value="{{.Data.Sign}}" />
                         </div>
                     </form>
                     {{else}}
-                    <p>验证码不正确或者已经过期，请重新<a href="/findpwd">获取</a>确认邮件</p>
+                    <p>{{getMessage "auth.message.verification_expired" .Context.Lang}}</p>
                     {{end}}
                 </div>
             </div>

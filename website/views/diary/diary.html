@@ -11,12 +11,11 @@
                         <img style="width: 60px" class="img-circle d-flex mr-4" src="/public/img/face.jpg" />
                         <div class="media-body">
                             <h5 class="mt-0">
-                                <a href="#">张三</a>
-                                <a class="btn btn-primary btn-sm ml-2 text-white float-right">关注</a>
+                                <a href="/{{.Context.Lang}}/member/{{.Data.User.UserName}}" class="text-blue-600 hover:underline">{{.Data.User.FullName}}</a>
+                                <a class="btn btn-primary btn-sm ml-2 text-white float-right">{{getMessage "comments.follow" .Context.Lang}}</a>
                             </h5>
                             <p class="text-muted mb-1">
-                                Operations Technology / Digital Content Manager @FirstRealtyMgt
-                                in Boston, MA. Movie/book/music reviewer @
+                                {{.Data.User.Remark}}
                             </p>
                             <small class="text-muted">2016年12月15日 23:59</small>
                         </div>
@@ -84,7 +83,7 @@
         <div class="col-lg-10">
             <div class="card card-comment-theme">
                 <div class="card-header">
-                    <h4 class="mb-0">留言</h4>
+                    <h4 class="mb-0">{{getMessage "comments.title" .Context.Lang}}</h4>
                 </div>
                 <div class="card-body">
                     <ul class="list-unstyled">
@@ -93,7 +92,7 @@
                                 src="/public/img/face.jpg" />
                             <div class="media-body">
                                 <h6 class="mt-0 mb-1">
-                                    <a href="#">亚松</a><span class="link-spacer"></span>
+                                    <a href="/{{.Context.Lang}}/member/{{.Data.User.UserName}}" class="text-blue-600 hover:underline">{{.Data.User.FullName}}</a><span class="link-spacer"></span>
                                     <small>2016-12-15 16:35</small>
                                 </h6>
                                 Cras sit amet nibh libero, in gravida nulla. Nulla vel metus
@@ -141,7 +140,7 @@
                             <div class="form-group">
                                 <textarea class="form-control" rows="4"></textarea>
                             </div>
-                            <button type="submit" class="btn btn-primary">留言</button>
+                            <button type="submit" class="btn btn-primary">{{getMessage "comments.submit" .Context.Lang}}</button>
                         </div>
                     </div>
                 </div>

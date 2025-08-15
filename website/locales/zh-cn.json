@@ -1,44 +1,221 @@
 {
-  "common.home": "首页",
-  "common.settings": "设置",
-  "common.profile": "个人资料",
-  "common.logout": "退出登录",
-  "common.save": "保存",
-  "common.edit": "编辑",
-  "common.delete": "删除",
-  "common.confirm_delete": "您确定要删除这个项目吗？",
-  "common.default_page_desc": "iDiary - 记录生活，分享美好",
-  "common.welcome_back": "欢迎回来！",
-  "common.please_login": "请登录",
-  "common.loading": "加载中...",
-  "common.submit": "提交",
-  "common.cancel": "取消",
-
-  "nav.home": "首页",
-  "nav.diary": "日记",
-  "nav.settings": "设置",
-  "nav.profile": "个人资料",
-
-  "page.title.diary_list": "我的日记",
-  "page.title.diary_detail": "日记详情",
-  "page.title.user_settings": "用户设置",
-
-  "diary.title": "我的日记",
-  "diary.title.desc": "记录生活点滴，分享精彩瞬间",
-  "diary.detail.title": "日记详情",
-  "diary.detail.title.desc": "查看日记详细内容",
-  "user.settings": "用户设置",
-  "user.settings.desc": "管理个人账户和偏好设置",
-  "user.profile": "个人资料",
-  "user.profile.desc": "编辑个人资料信息",
-
-  "diary.new_entry": "写新日记",
-  "diary.weather": "天气",
-  "diary.mood": "心情",
-  "diary.content_placeholder": "{{username}}，今天有什么新鲜事？",
-
-  "greeting.message": "你好，{{username}}！欢迎使用 iDiary。",
-
-  "error.not_found": "抱歉，您要查找的页面不存在。",
-  "error.internal_server_error": "服务器发生未知错误，请稍后重试。"
+  "common": {
+    "home": "首页",
+    "settings": "设置",
+    "profile": "个人资料",
+    "logout": "退出登录",
+    "save": "保存",
+    "edit": "编辑",
+    "delete": "删除",
+    "confirm_delete": "您确定要删除这个项目吗？",
+    "default_page_desc": "iDiary - 记录生活，分享美好",
+    "welcome_back": "欢迎回来！",
+    "please_login": "请登录",
+    "loading": "加载中...",
+    "submit": "提交",
+    "cancel": "取消",
+    "like": "点赞",
+    "view": "查看",
+    "back": "返回",
+    "menu": "目录",
+    "introduction": "介绍",
+    "authors": "作者",
+    "members": "成员",
+    "list": "列表",
+    "private": "私人",
+    "public": "公开",
+    "enabled": "启用",
+    "disabled": "禁用",
+    "next": "下一步",
+    "previous": "上一步",
+    "confirm": "确认",
+    "search": "搜索",
+    "filter": "筛选",
+    "sort": "排序",
+    "refresh": "刷新",
+    "close": "关闭",
+    "open": "打开",
+    "download": "下载",
+    "upload": "上传",
+    "copy": "复制",
+    "share": "分享",
+    "print": "打印",
+    "export": "导出",
+    "import": "导入",
+    "subtitle": "智能日记平台"
+  },
+  "nav": {
+    "home": "首页",
+    "diary": "日记",
+    "settings": "设置",
+    "profile": "个人资料"
+  },
+  "page": {
+    "title": {
+      "diary_list": "我的日记",
+      "diary_detail": "日记详情",
+      "user_settings": "用户设置"
+    }
+  },
+  "diary": {
+    "title": "我的日记",
+    "title_desc": "记录生活点滴，分享精彩瞬间",
+    "index": {
+      "title": "日记列表"
+    },
+    "detail": {
+      "title": "日记详情",
+      "title_desc": "查看日记详细内容"
+    },
+    "form": {
+      "title": "日记设置",
+      "name_required": "日记本名称 *",
+      "name_placeholder": "请输入日记本名称",
+      "description": "日记本介绍",
+      "description_placeholder": "请输入日记本介绍",
+      "privacy_private": "私人日记本",
+      "privacy_public": "公开日记本",
+      "privacy_note": "默认为私人日记本，仅自己与该日记本其它作者可浏览",
+      "social_disabled": "关闭社交功能",
+      "social_enabled": "开启社交功能",
+      "social_note": "默认为关闭社交功能，关闭评论、点赞功能",
+      "title_required": "请输入日记标题",
+      "content_required": "请输入日记内容",
+      "style_selection": "选择风格"
+    },
+    "new_entry": "写新日记",
+    "weather": "天气",
+    "mood": "心情",
+    "content_placeholder": "{{username}}，今天有什么新鲜事？",
+    "button": {
+      "settings": "日记本设置",
+      "write_entry": "写日记"
+    },
+    "label": {
+      "notebook": "日记本",
+      "introduction": "日记本介绍",
+      "authors_list": "作者列表",
+      "liked_members_list": "点赞会员列表"
+    }
+  },
+  "post": {
+    "form": {
+      "title": "发表日记",
+      "title_optional": "标题(非必填)",
+      "title_placeholder": "请输入日记标题",
+      "content_required": "日记内容 *",
+      "content_placeholder": "请输入日记内容...",
+      "title_required": "请输入标题"
+    }
+  },
+  "user": {
+    "settings": "用户设置",
+    "settings_desc": "管理个人账户和偏好设置",
+    "profile": {
+      "title": "个人资料",
+      "desc": "编辑个人资料信息"
+    },
+    "settings": {
+      "title": "用户设置"
+    },
+    "label": {
+      "my_home": "我的主页",
+      "settings": "用户设置"
+    }
+  },
+  "auth": {
+    "label": {
+      "username_or_email": "用户名或邮箱",
+      "username": "用户名",
+      "password": "密码",
+      "email_address": "电子邮箱地址",
+      "new_password": "请输入新的密码",
+      "confirm_password": "请再次输入密码",
+      "register_email": "请输入注册邮箱"
+    },
+    "button": {
+      "login": "登录",
+      "register_free": "免费注册",
+      "logout": "退出登录",
+      "reset_password": "重置密码",
+      "find_password": "找回密码"
+    },
+    "link": {
+      "forgot_password": "忘记密码？",
+      "already_have_account": "已经有了账户？",
+      "get_verification": "获取"
+    },
+    "message": {
+      "activation_email_note": "将往您注册E-mail发送一封激活邮件，请点击邮件中链接完成注册。如果激活邮件没有收到，请到垃圾邮箱找找",
+      "reset_email_note": "将往您注册E-mail发送一封邮件，请按邮件提示找回面。如果无法收到邮件，请与管理员联系寻求帮助",
+      "password_mismatch": "密码2次输入不一致，请重新输入",
+      "verification_expired": "验证码不正确或者已经过期，请重新获取确认邮件",
+      "activation_failed": "激活失败，可能是激活码过期，请重新获取验证码！",
+      "activation_success": "感谢你激活账户，你可以正常使用中国日记网所有功能",
+      "username_taken": "该用户名已被注册",
+      "email_taken": "该邮箱已被注册"
+    },
+    "title": {
+      "login": "登录",
+      "register": "注册",
+      "find_password": "找回密码"
+    }
+  },
+  "greeting": {
+    "message": "你好，{{username}}！欢迎使用 iDiary。"
+  },
+  "error": {
+    "not_found": "抱歉，您要查找的页面不存在。",
+    "internal_server_error": "服务器发生未知错误，请稍后重试。",
+    "contact_admin": "遇到错误了，请与管理员联系！"
+  },
+  "member": {
+    "profile": {
+      "introduction": "个人介绍",
+      "menu": "目录",
+      "latest_public_diary": "最新公开日记",
+      "joined_diaries": "加入日记本",
+      "my_apps": "我的应用",
+      "app_list": "应用列表",
+      "diary_notebook": "日记本",
+      "add_notebook": "新增日记本",
+      "posts_count": "篇"
+    },
+    "settings": {
+      "title": "设置",
+      "profile_card_title": "个人资料",
+      "username_label": "用户名",
+      "username_placeholder": "用户名",
+      "username_note": "用户名是您在 idiary.ai 的唯一标识，不能修改。",
+      "full_name_label": "全名",
+      "full_name_placeholder": "请输入您的全名",
+      "display_name_note": "您可以在 idiary.ai 上展示您的真实姓名，如果为空则显示用户名。",
+      "bio_label": "个人简介",
+      "bio_placeholder": "请输入个人简介",
+      "save_changes_button": "保存更改",
+      "email_card_title": "邮箱设置",
+      "email_placeholder": "请输入邮箱地址",
+      "update_password_card_title": "修改密码",
+      "current_password_label": "当前密码",
+      "current_password_placeholder": "请输入当前密码",
+      "new_password_label": "新密码",
+      "new_password_placeholder": "请输入新密码",
+      "confirm_password_label": "确认密码",
+      "confirm_password_placeholder": "请再次输入新密码",
+      "change_password_button": "修改密码"
+    }
+  },
+  "form": {
+    "style_selection": "选择风格",
+    "placeholder": {
+      "diary_title": "日记标题",
+      "new_password": "请输入新的密码",
+      "confirm_password": "请再次输入密码"
+    }
+  },
+  "comments": {
+    "title": "留言",
+    "submit": "留言",
+    "follow": "关注"
+  }
 }

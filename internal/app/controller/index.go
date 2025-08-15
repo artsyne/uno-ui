@@ -25,5 +25,5 @@ func NewIndexController(config *config.Config, renderService *view.ViewService) 
 func (ctrl *IndexController) RenderIndex(c *gin.Context) {
 	data := ctrl.renderService.CreatePageData(c, "home.title")
 	data.Data["Active"] = "users"
-	ctrl.renderService.HTML(c, "index.html", data)
+	ctrl.renderService.HTML(c, "index", data)
 }

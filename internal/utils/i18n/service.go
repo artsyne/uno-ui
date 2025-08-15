@@ -18,8 +18,9 @@ import (
 var globalMessages = make(map[string]string)
 
 // BuildCacheKey 构建缓存键
+// 统一将locale和key都转换为小写，确保大小写一致性
 func BuildCacheKey(locale, key string) string {
-	return locale + ":" + key
+	return strings.ToLower(locale + ":" + key)
 }
 
 // SetMessage 设置消息到全局缓存（仅在初始化时使用）
@@ -74,7 +75,8 @@ func NewLocalizationManager(cfg *config.Config) I18nManager {
 	slog.Info("本地化管理器初始化完成",
 		"默认语言", manager.GetDefaultLanguage(),
 		"支持语言数", len(manager.GetSupportedLanguageCodes()),
-		"消息数量", GetMessageCount())
+		"消息数量", GetMessageCount(),
+		"全局消息缓存大小", len(globalMessages))
 
 	return manager
 }
@@ -164,13 +166,14 @@ func (m *LocalizationManager) flattenMessages(messages map[string]interface{}, p
 				result[nestedKey] = nestedValue
 			}
 		default:
-			// 其他类型转换为字符串
-			result[fullKey] = fmt.Sprintf("%v", v)
+			// 如果不是字符串也不是嵌套对象，则忽略或按需处理
+			// 目前，我们只关心字符串值作为最终消息
 		}
 	}
 
 	return result
 }
+
 
 // normalizeLocale 规范化语言代码
 func (m *LocalizationManager) normalizeLocale(locale string) string {
@@ -234,7 +237,7 @@ func (m *LocalizationManager) GetMessage(key, locale string) string {
 	}
 
 	// 最终降级：返回原始key
-	slog.Warn("消息未找到", "key", key, "locale", locale)
+	slog.Warn("消息未找到", "key", key, "locale", locale, "normalized_locale", normalizedLocale, "cache_key", cacheKey)
 	return key
 }
 
@@ -312,6 +315,7 @@ func (m *LocalizationManager) GetLocaleFromContext(c *gin.Context) string {
 			// 这里使用接口避免循环依赖
 			if user, ok := authUserValue.(interface{ GetLang() string }); ok {
 				if locale := user.GetLang(); locale != "" && m.IsLanguageSupported(locale) {
+					slog.Debug("从用户设置获取语言", "locale", locale)
 					return locale
 				}
 			}
@@ -321,17 +325,21 @@ func (m *LocalizationManager) GetLocaleFromContext(c *gin.Context) string {
 	// 优先级2：Cookie 设置
 	if cookieLocale, err := c.Cookie("lang"); err == nil && cookieLocale != "" {
 		if m.IsLanguageSupported(cookieLocale) {
+			slog.Debug("从 Cookie 获取语言", "locale", cookieLocale)
 			return cookieLocale
 		}
 	}
 
 	// 优先级3：浏览器偏好 (Accept-Language)
 	if browserLocale := m.getBrowserPreferredLocale(c); browserLocale != "" {
+		slog.Debug("从浏览器偏好获取语言", "locale", browserLocale)
 		return browserLocale
 	}
 
 	// 优先级4：系统默认
-	return m.GetDefaultLanguage()
+	defaultLocale := m.GetDefaultLanguage()
+	slog.Debug("使用系统默认语言", "locale", defaultLocale)
+	return defaultLocale
 }
 
 // getBrowserPreferredLocale 从 Accept-Language 头中提取最佳匹配的语言

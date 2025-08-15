@@ -163,7 +163,7 @@ func TestViewService_I18n(t *testing.T) {
 		{
 			name:           "英文用户",
 			acceptLanguage: "en-US,en;q=0.9,zh;q=0.8",
-			expectedLang:   "en",
+			expectedLang:   "en-us",
 		},
 		{
 			name:           "无语言偏好",

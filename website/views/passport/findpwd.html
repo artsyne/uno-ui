@@ -7,15 +7,15 @@
         <form action="/findpwd" method="post">
             <div class="flex flex-col my-20 mx-auto lg:w-2/5">
                 <div class="form-group">
-                    <h1 class="form-header">找回密码</h1>
+                    <h1 class="form-header">{{getMessage "auth.title.find_password" .Context.Lang}}</h1>
                     <div class="block">
-                        <label class="form-title">请输入注册邮箱</label>
+                        <label class="form-title">{{getMessage "auth.label.register_email" .Context.Lang}}</label>
                         <input class="form-control" type="email" id="email" name="email" valid='["required","email"]' />
-                        <p class="form-info">将往您注册E-mail发送一封邮件，请按邮件提示找回面。如果无法收到邮件，请与<a href="#">管理员联系</a>寻求帮助
+                        <p class="form-info">{{getMessage "auth.message.reset_email_note" .Context.Lang}}
                         </p>
                     </div>
                     <div class="block">
-                        <button class="w-full btn-red" type="submit">找回密码
+                        <button class="w-full btn-red" type="submit">{{getMessage "auth.button.find_password" .Context.Lang}}
                         </button>
                     </div>
                 </div>

@@ -3,7 +3,7 @@
 <div class="main-body px-5 py-4 dt8" style="height: 480px;">
     <div class="row justify-content-center">
         <div class="col-6 alert alert-danger" role="alert">
-            遇到错误了，请与管理员联系！{{.Data.ErrMsg}}
+            {{getMessage "error.contact_admin" .Context.Lang}}{{.Data.ErrMsg}}
         </div>
     </div>
 </div>
