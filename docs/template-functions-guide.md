@@ -2,13 +2,13 @@
 
 ## 概述
 
-iDiary.ai Hebe提供了丰富的模板函数，用于在HTML模板中访问用户信息、格式化数据、国际化消息等。这些函数通过ViewService统一管理，基于Go 1.24泛型特性的PageData结构确保模板层的数据访问安全和一致性。
+iDiary.ai Hebe提供了丰富的模板函数，用于在HTML模板中访问用户信息、格式化数据、国际化消息等。这些函数通过ViewService统一管理，基于Go 1.25泛型特性的PageData结构确保模板层的数据访问安全和一致性。
 
 ## 模板数据结构
 
 ### PageData 泛型结构
 
-iDiary.ai Hebe使用基于Go 1.24泛型的PageData结构来传递模板数据：
+iDiary.ai Hebe使用基于Go 1.25泛型的PageData结构来传递模板数据：
 
 ```go
 type PageData[T any] struct {
@@ -547,7 +547,7 @@ iDiary.ai Hebe的模板函数系统提供了以下优势：
 
 ### 🚀 技术特性
 
-- **类型安全**: 基于Go 1.24泛型的PageData确保编译时类型检查
+- **类型安全**: 基于Go 1.25泛型的PageData确保编译时类型检查
 - **模块化设计**: 函数按功能分类，便于维护和扩展
 - **国际化集成**: 完整的多语言支持，智能语言检测
 - **用户上下文**: 自动注入用户认证信息，安全访问

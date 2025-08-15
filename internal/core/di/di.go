@@ -8,7 +8,7 @@ import (
 )
 
 /*
-Package di 提供了一个基于Go 1.24泛型的高性能依赖注入容器
+Package di 提供了一个基于Go 1.25泛型的高性能依赖注入容器
 
 为什么依赖注入是最佳实践:
 1. 控制反转(IoC): 对象不再负责创建其依赖，而是由外部容器注入
@@ -447,7 +447,7 @@ func Has[T any](c *Container) bool {
 // 注意: 这个操作不会调用任何清理方法，如果服务需要特殊的清理逻辑，
 // 应该在调用Clear之前手动处理
 //
-// 使用Go 1.24的clear函数，高效清理map内容
+// 使用Go 1.25的clear函数，高效清理map内容
 //
 // 示例:
 //
@@ -456,7 +456,7 @@ func (c *Container) Clear() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	// 使用Go 1.24的clear函数高效清理所有map
+	// 使用Go 1.25的clear函数高效清理所有map
 	clear(c.factories)
 	clear(c.singletons)
 	clear(c.instances)

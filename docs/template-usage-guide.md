@@ -2,7 +2,7 @@
 
 ## 概述
 
-本文档基于 iDiary.ai Hebe 的 ViewService 架构和 Go 1.24 泛型 PageData 结构，提供模板开发的最佳实践指南。结合现代化的模板函数体系，帮助开发者构建高效、类型安全的模板系统。
+本文档基于 iDiary.ai Hebe 的 ViewService 架构和 Go 1.25 泛型 PageData 结构，提供模板开发的最佳实践指南。结合现代化的模板函数体系，帮助开发者构建高效、类型安全的模板系统。
 
 > 📖 详细的模板函数说明请参考 [模板函数使用指南](./template-functions-guide.md)
 
@@ -288,7 +288,7 @@ func (ctrl *DiaryController) ShowDiary(c *gin.Context) {
 
 ### 🏗️ ViewService 架构优势
 
-1. **类型安全**: Go 1.24 泛型 PageData，编译时类型检查
+1. **类型安全**: Go 1.25 泛型 PageData，编译时类型检查
 2. **职责分离**:
    - **认证信息**: 通过模板函数访问，自动处理登录状态
    - **业务数据**: 通过 .Data 传递，类型安全

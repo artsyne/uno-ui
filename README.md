@@ -4,7 +4,7 @@
 
 <div align="center">
 
-[![Go Version](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://golang.org/)
+[![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![Gin Framework](https://img.shields.io/badge/Gin-1.10.0-00ADD8?style=flat)](https://gin-gonic.com/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Test Coverage](https://img.shields.io/badge/Coverage-91%25+-brightgreen.svg)](#)
@@ -13,13 +13,13 @@
 
 ## 📖 项目概述
 
-**iDiary.ai Hebe** 是一个基于 **Go 1.24** 和 **Gin** 框架的现代化智能日记管理系统，采用**领域驱动设计（DDD）**的分层架构，通过**Go 1.24泛型依赖注入容器**实现零反射、编译时类型安全的高性能设计。
+**iDiary.ai Hebe** 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能日记管理系统，采用**领域驱动设计（DDD）**的分层架构，通过**Go 1.25泛型依赖注入容器**实现零反射、编译时类型安全的高性能设计。
 
 ### 🚀 核心特性
 
 - **🤖 智能日记管理**: 支持多种内容类型（文字、图片、视频、链接）的日记创作和管理
 - **☁️ 多云存储**: 支持 Dropbox、Google Drive、阿里云盘、WebDAV 等多种云存储服务
-- **🏗️ 现代化架构**: 基于 DDD 分层设计，Go 1.24 泛型 DI 容器，零反射高性能
+- **🏗️ 现代化架构**: 基于 DDD 分层设计，Go 1.25 泛型 DI 容器，零反射高性能
 - **🌍 国际化支持**: 智能语言检测，预加载缓存，微秒级翻译查找
 - **🎨 响应式设计**: Tailwind CSS 4.x + Kiko.js 组件库，现代化 UI/UX
 - **⚡ 高性能**: 优化的数据库查询、Redis 缓存、异步任务处理
@@ -30,7 +30,7 @@
 
 **🔧 后端技术**:
 
-- **Go 1.24**: 泛型特性、embed包、现代并发模式
+- **Go 1.25**: 泛型特性、embed包、现代并发模式
 - **Gin**: 高性能 Web 框架，中间件链式设计
 - **MySQL 8.0+**: 主数据库存储，优化查询性能
 - **Redis**: 会话管理和高速缓存
@@ -47,7 +47,7 @@
 **🏗️ 架构特性**:
 
 - **DDD 分层架构**: Website、App、Domain、Infra、Core、Utils 层次分明
-- **Go 1.24 泛型 DI**: 零反射、编译时类型安全、~30ns 解析速度
+- **Go 1.25 泛型 DI**: 零反射、编译时类型安全、~30ns 解析速度
 - **ViewService 模式**: 统一视图渲染、数据绑定、响应格式化
 - **中间件链**: Panic 恢复、错误处理、用户认证、数据注入
 - **slog 结构化日志**: 分级日志、结构化输出、性能优化
@@ -101,7 +101,7 @@ hebe/
 │   │   └── repository/        # 数据仓储实现
 │   ├── core/                  # 核心层 (Core Layer)
 │   │   ├── database/          # 数据库连接管理
-│   │   ├── di/                # Go 1.24泛型DI容器
+│   │   ├── di/                # Go 1.25泛型DI容器
 │   │   └── initializer/       # 核心初始化器
 │   ├── utils/                 # 工具层 (Utils Layer)
 │   │   ├── config/            # 配置管理
@@ -154,7 +154,7 @@ hebe/
 
 | 组件        | 版本要求 | 用途                      |
 | ----------- | -------- | ------------------------- |
-| **Go**      | 1.24+    | 支持泛型、embed等现代特性 |
+| **Go**      | 1.25+    | 支持泛型、embed等现代特性 |
 | **MySQL**   | 8.0+     | 主数据库存储              |
 | **Redis**   | 6.0+     | 会话管理和高速缓存        |
 | **Node.js** | 18+      | 前端构建工具（可选）      |
@@ -227,13 +227,13 @@ docker-compose logs -f idiary
 1. **📖 [项目文档总览](./docs/README.md)** - 开始这里！完整技术文档导航
 2. **🏗️ [系统架构概览](./docs/architecture-overview.md)** - 理解DDD分层设计
 3. **🚀 [系统启动流程](./docs/system-startup-guide.md)** - 掌握应用启动过程
-4. **⚙️ [Go 1.24泛型DI容器](./docs/di-container-guide.md)** - 学习现代依赖注入
+4. **⚙️ [Go 1.25泛型DI容器](./docs/di-container-guide.md)** - 学习现代依赖注入
 
 ### 🔧 核心技术文档
 
 | 技术领域     | 文档链接                                               | 描述                      |
 | ------------ | ------------------------------------------------------ | ------------------------- |
-| **依赖注入** | [Go 1.24泛型DI容器](./docs/di-container-guide.md)      | 零反射、高性能DI系统      |
+| **依赖注入** | [Go 1.25泛型DI容器](./docs/di-container-guide.md)      | 零反射、高性能DI系统      |
 | **国际化**   | [国际化系统指南](./docs/internationalization-guide.md) | 智能语言检测和翻译        |
 | **中间件**   | [中间件系统详解](./docs/middleware-guide.md)           | 分层中间件架构            |
 | **错误处理** | [错误处理机制](./docs/error-handling-examples.md)      | 统一错误处理和ViewService |
@@ -294,7 +294,7 @@ docker-compose logs -f idiary
 
 ### 代码质量
 
-- **Go 1.24泛型**: 编译时类型安全，零运行时开销
+- **Go 1.25泛型**: 编译时类型安全，零运行时开销
 - **零反射设计**: 所有核心组件避免反射，确保高性能
 - **DDD架构**: 清晰的层次划分，高内聚低耦合
 - **测试驱动**: 91%+覆盖率，真实环境测试
@@ -321,7 +321,7 @@ go mod download
 
 ## 🎯 技术亮点
 
-### 🚀 Go 1.24泛型DI容器
+### 🚀 Go 1.25泛型DI容器
 
 - **零反射设计**: 基于泛型特性，编译时类型安全
 - **高性能**: ~30ns解析速度，零运行时开销
@@ -351,7 +351,7 @@ go mod download
 
 ```bash
 # 1. 环境要求
-# Go 1.24+, MySQL 8.0+, Redis 6.0+
+# Go 1.25+, MySQL 8.0+, Redis 6.0+
 
 # 2. 克隆项目
 git clone https://github.com/biuren/hebe.git

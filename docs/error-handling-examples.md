@@ -875,7 +875,7 @@ func (s *diary.Service) BadCreate(userID int64, title string) (int64, error) {
 
 8. **高性能设计**
 
-   - 基于Go 1.24泛型的DI容器，零反射开销
+   - 基于Go 1.25泛型的DI容器，零反射开销
    - ViewService单例模式，避免重复创建
    - 结构化错误定义，内存效率高
 

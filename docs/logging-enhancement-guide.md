@@ -2,7 +2,7 @@
 
 ## 概述
 
-iDiary.ai Hebe 采用基于 Go 1.24 `slog` 标准库的现代化结构化日志系统，提供高性能、类型安全的日志记录功能。
+iDiary.ai Hebe 采用基于 Go 1.25 `slog` 标准库的现代化结构化日志系统，提供高性能、类型安全的日志记录功能。
 
 ## 日志架构
 
@@ -267,7 +267,7 @@ func (s *Service) PerformanceLog(operation string, duration time.Duration) {
 
 ## 总结
 
-iDiary.ai Hebe 的日志系统基于 Go 1.24 slog 标准库，提供了现代化、高性能的结构化日志功能。通过统一的配置管理、合理的日志分级和结构化字段设计，确保了系统的可观测性和调试便利性。
+iDiary.ai Hebe 的日志系统基于 Go 1.25 slog 标准库，提供了现代化、高性能的结构化日志功能。通过统一的配置管理、合理的日志分级和结构化字段设计，确保了系统的可观测性和调试便利性。
 
 ### 3. 自动恢复功能
 
