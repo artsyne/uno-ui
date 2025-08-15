@@ -20,12 +20,16 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-// 检查是否为开发模式
+// 检查构建模式
 const isDevMode = process.argv.includes('--dev');
+const isProdMode = process.argv.includes('--prod');
+
+// 如果没有指定模式，默认为开发模式
+const buildMode = isProdMode ? 'PRODUCTION' : 'DEVELOPMENT';
+const shouldPreserveDebug = !isProdMode;
+
 console.log(
-  isDevMode
-    ? 'Starting JS build process in DEVELOPMENT mode (debug info will be preserved)...'
-    : 'Starting JS build process in PRODUCTION mode (debug info will be removed)...',
+  `Starting JS build process in ${buildMode} mode (debug info will be ${shouldPreserveDebug ? 'preserved' : 'removed'})...`,
 );
 
 // 创建输出目录（如果不存在）
@@ -109,7 +113,7 @@ const kikoOutputPath = path.join(
 console.log('Processing and minifying website JS files...');
 try {
   // 设置压缩选项，根据模式决定是否保留console和debugger
-  const compressOptions = isDevMode
+  const compressOptions = shouldPreserveDebug
     ? 'drop_console=false,drop_debugger=false'
     : 'drop_console=true,drop_debugger=true';
 
@@ -168,7 +172,7 @@ try {
   }
 
   // 版本号：开发模式使用时间戳，生产模式使用读取的版本号
-  const version = isDevMode ? 'dev-' + new Date().getTime() : appVersion;
+  const version = shouldPreserveDebug ? 'dev-' + new Date().getTime() : appVersion;
   const buildDate = new Date().toISOString();
 
   // 添加版本注释到文件

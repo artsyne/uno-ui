@@ -1,6 +1,7 @@
 {
   "common": {
     "home": "首页",
+    "theme_switch": "切换主题",
     "settings": "设置",
     "profile": "个人资料",
     "logout": "退出登录",

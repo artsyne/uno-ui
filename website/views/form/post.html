@@ -6,13 +6,13 @@
             <div class="form-group">
                 <div class="block">
                     <label class="form-title" for="info_title">{{getMessage "post.form.title_optional" .Context.Lang}}</label>
-                    <input type="text" class="form-control" id="info_title" name="info_title"
+                <input type="text" class="form-control" id="info_title" name="info_title"
                         valid='["emptyquit",{"type":"limit","max":250}]' placeholder="{{getMessage "form.placeholder.diary_title" .Context.Lang}}"
                         value="{{if .Data.Post}}{{.Data.Post.Title}}{{end}}">
                 </div>
                 <div class="block">
                     <label class="form-title" for="info_body">{{getMessage "post.form.content_required" .Context.Lang}} *</label>
-                    <textarea class="form-control h-96" id="info_body" name="info_body" rows="8"
+                <textarea class="form-control h-96" id="info_body" name="info_body" rows="8"
                         valid='["required",{"type":"limit","max":10000,"show":true}]'
                         placeholder="{{getMessage "post.form.content_placeholder" .Context.Lang}}">{{if .Data.Post}}{{.Data.Post.Body}}{{end}}</textarea>
                 </div>

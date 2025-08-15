@@ -11,6 +11,20 @@
   background-color: #e53935;
 }
 
+/* Dark mode variants for dt1 */
+.dark .dt1,
+.dark .dt1 .card {
+  border-color: #ef5350;
+}
+
+.dark .dt1 a {
+  color: #ef5350;
+}
+
+.dark .dtf1 {
+  background-color: #ef5350;
+}
+
 .dt2,
 .dt2 .card {
   border-color: #eb3f79;
@@ -22,6 +36,20 @@
 
 .dtf2 {
   background-color: #eb3f79;
+}
+
+/* Dark mode variants for dt2 */
+.dark .dt2,
+.dark .dt2 .card {
+  border-color: #f06292;
+}
+
+.dark .dt2 a {
+  color: #f06292;
+}
+
+.dark .dtf2 {
+  background-color: #f06292;
 }
 
 .dt3,
@@ -37,6 +65,20 @@
   background-color: #a900ff;
 }
 
+/* Dark mode variants for dt3 */
+.dark .dt3,
+.dark .dt3 .card {
+  border-color: #ba68c8;
+}
+
+.dark .dt3 a {
+  color: #ba68c8;
+}
+
+.dark .dtf3 {
+  background-color: #ba68c8;
+}
+
 .dt4,
 .dt4 .card {
   border-color: #7d56c1;
@@ -48,6 +90,20 @@
 
 .dtf4 {
   background-color: #7d56c1;
+}
+
+/* Dark mode variants for dt4 */
+.dark .dt4,
+.dark .dt4 .card {
+  border-color: #9575cd;
+}
+
+.dark .dt4 a {
+  color: #9575cd;
+}
+
+.dark .dtf4 {
+  background-color: #9575cd;
 }
 
 .dt5,
@@ -63,6 +119,20 @@
   background-color: #5b6abf;
 }
 
+/* Dark mode variants for dt5 */
+.dark .dt5,
+.dark .dt5 .card {
+  border-color: #7986cb;
+}
+
+.dark .dt5 a {
+  color: #7986cb;
+}
+
+.dark .dtf5 {
+  background-color: #7986cb;
+}
+
 .dt6,
 .dt6 .card {
   border-color: #1d87e4;
@@ -74,6 +144,20 @@
 
 .dtf6 {
   background-color: #1d87e4;
+}
+
+/* Dark mode variants for dt6 */
+.dark .dt6,
+.dark .dt6 .card {
+  border-color: #42a5f5;
+}
+
+.dark .dt6 a {
+  color: #42a5f5;
+}
+
+.dark .dtf6 {
+  background-color: #42a5f5;
 }
 
 .dt7,
@@ -89,6 +173,20 @@
   background-color: #029ae4;
 }
 
+/* Dark mode variants for dt7 */
+.dark .dt7,
+.dark .dt7 .card {
+  border-color: #29b6f6;
+}
+
+.dark .dt7 a {
+  color: #29b6f6;
+}
+
+.dark .dtf7 {
+  background-color: #29b6f6;
+}
+
 .dt8,
 .dt8 .card {
   border-color: #00abc0;
@@ -100,6 +198,20 @@
 
 .dtf8 {
   background-color: #00abc0;
+}
+
+/* Dark mode variants for dt8 */
+.dark .dt8,
+.dark .dt8 .card {
+  border-color: #26c6da;
+}
+
+.dark .dt8 a {
+  color: #26c6da;
+}
+
+.dark .dtf8 {
+  background-color: #26c6da;
 }
 
 .dt9,
@@ -115,6 +227,20 @@
   background-color: #00887a;
 }
 
+/* Dark mode variants for dt9 */
+.dark .dt9,
+.dark .dt9 .card {
+  border-color: #26a69a;
+}
+
+.dark .dt9 a {
+  color: #26a69a;
+}
+
+.dark .dtf9 {
+  background-color: #26a69a;
+}
+
 .dt10,
 .dt10 .card {
   border-color: #378d3b;
@@ -126,6 +252,20 @@
 
 .dtf10 {
   background-color: #378d3b;
+}
+
+/* Dark mode variants for dt10 */
+.dark .dt10,
+.dark .dt10 .card {
+  border-color: #66bb6a;
+}
+
+.dark .dt10 a {
+  color: #66bb6a;
+}
+
+.dark .dtf10 {
+  background-color: #66bb6a;
 }
 
 .dt11,
@@ -141,6 +281,20 @@
   background-color: #679e37;
 }
 
+/* Dark mode variants for dt11 */
+.dark .dt11,
+.dark .dt11 .card {
+  border-color: #9ccc65;
+}
+
+.dark .dt11 a {
+  color: #9ccc65;
+}
+
+.dark .dtf11 {
+  background-color: #9ccc65;
+}
+
 .dt12,
 .dt12 .card {
   border-color: #f8a724;
@@ -152,6 +306,20 @@
 
 .dtf12 {
   background-color: #f8a724;
+}
+
+/* Dark mode variants for dt12 */
+.dark .dt12,
+.dark .dt12 .card {
+  border-color: #ffb74d;
+}
+
+.dark .dt12 a {
+  color: #ffb74d;
+}
+
+.dark .dtf12 {
+  background-color: #ffb74d;
 }
 
 .dt13,
@@ -167,6 +335,20 @@
   background-color: #ff6f42;
 }
 
+/* Dark mode variants for dt13 */
+.dark .dt13,
+.dark .dt13 .card {
+  border-color: #ff8a65;
+}
+
+.dark .dt13 a {
+  color: #ff8a65;
+}
+
+.dark .dtf13 {
+  background-color: #ff8a65;
+}
+
 .dt14,
 .dt14 .card {
   border-color: #8c6d62;
@@ -178,6 +360,20 @@
 
 .dtf14 {
   background-color: #8c6d62;
+}
+
+/* Dark mode variants for dt14 */
+.dark .dt14,
+.dark .dt14 .card {
+  border-color: #a1887f;
+}
+
+.dark .dt14 a {
+  color: #a1887f;
+}
+
+.dark .dtf14 {
+  background-color: #a1887f;
 }
 
 .dt15,
@@ -193,6 +389,20 @@
   background-color: #778f9b;
 }
 
+/* Dark mode variants for dt15 */
+.dark .dt15,
+.dark .dt15 .card {
+  border-color: #90a4ae;
+}
+
+.dark .dt15 a {
+  color: #90a4ae;
+}
+
+.dark .dtf15 {
+  background-color: #90a4ae;
+}
+
 .dt16,
 .dt16 .card {
   border-color: #414141;
@@ -204,4 +414,18 @@
 
 .dtf16 {
   background-color: #414141;
+}
+
+/* Dark mode variants for dt16 */
+.dark .dt16,
+.dark .dt16 .card {
+  border-color: #757575;
+}
+
+.dark .dt16 a {
+  color: #757575;
+}
+
+.dark .dtf16 {
+  background-color: #757575;
 }

@@ -2,9 +2,10 @@
  * CSS构建脚本
  *
  * 此脚本负责构建CSS文件，按以下步骤执行：
- * 1. 使用Tailwind CLI生成基础样式
+ * 1. 使用Tailwind CLI生成基础样式（支持主题系统）
  * 2. 合并自定义CSS与Tailwind CSS
  * 3. 使用PostCSS处理并压缩最终CSS
+ * 4. 支持 Kiko UI 主题架构
  *
  * 兼容Mac和Windows系统
  */
@@ -23,6 +24,12 @@ const TAILWIND_OUTPUT = path.join(CSS_DIST_DIR, 'tailwind.css');
 const COMBINED_CSS = path.join(CSS_DIST_DIR, 'combined.css');
 const FINAL_OUTPUT = path.join(CSS_DIST_DIR, 'idiary.min.css');
 
+// 检查构建模式
+const isDevMode = process.argv.includes('--dev');
+const buildMode = isDevMode ? 'DEVELOPMENT' : 'PRODUCTION';
+
+console.log(`Building CSS in ${buildMode} mode...`);
+
 console.log('Starting CSS build process...');
 
 // 确保输出目录存在
@@ -32,12 +39,19 @@ if (!fs.existsSync(CSS_DIST_DIR)) {
 }
 
 try {
-  // Step 1: 生成Tailwind CSS
-  console.log('Step 1: Generating tailwind.css...');
-  execSync(
-    `npx @tailwindcss/cli -i "${TAILWIND_SRC}" -o "${TAILWIND_OUTPUT}"`,
-    { stdio: 'inherit', shell: true },
-  );
+  // Step 1: 生成Tailwind CSS（支持主题系统）
+  console.log('Step 1: Generating tailwind.css with theme support...');
+  const contentPaths = [
+    './website/views/**/*.html',
+    './website/static/src/js/**/*.js',
+    './kiko/src/ui/**/*.js'
+  ].join(' ');
+  
+  const tailwindCmd = isDevMode 
+    ? `npx @tailwindcss/cli -i "${TAILWIND_SRC}" -o "${TAILWIND_OUTPUT}" --content "${contentPaths}" --watch=false`
+    : `npx @tailwindcss/cli -i "${TAILWIND_SRC}" -o "${TAILWIND_OUTPUT}" --content "${contentPaths}" --minify`;
+  
+  execSync(tailwindCmd, { stdio: 'inherit', shell: true });
 
   // Step 2: 合并CSS文件（使用Node.js文件操作代替shell命令）
   console.log('Step 2: Combining CSS files...');
@@ -45,9 +59,13 @@ try {
   const tailwindContent = fs.readFileSync(TAILWIND_OUTPUT, 'utf8');
   fs.writeFileSync(COMBINED_CSS, themeContent + '\n' + tailwindContent);
 
-  // Step 3: 压缩CSS
-  console.log('Step 3: Minifying CSS...');
-  execSync(`npx postcss "${COMBINED_CSS}" -o "${FINAL_OUTPUT}" --no-map`, {
+  // Step 3: 处理和压缩CSS
+  console.log('Step 3: Processing CSS with PostCSS...');
+  const postcssCmd = isDevMode
+    ? `npx postcss "${COMBINED_CSS}" -o "${FINAL_OUTPUT}" --no-map --env development`
+    : `npx postcss "${COMBINED_CSS}" -o "${FINAL_OUTPUT}" --no-map --env production`;
+  
+  execSync(postcssCmd, {
     stdio: 'inherit',
     shell: true,
   });

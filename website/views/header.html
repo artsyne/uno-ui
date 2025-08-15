@@ -1,7 +1,6 @@
 {{define "header"}}
 <!DOCTYPE html>
-<html lang="{{.Context.Lang}}">
-
+<html lang="{{.Context.Lang}}" class="dark">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -9,19 +8,21 @@
 	<meta name="author" content="">
 	<link rel="icon" href="/public/favicon.ico?v=7">
 	<title>{{.Title}}</title>
+
 	<script src="https://code.jquery.com/jquery-4.0.0-beta.min.js"></script>
 	<script src="/public/dist/js/kiko.min.js?v={{getRandomVersion .}}"></script>
 	<script src="/public/dist/js/idiary.min.js?v={{getRandomVersion .}}"></script>
+	<script src="/public/src/js/theme.js?v={{getRandomVersion .}}"></script>
 	<link href="/public/dist/css/idiary.min.css?v={{getRandomVersion .}}" rel="stylesheet">
 	<link href="/public/dist/css/materialdesignicons.min.css?v=6.5.95" rel="stylesheet">
 	{{if isLogin .}}
 	<script>
 		var login_user_name = '{{getUserName .}}';
-		var login_user_id = {{getUserID .}};
+		var login_user_id = '{{getUserID .}}';
 	</script>
 	{{end}}
 </head>
 
-<body>
-	<div id="app" class="flex flex-col mt-14 text-zinc-500">
+<body class="bg-white dark:bg-gray-900 transition-colors duration-200">
+	<div id="app" class="flex flex-col mt-14 text-zinc-500 bg-white dark:bg-gray-900 transition-colors duration-200">
 		{{end}}

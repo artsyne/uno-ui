@@ -1,37 +1,58 @@
 {{define "navbar"}}
 
-<header class="fixed top-0 left-0 right-0 z-30 mx-auto bg-slate-100">
+<header
+    class="fixed top-0 left-0 right-0 z-30 mx-auto bg-slate-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
     <nav class="px-5 py-3 mx-auto flex justify-between">
-        <div class="tracking-wide text-xl text-neutral-600 flex items-center">
+        <div class="tracking-wide text-xl text-neutral-600 dark:text-neutral-300 flex items-center">
             <a href="/index">
                 i<span class="text-red-600">D</span>iary.ai
             </a>
         </div>
         <div id="top-nav" class="text-base/loose flex items-center">
+
         </div>
         <div class="text-base/loose">
+
+
             {{if not (isLogin .)}}
-            <a class="nav-link text-black-50 fs-6" href="/register" role="button"><i class="fa fa-id-card-o"></i>
+            <a class="nav-link text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200 fs-6"
+                href="/register" role="button"><i class="fa fa-id-card-o"></i>
                 {{getMessage "auth.button.register_free" .Context.Lang}}</a>
-            <a class="nav-link text-black-50 fs-6" href="/login" role="button"><i class="fa fa-sign-in"></i> {{getMessage "auth.button.login" .Context.Lang}}</a>
+            <a class="nav-link text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200 fs-6"
+                href="/login" role="button"><i class="fa fa-sign-in"></i> {{getMessage "auth.button.login"
+                .Context.Lang}}</a>
             {{else}}
             <div class="flex items-center space-x-3">
+                <!-- 主题切换按钮 -->
+                <button data-theme-toggle class="mr-6 cursor-pointer" title="{{getMessage " common.theme_switch"
+                    .Context.Lang}}">
+                    <i class="mdi mdi-theme-light-dark text-gray-700 dark:text-gray-300 text-sm"></i>
+                </button>
+
                 <div>
-                    <a id="user_drop" href="#" class="text-gray-500 p-0" data-tooltip-target="user_menu"
-                        data-tooltip-position="bottom" data-tooltip-event="click,mouseover">
+                    <a id="user_drop" href="#" class="text-gray-500 dark:text-gray-400 p-0"
+                        data-tooltip-target="user_menu" data-tooltip-position="bottom"
+                        data-tooltip-event="click,mouseover">
                         <div class="avatar">
                             {{getFirstCharOfName .}}
                         </div>
                     </a>
-                    <div id="user_menu" class="bg-white border border-gray-200 p-3" style="display:none;">
+                    <div id="user_menu"
+                        class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3"
+                        style="display:none;">
                         <ul>
-                            <li><a href="/u/{{getUserID .}}" class="block px-3 py-2 text-gray-700 hover:bg-gray-100"><i
-                                        class="mdi mdi-home-variant-outline"></i> {{getMessage "user.label.my_home" .Context.Lang}}</a></li>
+                            <li><a href="/u/{{getUserID .}}"
+                                    class="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"><i
+                                        class="mdi mdi-home-variant-outline"></i> {{getMessage "user.label.my_home"
+                                    .Context.Lang}}</a></li>
                             <li><a href="/u/settings"
-                                    class="block px-3 py-2 text-gray-700 hover:bg-gray-100"><i class="mdi mdi-cogs"></i>
+                                    class="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"><i
+                                        class="mdi mdi-cogs"></i>
                                     {{getMessage "user.label.settings" .Context.Lang}}</a></li>
-                            <li><a href="/loginout" class="block px-3 py-2 text-gray-700 hover:bg-gray-100"><i
-                                        class="mdi mdi-logout"></i> {{getMessage "auth.button.logout" .Context.Lang}}</a></li>
+                            <li><a href="/loginout"
+                                    class="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"><i
+                                        class="mdi mdi-logout"></i> {{getMessage "auth.button.logout"
+                                    .Context.Lang}}</a></li>
                         </ul>
                     </div>
                 </div>

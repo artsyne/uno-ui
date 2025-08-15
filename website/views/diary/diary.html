@@ -1,18 +1,18 @@
 {{define "diary/diary"}} {{template "header" .}} {{template "navbar" .}}
 
-<div class="container my-4">
+<div class="container my-4 bg-white transition-colors duration-200">
     <div class="row mb-4 justify-content-center">
         <div class="col-lg-10">
-            <div class="card card-detail-theme">
+            <div class="card card-detail-theme bg-white border-gray-200">
                 <img class="card-img-top"
                     src="http://adventurethemes.com/demo/writer/html/v2/img/default-contact.jpg" />
                 <div class="card-header">
                     <div class="media">
                         <img style="width: 60px" class="img-circle d-flex mr-4" src="/public/img/face.jpg" />
                         <div class="media-body">
-                            <h5 class="mt-0">
+                            <h5 class="mt-0 text-gray-800">
                                 <a href="/{{.Context.Lang}}/member/{{.Data.User.UserName}}" class="text-blue-600 hover:underline">{{.Data.User.FullName}}</a>
-                                <a class="btn btn-primary btn-sm ml-2 text-white float-right">{{getMessage "comments.follow" .Context.Lang}}</a>
+                                <a class="btn btn-primary btn-sm ml-2 text-white bg-blue-600 hover:bg-blue-700 float-right">{{getMessage "comments.follow" .Context.Lang}}</a>
                             </h5>
                             <p class="text-muted mb-1">
                                 {{.Data.User.Remark}}
@@ -22,10 +22,10 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <h3 class="card-title diary-title text-sm-center">
+                    <h3 class="card-title diary-title text-sm-center text-gray-800">
                         A Red Sox Fan Explains His Love For The Cubs
                     </h3>
-                    <p class="card-text diary-body">
+                    <p class="card-text diary-body text-gray-700">
                         Tonight is Game Seven of the World Series — the Chicago Cubs are one
                         win away from baseball salvation. I’m incredibly excited and
                         anxious, more so than if my hometown team the Boston Red Sox were in
@@ -52,21 +52,21 @@
                         much fun to root for.
                     </p>
                 </div>
-                <div class="card-footer">
-                    <div class="d-flex justify-content-end">
-                        <a class="mr-auto p-1"><span class="fa-stack fa-lg">
+                <div class="card-footer bg-gray-50">
+                    <div class="d-flex justify-content-end text-gray-600">
+                        <a class="mr-auto p-1 hover:text-red-500"><span class="fa-stack fa-lg">
                                 <i class="fa fa-circle fa-stack-2x"></i>
                                 <i class="fa fa-eye fa-stack-1x fa-inverse"></i>
                             </span>
                             2.3k
                         </a>
-                        <a class="p-1"><span class="fa-stack fa-lg">
+                        <a class="p-1 hover:text-red-500"><span class="fa-stack fa-lg">
                                 <i class="fa fa-circle fa-stack-2x"></i>
                                 <i class="fa fa-comment-o fa-stack-1x fa-inverse"></i>
                             </span>
                             12
                         </a>
-                        <a class="p-1">
+                        <a class="p-1 hover:text-red-500">
                             <span class="fa-stack fa-lg">
                                 <i class="fa fa-circle fa-stack-2x"></i>
                                 <i class="fa fa-heart-o fa-stack-1x fa-inverse"></i>
@@ -81,9 +81,9 @@
 
     <div class="row justify-content-center">
         <div class="col-lg-10">
-            <div class="card card-comment-theme">
-                <div class="card-header">
-                    <h4 class="mb-0">{{getMessage "comments.title" .Context.Lang}}</h4>
+            <div class="card card-comment-theme bg-white border-gray-200">
+                <div class="card-header bg-gray-50">
+                    <h4 class="mb-0 text-gray-800">{{getMessage "comments.title" .Context.Lang}}</h4>
                 </div>
                 <div class="card-body">
                     <ul class="list-unstyled">
@@ -91,56 +91,62 @@
                             <img class="d-flex mr-3 img-circle" style="width: 60px; height: 60px"
                                 src="/public/img/face.jpg" />
                             <div class="media-body">
-                                <h6 class="mt-0 mb-1">
+                                <h6 class="mt-0 mb-1 text-gray-800">
                                     <a href="/{{.Context.Lang}}/member/{{.Data.User.UserName}}" class="text-blue-600 hover:underline">{{.Data.User.FullName}}</a><span class="link-spacer"></span>
-                                    <small>2016-12-15 16:35</small>
+                                    <small class="text-gray-500">2016-12-15 16:35</small>
                                 </h6>
+                                <p class="text-gray-700">
                                 Cras sit amet nibh libero, in gravida nulla. Nulla vel metus
                                 scelerisque ante sollicitudin. Cras purus odio, vestibulum in
                                 vulputate at, tempus viverra turpis. Fusce condimentum nunc ac
                                 nisi vulputate fringilla. Donec lacinia congue felis in
                                 faucibus.
+                                </p>
                             </div>
                         </li>
                         <li class="media my-4">
                             <img class="d-flex mr-3 img-circle" style="width: 60px; height: 60px"
                                 src="/public/img/face.jpg" />
                             <div class="media-body">
-                                <h6 class="mt-0 mb-1">
-                                    <a href="#">亚松</a><span class="link-spacer"></span>
-                                    <small>2016-12-15 16:35</small>
+                                <h6 class="mt-0 mb-1 text-gray-800">
+                                    <a href="#" class="text-blue-600 hover:underline">亚松</a><span class="link-spacer"></span>
+                                    <small class="text-gray-500">2016-12-15 16:35</small>
                                 </h6>
+                                <p class="text-gray-700">
                                 Cras sit amet nibh libero, in gravida nulla. Nulla vel metus
                                 scelerisque ante sollicitudin. Cras purus odio, vestibulum in
                                 vulputate at, tempus viverra turpis. Fusce condimentum nunc ac
                                 nisi vulputate fringilla. Donec lacinia congue felis in
                                 faucibus.
+                                </p>
                             </div>
                         </li>
                         <li class="media">
                             <img class="d-flex mr-3 img-circle" style="width: 60px; height: 60px"
                                 src="/public/img/face.jpg" />
                             <div class="media-body">
-                                <h6 class="mt-0 mb-1">
-                                    <a href="#">亚松</a><span class="link-spacer"></span>
-                                    <small>2016-12-15 16:35</small>
+                                <h6 class="mt-0 mb-1 text-gray-800">
+                                     <a href="#" class="text-blue-600 hover:underline">亚松</a><span class="link-spacer"></span>
+                                     <small class="text-gray-500">2016-12-15 16:35</small>
                                 </h6>
+                                <p class="text-gray-700">
                                 Cras sit amet nibh libero, in gravida nulla. Nulla vel metus
                                 scelerisque ante sollicitudin. Cras purus odio, vestibulum in
                                 vulputate at, tempus viverra turpis. Fusce condimentum nunc ac
                                 nisi vulputate fringilla. Donec lacinia congue felis in
                                 faucibus.
+                                </p>
                             </div>
                         </li>
                     </ul>
                 </div>
-                <div class="card-footer">
+                <div class="card-footer bg-gray-50">
                     <div class="row justify-content-center">
                         <div class="col-lg-6">
                             <div class="form-group">
-                                <textarea class="form-control" rows="4"></textarea>
+                                <textarea class="form-control bg-white border-gray-300 text-gray-800 focus:border-blue-500" rows="4"></textarea>
                             </div>
-                            <button type="submit" class="btn btn-primary">{{getMessage "comments.submit" .Context.Lang}}</button>
+                            <button type="submit" class="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white">{{getMessage "comments.submit" .Context.Lang}}</button>
                         </div>
                     </div>
                 </div>
