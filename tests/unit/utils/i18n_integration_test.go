@@ -23,7 +23,7 @@ func TestI18nManagerIntegration(t *testing.T) {
 		},
 		SupportLangs: []config.SupportLang{
 			{Code: "zh-cn", Label: "Chinese Simplified", LocalText: "简体中文"},
-			{Code: "en-us", Label: "English", LocalText: "English"},
+			{Code: "en", Label: "English", LocalText: "English"},
 		},
 	}
 
@@ -51,7 +51,7 @@ func TestI18nManagerIntegration(t *testing.T) {
 		testKey := "test.message.with.params"
 		testValue := "Hello {{name}}, welcome to {{app}}!"
 		// 使用规范化的语言代码
-		i18n.SetMessage(i18n.BuildCacheKey("en-us", testKey), testValue)
+		i18n.SetMessage(i18n.BuildCacheKey("en", testKey), testValue)
 
 		params := map[string]string{
 			"name": "John",
@@ -76,7 +76,7 @@ func TestI18nManagerIntegration(t *testing.T) {
 
 		codes := manager.GetSupportedLanguageCodes()
 		assert.Contains(t, codes, "zh-cn", "应该包含中文")
-		assert.Contains(t, codes, "en-us", "应该包含英文")
+		assert.Contains(t, codes, "en", "应该包含英文")
 	})
 
 	// 测试默认语言
@@ -104,7 +104,7 @@ func TestI18nManagerIntegration(t *testing.T) {
 		// 测试英文语言信息（通过规范化）
 		enLangInfo, enExists := manager.GetLanguageInfo("en")
 		assert.True(t, enExists, "英文语言信息应该存在（通过规范化）")
-		assert.Equal(t, "en-us", enLangInfo.Code, "规范化后的语言代码应该正确")
+		assert.Equal(t, "en", enLangInfo.Code, "规范化后的语言代码应该正确")
 
 		_, exists = manager.GetLanguageInfo("invalid")
 		assert.False(t, exists, "无效语言信息不应该存在")
@@ -146,7 +146,7 @@ func TestI18nContextDetection(t *testing.T) {
 		},
 		SupportLangs: []config.SupportLang{
 			{Code: "zh-cn", Label: "Chinese Simplified", LocalText: "简体中文"},
-			{Code: "en-us", Label: "English", LocalText: "English"},
+			{Code: "en", Label: "English", LocalText: "English"},
 		},
 	}
 
@@ -173,7 +173,7 @@ func TestI18nContextDetection(t *testing.T) {
 
 		locale := manager.GetLocaleFromContext(c)
 		// 检测到的语言应该是支持的语言之一（可能经过规范化或保持原格式）
-		assert.True(t, locale == "en-us" || locale == "en-US" || locale == "zh-cn", "应该检测到支持的语言: %s", locale)
+		assert.True(t, locale == "en" || locale == "en-US" || locale == "zh-cn", "应该检测到支持的语言: %s", locale)
 	})
 
 	t.Run("回退到默认语言", func(t *testing.T) {
@@ -207,7 +207,7 @@ func TestI18nReloadMessages(t *testing.T) {
 		},
 		SupportLangs: []config.SupportLang{
 				{Code: "zh-cn", Label: "Chinese Simplified", LocalText: "简体中文"},
-				{Code: "en-us", Label: "English", LocalText: "English"},
+				{Code: "en", Label: "English", LocalText: "English"},
 			},
 	}
 
@@ -275,7 +275,7 @@ func TestI18nConcurrency(t *testing.T) {
 		},
 		SupportLangs: []config.SupportLang{
 			{Code: "zh-cn", Label: "Chinese Simplified", LocalText: "简体中文"},
-			{Code: "en-us", Label: "English", LocalText: "English"},
+			{Code: "en", Label: "English", LocalText: "English"},
 		},
 	}
 

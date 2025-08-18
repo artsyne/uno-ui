@@ -239,7 +239,7 @@ func TestRegisterPOST(t *testing.T) {
 	form.Add("email", "newuser@example.com")
 	form.Add("pwd", "newpassword")
 	form.Add("time_zone", "UTC")
-	form.Add("lang", "en-us")
+	form.Add("lang", "en")
 
 	req, _ := http.NewRequest("POST", "/register", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")

@@ -21,7 +21,7 @@
 - **☁️ 多云存储**: 支持 Dropbox、Google Drive、阿里云盘、WebDAV 等多种云存储服务
 - **🏗️ 现代化架构**: 基于 DDD 分层设计，Go 1.25 泛型 DI 容器，零反射高性能
 - **🌍 国际化支持**: 智能语言检测，预加载缓存，微秒级翻译查找
-- **🎨 响应式设计**: Tailwind CSS 4.x + Kiko.js 组件库，现代化 UI/UX
+- **🎨 响应式设计**: Tailwind CSS 4.x + Kiko.js 组件库，现代化 UI/UX，支持 Light/Dark 主题切换
 - **⚡ 高性能**: 优化的数据库查询、Redis 缓存、异步任务处理
 - **🧪 完整测试**: 91%+ 覆盖率，真实环境测试框架，性能基准测试
 - **🔒 统一错误处理**: 4位错误码体系，结构化日志，优雅的错误降级
@@ -40,6 +40,7 @@
 **🎨 前端技术**:
 
 - **Tailwind CSS 4.x**: 原子化 CSS 框架，响应式设计
+- **jquery 4.x**: 前端库，简化 DOM 操作
 - **Kiko.js**: 自研前端组件库 (Grid、Tab、Notify、Valid 等)
 - **JavaScript ES2023**: 现代 JS 特性，模块化设计
 - **国际化 i18n**: 多语言支持，智能语言切换
@@ -234,7 +235,8 @@ docker-compose logs -f idiary
 | 技术领域     | 文档链接                                               | 描述                      |
 | ------------ | ------------------------------------------------------ | ------------------------- |
 | **依赖注入** | [Go 1.25泛型DI容器](./docs/di-container-guide.md)      | 零反射、高性能DI系统      |
-| **国际化**   | [国际化系统指南](./docs/internationalization-guide.md) | 智能语言检测和翻译        |
+| **国际化**   | [国际化系统指南](./docs/i18n-guide.md) | 智能语言检测和翻译        |
+| **主题系统** | [主题系统指南](./docs/THEME_SYSTEM_GUIDE.md)           | Light/Dark主题切换系统    |
 | **中间件**   | [中间件系统详解](./docs/middleware-guide.md)           | 分层中间件架构            |
 | **错误处理** | [错误处理机制](./docs/error-handling-examples.md)      | 统一错误处理和ViewService |
 | **日志系统** | [日志系统指南](./docs/logging-enhancement-guide.md)    | slog结构化日志            |

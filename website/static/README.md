@@ -53,6 +53,7 @@ npm run create:dirs
 - **CSS处理**: PostCSS、Autoprefixer、CSSnano
 - **JS处理**: Terser (用于压缩和混淆)
 - **构建工具**: Node.js脚本
+- **主题系统**: 支持Light/Dark主题切换，与Kiko UI主题系统集成
 
 ## 开发指南
 

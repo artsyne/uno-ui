@@ -242,7 +242,7 @@ const Auth = {
         data: form.serialize(),
         dataType: 'json',
         success: function (response) {
-          kiko.ui.notify.success(appI18n.getMessage('operation.success'));
+          kiko.ui.notify.success(kiko.i18n.getMessage('operation.success'));
         },
       });
     },

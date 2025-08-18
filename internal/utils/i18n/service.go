@@ -191,7 +191,7 @@ func (m *LocalizationManager) normalizeLocale(locale string) string {
 	case "zh-hant", "zh_hant", "zh-tw", "zh_tw", "zh-hk", "zh_hk":
 		return "zh-tw"
 	case "en", "en-us", "en_us":
-		return "en-us"
+		return "en"
 	case "ja", "ja-jp", "ja_jp":
 		return "ja-jp"
 	case "ko", "ko-kr", "ko_kr":
@@ -352,11 +352,6 @@ func (m *LocalizationManager) getBrowserPreferredLocale(c *gin.Context) string {
 	languages := m.parseAcceptLanguage(acceptLang)
 
 	for _, lang := range languages {
-		// 直接匹配
-		if m.IsLanguageSupported(lang) {
-			return lang
-		}
-
 		// 尝试规范化匹配
 		if normalized := m.normalizeLocale(lang); normalized != "" && m.IsLanguageSupported(normalized) {
 			return normalized

@@ -151,7 +151,7 @@ func TestRenderService_PageDataWithDifferentLanguages(t *testing.T) {
 			// 我们验证返回的语言是支持的
 			actualLang := pageData.Context.Lang
 			// 支持的语言包括：zh-cn, en 以及它们的变体
-			supportedLangs := []string{"zh-cn", "en", "zh", "zh-CN", "en-US"}
+			supportedLangs := []string{"zh-cn", "en", "zh", "zh-CN"}
 			found := false
 			for _, lang := range supportedLangs {
 				if actualLang == lang {

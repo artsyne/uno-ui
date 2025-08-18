@@ -58,7 +58,7 @@ window.handleError = (
   let errorCode = null;
 
   // 确定错误消息文本
-  let errorMessage = appI18n.getMessage(fallbackMessage);
+  let errorMessage = kiko.i18n.getMessage(fallbackMessage);
   let isUserError = false; // 是否为用户输入导致的预期错误
 
   // 解析错误对象，提取错误代码和消息
@@ -157,7 +157,7 @@ $(() => {
       debug: true,
       cache: false,
       enableAnchorCapture: true,
-      loadingText: appI18n.getMessage('loading'),
+      loadingText: kiko.i18n.getMessage('loading'),
       errorHandler: (error) => handleError(error),
       init: (action) => {
         log('行为初始化', action.id);
@@ -169,7 +169,7 @@ $(() => {
         // 成功完成的特定类型行为可以显示成功消息
         if (success && action.showSuccessMessage) {
           kiko.ui.notify.success(
-            action.successMessage || appI18n.getMessage('operation.success'),
+            action.successMessage || kiko.i18n.getMessage('operation.success'),
           );
         }
       },

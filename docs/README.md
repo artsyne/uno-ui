@@ -10,7 +10,7 @@ iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能�
 - **☁️ 多云存储**: 支持 Dropbox、Google Drive、阿里云盘、WebDAV 等多种云存储服务
 - **🏗️ 现代化架构**: 基于 DDD 分层设计，Go 1.25 泛型 DI 容器，零反射高性能
 - **🌍 国际化支持**: 智能语言检测，预加载缓存，微秒级翻译查找
-- **🎨 响应式设计**: Tailwind CSS 4.x + Kiko.js 组件库，现代化 UI/UX
+- **🎨 响应式设计**: Tailwind CSS 4.x + jquery 4.x + Kiko.js 组件库，现代化 UI/UX，支持 Light/Dark 主题切换
 - **⚡ 高性能**: 优化的数据库查询、Redis 缓存、异步任务处理
 - **🧪 完整测试**: 91%+ 覆盖率，真实环境测试框架，性能基准测试
 - **🔒 统一错误处理**: 4位错误码体系，结构化日志，优雅的错误降级
@@ -98,7 +98,8 @@ iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能�
 ### 🔧 核心技术指南
 
 - [⚙️ Go 1.25泛型DI容器指南](./di-container-guide.md) - 零反射、高性能依赖注入容器
-- [🌍 国际化系统指南](./internationalization-guide.md) - 多语言支持和智能语言检测
+- [🌍 国际化系统指南](./i18n-guide.md) - 多语言支持和智能语言检测
+- [🎨 主题系统指南](./THEME_SYSTEM_GUIDE.md) - Light/Dark主题切换系统
 - [🔧 中间件系统详解](./middleware-guide.md) - 分层中间件架构和使用指南
 - [🎯 错误处理机制](./error-handling-examples.md) - 统一错误处理和ViewService
 - [📝 日志系统指南](./logging-enhancement-guide.md) - 基于slog的结构化日志系统
@@ -208,7 +209,7 @@ iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能�
 1. [模板函数使用指南](./template-functions-guide.md) - 掌握模板数据访问和渲染
 2. [模板开发最佳实践](./template-usage-guide.md) - 学习模板架构模式
 3. [模板翻译指南](./template-translation-guide.md) - 实现模板国际化
-4. [国际化系统指南](./internationalization-guide.md) - 深入多语言支持机制
+4. [国际化系统指南](./i18n-guide.md) - 深入多语言支持机制
 
 **🔧 后端开发者**:
 
@@ -246,7 +247,7 @@ iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能�
 | [Go 1.25泛型DI容器](./di-container-guide.md)      | 零反射依赖注入容器        | 后端开发者       |
 | [中间件系统详解](./middleware-guide.md)           | 中间件架构和使用指南      | 后端开发者       |
 | [错误处理机制](./error-handling-examples.md)      | 统一错误处理和ViewService | 后端开发者       |
-| [国际化系统指南](./internationalization-guide.md) | 多语言支持完整方案        | 全栈开发者       |
+| [国际化系统指南](./i18n-guide.md) | 多语言支持完整方案        | 全栈开发者       |
 | [日志系统指南](./logging-enhancement-guide.md)    | slog结构化日志系统        | 后端开发者、运维 |
 
 ### 🎨 前端开发文档

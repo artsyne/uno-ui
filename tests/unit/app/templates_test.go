@@ -22,7 +22,7 @@ func TestTemplateLocalizationFunctions(t *testing.T) {
 		},
 		SupportLangs: []config.SupportLang{
 			{Code: "zh-cn", Label: "Chinese Simplified", LocalText: "简体中文"},
-			{Code: "en-us", Label: "English", LocalText: "English"},
+			{Code: "en", Label: "English", LocalText: "English"},
 		},
 	}
 
@@ -43,7 +43,7 @@ func TestTemplateLocalizationFunctions(t *testing.T) {
 		result := getMessageFunc.(func(string, string) string)("common.save", "zh-cn")
 		assert.Equal(t, "保存", result, "应该返回正确的中文翻译")
 
-		result = getMessageFunc.(func(string, string) string)("common.save", "en-us")
+		result = getMessageFunc.(func(string, string) string)("common.save", "en")
 		assert.Equal(t, "Save", result, "应该返回正确的英文翻译")
 
 		// 测试不存在的消息
@@ -91,7 +91,7 @@ func TestTemplateLocalizationFunctions(t *testing.T) {
 		result := getSupportedLanguagesFunc.(func() []config.SupportLang)()
 		assert.Len(t, result, 2, "应该返回2种支持的语言")
 		assert.Equal(t, "zh-cn", result[0].Code, "第一种语言应该是中文")
-		assert.Equal(t, "en-us", result[1].Code, "第二种语言应该是英文")
+		assert.Equal(t, "en", result[1].Code, "第二种语言应该是英文")
 	})
 
 	// 测试 isLanguageSupported 函数
@@ -102,7 +102,7 @@ func TestTemplateLocalizationFunctions(t *testing.T) {
 		result := isLanguageSupportedFunc.(func(string) bool)("zh-cn")
 		assert.True(t, result, "中文应该被支持")
 
-		result = isLanguageSupportedFunc.(func(string) bool)("en-us")
+		result = isLanguageSupportedFunc.(func(string) bool)("en")
 		assert.True(t, result, "英文应该被支持")
 
 		result = isLanguageSupportedFunc.(func(string) bool)("en-us")
@@ -123,7 +123,7 @@ func TestTemplateIntegration(t *testing.T) {
 		},
 		SupportLangs: []config.SupportLang{
 			{Code: "zh-cn", Label: "Chinese Simplified", LocalText: "简体中文"},
-			{Code: "en-us", Label: "English", LocalText: "English"},
+			{Code: "en", Label: "English", LocalText: "English"},
 		},
 	}
 
@@ -187,7 +187,7 @@ func TestTemplateIntegration(t *testing.T) {
 
 		// 测试英文
 		var enBuf strings.Builder
-		err = tmpl.Execute(&enBuf, map[string]string{"Locale": "en-us"})
+		err = tmpl.Execute(&enBuf, map[string]string{"Locale": "en"})
 		require.NoError(t, err, "英文模板执行不应该出错")
 		enResult := strings.TrimSpace(enBuf.String())
 		assert.Equal(t, "Home | Settings", enResult, "英文输出应该正确")
@@ -227,7 +227,7 @@ func TestTemplateErrorHandling(t *testing.T) {
 		},
 		SupportLangs: []config.SupportLang{
 			{Code: "zh-cn", Label: "Chinese Simplified", LocalText: "简体中文"},
-			{Code: "en-us", Label: "English", LocalText: "English"},
+			{Code: "en", Label: "English", LocalText: "English"},
 		},
 	}
 
@@ -272,7 +272,7 @@ func TestTemplatePerformance(t *testing.T) {
 		},
 		SupportLangs: []config.SupportLang{
 			{Code: "zh-cn", Label: "Chinese Simplified", LocalText: "简体中文"},
-			{Code: "en-us", Label: "English", LocalText: "English"},
+			{Code: "en", Label: "English", LocalText: "English"},
 		},
 	}
 

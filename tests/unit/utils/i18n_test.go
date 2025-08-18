@@ -109,8 +109,8 @@ func TestI18nCacheKeyBuilding(t *testing.T) {
 		assert.Equal(t, "zh-cn:user.label.settings", cacheKey3, "locale应该被转换为小写")
 
 		// 测试locale和key都是混合大小写
-		cacheKey5 := i18n.BuildCacheKey("EN-US", "Common.Save")
-		expected := "en-us:common.save"
+		cacheKey5 := i18n.BuildCacheKey("EN", "Common.Save")
+		expected := "en:common.save"
 		assert.Equal(t, expected, cacheKey5, "locale和key都应该被转换为小写")
 	})
 }

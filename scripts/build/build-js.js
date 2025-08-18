@@ -43,33 +43,20 @@ const isWindows = os.platform() === 'win32';
 
 // 语言文件目录
 const i18nDir = isWindows
-  ? '.\\website\\static\\src\\js\\i18n'
-  : './website/static/src/js/i18n';
+  ? '.\\website\\static\\src\\js\\locales'
+  : './website/static/src/js/locales';
 
-// 获取所有语言文件
+// 获取所有语言文件（已废弃，语言包现在通过 JSON 动态加载）
 const getLanguageFiles = () => {
-  try {
-    const langFiles = [];
-    fs.readdirSync(i18nDir).forEach((file) => {
-      if (file.endsWith('.js')) {
-        langFiles.push(path.join('i18n', file));
-      }
-    });
-    return langFiles;
-  } catch (err) {
-    console.warn(
-      'Warning: Could not read language files directory:',
-      err.message,
-    );
-    return [];
-  }
+  // 不再打包语言文件到 JS 中，改为动态加载 JSON
+  return [];
 };
 
 // 定义JS文件合并顺序
 const jsFiles = [
   'kiko-init.js', // 首先加载Kiko初始化
-  ...getLanguageFiles(), // 然后加载所有语言文件
-  'i18n.js', // 再加载i18n支持
+  'i18n.js', // 网站多语言初始化
+  'theme.js', // 主题切换功能
   'auth.js', // 认证模块
   'diary.js', // 日记本模块
   'settings.js', // 设置模块
@@ -193,6 +180,38 @@ try {
   // 删除临时文件
   fs.unlinkSync(tempIdiaryPath);
   console.log('Removed temporary files');
+
+  // 处理语言包文件 - 合并 JS 语言包到 idiary.min.js 中
+  console.log('Processing and merging locale JS files...');
+  const localesSourceDir = path.join(__dirname, '..', '..', 'website', 'static', 'src', 'js', 'locales');
+  
+  let localeJsCode = '';
+  
+  // 读取并合并语言包 JS 文件
+  if (fs.existsSync(localesSourceDir)) {
+    const localeFiles = fs.readdirSync(localesSourceDir).filter(file => file.endsWith('.js'));
+    
+    for (const file of localeFiles) {
+      const sourcePath = path.join(localesSourceDir, file);
+      
+      console.log(`Processing locale file: ${file}`);
+      
+      // 读取 JS 文件内容
+      const content = fs.readFileSync(sourcePath, 'utf8');
+      localeJsCode += `\n\n/* ${file} */\n${content}`;
+    }
+    
+    console.log(`Processed and merged ${localeFiles.length} locale JS files`);
+  } else {
+    console.warn('Locales source directory not found, skipping locale processing');
+  }
+  
+  // 将语言包 JS 代码追加到 idiary.min.js
+  if (localeJsCode) {
+    const currentContent = fs.readFileSync(idiaryOutputPath, 'utf8');
+    fs.writeFileSync(idiaryOutputPath, currentContent + localeJsCode, 'utf8');
+    console.log('Language pack JS files merged into idiary.min.js');
+  }
 
   console.log('JS build process completed successfully.');
 } catch (error) {

@@ -5,7 +5,7 @@
 ## 文件说明
 
 - `tailwind.css` - Tailwind CSS基础文件，包含@tailwind指令
-- `diary-theme.css` - 自定义主题样式，会被合并到最终CSS中
+- `diary-theme.css` - 自定义主题样式，包含Light/Dark主题变量和样式，会被合并到最终CSS中
 
 ## 构建流程
 
@@ -37,3 +37,5 @@ npm run build:css
 2. 修改Tailwind配置请编辑项目根目录下的`tailwind.config.js`
 3. 通过`class`属性应用Tailwind类名
 4. 使用PostCSS插件可在`postcss.config.js`中配置
+5. 主题相关样式使用CSS变量，支持Light/Dark模式自动切换
+6. 与Kiko UI主题系统保持一致，确保主题切换的统一性

@@ -56,10 +56,10 @@ const Settings = {
         data: data,
         success: function (response) {
           log('保存个人资料:', response);
-          kiko.ui.notify.success(appI18n.getMessage('operation.success'));
+          kiko.ui.notify.success(kiko.i18n.getMessage('operation.success'));
         },
         error: function (response) {
-          kiko.ui.notify.error(appI18n.getMessage('operation.fail'));
+          kiko.ui.notify.error(kiko.i18n.getMessage('operation.fail'));
         },
       });
     },
@@ -91,7 +91,7 @@ const Settings = {
 
       // TODO: 实现服务端保存逻辑
       log('保存邮箱:', data);
-      kiko.ui.notify.success(appI18n.getMessage('operation.success'));
+      kiko.ui.notify.success(kiko.i18n.getMessage('operation.success'));
     },
   },
 
@@ -128,12 +128,12 @@ const Settings = {
         data: data,
         success: function (response) {
           log('修改密码:', response);
-          kiko.ui.notify.success(appI18n.getMessage('operation.success'));
+          kiko.ui.notify.success(kiko.i18n.getMessage('operation.success'));
           // 清空密码字段
           form.find('#current_pwd, #new_pwd, #confirm_pwd').val('');
         },
         error: function (response) {
-          kiko.ui.notify.error(appI18n.getMessage('operation.fail'));
+          kiko.ui.notify.error(kiko.i18n.getMessage('operation.fail'));
         },
       });
     },

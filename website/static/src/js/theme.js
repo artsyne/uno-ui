@@ -118,15 +118,15 @@
       switch (currentTheme) {
         case 'light':
           icon.classList.add('mdi-weather-sunny');
-          themeButton.title = '切换到暗色主题';
+          themeButton.title = window.kiko?.i18n?.getMessage('theme.switch.dark') || 'Switch to dark theme';
           break;
         case 'dark':
           icon.classList.add('mdi-weather-night');
-          themeButton.title = '切换到亮主题';
+          themeButton.title = window.kiko?.i18n?.getMessage('theme.switch.light') || 'Switch to light theme';
           break;
         default:
           icon.classList.add('mdi-weather-sunny');
-          themeButton.title = '切换到亮色主题';
+          themeButton.title = window.kiko?.i18n?.getMessage('theme.switch.light') || 'Switch to auto theme';
           break;
       }
     },

@@ -40,17 +40,17 @@ const Diary = {
     handler: function (id, target, eventData, data) {
       const isEdit = data.formAction === 'post.edit';
       const dialogTitle = isEdit
-        ? appI18n.getMessage('post.edit.title')
-        : appI18n.getMessage('post.create.title');
+        ? kiko.i18n.getMessage('post.edit.title')
+        : kiko.i18n.getMessage('post.create.title');
 
       // 显示对话框并加载表单
       const boxId = kiko.ui.box.dialog({
         title: dialogTitle,
-        content: `<div class="modal-body" id="post-form-container">${appI18n.getMessage('loading')}</div>`,
+        content: `<div class="modal-body" id="post-form-container">${kiko.i18n.getMessage('loading')}</div>`,
         width: 880,
         height: 570,
         showOkButton: true,
-        okButtonText: appI18n.getMessage('post.save') || '保存',
+        okButtonText: kiko.i18n.getMessage('post.save') || '保存',
         okButtonClass: 'btn-red',
         buttonAlign: 'right',
         onOk: () => this._handlePostSubmit(data, boxId),
@@ -145,7 +145,7 @@ const Diary = {
           if (response.code === 0) {
             this._handlePostSubmitSuccess(data.formAction, response.data);
             kiko.ui.box.close(boxId);
-            kiko.ui.notify.success(appI18n.getMessage('post.save.success'));
+            kiko.ui.notify.success(kiko.i18n.getMessage('post.save.success'));
           } else {
             this._handleSubmitError(response.message);
           }
@@ -304,17 +304,17 @@ const Diary = {
 
       const isEdit = data.formAction === 'diary.edit';
       const dialogTitle = isEdit
-        ? appI18n.getMessage('diary.edit.title')
-        : appI18n.getMessage('diary.create.title');
+        ? kiko.i18n.getMessage('diary.edit.title')
+        : kiko.i18n.getMessage('diary.create.title');
 
       // 显示对话框并加载表单
       const boxId = kiko.ui.box.dialog({
         title: dialogTitle,
-        content: `<div class="modal-body" id="add-diary-form-container">${appI18n.getMessage('loading')}</div>`,
+        content: `<div class="modal-body" id="add-diary-form-container">${kiko.i18n.getMessage('loading')}</div>`,
         width: 780,
         height: 460,
         showOkButton: true,
-        okButtonText: appI18n.getMessage('diary.save') || '保存',
+        okButtonText: kiko.i18n.getMessage('diary.save') || '保存',
         okButtonClass: 'btn-red',
         buttonAlign: 'right',
         onOk: () => this._handleFormSubmit(data, boxId),
@@ -355,7 +355,7 @@ const Diary = {
             this._handleSubmitSuccess(data.formAction, response.data);
             kiko.ui.box.close(boxId);
             kiko.ui.notify.success(
-              appI18n.getMessage('operation.success') || '操作成功',
+              kiko.i18n.getMessage('operation.success') || '操作成功',
             );
           } else {
             this._handleSubmitError(response.message || '操作失败');
