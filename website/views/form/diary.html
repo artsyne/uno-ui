@@ -3,7 +3,7 @@
 <div class="px-4">
     <form id="daybook_editor_form">
         <div class="block mb-4">
-            <label class="form-title">{{getMessage "diary.form.name_required" .Context.Lang}} *</label>
+            <label class="form-title">{{getMessage "diary.form.name_required" .Context.Lang}} </label>
             <input type="text" class="form-control" id="title" name="title"
                 valid='[{"type":"required"},{"type":"limit","min":1,"max":100}]' placeholder="{{getMessage "diary.form.name_required" .Context.Lang}}" {{if
                 .Data.Diary}}value="{{.Data.Diary.Title}}" {{end}}>
@@ -18,13 +18,13 @@
         <div class="block mb-4">
             <div class="flex items-center space-x-4 mb-2">
                 <div class="flex items-center">
-                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Data.Diary (eq .Data.Diary.ViewSetting
+                    <input class="mr-2 form-control-radio" type="radio" {{if and .Data.Diary (eq .Data.Diary.ViewSetting
                         2)}}checked{{else if not .Data.Diary}}checked{{end}} name="view_setting" id="daybook_view_setting1"
                         value="2">
                     <label class="text-sm" for="daybook_view_setting1">{{getMessage "diary.form.privacy_private" .Context.Lang}}</label>
                 </div>
                 <div class="flex items-center">
-                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Data.Diary (eq .Data.Diary.ViewSetting
+                    <input class="mr-2 form-control-radio" type="radio" {{if and .Data.Diary (eq .Data.Diary.ViewSetting
                         1)}}checked{{end}} name="view_setting" id="daybook_view_setting2" value="1">
                     <label class="text-sm" for="daybook_view_setting2">{{getMessage "diary.form.privacy_public" .Context.Lang}}</label>
                 </div>
@@ -34,13 +34,13 @@
         <div class="block mb-4">
             <div class="flex items-center space-x-4 mb-2">
                 <div class="flex items-center">
-                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Data.Diary (eq
+                    <input class="mr-2 form-control-radio" type="radio" {{if and .Data.Diary (eq
                         .Data.Diary.SocialSetting 2)}}checked{{else if not .Data.Diary}}checked{{end}} name="social_setting"
                         id="daybook_social_setting1" value="2">
                     <label class="text-sm" for="daybook_social_setting1">{{getMessage "diary.form.social_disabled" .Context.Lang}}</label>
                 </div>
                 <div class="flex items-center">
-                    <input class="mr-2 border-gray-300 focus:ring-0" type="radio" {{if and .Data.Diary (eq
+                    <input class="mr-2 form-control-radio" type="radio" {{if and .Data.Diary (eq
                         .Data.Diary.SocialSetting 1)}}checked{{end}} name="social_setting" id="daybook_social_setting2"
                         value="1">
                     <label class="text-sm" for="daybook_social_setting2">{{getMessage "diary.form.social_enabled" .Context.Lang}}</label>
