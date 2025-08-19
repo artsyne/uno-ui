@@ -1,10 +1,13 @@
 package core
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/core/database"
+	framework "github.com/biuren/hebe/tests/framework/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -24,6 +27,15 @@ func getTestDatabaseConfig() *config.Config {
 }
 
 func TestDatabase_SetDB(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(framework.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+
 	// 测试SetDB函数 - 使用内存数据库进行测试
 	// 注意：这里使用sqlite内存数据库来避免依赖真实的MySQL服务器
 	testConnection := ":memory:"
@@ -35,6 +47,15 @@ func TestDatabase_SetDB(t *testing.T) {
 }
 
 func TestDatabase_GetDB_BeforeConnect(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(framework.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+
 	// 测试在连接之前获取数据库连接
 	db := database.GetDB()
 	// 在没有连接的情况下，应该返回nil或之前设置的连接
@@ -46,6 +67,15 @@ func TestDatabase_GetDB_BeforeConnect(t *testing.T) {
 }
 
 func TestDatabase_Close(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(framework.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+
 	// 测试关闭数据库连接
 	err := database.Close()
 	// 即使没有连接，Close也不应该返回错误
@@ -53,6 +83,15 @@ func TestDatabase_Close(t *testing.T) {
 }
 
 func TestDatabase_Connect_InvalidConfig(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(framework.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+
 	// 设置无效的配置来测试连接失败的情况
 	invalidConfig := &config.Config{
 		Database: config.DatabaseConfig{
@@ -75,6 +114,15 @@ func TestDatabase_Connect_InvalidConfig(t *testing.T) {
 }
 
 func TestDatabase_Connect_ValidConfig_NoServer(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(framework.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+
 	// 使用有效格式但无法连接的配置
 	validConfig := getTestDatabaseConfig()
 	config.SetConfig(validConfig)
@@ -87,6 +135,15 @@ func TestDatabase_Connect_ValidConfig_NoServer(t *testing.T) {
 }
 
 func TestDatabase_ConnectionString_Format(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(framework.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+
 	// 测试连接字符串格式化
 	cfg := getTestDatabaseConfig()
 	config.SetConfig(cfg)
@@ -102,6 +159,15 @@ func TestDatabase_ConnectionString_Format(t *testing.T) {
 
 // 测试数据库配置的完整性
 func TestDatabase_ConfigIntegrity(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(framework.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+
 	cfg := getTestDatabaseConfig()
 	
 	// 验证所有必需的数据库配置字段
@@ -117,6 +183,15 @@ func TestDatabase_ConfigIntegrity(t *testing.T) {
 
 // 测试数据库连接字符串的构建
 func TestDatabase_ConnectionStringBuilding(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(framework.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+
 	cfg := getTestDatabaseConfig()
 	
 	// 验证连接字符串模板包含必要的占位符
@@ -128,6 +203,15 @@ func TestDatabase_ConnectionStringBuilding(t *testing.T) {
 
 // 测试数据库配置的边界情况
 func TestDatabase_ConfigEdgeCases(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(framework.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+
 	// 测试空密码的情况
 	cfgEmptyPassword := &config.Config{
 		Database: config.DatabaseConfig{

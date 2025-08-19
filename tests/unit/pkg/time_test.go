@@ -1,14 +1,25 @@
-package tests
+package pkg
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/biuren/hebe/pkg"
+	core "github.com/biuren/hebe/tests/framework/core"
 )
 
 // TestGetNowTime 测试 GetNowTime 函数
 func TestGetNowTime(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+	
 	now := pkg.GetNowTime()
 	if time.Since(now) > time.Second {
 		t.Errorf("GetNowTime is not returning current time")
@@ -17,6 +28,15 @@ func TestGetNowTime(t *testing.T) {
 
 // TestGetNowTimeUnixMilli 测试 GetNowTimeUnixMilli 函数
 func TestGetNowTimeUnixMilli(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+	
 	// 获取当前时间的毫秒时间戳
 	timestamp := pkg.GetNowTimeUnixMilli()
 
@@ -40,6 +60,15 @@ func TestGetNowTimeUnixMilli(t *testing.T) {
 
 // TestGetTimeFromUnixMilli 测试 GetTimeFromUnixMilli 函数
 func TestGetTimeFromUnixMilli(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+	
 	now := time.Now().UnixMilli()
 	timeFromUnixMilli := pkg.GetTimeFromUnixMilli(now)
 	if timeFromUnixMilli.UnixMilli() != now {
@@ -49,6 +78,15 @@ func TestGetTimeFromUnixMilli(t *testing.T) {
 
 // TestGetLocalTimeFromUTC 测试 GetLocalTimeFromUTC 函数
 func TestGetLocalTimeFromUTC(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+	
 	now := time.Now().UnixMilli()
 	localTime, err := pkg.GetLocalTimeFromUTC(now, "America/New_York")
 	if err != nil {
@@ -60,6 +98,9 @@ func TestGetLocalTimeFromUTC(t *testing.T) {
 }
 
 func TestIsTimeZone(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
 	tests := []struct {
 		name     string
 		timezone string
@@ -93,6 +134,11 @@ func TestIsTimeZone(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		select {
+		case <-ctx.Done():
+			t.Fatal("测试超时")
+		default:
+		}
 		t.Run(tt.name, func(t *testing.T) {
 			got := pkg.IsTimeZone(tt.timezone)
 			if got != tt.want {

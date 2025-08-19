@@ -93,7 +93,7 @@ func IsValidUserName(userName string) bool {
 // 返回值：如果密码有效，返回true，否则返回false
 // 密码必须至少包含8个字符，最多包含30个字符，必须包含至少一个字母和一个数字
 func IsValidPassword(password string) bool {
-	if len(password) < 8 || len(password) > 30 {
+	if len(password) < 8 || len(password) > 28 {
 		return false
 	}
 	hasLetter := false

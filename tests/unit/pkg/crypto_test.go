@@ -1,18 +1,29 @@
-package tests
+package pkg
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"testing"
 	"time"
 
 	"github.com/biuren/hebe/pkg"
+	core "github.com/biuren/hebe/tests/framework/core"
 )
 
 
 
 // TestSha256 测试 Sha256 函数
 func TestSha256(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+	
 	str := "Hello, world!"
 	hash := sha256.New()
 	hash.Write([]byte(str))
@@ -25,6 +36,9 @@ func TestSha256(t *testing.T) {
 
 
 func TestAESEncryptDecrypt(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
     // 测试用例
     testCases := []struct {
         plainText string
@@ -36,6 +50,11 @@ func TestAESEncryptDecrypt(t *testing.T) {
     }
 
     for _, tc := range testCases {
+		select {
+		case <-ctx.Done():
+			t.Fatal("测试超时")
+		default:
+		}
         // 使用 AESEncrypt 函数加密明文
         cipherText, err :=pkg.AESEncrypt(tc.plainText, tc.key)
 		t.Log(cipherText)
@@ -60,6 +79,15 @@ func TestAESEncryptDecrypt(t *testing.T) {
 // TestPasswordHashingPerformance 比较 SHA256+Salt 和 Bcrypt 的性能
 // TestBcryptHash 测试 Bcrypt 哈希功能
 func TestBcryptHash(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+	
 	password := "testPassword123!"
 
 	// 测试 Bcrypt 哈希
@@ -94,6 +122,15 @@ func TestBcryptHash(t *testing.T) {
 
 // TestBcryptPerformance 测试 Bcrypt 性能
 func TestBcryptPerformance(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+	
 	password := "testPassword123!"
 
 	// 测试 Bcrypt 哈希性能（默认 cost）

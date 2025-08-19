@@ -25,8 +25,18 @@ type PageLinks struct {
 
 // GeneratePagination 生成分页导航
 func GeneratePagination(listOptions ListOptions) []PageLinks {
+	// 如果总记录数小于等于0，直接返回空数组
+	if listOptions.Total <= 0 {
+		return []PageLinks{}
+	}
+
 	pageSize := listOptions.PageSize
 	pageIndex := listOptions.PageIndex
+
+	// 如果页面大小小于等于0，直接返回空数组，避免除零错误
+	if pageSize <= 0 {
+		return []PageLinks{}
+	}
 
 	// 根据总数和每页显示的记录数计算总页数
 	totalPages := int(math.Ceil(float64(listOptions.Total) / float64(pageSize)))

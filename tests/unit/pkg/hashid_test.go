@@ -1,10 +1,13 @@
-package tests
+package pkg
 
 import (
+    "context"
     "testing"
 	"fmt"
+    "time"
 
     "github.com/biuren/hebe/pkg"
+    core "github.com/biuren/hebe/tests/framework/core"
 )
 
 func setup() {
@@ -16,6 +19,15 @@ func setup() {
 }
 
 func TestGlobalHashIDEncodeDecode(t *testing.T) {
+    ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+    defer cancel()
+
+    select {
+    case <-ctx.Done():
+        t.Fatal("测试超时")
+    default:
+    }
+
     setup()
 
     id := 12345744645
@@ -39,6 +51,15 @@ func TestGlobalHashIDEncodeDecode(t *testing.T) {
 }
 
 func TestGlobalHashIDDecodeInvalid(t *testing.T) {
+    ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+    defer cancel()
+
+    select {
+    case <-ctx.Done():
+        t.Fatal("测试超时")
+    default:
+    }
+
     setup()
 
     _, err := pkg.GlobalHashID.Decode("invalid")

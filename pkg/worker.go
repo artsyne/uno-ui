@@ -117,7 +117,20 @@ func (w *Worker) Do() {
 
             resultChan := make(chan string)
             go func() {
-                resultChan <- w.workerAction(msg)
+                if w.workerAction != nil {
+                    resultChan <- w.workerAction(msg)
+                } else {
+                    // 如果 workerAction 为 nil，触发 OnFailure 事件
+                    w.InvokeEvent(w.OnFailure, WorkEventArgs{
+                        Code:         "5001",
+                        ThreadId:     0,
+                        WorkName:     w.workName,
+                        ExceptionMsg: "Worker action is nil",
+                        SourceEvent:  "OnFailure",
+                        Msg:          msg,
+                    })
+                    resultChan <- ""
+                }
             }()
 
             select {

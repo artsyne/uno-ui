@@ -27,7 +27,7 @@ type LoggerConfig struct {
 // 设置日志输出位置、格式和轮转策略
 func SetLogger(config *LoggerConfig) error {
 	if config == nil {
-		return fmt.Errorf("log configuration is nil")
+		return fmt.Errorf("log config is nil")
 	}
 
 	// 验证日志配置
@@ -77,6 +77,24 @@ func SetLogger(config *LoggerConfig) error {
 	return nil
 }
 
+// normalizeLogLevel 规范化日志级别字符串
+func normalizeLogLevel(levelStr string) string {
+	// 只处理大写情况，其他保持原样
+	switch levelStr {
+	case "DEBUG":
+		return "debug"
+	case "INFO":
+		return "info"
+	case "WARN", "WARNING":
+		return "warn"
+	case "ERROR":
+		return "error"
+	default:
+		// 对于其他情况（包括小写的有效级别和无效级别），保持原样
+		return levelStr
+	}
+}
+
 // parseLogLevel 将字符串日志级别转换为slog.Level
 func parseLogLevel(levelStr string) slog.Level {
 	switch levelStr {
@@ -98,6 +116,15 @@ func validateLogConfig(config *LoggerConfig) error {
 	if config == nil {
 		return fmt.Errorf("log config is nil")
 	}
+
+	// 处理空字符串级别，默认为 info
+	if config.Level == "" {
+		config.Level = "info"
+	}
+
+	// 规范化日志级别（处理大写）
+	normalizedLevel := normalizeLogLevel(config.Level)
+	config.Level = normalizedLevel
 
 	// 验证日志级别
 	validLevels := []string{"debug", "info", "warn", "error"}

@@ -1,12 +1,24 @@
-package tests
+package pkg
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"github.com/biuren/hebe/pkg"
+	core "github.com/biuren/hebe/tests/framework/core"
 )
 
 func TestNewTextProcessor(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+	
 	tp := pkg.NewTextProcessor()
 	if tp == nil {
 		t.Fatal("NewTextProcessor() returned nil")
@@ -20,6 +32,9 @@ func TestNewTextProcessor(t *testing.T) {
 }
 
 func TestTextProcessor_TruncateString(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
 	tp := pkg.NewTextProcessor()
 
 	tests := []struct {
@@ -151,6 +166,11 @@ func TestTextProcessor_TruncateString(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		select {
+		case <-ctx.Done():
+			t.Fatal("测试超时")
+		default:
+		}
 		t.Run(test.name, func(t *testing.T) {
 			result := tp.TruncateString(test.input, test.length, test.suffix)
 			if result != test.expected {
@@ -161,6 +181,15 @@ func TestTextProcessor_TruncateString(t *testing.T) {
 }
 
 func TestTextProcessor_TruncateWithDefault(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+	
 	tp := pkg.NewTextProcessor()
 	result := tp.TruncateWithDefault("这是一个很长的测试字符串", 5)
 	expected := "这是..."
@@ -170,6 +199,9 @@ func TestTextProcessor_TruncateWithDefault(t *testing.T) {
 }
 
 func TestTextProcessor_CleanHTML(t *testing.T) {
+	_, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
 	tp := pkg.NewTextProcessor()
 
 	tests := []struct {
@@ -210,6 +242,9 @@ func TestTextProcessor_CleanHTML(t *testing.T) {
 }
 
 func TestTextProcessor_NormalizeWhitespace(t *testing.T) {
+	_, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
 	tp := pkg.NewTextProcessor()
 
 	tests := []struct {
@@ -250,6 +285,15 @@ func TestTextProcessor_NormalizeWhitespace(t *testing.T) {
 }
 
 func TestTextProcessorConfiguration(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+	
 	// 测试自定义配置
 	tp := &pkg.TextProcessor{
 		DefaultSuffix: ">>>",
@@ -264,6 +308,15 @@ func TestTextProcessorConfiguration(t *testing.T) {
 }
 
 func TestDefaultTextProcessor(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+	
 	// 测试默认全局实例
 	defaultTP := pkg.GetDefaultTextProcessor()
 	if defaultTP == nil {
@@ -288,6 +341,15 @@ func TestDefaultTextProcessor(t *testing.T) {
 }
 
 func TestSetDefaultTextProcessor(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
+	select {
+	case <-ctx.Done():
+		t.Fatal("测试超时")
+	default:
+	}
+	
 	// 保存原始默认处理器
 	originalTP := pkg.GetDefaultTextProcessor()
 
@@ -312,6 +374,9 @@ func TestSetDefaultTextProcessor(t *testing.T) {
 }
 
 func TestEdgeCases(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
 	tp := pkg.NewTextProcessor()
 
 	tests := []struct {
@@ -373,6 +438,11 @@ func TestEdgeCases(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		select {
+		case <-ctx.Done():
+			t.Fatal("测试超时")
+		default:
+		}
 		t.Run(test.name, func(t *testing.T) {
 			result := tp.TruncateString(test.input, test.length, test.suffix)
 			if result != test.expected {
@@ -383,21 +453,37 @@ func TestEdgeCases(t *testing.T) {
 }
 
 func BenchmarkTextProcessor_TruncateString(b *testing.B) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
 	tp := pkg.NewTextProcessor()
 	input := "这是一个用于性能测试的很长的字符串，包含中文和English mixed content，需要被智能截断处理。"
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
+		select {
+		case <-ctx.Done():
+			b.Fatal("性能测试超时")
+		default:
+		}
 		tp.TruncateString(input, 20, "...")
 	}
 }
 
 func BenchmarkTextProcessor_CleanHTML(b *testing.B) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
 	tp := pkg.NewTextProcessor()
 	input := `<div class="content"><p>这是<em>重要</em>内容</p><br/><span style="color:red">更多内容</span></div>`
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
+		select {
+		case <-ctx.Done():
+			b.Fatal("性能测试超时")
+		default:
+		}
 		tp.CleanHTML(input)
 	}
 }
