@@ -69,3 +69,8 @@ func SetDB(connection string) error {
 	db, err = sqlx.Connect("mysql", connection)
 	return err
 }
+
+// SetDBForTesting 设置数据库连接实例 (仅用于测试)
+func SetDBForTesting(database *sqlx.DB) {
+	db = database
+}

@@ -51,7 +51,7 @@
 4. **改善数据管理** - 用唯一前缀替代事务，实现灵活的数据隔离
 5. **优化结构** - 建立清晰的测试组织结构
 
-### 清理机制
+### 核心特性
 
 - **数据隔离**: 基于唯一前缀的数据隔离机制
 - **动态数据生成**: 智能的测试数据生成器
@@ -59,6 +59,8 @@
 - **性能监控**: 内置的性能基准测试
 - **清理机制**: 自动化的测试数据清理
 - **强制清理**: 无论配置如何都可强制清理数据库
+- **代码质量**: 已清理冗余和废弃的测试代码
+- **统一规范**: 所有测试文件遵循统一的命名和结构规范
 
 ## 📁 目录结构
 
@@ -68,29 +70,82 @@ tests/
 │   ├── core/                    # 核心组件
 │   │   ├── context.go           # 测试上下文管理
 │   │   ├── config.go            # 统一配置管理
-│   │   └── database.go          # 数据库连接池管理
+│   │   ├── database.go          # 数据库连接池管理
+│   │   └── flags.go             # 命令行参数处理
+│   ├── examples/                # 测试框架使用示例
+│   │   ├── cleanup_example_test.go    # 清理功能示例
+│   │   └── testmain_example_test.go   # TestMain使用示例
 │   ├── helpers/                 # 辅助工具
 │   │   ├── data.go              # 测试数据生成器
 │   │   ├── isolation.go         # 数据隔离器
 │   │   └── cleanup.go           # 清理管理器
 │   ├── http/                    # HTTP测试工具
 │   │   └── helper.go            # HTTP测试助手
-│   └── types/                   # 类型定义
-│       ├── interfaces.go        # 测试接口
-│       └── structs.go           # 测试结构体
+│   ├── types/                   # 类型定义
+│   │   ├── interfaces.go        # 测试接口
+│   │   └── structs.go           # 测试结构体
+│   ├── framework.go             # 框架主入口
+│   ├── framework_validation_test.go # 框架验证测试
+│   └── main_test.go             # 测试主函数
 ├── unit/                        # 单元测试
-│   ├── core/                    # 核心层测试
 │   ├── app/                     # 应用层测试
+│   │   ├── controller/          # 控制器测试
+│   │   │   ├── diary_controller_test.go    # 日记控制器测试
+│   │   │   ├── index_controller_test.go    # 首页控制器测试
+│   │   │   ├── post_controller_test.go     # 文章控制器测试
+│   │   │   └── user_controller_test.go     # 用户控制器测试
+│   │   ├── middleware/          # 中间件测试
+│   │   ├── templates_test.go    # 模板测试
+│   │   └── view_service_test.go # 视图服务测试
+│   ├── core/                    # 核心层测试
+│   │   ├── bootstrap_test.go    # 启动测试
+│   │   ├── config_test.go       # 配置测试
+│   │   ├── database/            # 数据库测试
+│   │   ├── database_test.go     # 数据库连接测试
+│   │   ├── di/                  # 依赖注入测试
+│   │   ├── di_test.go           # DI容器测试
+│   │   ├── error_test.go        # 错误处理测试
+│   │   ├── middleware_test.go   # 中间件测试
+│   │   └── website/             # 网站相关测试
 │   ├── domain/                  # 领域层测试
-│   └── pkg/                     # 工具包测试
+│   │   ├── diary/               # 日记领域测试
+│   │   ├── post/                # 文章领域测试
+│   │   ├── task/                # 任务领域测试
+│   │   └── user/                # 用户领域测试
+│   ├── infra/                   # 基础设施层测试
+│   │   └── repository/          # 仓储层测试
+│   ├── pkg/                     # 工具包测试
+│   │   ├── crypto_test.go       # 加密工具测试
+│   │   ├── hashid_test.go       # HashID测试
+│   │   ├── main_test.go         # 包测试主函数
+│   │   ├── text_test.go         # 文本工具测试
+│   │   └── time_test.go         # 时间工具测试
+│   └── utils/                   # 工具层测试
+│       ├── config/              # 配置工具测试
+│       ├── i18n_integration_test.go # 国际化集成测试
+│       └── i18n_test.go         # 国际化单元测试
 ├── integration/                 # 集成测试
 │   ├── app/                     # 应用集成测试
+│   │   └── render/              # 渲染服务集成测试
+│   │       ├── service_test.go  # 渲染服务测试
+│   │       └── website/         # 网站渲染测试
+│   │           └── locales/     # 测试用本地化文件
+│   │               ├── en.json  # 英文测试文件
+│   │               └── zh-cn.json # 中文测试文件
+│   ├── config/                  # 配置集成测试
+│   │   └── config_integration_test.go # 配置集成测试
 │   ├── database/                # 数据库集成测试
+│   │   ├── database_test.go     # 数据库操作测试
+│   │   └── standalone_test.go   # 独立数据库测试
 │   └── services/                # 服务集成测试
+│       └── service_integration_test.go # 服务集成测试
 ├── benchmark/                   # 性能基准测试
-│   ├── performance_test.go      # 性能测试用例
-│   └── website/                 # 前端资源测试
-└── framework_validation_test.go # 框架验证测试
+│   ├── README.md                # 基准测试说明
+│   ├── benchmark_test.go        # 基准测试用例
+│   ├── main_test.go             # 基准测试主函数
+│   └── performance_test.go      # 性能测试用例
+├── README.md                    # 测试框架文档
+└── benchmark.sh                 # 基准测试脚本
 ```
 
 ## 🚀 快速开始
@@ -331,9 +386,11 @@ go test ./tests/framework/examples/ -v -cleandb -timeout=60
 **注意**: `-cleandb` 参数只对使用了测试框架的包有效。以下包使用了测试框架：
 - `./tests/framework/...` - 测试框架相关的包
 - `./tests/unit/domain/...` - 领域层测试包
+- `./tests/integration/...` - 集成测试包
 
 以下包是标准的 Go 测试文件，不支持 `-cleandb` 参数：
 - `./tests/unit/pkg/...` - 工具包测试
+- `./tests/unit/app/controller/...` - 控制器单元测试（已优化，移除冗余代码）
 
 如果要运行所有测试（包括不支持 `-cleandb` 的包），请分别运行：
 

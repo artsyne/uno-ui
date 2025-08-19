@@ -496,13 +496,13 @@ const Diary = {
 
         // 重置所有主题样式
         $themes
-          .removeClass('ring-2 ring-black')
-          .addClass('hover:ring-2 hover:ring-gray-400');
+          .removeClass('ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800')
+          .addClass('hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300');
 
-        // 设置选中样式
+        // 设置选中样式 - 支持dark模式
         $this
-          .removeClass('hover:ring-2 hover:ring-gray-400')
-          .addClass('ring-2 ring-black');
+          .removeClass('hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300')
+          .addClass('ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800');
 
         // 更新隐藏字段值
         $form.find('#theme_id').val($this.attr('theme'));
