@@ -89,8 +89,8 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 		PageSize:  pageSize,
 		Total:     diariesNum,
 		URL:       fmt.Sprintf("/u/%d/%%d", uid),
-		PagePrev:  "上页",
-		PageNext:  "下页",
+		PagePrev:  "<<",
+		PageNext:  ">>",
 	}
 	pageLinks := pkg.GeneratePagination(listOptions)
 

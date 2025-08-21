@@ -28,7 +28,7 @@
                 data-diary-id="{{.Data.Diary.DiaryID}}"><i class="mdi mdi-cogs"></i> {{getMessage
                 "diary.button.settings" .Context.Lang}}</button>
             {{end}}
-            <button class="btn" href="#"><i class="mdi mdi-heart-outline"></i> {{getMessage "common.like"
+            <button class="btn" href="#"><i class="mdi mdi-thumb-up-outline mr-1"></i>{{getMessage "common.like"
                 .Context.Lang}}</button>
         </div>
     </section>
@@ -81,7 +81,7 @@
                     <h1 class="break-words mb-2">
                         {{if .Title }} {{.Title}} {{end}}
                     </h1>
-                    <p class="break-words leading-relaxed">
+                    <p class="break-words text-relaxed">
                         {{ .Summary}}
                     </p>
                 </div>
@@ -90,8 +90,6 @@
                         <a href="#" class="hover:text-red-500 dark:hover:text-red-400 mr-3"><i
                                 class="mdi mdi-account-box"></i>
                             {{.AddUserName}}</a>
-                        <a href="#" class="hover:text-red-500 dark:hover:text-red-400"><i
-                                class="mdi mdi-book-outline mr-1"></i> {{$.Data.Diary.Title}}</a>
                     </div>
                     <div>
                         <a href="#" class="hover:text-red-500 dark:hover:text-red-400 mr-3">

@@ -96,8 +96,8 @@ func (ctrl *PostController) ShowDiaryIndex(c *gin.Context) {
 		PageSize:  pageSize,
 		Total:     diariesNum,
 		URL:       fmt.Sprintf("/d/%d/%%d", diaryID),
-		PagePrev:  "上页",
-		PageNext:  "下页",
+		PagePrev:  "<<",
+		PageNext:  ">>",
 	}
 	pageLinks := pkg.GeneratePagination(listOptions)
 
