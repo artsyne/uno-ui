@@ -10,21 +10,26 @@
     <section class="flex justify-between mb-10">
         <div id="page-nav">
             <ul class="flex text-lg">
-                <li><a href="/u/{{.Data.Diary.AddUserID}}" class="hover:text-red-500 dark:hover:text-red-400">{{.Data.Diary.AddUserName}}</a>
+                <li><a href="/u/{{.Data.Diary.AddUserID}}"
+                        class="hover:text-red-500 dark:hover:text-red-400">{{.Data.Diary.AddUserName}}</a>
                     <i class="mdi mdi-slash-forward mx-3"></i>
                 </li>
                 <li>
-                    <a href="/d/{{.Data.Diary.DiaryID}}" id="diary_title" class="hover:text-red-500 dark:hover:text-red-400">{{.Data.Diary.Title}}{{if eq .Data.Diary.ViewSetting 2}}<i class="mdi mdi-lock-outline mx-3"></i>{{end}}
+                    <a href="/d/{{.Data.Diary.DiaryID}}" id="diary_title"
+                        class="hover:text-red-500 dark:hover:text-red-400">{{.Data.Diary.Title}}{{if eq
+                        .Data.Diary.ViewSetting 2}}<i class="mdi mdi-lock-outline mx-3"></i>{{end}}
                     </a>
                 </li>
             </ul>
         </div>
         <div>
-              {{if .Data.IsOwner}}
+            {{if .Data.IsOwner}}
             <button class="mr-3 btn" data-action="showDiaryBox" data-form-action="diary.edit"
-                data-diary-id="{{.Data.Diary.DiaryID}}"><i class="mdi mdi-cogs"></i> {{getMessage "diary.button.settings" .Context.Lang}}</button>
-                {{end}}
-            <button class="btn" href="#"><i class="mdi mdi-heart-outline"></i> {{getMessage "common.like" .Context.Lang}}</button>
+                data-diary-id="{{.Data.Diary.DiaryID}}"><i class="mdi mdi-cogs"></i> {{getMessage
+                "diary.button.settings" .Context.Lang}}</button>
+            {{end}}
+            <button class="btn" href="#"><i class="mdi mdi-heart-outline"></i> {{getMessage "common.like"
+                .Context.Lang}}</button>
         </div>
     </section>
 
@@ -32,14 +37,14 @@
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div>
                 <h1 class="card-title">{{getMessage "diary.label.introduction" .Context.Lang}}</h1>
-            <div class="text-sm">
+                <div class="text-sm">
                     <p id="diary_remark">{{.Data.Diary.Remark}}</p>
                 </div>
             </div>
             <div>
                 <h1 class="card-title">{{getMessage "common.menu" .Context.Lang}}</h1>
-            <div>
-                <ul>
+                <div>
+                    <ul>
                         <li class="py-1">
                             <a href="#" class="hover:text-red-500 dark:hover:text-red-400">
                                 <i class="mdi mdi-account-group"></i>
@@ -60,8 +65,8 @@
         <div class="lg:columns-3 md:columns-2 gap-6" id="diary_post_container">
             {{if .Data.IsOwner}}
             <div class="card p-6 mb-6 break-inside-avoid">
-            <div class="flex items-center justify-center h-32 hover:cursor-pointer hover:text-red-500" data-action="showPostBox"
-                    data-form-action="post.create" data-diary-id="{{.Data.Diary.DiaryID}}">
+                <div class="flex items-center justify-center h-32 hover:cursor-pointer hover:text-red-500"
+                    data-action="showPostBox" data-form-action="post.create" data-diary-id="{{.Data.Diary.DiaryID}}">
                     <a><i class="mdi mdi-plus text-xl"></i>
                         {{getMessage "diary.button.write_entry" .Context.Lang}}</a>
                 </div>
@@ -71,8 +76,8 @@
             $lang := .Context.Lang
             }}
             {{range .Data.Posts}}
-            <div class="card p-3 mb-6 break-inside-avoid" data-post-id="{{.PostID}}">
-                <div>
+            <div class="card p-3 mb-6 break-inside-avoid">
+                <div class="cursor-pointer" data-action="gotoUrl" data-url="/p/{{.PostID}}">
                     <h1 class="break-words mb-2">
                         {{if .Title }} {{.Title}} {{end}}
                     </h1>
@@ -82,36 +87,35 @@
                 </div>
                 <div class="my-4 flex justify-between">
                     <div>
-                        <a href="#" class="hover:text-red-500 dark:hover:text-red-400 mr-3"><i class="mdi mdi-account-box"></i>
+                        <a href="#" class="hover:text-red-500 dark:hover:text-red-400 mr-3"><i
+                                class="mdi mdi-account-box"></i>
                             {{.AddUserName}}</a>
-                        <a href="#" class="hover:text-red-500 dark:hover:text-red-400"><i class="mdi mdi-book-outline"></i> {{$.Data.Diary.Title}}</a>
+                        <a href="#" class="hover:text-red-500 dark:hover:text-red-400"><i
+                                class="mdi mdi-book-outline mr-1"></i> {{$.Data.Diary.Title}}</a>
                     </div>
                     <div>
                         <a href="#" class="hover:text-red-500 dark:hover:text-red-400 mr-3">
-                            <i class="mdi mdi-comment-multiple-outline"></i> <span>{{.CommentNum}}</span>
+                            <i class="mdi mdi-comment-text-outline mr-1"></i> <span>{{.CommentNum}}</span>
                         </a>
                         <a href="#" class="hover:text-red-500 dark:hover:text-red-400">
-                            <i class="mdi mdi-heart-outline"></i> <span>{{.LikeNum}}</span>
+                            <i class="mdi mdi-thumb-up-outline mr-1"></i><span>{{.LikeNum}}</span>
                         </a>
                     </div>
                 </div>
                 {{if $.Data.IsOwner}}
                 <div class="my-4 flex justify-between">
                     <div>
-                        <a href="" class="text-blue-600 hover:text-blue-800" data-action="showPostBox" data-form-action="post.edit"
-                            data-diary-id="{{$.Data.Diary.DiaryID}}" data-post-id="{{.PostID}}">{{getMessage "common.edit" $lang}}</a>
+                        <a href="" class="text-red-600 hover:text-red-800" data-action="deletePost"
+                            data-diary-id="{{$.Data.Diary.DiaryID}}" data-post-id="{{.PostID}}">{{getMessage
+                            "common.delete" $lang}}</a>
+                    </div>
+                    <div>
+                        <a href="" class="text-blue-600 hover:text-blue-800" data-action="showPostBox"
+                            data-form-action="post.edit" data-diary-id="{{$.Data.Diary.DiaryID}}"
+                            data-post-id="{{.PostID}}">{{getMessage "common.edit" $lang}}</a>
                     </div>
                 </div>
                 {{end}}
-
-                <div class="blog-date">
-                    <span class="post-month"></span>
-                    <span class="post-day"></span>
-                    <span class="post-year"></span>
-                </div>
-                <div class="blog-quote-icon">
-                    <i class="mdi mdi-format-quote-close"></i>
-                </div>
             </div>
             {{end}}
         </div>

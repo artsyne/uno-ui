@@ -108,6 +108,7 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 	data.Data["Diaries"] = diaries
 	data.Data["DiariesNum"] = diariesNum
 	data.Data["PageSize"] = pageSize
+	data.Data["PageIndex"] = pageIndex
 	data.Data["PageLinks"] = pageLinks
 
 	ctrl.renderService.HTML(c, "member/index", data)

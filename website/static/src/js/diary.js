@@ -21,8 +21,21 @@ const Diary = {
       this.showDiaryBoxAction,
       this.showPostBoxAction,
       this.postInfoAction,
+      this.gotoUrlAction,
     ];
   },
+  
+  /**
+   * 跳转url行为
+   */
+  gotoUrlAction: {
+    id: 'gotoUrl',
+    type: 'function',
+    handler: function (id, target, eventData, data) {
+      window.location.href = data.url;
+    },
+  },
+
   /*
    * 显示写日记对话框行为
    */

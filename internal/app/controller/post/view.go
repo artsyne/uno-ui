@@ -52,7 +52,7 @@ func (ctrl *PostController) ShowPostForm(c *gin.Context) {
 //   - /d/{diaryid}/{pageindex} - 显示指定页
 func (ctrl *PostController) ShowDiaryIndex(c *gin.Context) {
 	// 解析日记本ID
-	diaryIDStr := c.Param("spaceid")
+	diaryIDStr := c.Param("diaryid")
 	diaryID, err := ctrl.parseDiaryID(diaryIDStr)
 	if err != nil {
 		ctrl.renderErrorPage(c, "日记本ID格式错误", "请检查URL中的日记本ID是否正确")
@@ -118,6 +118,39 @@ func (ctrl *PostController) ShowDiaryIndex(c *gin.Context) {
 	data.Data["IsOwner"] = isOwner
 
 	ctrl.renderService.HTML(c, "diary/index", data)
+}
+
+// ShowPost 显示单个日记详情页面
+func (ctrl *PostController) ShowPost(c *gin.Context) {
+	// 解析日记ID
+	postIDStr := c.Param("postid")
+	postID, err := ctrl.parsePostID(postIDStr)
+	if err != nil {
+		ctrl.renderErrorPage(c, "日记ID格式错误", "请检查URL中的日记ID是否正确")
+		return
+	}
+
+	// 获取日记信息 - 调用post模块
+	postInfo, err := ctrl.postService.GetPostByID(postID)
+	if err != nil || postInfo == nil {
+		ctrl.renderErrorPage(c, "日记不存在", "未找到指定的日记")
+		return
+	}
+
+	// 获取日记本信息 - 调用 diary 模块
+	diaryInfo, err := ctrl.diaryService.GetDiaryByID(postInfo.DiaryID)
+	if err != nil || diaryInfo == nil {
+		ctrl.renderErrorPage(c, "日记本不存在", "未找到指定的日记本")
+		return
+	}
+
+	// 构建页面数据
+	data := ctrl.renderService.CreatePageData(c, "post.show.title")
+	data.Title = postInfo.Title + " - " + postInfo.AddUserName
+	data.Data["Post"] = postInfo
+	data.Data["Diary"] = diaryInfo
+
+	ctrl.renderService.HTML(c, "post/view", data)
 }
 
 // renderErrorPage 渲染错误页面

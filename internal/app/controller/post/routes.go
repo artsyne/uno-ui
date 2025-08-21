@@ -9,9 +9,12 @@ func (ctrl *PostController) RegisterRoutes(router *gin.Engine) {
 	// 显示日记本下的日记列表
 	daybook := router.Group("/d")
 	{
-		daybook.GET("/:spaceid", ctrl.ShowDiaryIndex)
-		daybook.GET("/:spaceid/:pageindex", ctrl.ShowDiaryIndex)
+		daybook.GET("/:diaryid", ctrl.ShowDiaryIndex)
+		daybook.GET("/:diaryid/:pageindex", ctrl.ShowDiaryIndex)
 	}
+
+	// 显示单个日记详情页面
+	router.GET("/p/:postid", ctrl.ShowPost)
 
 	// 需要鉴权的日记表单路由
 	authForm := router.Group("/form")

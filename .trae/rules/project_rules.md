@@ -338,6 +338,18 @@ function fetchData(url) {
 #### 2. TDD 实施流程 (Test-Driven Development)
 
 **🔄 严格按照 TDD 红-绿-重构循环**：
+```mermaid
+graph LR
+    A[选择模块] --> B[编写测试用例]
+    B --> C[测试失败-Red]
+    C --> D[实现代码]
+    D --> E[测试通过-Green]
+    E --> F[重构优化]
+    F --> G[回归测试]
+    G --> H[模块完成]
+    H --> I[下一个模块]
+    I --> A
+```
 
 1. **🔍 理解 (Understand)** - 研究代码库中的现有模式
 2. **🔴 测试 (Test)** - 先写测试 (红色)

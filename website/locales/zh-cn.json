@@ -27,8 +27,8 @@
     "public": "公开",
     "enabled": "启用",
     "disabled": "禁用",
-    "next": "下一步",
-    "previous": "上一步",
+    "next": "下一页",
+    "previous": "上一页",
     "confirm": "确认",
     "search": "搜索",
     "filter": "筛选",
@@ -43,7 +43,8 @@
     "print": "打印",
     "export": "导出",
     "import": "导入",
-    "subtitle": "智能日记平台"
+    "pub_time":"添加时间",
+    "modified_time":"修改时间"
   },
   "nav": {
     "home": "首页",
