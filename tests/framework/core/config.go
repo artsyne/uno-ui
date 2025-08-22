@@ -223,8 +223,8 @@ func setupTestEnvironment() {
 	setEnvIfNotExists("IDIARY_SUFFIX", "...")
 	setEnvIfNotExists("IDIARY_PAGE_SIZE", "20")
 	setEnvIfNotExists("IDIARY_MAX_DAYBOOK_LIMIT", "500")
-	setEnvIfNotExists("IDIARY_STATIC_DIR", filepath.Join(GetProjectRoot(), "website/static"))
-	setEnvIfNotExists("IDIARY_LOCALES_DIR", filepath.Join(GetProjectRoot(), "website/locales"))
+	setEnvIfNotExists("IDIARY_STATIC_DIR", filepath.Join(GetProjectRoot(), "website", "static"))
+	setEnvIfNotExists("IDIARY_LOCALES_DIR", filepath.Join(GetProjectRoot(), "website", "locales"))
 	setEnvIfNotExists("IDIARY_DEFAULT_LANG", "zh-cn")
 
 	// 用户配置
@@ -257,7 +257,7 @@ func setupTestEnvironment() {
 	// Redis配置（测试用）
 	setEnvIfNotExists("IDIARY_REDIS_HOST", "127.0.0.1")
 	setEnvIfNotExists("IDIARY_REDIS_PORT", "6379")
-	setEnvIfNotExists("IDIARY_REDIS_PASSWORD", "")
+	setEnvIfNotExists("IDIARY_REDIS_PASSWORD", "woaibeijingtiananmeng")
 
 	// Cookie配置
 	setEnvIfNotExists("IDIARY_COOKIE_DOMAIN", "127.0.0.1")
@@ -274,36 +274,17 @@ func setupTestEnvironment() {
 	setEnvIfNotExists("IDIARY_EMAIL_MAX_RETRIES", "3")
 	setEnvIfNotExists("IDIARY_EMAIL_BATCH_SIZE", "10")
 
-	// 文件上传配置
-	setEnvIfNotExists("IDIARY_UPLOAD_PATH", "/tmp/test_uploads")
+	// 文件上传配置 - 使用跨平台路径
+	testUploadsPath := filepath.Join(GetProjectRoot(), "tests", "test_uploads")
+	setEnvIfNotExists("IDIARY_UPLOAD_PATH", testUploadsPath)
 	setEnvIfNotExists("IDIARY_UPLOAD_TYPES", "jpg,jpeg,png,gif,pdf,txt")
 	setEnvIfNotExists("IDIARY_UPLOAD_MAX_SIZE", "10485760") // 10MB
 
-	// 日志配置
+	// 日志配置 - 使用跨平台路径
+	testLogsPath := filepath.Join(GetProjectRoot(), "tests", "test_logs")
 	setEnvIfNotExists("IDIARY_LOG_LEVEL", "debug")
 	setEnvIfNotExists("IDIARY_LOG_FORMAT", "text")
-	setEnvIfNotExists("IDIARY_LOG_PATH", "/tmp/test_logs")
-	setEnvIfNotExists("IDIARY_LOG_FILENAME", "test.log")
-	setEnvIfNotExists("IDIARY_LOG_MAX_SIZE", "100")
-	setEnvIfNotExists("IDIARY_LOG_MAX_AGE", "30")
-	setEnvIfNotExists("IDIARY_LOG_MAX_BACKUPS", "5")
-	setEnvIfNotExists("IDIARY_LOG_COMPRESS", "true")
-	setEnvIfNotExists("IDIARY_LOG_LOCAL_TIME", "true")
-
-	// Redis配置
-	setEnvIfNotExists("IDIARY_REDIS_HOST", "127.0.0.1")
-	setEnvIfNotExists("IDIARY_REDIS_PORT", "6379")
-	setEnvIfNotExists("IDIARY_REDIS_PASSWORD", "woaibeijingtiananmeng")
-
-	// 上传配置
-	setEnvIfNotExists("IDIARY_UPLOAD_PATH", "tests/test_uploads")
-	setEnvIfNotExists("IDIARY_UPLOAD_TYPES", "jpg,jpeg,png,gif")
-	setEnvIfNotExists("IDIARY_UPLOAD_MAX_SIZE", "10485760")
-
-	// 日志配置
-	setEnvIfNotExists("IDIARY_LOG_LEVEL", "debug")
-	setEnvIfNotExists("IDIARY_LOG_FORMAT", "text")
-	setEnvIfNotExists("IDIARY_LOG_PATH", "tests/test_logs")
+	setEnvIfNotExists("IDIARY_LOG_PATH", testLogsPath)
 	setEnvIfNotExists("IDIARY_LOG_FILENAME", "test.log")
 	setEnvIfNotExists("IDIARY_LOG_MAX_SIZE", "100")
 	setEnvIfNotExists("IDIARY_LOG_MAX_AGE", "30")
@@ -453,15 +434,27 @@ func contains(slice []string, item string) bool {
 // GetProjectRoot 获取项目根目录
 func GetProjectRoot() string {
 	// 从当前文件位置开始，向上查找包含go.mod的目录
-	dir, _ := os.Getwd()
+	dir, err := os.Getwd()
+	if err != nil {
+		// 如果无法获取当前工作目录，尝试从可执行文件路径开始
+		if execPath, execErr := os.Executable(); execErr == nil {
+			dir = filepath.Dir(execPath)
+		} else {
+			panic(fmt.Sprintf("无法获取当前工作目录和可执行文件路径: %v, %v", err, execErr))
+		}
+	}
+	
+	// 向上查找包含go.mod的目录
 	for {
-		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+		goModPath := filepath.Join(dir, "go.mod")
+		if _, err := os.Stat(goModPath); err == nil {
 			return dir
 		}
+		
 		parent := filepath.Dir(dir)
 		if parent == dir {
-			// 到达根目录，回退到默认路径
-			return "/Users/yasong.cy/go/src/idiary.ai/hebe"
+			// 到达根目录，无法找到go.mod文件
+			panic(fmt.Sprintf("无法找到项目根目录，请确保在Go项目目录中运行测试。当前目录: %s", dir))
 		}
 		dir = parent
 	}

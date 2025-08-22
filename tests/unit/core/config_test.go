@@ -1,10 +1,11 @@
 package core
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/biuren/hebe/internal/utils/config"
-	framework "github.com/biuren/hebe/tests/framework"
+	"github.com/biuren/hebe/tests/framework"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -53,8 +54,9 @@ func TestConfig_AppConfig(t *testing.T) {
 	assert.Equal(t, "...", cfg.App.Suffix)
 	assert.Equal(t, 20, cfg.App.PageSize)
 	assert.Equal(t, 500, cfg.App.MaxDaybookLimit)
-	assert.Contains(t, cfg.App.StaticDir, "website/static")
-	assert.Contains(t, cfg.App.LocalesDir, "website/locales")
+	// 使用跨平台路径检查
+	assert.Contains(t, strings.ReplaceAll(cfg.App.StaticDir, "\\", "/"), "website/static")
+	assert.Contains(t, strings.ReplaceAll(cfg.App.LocalesDir, "\\", "/"), "website/locales")
 	assert.Equal(t, "zh-cn", cfg.App.DefaultLang)
 }
 
@@ -154,7 +156,8 @@ func TestConfig_UploadConfig(t *testing.T) {
 	require.NotNil(t, cfg)
 
 	// 验证Upload配置
-	assert.Equal(t, "/tmp/test_uploads", cfg.Upload.Path)
+	// 检查路径是否包含test_uploads目录（跨平台兼容）
+	assert.Contains(t, strings.ReplaceAll(cfg.Upload.Path, "\\", "/"), "test_uploads")
 	assert.Equal(t, "jpg,jpeg,png,gif,pdf,txt", cfg.Upload.Types)
 	assert.Equal(t, 10485760, cfg.Upload.MaxSize) // 10MB
 }
@@ -175,7 +178,8 @@ func TestConfig_LogConfig(t *testing.T) {
 	// 验证Log配置
 	assert.Equal(t, "debug", cfg.Log.Level)
 	assert.Equal(t, "text", cfg.Log.Format)
-	assert.Equal(t, "/tmp/test_logs", cfg.Log.Path)
+	// 检查路径是否包含test_logs目录（跨平台兼容）
+	assert.Contains(t, strings.ReplaceAll(cfg.Log.Path, "\\", "/"), "test_logs")
 	assert.Equal(t, "test.log", cfg.Log.Filename)
 	assert.Equal(t, 100, cfg.Log.MaxSize)
 	assert.Equal(t, 30, cfg.Log.MaxAge)

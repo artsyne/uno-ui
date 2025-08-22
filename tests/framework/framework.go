@@ -3,7 +3,6 @@ package framework
 import (
 	"bytes"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -44,12 +43,7 @@ type TestContext struct {
 }
 
 // DatabaseManager 数据库管理器实现
-type DatabaseManager struct {
-	db     *sqlx.DB
-	rawDB  *sql.DB
-	config DatabaseConfig
-	mu     sync.RWMutex
-}
+// DatabaseManager 已移至 core 包中
 
 // DataIsolator 数据隔离器实现
 type DataIsolator struct {
@@ -104,12 +98,13 @@ func NewTestContext(options ...TestOption) TestContextInterface {
 	}
 	
 	// 创建数据库管理器
-	databaseManager := &DatabaseManager{
-		config: testConfig.GetDatabaseConfig(),
-	}
+	databaseManager := core.GetDatabaseManager()
 	
 	// 初始化数据库连接（如果失败，数据库管理器仍然可用，但连接为nil）
-	databaseManager.Initialize()
+	if err := databaseManager.Initialize(); err != nil {
+		// 数据库初始化失败时记录错误，但不阻止测试上下文创建
+		fmt.Printf("Warning: Database initialization failed: %v\n", err)
+	}
 
 	// 创建测试上下文
 	testCtx := &TestContext{
@@ -140,9 +135,7 @@ func WithDatabase() TestOption {
 		config.SetConfig(globalConfig)
 		
 		// 创建数据库管理器
-		dbManager := &DatabaseManager{
-			config: tc.config.GetDatabaseConfig(),
-		}
+		dbManager := core.GetDatabaseManager()
 		
 		// 初始化数据库连接
 		if err := dbManager.Initialize(); err != nil {
@@ -226,64 +219,7 @@ func (tc *TestContext) ForceCleanupDatabase() error {
 	return nil
 }
 
-// DatabaseManager接口实现
-func (dm *DatabaseManager) Initialize() error {
-	dm.mu.Lock()
-	defer dm.mu.Unlock()
-	
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=Local",
-		dm.config.User,
-		dm.config.Password,
-		dm.config.Host,
-		dm.config.Port,
-		dm.config.Name,
-		dm.config.Charset,
-	)
-	
-	db, err := sqlx.Connect("mysql", dsn)
-	if err != nil {
-		return fmt.Errorf("failed to connect to database: %w", err)
-	}
-	
-	db.SetMaxOpenConns(dm.config.MaxConns)
-	db.SetMaxIdleConns(dm.config.MaxIdle)
-	db.SetConnMaxLifetime(time.Hour)
-	
-	dm.db = db
-	dm.rawDB = db.DB
-	
-	return nil
-}
-
-func (dm *DatabaseManager) GetDB() *sqlx.DB {
-	dm.mu.RLock()
-	defer dm.mu.RUnlock()
-	return dm.db
-}
-
-func (dm *DatabaseManager) GetRawDB() *sql.DB {
-	dm.mu.RLock()
-	defer dm.mu.RUnlock()
-	return dm.rawDB
-}
-
-func (dm *DatabaseManager) Close() error {
-	dm.mu.Lock()
-	defer dm.mu.Unlock()
-	if dm.db != nil {
-		return dm.db.Close()
-	}
-	return nil
-}
-
-func (dm *DatabaseManager) IsHealthy() bool {
-	dm.mu.RLock()
-	defer dm.mu.RUnlock()
-	if dm.db == nil {
-		return false
-	}
-	return dm.db.Ping() == nil
-}
+// DatabaseManager 方法实现已移至 core 包中
 
 // DataIsolator接口实现
 func (di *DataIsolator) IsolateString(value string) string {

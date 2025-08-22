@@ -30,6 +30,9 @@ type DatabaseManagerInterface interface {
 	GetRawDB() *sql.DB
 	Close() error
 	IsHealthy() bool
+	Execute(query string, args ...interface{}) (sql.Result, error)
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
 }
 
 // DataIsolatorInterface 数据隔离器接口

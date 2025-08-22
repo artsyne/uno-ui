@@ -1,10 +1,14 @@
 package framework
 
 import (
+	"log/slog"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	core "github.com/biuren/hebe/tests/framework/core"
 )
 
 // TestFrameworkBasicFunctionality 验证新框架基本功能
@@ -124,7 +128,10 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 
 		// 验证数据库连接
 		db := dbManager.GetDB()
-		assert.NotNil(t, db)
+		if db == nil {
+			t.Skip("数据库连接未初始化，跳过数据库相关测试")
+			return
+		}
 
 		rawDB := dbManager.GetRawDB()
 		assert.NotNil(t, rawDB)
@@ -231,5 +238,101 @@ func TestFrameworkErrorHandling(t *testing.T) {
 		// 第二次清理应该也不报错
 		err2 := ctx.Cleanup()
 		assert.NoError(t, err2)
+	})
+}
+
+// TestDatabaseInitialization 验证数据库初始化和错误处理
+func TestDatabaseInitialization(t *testing.T) {
+	t.Parallel()
+
+	t.Run("数据库连接和初始化检查", func(t *testing.T) {
+		// 设置调试日志级别以便查看详细信息
+		originalLevel := slog.SetLogLoggerLevel(slog.LevelDebug)
+		defer slog.SetLogLoggerLevel(originalLevel)
+
+		slog.Info("开始数据库初始化测试")
+
+		// 创建测试上下文，这会触发数据库初始化
+		ctx := NewTestContext()
+		require.NotNil(t, ctx, "测试上下文创建失败")
+		defer ctx.Cleanup()
+
+		// 获取数据库管理器
+		dbManager := ctx.GetDatabase()
+		require.NotNil(t, dbManager, "数据库管理器获取失败")
+
+		// 检查数据库连接健康状态
+		require.True(t, dbManager.IsHealthy(), "数据库连接不健康")
+
+		// 验证数据库连接
+		db := dbManager.GetDB()
+		require.NotNil(t, db, "数据库连接为空")
+
+		// 测试基本查询
+		var version string
+		err := db.QueryRow("SELECT VERSION()").Scan(&version)
+		require.NoError(t, err, "数据库版本查询失败")
+		assert.NotEmpty(t, version, "数据库版本信息为空")
+		slog.Info("数据库版本信息", "version", version)
+
+		// 检查测试数据库是否存在关键表
+		config := ctx.GetConfig().GetDatabaseConfig()
+		var tableCount int
+		err = db.QueryRow("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = ? AND table_name = 'br_user'",
+			config.Name).Scan(&tableCount)
+		require.NoError(t, err, "检查br_user表失败")
+		assert.Equal(t, 1, tableCount, "br_user表不存在，数据库schema可能未正确加载")
+
+		// 检查更多关键表
+        keyTables := []string{"br_diary", "br_post", "br_user"}
+		for _, tableName := range keyTables {
+			var count int
+			err = db.QueryRow("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = ? AND table_name = ?",
+				config.Name, tableName).Scan(&count)
+			assert.NoError(t, err, "检查表%s失败", tableName)
+			assert.Equal(t, 1, count, "表%s不存在", tableName)
+		}
+
+		slog.Info("数据库初始化测试完成")
+	})
+
+	t.Run("数据库错误处理测试", func(t *testing.T) {
+		// 设置调试日志级别
+		originalLevel := slog.SetLogLoggerLevel(slog.LevelDebug)
+		defer slog.SetLogLoggerLevel(originalLevel)
+
+		ctx := NewTestContext()
+		defer ctx.Cleanup()
+
+		dbManager := ctx.GetDatabase()
+		require.NotNil(t, dbManager)
+
+		// 测试无效SQL查询的错误处理
+		_, err := dbManager.Execute("INVALID SQL STATEMENT")
+		assert.Error(t, err, "无效SQL应该返回错误")
+		slog.Info("无效SQL错误测试", "error", err.Error())
+
+		// 测试查询不存在的表
+		_, err = dbManager.Query("SELECT * FROM non_existent_table")
+		assert.Error(t, err, "查询不存在的表应该返回错误")
+		slog.Info("查询不存在表错误测试", "error", err.Error())
+	})
+
+	t.Run("项目根目录检查", func(t *testing.T) {
+		// 测试GetProjectRoot函数
+		projectRoot := core.GetProjectRoot()
+		assert.NotEmpty(t, projectRoot, "项目根目录不应为空")
+		slog.Info("项目根目录", "path", projectRoot)
+
+		// 检查go.mod文件是否存在
+		goModPath := projectRoot + "/go.mod"
+		_, err := os.Stat(goModPath)
+		assert.NoError(t, err, "go.mod文件应该存在于项目根目录")
+
+		// 检查tests目录是否存在
+		testsDir := projectRoot + "/tests"
+		_, err = os.Stat(testsDir)
+		assert.NoError(t, err, "tests目录应该存在")
+		slog.Info("tests目录路径", "path", testsDir)
 	})
 }

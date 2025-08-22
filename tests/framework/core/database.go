@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -109,20 +110,44 @@ func (dm *DatabaseManager) buildDSN(dbName string) string {
 
 // ensureTestDatabase 确保测试数据库存在并加载schema
 func (dm *DatabaseManager) ensureTestDatabase() error {
+	slog.Debug("开始检查测试数据库", "database", dm.config.Database.Name)
+	
 	// 连接到MySQL服务器（不指定数据库）
 	serverDSN := dm.buildDSN("")
+	slog.Debug("连接MySQL服务器", "dsn", dm.maskPassword(serverDSN))
+	
 	serverDB, err := sql.Open("mysql", serverDSN)
 	if err != nil {
 		return fmt.Errorf("连接MySQL服务器失败: %w", err)
 	}
 	defer serverDB.Close()
 
-	// 创建测试数据库（如果不存在）
-	createDBSQL := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET %s COLLATE %s_unicode_ci",
-		dm.config.Database.Name, dm.config.Database.Charset, dm.config.Database.Charset)
+	// 测试服务器连接
+	if err := serverDB.Ping(); err != nil {
+		return fmt.Errorf("MySQL服务器连接测试失败: %w", err)
+	}
+	slog.Debug("MySQL服务器连接成功")
 
-	if _, err := serverDB.Exec(createDBSQL); err != nil {
-		return fmt.Errorf("创建测试数据库失败: %w", err)
+	// 检查数据库是否存在
+	var dbExists int
+	err = serverDB.QueryRow("SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name = ?",
+		dm.config.Database.Name).Scan(&dbExists)
+	if err != nil {
+		return fmt.Errorf("检查数据库是否存在失败: %w", err)
+	}
+
+	// 创建测试数据库（如果不存在）
+	if dbExists == 0 {
+		slog.Info("测试数据库不存在，正在创建", "database", dm.config.Database.Name)
+		createDBSQL := fmt.Sprintf("CREATE DATABASE `%s` CHARACTER SET %s COLLATE %s_unicode_ci",
+			dm.config.Database.Name, dm.config.Database.Charset, dm.config.Database.Charset)
+
+		if _, err := serverDB.Exec(createDBSQL); err != nil {
+			return fmt.Errorf("创建测试数据库失败: %w", err)
+		}
+		slog.Info("测试数据库创建成功", "database", dm.config.Database.Name)
+	} else {
+		slog.Debug("测试数据库已存在", "database", dm.config.Database.Name)
 	}
 
 	// 连接到测试数据库检查是否需要加载schema
@@ -132,6 +157,12 @@ func (dm *DatabaseManager) ensureTestDatabase() error {
 		return fmt.Errorf("连接测试数据库失败: %w", err)
 	}
 	defer testDB.Close()
+
+	// 测试数据库连接
+	if err := testDB.Ping(); err != nil {
+		return fmt.Errorf("测试数据库连接测试失败: %w", err)
+	}
+	slog.Debug("测试数据库连接成功")
 
 	// 检查是否存在关键表
 	var tableCount int
@@ -143,30 +174,60 @@ func (dm *DatabaseManager) ensureTestDatabase() error {
 
 	// 如果表不存在，加载schema
 	if tableCount == 0 {
+		slog.Info("数据库表不存在，正在加载schema", "database", dm.config.Database.Name)
 		if err := dm.loadDatabaseSchema(testDB); err != nil {
 			return fmt.Errorf("加载数据库schema失败: %w", err)
 		}
 		slog.Info("数据库schema加载完成", "database", dm.config.Database.Name)
+	} else {
+		slog.Debug("数据库表已存在，跳过schema加载", "database", dm.config.Database.Name)
 	}
 
 	return nil
 }
 
+// maskPassword 隐藏DSN中的密码信息用于日志记录
+func (dm *DatabaseManager) maskPassword(dsn string) string {
+	// 查找密码部分并替换为***
+	if strings.Contains(dsn, ":") && strings.Contains(dsn, "@") {
+		parts := strings.Split(dsn, "@")
+		if len(parts) >= 2 {
+			userPart := parts[0]
+			if colonIndex := strings.LastIndex(userPart, ":"); colonIndex != -1 {
+				maskedUserPart := userPart[:colonIndex+1] + "***"
+				return maskedUserPart + "@" + strings.Join(parts[1:], "@")
+			}
+		}
+	}
+	return dsn
+}
+
 // loadDatabaseSchema 加载数据库schema
 func (dm *DatabaseManager) loadDatabaseSchema(db *sql.DB) error {
-	// 读取schema文件
-	schemaPath := fmt.Sprintf("%s/sql/schema.sql", GetProjectRoot())
+	projectRoot := GetProjectRoot()
+	schemaPath := filepath.Join(projectRoot, "sql", "schema.sql")
+	slog.Debug("准备加载数据库schema", "schema_path", schemaPath)
+
+	// 检查schema文件是否存在
+	if _, err := os.Stat(schemaPath); os.IsNotExist(err) {
+		return fmt.Errorf("schema文件不存在: %s", schemaPath)
+	}
+
 	schemaBytes, err := os.ReadFile(schemaPath)
 	if err != nil {
 		return fmt.Errorf("读取schema文件失败: %w", err)
 	}
+	slog.Debug("schema文件读取成功", "size", len(schemaBytes))
 
 	schemaSQL := string(schemaBytes)
 
-	// 分割SQL语句并执行
-	statements := splitSQL(schemaSQL)
+	// 分割SQL语句
+	sqlStatements := dm.splitSQL(schemaSQL)
+	slog.Debug("SQL语句分割完成", "statement_count", len(sqlStatements))
 
-	for _, stmt := range statements {
+	successCount := 0
+	skippedCount := 0
+	for i, stmt := range sqlStatements {
 		stmt = strings.TrimSpace(stmt)
 		if stmt == "" || strings.HasPrefix(stmt, "--") || strings.HasPrefix(stmt, "/*") {
 			continue
@@ -176,23 +237,37 @@ func (dm *DatabaseManager) loadDatabaseSchema(db *sql.DB) error {
 		if strings.Contains(stmt, "/*!") || strings.Contains(stmt, "SET @") ||
 			strings.Contains(stmt, "SET NAMES") || strings.Contains(stmt, "LOCK TABLES") ||
 			strings.Contains(stmt, "UNLOCK TABLES") {
+			skippedCount++
+			slog.Debug("跳过MySQL特定语句", "statement_index", i+1)
 			continue
 		}
 
 		if _, err := db.Exec(stmt); err != nil {
 			// 忽略一些常见的错误
-			if !strings.Contains(err.Error(), "already exists") &&
-				!strings.Contains(err.Error(), "Unknown table") {
-				slog.Warn("执行SQL语句失败", "stmt", stmt, "error", err)
+			if strings.Contains(err.Error(), "already exists") ||
+				strings.Contains(err.Error(), "Unknown table") ||
+				strings.Contains(err.Error(), "Duplicate") {
+				skippedCount++
+				slog.Debug("跳过已存在的对象", "statement_index", i+1, "error", err.Error())
+				continue
 			}
+			sqlPreview := stmt
+			if len(stmt) > 100 {
+				sqlPreview = stmt[:100] + "..."
+			}
+			slog.Error("执行SQL语句失败", "statement_index", i+1, "error", err.Error(), "sql", sqlPreview)
+			return fmt.Errorf("执行SQL语句失败 (第%d条): %w\nSQL: %s", i+1, err, stmt)
 		}
+		successCount++
+		slog.Debug("SQL语句执行成功", "statement_index", i+1)
 	}
 
+	slog.Info("数据库schema加载统计", "success_count", successCount, "skipped_count", skippedCount, "total_count", len(sqlStatements))
 	return nil
 }
 
 // splitSQL 分割SQL语句
-func splitSQL(sqlContent string) []string {
+func (dm *DatabaseManager) splitSQL(sqlContent string) []string {
 	// 简单的SQL分割，按分号分割
 	statements := strings.Split(sqlContent, ";")
 	var result []string

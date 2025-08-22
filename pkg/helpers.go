@@ -1,10 +1,10 @@
 package pkg
 
 import (
-	"math/rand"
+	cryptorand "crypto/rand"
+	mathrand "math/rand"
 	"net/smtp"
 	"strings"
-	"time"
 	"unicode"
 )
 
@@ -15,32 +15,50 @@ const (
 	RAND_KIND_ALL          // 数字、大小写字母
 )
 
+var (
+	// 全局随机数生成器，在包初始化时设置种子
+	globalRand *mathrand.Rand
+)
+
+func init() {
+	// 使用加密安全的随机数作为种子
+	seedBytes := make([]byte, 8)
+	cryptorand.Read(seedBytes)
+	seed := int64(0)
+	for i, b := range seedBytes {
+		seed |= int64(b) << (i * 8)
+	}
+	globalRand = mathrand.New(mathrand.NewSource(seed))
+}
+
 // Rand 函数生成指定长度和类型的随机字符串。
 // size 参数指定了生成的随机字符串的长度。
 // kind 参数指定了生成的随机字符串的类型，可以是 RAND_KIND_NUM、RAND_KIND_LOWER、RAND_KIND_UPPER 或 RAND_KIND_ALL。
 // 函数返回生成的随机字符串。
 func Rand(size int, kind int) string {
-	src := rand.NewSource(time.Now().UnixNano())
-	r := rand.New(src)
+	if size <= 0 {
+		return ""
+	}
+	
 	result := make([]byte, size)
 	for i := 0; i < size; i++ {
 		switch kind {
 		case RAND_KIND_NUM:
-			result[i] = '0' + uint8(r.Intn(10))
+			result[i] = '0' + uint8(globalRand.Intn(10))
 		case RAND_KIND_LOWER:
-			result[i] = 'a' + uint8(r.Intn(26))
+			result[i] = 'a' + uint8(globalRand.Intn(26))
 		case RAND_KIND_UPPER:
-			result[i] = 'A' + uint8(r.Intn(26))
+			result[i] = 'A' + uint8(globalRand.Intn(26))
 		case RAND_KIND_ALL:
 			fallthrough
 		default:
-			switch r.Intn(3) {
+			switch globalRand.Intn(3) {
 			case 0:
-				result[i] = '0' + uint8(r.Intn(10))
+				result[i] = '0' + uint8(globalRand.Intn(10))
 			case 1:
-				result[i] = 'a' + uint8(r.Intn(26))
+				result[i] = 'a' + uint8(globalRand.Intn(26))
 			case 2:
-				result[i] = 'A' + uint8(r.Intn(26))
+				result[i] = 'A' + uint8(globalRand.Intn(26))
 			}
 		}
 	}
