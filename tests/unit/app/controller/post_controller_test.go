@@ -22,6 +22,7 @@ func TestNewPostController(t *testing.T) {
 	mockDiarySvc := &diaryDomain.Service{}
 	mockAuth := &userDomain.AuthHelper{}
 	mockViewSvc := &view.ViewService{}
+	mockUserSvc := &userDomain.Service{}
 
 	// 创建控制器
 	controller := post.NewPostController(
@@ -30,6 +31,7 @@ func TestNewPostController(t *testing.T) {
 		mockDiarySvc,
 		mockAuth,
 		mockViewSvc,
+		mockUserSvc,
 	)
 
 	// 验证控制器不为空

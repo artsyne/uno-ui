@@ -26,6 +26,77 @@ func TestGetNowTime(t *testing.T) {
 	}
 }
 
+
+
+// TestFormatLocalTime 测试 FormatLocalTime 函数
+func TestFormatLocalTime(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	// 假设一个固定的时间戳，以便测试结果可预测
+	// 2023年10月27日 07:30:00 UTC
+	fixedUnixMilli := int64(1698391800000)
+
+	tests := []struct {
+		name     string
+		unixMilli int64
+		timeZone string
+		expected string
+	}{
+		{
+			name:     "上海时区 - 简体中文",
+			unixMilli: fixedUnixMilli,
+			timeZone: "Asia/Shanghai",
+			expected: "2023年10月27日 15:30", // UTC 07:30 +8 = 15:30
+		},
+		{
+			name:     "东京时区 - 日语",
+			unixMilli: fixedUnixMilli,
+			timeZone: "Asia/Tokyo",
+			expected: "2023年10月27日 16時30分", // UTC 07:30 +9 = 16:30
+		},
+		{
+			name:     "纽约时区 - 英语",
+			unixMilli: fixedUnixMilli,
+			timeZone: "America/New_York",
+			expected: "Oct 27, 2023 03:30", // UTC 07:30 -4 = 03:30 (EDT)
+		},
+		{
+			name:     "伦敦时区 - 英语",
+			unixMilli: fixedUnixMilli,
+			timeZone: "Europe/London",
+			expected: "Oct 27, 2023 08:30", // UTC 07:30 +1 = 08:30 (BST)
+		},
+		{
+			name:     "圣保罗时区 - 巴西葡萄牙语",
+			unixMilli: fixedUnixMilli,
+			timeZone: "America/Sao_Paulo",
+			expected: "27/10/2023 04:30", // UTC 07:30 -3 = 04:30 (BRT)
+		},
+		{
+			name:     "无效时区 - 返回默认格式",
+			unixMilli: fixedUnixMilli,
+			timeZone: "Invalid/TimeZone",
+			expected: "Oct 27, 2023 07:30", // UTC时间，默认英语格式
+		},
+	}
+
+	for _, tt := range tests {
+		select {
+		case <-ctx.Done():
+			t.Fatal("测试超时")
+		default:
+		}
+		t.Run(tt.name, func(t *testing.T) {
+			got := pkg.FormatLocalTime(tt.unixMilli, tt.timeZone)
+			if got != tt.expected {
+				t.Errorf("FormatLocalTime(%d, %q) = %q, want %q", tt.unixMilli, tt.timeZone, got, tt.expected)
+				t.Logf("Actual: %q, Expected: %q", got, tt.expected)
+			}
+		})
+	}
+}
+
 // TestGetNowTimeUnixMilli 测试 GetNowTimeUnixMilli 函数
 func TestGetNowTimeUnixMilli(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)

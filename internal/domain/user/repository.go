@@ -44,6 +44,9 @@ type RepositoryInterface interface {
 	// GetUserEncryptPwd 获取用户加密密码
 	GetUserEncryptPwd(userId int64) (string, error)
 
+	// GetUserTimeZone 获取用户时区
+	GetUserTimeZone(userId int64) (string, error)
+
 	// UpdateUserProfile 更新用户基本资料
 	UpdateUserProfile(userId int64, fullName, remark string) (int64, error)
 

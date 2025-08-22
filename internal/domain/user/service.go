@@ -262,6 +262,11 @@ func (s *Service) GetUserByUserId(userId int64) (*User, error) {
 	return s.repo.GetUserByUserId(userId)
 }
 
+// GetUserTimeZone 获取用户时区
+func (s *Service) GetUserTimeZone(userId int64) (string, error) {
+	return s.repo.GetUserTimeZone(userId)
+}
+
 // ParseUserID 解析用户ID
 func (s *Service) ParseUserID(idStr string) (int64, error) {
 	// 尝试直接解析数字

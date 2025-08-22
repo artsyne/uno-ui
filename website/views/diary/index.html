@@ -2,10 +2,6 @@
 {{template "header" .}}
 {{template "navbar" .}}
 
-{{if .Data.HasError}}
-{{template "error" .}}
-{{else}}
-
 <main class="main dt{{.Data.Diary.ThemeID}} transition-colors duration-200">
     <section class="flex justify-between mb-10">
         <div id="page-nav">
@@ -75,33 +71,47 @@
             {{
             $lang := .Context.Lang
             }}
+            {{
+            $timezone := .Data.TimeZone
+            }}
+            {{
+            $socialSetting := .Data.Diary.SocialSetting
+            }}
             {{range .Data.Posts}}
-            <div class="card p-3 mb-6 break-inside-avoid">
-                <div class="cursor-pointer" data-action="gotoUrl" data-url="/p/{{.PostID}}">
-                    <h1 class="break-words mb-2">
-                        {{if .Title }} {{.Title}} {{end}}
+            <div class="card mb-6 break-inside-avoid">
+                <div class="post-edit"
+                    data-action="togglePostMenu" data-post-id="{{.PostID}}">
+                    <i class="mdi mdi-dots-horizontal"></i>
+                </div>
+                <div class="mb-4">
+                     {{if .Title }} 
+                    <h1 class="post-title">
+                       {{.Title}} 
                     </h1>
-                    <p class="break-words text-relaxed">
+                    {{end}}
+                    <p class="text-relaxed cursor-pointer" data-action="gotoUrl" data-url="/p/{{.PostID}}">
                         {{ .Summary}}
                     </p>
                 </div>
-                <div class="my-4 flex justify-between">
+                <div class="mb-4 flex justify-between">
                     <div>
-                        <a href="#" class="hover:text-red-500 dark:hover:text-red-400 mr-3"><i
-                                class="mdi mdi-account-box"></i>
-                            {{.AddUserName}}</a>
+                        <span class="post-time">
+                            {{formatLocalTime .AddUTCTime $timezone}}
+                        </span>
                     </div>
-                    <div>
-                        <a href="#" class="hover:text-red-500 dark:hover:text-red-400 mr-3">
+                    {{if eq $socialSetting 1}}
+                    <div class="scocial-link">
+                        <a href="#" >
                             <i class="mdi mdi-comment-text-outline mr-1"></i> <span>{{.CommentNum}}</span>
                         </a>
-                        <a href="#" class="hover:text-red-500 dark:hover:text-red-400">
+                        <a href="#" >
                             <i class="mdi mdi-thumb-up-outline mr-1"></i><span>{{.LikeNum}}</span>
                         </a>
                     </div>
+                    {{end}}
                 </div>
                 {{if $.Data.IsOwner}}
-                <div class="my-4 flex justify-between">
+                <div class="mb-4 flex justify-between">
                     <div>
                         <a href="" class="text-red-600 hover:text-red-800" data-action="deletePost"
                             data-diary-id="{{$.Data.Diary.DiaryID}}" data-post-id="{{.PostID}}">{{getMessage
@@ -119,12 +129,11 @@
         </div>
 
 
-        {{if gt .Data.DiariesNum .Data.PageSize}}
+        {{if gt .Data.PostNum .Data.PageSize}}
         <div class="flex justify-center mt-10">{{template "pagination" .}}</div>
         {{end}}
     </section>
 </main>
 
-{{end}}
 {{template "footer" .}}
 {{end}}

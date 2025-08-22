@@ -16,15 +16,17 @@ type PostController struct {
 	auth          *user.AuthHelper
 	config        *config.Config
 	renderService *view.ViewService
+	userService *user.Service
 }
 
 // NewPostController 创建新的日记控制器实例
-func NewPostController(config *config.Config, postService *post.Service, diaryService *diary.Service, auth *user.AuthHelper, renderService *view.ViewService) *PostController {
+func NewPostController(config *config.Config, postService *post.Service, diaryService *diary.Service, auth *user.AuthHelper, renderService *view.ViewService, userService *user.Service) *PostController {
 	return &PostController{
 		config:        config,
 		postService:   postService,
 		diaryService:  diaryService,
 		auth:          auth,
 		renderService: renderService,
+		userService:   userService,
 	}
 }

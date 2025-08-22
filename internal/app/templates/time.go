@@ -3,12 +3,15 @@ package templates
 import (
 	"html/template"
 	"time"
+
+	"github.com/biuren/hebe/pkg"
 )
 
 // GetTimeFuncs 获取时间相关的模板函数
 func GetTimeFuncs() template.FuncMap {
 	return template.FuncMap{
 		"formatTime": formatTime,
+		"formatLocalTime": formatLocalTime,
 	}
 }
 
@@ -24,4 +27,9 @@ func formatTime(timestamp int64, format string, timezone ...string) string {
 	}
 
 	return t.Format(format)
+}
+
+// formatLocalTime 格式化本地时间
+func formatLocalTime(timestamp int64, timezone string) string {
+	return pkg.FormatLocalTime(timestamp, timezone)
 }

@@ -79,22 +79,17 @@ func (ctrl *PostController) ShowDiaryIndex(c *gin.Context) {
 	pageSize := ctrl.config.App.PageSize
 
 	// 获取日记列表
-	posts, diariesNum, err := ctrl.postService.ListPostsByUserID(diaryInfo.AddUserID, diaryID, pageIndex, pageSize)
-	var hasError bool
-	var errMsg string
-
+	posts, postNum, err := ctrl.postService.ListPostsByUserID(diaryInfo.AddUserID, diaryID, pageIndex, pageSize)
 	if err != nil {
-		hasError = true
-		errMsg = "获取日记列表失败"
-		posts = []post.Post{} // 空列表
-		diariesNum = 0
+		ctrl.renderErrorPage(c,"日记信息错误", "获取日记列表失败")
+		return
 	}
 
 	// 构建分页信息
 	listOptions := pkg.ListOptions{
 		PageIndex: pageIndex,
 		PageSize:  pageSize,
-		Total:     diariesNum,
+		Total:     postNum,
 		URL:       fmt.Sprintf("/d/%d/%%d", diaryID),
 		PagePrev:  "<<",
 		PageNext:  ">>",
@@ -105,16 +100,22 @@ func (ctrl *PostController) ShowDiaryIndex(c *gin.Context) {
 	isAuth, loginUser := ctrl.auth.IsAuthenticated(c)
 	isOwner := isAuth && loginUser.UserId == diaryInfo.AddUserID
 
+	// 获取用户时区
+	timeZone, err := ctrl.userService.GetUserTimeZone(diaryInfo.AddUserID)
+	if err != nil {
+		ctrl.renderErrorPage(c, "时区获取失败", "获取用户时区失败")
+		return
+	}
+
 	// 构建页面数据
 	data := ctrl.renderService.CreatePageData(c, "diary.index.title")
 	data.Title = diaryInfo.Title + " - " + diaryInfo.AddUserName
 	data.Data["Diary"] = diaryInfo
 	data.Data["Posts"] = posts
 	data.Data["PageLinks"] = pageLinks
-	data.Data["hasError"] = hasError
-	data.Data["errMsg"] = errMsg
-	data.Data["DiariesNum"] = diariesNum
+	data.Data["PostNum"] = postNum
 	data.Data["PageSize"] = pageSize
+	data.Data["TimeZone"] = timeZone
 	data.Data["IsOwner"] = isOwner
 
 	ctrl.renderService.HTML(c, "diary/index", data)
@@ -144,11 +145,21 @@ func (ctrl *PostController) ShowPost(c *gin.Context) {
 		return
 	}
 
+	// todo: 未来判断访客的浏览权限
+
+	// 获取用户时区
+	timeZone, err := ctrl.userService.GetUserTimeZone(diaryInfo.AddUserID)
+	if err != nil {
+		ctrl.renderErrorPage(c, "时区获取失败", "获取用户时区失败")
+		return
+	}
+
 	// 构建页面数据
 	data := ctrl.renderService.CreatePageData(c, "post.show.title")
 	data.Title = postInfo.Title + " - " + postInfo.AddUserName
 	data.Data["Post"] = postInfo
 	data.Data["Diary"] = diaryInfo
+	data.Data["TimeZone"] = timeZone
 
 	ctrl.renderService.HTML(c, "post/view", data)
 }

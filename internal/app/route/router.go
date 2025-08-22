@@ -85,7 +85,7 @@ func createDiaryController(container *di.Container) *diaryController.DiaryContro
 // createPostController 通过DI容器创建PostController
 func createPostController(container *di.Container) *postController.PostController {
 	deps := getControllerDependencies(container)
-	return postController.NewPostController(deps.config, deps.postService, deps.diaryService, deps.authHelper, deps.renderService)
+	return postController.NewPostController(deps.config, deps.postService, deps.diaryService, deps.authHelper, deps.renderService, deps.userService)
 }
 
 // #region 加载模版文件，并注入全局变量

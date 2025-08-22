@@ -261,6 +261,17 @@ func (r *UserRepository) GetUserByEmail(email string) (*user.User, error) {
 	return userEntity, nil
 }
 
+// GetUserTimeZone 获取用户时区
+func (r *UserRepository) GetUserTimeZone(userId int64) (string, error) {
+	sql := "SELECT time_zone FROM br_user WHERE user_id = ?"
+	var timeZone string
+	err := r.db.Get(&timeZone, sql, userId)
+	if err != nil {
+		return "", err
+	}
+	return timeZone, nil
+}
+
 // GetUserEncryptPwd 获取用户加密密码
 func (r *UserRepository) GetUserEncryptPwd(userId int64) (string, error) {
 	sql := "SELECT pwd FROM br_user WHERE user_id = ?"

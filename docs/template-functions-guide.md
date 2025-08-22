@@ -235,6 +235,8 @@ func (ctrl *DiaryController) ShowDiary(c *gin.Context) {
 
 格式化时间戳，支持自定义格式和时区。
 
+`formatLocalTime` 函数用于将 UTC 时间戳和时区格式化为当地习惯的日期时间字符串，无需指定格式。
+
 **参数**:
 
 - `timestamp`: 时间戳（毫秒）

@@ -78,7 +78,7 @@
                             {{ .InfoNum }}{{getMessage "member.profile.posts_count" $lang}}
                         </p>
                         <p class="mb-2">
-                            {{ formatTime .LastActionUTCTime "2006-01-02 15:04" $timeZone}}
+                            {{ formatLocalTime .LastActionUTCTime $timeZone}}
                         </p>
                         {{ end }}
                     </div>
