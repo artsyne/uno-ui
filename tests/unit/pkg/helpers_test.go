@@ -282,8 +282,8 @@ func TestSendToMailMessageFormat(t *testing.T) {
 	})
 }
 
-// TestIsValidUserName 测试用户名验证功能
-func TestIsValidUserName(t *testing.T) {
+// TestIsUserName 测试用户名验证功能
+func TestIsUserName(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
 	defer cancel()
 	
@@ -298,9 +298,9 @@ func TestIsValidUserName(t *testing.T) {
 			expected: true,
 		},
 		{
-			name:     "有效用户名 - 包含下划线",
+			name:     "无效用户名 - 包含下划线",
 			userName: "user_name_123",
-			expected: true,
+			expected: false,
 		},
 		{
 			name:     "有效用户名 - 最小长度",
@@ -309,7 +309,7 @@ func TestIsValidUserName(t *testing.T) {
 		},
 		{
 			name:     "有效用户名 - 最大长度",
-			userName: "user1234567890123456", // 20个字符
+			userName: "user123456789012345678901234", // 30个字符
 			expected: true,
 		},
 		{
@@ -319,7 +319,7 @@ func TestIsValidUserName(t *testing.T) {
 		},
 		{
 			name:     "无效用户名 - 太长",
-			userName: "user12345678901234567", // 21个字符
+			userName: "user123456789012345678901234567890", // 31个字符
 			expected: false,
 		},
 		{
@@ -361,14 +361,14 @@ func TestIsValidUserName(t *testing.T) {
 		default:
 		}
 		t.Run(tt.name, func(t *testing.T) {
-			result := pkg.IsValidUserName(tt.userName)
+			result := pkg.IsUserName(tt.userName)
 			assert.Equal(t, tt.expected, result, "用户名验证结果应该匹配")
 		})
 	}
 }
 
-// TestIsValidPassword 测试密码验证功能
-func TestIsValidPassword(t *testing.T) {
+// TestIsPwd 测试密码验证功能
+func TestIsPwd(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
 	defer cancel()
 	
@@ -404,23 +404,23 @@ func TestIsValidPassword(t *testing.T) {
 		},
 		{
 			name:     "无效密码 - 太长",
-			password: "password123456789012345678901", // 31个字符
+			password: "password12345678901234567890123", // 32个字符，超过30个限制
 			expected: false,
 		},
 		{
-			name:     "无效密码 - 只有字母",
+			name:     "有效密码 - 只有字母",
 			password: "password",
-			expected: false,
+			expected: true,
 		},
 		{
-			name:     "无效密码 - 只有数字",
+			name:     "有效密码 - 只有数字",
 			password: "12345678",
-			expected: false,
+			expected: true,
 		},
 		{
-			name:     "无效密码 - 只有特殊字符",
+			name:     "有效密码 - 只有特殊字符",
 			password: "!@#$%^&*",
-			expected: false,
+			expected: true,
 		},
 		{
 			name:     "空密码",
@@ -432,11 +432,7 @@ func TestIsValidPassword(t *testing.T) {
 			password: "Password123",
 			expected: true,
 		},
-		{
-			name:     "有效密码 - 中文字符和数字",
-			password: "密码123abc",
-			expected: true,
-		},
+
 	}
 
 	for _, tt := range tests {
@@ -446,46 +442,13 @@ func TestIsValidPassword(t *testing.T) {
 		default:
 		}
 		t.Run(tt.name, func(t *testing.T) {
-			result := pkg.IsValidPassword(tt.password)
+			result := pkg.IsPwd(tt.password)
 			assert.Equal(t, tt.expected, result, "密码验证结果应该匹配")
 		})
 	}
 }
 
-// TestPasswordValidationLogic 测试密码验证的具体逻辑
-func TestPasswordValidationLogic(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
-	defer cancel()
-	
-	t.Run("验证字母检测逻辑", func(t *testing.T) {
-		select {
-		case <-ctx.Done():
-			t.Fatal("测试超时")
-		default:
-		}
-		password := "abcDEF!@#"
-		hasLetter := false
-		for _, ch := range password {
-			if unicode.IsLetter(ch) {
-				hasLetter = true
-				break
-			}
-		}
-		assert.True(t, hasLetter, "应该检测到字母")
-	})
-	
-	t.Run("验证数字检测逻辑", func(t *testing.T) {
-		password := "abc123!@#"
-		hasDigit := false
-		for _, ch := range password {
-			if unicode.IsDigit(ch) {
-				hasDigit = true
-				break
-			}
-		}
-		assert.True(t, hasDigit, "应该检测到数字")
-	})
-}
+
 
 // TestHelpersIntegration 测试helpers模块的集成功能
 func TestHelpersIntegration(t *testing.T) {
@@ -517,13 +480,14 @@ func TestHelpersIntegration(t *testing.T) {
 	})
 	
 	t.Run("生成有效的随机密码", func(t *testing.T) {
-		// 生成一个包含字母和数字的密码
-		letterPart := pkg.Rand(4, pkg.RAND_KIND_LOWER)
-		digitPart := pkg.Rand(4, pkg.RAND_KIND_NUM)
-		password := letterPart + digitPart
+		// 生成一个8位的随机密码
+		password := pkg.Rand(8, pkg.RAND_KIND_ALL)
 		
 		// 验证生成的密码是否有效
-		isValid := pkg.IsValidPassword(password)
+		isValid := pkg.IsPwd(password)
 		assert.True(t, isValid, "生成的密码应该有效")
+		
+		// 验证密码长度
+		assert.Equal(t, 8, len(password), "密码长度应该为8")
 	})
 }

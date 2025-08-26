@@ -14,22 +14,23 @@ import (
 // Login 处理用户登录请求
 func (ctrl *UserController) Login(c *gin.Context) {
 	// 解析登录表单数据，创建 LoginRequest 对象
-	req := &user.LoginRequest{}
+	var req LoginRequest
 
-	if err := c.Bind(req); err != nil {
+	// 自动绑定和校验
+	if err := c.ShouldBind(&req); err != nil {
 		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
 		return
 	}
 
-	// 验证输入参数长度
-	if len(req.LoginName) < 6 || len(req.Pwd) < 6 {
-		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails("用户名和密码长度至少6位"))
-		return
+	// 转换为Domain层结构体
+	domainReq := &user.LoginRequest{
+		LoginName: strings.ToLower(req.LoginName),
+		Pwd:       req.Pwd,
+		AccessUrl: req.AccessUrl,
 	}
 
-	// 验证用户名和密码，登录名统一转为小写
-	req.LoginName = strings.ToLower(req.LoginName)
-	user, err := ctrl.service.LoginWithUsernameOrEmail(req.LoginName, req.Pwd)
+	// 验证用户名和密码
+	user, err := ctrl.service.LoginWithUsernameOrEmail(domainReq.LoginName, domainReq.Pwd)
 	if err != nil {
 		ctrl.renderService.JSONError(c, errors.PasswordIncorrect.WithDetails(err.Error()))
 		return
@@ -65,24 +66,32 @@ func (ctrl *UserController) Register(c *gin.Context) {
 	}
 
 	// 解析注册表单数据
-	user := &user.User{}
-	if err := c.Bind(user); err != nil {
+	var req RegisterRequest
+	if err := c.ShouldBind(&req); err != nil {
 		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
 		return
 	}
 
-	// 设置客户端IP
-	user.LastIp = c.ClientIP()
+	// 转换为Domain层结构体
+	domainUser := &user.User{
+		UserName: req.UserName,
+		FullName: req.FullName,
+		Email:    req.Email,
+		Pwd:      req.Pwd,
+		TimeZone: req.TimeZone,
+		Lang:     req.Lang,
+		LastIp:   c.ClientIP(),
+	}
 
 	// 调用服务层注册用户
-	if regErr := ctrl.service.RegisterUser(user); regErr != nil {
+	if regErr := ctrl.service.RegisterUser(domainUser); regErr != nil {
 		ctrl.renderService.JSONError(c, regErr)
 		return
 	}
 
 	// 返回注册成功响应
 	responseData := map[string]interface{}{
-		"UserId": user.UserId,
+		"UserId": domainUser.UserId,
 	}
 	ctrl.renderService.JSONSuccess(c, responseData)
 }

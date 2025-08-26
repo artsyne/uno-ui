@@ -259,6 +259,17 @@ func (m *LocalizationManager) GetSupportedLanguages() []config.SupportLang {
 	return m.cfg.SupportLangs
 }
 
+// IsLanguageSupported 判断输入语言是否支持
+func (m *LocalizationManager) IsLanguageSupported(locale string) bool {
+	normalizedLocale := m.normalizeLocale(locale)
+	for _, lang := range m.cfg.SupportLangs {
+		if lang.Code == normalizedLocale {
+			return true
+		}
+	}
+	return false
+}
+
 // GetSupportedLanguageCodes 获取支持的语言代码列表
 func (m *LocalizationManager) GetSupportedLanguageCodes() []string {
 	codes := make([]string, len(m.cfg.SupportLangs))
@@ -271,17 +282,6 @@ func (m *LocalizationManager) GetSupportedLanguageCodes() []string {
 // GetDefaultLanguage 获取默认语言
 func (m *LocalizationManager) GetDefaultLanguage() string {
 	return m.cfg.App.DefaultLang
-}
-
-// IsLanguageSupported 检查语言是否支持
-func (m *LocalizationManager) IsLanguageSupported(locale string) bool {
-	normalizedLocale := m.normalizeLocale(locale)
-	for _, lang := range m.cfg.SupportLangs {
-		if lang.Code == normalizedLocale {
-			return true
-		}
-	}
-	return false
 }
 
 // GetLanguageInfo 获取语言信息

@@ -5,7 +5,6 @@ import (
 	mathrand "math/rand"
 	"net/smtp"
 	"strings"
-	"unicode"
 )
 
 const (
@@ -90,38 +89,5 @@ func SendToMail(user, password, host, to, subject, body, mailtype string) error 
 	return err
 }
 
-// IsValidUserName 验证用户名是否有效
-// userName: 用户名
-// 返回值：如果用户名有效，返回true，否则返回false
-// 用户名必须至少包含6个字符，最多包含20个字符，只能包含字母、数字和下划线
-func IsValidUserName(userName string) bool {
-	if len(userName) < 6 || len(userName) > 20 {
-		return false
-	}
-	for _, ch := range userName {
-		if !unicode.IsLetter(ch) && !unicode.IsDigit(ch) && ch != '_' {
-			return false
-		}
-	}
-	return true
-}
-
-// IsValidPassword 验证密码是否有效
-// password: 密码
-// 返回值：如果密码有效，返回true，否则返回false
-// 密码必须至少包含8个字符，最多包含30个字符，必须包含至少一个字母和一个数字
-func IsValidPassword(password string) bool {
-	if len(password) < 8 || len(password) > 28 {
-		return false
-	}
-	hasLetter := false
-	hasDigit := false
-	for _, ch := range password {
-		if unicode.IsLetter(ch) {
-			hasLetter = true
-		} else if unicode.IsDigit(ch) {
-			hasDigit = true
-		}
-	}
-	return hasLetter && hasDigit
-}
+// IsValidUserName 和 IsValidPassword 函数已移至 regexcheck.go
+// 请使用 pkg.IsUserName 和 pkg.IsPwd 替代

@@ -89,7 +89,7 @@ a {
 }
 
 .avatar {
-  @apply rounded-full w-10 h-10 bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300 flex items-center justify-center text-xl;
+  @apply rounded-full w-8 h-8 bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300 flex items-center justify-center text-lg;
 }
 
 .text-relaxed {

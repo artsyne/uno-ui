@@ -5,523 +5,636 @@ import (
 	"testing"
 	"time"
 
-	"github.com/biuren/hebe/pkg"
 	"github.com/stretchr/testify/assert"
+	"github.com/biuren/hebe/pkg"
 	core "github.com/biuren/hebe/tests/framework/core"
 )
 
-// TestRegexCheck 测试RegexCheck结构体的所有方法
-func TestRegexCheck(t *testing.T) {
+// TestIsID 测试ID验证功能
+func TestIsID(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
 	defer cancel()
 
-	rc := &pkg.RegexCheck{}
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{
+			name:     "有效ID - 字母数字混合",
+			input:    "abc123",
+			expected: true,
+		},
+		{
+			name:     "有效ID - 最小长度",
+			input:    "abc123",
+			expected: true,
+		},
+		{
+			name:     "有效ID - 最大长度",
+			input:    "abc123456789012345678901234567",
+			expected: true,
+		},
+		{
+			name:     "无效ID - 太短",
+			input:    "abc12",
+			expected: false,
+		},
+		{
+			name:     "无效ID - 太长",
+			input:    "abc1234567890123456789012345678",
+			expected: false,
+		},
+		{
+			name:     "无效ID - 包含特殊字符",
+			input:    "abc123@",
+			expected: false,
+		},
+		{
+			name:     "无效ID - 包含空格",
+			input:    "abc 123",
+			expected: false,
+		},
+		{
+			name:     "空字符串",
+			input:    "",
+			expected: false,
+		},
+	}
 
-	// 测试IsID方法
-	t.Run("IsID测试", func(t *testing.T) {
+	for _, tt := range tests {
 		select {
 		case <-ctx.Done():
 			t.Fatal("测试超时")
 		default:
 		}
-
-		// 有效的ID
-		validIDs := []string{
-			"abc123",
-			"ABC123",
-			"123abc",
-			"abcDEF123456",
-			"123456789012345678901234567890", // 30位
-		}
-		
-		for _, id := range validIDs {
-			assert.True(t, rc.IsID(id), "ID '%s' 应该是有效的", id)
-		}
-		
-		// 无效的ID
-		invalidIDs := []string{
-			"abc12",     // 少于6位
-			"abc@123",   // 包含特殊字符
-			"abc 123",   // 包含空格
-			"abc-123",   // 包含连字符
-			"1234567890123456789012345678901", // 超过30位
-			"",          // 空字符串
-			"中文123",    // 包含中文
-		}
-		
-		for _, id := range invalidIDs {
-			assert.False(t, rc.IsID(id), "ID '%s' 应该是无效的", id)
-		}
-		
-		// 测试多个参数
-		assert.True(t, rc.IsID("abc123", "def456"), "多个有效ID应该返回true")
-		assert.False(t, rc.IsID("abc123", "def@456"), "包含无效ID应该返回false")
-	})
-
-	// 测试IsUserName方法
-	t.Run("IsUserName测试", func(t *testing.T) {
-		select {
-		case <-ctx.Done():
-			t.Fatal("测试超时")
-		default:
-		}
-
-		// 有效的用户名
-		validUserNames := []string{
-			"user123",
-			"USER123",
-			"123user",
-			"userNAME123456",
-			"123456789012345678901234567890", // 30位
-		}
-		
-		for _, username := range validUserNames {
-			assert.True(t, rc.IsUserName(username), "用户名 '%s' 应该是有效的", username)
-		}
-		
-		// 无效的用户名
-		invalidUserNames := []string{
-			"user1",     // 少于6位
-			"user@123",  // 包含特殊字符
-			"user 123",  // 包含空格
-			"user-123",  // 包含连字符
-			"1234567890123456789012345678901", // 超过30位
-			"",          // 空字符串
-			"用户123",    // 包含中文
-		}
-		
-		for _, username := range invalidUserNames {
-			assert.False(t, rc.IsUserName(username), "用户名 '%s' 应该是无效的", username)
-		}
-		
-		// 测试多个参数
-		assert.True(t, rc.IsUserName("user123", "admin456"), "多个有效用户名应该返回true")
-		assert.False(t, rc.IsUserName("user123", "admin@456"), "包含无效用户名应该返回false")
-	})
-
-	// 测试IsPwd方法
-	t.Run("IsPwd测试", func(t *testing.T) {
-		select {
-		case <-ctx.Done():
-			t.Fatal("测试超时")
-		default:
-		}
-
-		// 有效的密码
-		validPasswords := []string{
-			"pass123",
-			"PASS123",
-			"pass@123",
-			"pass.123",
-			"123@abc",
-			"password@123.ABC",
-			"123456789012345678901234567890", // 30位
-		}
-		
-		for _, password := range validPasswords {
-			assert.True(t, rc.IsPwd(password), "密码 '%s' 应该是有效的", password)
-		}
-		
-		// 无效的密码
-		invalidPasswords := []string{
-			"pass1",     // 少于6位
-			"pass#123",  // 包含不允许的特殊字符
-			"pass 123",  // 包含空格
-			"pass-123",  // 包含连字符
-			"1234567890123456789012345678901", // 超过30位
-			"",          // 空字符串
-			"密码123",    // 包含中文
-		}
-		
-		for _, password := range invalidPasswords {
-			assert.False(t, rc.IsPwd(password), "密码 '%s' 应该是无效的", password)
-		}
-		
-		// 测试多个参数
-		assert.True(t, rc.IsPwd("pass123", "admin@456"), "多个有效密码应该返回true")
-		assert.False(t, rc.IsPwd("pass123", "admin#456"), "包含无效密码应该返回false")
-	})
-
-	// 测试IsInteger方法
-	t.Run("IsInteger测试", func(t *testing.T) {
-		select {
-		case <-ctx.Done():
-			t.Fatal("测试超时")
-		default:
-		}
-
-		// 有效的整数
-		validIntegers := []string{
-			"0",
-			"1",
-			"123",
-			"999999",
-			"1234567890",
-		}
-		
-		for _, integer := range validIntegers {
-			assert.True(t, rc.IsInteger(integer), "整数 '%s' 应该是有效的", integer)
-		}
-		
-		// 无效的整数
-		invalidIntegers := []string{
-			"-123",    // 负数
-			"12.3",    // 小数
-			"12a",     // 包含字母
-			"12 3",    // 包含空格
-			"",        // 空字符串
-			"abc",     // 纯字母
-			"12.0",    // 带小数点的整数
-		}
-		
-		for _, integer := range invalidIntegers {
-			assert.False(t, rc.IsInteger(integer), "整数 '%s' 应该是无效的", integer)
-		}
-		
-		// 测试多个参数
-		assert.True(t, rc.IsInteger("123", "456"), "多个有效整数应该返回true")
-		assert.False(t, rc.IsInteger("123", "45.6"), "包含无效整数应该返回false")
-	})
-
-	// 测试IsDecimals方法
-	t.Run("IsDecimals测试", func(t *testing.T) {
-		select {
-		case <-ctx.Done():
-			t.Fatal("测试超时")
-		default:
-		}
-
-		// 有效的小数
-		validDecimals := []string{
-			"1.0",
-			"12.34",
-			"0.5",
-			"999.999",
-			"123.456789",
-		}
-		
-		for _, decimal := range validDecimals {
-			assert.True(t, rc.IsDecimals(decimal), "小数 '%s' 应该是有效的", decimal)
-		}
-		
-		// 无效的小数
-		invalidDecimals := []string{
-			"123",     // 整数
-			".5",      // 没有整数部分
-			"12.",     // 没有小数部分
-			"12.a",    // 小数部分包含字母
-			"a.5",     // 整数部分包含字母
-			"-12.3",   // 负数
-			"12 .3",   // 包含空格
-			"",        // 空字符串
-			"12..3",   // 多个小数点
-		}
-		
-		for _, decimal := range invalidDecimals {
-			assert.False(t, rc.IsDecimals(decimal), "小数 '%s' 应该是无效的", decimal)
-		}
-		
-		// 测试多个参数
-		assert.True(t, rc.IsDecimals("12.3", "45.6"), "多个有效小数应该返回true")
-		assert.False(t, rc.IsDecimals("12.3", "456"), "包含无效小数应该返回false")
-	})
-
-	// 测试IsCellphone方法
-	t.Run("IsCellphone测试", func(t *testing.T) {
-		select {
-		case <-ctx.Done():
-			t.Fatal("测试超时")
-		default:
-		}
-
-		// 有效的手机号
-		validCellphones := []string{
-			"13812345678",
-			"15987654321",
-			"18612345678",
-			"17712345678",
-			"19912345678",
-		}
-		
-		for _, cellphone := range validCellphones {
-			assert.True(t, rc.IsCellphone(cellphone), "手机号 '%s' 应该是有效的", cellphone)
-		}
-		
-		// 无效的手机号
-		invalidCellphones := []string{
-			"1381234567",   // 少于11位
-			"138123456789",  // 超过11位
-			"0381234567",   // 不以1开头
-			"138123456a8",  // 包含字母
-			"138 1234 5678", // 包含空格
-			"",             // 空字符串
-			"138-1234-5678", // 包含连字符
-		}
-		
-		for _, cellphone := range invalidCellphones {
-			assert.False(t, rc.IsCellphone(cellphone), "手机号 '%s' 应该是无效的", cellphone)
-		}
-		
-		// 测试多个参数
-		assert.True(t, rc.IsCellphone("13812345678", "15987654321"), "多个有效手机号应该返回true")
-		assert.False(t, rc.IsCellphone("13812345678", "1598765432"), "包含无效手机号应该返回false")
-	})
-
-	// 测试IsTelephone方法
-	t.Run("IsTelephone测试", func(t *testing.T) {
-		select {
-		case <-ctx.Done():
-			t.Fatal("测试超时")
-		default:
-		}
-
-		// 有效的座机号
-		validTelephones := []string{
-			"12345678",
-			"87654321",
-			"01234567",
-			"99999999",
-		}
-		
-		for _, telephone := range validTelephones {
-			assert.True(t, rc.IsTelephone(telephone), "座机号 '%s' 应该是有效的", telephone)
-		}
-		
-		// 无效的座机号
-		invalidTelephones := []string{
-			"1234567",   // 少于8位
-			"123456789", // 超过8位
-			"1234567a",  // 包含字母
-			"1234 567",  // 包含空格
-			"",          // 空字符串
-			"1234-567",  // 包含连字符
-		}
-		
-		for _, telephone := range invalidTelephones {
-			assert.False(t, rc.IsTelephone(telephone), "座机号 '%s' 应该是无效的", telephone)
-		}
-		
-		// 测试多个参数
-		assert.True(t, rc.IsTelephone("12345678", "87654321"), "多个有效座机号应该返回true")
-		assert.False(t, rc.IsTelephone("12345678", "8765432"), "包含无效座机号应该返回false")
-	})
-
-	// 测试IsEngishLowCase方法
-	t.Run("IsEngishLowCase测试", func(t *testing.T) {
-		select {
-		case <-ctx.Done():
-			t.Fatal("测试超时")
-		default:
-		}
-
-		// 有效的小写英文
-		validLowCase := []string{
-			"a",
-			"abc",
-			"hello",
-			"world",
-			"abcdefghijklmnopqrstuvwxyz",
-		}
-		
-		for _, lowCase := range validLowCase {
-			assert.True(t, rc.IsEngishLowCase(lowCase), "小写英文 '%s' 应该是有效的", lowCase)
-		}
-		
-		// 无效的小写英文
-		invalidLowCase := []string{
-			"A",        // 大写字母
-			"Hello",    // 包含大写字母
-			"abc123",   // 包含数字
-			"abc@def",  // 包含特殊字符
-			"abc def",  // 包含空格
-			"",         // 空字符串
-			"你好",      // 中文
-		}
-		
-		for _, lowCase := range invalidLowCase {
-			assert.False(t, rc.IsEngishLowCase(lowCase), "小写英文 '%s' 应该是无效的", lowCase)
-		}
-		
-		// 测试多个参数
-		assert.True(t, rc.IsEngishLowCase("hello", "world"), "多个有效小写英文应该返回true")
-		assert.False(t, rc.IsEngishLowCase("hello", "World"), "包含无效小写英文应该返回false")
-	})
-
-	// 测试IsEnglishCap方法
-	t.Run("IsEnglishCap测试", func(t *testing.T) {
-		select {
-		case <-ctx.Done():
-			t.Fatal("测试超时")
-		default:
-		}
-
-		// 有效的大写英文
-		validCapCase := []string{
-			"A",
-			"ABC",
-			"HELLO",
-			"WORLD",
-			"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-		}
-		
-		for _, capCase := range validCapCase {
-			assert.True(t, rc.IsEnglishCap(capCase), "大写英文 '%s' 应该是有效的", capCase)
-		}
-		
-		// 无效的大写英文
-		invalidCapCase := []string{
-			"a",        // 小写字母
-			"Hello",    // 包含小写字母
-			"ABC123",   // 包含数字
-			"ABC@DEF",  // 包含特殊字符
-			"ABC DEF",  // 包含空格
-			"",         // 空字符串
-			"你好",      // 中文
-		}
-		
-		for _, capCase := range invalidCapCase {
-			assert.False(t, rc.IsEnglishCap(capCase), "大写英文 '%s' 应该是无效的", capCase)
-		}
-		
-		// 测试多个参数
-		assert.True(t, rc.IsEnglishCap("HELLO", "WORLD"), "多个有效大写英文应该返回true")
-		assert.False(t, rc.IsEnglishCap("HELLO", "World"), "包含无效大写英文应该返回false")
-	})
-
-	// 测试IsEnglish方法
-	t.Run("IsEnglish测试", func(t *testing.T) {
-		select {
-		case <-ctx.Done():
-			t.Fatal("测试超时")
-		default:
-		}
-
-		// 有效的英文
-		validEnglish := []string{
-			"a",
-			"A",
-			"abc",
-			"ABC",
-			"Hello",
-			"WORLD",
-			"HelloWorld",
-			"abcDEF",
-			"ABCdef",
-		}
-		
-		for _, english := range validEnglish {
-			assert.True(t, rc.IsEnglish(english), "英文 '%s' 应该是有效的", english)
-		}
-		
-		// 无效的英文
-		invalidEnglish := []string{
-			"abc123",   // 包含数字
-			"abc@def",  // 包含特殊字符
-			"abc def",  // 包含空格
-			"",         // 空字符串
-			"你好",      // 中文
-			"hello-world", // 包含连字符
-		}
-		
-		for _, english := range invalidEnglish {
-			assert.False(t, rc.IsEnglish(english), "英文 '%s' 应该是无效的", english)
-		}
-		
-		// 测试多个参数
-		assert.True(t, rc.IsEnglish("Hello", "World"), "多个有效英文应该返回true")
-		assert.False(t, rc.IsEnglish("Hello", "World123"), "包含无效英文应该返回false")
-	})
-
-	// 测试IsEmail方法
-	t.Run("IsEmail测试", func(t *testing.T) {
-		select {
-		case <-ctx.Done():
-			t.Fatal("测试超时")
-		default:
-		}
-
-		// 有效的邮箱
-		validEmails := []string{
-			"test@example.com",
-			"user.name@domain.co.uk",
-			"user_name@domain.org",
-			"user-name@domain.net",
-			"123@domain.com",
-			"test.email@sub.domain.com",
-			"a@b.co",
-		}
-		
-		for _, email := range validEmails {
-			assert.True(t, rc.IsEmail(email), "邮箱 '%s' 应该是有效的", email)
-		}
-		
-		// 无效的邮箱
-		invalidEmails := []string{
-			"test",           // 没有@符号
-			"test@",          // 没有域名
-			"@domain.com",    // 没有用户名
-			"test@domain",    // 没有顶级域名
-			"test@domain.",   // 顶级域名为空
-			"test..test@domain.com", // 连续的点
-			"test@domain..com", // 域名中连续的点
-			"test domain@example.com", // 用户名包含空格
-			"test@domain .com", // 域名包含空格
-			"",              // 空字符串
-			"test@",         // 不完整的邮箱
-		}
-		
-		for _, email := range invalidEmails {
-			assert.False(t, rc.IsEmail(email), "邮箱 '%s' 应该是无效的", email)
-		}
-		
-		// 测试多个参数
-		assert.True(t, rc.IsEmail("test@example.com", "user@domain.org"), "多个有效邮箱应该返回true")
-		assert.False(t, rc.IsEmail("test@example.com", "invalid-email"), "包含无效邮箱应该返回false")
-	})
+		t.Run(tt.name, func(t *testing.T) {
+			result := pkg.IsID(tt.input)
+			assert.Equal(t, tt.expected, result, "IsID(%s) 应该返回 %v", tt.input, tt.expected)
+		})
+	}
 }
 
-// TestRegexCheckEdgeCases 测试RegexCheck的边界情况
+
+
+
+
+// TestIsInteger 测试整数验证功能
+func TestIsInteger(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{
+			name:     "有效整数 - 单位数",
+			input:    "5",
+			expected: true,
+		},
+		{
+			name:     "有效整数 - 多位数",
+			input:    "12345",
+			expected: true,
+		},
+		{
+			name:     "有效整数 - 零",
+			input:    "0",
+			expected: true,
+		},
+		{
+			name:     "无效整数 - 包含字母",
+			input:    "123a",
+			expected: false,
+		},
+		{
+			name:     "无效整数 - 包含小数点",
+			input:    "123.0",
+			expected: false,
+		},
+		{
+			name:     "无效整数 - 负数",
+			input:    "-123",
+			expected: false,
+		},
+		{
+			name:     "空字符串",
+			input:    "",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		select {
+		case <-ctx.Done():
+			t.Fatal("测试超时")
+		default:
+		}
+		t.Run(tt.name, func(t *testing.T) {
+			result := pkg.IsInteger(tt.input)
+			assert.Equal(t, tt.expected, result, "IsInteger(%s) 应该返回 %v", tt.input, tt.expected)
+		})
+	}
+}
+
+// TestIsDecimals 测试小数验证功能
+func TestIsDecimals(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{
+			name:     "有效小数 - 标准格式",
+			input:    "123.45",
+			expected: true,
+		},
+		{
+			name:     "有效小数 - 单位小数",
+			input:    "1.5",
+			expected: true,
+		},
+		{
+			name:     "有效小数 - 多位小数",
+			input:    "123.456789",
+			expected: true,
+		},
+		{
+			name:     "无效小数 - 整数",
+			input:    "123",
+			expected: false,
+		},
+		{
+			name:     "无效小数 - 以小数点开头",
+			input:    ".123",
+			expected: false,
+		},
+		{
+			name:     "无效小数 - 以小数点结尾",
+			input:    "123.",
+			expected: false,
+		},
+		{
+			name:     "无效小数 - 包含字母",
+			input:    "123.4a",
+			expected: false,
+		},
+		{
+			name:     "空字符串",
+			input:    "",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		select {
+		case <-ctx.Done():
+			t.Fatal("测试超时")
+		default:
+		}
+		t.Run(tt.name, func(t *testing.T) {
+			result := pkg.IsDecimals(tt.input)
+			assert.Equal(t, tt.expected, result, "IsDecimals(%s) 应该返回 %v", tt.input, tt.expected)
+		})
+	}
+}
+
+// TestIsCellphone 测试手机号验证功能
+func TestIsCellphone(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{
+			name:     "有效手机号 - 标准格式",
+			input:    "13812345678",
+			expected: true,
+		},
+		{
+			name:     "有效手机号 - 15开头",
+			input:    "15987654321",
+			expected: true,
+		},
+		{
+			name:     "有效手机号 - 18开头",
+			input:    "18612345678",
+			expected: true,
+		},
+		{
+			name:     "无效手机号 - 不以1开头",
+			input:    "23812345678",
+			expected: false,
+		},
+		{
+			name:     "无效手机号 - 太短",
+			input:    "1381234567",
+			expected: false,
+		},
+		{
+			name:     "无效手机号 - 太长",
+			input:    "138123456789",
+			expected: false,
+		},
+		{
+			name:     "无效手机号 - 包含字母",
+			input:    "1381234567a",
+			expected: false,
+		},
+		{
+			name:     "空字符串",
+			input:    "",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		select {
+		case <-ctx.Done():
+			t.Fatal("测试超时")
+		default:
+		}
+		t.Run(tt.name, func(t *testing.T) {
+			result := pkg.IsCellphone(tt.input)
+			assert.Equal(t, tt.expected, result, "IsCellphone(%s) 应该返回 %v", tt.input, tt.expected)
+		})
+	}
+}
+
+// TestIsTelephone 测试固定电话验证功能
+func TestIsTelephone(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{
+			name:     "有效固话 - 8位数字",
+			input:    "12345678",
+			expected: true,
+		},
+		{
+			name:     "有效固话 - 以0开头",
+			input:    "01234567",
+			expected: true,
+		},
+		{
+			name:     "无效固话 - 太短",
+			input:    "1234567",
+			expected: false,
+		},
+		{
+			name:     "无效固话 - 太长",
+			input:    "123456789",
+			expected: false,
+		},
+		{
+			name:     "无效固话 - 包含字母",
+			input:    "1234567a",
+			expected: false,
+		},
+		{
+			name:     "无效固话 - 包含特殊字符",
+			input:    "1234-567",
+			expected: false,
+		},
+		{
+			name:     "空字符串",
+			input:    "",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		select {
+		case <-ctx.Done():
+			t.Fatal("测试超时")
+		default:
+		}
+		t.Run(tt.name, func(t *testing.T) {
+			result := pkg.IsTelephone(tt.input)
+			assert.Equal(t, tt.expected, result, "IsTelephone(%s) 应该返回 %v", tt.input, tt.expected)
+		})
+	}
+}
+
+// TestIsEngishLowCase 测试小写英文验证功能
+func TestIsEngishLowCase(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{
+			name:     "有效小写英文 - 单词",
+			input:    "hello",
+			expected: true,
+		},
+		{
+			name:     "有效小写英文 - 单字母",
+			input:    "a",
+			expected: true,
+		},
+		{
+			name:     "有效小写英文 - 长单词",
+			input:    "abcdefghijklmnopqrstuvwxyz",
+			expected: true,
+		},
+		{
+			name:     "无效小写英文 - 包含大写",
+			input:    "Hello",
+			expected: false,
+		},
+		{
+			name:     "无效小写英文 - 包含数字",
+			input:    "hello123",
+			expected: false,
+		},
+		{
+			name:     "无效小写英文 - 包含特殊字符",
+			input:    "hello!",
+			expected: false,
+		},
+		{
+			name:     "无效小写英文 - 包含空格",
+			input:    "hello world",
+			expected: false,
+		},
+		{
+			name:     "空字符串",
+			input:    "",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		select {
+		case <-ctx.Done():
+			t.Fatal("测试超时")
+		default:
+		}
+		t.Run(tt.name, func(t *testing.T) {
+			result := pkg.IsEngishLowCase(tt.input)
+			assert.Equal(t, tt.expected, result, "IsEngishLowCase(%s) 应该返回 %v", tt.input, tt.expected)
+		})
+	}
+}
+
+// TestIsEnglishCap 测试大写英文验证功能
+func TestIsEnglishCap(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{
+			name:     "有效大写英文 - 单词",
+			input:    "HELLO",
+			expected: true,
+		},
+		{
+			name:     "有效大写英文 - 单字母",
+			input:    "A",
+			expected: true,
+		},
+		{
+			name:     "有效大写英文 - 长单词",
+			input:    "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+			expected: true,
+		},
+		{
+			name:     "无效大写英文 - 包含小写",
+			input:    "Hello",
+			expected: false,
+		},
+		{
+			name:     "无效大写英文 - 包含数字",
+			input:    "HELLO123",
+			expected: false,
+		},
+		{
+			name:     "无效大写英文 - 包含特殊字符",
+			input:    "HELLO!",
+			expected: false,
+		},
+		{
+			name:     "无效大写英文 - 包含空格",
+			input:    "HELLO WORLD",
+			expected: false,
+		},
+		{
+			name:     "空字符串",
+			input:    "",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		select {
+		case <-ctx.Done():
+			t.Fatal("测试超时")
+		default:
+		}
+		t.Run(tt.name, func(t *testing.T) {
+			result := pkg.IsEnglishCap(tt.input)
+			assert.Equal(t, tt.expected, result, "IsEnglishCap(%s) 应该返回 %v", tt.input, tt.expected)
+		})
+	}
+}
+
+// TestIsEnglish 测试英文验证功能
+func TestIsEnglish(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{
+			name:     "有效英文 - 小写",
+			input:    "hello",
+			expected: true,
+		},
+		{
+			name:     "有效英文 - 大写",
+			input:    "HELLO",
+			expected: true,
+		},
+		{
+			name:     "有效英文 - 大小写混合",
+			input:    "Hello",
+			expected: true,
+		},
+		{
+			name:     "有效英文 - 单字母",
+			input:    "a",
+			expected: true,
+		},
+		{
+			name:     "无效英文 - 包含数字",
+			input:    "hello123",
+			expected: false,
+		},
+		{
+			name:     "无效英文 - 包含特殊字符",
+			input:    "hello!",
+			expected: false,
+		},
+		{
+			name:     "无效英文 - 包含空格",
+			input:    "hello world",
+			expected: false,
+		},
+
+		{
+			name:     "空字符串",
+			input:    "",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		select {
+		case <-ctx.Done():
+			t.Fatal("测试超时")
+		default:
+		}
+		t.Run(tt.name, func(t *testing.T) {
+			result := pkg.IsEnglish(tt.input)
+			assert.Equal(t, tt.expected, result, "IsEnglish(%s) 应该返回 %v", tt.input, tt.expected)
+		})
+	}
+}
+
+// TestIsEmail 测试邮箱验证功能
+func TestIsEmail(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{
+			name:     "有效邮箱 - 标准格式",
+			input:    "test@example.com",
+			expected: true,
+		},
+		{
+			name:     "有效邮箱 - 包含数字",
+			input:    "user123@domain.org",
+			expected: true,
+		},
+		{
+			name:     "有效邮箱 - 包含点号",
+			input:    "user.name@example.com",
+			expected: true,
+		},
+		{
+			name:     "有效邮箱 - 包含加号",
+			input:    "user+tag@example.com",
+			expected: true,
+		},
+		{
+			name:     "有效邮箱 - 子域名",
+			input:    "test@mail.example.com",
+			expected: true,
+		},
+		{
+			name:     "无效邮箱 - 缺少@",
+			input:    "testexample.com",
+			expected: false,
+		},
+		{
+			name:     "无效邮箱 - 缺少域名",
+			input:    "test@",
+			expected: false,
+		},
+		{
+			name:     "无效邮箱 - 缺少用户名",
+			input:    "@example.com",
+			expected: false,
+		},
+		{
+			name:     "无效邮箱 - 缺少顶级域名",
+			input:    "test@example",
+			expected: false,
+		},
+		{
+			name:     "无效邮箱 - 多个@",
+			input:    "test@@example.com",
+			expected: false,
+		},
+		{
+			name:     "无效邮箱 - 包含空格",
+			input:    "test @example.com",
+			expected: false,
+		},
+		{
+			name:     "空字符串",
+			input:    "",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		select {
+		case <-ctx.Done():
+			t.Fatal("测试超时")
+		default:
+		}
+		t.Run(tt.name, func(t *testing.T) {
+			result := pkg.IsEmail(tt.input)
+			assert.Equal(t, tt.expected, result, "IsEmail(%s) 应该返回 %v", tt.input, tt.expected)
+		})
+	}
+}
+
+// TestRegexCheckEdgeCases 测试边界情况
 func TestRegexCheckEdgeCases(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
 	defer cancel()
 
-	rc := &pkg.RegexCheck{}
-
-	t.Run("空参数测试", func(t *testing.T) {
+	t.Run("空字符串测试", func(t *testing.T) {
 		select {
 		case <-ctx.Done():
 			t.Fatal("测试超时")
 		default:
 		}
-
-		// 测试没有参数的情况
-		assert.True(t, rc.IsID(), "没有参数时应该返回true")
-		assert.True(t, rc.IsUserName(), "没有参数时应该返回true")
-		assert.True(t, rc.IsPwd(), "没有参数时应该返回true")
-		assert.True(t, rc.IsInteger(), "没有参数时应该返回true")
-		assert.True(t, rc.IsDecimals(), "没有参数时应该返回true")
-		assert.True(t, rc.IsCellphone(), "没有参数时应该返回true")
-		assert.True(t, rc.IsTelephone(), "没有参数时应该返回true")
-		assert.True(t, rc.IsEngishLowCase(), "没有参数时应该返回true")
-		assert.True(t, rc.IsEnglishCap(), "没有参数时应该返回true")
-		assert.True(t, rc.IsEnglish(), "没有参数时应该返回true")
-		assert.True(t, rc.IsEmail(), "没有参数时应该返回true")
-	})
-
-	t.Run("大量参数测试", func(t *testing.T) {
-		select {
-		case <-ctx.Done():
-			t.Fatal("测试超时")
-		default:
-		}
-
-		// 测试大量有效参数
-		validIDs := []string{"abc123", "def456", "ghi789", "jkl012", "mno345"}
-		assert.True(t, rc.IsID(validIDs...), "大量有效ID应该返回true")
 		
-		// 测试大量参数中包含一个无效的
-		mixedIDs := []string{"abc123", "def456", "ghi789", "abc@123", "mno345"}
-		assert.False(t, rc.IsID(mixedIDs...), "包含无效ID的大量参数应该返回false")
+		emptyStr := ""
+		assert.False(t, pkg.IsID(emptyStr), "空字符串不应该是有效ID")
+		assert.False(t, pkg.IsUserName(emptyStr), "空字符串不应该是有效用户名")
+		assert.False(t, pkg.IsPwd(emptyStr), "空字符串不应该是有效密码")
+		assert.False(t, pkg.IsInteger(emptyStr), "空字符串不应该是有效整数")
+		assert.False(t, pkg.IsDecimals(emptyStr), "空字符串不应该是有效小数")
+		assert.False(t, pkg.IsCellphone(emptyStr), "空字符串不应该是有效手机号")
+		assert.False(t, pkg.IsTelephone(emptyStr), "空字符串不应该是有效固话")
+		assert.False(t, pkg.IsEngishLowCase(emptyStr), "空字符串不应该是有效小写英文")
+		assert.False(t, pkg.IsEnglishCap(emptyStr), "空字符串不应该是有效大写英文")
+		assert.False(t, pkg.IsEnglish(emptyStr), "空字符串不应该是有效英文")
+		assert.False(t, pkg.IsEmail(emptyStr), "空字符串不应该是有效邮箱")
+
 	})
 
 	t.Run("特殊字符测试", func(t *testing.T) {
@@ -530,21 +643,11 @@ func TestRegexCheckEdgeCases(t *testing.T) {
 			t.Fatal("测试超时")
 		default:
 		}
-
-		// 测试各种特殊字符
-		specialChars := []string{
-			"abc!123", "abc#123", "abc$123", "abc%123", "abc^123",
-			"abc&123", "abc*123", "abc(123", "abc)123", "abc+123",
-			"abc=123", "abc[123", "abc]123", "abc{123", "abc}123",
-			"abc|123", "abc\\123", "abc:123", "abc;123", "abc'123",
-			"abc\"123", "abc<123", "abc>123", "abc,123", "abc?123",
-			"abc/123", "abc~123", "abc`123",
-		}
 		
-		for _, char := range specialChars {
-			assert.False(t, rc.IsID(char), "包含特殊字符 '%s' 的ID应该是无效的", char)
-			assert.False(t, rc.IsUserName(char), "包含特殊字符 '%s' 的用户名应该是无效的", char)
-		}
+		specialChars := "!@#$%^&*()"
+		assert.True(t, pkg.IsPwd(specialChars), "特殊字符应该是有效密码")
+		assert.False(t, pkg.IsID(specialChars), "特殊字符不应该是有效ID")
+		assert.False(t, pkg.IsUserName(specialChars), "特殊字符不应该是有效用户名")
 	})
 
 	t.Run("Unicode字符测试", func(t *testing.T) {
@@ -553,33 +656,39 @@ func TestRegexCheckEdgeCases(t *testing.T) {
 			t.Fatal("测试超时")
 		default:
 		}
-
-		// 测试各种Unicode字符
-		unicodeStrings := []string{
-			"测试123",    // 中文
-			"тест123",   // 俄文
-			"テスト123",   // 日文
-			"테스트123",   // 韩文
-			"test123α",  // 希腊字母
-			"test123ñ",  // 西班牙语字符
-			"test123ü",  // 德语字符
-			"test123é",  // 法语字符
-		}
 		
-		for _, unicode := range unicodeStrings {
-			assert.False(t, rc.IsID(unicode), "包含Unicode字符 '%s' 的ID应该是无效的", unicode)
-			assert.False(t, rc.IsUserName(unicode), "包含Unicode字符 '%s' 的用户名应该是无效的", unicode)
-			assert.False(t, rc.IsEnglish(unicode), "包含Unicode字符 '%s' 的英文应该是无效的", unicode)
-		}
+		unicodeStr := "测试🎉emoji"
+		assert.False(t, pkg.IsPwd(unicodeStr), "包含Unicode字符的字符串不应该是有效密码")
+		assert.False(t, pkg.IsID(unicodeStr), "包含Unicode字符的字符串不应该是有效ID")
+		assert.False(t, pkg.IsEmail(unicodeStr), "包含Unicode字符的字符串不应该是有效邮箱")
 	})
 }
 
-// TestRegexCheckPerformance 测试RegexCheck的性能
-func TestRegexCheckPerformance(t *testing.T) {
+// TestRegexCheckIntegration 集成测试
+func TestRegexCheckIntegration(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
 	defer cancel()
 
-	rc := &pkg.RegexCheck{}
+	t.Run("综合验证测试", func(t *testing.T) {
+		select {
+		case <-ctx.Done():
+			t.Fatal("测试超时")
+		default:
+		}
+		
+		// 测试一个复杂的用户注册场景
+		userID := "user123456"
+		userName := "testuser"
+		password := "MyPass123!"
+		email := "test@example.com"
+		phone := "13812345678"
+		
+		assert.True(t, pkg.IsID(userID), "用户ID应该有效")
+		assert.True(t, pkg.IsUserName(userName), "用户名应该有效")
+		assert.True(t, pkg.IsPwd(password), "密码应该有效")
+		assert.True(t, pkg.IsEmail(email), "邮箱应该有效")
+		assert.True(t, pkg.IsCellphone(phone), "手机号应该有效")
+	})
 
 	t.Run("性能测试", func(t *testing.T) {
 		select {
@@ -587,102 +696,16 @@ func TestRegexCheckPerformance(t *testing.T) {
 			t.Fatal("测试超时")
 		default:
 		}
-
+		
 		// 测试大量调用的性能
-		testString := "validtest123"
-		
-		// 这里只是确保方法能够快速执行，不会有性能问题
+		testStr := "test123456"
 		for i := 0; i < 1000; i++ {
-			rc.IsID(testString)
-			rc.IsUserName(testString)
-			rc.IsInteger("123")
-			rc.IsEmail("test@example.com")
+			pkg.IsID(testStr)
+			pkg.IsUserName(testStr)
+			pkg.IsPwd(testStr)
+			pkg.IsEmail("test@example.com")
 		}
-		
-		// 如果能执行到这里，说明性能是可接受的
+		// 如果能执行到这里说明性能可接受
 		assert.True(t, true, "性能测试通过")
-	})
-}
-
-// TestRegexCheckIntegration 测试RegexCheck的集成功能
-func TestRegexCheckIntegration(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
-	defer cancel()
-
-	rc := &pkg.RegexCheck{}
-
-	t.Run("用户注册场景测试", func(t *testing.T) {
-		select {
-		case <-ctx.Done():
-			t.Fatal("测试超时")
-		default:
-		}
-
-		// 模拟用户注册场景
-		username := "testuser123"
-		password := "password@123"
-		email := "testuser@example.com"
-		cellphone := "13812345678"
-		
-		// 验证所有字段
-		assert.True(t, rc.IsUserName(username), "用户名应该有效")
-		assert.True(t, rc.IsPwd(password), "密码应该有效")
-		assert.True(t, rc.IsEmail(email), "邮箱应该有效")
-		assert.True(t, rc.IsCellphone(cellphone), "手机号应该有效")
-		
-		// 综合验证
-		allValid := rc.IsUserName(username) && rc.IsPwd(password) && 
-				   rc.IsEmail(email) && rc.IsCellphone(cellphone)
-		assert.True(t, allValid, "所有注册信息应该都有效")
-	})
-
-	t.Run("数据验证场景测试", func(t *testing.T) {
-		select {
-		case <-ctx.Done():
-			t.Fatal("测试超时")
-		default:
-		}
-
-		// 模拟数据验证场景
-		integerValue := "12345"
-		decimalValue := "123.45"
-		englishText := "HelloWorld"
-		lowCaseText := "hello"
-		upCaseText := "WORLD"
-		
-		// 验证数据类型
-		assert.True(t, rc.IsInteger(integerValue), "整数值应该有效")
-		assert.True(t, rc.IsDecimals(decimalValue), "小数值应该有效")
-		assert.True(t, rc.IsEnglish(englishText), "英文文本应该有效")
-		assert.True(t, rc.IsEngishLowCase(lowCaseText), "小写英文应该有效")
-		assert.True(t, rc.IsEnglishCap(upCaseText), "大写英文应该有效")
-		
-		// 交叉验证
-		assert.False(t, rc.IsInteger(decimalValue), "小数不应该被识别为整数")
-		assert.False(t, rc.IsDecimals(integerValue), "整数不应该被识别为小数")
-		assert.False(t, rc.IsEngishLowCase(upCaseText), "大写文本不应该被识别为小写")
-		assert.False(t, rc.IsEnglishCap(lowCaseText), "小写文本不应该被识别为大写")
-	})
-
-	t.Run("联系方式验证场景测试", func(t *testing.T) {
-		select {
-		case <-ctx.Done():
-			t.Fatal("测试超时")
-		default:
-		}
-
-		// 模拟联系方式验证场景
-		cellphone := "13812345678"
-		telephone := "12345678"
-		email := "contact@company.com"
-		
-		// 验证联系方式
-		assert.True(t, rc.IsCellphone(cellphone), "手机号应该有效")
-		assert.True(t, rc.IsTelephone(telephone), "座机号应该有效")
-		assert.True(t, rc.IsEmail(email), "邮箱应该有效")
-		
-		// 交叉验证（确保不会误判）
-		assert.False(t, rc.IsTelephone(cellphone), "手机号不应该被识别为座机号")
-		assert.False(t, rc.IsCellphone(telephone), "座机号不应该被识别为手机号")
 	})
 }

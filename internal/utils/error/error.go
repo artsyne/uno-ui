@@ -40,6 +40,13 @@ var (
 	InvalidFormat        = ErrorDef{1004, "invalid_format", 400}
 	ValueOutOfRange      = ErrorDef{1005, "value_out_of_range", 400}
 	InvalidPassword      = ErrorDef{1006, "invalid_password", 400}
+	InvalidEmail         = ErrorDef{1007, "invalid_email", 400}
+	InvalidUsername      = ErrorDef{1008, "invalid_username", 400}
+	PasswordTooShort     = ErrorDef{1009, "password_too_short", 400}
+	PasswordTooLong      = ErrorDef{1010, "password_too_long", 400}
+	FieldTooShort        = ErrorDef{1011, "field_too_short", 400}
+	FieldTooLong         = ErrorDef{1012, "field_too_long", 400}
+	FieldMismatch        = ErrorDef{1013, "field_mismatch", 400}
 
 	// 1100-1199: 认证错误 (401)
 	Unauthorized       = ErrorDef{1101, "unauthorized", 401}

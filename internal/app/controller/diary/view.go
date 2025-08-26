@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/biuren/hebe/internal/app/controller/validation"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -53,7 +54,7 @@ func (ctrl *DiaryController) ShowDiaryForm(c *gin.Context) {
 //   - /u/{uid}/{pageindex} - 显示指定页
 func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 	// 获取url中的uid
-	uid, err := ctrl.parseDiaryID(c.Param("uid")) // 复用parseDiaryID方法
+	uid, err := validation.ParseID(c.Param("uid")) // 使用统一的ParseID方法
 	if err != nil {
 		ctrl.renderService.Redirect(c, "/")
 		return

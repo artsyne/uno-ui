@@ -18,20 +18,19 @@ func (ctrl *DiaryController) ProcessDiary(c *gin.Context) {
 	// 获取当前登录用户信息
 	loginUser := ctrl.auth.MustGetCurrentUser(c)
 
-	// 解析表单数据到Diary结构体
-	diaryData := &diary.Diary{}
-	if err := c.Bind(diaryData); err != nil {
+	// 解析表单数据到ProcessDiaryRequest结构体
+	var req ProcessDiaryRequest
+	if err := c.ShouldBind(&req); err != nil {
 		ctrl.renderService.JSONError(c, errors.InvalidParams.Err())
 		return
 	}
 
 	// 根据操作类型分发处理
-	action, _ := c.GetPostForm("action")
-	switch action {
+	switch req.Action {
 	case "diary.add":
-		ctrl.CreateDiary(c, diaryData, loginUser)
+		ctrl.CreateDiary(c, &req, loginUser)
 	case "diary.edit":
-		ctrl.UpdateDiary(c, diaryData, loginUser)
+		ctrl.UpdateDiary(c, &req, loginUser)
 	default:
 		ctrl.renderService.JSONError(c, errors.InvalidParams.Err())
 	}
@@ -39,17 +38,17 @@ func (ctrl *DiaryController) ProcessDiary(c *gin.Context) {
 
 // CreateDiary 处理创建新日记本的业务逻辑
 // 设置日记本的所有必要字段，调用服务层创建日记本，并返回创建结果
-func (ctrl *DiaryController) CreateDiary(c *gin.Context, formData *diary.Diary, user *types.AuthUser) {
+func (ctrl *DiaryController) CreateDiary(c *gin.Context, req *ProcessDiaryRequest, user *types.AuthUser) {
 	nowTime := pkg.GetNowTimeUnixMilli()
 
 	// 使用结构体字面量创建完整的日记本对象
 	diaryData := &diary.Diary{
 		// 用户输入的字段
-		Title:         formData.Title,
-		Remark:        formData.Remark,
-		ViewSetting:   formData.ViewSetting,
-		SocialSetting: formData.SocialSetting,
-		ThemeID:       formData.ThemeID,
+		Title:         req.Title,
+		Remark:        req.Remark,
+		ViewSetting:   int8(req.ViewSetting),
+		SocialSetting: int8(req.SocialSetting),
+		ThemeID:       int8(req.ThemeID),
 
 		// 系统设置的字段
 		DiaryID:            0, // 将由数据库生成
@@ -84,12 +83,28 @@ func (ctrl *DiaryController) CreateDiary(c *gin.Context, formData *diary.Diary, 
 
 // UpdateDiary 处理编辑现有日记本的业务逻辑
 // 验证用户权限，保留原有字段值，更新可编辑字段，调用服务层更新日记本
-func (ctrl *DiaryController) UpdateDiary(c *gin.Context, formData *diary.Diary, loginUser *types.AuthUser) {
+func (ctrl *DiaryController) UpdateDiary(c *gin.Context, req *ProcessDiaryRequest, loginUser *types.AuthUser) {
+	// 验证DiaryID
+	if req.DiaryID <= 0 {
+		ctrl.renderService.JSONError(c, errors.InvalidParams.Err())
+		return
+	}
+
 	// 验证日记本所有权
-	originalDiary, err := ctrl.validateDiaryOwnership(formData.DiaryID, loginUser.UserId)
+	originalDiary, err := ctrl.validateDiaryOwnership(req.DiaryID, loginUser.UserId)
 	if err != nil {
 		ctrl.renderService.JSONError(c, err)
 		return
+	}
+
+	// 创建更新的日记本数据
+	formData := &diary.Diary{
+		DiaryID:       req.DiaryID,
+		Title:         req.Title,
+		Remark:        req.Remark,
+		ViewSetting:   int8(req.ViewSetting),
+		SocialSetting: int8(req.SocialSetting),
+		ThemeID:       int8(req.ThemeID),
 	}
 
 	// 保留原有字段值，只更新可编辑字段

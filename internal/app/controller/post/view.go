@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/biuren/hebe/internal/app/controller/validation"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
@@ -53,7 +54,7 @@ func (ctrl *PostController) ShowPostForm(c *gin.Context) {
 func (ctrl *PostController) ShowDiaryIndex(c *gin.Context) {
 	// 解析日记本ID
 	diaryIDStr := c.Param("diaryid")
-	diaryID, err := ctrl.parseDiaryID(diaryIDStr)
+	diaryID, err := validation.ParseID(diaryIDStr)
 	if err != nil {
 		ctrl.renderErrorPage(c, "日记本ID格式错误", "请检查URL中的日记本ID是否正确")
 		return
@@ -125,7 +126,7 @@ func (ctrl *PostController) ShowDiaryIndex(c *gin.Context) {
 func (ctrl *PostController) ShowPost(c *gin.Context) {
 	// 解析日记ID
 	postIDStr := c.Param("postid")
-	postID, err := ctrl.parsePostID(postIDStr)
+	postID, err := validation.ParseID(postIDStr)
 	if err != nil {
 		ctrl.renderErrorPage(c, "日记ID格式错误", "请检查URL中的日记ID是否正确")
 		return

@@ -10,20 +10,19 @@ import (
 // RequestPasswordReset 处理找回密码请求
 func (ctrl *UserController) RequestPasswordReset(c *gin.Context) {
 	// 解析请求数据
-	req := &user.FindPasswordRequest{}
-	if err := c.Bind(req); err != nil {
+	var req FindPasswordRequest
+	if err := c.ShouldBind(&req); err != nil {
 		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
 		return
 	}
 
-	// 验证邮箱格式
-	if !ctrl.validateEmailFormat(req.Email) {
-		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails("邮箱格式不正确"))
-		return
+	// 转换为Domain层结构体
+	domainReq := &user.FindPasswordRequest{
+		Email: req.Email,
 	}
 
 	// 获取用户信息
-	userInfo, err := ctrl.service.GetUserByEmail(req.Email)
+	userInfo, err := ctrl.service.GetUserByEmail(domainReq.Email)
 	if err != nil {
 		ctrl.renderService.JSONError(c, errors.UserNotFound.WithDetails("邮箱: "+req.Email))
 		return
@@ -47,34 +46,35 @@ func (ctrl *UserController) RequestPasswordReset(c *gin.Context) {
 // ResetPassword 处理重置密码请求
 func (ctrl *UserController) ResetPassword(c *gin.Context) {
 	// 解析重置密码请求
-	req := &user.ResetPasswordRequest{}
-	if err := c.Bind(req); err != nil {
+	var req ResetPasswordRequest
+	if err := c.ShouldBind(&req); err != nil {
 		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
 		return
 	}
 
-	// 验证新密码格式
-	if !ctrl.validatePasswordFormat(req.NewPwd) {
-		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails("密码格式不正确"))
-		return
+	// 转换为Domain层结构体
+	domainReq := &user.ResetPasswordRequest{
+		UID:    req.UID,
+		Sign:   req.Sign,
+		NewPwd: req.NewPwd,
 	}
 
 	// 解析用户ID
-	userID, err := ctrl.service.ParseUserID(req.UID)
+	userID, err := ctrl.service.ParseUserID(domainReq.UID)
 	if err != nil {
 		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails("用户ID格式错误"))
 		return
 	}
 
 	// 检查验证码
-	valid, validCodeID := ctrl.service.CheckValidCode(userID, req.Sign, ctrl.config.ValidCode.TypeResetPwd)
+	valid, validCodeID := ctrl.service.CheckValidCode(userID, domainReq.Sign, ctrl.config.ValidCode.TypeResetPwd)
 	if !valid {
 		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails("验证码无效或已过期"))
 		return
 	}
 
 	// 重置密码
-	if err := ctrl.service.ResetUserPassword(userID, req.NewPwd); err != nil {
+	if err := ctrl.service.ResetUserPassword(userID, domainReq.NewPwd); err != nil {
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
@@ -87,5 +87,5 @@ func (ctrl *UserController) ResetPassword(c *gin.Context) {
 
 // validatePasswordFormat 验证密码格式
 func (ctrl *UserController) validatePasswordFormat(password string) bool {
-	return pkg.IsValidPassword(password)
+	return pkg.IsPwd(password)
 }

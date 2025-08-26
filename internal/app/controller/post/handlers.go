@@ -18,20 +18,13 @@ func (ctrl *PostController) ProcessPost(c *gin.Context) {
 	// 获取当前登录用户信息
 	loginUser := ctrl.auth.MustGetCurrentUser(c)
 
-	// 解析表单数据到PostRequest结构体
-	postForm := &post.PostRequest{}
-	if err := c.Bind(postForm); err != nil {
-		ctrl.renderService.JSONError(c, errors.InvalidParams.Err())
-		return
-	}
-
 	// 根据操作类型分发处理
 	action, _ := c.GetPostForm("action")
 	switch action {
 	case "post.create":
-		ctrl.CreatePost(c, postForm, loginUser)
+		ctrl.CreatePost(c, loginUser)
 	case "post.edit":
-		ctrl.UpdatePost(c, postForm, loginUser)
+		ctrl.UpdatePost(c, loginUser)
 	default:
 		ctrl.renderService.JSONError(c, errors.InvalidParams.Err())
 	}
@@ -39,15 +32,22 @@ func (ctrl *PostController) ProcessPost(c *gin.Context) {
 
 // CreatePost 处理创建新日记的业务逻辑
 // 设置日记的所有必要字段，调用服务层创建日记，并返回创建结果
-func (ctrl *PostController) CreatePost(c *gin.Context, postForm *post.PostRequest, loginUser *types.AuthUser) {
+func (ctrl *PostController) CreatePost(c *gin.Context, loginUser *types.AuthUser) {
+	// 解析创建日记请求
+	var req CreatePostRequest
+	if err := c.ShouldBind(&req); err != nil {
+		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
+		return
+	}
+
 	nowTime := pkg.GetNowTimeUnixMilli()
 
 	// 构建新日记对象，设置所有必要字段
 	postData := &post.Post{
-		DiaryID:       postForm.DiaryID,
-		Title:         postForm.Title,
-		Body:          postForm.Body,
-		Summary:       pkg.TruncateString(postForm.Body, ctrl.config.App.SummaryMax, ctrl.config.App.Suffix),
+		DiaryID:       req.DiaryID,
+		Title:         req.Title,
+		Body:          req.Body,
+		Summary:       pkg.TruncateString(req.Body, ctrl.config.App.SummaryMax, ctrl.config.App.Suffix),
 		IsTop:         0,
 		InfoType:      1, // 默认为文本类型
 		AddUTCTime:    nowTime,
@@ -82,14 +82,15 @@ func (ctrl *PostController) CreatePost(c *gin.Context, postForm *post.PostReques
 
 // UpdatePost 处理编辑现有日记的业务逻辑
 // 验证用户权限，保留原有字段值，更新可编辑字段，调用服务层更新日记
-func (ctrl *PostController) UpdatePost(c *gin.Context, postForm *post.PostRequest, loginUser *types.AuthUser) {
-	// 获取要编辑的日记ID
-	postIdStr, _ := c.GetPostForm("post_id")
-	postId, err := ctrl.parsePostID(postIdStr)
-	if err != nil {
-		ctrl.renderService.JSONError(c, err)
+func (ctrl *PostController) UpdatePost(c *gin.Context, loginUser *types.AuthUser) {
+	// 解析更新日记请求
+	var req UpdatePostRequest
+	if err := c.ShouldBind(&req); err != nil {
+		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
 		return
 	}
+
+	postId := req.PostID
 
 	// 验证日记所有权
 	originalPost, err := ctrl.validatePostOwnership(postId, loginUser.UserId)
@@ -102,9 +103,9 @@ func (ctrl *PostController) UpdatePost(c *gin.Context, postForm *post.PostReques
 	postData := &post.Post{
 		PostID:        postId,
 		DiaryID:       originalPost.DiaryID, // 保持原有日记本ID
-		Title:         postForm.Title,
-		Body:          postForm.Body,
-		Summary:       pkg.TruncateString(postForm.Body, ctrl.config.App.SummaryMax, ctrl.config.App.Suffix),
+		Title:         req.Title,
+		Body:          req.Body,
+		Summary:       pkg.TruncateString(req.Body, ctrl.config.App.SummaryMax, ctrl.config.App.Suffix),
 		UpdateUTCTime: pkg.GetNowTimeUnixMilli(),
 		// 保留原有字段值
 		ViewNum:    originalPost.ViewNum,

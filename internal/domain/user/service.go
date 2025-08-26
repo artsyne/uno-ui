@@ -8,6 +8,7 @@ import (
 
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/utils/config"
+	"github.com/biuren/hebe/internal/utils/i18n"
 	appErrors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/pkg"
 )
@@ -16,19 +17,19 @@ import (
 type Service struct {
 	config      *config.Config
 	repo        RepositoryInterface
-	regexCheck  *pkg.RegexCheck
 	taskService *task.Service
+	i18nService i18n.I18nManager
 }
 
 // NewService 创建用户业务逻辑层实例
 // NewService 创建用户服务实例，使用依赖注入
-func NewService(config *config.Config, repo RepositoryInterface, taskService *task.Service) *Service {
+func NewService(config *config.Config, repo RepositoryInterface, taskService *task.Service, i18nService i18n.I18nManager) *Service {
 
 	return &Service{
 		config:      config,
 		repo:        repo,
-		regexCheck:  &pkg.RegexCheck{},
 		taskService: taskService,
+		i18nService: i18nService,
 	}
 }
 
@@ -65,7 +66,7 @@ func (s *Service) LoginWithUsernameOrEmail(usernameOrEmail string, password stri
 	var err error
 
 	// 判断输入是否为邮箱地址
-	if s.regexCheck.IsEmail(usernameOrEmail) {
+	if pkg.IsEmail(usernameOrEmail) {
 		// 如果是邮箱，直接通过邮箱查找
 		user, err = s.repo.GetUserByEmail(usernameOrEmail)
 	} else {
@@ -267,50 +268,34 @@ func (s *Service) GetUserTimeZone(userId int64) (string, error) {
 	return s.repo.GetUserTimeZone(userId)
 }
 
-// ParseUserID 解析用户ID
+// ParseUserID 解析用户ID（已弃用，建议使用validation.ParseID）
+// 为了保持向后兼容性暂时保留，内部调用validation.ParseID
 func (s *Service) ParseUserID(idStr string) (int64, error) {
-	// 尝试直接解析数字
-	if id, err := strconv.ParseInt(idStr, 10, 64); err == nil {
-		return id, nil
+	// 使用统一的ID解析方法
+	id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
+	if err != nil || id <= 0 {
+		return 0, appErrors.InvalidParams.WithDetails("无效的用户ID格式")
 	}
-
-	return 0, appErrors.InvalidParams.WithDetails("无效的用户ID格式")
+	return id, nil
 }
 
 // ===================== 个人资料管理 =====================
 // UpdateUserProfile 更新用户基本资料
 // 更新用户的全名、个人简介、时区和语言等信息
 func (s *Service) UpdateUserProfile(uid int64, fullName, remark, timeZone, lang string) error {
-	// 验证输入参数
-	if len(fullName) > 50 {
-		return appErrors.InvalidParams.WithDetails("全名长度不能超过50个字符")
-	}
-	if len(remark) > 250 {
-		return appErrors.InvalidParams.WithDetails("个人简介长度不能超过250个字符")
-	}
-
-	// 验证时区格式
-	if timeZone != "" && !pkg.IsTimeZone(timeZone) {
-		return appErrors.InvalidParams.WithDetails("无效的时区格式")
-	}
 
 	// 验证语言格式
 	if lang != "" {
-		supportedLang := s.GetSupportedLang(lang)
-		if supportedLang == "" {
-			return appErrors.InvalidParams.WithDetails("不支持的语言")
+		supportedLang := s.i18nService.IsLanguageSupported(lang)
+		if !supportedLang {
+			return appErrors.InvalidParams.Err()
 		}
 	}
 
 	// 调用repository更新用户资料
-	rowsAffected, err := s.repo.UpdateUserProfile(uid, fullName, remark, timeZone, lang)
+	_, err := s.repo.UpdateUserProfile(uid, fullName, remark, timeZone, lang)
 	if err != nil {
 		return appErrors.DatabaseError.WithDetails(fmt.Sprintf("更新用户资料失败: %v", err))
-	}
-
-	// 检查是否真的更新了用户
-	if rowsAffected == 0 {
-		return appErrors.DatabaseError.WithDetails("未找到用户或资料未修改")
 	}
 
 	return nil
@@ -321,7 +306,7 @@ func (s *Service) UpdateUserProfile(uid int64, fullName, remark, timeZone, lang 
 // UpdateUserEmail 更新用户邮箱
 func (s *Service) UpdateUserEmail(uid int64, email string) error {
 	// 验证邮箱格式
-	if !s.regexCheck.IsEmail(email) {
+	if !pkg.IsEmail(email) {
 		return appErrors.InvalidFormat.WithDetails("邮箱格式不正确")
 	}
 
@@ -374,17 +359,6 @@ func (s *Service) UpdateUserPwd(userId int64, pwd string) (int64, error) {
 		return 0, appErrors.DatabaseError.WithDetails(fmt.Sprintf("更新用户密码失败: %v", err))
 	}
 	return rowsAffected, nil
-}
-
-// GetSupportedLang 获取支持的语言
-func (s *Service) GetSupportedLang(language string) string {
-	supportedLangs := []string{"zh-cn", "zh-tw", "en"}
-	for _, lang := range supportedLangs {
-		if lang == language {
-			return language
-		}
-	}
-	return "en" // 默认英文
 }
 
 // ===================== 私有辅助方法 =====================
@@ -464,7 +438,7 @@ func (s *Service) initUserRegInfo(user *User) {
 	user.CreatedUTCTime = nowTime
 	user.LastLoginUTCTime = nowTime
 	// 设置默认语言
-	user.Lang = s.GetSupportedLang(user.Lang)
+	user.Lang = s.config.App.DefaultLang
 	user.Status = s.config.User.StatusWaitActive
 }
 

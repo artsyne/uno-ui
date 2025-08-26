@@ -6,7 +6,10 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 
+	"github.com/biuren/hebe/internal/app/controller/validation"
 	"github.com/biuren/hebe/internal/app/middleware"
 	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/app/route"
@@ -125,9 +128,9 @@ func (a *Application) registerAppServices() error {
 	
 	// 创建服务实例
 	taskService := task.NewService(a.config, taskRepo)
-	userService := user.NewService(a.config, userRepo, taskService)
+	userService := user.NewService(a.config, userRepo, taskService, i18nManager)
 	diaryService := diary.NewService(a.config, diaryRepo)
-	postService := post.NewService(a.config, userRepo, taskService, diaryRepo, postRepo)
+	postService := post.NewService(a.config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
 	
 	// 注册为预创建实例，避免循环依赖
 	di.Value(a.container, userRepo)
@@ -177,6 +180,11 @@ func (a *Application) initGinServer() error {
 	// 设置 Gin 模式
 	gin.SetMode(a.config.App.GinMode)
 
+	// 设置自定义 validator 绑定到 Gin
+	if err := a.initCustomValidator(); err != nil {
+		return err
+	}
+
 	// 初始化默认gin server
 	server := gin.New()
 
@@ -191,5 +199,31 @@ func (a *Application) initGinServer() error {
 	slog.Info("成功初始化网站静态文件目录及路由")
 
 	a.server = server
+	return nil
+}
+
+// customValidator 实现 binding.StructValidator 接口
+type customValidator struct {
+	validate *validator.Validate
+}
+
+// ValidateStruct 实现结构体校验
+func (v *customValidator) ValidateStruct(obj interface{}) error {
+	return v.validate.Struct(obj)
+}
+
+// Engine 返回底层的校验器引擎
+func (v *customValidator) Engine() interface{} {
+	return v.validate
+}
+
+// initCustomValidator 初始化自定义校验器并绑定到 Gin
+func (a *Application) initCustomValidator() error {
+	// 设置 Gin 使用项目的自定义校验器
+	binding.Validator = &customValidator{
+		validate: validation.Validator,
+	}
+	
+	slog.Info("成功绑定自定义校验器到 Gin 框架")
 	return nil
 }
