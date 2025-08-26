@@ -201,7 +201,7 @@ func TestUserService_UpdateUserProfile(t *testing.T) {
 	require.True(t, newUser.UserId > 0)
 
 	t.Run("成功更新资料", func(t *testing.T) {
-		err := userService.UpdateUserProfile(newUser.UserId, "Updated Name", "Updated Remark")
+		err := userService.UpdateUserProfile(newUser.UserId, "Updated Name", "Updated Remark", "UTC", "en")
 		assert.NoError(t, err)
 
 		// 验证更新是否成功
@@ -209,10 +209,12 @@ func TestUserService_UpdateUserProfile(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "Updated Name", updatedUser.FullName)
 		assert.Equal(t, "Updated Remark", updatedUser.Remark)
+		assert.Equal(t, "UTC", updatedUser.TimeZone)
+		assert.Equal(t, "en", updatedUser.Lang)
 	})
 
 	t.Run("用户不存在", func(t *testing.T) {
-		err := userService.UpdateUserProfile(99999, "Name", "Remark")
+		err := userService.UpdateUserProfile(99999, "Name", "Remark", "", "")
 		assert.Error(t, err)
 	})
 }

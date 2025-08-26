@@ -44,7 +44,9 @@
     "export": "导出",
     "import": "导入",
     "pub_time":"添加时间",
-    "modified_time":"修改时间"
+    "modified_time":"修改时间",
+    "time_zone":"时区",
+    "lang":"语言"
   },
   "nav": {
     "home": "首页",
@@ -204,7 +206,9 @@
       "new_password_placeholder": "请输入新密码",
       "confirm_password_label": "确认密码",
       "confirm_password_placeholder": "请再次输入新密码",
-      "change_password_button": "修改密码"
+      "change_password_button": "修改密码",
+      "timezone_note": "时区设置会影响时间显示风格",
+      "email_note":"邮箱修保存改后，不会立刻修改邮箱。系统会往新邮箱发送一封邮件，点击邮件中的链接完成邮箱验证和修改"
     }
   },
   "form": {

@@ -74,7 +74,7 @@ func TestUserDiaryIntegration(t *testing.T) {
 			assert.NoError(t, err)
 
 			// 6. 更新用户资料
-			err = userService.UpdateUserProfile(testUser.UserId, "Updated Name", "Updated Remark")
+			err = userService.UpdateUserProfile(testUser.UserId, "Updated Name", "Updated Remark", "UTC", "en")
 			assert.NoError(t, err)
 
 			// 7. 验证用户信息更新

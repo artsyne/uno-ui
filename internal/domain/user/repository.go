@@ -48,7 +48,7 @@ type RepositoryInterface interface {
 	GetUserTimeZone(userId int64) (string, error)
 
 	// UpdateUserProfile 更新用户基本资料
-	UpdateUserProfile(userId int64, fullName, remark string) (int64, error)
+	UpdateUserProfile(userId int64, fullName, remark, timeZone, lang string) (int64, error)
 
 	// UpdateUserPassword 更新用户密码
 	UpdateUserPassword(userId int64, pwd string) (int64, error)

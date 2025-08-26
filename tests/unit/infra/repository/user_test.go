@@ -244,9 +244,9 @@ func (r *MockUserRepository) GetUserEncryptPwd(userId int64) (string, error) {
 	return pwd, err
 }
 
-func (r *MockUserRepository) UpdateUserProfile(userId int64, fullName, remark string) (int64, error) {
-	sql := "UPDATE br_user SET full_name = ?, remark = ? WHERE user_id = ?"
-	res, err := r.db.Exec(sql, fullName, remark, userId)
+func (r *MockUserRepository) UpdateUserProfile(userId int64, fullName, remark, timeZone, lang string) (int64, error) {
+	sql := "UPDATE br_user SET full_name = ?, remark = ?, time_zone = ?, lang = ? WHERE user_id = ?"
+	res, err := r.db.Exec(sql, fullName, remark, timeZone, lang, userId)
 	if err != nil {
 		return 0, err
 	}

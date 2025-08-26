@@ -130,5 +130,11 @@ func (ctrl *UserController) ShowUserSettingsPage(c *gin.Context) {
 
 	data := ctrl.renderService.CreatePageData(c, "user.settings.title")
 	data.Data["User"] = userInfo
+	
+	// 添加支持的语言和时区列表
+	supportLangs := ctrl.renderService.GetSupportLangs()
+	data.Data["SupportLangs"] = supportLangs
+	data.Data["TimeZones"] = ctrl.renderService.GetTimeZones()
+	
 	ctrl.renderService.HTML(c, "member/settings", data)
 }

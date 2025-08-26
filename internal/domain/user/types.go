@@ -71,6 +71,8 @@ type UpdateProfileRequest struct {
 	UserId   int64  `form:"user_id" json:"user_id"`
 	FullName string `form:"full_name" json:"full_name"`
 	Remark   string `form:"remark" json:"remark"`
+	TimeZone string `form:"time_zone" json:"time_zone"`
+	Lang     string `form:"lang" json:"lang"`
 }
 
 // UpdateEmailRequest 更新邮箱请求

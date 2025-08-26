@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	types "github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/gin-gonic/gin"
 )
@@ -310,16 +311,8 @@ func (m *LocalizationManager) GetMessagesByLanguage(locale string) map[string]st
 // 优先级：用户设置 > Cookie > 浏览器偏好 > 系统默认
 func (m *LocalizationManager) GetLocaleFromContext(c *gin.Context) string {
 	// 优先级1：用户设置 (如果已登录)
-	if isLogin, exists := c.Get("IsLogin"); exists && isLogin == true {
-		if authUserValue, exists := c.Get("AuthUser"); exists && authUserValue != nil {
-			// 这里使用接口避免循环依赖
-			if user, ok := authUserValue.(interface{ GetLang() string }); ok {
-				if locale := user.GetLang(); locale != "" && m.IsLanguageSupported(locale) {
-					slog.Debug("从用户设置获取语言", "locale", locale)
-					return locale
-				}
-			}
-		}
+	if locale := m.getUserLocaleFromContext(c); locale != "" {
+		return locale
 	}
 
 	// 优先级2：Cookie 设置
@@ -330,7 +323,7 @@ func (m *LocalizationManager) GetLocaleFromContext(c *gin.Context) string {
 		}
 	}
 
-	// 优先级3：浏览器偏好 (Accept-Language)
+	// 优先级3：浏览器偏好
 	if browserLocale := m.getBrowserPreferredLocale(c); browserLocale != "" {
 		slog.Debug("从浏览器偏好获取语言", "locale", browserLocale)
 		return browserLocale
@@ -340,6 +333,27 @@ func (m *LocalizationManager) GetLocaleFromContext(c *gin.Context) string {
 	defaultLocale := m.GetDefaultLanguage()
 	slog.Debug("使用系统默认语言", "locale", defaultLocale)
 	return defaultLocale
+}
+
+// getUserLocaleFromContext 从上下文中获取已认证用户的语言设置
+func (m *LocalizationManager) getUserLocaleFromContext(c *gin.Context) string {
+	isLogin, exists := c.Get("IsLogin")
+	if !exists || isLogin != true {
+		return ""
+	}
+
+	authUserRaw, exists := c.Get("AuthUser")
+	if !exists || authUserRaw == nil {
+		return ""
+	}
+
+	authUser, ok := authUserRaw.(*types.AuthUser)
+	if !ok || authUser.Lang == "" || !m.IsLanguageSupported(authUser.Lang) {
+		return ""
+	}
+
+	slog.Debug("从用户设置获取语言", "locale", authUser.Lang)
+	return authUser.Lang
 }
 
 // getBrowserPreferredLocale 从 Accept-Language 头中提取最佳匹配的语言

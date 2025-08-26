@@ -284,9 +284,9 @@ func (r *UserRepository) GetUserEncryptPwd(userId int64) (string, error) {
 }
 
 // UpdateUserProfile 更新用户基本资料
-func (r *UserRepository) UpdateUserProfile(userId int64, fullName, remark string) (int64, error) {
-	sql := "UPDATE br_user SET full_name = ?, remark = ? WHERE user_id = ?"
-	res, err := r.db.Exec(sql, fullName, remark, userId)
+func (r *UserRepository) UpdateUserProfile(userId int64, fullName, remark, timeZone, lang string) (int64, error) {
+	sql := "UPDATE br_user SET full_name = ?, remark = ?, time_zone = ?, lang = ? WHERE user_id = ?"
+	res, err := r.db.Exec(sql, fullName, remark, timeZone, lang, userId)
 	if err != nil {
 		return 0, err
 	}

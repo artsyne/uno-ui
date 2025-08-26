@@ -79,10 +79,12 @@
             }}
             {{range .Data.Posts}}
             <div class="card mb-6 break-inside-avoid">
+                {{if $.Data.IsOwner}}
                 <div class="post-edit"
                     data-action="togglePostMenu" data-post-id="{{.PostID}}">
                     <i class="mdi mdi-dots-horizontal"></i>
                 </div>
+                {{end}}
                 <div class="mb-4">
                      {{if .Title }} 
                     <h1 class="post-title">

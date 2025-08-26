@@ -47,6 +47,8 @@ const Settings = {
       const data = {
           full_name: form.find('#full_name').val(),
           remark: form.find('#remark').val(),
+          time_zone: form.find('#time_zone').val(),
+          lang: form.find('#lang').val(),
         };
 
       // 发送POST请求保存数据

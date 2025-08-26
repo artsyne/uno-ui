@@ -18,7 +18,7 @@ func TestHelperImport(t *testing.T) {
 	// 简单测试 framework 包是否可用
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
-	
+
 	if ctx == nil {
 		t.Fatal("framework.NewTestContext returned nil")
 	}
@@ -35,7 +35,7 @@ func TestDiaryService_AddDiary(t *testing.T) {
 		diaryRepo := repository.NewDiaryRepository()
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		diaryService := diary.NewService(config, diaryRepo)
-		
+
 		// 创建测试用户
 		testUser := ctx.GetDataGenerator().CreateUser()
 		userRepo := repository.NewUserRepository()
@@ -94,9 +94,9 @@ func TestDiaryService_AddDiary(t *testing.T) {
 		defer ctx.Cleanup()
 
 		// 获取服务
-	diaryRepo := repository.NewDiaryRepository()
-	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	diaryService := diary.NewService(config, diaryRepo)
+		diaryRepo := repository.NewDiaryRepository()
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
+		diaryService := diary.NewService(config, diaryRepo)
 
 		// 创建测试用户
 		testUser := ctx.GetDataGenerator().CreateUser()
@@ -171,8 +171,6 @@ func TestDiaryService_AddDiary_EmptyTitle(t *testing.T) {
 	assert.Error(t, err)
 }
 
-
-
 // TestDiaryService_GetDiaryByID 测试根据ID获取日记本
 func TestDiaryService_GetDiaryByID(t *testing.T) {
 	// 使用新测试框架
@@ -180,13 +178,13 @@ func TestDiaryService_GetDiaryByID(t *testing.T) {
 	defer ctx.Cleanup()
 
 	// 创建真实的服务
-		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-		userRepo := repository.NewUserRepository()
-		taskRepo := repository.NewTaskRepository()
-		taskService := task.NewService(config, taskRepo)
-		userService := user.NewService(config, userRepo, taskService)
-		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(config, diaryRepo)
+	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
+	userRepo := repository.NewUserRepository()
+	taskRepo := repository.NewTaskRepository()
+	taskService := task.NewService(config, taskRepo)
+	userService := user.NewService(config, userRepo, taskService)
+	diaryRepo := repository.NewDiaryRepository()
+	diaryService := diary.NewService(config, diaryRepo)
 
 	// 先创建一个用户
 	testUser := &user.User{
@@ -240,9 +238,9 @@ func TestDiaryService_UpdateDiary(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(config, taskRepo)
-		userService := user.NewService(config, userRepo, taskService)
-		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(config, diaryRepo)
+	userService := user.NewService(config, userRepo, taskService)
+	diaryRepo := repository.NewDiaryRepository()
+	diaryService := diary.NewService(config, diaryRepo)
 
 	// 先创建一个用户
 	testUser := &user.User{
@@ -270,65 +268,65 @@ func TestDiaryService_UpdateDiary(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("成功更新日记本", func(t *testing.T) {
-			updatedTitle := "测试日记本标题"
-			updatedDiary := &diary.Diary{
-				DiaryID:       diaryID,
-				Title:         updatedTitle,
-				Remark:        "更新后的备注",
-				ViewSetting:   1,
-				SocialSetting: 1,
-				ThemeID:       1,
-				AddUserID:     testUser.UserId,
-				AddUserName:   testUser.UserName,
-				AddUTCTime:    1642680000,
-				Status:        1,
-			}
+		updatedTitle := "测试日记本标题"
+		updatedDiary := &diary.Diary{
+			DiaryID:       diaryID,
+			Title:         updatedTitle,
+			Remark:        "更新后的备注",
+			ViewSetting:   1,
+			SocialSetting: 1,
+			ThemeID:       1,
+			AddUserID:     testUser.UserId,
+			AddUserName:   testUser.UserName,
+			AddUTCTime:    1642680000,
+			Status:        1,
+		}
 
-			err := diaryService.UpdateDiary(updatedDiary)
-			assert.NoError(t, err)
+		err := diaryService.UpdateDiary(updatedDiary)
+		assert.NoError(t, err)
 
-			// 验证更新是否成功
-			retrievedDiary, err := diaryService.GetDiaryByID(diaryID)
-			require.NoError(t, err)
-			assert.Equal(t, updatedTitle, retrievedDiary.Title)
-			assert.Equal(t, "更新后的备注", retrievedDiary.Remark)
-		})
+		// 验证更新是否成功
+		retrievedDiary, err := diaryService.GetDiaryByID(diaryID)
+		require.NoError(t, err)
+		assert.Equal(t, updatedTitle, retrievedDiary.Title)
+		assert.Equal(t, "更新后的备注", retrievedDiary.Remark)
+	})
 
-		t.Run("更新不存在的日记本", func(t *testing.T) {
-			nonExistentDiary := &diary.Diary{
-				DiaryID:       99999,
-				Title:         "测试日记本标题",
-				Remark:        "测试",
-				ViewSetting:   1,
-				SocialSetting: 1,
-				ThemeID:       1,
-				AddUserID:     testUser.UserId,
-				AddUserName:   testUser.UserName,
-				AddUTCTime:    1642680000,
-				Status:        1,
-			}
+	t.Run("更新不存在的日记本", func(t *testing.T) {
+		nonExistentDiary := &diary.Diary{
+			DiaryID:       99999,
+			Title:         "测试日记本标题",
+			Remark:        "测试",
+			ViewSetting:   1,
+			SocialSetting: 1,
+			ThemeID:       1,
+			AddUserID:     testUser.UserId,
+			AddUserName:   testUser.UserName,
+			AddUTCTime:    1642680000,
+			Status:        1,
+		}
 
-			err := diaryService.UpdateDiary(nonExistentDiary)
-			assert.Error(t, err)
-		})
+		err := diaryService.UpdateDiary(nonExistentDiary)
+		assert.Error(t, err)
+	})
 
-		t.Run("标题为空时更新失败", func(t *testing.T) {
-			invalidDiary := &diary.Diary{
-				DiaryID:       diaryID,
-				Title:         "", // 空标题
-				Remark:        "备注",
-				ViewSetting:   1,
-				SocialSetting: 1,
-				ThemeID:       1,
-				AddUserID:     testUser.UserId,
-				AddUserName:   testUser.UserName,
-				AddUTCTime:    1642680000,
-				Status:        1,
-			}
+	t.Run("标题为空时更新失败", func(t *testing.T) {
+		invalidDiary := &diary.Diary{
+			DiaryID:       diaryID,
+			Title:         "", // 空标题
+			Remark:        "备注",
+			ViewSetting:   1,
+			SocialSetting: 1,
+			ThemeID:       1,
+			AddUserID:     testUser.UserId,
+			AddUserName:   testUser.UserName,
+			AddUTCTime:    1642680000,
+			Status:        1,
+		}
 
-			err := diaryService.UpdateDiary(invalidDiary)
-			assert.Error(t, err)
-		})
+		err := diaryService.UpdateDiary(invalidDiary)
+		assert.Error(t, err)
+	})
 }
 
 // TestDiaryService_ListDiariesForWrite 测试获取可写入的日记本列表
@@ -396,11 +394,11 @@ func TestDiaryService_ListDiariesForWrite(t *testing.T) {
 		ctx := framework.NewTestContext(framework.WithDatabase())
 		defer ctx.Cleanup()
 
-	// 创建真实的服务
-	userRepo := repository.NewUserRepository()
-	taskRepo := repository.NewTaskRepository()
-	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	taskService := task.NewService(config, taskRepo)
+		// 创建真实的服务
+		userRepo := repository.NewUserRepository()
+		taskRepo := repository.NewTaskRepository()
+		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
+		taskService := task.NewService(config, taskRepo)
 		userService := user.NewService(config, userRepo, taskService)
 		diaryRepo := repository.NewDiaryRepository()
 		diaryService := diary.NewService(config, diaryRepo)
@@ -460,7 +458,7 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-		
+
 		diaryService := diary.NewService(config, diaryRepo)
 		taskService := task.NewService(config, taskRepo)
 		userService := user.NewService(config, userRepo, taskService)
@@ -507,7 +505,7 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-		
+
 		diaryService := diary.NewService(config, diaryRepo)
 		taskService := task.NewService(config, taskRepo)
 		userService := user.NewService(config, userRepo, taskService)
@@ -554,7 +552,7 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-		
+
 		diaryService := diary.NewService(config, diaryRepo)
 		taskService := task.NewService(config, taskRepo)
 		userService := user.NewService(config, userRepo, taskService)
@@ -618,7 +616,7 @@ func TestDiaryService_PostCountOperations(t *testing.T) {
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
-	
+
 	taskService := task.NewService(config, taskRepo)
 	userService := user.NewService(config, userRepo, taskService)
 	diaryService := diary.NewService(config, diaryRepo)
@@ -636,14 +634,14 @@ func TestDiaryService_PostCountOperations(t *testing.T) {
 
 	// 添加一个日记本
 	testDiary := &diary.Diary{
-		Title:        ctx.GetDataGenerator().GenerateUniqueString("fullname"),
-		Remark:       "测试文章数量操作",
-		AddUserID:    testUser.UserId,
-		AddUserName:  testUser.UserName,
-		Status:       1,
-		ViewSetting:  1,
+		Title:         ctx.GetDataGenerator().GenerateUniqueString("fullname"),
+		Remark:        "测试文章数量操作",
+		AddUserID:     testUser.UserId,
+		AddUserName:   testUser.UserName,
+		Status:        1,
+		ViewSetting:   1,
 		SocialSetting: 1,
-		ThemeID:      1,
+		ThemeID:       1,
 	}
 	diaryID, err := diaryService.AddDiary(testDiary)
 	require.NoError(t, err)
@@ -653,60 +651,60 @@ func TestDiaryService_PostCountOperations(t *testing.T) {
 	require.NoError(t, err)
 	initialCount := initialDiary.InfoNum
 
-		t.Run("增加文章计数", func(t *testing.T) {
-			actionTime := int64(1642680100)
-			err := diaryService.IncrementPostCount(diaryID, testUser.UserId, testUser.UserName, actionTime)
-			assert.NoError(t, err)
+	t.Run("增加文章计数", func(t *testing.T) {
+		actionTime := int64(1642680100)
+		err := diaryService.IncrementPostCount(diaryID, testUser.UserId, testUser.UserName, actionTime)
+		assert.NoError(t, err)
 
-			// 验证计数是否增加
-			updatedDiary, err := diaryService.GetDiaryByID(diaryID)
-			require.NoError(t, err)
-			assert.Equal(t, initialCount+1, updatedDiary.InfoNum)
-			assert.Equal(t, testUser.UserId, updatedDiary.LastActionUserID)
-			assert.Equal(t, testUser.UserName, updatedDiary.LastActionUserName)
-			assert.Equal(t, actionTime, updatedDiary.LastActionUTCTime)
-		})
+		// 验证计数是否增加
+		updatedDiary, err := diaryService.GetDiaryByID(diaryID)
+		require.NoError(t, err)
+		assert.Equal(t, initialCount+1, updatedDiary.InfoNum)
+		assert.Equal(t, testUser.UserId, updatedDiary.LastActionUserID)
+		assert.Equal(t, testUser.UserName, updatedDiary.LastActionUserName)
+		assert.Equal(t, actionTime, updatedDiary.LastActionUTCTime)
+	})
 
-		t.Run("减少文章计数", func(t *testing.T) {
-			actionTime := int64(1642680200)
+	t.Run("减少文章计数", func(t *testing.T) {
+		actionTime := int64(1642680200)
 
-			// 获取当前计数
-			currentDiary, err := diaryService.GetDiaryByID(diaryID)
-			require.NoError(t, err)
-			currentCount := currentDiary.InfoNum
+		// 获取当前计数
+		currentDiary, err := diaryService.GetDiaryByID(diaryID)
+		require.NoError(t, err)
+		currentCount := currentDiary.InfoNum
 
+		err = diaryService.DecrementPostCount(diaryID, testUser.UserId, testUser.UserName, actionTime)
+		assert.NoError(t, err)
+
+		// 验证计数是否减少
+		updatedDiary, err := diaryService.GetDiaryByID(diaryID)
+		require.NoError(t, err)
+		assert.Equal(t, currentCount-1, updatedDiary.InfoNum)
+		assert.Equal(t, actionTime, updatedDiary.LastActionUTCTime)
+	})
+
+	t.Run("对不存在的日记本操作", func(t *testing.T) {
+		actionTime := int64(1642680300)
+
+		// 对不存在的日记本操作不会返回错误，只是不会影响任何行
+		err := diaryService.IncrementPostCount(99999, testUser.UserId, testUser.UserName, actionTime)
+		assert.NoError(t, err)
+
+		err = diaryService.DecrementPostCount(99999, testUser.UserId, testUser.UserName, actionTime)
+		assert.NoError(t, err)
+	})
+
+	t.Run("计数不会变为负数", func(t *testing.T) {
+		// 先重置日记本计数为0（通过减少足够多次）
+		currentDiary, err := diaryService.GetDiaryByID(diaryID)
+		require.NoError(t, err)
+
+		// 尝试减少计数，即使当前计数已经很低
+		actionTime := int64(1642680400)
+		for i := 0; i < int(currentDiary.InfoNum)+5; i++ { // 减少超过当前计数的次数
 			err = diaryService.DecrementPostCount(diaryID, testUser.UserId, testUser.UserName, actionTime)
-			assert.NoError(t, err)
-
-			// 验证计数是否减少
-			updatedDiary, err := diaryService.GetDiaryByID(diaryID)
-			require.NoError(t, err)
-			assert.Equal(t, currentCount-1, updatedDiary.InfoNum)
-			assert.Equal(t, actionTime, updatedDiary.LastActionUTCTime)
-		})
-
-		t.Run("对不存在的日记本操作", func(t *testing.T) {
-			actionTime := int64(1642680300)
-
-			// 对不存在的日记本操作不会返回错误，只是不会影响任何行
-			err := diaryService.IncrementPostCount(99999, testUser.UserId, testUser.UserName, actionTime)
-			assert.NoError(t, err)
-
-			err = diaryService.DecrementPostCount(99999, testUser.UserId, testUser.UserName, actionTime)
-			assert.NoError(t, err)
-		})
-
-		t.Run("计数不会变为负数", func(t *testing.T) {
-			// 先重置日记本计数为0（通过减少足够多次）
-			currentDiary, err := diaryService.GetDiaryByID(diaryID)
-			require.NoError(t, err)
-
-			// 尝试减少计数，即使当前计数已经很低
-			actionTime := int64(1642680400)
-			for i := 0; i < int(currentDiary.InfoNum)+5; i++ { // 减少超过当前计数的次数
-				err = diaryService.DecrementPostCount(diaryID, testUser.UserId, testUser.UserName, actionTime)
-				// 可能有些减少操作会成功，有些可能失败，这取决于具体实现
-			}
+			// 可能有些减少操作会成功，有些可能失败，这取决于具体实现
+		}
 
 		// 验证计数没有变为负数
 		finalDiary, err := diaryService.GetDiaryByID(diaryID)

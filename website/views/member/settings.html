@@ -34,11 +34,9 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-title" >{{getMessage "member.settings.username_label" .Context.Lang}}</label>
-                <input type="text" class="form-control" id="user_name" name="user_name"
-                            value="{{.Data.User.UserName}}"
-                            readonly
-                            placeholder="{{getMessage "member.settings.username_placeholder" .Context.Lang}}"/>
+                        <label class="form-title">{{getMessage "member.settings.username_label" .Context.Lang}}</label>
+                        <input type="text" class="form-control" id="user_name" name="user_name"
+                            value="{{.Data.User.UserName}}" readonly placeholder='{{getMessage "member.settings.username_placeholder" .Context.Lang}}' />
                         <p class="form-info">
                             {{getMessage "member.settings.username_note" .Context.Lang}}
                         </p>
@@ -46,8 +44,10 @@
 
                     <!-- Full name -->
                     <div class="mb-4">
-                        <label class="form-title" for="full_name">{{getMessage "member.settings.full_name_label" .Context.Lang}}</label>
-                        <input type="text" class="form-control" id="full_name" name="full_name" placeholder="{{getMessage "member.settings.full_name_placeholder" .Context.Lang}}"
+                        <label class="form-title" for="full_name">{{getMessage "member.settings.full_name_label"
+                            .Context.Lang}}</label>
+                        <input type="text" class="form-control" id="full_name" name="full_name"
+                            placeholder='{{getMessage "member.settings.full_name_placeholder" .Context.Lang}}'
                             valid='[{"type":"required"},{"type":"limit","max":50}]' value="{{.Data.User.FullName}}"
                             data-original-value="{{.Data.User.FullName}}" />
                         <p class="form-info">
@@ -57,14 +57,45 @@
 
                     <!-- Bio -->
                     <div class="mb-4">
-                        <label class="form-title" for="remark">{{getMessage "member.settings.bio_label" .Context.Lang}}</label>
-                        <textarea class="form-control" id="remark" name="remark" 
-                            valid='[{"type":"limit","max":250,"show":true}]' style="height: 120px;" placeholder="{{getMessage "member.settings.bio_placeholder" .Context.Lang}}">{{.Data.User.Remark}}</textarea>
+                        <label class="form-title" for="remark">{{getMessage "member.settings.bio_label"
+                            .Context.Lang}}</label>
+                        <textarea class="form-control" id="remark" name="remark"
+                            valid='[{"type":"limit","max":250,"show":true}]' style="height: 120px;"
+                            placeholder='{{getMessage "member.settings.bio_placeholder"
+                            .Context.Lang}}'>{{.Data.User.Remark}}</textarea>
+                    </div>
+
+                    <!-- Timezone -->
+                    <div class="mb-4">
+                        <label class="form-title" for="time_zone">{{getMessage "common.time_zone"
+                            .Context.Lang}}</label>
+                        <select class="form-control" id="time_zone" name="time_zone" valid='[{"type":"required"}]'
+                            data-original-value="{{.Data.User.TimeZone}}">
+                            {{range .Data.TimeZones}}
+                            <option value="{{.}}" {{if eq . $.Data.User.TimeZone}}selected{{end}}>{{.}}</option>
+                            {{end}}
+                        </select>
+                        <p class="form-info">
+                            {{getMessage "member.settings.timezone_note" .Context.Lang}}
+                        </p>
+                    </div>
+
+                    <!-- Language -->
+                    <div class="mb-4">
+                        <label class="form-title" for="lang">{{getMessage "common.lang" .Context.Lang}}</label>
+                        <select class="form-control" id="lang" name="lang" valid='[{"type":"required"}]'
+                            data-original-value="{{.Data.User.Lang}}">
+                            {{range .Data.SupportLangs}}
+                            <option value="{{.Code}}" {{if eq .Code $.Data.User.Lang}}selected{{end}}>{{.LocalText}}
+                            </option>
+                            {{end}}
+                        </select>
                     </div>
 
                     <!-- Save buttons -->
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="btn-red" data-action="save-profile">{{getMessage "member.settings.save_changes_button" .Context.Lang}}</button>
+                        <button type="submit" class="btn-red" data-action="save-profile">{{getMessage
+                            "member.settings.save_changes_button" .Context.Lang}}</button>
                     </div>
                 </div>
             </form>
@@ -76,14 +107,18 @@
             <form id="email-form">
                 <div>
                     <div class="mb-4">
-                        <input type="email" class="form-control" id="email" name="email" placeholder="{{getMessage "member.settings.email_placeholder" .Context.Lang}}"
+                        <input type="email" class="form-control" id="email" name="email" placeholder='{{getMessage "member.settings.email_placeholder" .Context.Lang}}'
                             valid='[{"type":"required"},{"type":"email"}]' value="{{.Data.User.Email}}"
                             data-original-value="{{.Data.User.Email}}">
+                        <p class="form-info">
+                            {{getMessage "member.settings.email_note" .Context.Lang}}
+                        </p>
                     </div>
 
                     <!-- Save buttons -->
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="btn-red" data-action="save-email">{{getMessage "member.settings.save_changes_button" .Context.Lang}}</button>
+                        <button type="submit" class="btn-red" data-action="save-email">{{getMessage
+                            "member.settings.save_changes_button" .Context.Lang}}</button>
                     </div>
                 </div>
             </form>
@@ -96,30 +131,37 @@
                 <div>
                     <!-- Current password -->
                     <div class="mb-4">
-                        <label class="form-title" for="current_pwd">{{getMessage "member.settings.current_password_label" .Context.Lang}}</label>
+                        <label class="form-title" for="current_pwd">{{getMessage
+                            "member.settings.current_password_label" .Context.Lang}}</label>
                         <input type="password" class="form-control" id="current_pwd" name="current_pwd"
-                            placeholder="{{getMessage "member.settings.current_password_placeholder" .Context.Lang}}" valid='[{"type":"required"},{"type":"limit","min":6,"max":30}]'>
+                            placeholder='{{getMessage "member.settings.current_password_placeholder" .Context.Lang}}'
+                            valid='[{"type":"required"},{"type":"limit","min":6,"max":30}]'>
                     </div>
 
                     <!-- New password -->
                     <div class="mb-4">
-                        <label class="form-title" for="new_pwd">{{getMessage "member.settings.new_password_label" .Context.Lang}}</label>
+                        <label class="form-title" for="new_pwd">{{getMessage "member.settings.new_password_label"
+                            .Context.Lang}}</label>
                         <input type="password" class="form-control" id="new_pwd" name="new_pwd"
-                            placeholder="{{getMessage "member.settings.new_password_placeholder" .Context.Lang}}" valid='[{"type":"required"},{"type":"limit","min":6,"max":30}]'>
+                            placeholder='{{getMessage "member.settings.new_password_placeholder" .Context.Lang}}'
+                            valid='[{"type":"required"},{"type":"limit","min":6,"max":30}]'>
                     </div>
 
                     <!-- Confirm password -->
                     <div class="mb-4">
-                        <label class="form-title" for="confirm_pwd">{{getMessage "member.settings.confirm_password_label" .Context.Lang}}</label>
+                        <label class="form-title" for="confirm_pwd">{{getMessage
+                            "member.settings.confirm_password_label" .Context.Lang}}</label>
                         <input type="password" class="form-control" id="confirm_pwd" name="confirm_pwd"
-                            placeholder="{{getMessage "member.settings.confirm_password_placeholder" .Context.Lang}}"
+                            placeholder='{{getMessage "member.settings.confirm_password_placeholder" .Context.Lang}}'
                             valid='[{"type":"required"},{"type":"compareto","destid":"new_pwd"}]'>
                     </div>
 
                     <!-- Change password button -->
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="btn-red" data-action="change-password">{{getMessage "member.settings.change_password_button" .Context.Lang}}</button>
-                    </div>                </div>
+                        <button type="submit" class="btn-red" data-action="change-password">{{getMessage
+                            "member.settings.change_password_button" .Context.Lang}}</button>
+                    </div>
+                </div>
             </form>
         </div>
     </section>

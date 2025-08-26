@@ -29,14 +29,17 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	// 调用service更新资料
-	if err := ctrl.service.UpdateUserProfile(req.UserId, req.FullName, req.Remark); err != nil {
+	// 调用service更新资料（包括时区和语言）
+	if err := ctrl.service.UpdateUserProfile(req.UserId, req.FullName, req.Remark, req.TimeZone, req.Lang); err != nil {
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
 
 	// 设置新的cookie
 	authUser.FullName = req.FullName
+	authUser.TimeZone = req.TimeZone
+	authUser.Lang = req.Lang
+	
 	ctrl.auth.SetLoginCookie(c, authUser)
 
 	ctrl.renderService.JSONSuccess(c, nil)

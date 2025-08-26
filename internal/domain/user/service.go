@@ -279,8 +279,8 @@ func (s *Service) ParseUserID(idStr string) (int64, error) {
 
 // ===================== 个人资料管理 =====================
 // UpdateUserProfile 更新用户基本资料
-// 更新用户的全名和个人简介等信息
-func (s *Service) UpdateUserProfile(uid int64, fullName, remark string) error {
+// 更新用户的全名、个人简介、时区和语言等信息
+func (s *Service) UpdateUserProfile(uid int64, fullName, remark, timeZone, lang string) error {
 	// 验证输入参数
 	if len(fullName) > 50 {
 		return appErrors.InvalidParams.WithDetails("全名长度不能超过50个字符")
@@ -289,8 +289,21 @@ func (s *Service) UpdateUserProfile(uid int64, fullName, remark string) error {
 		return appErrors.InvalidParams.WithDetails("个人简介长度不能超过250个字符")
 	}
 
+	// 验证时区格式
+	if timeZone != "" && !pkg.IsTimeZone(timeZone) {
+		return appErrors.InvalidParams.WithDetails("无效的时区格式")
+	}
+
+	// 验证语言格式
+	if lang != "" {
+		supportedLang := s.GetSupportedLang(lang)
+		if supportedLang == "" {
+			return appErrors.InvalidParams.WithDetails("不支持的语言")
+		}
+	}
+
 	// 调用repository更新用户资料
-	rowsAffected, err := s.repo.UpdateUserProfile(uid, fullName, remark)
+	rowsAffected, err := s.repo.UpdateUserProfile(uid, fullName, remark, timeZone, lang)
 	if err != nil {
 		return appErrors.DatabaseError.WithDetails(fmt.Sprintf("更新用户资料失败: %v", err))
 	}
@@ -302,6 +315,8 @@ func (s *Service) UpdateUserProfile(uid int64, fullName, remark string) error {
 
 	return nil
 }
+
+
 
 // UpdateUserEmail 更新用户邮箱
 func (s *Service) UpdateUserEmail(uid int64, email string) error {

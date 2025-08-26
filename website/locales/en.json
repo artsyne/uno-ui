@@ -44,7 +44,9 @@
     "export": "Export",
     "import": "Import",
     "pub_time":"Added",
-    "modified_time":"Modified"
+    "modified_time":"Modified",
+    "time_zone":"Time Zone",
+    "lang":"Language"
   },
   "nav": {
     "home": "Home",
@@ -204,7 +206,9 @@
       "new_password_placeholder": "Please enter new password",
       "confirm_password_label": "Confirm Password",
       "confirm_password_placeholder": "Please enter new password again",
-      "change_password_button": "Change Password"
+      "change_password_button": "Change Password",
+      "timezone_note": "Timezone setting will affect the display style of time",
+      "email_note":"Email address modification will not take effect immediately. A verification email will be sent to the new email address. Please click the link in the email to complete the verification and modification"
     }
   },
   "form": {
