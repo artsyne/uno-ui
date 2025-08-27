@@ -32,6 +32,18 @@ func (ctrl *PostController) ProcessPost(c *gin.Context) {
 
 // CreatePost 处理创建新日记的业务逻辑
 // 设置日记的所有必要字段，调用服务层创建日记，并返回创建结果
+// 同时更新对应日记本的文章数量统计
+//
+// 参数:
+//   - c: Gin上下文对象
+//   - loginUser: 当前登录用户信息
+//
+// 功能:
+//   - 解析创建日记请求参数
+//   - 构建新日记对象并设置默认值
+//   - 调用服务层创建日记
+//   - 更新日记本的文章数量
+//   - 返回创建成功的响应
 func (ctrl *PostController) CreatePost(c *gin.Context, loginUser *types.AuthUser) {
 	// 解析创建日记请求
 	var req CreatePostRequest
@@ -82,6 +94,17 @@ func (ctrl *PostController) CreatePost(c *gin.Context, loginUser *types.AuthUser
 
 // UpdatePost 处理编辑现有日记的业务逻辑
 // 验证用户权限，保留原有字段值，更新可编辑字段，调用服务层更新日记
+//
+// 参数:
+//   - c: Gin上下文对象
+//   - loginUser: 当前登录用户信息
+//
+// 功能:
+//   - 解析更新日记请求参数
+//   - 验证日记所有权
+//   - 构建更新后的日记对象（保留原有统计数据）
+//   - 调用服务层更新日记
+//   - 返回更新成功的响应
 func (ctrl *PostController) UpdatePost(c *gin.Context, loginUser *types.AuthUser) {
 	// 解析更新日记请求
 	var req UpdatePostRequest
@@ -126,6 +149,13 @@ func (ctrl *PostController) UpdatePost(c *gin.Context, loginUser *types.AuthUser
 }
 
 // DeletePost 处理删除日记请求（未来扩展功能）
+// 当前为预留功能，暂未实现具体的删除逻辑
+//
+// 参数:
+//   - c: Gin上下文对象
+//
+// 返回:
+//   - 返回无效参数错误
 func (ctrl *PostController) DeletePost(c *gin.Context) {
 	// 预留的删除功能实现
 	ctrl.renderService.JSONError(c, errors.InvalidParams.Err())
@@ -133,6 +163,13 @@ func (ctrl *PostController) DeletePost(c *gin.Context) {
 
 // respondSuccess 统一的成功响应格式
 // 严格保持原有的响应格式，确保前后端配合不出错
+//
+// 参数:
+//   - c: Gin上下文对象
+//   - postData: 要返回的日记数据
+//
+// 功能:
+//   - 将日记数据以JSON格式返回给客户端
 func (ctrl *PostController) respondSuccess(c *gin.Context, postData *post.Post) {
 	ctrl.renderService.JSONSuccess(c, postData)
 }

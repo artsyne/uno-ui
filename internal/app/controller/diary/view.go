@@ -6,12 +6,21 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/internal/app/controller/validation"
+	errors "github.com/biuren/hebe/internal/utils/error"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
 
 // ShowDiary 显示日记详细信息页面
-// 显示单个日记的详细内容
+// 显示单个日记的详细内容，渲染日记详情页面
+//
+// 参数:
+//   - c: Gin上下文对象
+//
+// 功能:
+//   - 创建页面数据对象
+//   - 设置活动菜单为"users"
+//   - 渲染diary/diary模板
 func (ctrl *DiaryController) ShowDiary(c *gin.Context) {
 	data := ctrl.renderService.CreatePageData(c, "diary.detail.title")
 	data.Data["Active"] = "users"
@@ -25,33 +34,56 @@ func (ctrl *DiaryController) ShowDiary(c *gin.Context) {
 //   - action: 操作类型，"diary.add"表示创建，"diary.edit"表示编辑
 //   - diary_id: 当action为edit时需要提供的日记本ID
 func (ctrl *DiaryController) ShowDiaryForm(c *gin.Context) {
-	// 获取当前登录用户信息
-	loginUser := ctrl.auth.MustGetCurrentUser(c)
-
+	// 创建页面对象
 	data := ctrl.renderService.CreatePageData(c, "diary.form.title")
 
 	// 根据action参数处理不同的表单渲染逻辑
 	action := c.Query("action")
 	if action == "diary.edit" {
-		// 编辑模式：获取并验证日记本数据
-		diaryData, err := ctrl.getAndValidateDiary(c, loginUser.UserId)
-		if err != nil {
-			ctrl.renderService.JSONError(c, err)
+		// 获取当前登录用户信息
+		loginUser := ctrl.auth.MustGetCurrentUser(c)
+		// 获取请求diary_id
+		req := &ShowDiaryRequest{}
+		if err := c.ShouldBindQuery(req); err != nil {
+			ctrl.renderService.JSONError(c, errors.InvalidParams)
 			return
 		}
+
+		// 编辑模式：获取并验证日记本数据
+		diaryData, err := ctrl.diaryService.GetDiaryByID(req.DiaryID)
+		if err != nil {
+			ctrl.renderService.JSONError(c, errors.DiaryNotFound)
+			return
+		}
+
+		// 检查日记是否属于当前用户
+		if diaryData.AddUserID != loginUser.UserId {
+			ctrl.renderService.JSONError(c, errors.PermissionDenied)
+			return
+		}
+
 		data.Data["Diary"] = diaryData
 	}
-	// 创建模式：直接渲染空表单
-
 	ctrl.renderService.HTML(c, "form/diary", data)
 }
 
 // ShowUserProfile 显示用户个人主页
 // 显示指定用户的日记本列表，支持分页显示
+// 根据用户ID获取用户信息和日记本列表，并生成分页链接
+//
+// 参数:
+//   - c: Gin上下文对象
 //
 // URL格式:
 //   - /u/{uid} - 显示第一页
 //   - /u/{uid}/{pageindex} - 显示指定页
+//
+// 功能:
+//   - 解析URL中的用户ID和页码
+//   - 验证用户是否为页面所有者
+//   - 获取用户的日记本列表（分页）
+//   - 生成分页导航链接
+//   - 渲染用户主页模板
 func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 	// 获取url中的uid
 	uid, err := validation.ParseID(c.Param("uid")) // 使用统一的ParseID方法
@@ -73,7 +105,7 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 	pageIndexStr := c.Param("pageindex")
 	pageIndex := 1
 	if pageIndexStr != "" {
-		if idx, err := strconv.Atoi(strings.TrimSpace(pageIndexStr)); err == nil && idx > 0 {
+		if idx, _ := strconv.Atoi(strings.TrimSpace(pageIndexStr)); idx > 0 {
 			pageIndex = idx
 		}
 	}

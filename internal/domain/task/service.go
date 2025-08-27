@@ -17,11 +17,16 @@ import (
 // Service 任务业务逻辑层实现
 // 负责处理所有与任务相关的业务逻辑和规则验证
 type Service struct {
-	config *config.Config
-	repo   RepositoryInterface
+	config *config.Config       // 配置管理器
+	repo   RepositoryInterface  // 任务数据访问层接口
 }
 
 // NewService 创建新的任务业务逻辑层实例
+// 参数:
+//   - config: 配置管理器
+//   - repo: 任务数据访问层接口
+// 返回:
+//   - *Service: 任务业务逻辑层实例
 func NewService(config *config.Config, repo RepositoryInterface) *Service {
 	return &Service{
 		config: config,
@@ -33,6 +38,7 @@ func NewService(config *config.Config, repo RepositoryInterface) *Service {
 
 // StartScheduler 启动定时任务调度器
 // 初始化并启动所有定时任务
+// 注意: 该方法会清除之前的任务，避免重复注册
 func (s *Service) StartScheduler() {
 	// 清除之前的任务，避免重复注册
 	gocron.Clear()
@@ -50,6 +56,7 @@ func (s *Service) StartScheduler() {
 
 // ProcessEmailTasks 处理邮件任务
 // 获取待处理的邮件任务，发送邮件，处理结果
+// 该方法会被定时调度器定期调用
 func (s *Service) ProcessEmailTasks() {
 	tasks, err := s.repo.GetJobTasks(10, "email")
 	if err != nil {
@@ -72,6 +79,12 @@ func (s *Service) ProcessEmailTasks() {
 
 // CreateEmailTask 创建邮件任务
 // 将邮件任务添加到队列中等待处理
+// 参数:
+//   - to: 收件人邮箱地址
+//   - subject: 邮件主题
+//   - body: 邮件正文内容
+// 返回:
+//   - error: 创建失败时返回错误
 func (s *Service) CreateEmailTask(to, subject, body string) error {
 	emailTask := &EmailTask{
 		To:      to,
@@ -105,6 +118,9 @@ func (s *Service) CreateEmailTask(to, subject, body string) error {
 
 // processEmailTask 处理单个邮件任务
 // 解析任务内容，发送邮件，处理结果
+// 参数:
+//   - task: 待处理的邮件任务
+//   - config: 配置管理器
 func (s *Service) processEmailTask(task JobQueue, config *config.Config) {
 	var emailTask EmailTask
 	err := json.Unmarshal([]byte(task.Body), &emailTask)

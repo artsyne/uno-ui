@@ -215,3 +215,17 @@ func (r *DiaryRepository) GetCountByUserID(userID int64) (int, error) {
 	}
 	return count, nil
 }
+
+// IsDiaryOwner 验证用户是否是日记本的拥有者
+func (r *DiaryRepository) IsDiaryOwner(diaryID, userID int64) (bool, error) {
+	var ownerID int64
+	sqlstr := "SELECT add_user_id FROM br_diary WHERE diary_id = ?"
+	err := r.db.Get(&ownerID, sqlstr, diaryID)
+	if err == sql.ErrNoRows {
+		return false, errors.DiaryNotFound.WithDetails("日记本不存在")
+	}
+	if err != nil {
+		return false, err
+	}
+	return ownerID == userID, nil
+}

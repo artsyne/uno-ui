@@ -123,6 +123,19 @@ func (ctrl *PostController) ShowDiaryIndex(c *gin.Context) {
 }
 
 // ShowPost 显示单个日记详情页面
+// 根据URL参数中的postid获取并显示日记详情，包括日记内容、所属日记本信息等
+//
+// URL格式:
+//   - /p/{postid}: 显示指定ID的日记详情
+//
+// 参数:
+//   - c: Gin上下文对象，包含请求参数和响应方法
+//
+// 功能:
+//   - 解析并验证日记ID
+//   - 获取日记详情和所属日记本信息
+//   - 获取用户时区设置
+//   - 渲染日记详情页面模板
 func (ctrl *PostController) ShowPost(c *gin.Context) {
 	// 解析日记ID
 	postIDStr := c.Param("postid")
@@ -166,7 +179,17 @@ func (ctrl *PostController) ShowPost(c *gin.Context) {
 }
 
 // renderErrorPage 渲染错误页面
-// 当发生错误时显示用户友好的错误信息
+// 当发生错误时显示用户友好的错误信息，统一错误页面的展示格式
+//
+// 参数:
+//   - c: Gin上下文对象
+//   - title: 错误标题
+//   - message: 错误详细信息
+//
+// 功能:
+//   - 创建错误页面数据结构
+//   - 设置错误标题和消息
+//   - 渲染统一的错误页面模板
 func (ctrl *PostController) renderErrorPage(c *gin.Context, title, message string) {
 	data := ctrl.renderService.CreatePageData(c, "error")
 	data.Data["title"] = title

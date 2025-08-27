@@ -38,6 +38,11 @@ func (ctrl *DiaryController) ProcessDiary(c *gin.Context) {
 
 // CreateDiary 处理创建新日记本的业务逻辑
 // 设置日记本的所有必要字段，调用服务层创建日记本，并返回创建结果
+//
+// 参数:
+//   - c: Gin上下文对象
+//   - req: 处理日记本请求的数据结构
+//   - user: 当前登录用户信息
 func (ctrl *DiaryController) CreateDiary(c *gin.Context, req *ProcessDiaryRequest, user *types.AuthUser) {
 	nowTime := pkg.GetNowTimeUnixMilli()
 
@@ -83,17 +88,20 @@ func (ctrl *DiaryController) CreateDiary(c *gin.Context, req *ProcessDiaryReques
 
 // UpdateDiary 处理编辑现有日记本的业务逻辑
 // 验证用户权限，保留原有字段值，更新可编辑字段，调用服务层更新日记本
+//
+// 参数:
+//   - c: Gin上下文对象
+//   - req: 处理日记本请求的数据结构
+//   - loginUser: 当前登录用户信息
 func (ctrl *DiaryController) UpdateDiary(c *gin.Context, req *ProcessDiaryRequest, loginUser *types.AuthUser) {
-	// 验证DiaryID
-	if req.DiaryID <= 0 {
-		ctrl.renderService.JSONError(c, errors.InvalidParams.Err())
+	// 验证日记本所有权
+	originalDiary, err := ctrl.diaryService.GetDiaryByID(req.DiaryID)
+	if err != nil {
+		ctrl.renderService.JSONError(c,  errors.PermissionDenied.Err())
 		return
 	}
-
-	// 验证日记本所有权
-	originalDiary, err := ctrl.validateDiaryOwnership(req.DiaryID, loginUser.UserId)
-	if err != nil {
-		ctrl.renderService.JSONError(c, err)
+	if originalDiary.AddUserID != loginUser.UserId {
+		ctrl.renderService.JSONError(c, errors.PermissionDenied.Err())
 		return
 	}
 
@@ -137,6 +145,10 @@ func (ctrl *DiaryController) UpdateDiary(c *gin.Context, req *ProcessDiaryReques
 }
 
 // DeleteDiary 处理删除日记本请求（未来扩展功能）
+// 预留的删除功能，当前返回无效参数错误
+//
+// 参数:
+//   - c: Gin上下文对象
 func (ctrl *DiaryController) DeleteDiary(c *gin.Context) {
 	// 预留的删除功能实现
 	ctrl.renderService.JSONError(c, errors.InvalidParams.Err())
@@ -144,6 +156,10 @@ func (ctrl *DiaryController) DeleteDiary(c *gin.Context) {
 
 // respondSuccess 返回成功响应
 // 统一的成功响应格式，便于后续维护和修改
+//
+// 参数:
+//   - c: Gin上下文对象
+//   - diaryData: 要返回的日记本数据
 func (ctrl *DiaryController) respondSuccess(c *gin.Context, diaryData *diary.Diary) {
 	ctrl.renderService.JSONSuccess(c, diaryData)
 }

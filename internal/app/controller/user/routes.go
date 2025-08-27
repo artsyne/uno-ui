@@ -5,7 +5,21 @@ import (
 )
 
 // RegisterRoutes 注册所有用户相关路由
-// 保持与原系统完全一致的路由路径
+// 保持与原系统完全一致的路由路径，包括用户认证和设置管理功能
+//
+// 参数:
+//   - router: Gin路由引擎实例
+//
+// 路由分组:
+//   - 认证路由（无需鉴权）: 注册、登录、密码重置、用户激活等
+//   - 设置路由（需要鉴权）: 个人信息、邮箱、密码修改等
+//
+// 功能:
+//   - 用户注册和登录流程
+//   - 用户名和邮箱验证
+//   - 密码重置和找回
+//   - 用户激活
+//   - 个人设置管理
 func (ctrl *UserController) RegisterRoutes(router *gin.Engine) {
 	// 用户认证相关路由（无需鉴权）
 	router.GET("/register", ctrl.ShowRegisterPage)

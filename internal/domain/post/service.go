@@ -12,13 +12,22 @@ import (
 // Service 日记业务逻辑层实现
 // 负责处理所有与日记相关的业务逻辑和规则验证
 type Service struct {
-	config       *config.Config 
-	repo         RepositoryInterface
-	userService  *user.Service
-	diaryService *diary.Service
+	config       *config.Config        // 配置管理器
+	repo         RepositoryInterface   // 日记数据访问层接口
+	userService  *user.Service         // 用户业务逻辑层
+	diaryService *diary.Service        // 日记本业务逻辑层
 }
 
 // NewService 创建新的文章业务逻辑层实例
+// 参数:
+//   - config: 配置管理器
+//   - userRepo: 用户数据访问层接口
+//   - taskService: 任务业务逻辑层
+//   - diaryRepo: 日记本数据访问层接口
+//   - postRepo: 日记数据访问层接口
+//   - i18nService: 国际化服务管理器
+// 返回:
+//   - *Service: 日记业务逻辑层实例
 func NewService(config *config.Config, userRepo user.RepositoryInterface, taskService *task.Service, diaryRepo diary.RepositoryInterface, postRepo RepositoryInterface, i18nService i18n.I18nManager) *Service {
 	return &Service{
 		config:       config, 
@@ -33,6 +42,11 @@ func NewService(config *config.Config, userRepo user.RepositoryInterface, taskSe
 // AddPost 增加新的日记（post）
 // 返回新增日记ID
 // 注意：此方法不再处理日记本数量更新，需要在调用方处理
+// 参数:
+//   - post: 要添加的日记对象
+// 返回:
+//   - int64: 新增日记的ID
+//   - error: 添加失败时返回错误
 func (s *Service) AddPost(post *Post) (int64, error) {
 	//插入数据库
 	postID, err := s.repo.Insert(post)
@@ -45,11 +59,20 @@ func (s *Service) AddPost(post *Post) (int64, error) {
 }
 
 // GetPostByID 根据id获取post
+// 参数:
+//   - postId: 日记ID
+// 返回:
+//   - *Post: 日记对象，未找到时返回nil
+//   - error: 查询失败时返回错误
 func (s *Service) GetPostByID(postId int64) (*Post, error) {
 	return s.repo.GetByID(postId)
 }
 
 // UpdatePost 更新 post
+// 参数:
+//   - post: 包含更新信息的日记对象
+// 返回:
+//   - error: 更新失败时返回错误
 func (s *Service) UpdatePost(post *Post) error {
 	// 更新日记本
 	err := s.repo.Update(post)
@@ -61,21 +84,44 @@ func (s *Service) UpdatePost(post *Post) error {
 }
 
 // ListPostsByUserID 根据用户ID和日记本ID分页查询日记信息
+// 参数:
+//   - userID: 用户ID
+//   - diaryID: 日记本ID
+//   - pageIndex: 页码（从0开始）
+//   - pageSize: 每页大小
+// 返回:
+//   - []Post: 日记列表
+//   - int: 总记录数
+//   - error: 查询失败时返回错误
 func (s *Service) ListPostsByUserID(userID int64, diaryID int64, pageIndex, pageSize int) ([]Post, int, error) {
 	return s.repo.ListByUserID(userID, diaryID, pageIndex, pageSize)
 }
 
 // GetPostCountByUserID 根据用户ID和日记本ID统计信息数量
+// 参数:
+//   - userID: 用户ID
+//   - diaryID: 日记本ID
+// 返回:
+//   - int: 日记数量
+//   - error: 查询失败时返回错误
 func (s *Service) GetPostCountByUserID(userID int64, diaryID int64) (int, error) {
 	return s.repo.GetCountByUserID(userID, diaryID)
 }
 
 // UpdatePostByID 根据日记ID更新日记信息
+// 参数:
+//   - post: 包含更新信息的日记对象
+// 返回:
+//   - error: 更新失败时返回错误
 func (s *Service) UpdatePostByID(post *Post) error {
 	return s.repo.UpdateByID(post)
 }
 
 // DeletePostByID 根据日记ID删除日记信息
+// 参数:
+//   - postID: 日记ID
+// 返回:
+//   - error: 删除失败时返回错误
 func (s *Service) DeletePostByID(postID int64) error {
 	return s.repo.DeleteByID(postID)
 }

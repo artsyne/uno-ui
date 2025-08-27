@@ -1,6 +1,17 @@
 package diary
 
 // ProcessDiaryRequest 处理日记本请求（用于统一的处理入口）
+// 用于创建和编辑日记本的请求数据结构
+//
+// 字段:
+//   - Action: 操作类型，"diary.add"表示创建，"diary.edit"表示编辑
+//   - DiaryID: 日记本ID，编辑时必需
+//   - Title: 日记本标题
+//   - Remark: 日记本备注描述
+//   - ViewSetting: 查看权限设置，0=公开，1=私有，2=密码保护
+//   - SocialSetting: 社交设置，0=不允许，1=允许
+//   - ThemeID: 主题ID
+//   - AccessPwd: 访问密码，当ViewSetting为2时使用
 type ProcessDiaryRequest struct {
 	Action        string `form:"action" json:"action" binding:"required,oneof=diary.add diary.edit"`
 	DiaryID       int64  `form:"diary_id" json:"diary_id"`
@@ -10,4 +21,13 @@ type ProcessDiaryRequest struct {
 	SocialSetting int8   `form:"social_setting" json:"social_setting" binding:"required,oneof=0 1"`
 	ThemeID       int8   `form:"theme_id" json:"theme_id"`
 	AccessPwd     string `form:"access_pwd" json:"access_pwd"`
+}
+
+// ShowDiaryRequest 显示日记请求
+// 用于获取特定日记本信息的请求数据结构
+//
+// 字段:
+//   - DiaryID: 要显示的日记本ID，必需参数
+type ShowDiaryRequest struct {
+	DiaryID int64 `form:"diary_id" json:"diary_id" binding:"required"`
 }

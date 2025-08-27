@@ -22,6 +22,16 @@ import (
 )
 
 // SetWithContainer 使用DI容器设置路由系统
+// 初始化完整的Web服务器路由配置，包括模板、静态文件和业务路由
+//
+// 参数:
+//   - server: Gin引擎实例
+//   - container: DI依赖注入容器
+//
+// 功能:
+//   - 设置HTML模板系统
+//   - 配置静态文件服务
+//   - 注册所有业务路由
 func SetWithContainer(server *gin.Engine, container *di.Container) {
 	setTemplate(server, config.GetViewsPath(), container)
 	setStaticFs(server, config.GetStaticPath())
@@ -29,6 +39,17 @@ func SetWithContainer(server *gin.Engine, container *di.Container) {
 }
 
 // setPath 设置站点路由，使用DI容器注入服务
+// 注册所有业务模块的路由，包括用户、日记、文章等功能模块
+//
+// 参数:
+//   - server: Gin引擎实例
+//   - container: DI依赖注入容器
+//
+// 功能:
+//   - 创建并注册IndexController路由
+//   - 创建并注册UserController路由
+//   - 创建并注册DiaryController路由
+//   - 创建并注册PostController路由
 func setPath(server *gin.Engine, container *di.Container) {
 	// 通过DI容器创建IndexController
 	controllerInstance := createIndexController(container)
@@ -53,6 +74,21 @@ type controllerDependencies struct {
 }
 
 // getControllerDependencies 从DI容器获取控制器通用依赖
+// 统一获取所有控制器需要的公共服务依赖，避免重复代码
+//
+// 参数:
+//   - container: DI依赖注入容器
+//
+// 返回:
+//   - *controllerDependencies: 包含所有公共依赖的结构体
+//
+// 包含的依赖:
+//   - userService: 用户业务服务
+//   - diaryService: 日记业务服务
+//   - postService: 文章业务服务
+//   - authHelper: 认证辅助服务
+//   - config: 应用配置
+//   - renderService: 视图渲染服务
 func getControllerDependencies(container *di.Container) *controllerDependencies {
 	return &controllerDependencies{
 		userService:   di.Get[*userDomain.Service](container),
@@ -64,32 +100,70 @@ func getControllerDependencies(container *di.Container) *controllerDependencies 
 	}
 }
 
-// createController 通过DI容器创建Controller
+// createIndexController 通过DI容器创建IndexController
+// 创建首页控制器实例，处理网站首页相关请求
+//
+// 参数:
+//   - container: DI依赖注入容器
+//
+// 返回:
+//   - *controller.IndexController: 首页控制器实例
 func createIndexController(container *di.Container) *controller.IndexController {
 	deps := getControllerDependencies(container)
 	return controller.NewIndexController(deps.config, deps.renderService)
 }
 
 // createUserController 通过DI容器创建UserController
+// 创建用户控制器实例，处理用户注册、登录、个人资料等功能
+//
+// 参数:
+//   - container: DI依赖注入容器
+//
+// 返回:
+//   - *userController.UserController: 用户控制器实例
 func createUserController(container *di.Container) *userController.UserController {
 	deps := getControllerDependencies(container)
 	return userController.NewUserController(deps.config, deps.userService, deps.renderService, deps.authHelper)
 }
 
 // createDiaryController 通过DI容器创建DiaryController
+// 创建日记控制器实例，处理日记本的创建、编辑、删除等功能
+//
+// 参数:
+//   - container: DI依赖注入容器
+//
+// 返回:
+//   - *diaryController.DiaryController: 日记控制器实例
 func createDiaryController(container *di.Container) *diaryController.DiaryController {
 	deps := getControllerDependencies(container)
 	return diaryController.NewDiaryController(deps.config, deps.diaryService, deps.userService, deps.authHelper, deps.renderService)
 }
 
 // createPostController 通过DI容器创建PostController
+// 创建文章控制器实例，处理文章的创建、编辑、删除、查看等功能
+//
+// 参数:
+//   - container: DI依赖注入容器
+//
+// 返回:
+//   - *postController.PostController: 文章控制器实例
 func createPostController(container *di.Container) *postController.PostController {
 	deps := getControllerDependencies(container)
 	return postController.NewPostController(deps.config, deps.postService, deps.diaryService, deps.authHelper, deps.renderService, deps.userService)
 }
 
-// #region 加载模版文件，并注入全局变量
-// 通过原生 Go 能力加载 "views" 目录中的模版文件
+// setTemplate 设置模板引擎
+// 配置Gin的HTML模板系统，加载所有模板文件并设置自定义函数
+//
+// 参数:
+//   - server: Gin引擎实例
+//   - basePath: 模板文件路径
+//   - container: DI依赖注入容器
+//
+// 功能:
+//   - 加载指定路径下的所有HTML模板
+//   - 注册模板自定义函数
+//   - 设置模板渲染引擎
 func setTemplate(server *gin.Engine, basePath string, container *di.Container) {
 	// 1. 从DI容器获取ViewService（已包含i18nManager）
 	viewService := di.Get[*view.ViewService](container)
@@ -109,7 +183,20 @@ func setTemplate(server *gin.Engine, basePath string, container *di.Container) {
 	server.SetHTMLTemplate(tmpl)
 }
 
-// loadTemplates 递归遍历目录，加载所有 .html 文件
+// loadTemplates 加载模板文件
+// 递归扫描模板目录，加载所有HTML模板文件
+//
+// 参数:
+//   - tmpl: 模板对象
+//   - basePath: 模板文件根目录路径
+//
+// 返回:
+//   - error: 加载过程中的错误信息
+//
+// 功能:
+//   - 递归遍历模板目录
+//   - 解析所有.html文件
+//   - 将模板添加到模板对象中
 func loadTemplates(tmpl *template.Template, basePath string) error {
 	return filepath.Walk(basePath, func(path string, f os.FileInfo, err error) error {
 		if err != nil {
@@ -140,7 +227,17 @@ func loadTemplates(tmpl *template.Template, basePath string) error {
 
 // #endregion
 
-// 设置静态文件目录，存放js、css，以及上传文件目录upload
+// setStaticFs 设置静态文件服务
+// 配置静态资源文件的HTTP服务，包括CSS、JS、图片等
+//
+// 参数:
+//   - server: Gin引擎实例
+//   - staticPath: 静态文件路径
+//
+// 功能:
+//   - 设置/public和/static路径的静态文件服务
+//   - 配置favicon.ico文件访问
+//   - 支持静态资源的HTTP访问
 func setStaticFs(server *gin.Engine, staticPath string) {
 	//初始化静态文件
 	//better use nginx to serve assets (Cache-Control, Etag, fast gzip, etc)

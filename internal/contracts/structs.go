@@ -5,19 +5,20 @@
 package types
 
 // AuthUser 已认证用户信息结构体
+// 包含用户的完整认证信息和个人设置
 type AuthUser struct {
-	LoginName    string `form:"login_name" json:"login_name"`
-	AccessUrl    string `form:"access_url" json:"access_url"`
-	UserId       int64  `form:"user_id" json:"user_id"`
-	UserName     string `form:"user_name" json:"user_name"`
-	FullName     string `form:"full_name" json:"full_name"`
-	Email        string `form:"email" json:"email" db:"email"`
-	UserGroup    int8   `form:"user_group" json:"user_group"`
-	FaceUrl      string `form:"face_url" json:"face_url"`
-	LoginUTCTime int64  `form:"login_utc_time" json:"login_utc_time"`
-	TimeZone     string `form:"time_zone" json:"time_zone"`
-	Lang         string `form:"lang" json:"lang"`
-	Status       int8   `form:"status" json:"status"`
+	LoginName    string `form:"login_name" json:"login_name"`         // 登录名
+	AccessUrl    string `form:"access_url" json:"access_url"`         // 访问URL
+	UserId       int64  `form:"user_id" json:"user_id"`               // 用户唯一标识ID
+	UserName     string `form:"user_name" json:"user_name"`           // 用户名
+	FullName     string `form:"full_name" json:"full_name"`           // 用户全名
+	Email        string `form:"email" json:"email" db:"email"`        // 邮箱地址
+	UserGroup    int8   `form:"user_group" json:"user_group"`         // 用户组标识
+	FaceUrl      string `form:"face_url" json:"face_url"`             // 头像URL
+	LoginUTCTime int64  `form:"login_utc_time" json:"login_utc_time"` // 登录时间（UTC时间戳）
+	TimeZone     string `form:"time_zone" json:"time_zone"`           // 用户时区设置
+	Lang         string `form:"lang" json:"lang"`                     // 用户语言偏好
+	Status       int8   `form:"status" json:"status"`                 // 用户账户状态
 }
 
 // PageData 页面数据结构 - 核心页面渲染数据容器
@@ -51,6 +52,8 @@ type PageData[T any] struct {
 }
 
 // IsAuthenticated 检查用户是否已认证
+// 返回:
+//   - bool: true表示用户已认证，false表示未认证
 func (p *PageData[T]) IsAuthenticated() bool {
 	if p.Context == nil {
 		return false
@@ -59,6 +62,8 @@ func (p *PageData[T]) IsAuthenticated() bool {
 }
 
 // GetAuthUser 获取认证用户信息
+// 返回:
+//   - *AuthUser: 认证用户信息，未认证时返回nil
 func (p *PageData[T]) GetAuthUser() *AuthUser {
 	if p.Context == nil {
 		return nil
@@ -67,6 +72,7 @@ func (p *PageData[T]) GetAuthUser() *AuthUser {
 }
 
 // RenderContext 渲染上下文
+// 包含页面渲染所需的上下文信息
 type RenderContext struct {
 	IsLogin bool `json:"is_login"` // 用户是否登录
 
@@ -76,7 +82,8 @@ type RenderContext struct {
 	// Lang 当前页面使用的语言代码
 	Lang string `json:"lang"`
 
-	// 主题和布局
+	// Theme 页面主题设置
 	Theme  string `json:"theme,omitempty"`
+	// Layout 页面布局设置
 	Layout string `json:"layout,omitempty"`
 }

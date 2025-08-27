@@ -7,12 +7,18 @@ import (
 )
 
 // BreadcrumbItem 面包屑导航项目
+// 表示面包屑导航中的单个项目，包含显示名称和链接地址
 type BreadcrumbItem struct {
-	Name string `json:"name"`
-	URL  string `json:"url"`
+	Name string `json:"name"` // 显示名称
+	URL  string `json:"url"`  // 链接地址，可为空表示不可点击
 }
 
 // GetUIFuncs 获取UI相关的模板函数
+// 返回包含用户界面相关函数的模板函数映射
+//
+// 返回:
+//   - template.FuncMap: 包含以下UI相关函数的映射:
+//     - renderBreadcrumb: 渲染面包屑导航HTML
 func GetUIFuncs() template.FuncMap {
 	return template.FuncMap{
 		"renderBreadcrumb": renderBreadcrumb,
@@ -20,6 +26,19 @@ func GetUIFuncs() template.FuncMap {
 }
 
 // renderBreadcrumb 渲染面包屑导航
+// 将面包屑导航项目列表渲染为HTML格式的导航栏
+//
+// 参数:
+//   - breadcrumb: 面包屑导航项目列表
+//
+// 返回:
+//   - template.HTML: 渲染后的HTML内容，包含完整的面包屑导航结构
+//
+// 渲染规则:
+//   - 空列表返回空字符串
+//   - 最后一个项目显示为普通文本（不可点击）
+//   - 其他项目根据URL是否为空决定是否渲染为链接
+//   - 项目间使用"/"分隔符连接
 func renderBreadcrumb(breadcrumb []BreadcrumbItem) template.HTML {
 	if len(breadcrumb) == 0 {
 		return ""

@@ -29,6 +29,13 @@ import (
 )
 
 // Application 应用程序主体
+// 负责整个应用程序的启动、初始化和运行管理
+//
+// 字段:
+//   - config: 应用程序配置
+//   - server: Gin HTTP服务器实例
+//   - container: DI依赖注入容器
+//   - coreInit: 核心组件初始化器
 type Application struct {
 	config    *config.Config
 	server    *gin.Engine
@@ -37,6 +44,13 @@ type Application struct {
 }
 
 // NewApplication 创建应用程序实例
+// 使用提供的配置创建新的应用程序实例
+//
+// 参数:
+//   - config: 应用程序配置对象
+//
+// 返回:
+//   - *Application: 应用程序实例
 func NewApplication(config *config.Config) *Application {
 	return &Application{
 		config:    config,
@@ -45,7 +59,15 @@ func NewApplication(config *config.Config) *Application {
 }
 
 // Bootstrap 启动应用程序
-// 初始化核心基础设施，然后初始化应用层组件
+// 按顺序初始化核心基础设施和应用层组件，为应用程序运行做好准备
+//
+// 返回:
+//   - error: 初始化过程中的错误信息
+//
+// 初始化步骤:
+//   1. 初始化核心基础设施（数据库、缓存等）
+//   2. 获取并验证核心组件
+//   3. 初始化应用层组件（服务、中间件、路由等）
 func (a *Application) Bootstrap() error {
 	// 1. 初始化核心基础设施
 	if err := a.coreInit.InitializeCore(); err != nil {
@@ -72,6 +94,14 @@ func (a *Application) Bootstrap() error {
 }
 
 // Run 运行应用程序
+// 启动HTTP服务器，开始监听和处理客户端请求
+//
+// 返回:
+//   - error: 服务器启动过程中的错误信息
+//
+// 注意:
+//   - 此方法会阻塞当前goroutine直到服务器停止
+//   - 如果启动失败会调用os.Exit(1)退出程序
 func (a *Application) Run() error {
 	// 启动服务器
 	addr := ":" + a.config.App.Port
@@ -86,6 +116,16 @@ func (a *Application) Run() error {
 }
 
 // initApplicationLayer 初始化应用层组件
+// 按顺序初始化应用层的各个组件，包括服务注册、配置设置等
+//
+// 返回:
+//   - error: 初始化过程中的错误信息
+//
+// 初始化步骤:
+//   1. 注册应用层服务到DI容器
+//   2. 设置Cookie默认值
+//   3. 启动定时任务调度器
+//   4. 初始化Gin HTTP服务器
 func (a *Application) initApplicationLayer() error {
 	// 1. 注册应用层服务到DI容器
 	if err := a.registerAppServices(); err != nil {
@@ -111,6 +151,17 @@ func (a *Application) initApplicationLayer() error {
 }
 
 // registerAppServices 注册应用层服务到DI容器
+// 创建并注册所有应用层服务实例，建立服务间的依赖关系
+//
+// 返回:
+//   - error: 服务注册过程中的错误信息
+//
+// 注册的服务:
+//   - I18nManager: 国际化管理器
+//   - ViewService: 视图渲染服务
+//   - Repository层: 用户、任务、日记、文章仓储
+//   - Service层: 用户、任务、日记、文章业务服务
+//   - AuthHelper: 认证辅助服务
 func (a *Application) registerAppServices() error {
 	// 创建 I18nManager 实例
 	i18nManager := i18n.NewLocalizationManager(a.config)
@@ -151,7 +202,17 @@ func (a *Application) registerAppServices() error {
 	return nil
 }
 
-// initCookie 设置 Cookie 默认值
+// initCookie 设置Cookie默认值
+// 根据配置文件设置全局Cookie的默认参数
+//
+// 返回:
+//   - error: 设置过程中的错误信息
+//
+// 设置的参数:
+//   - Domain: Cookie域名
+//   - Path: Cookie路径（默认为"/"）
+//   - ExpireDays: Cookie过期天数
+//   - HttpOnly: 是否仅HTTP访问
 func (a *Application) initCookie() error {
 	pkg.SetCookieDefVal(
 		a.config.Cookie.Domain,
@@ -163,7 +224,16 @@ func (a *Application) initCookie() error {
 	return nil
 }
 
-// initScheduler 启动定时任务
+// initScheduler 启动定时任务调度器
+// 从DI容器获取TaskService并启动后台定时任务调度器
+//
+// 返回:
+//   - error: 启动过程中的错误信息
+//
+// 功能:
+//   - 获取TaskService实例
+//   - 启动后台任务调度器
+//   - 处理定时任务的执行
 func (a *Application) initScheduler() error {
 	// 从 DI 容器安全获取 TaskService 实例并启动调度器
 	taskService, err := di.TryGet[*task.Service](a.container)
@@ -175,7 +245,18 @@ func (a *Application) initScheduler() error {
 	return nil
 }
 
-// initGinServer 初始化 Gin 服务器
+// initGinServer 初始化Gin HTTP服务器
+// 配置Gin服务器的运行模式、中间件和路由系统
+//
+// 返回:
+//   - error: 初始化过程中的错误信息
+//
+// 配置步骤:
+//   1. 设置Gin运行模式（开发/生产）
+//   2. 初始化自定义数据校验器
+//   3. 创建Gin引擎实例
+//   4. 注册全局中间件
+//   5. 设置路由和静态文件服务
 func (a *Application) initGinServer() error {
 	// 设置 Gin 模式
 	gin.SetMode(a.config.App.GinMode)
@@ -202,22 +283,46 @@ func (a *Application) initGinServer() error {
 	return nil
 }
 
-// customValidator 实现 binding.StructValidator 接口
+// customValidator 自定义数据校验器
+// 实现Gin框架的binding.StructValidator接口，提供结构体数据校验功能
+//
+// 字段:
+//   - validate: go-playground/validator校验器实例
 type customValidator struct {
 	validate *validator.Validate
 }
 
 // ValidateStruct 实现结构体校验
+// 对传入的结构体对象进行数据校验
+//
+// 参数:
+//   - obj: 需要校验的结构体对象
+//
+// 返回:
+//   - error: 校验失败时的错误信息
 func (v *customValidator) ValidateStruct(obj interface{}) error {
 	return v.validate.Struct(obj)
 }
 
 // Engine 返回底层的校验器引擎
+// 提供对底层validator实例的访问
+//
+// 返回:
+//   - interface{}: 底层的validator.Validate实例
 func (v *customValidator) Engine() interface{} {
 	return v.validate
 }
 
-// initCustomValidator 初始化自定义校验器并绑定到 Gin
+// initCustomValidator 初始化自定义校验器并绑定到Gin
+// 将项目的自定义校验器设置为Gin框架的默认校验器
+//
+// 返回:
+//   - error: 初始化过程中的错误信息
+//
+// 功能:
+//   - 使用项目预配置的validation.Validator
+//   - 替换Gin默认的数据校验器
+//   - 支持自定义校验规则和错误消息
 func (a *Application) initCustomValidator() error {
 	// 设置 Gin 使用项目的自定义校验器
 	binding.Validator = &customValidator{

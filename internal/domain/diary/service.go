@@ -10,11 +10,16 @@ import (
 // Service 日记本业务逻辑层实现
 // 负责处理所有与日记本相关的业务逻辑和规则验证
 type Service struct {
-	config *config.Config 
-	repo   RepositoryInterface
+	config *config.Config        // 应用配置信息
+	repo   RepositoryInterface   // 数据访问层接口
 }
 
 // NewService 创建新的日记本业务逻辑层实例
+// 参数:
+//   - config: 应用配置对象
+//   - repo: 数据访问层接口实现
+// 返回:
+//   - *Service: 日记本业务逻辑层实例
 func NewService(config *config.Config, repo RepositoryInterface) *Service {
 	return &Service{
 		config: config,
@@ -25,14 +30,12 @@ func NewService(config *config.Config, repo RepositoryInterface) *Service {
 // ===================== 接口实现方法 =====================
 
 // AddDiary 创建一个新的日记本
-// 参数: diary - 要创建的日记本对象
-// 返回: 新创建的日记本ID和可能的错误
+// 参数:
+//   - diary: 要创建的日记本对象
+// 返回:
+//   - int64: 新创建的日记本ID
+//   - error: 创建失败时返回错误
 func (s *Service) AddDiary(diary *Diary) (int64, error) {
-	// 校验参数
-	if err := s.validateDiary(diary); err != nil {
-		return 0, err
-	}
-
 	// 判断用户增加日记本数量是否超过限制
 	if err := s.CheckDiaryLimit(diary.AddUserID); err != nil {
 		return 0, err
@@ -49,8 +52,10 @@ func (s *Service) AddDiary(diary *Diary) (int64, error) {
 }
 
 // UpdateDiary 更新日记本信息
-// 参数: diary - 要更新的日记本对象
-// 返回: 可能的错误
+// 参数:
+//   - diary: 要更新的日记本对象
+// 返回:
+//   - error: 更新失败时返回错误
 func (s *Service) UpdateDiary(diary *Diary) error {
 	// 校验参数
 	if err := s.validateDiary(diary); err != nil {
@@ -67,22 +72,34 @@ func (s *Service) UpdateDiary(diary *Diary) error {
 }
 
 // GetDiaryByID 根据ID获取日记本
-// 参数: diaryID - 日记本ID
-// 返回: 日记本对象和可能的错误
+// 参数:
+//   - diaryID: 日记本ID
+// 返回:
+//   - *Diary: 日记本对象，未找到时返回nil
+//   - error: 查询失败时返回错误
 func (s *Service) GetDiaryByID(diaryID int64) (*Diary, error) {
 	return s.repo.GetByDiaryID(diaryID)
 }
 
 // ListDiariesForWrite 获取用户的日记本列表（用于写日记界面）
-// 参数: userID - 用户ID
-// 返回: 日记本列表和可能的错误
+// 参数:
+//   - userID: 用户ID
+// 返回:
+//   - []Diary: 日记本列表，按最后更新时间排序
+//   - error: 查询失败时返回错误
 func (s *Service) ListDiariesForWrite(userID int64) ([]Diary, error) {
 	return s.repo.ListForWriteByUserID(userID)
 }
 
 // ListDiariesByUser 获取用户的分页日记本列表
-// 参数: userID - 用户ID, pageIndex - 页索引, pageSize - 每页大小
-// 返回: 日记本列表、总数和可能的错误
+// 参数:
+//   - userID: 用户ID
+//   - pageIndex: 页索引（从0开始）
+//   - pageSize: 每页大小
+// 返回:
+//   - []Diary: 日记本列表
+//   - int: 总记录数
+//   - error: 查询失败时返回错误
 func (s *Service) ListDiariesByUser(userID int64, pageIndex, pageSize int) ([]Diary, int, error) {
 	diaries, _, err := s.repo.ListByUserID(userID, pageIndex, pageSize)
 	if err != nil {
@@ -102,22 +119,34 @@ func (s *Service) ListDiariesByUser(userID int64, pageIndex, pageSize int) ([]Di
 }
 
 // IncrementPostCount 增加日记本的日记数量
-// 参数: diaryID - 日记本ID, userID - 用户ID, userName - 用户名, actionTime - 操作时间
-// 返回: 可能的错误
+// 参数:
+//   - diaryID: 日记本ID
+//   - userID: 操作用户ID
+//   - userName: 操作用户名
+//   - actionTime: 操作时间（UTC时间戳）
+// 返回:
+//   - error: 操作失败时返回错误
 func (s *Service) IncrementPostCount(diaryID int64, userID int64, userName string, actionTime int64) error {
 	return s.repo.IncrementPostNum(diaryID, userID, userName, actionTime)
 }
 
 // DecrementPostCount 减少日记本的日记数量
-// 参数: diaryID - 日记本ID, userID - 用户ID, userName - 用户名, actionTime - 操作时间
-// 返回: 可能的错误
+// 参数:
+//   - diaryID: 日记本ID
+//   - userID: 操作用户ID
+//   - userName: 操作用户名
+//   - actionTime: 操作时间（UTC时间戳）
+// 返回:
+//   - error: 操作失败时返回错误
 func (s *Service) DecrementPostCount(diaryID int64, userID int64, userName string, actionTime int64) error {
 	return s.repo.DecrementPostNum(diaryID, userID, userName, actionTime)
 }
 
 // CheckDiaryLimit 检查用户日记本数量是否超过限制
-// 参数: userID - 用户ID
-// 返回: 可能的错误
+// 参数:
+//   - userID: 用户ID
+// 返回:
+//   - error: 超过限制时返回错误
 func (s *Service) CheckDiaryLimit(userID int64) error {
 	daybookNum, err := s.repo.GetCountByUserID(userID)
 	if err != nil {
@@ -131,11 +160,29 @@ func (s *Service) CheckDiaryLimit(userID int64) error {
 	return nil
 }
 
+// IsDiaryOwner 验证用户是否是日记本的所有者
+// 参数:
+//   - diaryID: 日记本ID
+//   - userID: 用户ID
+// 返回:
+//   - bool: 是否为拥有者
+//   - error: 验证失败时返回错误
+func (s *Service) IsDiaryOwner(diaryID, userID int64) (bool, error) {
+	IsDiaryOwner, err := s.repo.IsDiaryOwner(diaryID, userID)
+	if err != nil {
+		return false, err
+	}
+
+	return IsDiaryOwner, nil
+}
+
 // ===================== 私有辅助方法 =====================
 
 // validateDiary 校验日记本参数
-// 参数: diary - 要校验的日记本对象
-// 返回: 可能的错误
+// 参数:
+//   - diary: 要校验的日记本对象
+// 返回:
+//   - error: 校验失败时返回错误
 func (s *Service) validateDiary(diary *Diary) error {
 	if len(diary.Title) < 1 {
 		return errors.InvalidParams.Err()
