@@ -3,7 +3,7 @@ package post
 import (
 	types "github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/internal/domain/post"
-	errors "github.com/biuren/hebe/internal/utils/error"
+	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +26,7 @@ func (ctrl *PostController) ProcessPost(c *gin.Context) {
 	case "post.edit":
 		ctrl.UpdatePost(c, loginUser)
 	default:
-		ctrl.renderService.JSONError(c, errors.InvalidParams.Err())
+		ctrl.renderService.JSONError(c, &errors.InvalidParams)
 	}
 }
 
@@ -116,9 +116,15 @@ func (ctrl *PostController) UpdatePost(c *gin.Context, loginUser *types.AuthUser
 	postId := req.PostID
 
 	// 验证日记所有权
-	originalPost, err := ctrl.validatePostOwnership(postId, loginUser.UserId)
+	// 获取日记信息
+	originalPost, err := ctrl.postService.GetPostByID(postId)
 	if err != nil {
-		ctrl.renderService.JSONError(c, err)
+		ctrl.renderService.JSONError(c, errors.PostNotFound)
+		return
+	}
+	// 判断是否有权限修改
+	if originalPost.AddUserID != loginUser.UserId {
+		ctrl.renderService.JSONError(c, errors.PermissionDenied)
 		return
 	}
 
@@ -158,7 +164,7 @@ func (ctrl *PostController) UpdatePost(c *gin.Context, loginUser *types.AuthUser
 //   - 返回无效参数错误
 func (ctrl *PostController) DeletePost(c *gin.Context) {
 	// 预留的删除功能实现
-	ctrl.renderService.JSONError(c, errors.InvalidParams.Err())
+	ctrl.renderService.JSONError(c, &errors.InvalidParams)
 }
 
 // respondSuccess 统一的成功响应格式

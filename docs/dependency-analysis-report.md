@@ -147,7 +147,7 @@ func (s *ViewService) HTML(c *gin.Context, name string, data interface{}) { ... 
 
 ```go
 // 错误定义结构体
-type ErrorDef struct {
+type AppError struct {
     Code     int    `json:"code"`      // 4位错误码
     Key      string `json:"key"`       // 错误标识符
     HttpCode int    `json:"http_code"` // HTTP状态码
@@ -155,22 +155,22 @@ type ErrorDef struct {
 
 // 应用错误
 type AppError struct {
-    ErrorDef        // 嵌入错误定义
+    AppError        // 嵌入错误定义
     Details  string `json:"-"` // 错误详情
 }
 
 // 预定义错误分类
 var (
     // 1000-1099: 参数验证错误 (400)
-    ValidationError = ErrorDef{1001, "validation_error", 400}
+    ValidationError = AppError{1001, "validation_error", 400}
     // 2000-2999: 用户相关业务错误 (400)
-    UserExists = ErrorDef{2001, "user_exists", 400}
+    UserExists = AppError{2001, "user_exists", 400}
     // 6000-6099: 数据库错误 (500)
-    DatabaseError = ErrorDef{6001, "database_error", 500}
+    DatabaseError = AppError{6001, "database_error", 500}
 )
 
 // 链式调用创建错误
-func (def ErrorDef) WithDetails(details string) *AppError { ... }
+func (def AppError) WithDetails(details string) *AppError { ... }
 ```
 
 **优势**: 4位错误码分类清晰、统一HTTP状态码映射、支持详细信息、链式调用

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/biuren/hebe/internal/domain/post"
-	errors "github.com/biuren/hebe/internal/utils/error"
+	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/jmoiron/sqlx"
 )
 

@@ -3,7 +3,7 @@ package diary
 import (
 	types "github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/internal/domain/diary"
-	errors "github.com/biuren/hebe/internal/utils/error"
+	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -21,7 +21,7 @@ func (ctrl *DiaryController) ProcessDiary(c *gin.Context) {
 	// 解析表单数据到ProcessDiaryRequest结构体
 	var req ProcessDiaryRequest
 	if err := c.ShouldBind(&req); err != nil {
-		ctrl.renderService.JSONError(c, errors.InvalidParams.Err())
+		ctrl.renderService.JSONError(c, &errors.InvalidParams)
 		return
 	}
 
@@ -32,7 +32,7 @@ func (ctrl *DiaryController) ProcessDiary(c *gin.Context) {
 	case "diary.edit":
 		ctrl.UpdateDiary(c, &req, loginUser)
 	default:
-		ctrl.renderService.JSONError(c, errors.InvalidParams.Err())
+		ctrl.renderService.JSONError(c, &errors.InvalidParams)
 	}
 }
 
@@ -97,11 +97,11 @@ func (ctrl *DiaryController) UpdateDiary(c *gin.Context, req *ProcessDiaryReques
 	// 验证日记本所有权
 	originalDiary, err := ctrl.diaryService.GetDiaryByID(req.DiaryID)
 	if err != nil {
-		ctrl.renderService.JSONError(c,  errors.PermissionDenied.Err())
+		ctrl.renderService.JSONError(c,  &errors.PermissionDenied)
 		return
 	}
 	if originalDiary.AddUserID != loginUser.UserId {
-		ctrl.renderService.JSONError(c, errors.PermissionDenied.Err())
+		ctrl.renderService.JSONError(c, &errors.PermissionDenied)
 		return
 	}
 
@@ -151,7 +151,7 @@ func (ctrl *DiaryController) UpdateDiary(c *gin.Context, req *ProcessDiaryReques
 //   - c: Gin上下文对象
 func (ctrl *DiaryController) DeleteDiary(c *gin.Context) {
 	// 预留的删除功能实现
-	ctrl.renderService.JSONError(c, errors.InvalidParams.Err())
+	ctrl.renderService.JSONError(c, &errors.InvalidParams)
 }
 
 // respondSuccess 返回成功响应

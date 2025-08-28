@@ -2,7 +2,7 @@ package user
 
 import (
 	"github.com/biuren/hebe/internal/domain/user"
-	errors "github.com/biuren/hebe/internal/utils/error"
+	"github.com/biuren/hebe/internal/utils/errors"
 	pkg "github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )

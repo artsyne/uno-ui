@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/biuren/hebe/internal/utils/config"
-	errors "github.com/biuren/hebe/internal/utils/error"
+	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/pkg"
 	"github.com/jasonlvhit/gocron"
 )

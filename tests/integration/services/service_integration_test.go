@@ -8,6 +8,7 @@ import (
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
+	"github.com/biuren/hebe/internal/utils/i18n"
 	framework "github.com/biuren/hebe/tests/framework"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,7 +26,8 @@ func TestUserDiaryIntegration(t *testing.T) {
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	
 	taskService := task.NewService(config, taskRepo)
-	userService := user.NewService(config, userRepo, taskService)
+	i18nManager := i18n.NewLocalizationManager(config)
+	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryService := diary.NewService(config, diaryRepo)
 
 	t.Run("用户创建和日记本操作流程", func(t *testing.T) {
@@ -98,9 +100,10 @@ func TestUserPostDiaryIntegration(t *testing.T) {
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	
 	taskService := task.NewService(config, taskRepo)
-	userService := user.NewService(config, userRepo, taskService)
+	i18nManager := i18n.NewLocalizationManager(config)
+	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryService := diary.NewService(config, diaryRepo)
-	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo)
+	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
 
 	t.Run("完整的内容创建流程", func(t *testing.T) {
 			// 1. 创建用户 - 使用随机数据
@@ -232,10 +235,11 @@ func TestMultiUserScenario(t *testing.T) {
 	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	
+	i18nManager := i18n.NewLocalizationManager(config)
 	taskService := task.NewService(config, taskRepo)
-	userService := user.NewService(config, userRepo, taskService)
+	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryService := diary.NewService(config, diaryRepo)
-	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo)
+	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
 
 	t.Run("多用户数据隔离", func(t *testing.T) {
 			// 创建两个用户
@@ -353,10 +357,11 @@ func TestServiceErrorHandling(t *testing.T) {
 	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	
+	i18nManager := i18n.NewLocalizationManager(config)
 	taskService := task.NewService(config, taskRepo)
-	userService := user.NewService(config, userRepo, taskService)
+	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryService := diary.NewService(config, diaryRepo)
-	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo)
+	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
 
 	t.Run("服务间错误传播", func(t *testing.T) {
 			// 1. 尝试为不存在的用户创建日记本
@@ -432,10 +437,11 @@ func TestServicePerformance(t *testing.T) {
 	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	
+	i18nManager := i18n.NewLocalizationManager(config)
 	taskService := task.NewService(config, taskRepo)
-	userService := user.NewService(config, userRepo, taskService)
+	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryService := diary.NewService(config, diaryRepo)
-	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo)
+	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
 
 	t.Run("批量操作性能", func(t *testing.T) {
 			// 创建一个用户

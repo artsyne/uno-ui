@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
-	errors "github.com/biuren/hebe/internal/utils/error"
+	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/pkg"
 )
 
@@ -86,13 +86,13 @@ func validatePassword(fl validator.FieldLevel) bool {
 //   - err: validator产生的错误
 //
 // 返回:
-//   - *errors.AppError: 转换后的应用错误
+//   - errors.AppError: 转换后的应用错误
 //
 // 功能:
 //   - 解析validator.ValidationErrors
 //   - 返回第一个字段错误的错误码
 //   - 非校验错误返回通用校验错误
-func GetValidationError(err error) *errors.AppError {
+func GetValidationError(err error) errors.AppError {
 	if validationErrors, ok := err.(validator.ValidationErrors); ok {
 		// 返回第一个校验错误的错误码
 		for _, fieldError := range validationErrors {
@@ -100,7 +100,7 @@ func GetValidationError(err error) *errors.AppError {
 		}
 	}
 	// 如果不是校验错误，返回通用校验错误
-	return errors.ValidationError.Err()
+	return errors.ValidationError
 }
 
 // getFieldErrorCode 获取字段错误的错误码
@@ -110,7 +110,7 @@ func GetValidationError(err error) *errors.AppError {
 //   - fe: validator字段错误信息
 //
 // 返回:
-//   - *errors.AppError: 对应的应用错误
+//   - errors.AppError: 对应的应用错误
 //
 // 支持的错误类型:
 //   - required: 必填字段缺失
@@ -120,27 +120,27 @@ func GetValidationError(err error) *errors.AppError {
 //   - eqfield: 字段不匹配
 //   - username: 用户名格式错误
 //   - password: 密码格式错误
-func getFieldErrorCode(fe validator.FieldError) *errors.AppError {
+func getFieldErrorCode(fe validator.FieldError) errors.AppError {
 	switch fe.Tag() {
 	case "required":
-		return errors.MissingRequiredField.Err()
+		return errors.MissingRequiredField
 	case "email":
-		return errors.InvalidEmail.Err()
+		return errors.InvalidEmail
 	case "min":
-		return errors.FieldTooShort.Err()
+		return errors.FieldTooShort
 	case "max":
-		return errors.FieldTooLong.Err()
+		return errors.FieldTooLong
 	case "len":
-		return errors.ValueOutOfRange.Err()
+		return errors.ValueOutOfRange
 	case "eqfield":
-		return errors.FieldMismatch.Err()
+		return errors.FieldMismatch
 	case "username":
-		return errors.InvalidUsername.Err()
+		return errors.InvalidUsername
 	case "password":
-		return errors.InvalidPassword.Err()
+		return errors.InvalidPassword
 
 	default:
-		return errors.ValidationError.Err()
+		return errors.ValidationError
 	}
 }
 
@@ -156,7 +156,7 @@ func getFieldErrorCode(fe validator.FieldError) *errors.AppError {
 func ParseID(idStr string) (int64, error) {
 	id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
 	if err != nil || id <= 0 {
-		return 0, errors.InvalidParams.Err()
+		return 0, errors.InvalidParams
 	}
 	return id, nil
 }

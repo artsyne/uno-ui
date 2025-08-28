@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	types "github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/internal/utils/config"
@@ -16,7 +17,10 @@ import (
 
 // 全局消息缓存 - 启动时一次性加载，运行时只读
 // 使用全局变量避免过度封装，提升性能
-var globalMessages = make(map[string]string)
+var (
+	globalMessages = make(map[string]string)
+	globalMessagesMutex sync.RWMutex
+)
 
 // BuildCacheKey 构建缓存键
 // 统一将locale和key都转换为小写，确保大小写一致性
@@ -26,27 +30,37 @@ func BuildCacheKey(locale, key string) string {
 
 // SetMessage 设置消息到全局缓存（仅在初始化时使用）
 func SetMessage(cacheKey, message string) {
+	globalMessagesMutex.Lock()
+	defer globalMessagesMutex.Unlock()
 	globalMessages[cacheKey] = message
 }
 
 // GetMessage 获取消息（高性能版本）
 func GetMessage(cacheKey string) (string, bool) {
+	globalMessagesMutex.RLock()
+	defer globalMessagesMutex.RUnlock()
 	message, exists := globalMessages[cacheKey]
 	return message, exists
 }
 
 // ClearMessages 清空消息缓存（仅在重新加载时使用）
 func ClearMessages() {
+	globalMessagesMutex.Lock()
+	defer globalMessagesMutex.Unlock()
 	globalMessages = make(map[string]string)
 }
 
 // GetMessageCount 获取消息数量
 func GetMessageCount() int {
+	globalMessagesMutex.RLock()
+	defer globalMessagesMutex.RUnlock()
 	return len(globalMessages)
 }
 
 // GetMessagesByPrefix 根据前缀获取消息（用于调试）
 func GetMessagesByPrefix(prefix string) map[string]string {
+	globalMessagesMutex.RLock()
+	defer globalMessagesMutex.RUnlock()
 	result := make(map[string]string)
 	for key, value := range globalMessages {
 		if len(key) > len(prefix) && key[:len(prefix)] == prefix {

@@ -12,7 +12,8 @@ import (
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
-	framework "github.com/biuren/hebe/tests/framework"
+	"github.com/biuren/hebe/internal/utils/i18n"
+	"github.com/biuren/hebe/tests/framework"
 )
 
 // 全局测试上下文和服务，避免重复初始化
@@ -41,9 +42,10 @@ func initBenchmarkEnv() {
 		config := benchCtx.GetConfig().GetAppConfig()
 
 		taskService := task.NewService(config, taskRepo)
-		userService := user.NewService(config, userRepo, taskService)
+		i18nManager := i18n.NewLocalizationManager(config)
+		userService := user.NewService(config, userRepo, taskService, i18nManager)
 		diaryService := diary.NewService(config, diaryRepo)
-		postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo)
+		postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
 
 		benchServices = &benchmarkServices{
 			userService:  userService,

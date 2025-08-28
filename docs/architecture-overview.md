@@ -451,7 +451,7 @@ func (s *Service) LoginWithUsernameOrEmail(usernameOrEmail, password string) (*U
 
 ```go
 // 错误定义结构体
-type ErrorDef struct {
+type AppError struct {
     Code     int    `json:"code"`      // 错误数字码
     Key      string `json:"key"`       // 错误标识符
     HttpCode int    `json:"http_code"` // HTTP状态码
@@ -459,21 +459,21 @@ type ErrorDef struct {
 
 // 应用错误
 type AppError struct {
-    ErrorDef        // 嵌入错误定义
+    AppError        // 嵌入错误定义
     Details  string `json:"-"` // 错误详情
 }
 
 // 预定义错误
 var (
-    UserNotFound     = ErrorDef{1301, "user_not_found", 404}
-    PasswordIncorrect = ErrorDef{2201, "password_incorrect", 400}
-    DatabaseError    = ErrorDef{6001, "database_error", 500}
+    UserNotFound     = AppError{1301, "user_not_found", 404}
+PasswordIncorrect = AppError{2201, "password_incorrect", 400}
+DatabaseError    = AppError{6001, "database_error", 500}
 )
 
 // 创建错误
-func (def ErrorDef) WithDetails(details string) *AppError {
+func (def AppError) WithDetails(details string) *AppError {
     return &AppError{
-        ErrorDef: def,
+        AppError: def,
         Details:  details,
     }
 }

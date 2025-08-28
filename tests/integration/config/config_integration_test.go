@@ -77,19 +77,11 @@ func TestConfigIntegration(t *testing.T) {
 
 // TestConfigViper 测试Viper配置管理器
 func TestConfigViper(t *testing.T) {
-	ctx := framework.NewTestContext()
+	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
 	t.Run("Viper实例", func(t *testing.T) {
-		// 先初始化配置以确保Viper实例可用
-		err := config.InitConfig()
-		if err != nil {
-			// 如果初始化失败，说明缺少必需的环境变量，这在测试环境中是正常的
-			t.Skipf("配置初始化失败，跳过Viper测试: %v", err)
-			return
-		}
-		
-		// 获取Viper实例
+		// 测试框架已经初始化了配置，直接获取Viper实例
 		v := config.GetViper()
 		assert.NotNil(t, v, "Viper实例不应该为空")
 		
@@ -104,10 +96,7 @@ func TestConfigComponents(t *testing.T) {
 	defer ctx.Cleanup()
 
 	cfg := framework.GetGlobalConfig()
-	if cfg == nil {
-		t.Skip("配置未初始化，跳过测试")
-		return
-	}
+	assert.NotNil(t, cfg, "配置不应该为空")
 
 	t.Run("配置结构完整性", func(t *testing.T) {
 		// 验证配置结构体字段存在

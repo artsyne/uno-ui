@@ -6,7 +6,7 @@ import (
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/utils/i18n"
-	errors "github.com/biuren/hebe/internal/utils/error"
+	"github.com/biuren/hebe/internal/utils/errors"
 )
 
 // Service 日记业务逻辑层实现
@@ -48,10 +48,32 @@ func NewService(config *config.Config, userRepo user.RepositoryInterface, taskSe
 //   - int64: 新增日记的ID
 //   - error: 添加失败时返回错误
 func (s *Service) AddPost(post *Post) (int64, error) {
+	// 验证用户ID
+	if post.AddUserID <= 0 {
+		return 0, errors.InvalidParams.WithDetails("无效的用户ID")
+	}
+	
+	// 验证用户是否存在
+	_, err := s.userService.GetUserByUserId(post.AddUserID)
+	if err != nil {
+		return 0, errors.UserNotFound.WithDetails("用户不存在")
+	}
+	
+	// 验证日记本是否存在且属于该用户
+	diary, err := s.diaryService.GetDiaryByID(post.DiaryID)
+	if err != nil {
+		return 0, errors.DiaryNotFound.WithDetails("日记本不存在")
+	}
+	
+	// 检查日记本是否属于该用户
+	if diary.AddUserID != post.AddUserID {
+		return 0, errors.PermissionDenied.WithDetails("无权限访问该日记本")
+	}
+	
 	//插入数据库
 	postID, err := s.repo.Insert(post)
 	if err != nil {
-		return 0, errors.DatabaseError.Err()
+		return 0, &errors.DatabaseError
 	}
 	post.PostID = postID
 
@@ -74,6 +96,11 @@ func (s *Service) GetPostByID(postId int64) (*Post, error) {
 // 返回:
 //   - error: 更新失败时返回错误
 func (s *Service) UpdatePost(post *Post) error {
+	// 验证内容不能为空
+	if post.Body == "" {
+		return errors.ValidationError.WithDetails("文章内容不能为空")
+	}
+	
 	// 更新日记本
 	err := s.repo.Update(post)
 	if err != nil {

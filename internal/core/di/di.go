@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	errors "github.com/biuren/hebe/internal/utils/error"
+	"github.com/biuren/hebe/internal/utils/errors"
 )
 
 /*

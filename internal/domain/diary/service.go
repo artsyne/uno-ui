@@ -2,7 +2,7 @@ package diary
 
 import (
 	"github.com/biuren/hebe/internal/utils/config"
-	errors "github.com/biuren/hebe/internal/utils/error"
+	"github.com/biuren/hebe/internal/utils/errors"
 )
 
 
@@ -36,6 +36,16 @@ func NewService(config *config.Config, repo RepositoryInterface) *Service {
 //   - int64: 新创建的日记本ID
 //   - error: 创建失败时返回错误
 func (s *Service) AddDiary(diary *Diary) (int64, error) {
+	// 验证用户ID有效性
+	if diary.AddUserID <= 0 {
+		return 0, &errors.InvalidParams
+	}
+
+	// 验证标题不能为空
+	if len(diary.Title) < 1 {
+		return 0, &errors.InvalidParams
+	}
+
 	// 判断用户增加日记本数量是否超过限制
 	if err := s.CheckDiaryLimit(diary.AddUserID); err != nil {
 		return 0, err
@@ -150,11 +160,11 @@ func (s *Service) DecrementPostCount(diaryID int64, userID int64, userName strin
 func (s *Service) CheckDiaryLimit(userID int64) error {
 	daybookNum, err := s.repo.GetCountByUserID(userID)
 	if err != nil {
-		return errors.InvalidParams.Err()
+		return &errors.InvalidParams
 	}
 
 	if daybookNum > s.config.App.MaxDaybookLimit {
-		return errors.DiaryLimitExceeded.Err()
+		return &errors.DiaryLimitExceeded
 	}
 
 	return nil
@@ -185,16 +195,16 @@ func (s *Service) IsDiaryOwner(diaryID, userID int64) (bool, error) {
 //   - error: 校验失败时返回错误
 func (s *Service) validateDiary(diary *Diary) error {
 	if len(diary.Title) < 1 {
-		return errors.InvalidParams.Err()
+		return &errors.InvalidParams
 	}
 	if diary.ViewSetting != 1 && diary.ViewSetting != 2 {
-		return errors.InvalidParams.Err()
+		return &errors.InvalidParams
 	}
 	if diary.SocialSetting != 1 && diary.SocialSetting != 2 {
-		return errors.InvalidParams.Err()
+		return &errors.InvalidParams
 	}
 	if diary.ThemeID < 1 || diary.ThemeID > 16 {
-		return errors.InvalidParams.Err()
+		return &errors.InvalidParams
 	}
 	return nil
 }

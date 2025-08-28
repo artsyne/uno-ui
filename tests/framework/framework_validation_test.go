@@ -120,18 +120,15 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 	})
 
 	t.Run("数据库管理器功能测试", func(t *testing.T) {
-		ctx := NewTestContext()
+		ctx := NewTestContext(WithDatabase())
 		defer ctx.Cleanup()
 
 		dbManager := ctx.GetDatabase()
-		assert.NotNil(t, dbManager)
+		require.NotNil(t, dbManager)
 
 		// 验证数据库连接
 		db := dbManager.GetDB()
-		if db == nil {
-			t.Skip("数据库连接未初始化，跳过数据库相关测试")
-			return
-		}
+		require.NotNil(t, db, "数据库连接应该已初始化")
 
 		rawDB := dbManager.GetRawDB()
 		assert.NotNil(t, rawDB)
@@ -253,7 +250,7 @@ func TestDatabaseInitialization(t *testing.T) {
 		slog.Info("开始数据库初始化测试")
 
 		// 创建测试上下文，这会触发数据库初始化
-		ctx := NewTestContext()
+		ctx := NewTestContext(WithDatabase())
 		require.NotNil(t, ctx, "测试上下文创建失败")
 		defer ctx.Cleanup()
 
@@ -301,7 +298,7 @@ func TestDatabaseInitialization(t *testing.T) {
 		originalLevel := slog.SetLogLoggerLevel(slog.LevelDebug)
 		defer slog.SetLogLoggerLevel(originalLevel)
 
-		ctx := NewTestContext()
+		ctx := NewTestContext(WithDatabase())
 		defer ctx.Cleanup()
 
 		dbManager := ctx.GetDatabase()

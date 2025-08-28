@@ -3,40 +3,37 @@ package core
 import (
 	"testing"
 
-	errorsPkg "github.com/biuren/hebe/internal/utils/error"
+	errorsPkg "github.com/biuren/hebe/internal/utils/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestErrorDef_Err(t *testing.T) {
-	// 测试ErrorDef.Err()方法
+func TestAppError_Error(t *testing.T) {
+	// 测试AppError.Error()方法
 	errorDef := errorsPkg.ValidationError
-	appError := errorDef.Err()
+	errorMsg := errorDef.Error()
 	
-	require.NotNil(t, appError)
-	assert.Equal(t, errorDef.Code, appError.Code)
-	assert.Equal(t, errorDef.Key, appError.Key)
-	assert.Equal(t, errorDef.HttpCode, appError.HttpCode)
-	assert.Empty(t, appError.Details)
+	expected := "[1001] validation_error"
+	assert.Equal(t, expected, errorMsg)
 }
 
-func TestErrorDef_WithDetails(t *testing.T) {
-	// 测试ErrorDef.WithDetails()方法
+func TestAppError_WithDetails(t *testing.T) {
+	// 测试AppError.WithDetails()方法
 	errorDef := errorsPkg.ValidationError
 	details := "用户名不能为空"
-	appError := errorDef.WithDetails(details)
+	errorWithDetails := errorDef.WithDetails(details)
 	
-	require.NotNil(t, appError)
-	assert.Equal(t, errorDef.Code, appError.Code)
-	assert.Equal(t, errorDef.Key, appError.Key)
-	assert.Equal(t, errorDef.HttpCode, appError.HttpCode)
-	assert.Equal(t, details, appError.Details)
+	require.NotNil(t, errorWithDetails)
+	assert.Equal(t, errorDef.Code(), errorWithDetails.Code())
+	assert.Equal(t, errorDef.Key(), errorWithDetails.Key())
+	assert.Equal(t, errorDef.HttpCode(), errorWithDetails.HttpCode())
+	assert.Equal(t, details, errorWithDetails.Details())
 }
 
 func TestAppError_Error_WithoutDetails(t *testing.T) {
 	// 测试AppError.Error()方法 - 无详细信息
-	appError := errorsPkg.ValidationError.Err()
-	errorMsg := appError.Error()
+	errorDef := errorsPkg.ValidationError
+	errorMsg := errorDef.Error()
 	
 	expected := "[1001] validation_error"
 	assert.Equal(t, expected, errorMsg)
@@ -45,8 +42,8 @@ func TestAppError_Error_WithoutDetails(t *testing.T) {
 func TestAppError_Error_WithDetails(t *testing.T) {
 	// 测试AppError.Error()方法 - 有详细信息
 	details := "用户名格式不正确"
-	appError := errorsPkg.ValidationError.WithDetails(details)
-	errorMsg := appError.Error()
+	errorWithDetails := errorsPkg.ValidationError.WithDetails(details)
+	errorMsg := errorWithDetails.Error()
 	
 	expected := "[1001] validation_error: 用户名格式不正确"
 	assert.Equal(t, expected, errorMsg)
@@ -56,7 +53,7 @@ func TestAppError_Error_WithDetails(t *testing.T) {
 func TestValidationErrors(t *testing.T) {
 	tests := []struct {
 		name     string
-		errorDef errorsPkg.ErrorDef
+		errorDef errorsPkg.AppError
 		code     int
 		key      string
 		httpCode int
@@ -70,9 +67,9 @@ func TestValidationErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.code, tt.errorDef.Code)
-			assert.Equal(t, tt.key, tt.errorDef.Key)
-			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode)
+			assert.Equal(t, tt.code, tt.errorDef.Code())
+			assert.Equal(t, tt.key, tt.errorDef.Key())
+			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode())
 		})
 	}
 }
@@ -81,7 +78,7 @@ func TestValidationErrors(t *testing.T) {
 func TestAuthenticationErrors(t *testing.T) {
 	tests := []struct {
 		name     string
-		errorDef errorsPkg.ErrorDef
+		errorDef errorsPkg.AppError
 		code     int
 		key      string
 		httpCode int
@@ -95,9 +92,9 @@ func TestAuthenticationErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.code, tt.errorDef.Code)
-			assert.Equal(t, tt.key, tt.errorDef.Key)
-			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode)
+			assert.Equal(t, tt.code, tt.errorDef.Code())
+			assert.Equal(t, tt.key, tt.errorDef.Key())
+			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode())
 		})
 	}
 }
@@ -106,7 +103,7 @@ func TestAuthenticationErrors(t *testing.T) {
 func TestPermissionErrors(t *testing.T) {
 	tests := []struct {
 		name     string
-		errorDef errorsPkg.ErrorDef
+		errorDef errorsPkg.AppError
 		code     int
 		key      string
 		httpCode int
@@ -119,9 +116,9 @@ func TestPermissionErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.code, tt.errorDef.Code)
-			assert.Equal(t, tt.key, tt.errorDef.Key)
-			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode)
+			assert.Equal(t, tt.code, tt.errorDef.Code())
+			assert.Equal(t, tt.key, tt.errorDef.Key())
+			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode())
 		})
 	}
 }
@@ -130,7 +127,7 @@ func TestPermissionErrors(t *testing.T) {
 func TestResourceNotFoundErrors(t *testing.T) {
 	tests := []struct {
 		name     string
-		errorDef errorsPkg.ErrorDef
+		errorDef errorsPkg.AppError
 		code     int
 		key      string
 		httpCode int
@@ -144,9 +141,9 @@ func TestResourceNotFoundErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.code, tt.errorDef.Code)
-			assert.Equal(t, tt.key, tt.errorDef.Key)
-			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode)
+			assert.Equal(t, tt.code, tt.errorDef.Code())
+			assert.Equal(t, tt.key, tt.errorDef.Key())
+			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode())
 		})
 	}
 }
@@ -155,7 +152,7 @@ func TestResourceNotFoundErrors(t *testing.T) {
 func TestUserBusinessErrors(t *testing.T) {
 	tests := []struct {
 		name     string
-		errorDef errorsPkg.ErrorDef
+		errorDef errorsPkg.AppError
 		code     int
 		key      string
 		httpCode int
@@ -168,9 +165,9 @@ func TestUserBusinessErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.code, tt.errorDef.Code)
-			assert.Equal(t, tt.key, tt.errorDef.Key)
-			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode)
+			assert.Equal(t, tt.code, tt.errorDef.Code())
+			assert.Equal(t, tt.key, tt.errorDef.Key())
+			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode())
 		})
 	}
 }
@@ -179,7 +176,7 @@ func TestUserBusinessErrors(t *testing.T) {
 func TestUserStatusErrors(t *testing.T) {
 	tests := []struct {
 		name     string
-		errorDef errorsPkg.ErrorDef
+		errorDef errorsPkg.AppError
 		code     int
 		key      string
 		httpCode int
@@ -192,9 +189,9 @@ func TestUserStatusErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.code, tt.errorDef.Code)
-			assert.Equal(t, tt.key, tt.errorDef.Key)
-			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode)
+			assert.Equal(t, tt.code, tt.errorDef.Code())
+			assert.Equal(t, tt.key, tt.errorDef.Key())
+			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode())
 		})
 	}
 }
@@ -203,7 +200,7 @@ func TestUserStatusErrors(t *testing.T) {
 func TestPasswordErrors(t *testing.T) {
 	tests := []struct {
 		name     string
-		errorDef errorsPkg.ErrorDef
+		errorDef errorsPkg.AppError
 		code     int
 		key      string
 		httpCode int
@@ -216,9 +213,9 @@ func TestPasswordErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.code, tt.errorDef.Code)
-			assert.Equal(t, tt.key, tt.errorDef.Key)
-			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode)
+			assert.Equal(t, tt.code, tt.errorDef.Code())
+			assert.Equal(t, tt.key, tt.errorDef.Key())
+			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode())
 		})
 	}
 }
@@ -227,7 +224,7 @@ func TestPasswordErrors(t *testing.T) {
 func TestDatabaseErrors(t *testing.T) {
 	tests := []struct {
 		name     string
-		errorDef errorsPkg.ErrorDef
+		errorDef errorsPkg.AppError
 		code     int
 		key      string
 		httpCode int
@@ -240,9 +237,9 @@ func TestDatabaseErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.code, tt.errorDef.Code)
-			assert.Equal(t, tt.key, tt.errorDef.Key)
-			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode)
+			assert.Equal(t, tt.code, tt.errorDef.Code())
+			assert.Equal(t, tt.key, tt.errorDef.Key())
+			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode())
 		})
 	}
 }
@@ -251,7 +248,7 @@ func TestDatabaseErrors(t *testing.T) {
 func TestDIErrors(t *testing.T) {
 	tests := []struct {
 		name     string
-		errorDef errorsPkg.ErrorDef
+		errorDef errorsPkg.AppError
 		code     int
 		key      string
 		httpCode int
@@ -262,9 +259,9 @@ func TestDIErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.code, tt.errorDef.Code)
-			assert.Equal(t, tt.key, tt.errorDef.Key)
-			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode)
+			assert.Equal(t, tt.code, tt.errorDef.Code())
+			assert.Equal(t, tt.key, tt.errorDef.Key())
+			assert.Equal(t, tt.httpCode, tt.errorDef.HttpCode())
 		})
 	}
 }
@@ -272,20 +269,20 @@ func TestDIErrors(t *testing.T) {
 // 测试内部错误 (9999)
 func TestInternalError(t *testing.T) {
 	errorDef := errorsPkg.InternalError
-	assert.Equal(t, 9999, errorDef.Code)
-	assert.Equal(t, "internal_error", errorDef.Key)
-	assert.Equal(t, 500, errorDef.HttpCode)
+	assert.Equal(t, 9999, errorDef.Code())
+	assert.Equal(t, "internal_error", errorDef.Key())
+	assert.Equal(t, 500, errorDef.HttpCode())
 }
 
 // 测试错误链式调用
 func TestErrorChaining(t *testing.T) {
-	// 测试从ErrorDef到AppError的链式调用
+	// 测试从AppError到AppError的链式调用
 	appError := errorsPkg.ValidationError.WithDetails("测试详细信息")
 	
-	assert.Equal(t, 1001, appError.Code)
-	assert.Equal(t, "validation_error", appError.Key)
-	assert.Equal(t, 400, appError.HttpCode)
-	assert.Equal(t, "测试详细信息", appError.Details)
+	assert.Equal(t, 1001, appError.Code())
+	assert.Equal(t, "validation_error", appError.Key())
+	assert.Equal(t, 400, appError.HttpCode())
+	assert.Equal(t, "测试详细信息", appError.Details())
 	
 	// 测试Error()方法
 	errorMsg := appError.Error()
@@ -302,11 +299,11 @@ func TestErrorInterface(t *testing.T) {
 	assert.Equal(t, "[1301] user_not_found: 用户ID: 123", err.Error())
 	
 	// 测试类型断言
-	if appErr, ok := err.(*errorsPkg.AppError); ok {
-		assert.Equal(t, 1301, appErr.Code)
-		assert.Equal(t, "user_not_found", appErr.Key)
-		assert.Equal(t, 404, appErr.HttpCode)
-		assert.Equal(t, "用户ID: 123", appErr.Details)
+	if appErr, ok := err.(errorsPkg.AppError); ok {
+		assert.Equal(t, 1301, appErr.Code())
+		assert.Equal(t, "user_not_found", appErr.Key())
+		assert.Equal(t, 404, appErr.HttpCode())
+		assert.Equal(t, "用户ID: 123", appErr.Details())
 	} else {
 		t.Fatal("类型断言失败")
 	}
@@ -316,14 +313,14 @@ func TestErrorInterface(t *testing.T) {
 func TestErrorCodeUniqueness(t *testing.T) {
 	// 收集一些错误码进行唯一性测试
 	errorCodes := map[int]string{
-		errorsPkg.ValidationError.Code:              "ValidationError",
-		errorsPkg.Unauthorized.Code:                 "Unauthorized",
-		errorsPkg.PermissionDenied.Code:             "PermissionDenied",
-		errorsPkg.UserNotFound.Code:                 "UserNotFound",
-		errorsPkg.UserExists.Code:                   "UserExists",
-		errorsPkg.DatabaseError.Code:                "DatabaseError",
-		errorsPkg.DIServiceNotRegistered.Code:       "DIServiceNotRegistered",
-		errorsPkg.InternalError.Code:                "InternalError",
+		errorsPkg.ValidationError.Code():              "ValidationError",
+		errorsPkg.Unauthorized.Code():                 "Unauthorized",
+		errorsPkg.PermissionDenied.Code():             "PermissionDenied",
+		errorsPkg.UserNotFound.Code():                 "UserNotFound",
+		errorsPkg.UserExists.Code():                   "UserExists",
+		errorsPkg.DatabaseError.Code():                "DatabaseError",
+		errorsPkg.DIServiceNotRegistered.Code():       "DIServiceNotRegistered",
+		errorsPkg.InternalError.Code():                "InternalError",
 	}
 	
 	// 验证错误码数量与映射数量一致（确保没有重复）

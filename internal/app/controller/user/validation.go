@@ -1,7 +1,7 @@
 package user
 
 import (
-	errors "github.com/biuren/hebe/internal/utils/error"
+	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -49,11 +49,4 @@ func (ctrl *UserController) ValidateEmail(c *gin.Context) {
 	}
 
 	ctrl.renderService.JSONSuccess(c, map[string]interface{}{})
-}
-
-
-
-// parseUserID 解析用户ID
-func (ctrl *UserController) parseUserID(idStr string) (int64, error) {
-	return ctrl.service.ParseUserID(idStr)
 }

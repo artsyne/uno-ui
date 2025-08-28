@@ -6,7 +6,7 @@ import (
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/core/database"
 	"github.com/biuren/hebe/internal/core/di"
-	"github.com/biuren/hebe/internal/utils/error"
+	"github.com/biuren/hebe/internal/utils/errors"
 )
 
 // Initializer 核心基础设施初始化器

@@ -8,6 +8,8 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/biuren/hebe/internal/domain/task"
+	"github.com/biuren/hebe/internal/infra/repository"
+	"github.com/biuren/hebe/tests/framework"
 	core "github.com/biuren/hebe/tests/framework/core"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -125,9 +127,13 @@ func TestNewTaskRepository(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
 	defer cancel()
 	
-	// 跳过此测试，因为 NewTaskRepository 依赖于全局数据库连接
-	// 在单元测试环境中，全局数据库连接可能未初始化
-	t.Skip("NewTaskRepository depends on global database connection which may not be initialized in unit tests")
+	// 使用测试框架提供的数据库连接
+	testCtx := framework.NewTestContext(framework.WithDatabase())
+	defer testCtx.Cleanup()
+	
+	// 测试使用全局数据库连接的构造函数
+	repo := repository.NewTaskRepository()
+	assert.NotNil(t, repo)
 	
 	// 确保上下文未超时
 	select {
@@ -137,13 +143,38 @@ func TestNewTaskRepository(t *testing.T) {
 	}
 }
 
-// TestNewTaskRepository_NilDB 测试空数据库
+// TestNewTaskRepository_WithDB 测试使用指定数据库连接创建任务仓库
+func TestNewTaskRepository_WithDB(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
+	defer cancel()
+	
+	db, mock, cleanup := setupTestDB(t)
+	defer cleanup()
+	
+	sqlxDB := sqlx.NewDb(db, "mysql")
+	repo := repository.NewTaskRepositoryWithDB(sqlxDB)
+	assert.NotNil(t, repo)
+	
+	// 验证 mock 期望
+	assert.NoError(t, mock.ExpectationsWereMet())
+	
+	// 确保上下文未超时
+	select {
+	case <-ctx.Done():
+		t.Fatal("Test timed out")
+	default:
+	}
+}
+
+// TestNewTaskRepository_NilDB 测试空数据库连接
 func TestNewTaskRepository_NilDB(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
 	defer cancel()
 	
-	// 跳过此测试，因为 NewTaskRepository 不接受参数
-	t.Skip("NewTaskRepository does not accept parameters")
+	// 测试传入 nil 数据库连接应该 panic
+	assert.Panics(t, func() {
+		repository.NewTaskRepositoryWithDB(nil)
+	})
 	
 	// 确保上下文未超时
 	select {

@@ -75,6 +75,12 @@ func loadGlobalConfig() *config.Config {
 	// 首先设置测试环境变量
 	setupTestEnvironment()
 
+	// 初始化 config 包的配置，这会设置 viper 实例
+	if err := config.InitConfig(); err != nil {
+		// 如果初始化失败，使用测试配置
+		fmt.Printf("Warning: config.InitConfig() failed: %v, using test config\n", err)
+	}
+
 	return &config.Config{
 		Env: getEnvString("IDIARY_ENV", "test"),
 		App: config.AppConfig{

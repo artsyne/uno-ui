@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/internal/app/controller/validation"
-	errors "github.com/biuren/hebe/internal/utils/error"
+	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )

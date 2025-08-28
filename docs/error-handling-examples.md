@@ -13,20 +13,20 @@
 
 ## 统一错误处理概述
 
-iDiary.ai Hebe采用基于4位错误码的统一错误处理体系，通过`ErrorDef`和`AppError`结构提供类型安全的错误管理，结合ViewService实现统一的错误响应格式。
+iDiary.ai Hebe采用基于4位错误码的统一错误处理体系，通过`AppError`结构提供类型安全的错误管理，结合ViewService实现统一的错误响应格式。
 
 ### 核心设计理念
 
 - **4位错误码分类**: 清晰的错误分类体系（1xxx通用错误、2xxx业务错误、6xxx系统错误等）
-- **结构化错误**: `ErrorDef` + `AppError` 提供完整的错误信息
+- **结构化错误**: `AppError` 提供完整的错误信息
 - **统一响应格式**: 通过ViewService确保API响应的一致性
 - **自动日志记录**: ViewService自动记录结构化错误日志
 
 ### 错误定义结构
 
 ```go
-// ErrorDef 错误定义结构体，统一管理错误码、错误键和HTTP状态码
-type ErrorDef struct {
+// AppError 错误定义结构体，统一管理错误码、错误键和HTTP状态码
+type AppError struct {
     Code     int    `json:"code"`      // 4位错误数字码
     Key      string `json:"key"`       // 错误标识符（用于国际化）
     HttpCode int    `json:"http_code"` // HTTP状态码
@@ -34,13 +34,13 @@ type ErrorDef struct {
 
 // AppError 应用错误结构体
 type AppError struct {
-    ErrorDef        // 嵌入错误定义
+    AppError        // 嵌入错误定义
     Details  string `json:"-"` // 错误详情（不对外暴露）
 }
 
 // 创建错误的方法
-func (def ErrorDef) Err() *AppError                        // 创建基本错误
-func (def ErrorDef) WithDetails(details string) *AppError  // 创建带详情的错误
+func (def AppError) Err() *AppError                        // 创建基本错误
+func (def AppError) WithDetails(details string) *AppError  // 创建带详情的错误
 ```
 
 ## 4位错误码体系
@@ -65,39 +65,39 @@ func (def ErrorDef) WithDetails(details string) *AppError  // 创建带详情的
 
 ```go
 // 参数验证错误 (1000-1099)
-ValidationError      = ErrorDef{1001, "validation_error", 400}
-InvalidParams        = ErrorDef{1002, "invalid_params", 400}
-MissingRequiredField = ErrorDef{1003, "missing_required_field", 400}
-InvalidPassword      = ErrorDef{1006, "invalid_password", 400}
+ValidationError      = AppError{1001, "validation_error", 400}
+InvalidParams        = AppError{1002, "invalid_params", 400}
+MissingRequiredField = AppError{1003, "missing_required_field", 400}
+InvalidPassword      = AppError{1006, "invalid_password", 400}
 
 // 认证错误 (1100-1199)
-Unauthorized       = ErrorDef{1101, "unauthorized", 401}
-InvalidToken       = ErrorDef{1102, "invalid_token", 401}
-TokenExpired       = ErrorDef{1103, "token_expired", 401}
-LoginRequired      = ErrorDef{1104, "login_required", 401}
+Unauthorized       = AppError{1101, "unauthorized", 401}
+InvalidToken       = AppError{1102, "invalid_token", 401}
+TokenExpired       = AppError{1103, "token_expired", 401}
+LoginRequired      = AppError{1104, "login_required", 401}
 
 // 资源不存在 (1300-1399)
-UserNotFound  = ErrorDef{1301, "user_not_found", 404}
-DiaryNotFound = ErrorDef{1303, "diary_not_found", 404}
-PostNotFound  = ErrorDef{1304, "post_not_found", 404}
+UserNotFound  = AppError{1301, "user_not_found", 404}
+DiaryNotFound = AppError{1303, "diary_not_found", 404}
+PostNotFound  = AppError{1304, "post_not_found", 404}
 
 // 用户业务错误 (2000-2999)
-UserExists        = ErrorDef{2001, "user_exists", 400}
-EmailExists       = ErrorDef{2002, "email_exists", 400}
-PasswordIncorrect = ErrorDef{2201, "password_incorrect", 400}
-DiaryLimitExceeded = ErrorDef{2301, "diary_limit_exceeded", 400}
+UserExists        = AppError{2001, "user_exists", 400}
+EmailExists       = AppError{2002, "email_exists", 400}
+PasswordIncorrect = AppError{2201, "password_incorrect", 400}
+DiaryLimitExceeded = AppError{2301, "diary_limit_exceeded", 400}
 
 // 数据库错误 (6000-6099)
-DatabaseError     = ErrorDef{6001, "database_error", 500}
-ConnectionFailed  = ErrorDef{6002, "connection_failed", 500}
-TransactionFailed = ErrorDef{6004, "transaction_failed", 500}
+DatabaseError     = AppError{6001, "database_error", 500}
+ConnectionFailed  = AppError{6002, "connection_failed", 500}
+TransactionFailed = AppError{6004, "transaction_failed", 500}
 
 // DI容器错误 (6250-6269)
-DIServiceAlreadyRegistered = ErrorDef{6251, "di_service_already_registered", 500}
-DIServiceNotRegistered     = ErrorDef{6252, "di_service_not_registered", 500}
+DIServiceAlreadyRegistered = AppError{6251, "di_service_already_registered", 500}
+DIServiceNotRegistered     = AppError{6252, "di_service_not_registered", 500}
 
 // 通用内部错误
-InternalError = ErrorDef{9999, "internal_error", 500}
+InternalError = AppError{9999, "internal_error", 500}
 ```
 
 ## ViewService使用示例

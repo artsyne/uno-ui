@@ -25,6 +25,14 @@ func NewTaskRepository() task.RepositoryInterface {
 	return &taskRepository{db: db}
 }
 
+// NewTaskRepositoryWithDB 创建新的任务数据访问层实例（用于测试）
+func NewTaskRepositoryWithDB(db *sqlx.DB) task.RepositoryInterface {
+	if db == nil {
+		panic("database connection is nil")
+	}
+	return &taskRepository{db: db}
+}
+
 // ===================== JobHistory 相关方法 =====================
 
 // InsertJobHistory 插入任务历史记录

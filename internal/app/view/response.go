@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	appErrors "github.com/biuren/hebe/internal/utils/error"
+	"github.com/biuren/hebe/internal/utils/errors"
 )
 
 // JSONResponse JSON响应结构
@@ -67,15 +67,15 @@ func (s *ViewService) JSONError(c *gin.Context, err error, data ...interface{}) 
 		responseData = data[0]
 	}
 
-	if appErr, ok := err.(*appErrors.AppError); ok {
+	if appErr, ok := err.(*errors.AppError); ok {
 		s.logAppError(appErr)
 		errorResponse := ErrorResponse{
 			Success: false,
-			Message: appErr.Key,
-			Code:    appErr.Code,
+			Message: appErr.Key(),
+			Code:    appErr.Code(),
 			Data:    responseData,
 		}
-		c.JSON(appErr.HttpCode, errorResponse)
+		c.JSON(appErr.HttpCode(), errorResponse)
 	}
 }
 
@@ -120,7 +120,7 @@ func (s *ViewService) Redirect(c *gin.Context, url string) {
 //
 // 参数:
 //   - appErr: 应用错误对象，包含错误代码、键名、HTTP状态码等信息
-func (s *ViewService) logAppError(appErr *appErrors.AppError) {
+func (s *ViewService) logAppError(appErr *errors.AppError) {
 	slog.Error("Application error",
 		"code", appErr.Code,
 		"key", appErr.Key,

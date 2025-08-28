@@ -20,6 +20,7 @@ import (
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/utils/config"
+	"github.com/biuren/hebe/internal/utils/i18n"
 	core "github.com/biuren/hebe/tests/framework/core"
 	"github.com/biuren/hebe/tests/framework/helpers"
 	. "github.com/biuren/hebe/tests/framework/types"
@@ -316,9 +317,11 @@ func (sr *ServiceRegistry) InitializeServices(db *sqlx.DB, testConfig TestConfig
 	
 	// 创建服务实例
 	taskService := task.NewService(appConfig, taskRepo)
-	sr.userService = user.NewService(appConfig, userRepo, taskService)
+	// 创建一个简单的i18n管理器用于测试
+	i18nManager := i18n.NewLocalizationManager(appConfig)
+	sr.userService = user.NewService(appConfig, userRepo, taskService, i18nManager)
 	sr.diaryService = diary.NewService(appConfig, diaryRepo)
-	sr.postService = post.NewService(appConfig, userRepo, taskService, diaryRepo, postRepo)
+	sr.postService = post.NewService(appConfig, userRepo, taskService, diaryRepo, postRepo, i18nManager)
 	
 	return nil
 }

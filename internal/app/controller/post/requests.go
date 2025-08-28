@@ -43,12 +43,12 @@ type DeletePostRequest struct {
 	PostID int64 `form:"post_id" json:"post_id" binding:"required,min=1"`
 }
 
-// GetPostRequest 获取日记请求
-// 用于获取单个日记详情的请求数据结构
+// ShowPostFormRequest 显示修改、增加post表单
+// 用于显示修改、增加post表单的请求数据结构
 //
 // 字段:
-//   - PostID: 要获取的日记ID，必需且大于0
-type GetPostRequest struct {
+//   - PostID: 要操作的日记ID，必需且大于0
+type ShowPostFormRequest struct {
 	PostID int64 `form:"post_id" json:"post_id" binding:"required,min=1"`
 }
 

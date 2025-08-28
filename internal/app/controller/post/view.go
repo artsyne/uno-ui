@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/internal/app/controller/validation"
+	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
@@ -27,20 +28,27 @@ func (ctrl *PostController) ShowPostForm(c *gin.Context) {
 
 	if action == "post.edit" {
 		// 编辑模式：获取并验证日记数据
+		var req ShowPostFormRequest
 		var err error
-		postData, err = ctrl.getAndValidatePost(c, loginUser.UserId)
+		if err = c.ShouldBindQuery(&req); err != nil {
+			ctrl.renderService.JSONError(c, errors.ValidationError)
+			return
+		}
+		//获取日记信息
+		postData, err = ctrl.postService.GetPostByID(req.PostID)
 		if err != nil {
-			ctrl.renderService.JSONError(c, err)
+			ctrl.renderService.JSONError(c, errors.PostNotFound)
+			return
+		}
+		// 检查日记是否属于当前用户，检查权限
+		if postData.AddUserID != loginUser.UserId {
+			ctrl.renderService.JSONError(c, errors.PermissionDenied)
 			return
 		}
 	}
-	// 创建模式：直接渲染空表单
-
 	// 初始化页面数据
 	data := ctrl.renderService.CreatePageData(c, "post.form.title")
-	data.Data["Active"] = "users"
 	data.Data["Post"] = postData
-	// 注意：用户信息现在通过 data.Context.AuthUser 在模板中访问，无需在 Data 中设置 UserData
 
 	ctrl.renderService.HTML(c, "form/post", data)
 }

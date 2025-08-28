@@ -24,7 +24,7 @@ import (
 	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/utils/i18n"
 	utilsMiddleware "github.com/biuren/hebe/internal/utils/middleware"
-	"github.com/biuren/hebe/internal/utils/error"
+	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/pkg"
 )
 

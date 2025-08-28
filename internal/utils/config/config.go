@@ -192,6 +192,10 @@ func GetConfig() *Config {
 // SetConfig 设置配置（仅用于测试）
 func SetConfig(config *Config) {
 	globalConfig = config
+	// 如果 viper 实例为空，创建一个新的实例
+	if v == nil {
+		v = viper.New()
+	}
 }
 
 // GetViper 获取viper实例
