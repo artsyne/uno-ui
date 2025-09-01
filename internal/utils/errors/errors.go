@@ -52,6 +52,7 @@ func (def AppError) Error() string {
 
 // WithDetails 返回带详细信息的新错误实例
 func (def AppError) WithDetails(details string) AppError {
+	// 返回一个新的 AppError 值，确保不可变性
 	return AppError{
 		code:     def.code,
 		key:      def.key,

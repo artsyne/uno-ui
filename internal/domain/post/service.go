@@ -152,3 +152,25 @@ func (s *Service) UpdatePostByID(post *Post) error {
 func (s *Service) DeletePostByID(postID int64) error {
 	return s.repo.DeleteByID(postID)
 }
+
+// GetPreviousPostByDiaryID 根据当前日记ID和日记本ID获取上一篇日记ID
+// 参数:
+//   - currentPostID: 当前日记ID
+//   - diaryID: 日记本ID
+// 返回:
+//   - int64: 上一篇日记ID，未找到时返回0
+//   - error: 查询失败时返回错误
+func (s *Service) GetPreviousPostByDiaryID(currentPostID int64, diaryID int64) (int64, error) {
+	return s.repo.GetPreviousPostByDiaryID(currentPostID, diaryID)
+}
+
+// GetNextPostByDiaryID 根据当前日记ID和日记本ID获取下一篇日记ID
+// 参数:
+//   - currentPostID: 当前日记ID
+//   - diaryID: 日记本ID
+// 返回:
+//   - int64: 下一篇日记ID，未找到时返回0
+//   - error: 查询失败时返回错误
+func (s *Service) GetNextPostByDiaryID(currentPostID int64, diaryID int64) (int64, error) {
+	return s.repo.GetNextPostByDiaryID(currentPostID, diaryID)
+}

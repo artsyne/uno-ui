@@ -91,8 +91,10 @@
                        {{.Title}} 
                     </h1>
                     {{end}}
-                    <p class="text-relaxed cursor-pointer" data-action="gotoUrl" data-url="/p/{{.PostID}}">
+                    <p class="text-relaxed cursor-pointer" >
+                        <a href="/p/{{.PostID}}" data-action="gotoUrl" data-url="/p/{{.PostID}}" data-ajax="true" style="all:unset !important">
                         {{ .Summary}}
+                        </a>
                     </p>
                 </div>
                 <div class="mb-4 flex justify-between">

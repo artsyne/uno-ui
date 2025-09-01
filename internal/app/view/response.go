@@ -102,7 +102,16 @@ func (s *ViewService) HTMLError(c *gin.Context, title, message string) {
 		"Title":   title,
 		"Message": message,
 	}
-	c.HTML(http.StatusInternalServerError, "error.html", errorData)
+	c.HTML(http.StatusInternalServerError, "error", errorData)
+}
+
+// HTMLErrorDefault 渲染默认错误页面
+// 渲染通用错误页面，HTTP状态码为500
+//
+// 参数:
+//   - c: Gin上下文对象
+func (s *ViewService) HTMLErrorDefault(c *gin.Context) {
+	c.HTML(http.StatusInternalServerError, "error", nil)
 }
 
 // Redirect 重定向响应

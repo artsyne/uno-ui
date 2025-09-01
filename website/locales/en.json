@@ -48,6 +48,11 @@
     "time_zone":"Time Zone",
     "lang":"Language"
   },
+  "error": {
+    "title":"Error Occurred",
+    "message": "An unexpected error has occurred. Please try again later.",
+    "contact_admin": "Contact administrator for more information."
+  },
   "nav": {
     "home": "Home",
     "diary": "Diary",
@@ -167,11 +172,6 @@
   },
   "greeting": {
     "message": "Hello, {{username}}! Welcome to iDiary."
-  },
-  "error": {
-    "not_found": "Sorry, the page you are looking for does not exist.",
-    "internal_server_error": "An unknown server error occurred. Please try again later.",
-    "contact_admin": "An error occurred. Please contact the administrator!"
   },
   "member": {
     "profile": {

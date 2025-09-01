@@ -48,6 +48,11 @@
     "time_zone":"时区",
     "lang":"语言"
   },
+  "error": {
+    "title":"错误发生",
+    "message": "发生未知错误，请稍后重试。",
+    "contact_admin": "联系管理员获取更多信息。"
+  },
   "nav": {
     "home": "首页",
     "diary": "日记",
@@ -167,11 +172,6 @@
   },
   "greeting": {
     "message": "你好，{{username}}！欢迎使用 iDiary。"
-  },
-  "error": {
-    "not_found": "抱歉，您要查找的页面不存在。",
-    "internal_server_error": "服务器发生未知错误，请稍后重试。",
-    "contact_admin": "遇到错误了，请与管理员联系！"
   },
   "member": {
     "profile": {

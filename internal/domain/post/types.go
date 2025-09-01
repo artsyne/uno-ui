@@ -27,6 +27,6 @@ type Post struct {
 	AddUserIP     string `form:"add_user_ip" json:"add_user_ip" db:"add_user_ip"`            // 创建用户IP
 	AddUTCTime    int64  `form:"add_utc_time" json:"add_utc_time" db:"add_utc_time"`         // 创建时间（UTC时间戳）
 	UpdateUTCTime int64  `form:"update_utc_time" json:"update_utc_time" db:"update_utc_time"` // 更新时间（UTC时间戳）
-	Status        int8   `form:"status" json:"status" db:"status"`                          // 状态（0:删除 1:邮箱待激活 2:锁定 3:正常）
+	Status        int8   `form:"status" json:"status" db:"status"`                          // 状态（0:删除 1:正常）
 	InfoType      int8   `form:"info_type" json:"info_type" db:"info_type"`                 // 信息类型（1:文本 2:图片 3:视频 4:音频 5:文件）
 }

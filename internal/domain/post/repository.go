@@ -60,4 +60,22 @@ type RepositoryInterface interface {
 	// 返回:
 	//   - error: 删除失败时返回错误
 	DeleteByID(postID int64) error
+
+	// GetPreviousPostByDiaryID 根据当前日记ID和日记本ID获取上一篇日记ID
+	// 参数:
+	//   - currentPostID: 当前日记ID
+	//   - diaryID: 日记本ID
+	// 返回:
+	//   - int64: 上一篇日记ID，未找到时返回0
+	//   - error: 查询失败时返回错误
+	GetPreviousPostByDiaryID(currentPostID int64, diaryID int64) (int64, error)
+
+	// GetNextPostByDiaryID 根据当前日记ID和日记本ID获取下一篇日记ID
+	// 参数:
+	//   - currentPostID: 当前日记ID
+	//   - diaryID: 日记本ID
+	// 返回:
+	//   - int64: 下一篇日记ID，未找到时返回0
+	//   - error: 查询失败时返回错误
+	GetNextPostByDiaryID(currentPostID int64, diaryID int64) (int64, error)
 }

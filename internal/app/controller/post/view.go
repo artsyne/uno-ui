@@ -145,16 +145,20 @@ func (ctrl *PostController) ShowDiaryIndex(c *gin.Context) {
 //   - 获取用户时区设置
 //   - 渲染日记详情页面模板
 func (ctrl *PostController) ShowPost(c *gin.Context) {
-	// 解析日记ID
-	postIDStr := c.Param("postid")
-	postID, err := validation.ParseID(postIDStr)
-	if err != nil {
-		ctrl.renderErrorPage(c, "日记ID格式错误", "请检查URL中的日记ID是否正确")
+	var req ShowPostDetailRequest
+	// 绑定 uri
+	if err:= c.ShouldBindUri(&req); err!= nil {
+		ctrl.renderErrorPage(c, "参数错误", "请检查URL参数是否正确")
+		return
+	}
+	// 绑定 query
+	if err := c.ShouldBindQuery(&req); err != nil {
+		ctrl.renderErrorPage(c, "参数错误", "请检查URL参数是否正确")
 		return
 	}
 
 	// 获取日记信息 - 调用post模块
-	postInfo, err := ctrl.postService.GetPostByID(postID)
+	postInfo, err := ctrl.postService.GetPostByID(req.PostID)
 	if err != nil || postInfo == nil {
 		ctrl.renderErrorPage(c, "日记不存在", "未找到指定的日记")
 		return
@@ -176,14 +180,36 @@ func (ctrl *PostController) ShowPost(c *gin.Context) {
 		return
 	}
 
+	// 获取上一篇日记ID
+	previousPostID, err := ctrl.postService.GetPreviousPostByDiaryID(postInfo.PostID, postInfo.DiaryID)
+	if err != nil {
+		// 记录错误但不中断页面渲染
+		previousPostID = 0
+	}
+
+	// 获取下一篇日记ID
+	nextPostID, err := ctrl.postService.GetNextPostByDiaryID(postInfo.PostID, postInfo.DiaryID)
+	if err != nil {
+		// 记录错误但不中断页面渲染
+		nextPostID = 0
+	}
+
 	// 构建页面数据
 	data := ctrl.renderService.CreatePageData(c, "post.show.title")
 	data.Title = postInfo.Title + " - " + postInfo.AddUserName
 	data.Data["Post"] = postInfo
 	data.Data["Diary"] = diaryInfo
 	data.Data["TimeZone"] = timeZone
+	data.Data["IsAjax"] = req.IsAjax
+	data.Data["PreviousPostID"] = previousPostID
+	data.Data["NextPostID"] = nextPostID
 
-	ctrl.renderService.HTML(c, "post/view", data)
+	// 构建页面数据
+	viewPath:="post/view"
+	if req.IsAjax {
+		viewPath="post/detail"
+	}
+	ctrl.renderService.HTML(c, viewPath, data)
 }
 
 // renderErrorPage 渲染错误页面

@@ -81,7 +81,7 @@ func (r *PostRepository) ListByUserID(userID int64, diaryID int64, pageIndex, pa
 	offset := (pageIndex - 1) * pageSize
 
 	sqlstr := `SELECT * FROM br_post WHERE diary_id = ? AND add_user_id = ? 
-		ORDER BY post_id DESC LIMIT ? offset ?`
+		and status = 1 ORDER BY post_id DESC LIMIT ? offset ?`
 
 	err := r.db.Select(&infoArray, sqlstr, diaryID, userID, pageSize, offset)
 	if err == sql.ErrNoRows {
@@ -97,7 +97,7 @@ func (r *PostRepository) ListByUserID(userID int64, diaryID int64, pageIndex, pa
 // GetCountByUserID 根据用户ID和日记本ID统计信息数量
 func (r *PostRepository) GetCountByUserID(userID int64, diaryID int64) (int, error) {
 	var count int
-	sqlstr := "SELECT COUNT(*) FROM br_post WHERE diary_id = ? AND add_user_id = ?"
+	sqlstr := "SELECT COUNT(*) FROM br_post WHERE diary_id = ? AND add_user_id = ? and  status = 1 "
 
 	err := r.db.Get(&count, sqlstr, diaryID, userID)
 	if err == sql.ErrNoRows {
@@ -165,4 +165,32 @@ func (r *PostRepository) DeleteByID(postID int64) error {
 	}
 	
 	return nil
+}
+
+// GetPreviousPostByDiaryID 根据当前日记ID和日记本ID获取上一篇日记ID
+// 注意：由于列表采用post_id倒序排列，"上一篇"指的是post_id更大的（更新的）日记
+func (r *PostRepository) GetPreviousPostByDiaryID(currentPostID int64, diaryID int64) (int64, error) {
+	sqlstr := `SELECT post_id FROM br_post 
+			   WHERE diary_id = ? AND post_id > ? AND status = 1 
+			   ORDER BY post_id ASC LIMIT 1`
+	var postID int64
+	err := r.db.Get(&postID, sqlstr, diaryID, currentPostID)
+	if err == sql.ErrNoRows {
+		return 0, nil // 没有找到上一篇日记，返回0而不是错误
+	}
+	return postID, err
+}
+
+// GetNextPostByDiaryID 根据当前日记ID和日记本ID获取下一篇日记ID
+// 注意：由于列表采用post_id倒序排列，"下一篇"指的是post_id更小的（更旧的）日记
+func (r *PostRepository) GetNextPostByDiaryID(currentPostID int64, diaryID int64) (int64, error) {
+	sqlstr := `SELECT post_id FROM br_post 
+			   WHERE diary_id = ? AND post_id < ? AND status = 1 
+			   ORDER BY post_id DESC LIMIT 1`
+	var postID int64
+	err := r.db.Get(&postID, sqlstr, diaryID, currentPostID)
+	if err == sql.ErrNoRows {
+		return 0, nil // 没有找到下一篇日记，返回0而不是错误
+	}
+	return postID, err
 }

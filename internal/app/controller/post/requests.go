@@ -65,3 +65,16 @@ type ListPostsRequest struct {
 	Limit   int   `form:"limit" json:"limit"`
 }
 
+// ShowPostDetailRequest 获取日记详情请求
+// 用于获取指定日记详情的请求数据结构
+//
+// 字段:
+//   - PostID: 日记ID，必需且大于0
+//   - IsAjax: 是否为异步请求，true表示是异步请求
+//
+// 路由:
+//   - /p/:postid
+type ShowPostDetailRequest struct {
+	PostID int64 `uri:"postid" form:"post_id" json:"post_id" binding:"required,min=1"`
+	IsAjax bool `form:"isajax" json:"isajax"`
+}

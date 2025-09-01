@@ -32,7 +32,17 @@ const Diary = {
     id: 'gotoUrl',
     type: 'function',
     handler: function (id, target, eventData, data) {
-      window.location.href = data.url;
+      kiko.ui.box.dialog({
+        ajaxUrl: data.url+ '?isajax=true',
+        widthClass:'lg:w-[90%]',
+        heightClass:'h-full',
+        onClose: () => {
+          history.back(-1);
+        },
+        onOpen: () => {
+          history.pushState(null, '', data.url);
+        },
+      });
     },
   },
 
