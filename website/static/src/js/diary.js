@@ -20,6 +20,7 @@ const Diary = {
     return [
       this.showDiaryBoxAction,
       this.showPostBoxAction,
+      this.deletePostAction,
       this.postInfoAction,
       this.gotoUrlAction,
       this.getAjaxContentAction,
@@ -40,6 +41,51 @@ const Diary = {
         success: function (data) {
           $('.post-container').first().html(data);
         },
+      });
+    },
+  },
+
+  /**
+   * 删除日记行为
+   */
+  deletePostAction: {
+    id: 'deletePost',
+    type: 'function',
+    handler: function (id, target, eventData, data) {
+      // 确认删除
+      const confirmMessage = kiko.i18n.getMessage('post.delete.confirm') || '确定要删除这篇日记吗？';
+      
+      kiko.ui.box.confirm({
+        content: confirmMessage,
+        width: 500,
+        height: 80,
+        okButtonClass:'btn-red',
+        onOk: function() {
+          // 发送删除请求
+          $.ajax({
+            url: `${Diary.baseUrl}/post/delete`,
+            type: 'POST',
+            data: {
+              post_id: data.postId,
+              diary_id: data.diaryId
+            },
+            success: (response) => {
+              if (response.code === 0) {
+                // 删除成功，从页面移除对应的日记卡片
+                const $postCard = $(`.card[data-post-id="${data.postId}"]`);
+                $postCard.fadeOut(300, function() {
+                  $(this).remove();
+                });
+                kiko.ui.notify.success(kiko.i18n.getMessage('post.delete.success') || '删除成功');
+              } else {
+                kiko.ui.notify.error(response.message || '删除失败');
+              }
+            },
+            error: (xhr, status, error) => {
+              kiko.ui.notify.error('网络错误，删除失败');
+            }
+          });
+        }
       });
     },
   },
@@ -239,10 +285,8 @@ const Diary = {
       }
 
       // 更新标题和摘要
-      $postCard.find('h1').text(escapeHtml(postData.title || ''));
-      $postCard.find('p').text(escapeHtml(postData.summary || ''));
-
-      log('成功更新日记信息', postData);
+      $postCard.find('h1.post-title').text(escapeHtml(postData.title || ''));
+      $postCard.find('p.text-relaxed a').text(escapeHtml(postData.summary || ''));
     },
     /**
      * 添加新日记到列表
@@ -255,51 +299,56 @@ const Diary = {
         return;
       }
 
-      // 构建日记卡片HTML，直接使用服务端返回的数据
+      // 构建日记卡片HTML，基于最新的diary/index.html结构
       const postHtml = `
-        <div class="card border p-3 mb-6 break-inside-avoid" data-post-id="${postData.post_id}">
-          <div class="card-body">
-            ${
-              postData.title
-                ? `
-            <h1 class="text-black break-words mb-2">
+        <div class="card mb-6 break-inside-avoid" data-post-id="${postData.post_id}">
+          <div class="post-edit">
+            <a href="#" data-tooltip-target="post_edit${postData.post_id}" data-tooltip-position="bottom"
+               data-tooltip-event="click,mouseover">
+              <i class="mdi mdi-dots-horizontal"></i>
+            </a>
+          </div>
+          <div id="post_edit${postData.post_id}" class="tooltip hidden">
+            <ul>
+              <li>
+                <a href="" class="tooltip-link" data-action="showPostBox" data-form-action="post.edit"
+                   data-diary-id="${postData.diary_id || ''}" data-post-id="${postData.post_id}">
+                  <i class="mdi mdi-pencil-outline mr-2"></i> 编辑
+                </a>
+              </li>
+              <li>
+                <a href="" class="tooltip-link" data-action="deletePost"
+                   data-diary-id="${postData.diary_id || ''}" data-post-id="${postData.post_id}">
+                  <i class="mdi mdi-delete-outline mr-2"></i> 删除
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div class="mb-4">
+            <h1 class="post-title">
               ${escapeHtml(postData.title)}
             </h1>
-            `
-                : ''
-            }
-            <p class="break-words leading-relaxed">
-              ${escapeHtml(postData.summary || '')}
+            <p class="text-relaxed cursor-pointer">
+              <a href="/p/${postData.post_id}" data-action="gotoUrl" data-url="/p/${postData.post_id}" data-ajax="true"
+                 style="all:unset !important">
+                ${escapeHtml(postData.summary || '')}
+              </a>
             </p>
           </div>
-          <div class="my-4 flex justify-between">
+          <div class="flex justify-between">
             <div>
-              <a href="#"><i class="mdi mdi-account-box"></i>
-                ${escapeHtml(postData.add_user_name || '')}</a>
-              <a href="#"><i class="mdi mdi-book-outline"></i> ${escapeHtml($('#diary_title').text() || '')}</a>
+              <span class="post-time">
+                ${formatTime(postData.add_utc_time || '')}
+              </span>
             </div>
             <div>
-              <a href="#">
-                <i class="mdi mdi-comment-multiple-outline"></i> <span>${postData.comment_num || 0}</span>
+              <a href="#" class="mr-2">
+                <i class="mdi mdi-comment-text-outline mr-1"></i> <span>${postData.comment_num || 0}</span>
               </a>
               <a href="#">
-                <i class="mdi mdi-heart-outline"></i> <span>${postData.like_num || 0}</span>
+                <i class="mdi mdi-thumb-up-outline mr-1"></i><span>${postData.like_num || 0}</span>
               </a>
             </div>
-          </div>
-          <div class="my-4 flex justify-between">
-            <div>
-              <a href="" data-action="showPostBox" data-form-action="post.edit"
-                data-diary-id="${postData.diary_id || ''}" data-post-id="${postData.post_id}">编辑</a>
-            </div>
-          </div>
-          <div class="blog-date">
-            <span class="post-month">${postData.month || ''}</span>
-            <span class="post-day">${postData.day || ''}</span>
-            <span class="post-year">${postData.year || ''}</span>
-          </div>
-          <div class="blog-quote-icon">
-            <i class="mdi mdi-format-quote-close"></i>
           </div>
         </div>
       `;
@@ -317,6 +366,8 @@ const Diary = {
       // 添加动画效果
       const $newPost = $container.find(`[data-post-id="${postData.post_id}"]`);
       $newPost.hide().fadeIn(600);
+
+      // 注意：使用事件委托后，tooltip会自动工作，无需手动初始化
 
       log('成功添加新日记到列表', postData);
     },

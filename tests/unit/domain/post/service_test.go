@@ -557,7 +557,8 @@ func TestPostService_DeletePostByID(t *testing.T) {
 	assert.NotNil(t, retrievedPost)
 
 	t.Run("成功删除文章", func(t *testing.T) {
-		err := postService.DeletePostByID(postID)
+		currentTime := int64(1642680300)
+		err := postService.DeletePostByID(postID, testUser.UserId, testUser.UserName, currentTime)
 		assert.NoError(t, err)
 
 		// 验证文章已被删除
@@ -567,12 +568,14 @@ func TestPostService_DeletePostByID(t *testing.T) {
 	})
 
 	t.Run("删除不存在的文章", func(t *testing.T) {
-		err := postService.DeletePostByID(99999)
+		currentTime := int64(1642680300)
+		err := postService.DeletePostByID(99999, testUser.UserId, testUser.UserName, currentTime)
 		assert.Error(t, err)
 	})
 
 	t.Run("删除已删除的文章", func(t *testing.T) {
-		err := postService.DeletePostByID(postID)
+		currentTime := int64(1642680300)
+		err := postService.DeletePostByID(postID, testUser.UserId, testUser.UserName, currentTime)
 		assert.Error(t, err)
 	})
 }

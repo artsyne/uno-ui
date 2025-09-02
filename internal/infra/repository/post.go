@@ -106,9 +106,9 @@ func (r *PostRepository) GetCountByUserID(userID int64, diaryID int64) (int, err
 	return count, err
 }
 
-// GetByID 根据文章ID获取文章信息
+// GetByID 根据文章ID获取文章信息（只返回未删除的文章）
 func (r *PostRepository) GetByID(postID int64) (*post.Post, error) {
-	sqlstr := "SELECT * FROM br_post WHERE post_id = ?"
+	sqlstr := "SELECT * FROM br_post WHERE post_id = ? AND status = 1"
 	post := &post.Post{}
 	err := r.db.Get(post, sqlstr, postID)
 	if err == sql.ErrNoRows {
@@ -147,15 +147,15 @@ func (r *PostRepository) UpdateByID(post *post.Post) error {
 	return nil
 }
 
-// DeleteByID 根据文章ID删除文章信息
+// DeleteByID 根据文章ID软删除文章信息（设置status=0）
 func (r *PostRepository) DeleteByID(postID int64) error {
-	sqlstr := "DELETE FROM br_post WHERE post_id = ?"
+	sqlstr := "UPDATE br_post SET status = 0 WHERE post_id = ? AND status = 1"
 	result, err := r.db.Exec(sqlstr, postID)
 	if err != nil {
 		return err
 	}
 	
-	// 检查是否有行被删除
+	// 检查是否有行被更新
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return err

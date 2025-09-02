@@ -208,7 +208,7 @@ func TestUserPostDiaryIntegration(t *testing.T) {
 			assert.Equal(t, "更新后的内容", updatedPost.Body)
 
 			// 11. 删除一篇文章
-			err = postService.DeletePostByID(firstPost.PostID)
+			err = postService.DeletePostByID(firstPost.PostID, testUser.UserId, testUser.UserName, 1234567890)
 			assert.NoError(t, err)
 
 			// 12. 验证文章已删除

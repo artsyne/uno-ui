@@ -40,4 +40,11 @@ func (ctrl *PostController) RegisterRoutes(router *gin.Engine) {
 		authAPI.POST("/post", ctrl.ProcessPost)
 		authAPI.POST("/info", ctrl.ProcessPost)
 	}
+
+	// 需要鉴权的日记删除路由
+	authDelete := router.Group("/post")
+	authDelete.Use(ctrl.auth.RequireAuth())
+	{
+		authDelete.POST("/delete", ctrl.DeletePost)
+	}
 }

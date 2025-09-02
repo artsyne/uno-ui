@@ -78,7 +78,7 @@
             $socialSetting := .Data.Diary.SocialSetting
             }}
             {{range .Data.Posts}}
-            <div class="card mb-6 break-inside-avoid">
+            <div class="card mb-6 break-inside-avoid" data-post-id="{{.PostID}}">
                 {{if $.Data.IsOwner}}
                 <div class="post-edit">
                     <a href="#" data-tooltip-target="post_edit{{.PostID}}" data-tooltip-position="bottom"
@@ -110,7 +110,7 @@
                         </a>
                     </p>
                 </div>
-                <div class="mb-4 flex justify-between">
+                <div class="flex justify-between">
                     <div>
                         <span class="post-time">
                             {{formatLocalTime .AddUTCTime $timezone}}

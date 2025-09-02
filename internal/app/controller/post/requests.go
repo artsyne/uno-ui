@@ -41,6 +41,7 @@ type UpdatePostRequest struct {
 //   - PostID: 要删除的日记ID，必需且大于0
 type DeletePostRequest struct {
 	PostID int64 `form:"post_id" json:"post_id" binding:"required,min=1"`
+	DiaryID int64 `form:"diary_id" json:"diary_id" binding:"required,min=1"`
 }
 
 // ShowPostFormRequest 显示修改、增加post表单

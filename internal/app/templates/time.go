@@ -3,8 +3,6 @@ package templates
 import (
 	"html/template"
 	"time"
-
-	"github.com/biuren/hebe/pkg"
 )
 
 // GetTimeFuncs 获取时间相关的模板函数
@@ -45,14 +43,23 @@ func formatTime(timestamp int64, format string, timezone ...string) string {
 }
 
 // formatLocalTime 格式化本地时间
-// 使用pkg包的FormatLocalTime函数格式化时间戳为本地时间字符串
+// 将时间戳格式化为YYYY-MM-DD HH:mm格式的时间字符串
 //
 // 参数:
 //   - timestamp: 毫秒级时间戳
 //   - timezone: 时区字符串，如"Asia/Shanghai"、"UTC"等
 //
 // 返回:
-//   - string: 格式化后的本地时间字符串
+//   - string: 格式化后的时间字符串，格式为YYYY-MM-DD HH:mm
 func formatLocalTime(timestamp int64, timezone string) string {
-	return pkg.FormatLocalTime(timestamp, timezone)
+	t := time.Unix(timestamp/1000, (timestamp%1000)*1000000)
+	
+	// 如果指定了时区，进行转换
+	if timezone != "" {
+		if loc, err := time.LoadLocation(timezone); err == nil {
+			t = t.In(loc)
+		}
+	}
+	
+	return t.Format("2006-01-02 15:04")
 }

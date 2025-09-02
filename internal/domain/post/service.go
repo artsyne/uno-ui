@@ -1,6 +1,8 @@
 package post
 
 import (
+	"fmt"
+	
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
@@ -144,13 +146,39 @@ func (s *Service) UpdatePostByID(post *Post) error {
 	return s.repo.UpdateByID(post)
 }
 
-// DeletePostByID 根据日记ID删除日记信息
+// DeletePostByID 根据日记ID删除日记信息（软删除）
+// 删除日记并减少对应日记本的统计数
 // 参数:
 //   - postID: 日记ID
+//   - userID: 操作用户ID
+//   - userName: 操作用户名
+//   - actionTime: 操作时间（UTC时间戳）
 // 返回:
 //   - error: 删除失败时返回错误
-func (s *Service) DeletePostByID(postID int64) error {
-	return s.repo.DeleteByID(postID)
+func (s *Service) DeletePostByID(postID int64, userID int64, userName string, actionTime int64) error {
+	// 先获取日记信息，用于后续减少日记本统计数
+	post, err := s.repo.GetByID(postID)
+	if err != nil {
+		return err
+	}
+	if post == nil {
+		return errors.PostNotFound.WithDetails(fmt.Sprintf("post_id: %d", postID))
+	}
+	
+	// 执行软删除
+	err = s.repo.DeleteByID(postID)
+	if err != nil {
+		return err
+	}
+	
+	// 减少日记本的日记统计数
+	err = s.diaryService.DecrementPostCount(post.DiaryID, userID, userName, actionTime)
+	if err != nil {
+		// 如果更新日记本数量失败，记录错误但不影响删除操作的成功
+		// 这里可以添加日志记录
+	}
+	
+	return nil
 }
 
 // GetPreviousPostByDiaryID 根据当前日记ID和日记本ID获取上一篇日记ID

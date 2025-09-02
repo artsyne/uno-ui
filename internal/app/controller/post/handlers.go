@@ -142,6 +142,7 @@ func (ctrl *PostController) UpdatePost(c *gin.Context, loginUser *types.AuthUser
 		CommentNum: originalPost.CommentNum,
 		IsTop:      originalPost.IsTop,
 		InfoType:   originalPost.InfoType,
+		Status:     originalPost.Status,
 	}
 
 	// 调用服务层更新日记
@@ -154,17 +155,53 @@ func (ctrl *PostController) UpdatePost(c *gin.Context, loginUser *types.AuthUser
 	ctrl.respondSuccess(c, postData)
 }
 
-// DeletePost 处理删除日记请求（未来扩展功能）
-// 当前为预留功能，暂未实现具体的删除逻辑
+// DeletePost 处理删除日记请求
+// 执行软删除操作，将日记状态设置为0，并减少日记本的统计数
 //
 // 参数:
 //   - c: Gin上下文对象
 //
 // 返回:
-//   - 返回无效参数错误
+//   - JSON响应，成功或错误信息
 func (ctrl *PostController) DeletePost(c *gin.Context) {
-	// 预留的删除功能实现
-	ctrl.renderService.JSONError(c, &errors.InvalidParams)
+	// 解析请求参数
+	var req DeletePostRequest
+	if bindErr := c.ShouldBind(&req); bindErr != nil {
+		ctrl.renderService.JSONError(c, &errors.InvalidParams)
+		return
+	}
+
+	// 获取当前用户信息
+	userData, isAuthenticated := ctrl.auth.GetCurrentUser(c)
+	if !isAuthenticated {
+		ctrl.renderService.JSONError(c, &errors.LoginRequired)
+		return
+	}
+
+	// 验证日记所有权
+	postData, postErr := ctrl.postService.GetPostByID(req.PostID)
+	if postErr != nil {
+		ctrl.renderService.JSONError(c, &errors.PostNotFound)
+		return
+	}
+	if postData.AddUserID != userData.UserId {
+		ctrl.renderService.JSONError(c, &errors.PermissionDenied)
+		return
+	}
+
+	// 执行删除操作
+	currentTime := pkg.GetNowTimeUnixMilli()
+	deleteErr := ctrl.postService.DeletePostByID(req.PostID, userData.UserId, userData.UserName, currentTime)
+	if deleteErr != nil {
+		ctrl.renderService.JSONError(c, deleteErr)
+		return
+	}
+
+	// 返回成功响应
+	ctrl.renderService.JSONSuccess(c, gin.H{
+		"message": "删除成功",
+		"post_id": req.PostID,
+	})
 }
 
 // respondSuccess 统一的成功响应格式

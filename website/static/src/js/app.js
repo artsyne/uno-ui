@@ -31,6 +31,52 @@ window.escapeHtml = (text) => {
 };
 
 /**
+ * 时间格式化工具函数
+ * 将时间戳格式化为 YYYY-MM-DD HH:mm 格式
+ *
+ * @param {number} timestamp - Unix时间戳（秒或毫秒）
+ * @param {string} [timezone] - 时区标识符（如 'Asia/Shanghai', 'America/New_York'）
+ * @returns {string} 格式化后的时间字符串，格式为 YYYY-MM-DD HH:mm
+ */
+window.formatTime = (timestamp, timezone) => {
+  if (!timestamp) return '';
+
+  // 处理时间戳格式（支持秒和毫秒）
+  const date = new Date(timestamp < 10000000000 ? timestamp * 1000 : timestamp);
+
+  // 如果传入了时区，使用指定时区；否则使用浏览器本地时区
+  const options = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  };
+
+  if (timezone) {
+    options.timeZone = timezone;
+  }
+
+  try {
+    // 使用 Intl.DateTimeFormat 进行格式化
+    const formatter = new Intl.DateTimeFormat('sv-SE', options);
+    return formatter.format(date);
+  } catch (error) {
+    // 如果时区无效，回退到本地时区
+    const fallbackFormatter = new Intl.DateTimeFormat('sv-SE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    return fallbackFormatter.format(date);
+  }
+};
+
+/**
  * 统一的错误处理函数
  * 从错误对象或响应中提取消息并显示，或者根据错误码返回自定义消息
  * 已更新以适配新的ResponseService格式：{code, message, data}
