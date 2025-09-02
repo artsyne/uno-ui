@@ -1,6 +1,6 @@
 {{define "post/detail"}}
+<div class="container post-container mx-auto dt{{.Data.Diary.ThemeID}}">
     <section class="grid grid-cols-1 lg:grid-cols-12 gap-10 mx-auto">
-
         <div class="lg:col-start-2  lg:col-span-7 flex min-h-[500px]">
             <div class="w-full card">
                 {{if .Data.Post.Title}}
@@ -17,10 +17,18 @@
         <div class="lg:col-start-9 lg:col-span-3">
             <div class="card border-none">
                 <div class="flex justify-between mb-4">
-                    <a href="{{if .Data.PreviousPostID}}/p/{{.Data.PreviousPostID}}{{end}}" title='{{getMessage "common.previous" .Context.Lang}}' {{if not .Data.PreviousPostID}}style="pointer-events: none;"{{end}}>
+                    {{if .Data.PreviousPostID}}
+                    <a href="/p/{{.Data.PreviousPostID}}" data-action="getAjaxContent" data-url="/p/{{.Data.PreviousPostID}}" data-ajax="true"  title='{{getMessage "common.previous" .Context.Lang}}'>
+                        {{else}}
+                        <a href="javascript:void(0)" title='{{getMessage "common.is_first_page" .Context.Lang}}'>
+                            {{end}}
                             <i class="mdi mdi-arrow-left"></i></a>
-                    <a href="{{if .Data.NextPostID}}/p/{{.Data.NextPostID}}{{end}}" title='{{getMessage "common.next" .Context.Lang}}' {{if not .Data.NextPostID}}style="pointer-events: none;"{{end}}>
-                            <i class="mdi mdi-arrow-right"></i></a>
+                        {{if .Data.NextPostID}}
+                        <a href="/p/{{.Data.NextPostID}}" data-action="getAjaxContent" data-url="/p/{{.Data.NextPostID}}" data-ajax="true"  title='{{getMessage "common.next" .Context.Lang}}'>
+                            {{else}}
+                            <a href="javascript:void(0)"  title='{{getMessage "common.is_last_page" .Context.Lang}}'>
+                                {{end}}
+                                <i class="mdi mdi-arrow-right"></i></a>
                 </div>
                 <div class="flex justify-between mb-4">
                     <p class="text-gray-600 dark:text-gray-400 text-sm">{{getMessage "common.authors" .Context.Lang}}
@@ -42,5 +50,5 @@
             </div>
         </div>
     </section>
-
+</div>
 {{end}}

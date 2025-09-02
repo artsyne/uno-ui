@@ -22,7 +22,26 @@ const Diary = {
       this.showPostBoxAction,
       this.postInfoAction,
       this.gotoUrlAction,
+      this.getAjaxContentAction,
     ];
+  },
+  /**
+   * 获取ajax内容行为
+   */
+  getAjaxContentAction: {
+    id: 'getAjaxContent',
+    type: 'function',
+    handler: function (id, target, eventData, data) {
+      history.pushState(null, '', data.url);
+      return $.ajax({
+        url: data.url+ '?isajax=true',
+        type: 'GET',
+        dataType: 'html',
+        success: function (data) {
+          $('.post-container').first().html(data);
+        },
+      });
+    },
   },
   
   /**
@@ -32,12 +51,13 @@ const Diary = {
     id: 'gotoUrl',
     type: 'function',
     handler: function (id, target, eventData, data) {
+      const originalUrl = window.location.href;
       kiko.ui.box.dialog({
         ajaxUrl: data.url+ '?isajax=true',
         widthClass:'lg:w-[90%]',
         heightClass:'h-full',
         onClose: () => {
-          history.back(-1);
+          history.pushState(null, '', originalUrl);
         },
         onOpen: () => {
           history.pushState(null, '', data.url);

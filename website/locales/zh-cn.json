@@ -29,6 +29,8 @@
     "disabled": "禁用",
     "next": "下一页",
     "previous": "上一页",
+    "is_last_page": "已是最后一篇",
+    "is_first_page": "已是第一篇",
     "confirm": "确认",
     "search": "搜索",
     "filter": "筛选",

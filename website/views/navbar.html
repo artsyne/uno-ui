@@ -37,21 +37,19 @@
                             {{getFirstCharOfName .}}
                         </div>
                     </a>
-                    <div id="user_menu"
-                        class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3"
-                        style="display:none;">
+                    <div id="user_menu" class="tooltip" style="display:none;">
                         <ul>
                             <li><a href="/u/{{getUserID .}}"
-                                    class="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"><i
-                                        class="mdi mdi-home-variant-outline"></i> {{getMessage "user.label.my_home"
+                                    class="tooltip-link"><i
+                                        class="mdi mdi-home-variant-outline mr-2"></i> {{getMessage "user.label.my_home"
                                     .Context.Lang}}</a></li>
                             <li><a href="/u/settings"
-                                    class="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"><i
-                                        class="mdi mdi-cogs"></i>
+                                    class="tooltip-link"><i
+                                        class="mdi mdi-cogs mr-2"></i>
                                     {{getMessage "user.label.settings" .Context.Lang}}</a></li>
                             <li><a href="/loginout"
-                                    class="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"><i
-                                        class="mdi mdi-logout"></i> {{getMessage "auth.button.logout"
+                                    class="tooltip-link"><i
+                                        class="mdi mdi-logout mr-2"></i> {{getMessage "auth.button.logout"
                                     .Context.Lang}}</a></li>
                         </ul>
                     </div>

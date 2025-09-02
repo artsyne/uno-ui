@@ -229,6 +229,11 @@ function initScrollHeader() {
     if (window.scrollY !== lastScrollY) {
       lastScrollY = window.scrollY;
       $topNav.html(lastScrollY > 1 ? pageNavHtml : '');
+      
+      // 重新初始化新插入的tooltip元素
+      if (lastScrollY > 1 && kiko.ui && kiko.ui.tooltip) {
+        kiko.ui.tooltip.initElement($topNav.find('[data-tooltip], [data-tooltip-content], [data-tooltip-target]'));
+      }
     }
   });
 }

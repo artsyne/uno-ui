@@ -29,6 +29,8 @@
     "disabled": "Disabled",
     "next": "Next",
     "previous": "Previous",
+    "is_last_page": "Is Last Post",
+    "is_first_page": "Is First Post",
     "confirm": "Confirm",
     "search": "Search",
     "filter": "Filter",

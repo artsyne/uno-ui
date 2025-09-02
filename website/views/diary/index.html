@@ -80,20 +80,33 @@
             {{range .Data.Posts}}
             <div class="card mb-6 break-inside-avoid">
                 {{if $.Data.IsOwner}}
-                <div class="post-edit"
-                    data-action="togglePostMenu" data-post-id="{{.PostID}}">
-                    <i class="mdi mdi-dots-horizontal"></i>
+                <div class="post-edit">
+                    <a href="#" data-tooltip-target="post_edit{{.PostID}}" data-tooltip-position="bottom"
+                        data-tooltip-event="click,mouseover">
+                        <i class="mdi mdi-dots-horizontal"></i></a>
+                </div>
+                <div id="post_edit{{.PostID}}" class="tooltip hidden">
+                    <ul>
+                        <li><a href="" class="tooltip-link" data-action="showPostBox" data-form-action="post.edit"
+                                data-diary-id="{{$.Data.Diary.DiaryID}}" data-post-id="{{.PostID}}">
+                                <i class="mdi mdi-pencil-outline mr-2"></i> {{getMessage "common.edit" $lang}}</a></li>
+                        <li><a href="" class="tooltip-link" data-action="deletePost"
+                                data-diary-id="{{$.Data.Diary.DiaryID}}" data-post-id="{{.PostID}}">
+                                <i class="mdi mdi-delete-outline mr-2"></i> {{getMessage "common.delete" $lang}}</a>
+                        </li>
+                    </ul>
                 </div>
                 {{end}}
                 <div class="mb-4">
-                     {{if .Title }} 
+                    {{if .Title }}
                     <h1 class="post-title">
-                       {{.Title}} 
+                        {{.Title}}
                     </h1>
                     {{end}}
-                    <p class="text-relaxed cursor-pointer" >
-                        <a href="/p/{{.PostID}}" data-action="gotoUrl" data-url="/p/{{.PostID}}" data-ajax="true" style="all:unset !important">
-                        {{ .Summary}}
+                    <p class="text-relaxed cursor-pointer">
+                        <a href="/p/{{.PostID}}" data-action="gotoUrl" data-url="/p/{{.PostID}}" data-ajax="true"
+                            style="all:unset !important">
+                            {{ .Summary}}
                         </a>
                     </p>
                 </div>
@@ -104,30 +117,16 @@
                         </span>
                     </div>
                     {{if eq $socialSetting 1}}
-                    <div class="scocial-link">
-                        <a href="#" >
+                    <div>
+                        <a href="#" class="mr-2">
                             <i class="mdi mdi-comment-text-outline mr-1"></i> <span>{{.CommentNum}}</span>
                         </a>
-                        <a href="#" >
+                        <a href="#">
                             <i class="mdi mdi-thumb-up-outline mr-1"></i><span>{{.LikeNum}}</span>
                         </a>
                     </div>
                     {{end}}
                 </div>
-                {{if $.Data.IsOwner}}
-                <div class="mb-4 flex justify-between">
-                    <div>
-                        <a href="" class="text-red-600 hover:text-red-800" data-action="deletePost"
-                            data-diary-id="{{$.Data.Diary.DiaryID}}" data-post-id="{{.PostID}}">{{getMessage
-                            "common.delete" $lang}}</a>
-                    </div>
-                    <div>
-                        <a href="" class="text-blue-600 hover:text-blue-800" data-action="showPostBox"
-                            data-form-action="post.edit" data-diary-id="{{$.Data.Diary.DiaryID}}"
-                            data-post-id="{{.PostID}}">{{getMessage "common.edit" $lang}}</a>
-                    </div>
-                </div>
-                {{end}}
             </div>
             {{end}}
         </div>
