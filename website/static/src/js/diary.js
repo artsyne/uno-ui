@@ -59,7 +59,7 @@ const Diary = {
         content: confirmMessage,
         width: 500,
         height: 80,
-        okButtonClass:'btn-red',
+        okButtonClass:'btn',
         onOk: function() {
           // 发送删除请求
           $.ajax({
@@ -100,6 +100,7 @@ const Diary = {
       const originalUrl = window.location.href;
       kiko.ui.box.dialog({
         ajaxUrl: data.url+ '?isajax=true',
+        containerClass:'!border',
         widthClass:'lg:w-[90%]',
         heightClass:'h-full',
         onClose: () => {
@@ -140,7 +141,8 @@ const Diary = {
         height: 570,
         showOkButton: true,
         okButtonText: kiko.i18n.getMessage('post.save') || '保存',
-        okButtonClass: 'btn-red',
+        containerClass:'!border',
+        okButtonClass: 'btn',
         buttonAlign: 'right',
         onOk: () => this._handlePostSubmit(data, boxId),
       });
@@ -217,7 +219,7 @@ const Diary = {
       }
 
       // 显示提交状态
-      const $okButton = $('.kiko-dialog-footer .btn-red');
+      const $okButton = $('.kiko-dialog-footer .btn');
       const originalText = $okButton.text();
       $okButton.prop('disabled', true).text('保存中...');
 
@@ -405,11 +407,12 @@ const Diary = {
       const boxId = kiko.ui.box.dialog({
         title: dialogTitle,
         content: `<div class="modal-body" id="add-diary-form-container">${kiko.i18n.getMessage('loading')}</div>`,
-        width: 780,
-        height: 460,
+        width: 800,
+        height: 500,
         showOkButton: true,
+        containerClass:'!border',
         okButtonText: kiko.i18n.getMessage('diary.save') || '保存',
-        okButtonClass: 'btn-red',
+        okButtonClass: 'btn',
         buttonAlign: 'right',
         onOk: () => this._handleFormSubmit(data, boxId),
       });
@@ -431,7 +434,7 @@ const Diary = {
       }
 
       // 显示提交状态
-      const $okButton = $('.kiko-dialog-footer .btn-red');
+      const $okButton = $('.kiko-dialog-footer .btn');
       const originalText = $okButton.text();
       $okButton.prop('disabled', true).text('保存中...');
 

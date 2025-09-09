@@ -9,7 +9,8 @@
                 <div class="form-group">
                     <h1 class="form-header">{{getMessage "auth.title.login" .Context.Lang}}</h1>
                     <div class="block">
-                        <label for="login_name" class="form-title">{{getMessage "auth.label.username_or_email" .Context.Lang}}</label>
+                        <label for="login_name" class="form-title">{{getMessage "auth.label.username_or_email"
+                            .Context.Lang}}</label>
                         <input type="text" class="form-control" id="login_name" name="login_name"
                             valid='[{"type":"limit","min":4,"max":20},"validname"]' />
                     </div>
@@ -19,15 +20,17 @@
                             valid='[{"type":"limit","min":6,"max":30}]' />
                     </div>
                     <div class="block text-center">
-                        <button class="w-full btn-red" type="button" id="login_btn">登录
+                        <button class="w-full btn" type="button" id="login_btn">登录
                         </button>
                     </div>
                     <div class="flex justify-between">
                         <div class="">
-                            <a href="/findpwd"><span class="mdi mdi-key-outline"></span> {{getMessage "auth.link.forgot_password" .Context.Lang}}</a>
+                            <a href="/findpwd"><span class="mdi mdi-key-outline"></span> {{getMessage
+                                "auth.link.forgot_password" .Context.Lang}}</a>
                         </div>
                         <div class="">
-                            <a href="/register">{{getMessage "auth.button.register_free" .Context.Lang}} <span class="mdi mdi-account-plus-outline"></span></a>
+                            <a href="/register">{{getMessage "auth.button.register_free" .Context.Lang}} <span
+                                    class="mdi mdi-account-plus-outline"></span></a>
                         </div>
                     </div>
                 </div>

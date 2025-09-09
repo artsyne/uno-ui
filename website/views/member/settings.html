@@ -36,7 +36,8 @@
                     <div class="mb-4">
                         <label class="form-title">{{getMessage "member.settings.username_label" .Context.Lang}}</label>
                         <input type="text" class="form-control" id="user_name" name="user_name"
-                            value="{{.Data.User.UserName}}" readonly placeholder='{{getMessage "member.settings.username_placeholder" .Context.Lang}}' />
+                            value="{{.Data.User.UserName}}" readonly
+                            placeholder='{{getMessage "member.settings.username_placeholder" .Context.Lang}}' />
                         <p class="form-info">
                             {{getMessage "member.settings.username_note" .Context.Lang}}
                         </p>
@@ -60,8 +61,7 @@
                         <label class="form-title" for="remark">{{getMessage "member.settings.bio_label"
                             .Context.Lang}}</label>
                         <textarea class="form-control" id="remark" name="remark"
-                            valid='[{"type":"limit","max":250,"show":true}]' style="height: 120px;"
-                            placeholder='{{getMessage "member.settings.bio_placeholder"
+                            valid='[{"type":"limit","max":250,"show":true}]' style="height: 120px;" placeholder='{{getMessage "member.settings.bio_placeholder"
                             .Context.Lang}}'>{{.Data.User.Remark}}</textarea>
                     </div>
 
@@ -94,7 +94,7 @@
 
                     <!-- Save buttons -->
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="btn-red" data-action="save-profile">{{getMessage
+                        <button type="submit" class="btn" data-action="save-profile">{{getMessage
                             "member.settings.save_changes_button" .Context.Lang}}</button>
                     </div>
                 </div>
@@ -107,7 +107,8 @@
             <form id="email-form">
                 <div>
                     <div class="mb-4">
-                        <input type="email" class="form-control" id="email" name="email" placeholder='{{getMessage "member.settings.email_placeholder" .Context.Lang}}'
+                        <input type="email" class="form-control" id="email" name="email"
+                            placeholder='{{getMessage "member.settings.email_placeholder" .Context.Lang}}'
                             valid='[{"type":"required"},{"type":"email"}]' value="{{.Data.User.Email}}"
                             data-original-value="{{.Data.User.Email}}">
                         <p class="form-info">
@@ -117,7 +118,7 @@
 
                     <!-- Save buttons -->
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="btn-red" data-action="save-email">{{getMessage
+                        <button type="submit" class="btn" data-action="save-email">{{getMessage
                             "member.settings.save_changes_button" .Context.Lang}}</button>
                     </div>
                 </div>
@@ -158,7 +159,7 @@
 
                     <!-- Change password button -->
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="btn-red" data-action="change-password">{{getMessage
+                        <button type="submit" class="btn" data-action="change-password">{{getMessage
                             "member.settings.change_password_button" .Context.Lang}}</button>
                     </div>
                 </div>

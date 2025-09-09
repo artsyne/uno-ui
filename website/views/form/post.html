@@ -5,14 +5,55 @@
         <div class="flex flex-col mx-auto">
             <div class="form-group">
                 <div class="block">
-                    <label class="form-title" for="info_title">{{getMessage "post.form.title_optional" .Context.Lang}}</label>
-                <input type="text" class="form-control" id="info_title" name="info_title"
-                        valid='["emptyquit",{"type":"limit","max":250}]' placeholder='{{getMessage "form.placeholder.diary_title" .Context.Lang}}'
+                    <label class="form-title" for="info_title">{{getMessage "post.form.title_optional"
+                        .Context.Lang}}</label>
+                    <input type="text" class="form-control" id="info_title" name="info_title"
+                        valid='["emptyquit",{"type":"limit","max":250}]'
+                        placeholder='{{getMessage "form.placeholder.diary_title" .Context.Lang}}'
                         value="{{if .Data.Post}}{{.Data.Post.Title}}{{end}}">
                 </div>
                 <div class="block">
-                    <label class="form-title" for="info_body">{{getMessage "post.form.content_required" .Context.Lang}}</label>
-                <textarea class="form-control h-96" id="info_body" name="info_body" rows="8"
+                    <div class="flex justify-between">
+                        <label class="form-title" for="info_body">{{getMessage "post.form.content_required"
+                            .Context.Lang}}</label>
+                        <p class="form-title"><a href="#" data-tooltip-target="formatting_tooltip"
+                                data-tooltip-position="bottom"
+                                data-tooltip-event="click,mouseover">FORMATTING</a></p>
+                        <div id="formatting_tooltip" class="tooltip hidden text-sm">
+                            <ul>
+                                <li style="display: flex; justify-content: space-between;">
+                                    <span>{{getMessage "markdown.syntax.italic" .Context.Lang}}</span><span>*italic* or _italic_</span>
+                                </li>
+                                <li style="display: flex; justify-content: space-between;">
+                                    <span>{{getMessage "markdown.syntax.bold" .Context.Lang}}</span><span>**bold** or __bold__</span>
+                                </li>
+                                <li style="display: flex; justify-content: space-between;">
+                                    <span>{{getMessage "markdown.syntax.combined" .Context.Lang}}</span><span>**bold and _italic_ **</span>
+                                </li>
+                                <li style="display: flex; justify-content: space-between;"><span>{{getMessage "markdown.syntax.horizontal_rule" .Context.Lang}}</span><span>---</span></li>
+                                <li style="display: flex; justify-content: space-between;">
+                                    <span>{{getMessage "markdown.syntax.strikethrough" .Context.Lang}}</span><span>~~strike this~~</span>
+                                </li>
+                                <li style="display: flex; justify-content: space-between;">
+                                    <span>{{getMessage "markdown.syntax.highlighted" .Context.Lang}}</span><span>==highlighted==</span>
+                                </li>
+                                <li style="display: flex; justify-content: space-between;"><span>{{getMessage "markdown.syntax.ordered_list" .Context.Lang}}</span><span>1. List item</span></li>
+                                <li style="display: flex; justify-content: space-between;"><span>{{getMessage "markdown.syntax.unordered_list" .Context.Lang}}</span><span>- List item</span></li>
+                                <li style="display: flex; justify-content: space-between;">
+                                    <span>{{getMessage "markdown.syntax.links" .Context.Lang}}</span><span>[link text](link URL)</span>
+                                </li>
+                                <li style="display: flex; justify-content: space-between;"><span>{{getMessage "markdown.syntax.inline_code" .Context.Lang}}</span><span>`code`</span></li>
+                                <li style="display: flex; justify-content: space-between;"><span>{{getMessage "markdown.syntax.multiline_code" .Context.Lang}}</span><span>```multiline code```</span></li>
+                                <li style="display: flex; justify-content: space-between;">
+                                    <span>{{getMessage "markdown.syntax.blockquote" .Context.Lang}}</span><span>> I'm a quote</span>
+                                </li>
+                                <li style="display: flex; justify-content: space-between;">
+                                    <span>{{getMessage "markdown.syntax.headers" .Context.Lang}}</span><span class="ml-3"># h1 ## h2 ### h3 ####...</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <textarea class="form-control h-96" id="info_body" name="info_body" rows="8"
                         valid='["required",{"type":"limit","max":10000,"show":true}]'
                         placeholder='{{getMessage "post.form.content_placeholder" .Context.Lang}}'>{{if .Data.Post}}{{.Data.Post.Body}}{{end}}</textarea>
                 </div>

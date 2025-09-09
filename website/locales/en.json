@@ -225,5 +225,22 @@
     "title": "Comments",
     "submit": "Comment",
     "follow": "Follow"
+  },
+  "markdown": {
+    "syntax": {
+      "italic": "Italic",
+      "bold": "Bold",
+      "combined": "Combined",
+      "horizontal_rule": "Horizontal rule",
+      "strikethrough": "Strikethrough",
+      "highlighted": "Highlighted",
+      "ordered_list": "Ordered list",
+      "unordered_list": "Unordered list",
+      "links": "Links",
+      "inline_code": "Inline code",
+      "multiline_code": "Multiline code",
+      "blockquote": "Blockquote",
+      "headers": "Headers"
+    }
   }
 }
