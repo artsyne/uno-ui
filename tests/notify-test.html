@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiko UI Notify 2.0 - 测试页面</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../kiko/src/ui/notify.js"></script>
+    <style>
+        .test-section {
+            @apply mb-8 p-6 bg-white rounded-lg shadow-md;
+        }
+        .test-button {
+            @apply px-4 py-2 m-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors;
+        }
+        .test-button:hover {
+            @apply bg-blue-600;
+        }
+        .section-title {
+            @apply text-xl font-bold mb-4 text-gray-800;
+        }
+        .button-group {
+            @apply flex flex-wrap gap-2;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Kiko UI Notify 2.0 测试页面</h1>
+        
+        <!-- 主题切换 -->
+        <div class="text-center mb-8">
+            <button id="theme-toggle" class="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                切换深色模式
+            </button>
+        </div>
+
+        <!-- 基本消息通知测试 -->
+        <div class="test-section">
+            <h2 class="section-title">基本消息通知</h2>
+            <div class="button-group">
+                <button id="btn-success" class="test-button bg-green-500 hover:bg-green-600">成功消息</button>
+                <button id="btn-warning" class="test-button bg-yellow-500 hover:bg-yellow-600">警告消息</button>
+                <button id="btn-error" class="test-button bg-red-500 hover:bg-red-600">错误消息</button>
+                <button id="btn-custom" class="test-button bg-purple-500 hover:bg-purple-600">自定义消息</button>
+            </div>
+        </div>
+
+        <!-- 增强API测试 - 位置配置 -->
+        <div class="test-section">
+            <h2 class="section-title">位置配置测试（新API）</h2>
+            <div class="button-group">
+                <button id="btn-pos-top" class="test-button">顶部</button>
+                <button id="btn-pos-bottom" class="test-button">底部</button>
+                <button id="btn-pos-center" class="test-button">居中</button>
+                <button id="btn-pos-top-right" class="test-button">右上角</button>
+                <button id="btn-pos-bottom-left" class="test-button">左下角</button>
+            </div>
+        </div>
+
+        <!-- 增强API测试 - 超时配置 -->
+        <div class="test-section">
+            <h2 class="section-title">超时配置测试（新API）</h2>
+            <div class="button-group">
+                <button id="btn-timeout-short" class="test-button">短时间显示(1秒)</button>
+                <button id="btn-timeout-long" class="test-button">长时间显示(10秒)</button>
+                <button id="btn-timeout-permanent" class="test-button">永久显示</button>
+                <button id="btn-timeout-config" class="test-button">配置对象方式</button>
+            </div>
+        </div>
+
+        <!-- 样式自定义测试 -->
+        <div class="test-section">
+            <h2 class="section-title">样式自定义测试</h2>
+            <div class="button-group">
+                <button id="btn-custom-style" class="test-button bg-indigo-500 hover:bg-indigo-600">自定义样式初始化</button>
+                <button id="btn-reset-style" class="test-button bg-gray-500 hover:bg-gray-600">重置默认样式</button>
+            </div>
+        </div>
+
+        <!-- 加载状态测试 -->
+        <div class="test-section">
+            <h2 class="section-title">加载状态测试（增强版）</h2>
+            <div class="button-group">
+                <button id="btn-loading-indicator" class="test-button">显示加载指示器</button>
+                <button id="btn-loading-progressbar" class="test-button">显示进度条</button>
+                <button id="btn-loading-center" class="test-button">居中加载指示器</button>
+                <button id="btn-loading-stop" class="test-button bg-red-500 hover:bg-red-600">停止加载</button>
+            </div>
+        </div>
+
+        <!-- 综合测试 -->
+        <div class="test-section">
+            <h2 class="section-title">综合功能测试</h2>
+            <div class="button-group">
+                <button id="btn-demo-workflow" class="test-button bg-green-500 hover:bg-green-600">模拟工作流程</button>
+                <button id="btn-stress-test" class="test-button bg-orange-500 hover:bg-orange-600">压力测试</button>
+                <button id="btn-clear-all" class="test-button bg-red-500 hover:bg-red-600">清除所有消息</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // 初始化通知组件
+            kiko.ui.notify.init({
+                successDuration: 2000,
+                warningDuration: 3000,
+                errorDuration: 4000,
+                lazyInit: true
+            });
+
+            // 主题切换功能
+            $('#theme-toggle').on('click', function() {
+                $('html').toggleClass('dark');
+                $(this).text($('html').hasClass('dark') ? '切换浅色模式' : '切换深色模式');
+            });
+
+            // 基本消息通知测试
+            $('#btn-success').on('click', function() {
+                kiko.ui.notify.success('操作成功完成！');
+            });
+
+            $('#btn-warning').on('click', function() {
+                kiko.ui.notify.warning('请注意：此操作可能需要较长时间');
+            });
+
+            $('#btn-error').on('click', function() {
+                kiko.ui.notify.error('操作失败，请检查网络连接后重试');
+            });
+
+            $('#btn-custom').on('click', function() {
+                kiko.ui.notify.show('这是一个自定义消息', 'success', 5000);
+            });
+
+            // 位置配置测试（新API）
+            $('#btn-pos-top').on('click', function() {
+                kiko.ui.notify.success('顶部消息', { position: 'top' });
+            });
+
+            $('#btn-pos-bottom').on('click', function() {
+                kiko.ui.notify.warning('底部消息', { position: 'bottom' });
+            });
+
+            $('#btn-pos-center').on('click', function() {
+                kiko.ui.notify.error('居中消息', { position: 'center' });
+            });
+
+            $('#btn-pos-top-right').on('click', function() {
+                kiko.ui.notify.success('右上角消息', { position: 'top-right' });
+            });
+
+            $('#btn-pos-bottom-left').on('click', function() {
+                kiko.ui.notify.warning('左下角消息', { position: 'bottom-left' });
+            });
+
+            // 超时配置测试（新API）
+            $('#btn-timeout-short').on('click', function() {
+                kiko.ui.notify.success('短时间显示', { timeout: 1000 });
+            });
+
+            $('#btn-timeout-long').on('click', function() {
+                kiko.ui.notify.warning('长时间显示', { timeout: 10000 });
+            });
+
+            $('#btn-timeout-permanent').on('click', function() {
+                kiko.ui.notify.error('永久显示（需手动关闭）', { timeout: 0 });
+            });
+
+            $('#btn-timeout-config').on('click', function() {
+                kiko.ui.notify.show('使用配置对象', {
+                    type: 'success',
+                    timeout: 3000,
+                    position: 'top-right'
+                });
+            });
+
+            // 样式自定义测试
+            $('#btn-custom-style').on('click', function() {
+                kiko.ui.notify.init({
+                    styleConfig: {
+                        message: {
+                            success: 'bg-emerald-50 border-emerald-200 text-emerald-800 shadow-lg',
+                            warning: 'bg-amber-50 border-amber-200 text-amber-800 shadow-lg',
+                            error: 'bg-rose-50 border-rose-200 text-rose-800 shadow-lg'
+                        },
+                        loadingIndicator: 'fixed top-4 right-4 z-50 bg-white border-2 border-blue-200 text-blue-700 p-3 rounded-xl shadow-xl flex items-center'
+                    }
+                });
+                kiko.ui.notify.success('已应用自定义样式！');
+            });
+
+            $('#btn-reset-style').on('click', function() {
+                kiko.ui.notify.init(); // 重置为默认样式
+                kiko.ui.notify.success('已重置为默认样式');
+            });
+
+            // 加载状态测试（增强版）
+            $('#btn-loading-indicator').on('click', function() {
+                kiko.ui.notify.loading(true, 'indicator');
+                setTimeout(() => {
+                    kiko.ui.notify.loading(false);
+                    kiko.ui.notify.success('加载完成');
+                }, 3000);
+            });
+
+            $('#btn-loading-progressbar').on('click', function() {
+                kiko.ui.notify.loading(true, 'progressbar');
+                setTimeout(() => {
+                    kiko.ui.notify.loading(false);
+                    kiko.ui.notify.success('进度条加载完成');
+                }, 3000);
+            });
+
+            $('#btn-loading-center').on('click', function() {
+                kiko.ui.notify.loading(true, {
+                    style: 'indicator',
+                    position: 'center'
+                });
+                setTimeout(() => {
+                    kiko.ui.notify.loading(false);
+                    kiko.ui.notify.success('居中加载完成');
+                }, 3000);
+            });
+
+            $('#btn-loading-stop').on('click', function() {
+                kiko.ui.notify.loading(false);
+                kiko.ui.notify.warning('已停止所有加载状态');
+            });
+
+            // 综合功能测试
+            $('#btn-demo-workflow').on('click', function() {
+                // 模拟一个完整的工作流程
+                kiko.ui.notify.success('开始处理...', { position: 'top-right', timeout: 1000 });
+                
+                setTimeout(() => {
+                    kiko.ui.notify.loading(true, 'progressbar');
+                    kiko.ui.notify.warning('正在处理数据...', { position: 'bottom', timeout: 2000 });
+                }, 1000);
+                
+                setTimeout(() => {
+                    kiko.ui.notify.loading(false);
+                    kiko.ui.notify.success('处理完成！', { position: 'center', timeout: 3000 });
+                }, 4000);
+            });
+
+            $('#btn-stress-test').on('click', function() {
+                // 压力测试 - 快速显示多个消息
+                const positions = ['top', 'bottom', 'top-right', 'bottom-left', 'center'];
+                const types = ['success', 'warning', 'error'];
+                
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        const pos = positions[i % positions.length];
+                        const type = types[i % types.length];
+                        kiko.ui.notify[type](`压力测试消息 ${i + 1}`, {
+                            position: pos,
+                            timeout: 2000 + (i * 500)
+                        });
+                    }, i * 200);
+                }
+            });
+
+            $('#btn-clear-all').on('click', function() {
+                // 清除所有消息（通过隐藏容器实现）
+                if (kiko.ui.notify._dom.messageContainer) {
+                    kiko.ui.notify._dom.messageContainer.empty().hide();
+                }
+                kiko.ui.notify.loading(false);
+                kiko.ui.notify.success('已清除所有消息', { timeout: 1000 });
+            });
+        });
+    </script>
+</body>
+</html>
