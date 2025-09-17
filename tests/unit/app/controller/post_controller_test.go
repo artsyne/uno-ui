@@ -218,3 +218,181 @@ func TestDeletePostValidation(t *testing.T) {
 		})
 	}
 }
+
+// TestGetPostsStatsRequest 测试获取文章统计信息请求解析
+func TestGetPostsStatsRequest(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	tests := []struct {
+		name        string
+		diaryID     string
+		postIDs     string
+		expectError bool
+		errorMsg    string
+		expectedLen int
+	}{
+		{
+			name:        "有效的统计请求 - 单个ID",
+			diaryID:     "123",
+			postIDs:     "456",
+			expectError: false,
+			errorMsg:    "",
+			expectedLen: 1,
+		},
+		{
+			name:        "有效的统计请求 - 多个ID",
+			diaryID:     "123",
+			postIDs:     "456,789,101112",
+			expectError: false,
+			errorMsg:    "",
+			expectedLen: 3,
+		},
+		{
+			name:        "有效的统计请求 - 带空格的ID列表",
+			diaryID:     "123",
+			postIDs:     "456, 789 , 101112",
+			expectError: false,
+			errorMsg:    "",
+			expectedLen: 3,
+		},
+		{
+			name:        "无效的diaryID",
+			diaryID:     "0",
+			postIDs:     "456",
+			expectError: true,
+			errorMsg:    "required",
+			expectedLen: 0,
+		},
+		{
+			name:        "空的postIDs",
+			diaryID:     "123",
+			postIDs:     "",
+			expectError: true,
+			errorMsg:    "required",
+			expectedLen: 0,
+		},
+		{
+			name:        "无效的postID格式",
+			diaryID:     "123",
+			postIDs:     "456,abc,789",
+			expectError: true,
+			errorMsg:    "invalid post id",
+			expectedLen: 0,
+		},
+		{
+			name:        "包含负数的postID",
+			diaryID:     "123",
+			postIDs:     "456,-1,789",
+			expectError: false, // ParseInt可以解析负数
+			errorMsg:    "",
+			expectedLen: 3,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+
+			// 设置路径参数
+			c.Params = gin.Params{
+				{Key: "diaryid", Value: tt.diaryID},
+			}
+
+			// 设置查询参数
+			req, _ := http.NewRequest("GET", "/d/"+tt.diaryID+"/posts/stats?postids="+tt.postIDs, nil)
+			c.Request = req
+
+			// 解析请求
+			var statsReq post.GetPostsStatsRequest
+			uriErr := c.ShouldBindUri(&statsReq)
+			queryErr := c.ShouldBindQuery(&statsReq)
+
+			// 检查基本绑定错误
+			if tt.expectError && (tt.errorMsg == "min" || tt.errorMsg == "required") {
+				if tt.errorMsg == "min" {
+					// 对于min验证错误，可能同时有uri和query错误
+					hasError := uriErr != nil || queryErr != nil
+					assert.True(t, hasError)
+					if uriErr != nil {
+						assert.Contains(t, uriErr.Error(), tt.errorMsg)
+					} else if queryErr != nil {
+						assert.Contains(t, queryErr.Error(), tt.errorMsg)
+					}
+				} else if tt.errorMsg == "required" {
+					// 对于required验证错误，可能同时有uri和query错误
+					hasError := uriErr != nil || queryErr != nil
+					assert.True(t, hasError)
+					if uriErr != nil {
+						assert.Contains(t, uriErr.Error(), tt.errorMsg)
+					} else if queryErr != nil {
+						assert.Contains(t, queryErr.Error(), tt.errorMsg)
+					}
+				}
+				return
+			}
+
+			// 如果基本绑定成功，测试ParsePostIDs
+			if uriErr == nil && queryErr == nil {
+				postIDs, parseErr := statsReq.ParsePostIDs()
+
+				if tt.expectError {
+					assert.Error(t, parseErr)
+					if tt.errorMsg != "" {
+						assert.Contains(t, parseErr.Error(), tt.errorMsg)
+					}
+				} else {
+					assert.NoError(t, parseErr)
+					assert.Len(t, postIDs, tt.expectedLen)
+					if tt.expectedLen > 0 {
+						// 验证第一个ID是否正确解析
+						expectedFirstID, _ := strconv.ParseInt("456", 10, 64)
+						assert.Equal(t, expectedFirstID, postIDs[0])
+					}
+				}
+			}
+		})
+	}
+}
+
+// TestGetPostsStatsRequestEdgeCases 测试获取文章统计信息请求的边界情况
+func TestGetPostsStatsRequestEdgeCases(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	t.Run("空字符串postIDs", func(t *testing.T) {
+		req := post.GetPostsStatsRequest{PostIDs: ""}
+		postIDs, err := req.ParsePostIDs()
+		assert.NoError(t, err)
+		assert.Empty(t, postIDs)
+	})
+
+	t.Run("只有逗号的postIDs", func(t *testing.T) {
+		req := post.GetPostsStatsRequest{PostIDs: ",,,"}
+		postIDs, err := req.ParsePostIDs()
+		assert.NoError(t, err)
+		assert.Empty(t, postIDs)
+	})
+
+	t.Run("包含空白项的postIDs", func(t *testing.T) {
+		req := post.GetPostsStatsRequest{PostIDs: "123,,456,  ,789"}
+		postIDs, err := req.ParsePostIDs()
+		assert.NoError(t, err)
+		assert.Len(t, postIDs, 3)
+		assert.Equal(t, []int64{123, 456, 789}, postIDs)
+	})
+
+	t.Run("超大数字的postIDs", func(t *testing.T) {
+		req := post.GetPostsStatsRequest{PostIDs: "9223372036854775807"} // int64最大值
+		postIDs, err := req.ParsePostIDs()
+		assert.NoError(t, err)
+		assert.Len(t, postIDs, 1)
+		assert.Equal(t, int64(9223372036854775807), postIDs[0])
+	})
+
+	t.Run("超出int64范围的数字", func(t *testing.T) {
+		req := post.GetPostsStatsRequest{PostIDs: "9223372036854775808"} // 超出int64最大值
+		_, err := req.ParsePostIDs()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid post id")
+	})
+}

@@ -1,7 +1,10 @@
 package pkg
 
 import (
+	"bytes"
+	"fmt"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/biuren/hebe/pkg"
@@ -222,25 +225,171 @@ End of document.`
 	assert.Contains(t, result, "<hr")
 }
 
+func TestMarkdownProcessor_EdgeCases(t *testing.T) {
+	mp := pkg.NewMarkdownProcessor()
+
+	tests := []struct {
+		name     string
+		source   string
+		expected string
+	}{
+		{
+			name:     "Empty string",
+			source:   "",
+			expected: "",
+		},
+		{
+			name:     "Only whitespace",
+			source:   "   \n\t  ",
+			expected: "",
+		},
+		{
+			name:     "Very long text",
+			source:   strings.Repeat("a", 10000),
+			expected: "<p>" + strings.Repeat("a", 10000) + "</p>",
+		},
+		{
+			name:     "Unicode characters",
+			source:   "# 中文标题\n\n这是**中文**内容。",
+			expected: "<h1 id=\"heading\">中文标题</h1>\n<p>这是<strong>中文</strong>内容。</p>",
+		},
+		{
+			name:     "Emoji",
+			source:   "Hello 🌍 World! 🚀",
+			expected: "<p>Hello 🌍 World! 🚀</p>",
+		},
+		{
+			name:     "HTML entities",
+			source:   "<script>alert('xss')</script>",
+			expected: "<!-- raw HTML omitted -->",
+		},
+		{
+			name:     "Malformed markdown",
+			source:   "**bold without closing",
+			expected: "<p>**bold without closing</p>",
+		},
+		{
+			name:     "Mixed line endings",
+			source:   "Line 1\r\nLine 2\nLine 3\r",
+			expected: "<p>Line 1<br />\nLine 2<br />\nLine 3</p>",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := mp.RenderToHTML(tt.source)
+			require.NoError(t, err)
+			assert.Equal(t, tt.expected, strings.TrimSpace(string(result)))
+		})
+	}
+}
+
+func TestMarkdownProcessor_RenderFromBytesEdgeCases(t *testing.T) {
+	mp := pkg.NewMarkdownProcessor()
+
+	tests := []struct {
+		name   string
+		source []byte
+	}{
+		{
+			name:   "Empty bytes",
+			source: []byte{},
+		},
+		{
+			name:   "Nil bytes",
+			source: nil,
+		},
+		{
+			name:   "Binary data",
+			source: []byte{0x00, 0x01, 0x02, 0xFF},
+		},
+		{
+			name:   "Large bytes",
+			source: bytes.Repeat([]byte("test "), 1000),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := mp.RenderFromBytes(tt.source)
+			assert.NoError(t, err, "RenderFromBytes should not return error for any input")
+		})
+	}
+}
+
+func TestMarkdownProcessor_Concurrency(t *testing.T) {
+	mp := pkg.NewMarkdownProcessor()
+	const numGoroutines = 100
+	const numIterations = 10
+
+	var wg sync.WaitGroup
+	errorChan := make(chan error, numGoroutines*numIterations)
+
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			for j := 0; j < numIterations; j++ {
+				source := fmt.Sprintf("# Goroutine %d Iteration %d\n\nThis is **test** content.", id, j)
+				_, err := mp.RenderToHTML(source)
+				if err != nil {
+					errorChan <- err
+					return
+				}
+			}
+		}(i)
+	}
+
+	wg.Wait()
+	close(errorChan)
+
+	for err := range errorChan {
+		t.Errorf("Concurrent rendering error: %v", err)
+	}
+}
+
+func TestGetDefaultMarkdownProcessor_Singleton(t *testing.T) {
+	// Test that GetDefaultMarkdownProcessor returns the same instance
+	mp1 := pkg.GetDefaultMarkdownProcessor()
+	mp2 := pkg.GetDefaultMarkdownProcessor()
+
+	assert.Same(t, mp1, mp2, "GetDefaultMarkdownProcessor should return the same instance")
+
+	// Test concurrent access to singleton
+	var wg sync.WaitGroup
+	processors := make([]*pkg.MarkdownProcessor, 100)
+
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go func(index int) {
+			defer wg.Done()
+			processors[index] = pkg.GetDefaultMarkdownProcessor()
+		}(i)
+	}
+
+	wg.Wait()
+
+	// All processors should be the same instance
+	for i := 1; i < len(processors); i++ {
+		assert.Same(t, processors[0], processors[i], "All processors should be the same instance")
+	}
+}
+
 // BenchmarkRenderMarkdown 性能测试
 func BenchmarkRenderMarkdown(b *testing.B) {
-	source := `# Performance Test
+	for i := 0; i < b.N; i++ {
+		_, err := pkg.RenderMarkdown("# Hello World\n\nThis is a **test** with _italic_ text.")
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
 
-This is a **performance** test with *various* markdown elements:
-
-- List item 1
-- List item 2
-- List item 3
-
-` + "```go\nfunc example() {\n    return \"test\"\n}\n```" + `
-
-> Blockquote for testing
-
-[Link](https://example.com)`
-
+func BenchmarkRenderMarkdownLarge(b *testing.B) {
+	largeMd := strings.Repeat("# Header\n\nThis is a **large** markdown document with _italic_ text and `code`.\n\n", 100)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := pkg.RenderMarkdown(source)
+		_, err := pkg.RenderMarkdown(largeMd)
 		if err != nil {
 			b.Fatal(err)
 		}

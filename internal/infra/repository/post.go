@@ -194,3 +194,32 @@ func (r *PostRepository) GetNextPostByDiaryID(currentPostID int64, diaryID int64
 	}
 	return postID, err
 }
+
+// GetStatsByIDs 根据日记ID列表获取统计信息
+// 只返回状态为正常(status=1)的日记统计信息
+func (r *PostRepository) GetStatsByIDs(postIDs []int64) ([]post.Post, error) {
+	if len(postIDs) == 0 {
+		return []post.Post{}, nil
+	}
+
+	// 构建IN查询的占位符
+	query, args, err := sqlx.In(`
+		SELECT post_id, diary_id, view_num, like_num, comment_num 
+		FROM br_post 
+		WHERE post_id IN (?) AND status = 1
+		ORDER BY post_id
+	`, postIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	// 重新绑定查询
+	query = r.db.Rebind(query)
+
+	var posts []post.Post
+	err = r.db.Select(&posts, query, args...)
+	if err == sql.ErrNoRows {
+		return []post.Post{}, nil
+	}
+	return posts, err
+}

@@ -17,10 +17,12 @@ import "github.com/gin-gonic/gin"
 func (ctrl *PostController) RegisterRoutes(router *gin.Engine) {
 	// 日记本页面路由组（无需鉴权，支持公开访问）
 	// 显示日记本下的日记列表
-	daybook := router.Group("/d")
+	diary := router.Group("/d")
 	{
-		daybook.GET("/:diaryid", ctrl.ShowDiaryIndex)
-		daybook.GET("/:diaryid/:pageindex", ctrl.ShowDiaryIndex)
+		diary.GET("/:diaryid", ctrl.ShowDiaryIndex)
+		diary.GET("/:diaryid/:pageindex", ctrl.ShowDiaryIndex)
+		// 根据postIds获取日记社交统计信息
+		diary.GET("/:diaryid/posts/stats", ctrl.GetPostsStats)
 	}
 
 	// 显示单个日记详情页面

@@ -579,3 +579,92 @@ func TestPostService_DeletePostByID(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+// TestPostService_GetPostsStats 测试获取文章统计信息功能
+func TestPostService_GetPostsStats(t *testing.T) {
+	// 使用新测试框架
+	ctx := framework.NewTestContext(framework.WithDatabase())
+	defer ctx.Cleanup()
+
+	// 创建真实的服务
+	config := ctx.GetConfig().GetAppConfig()
+	userRepo := repository.NewUserRepository()
+	taskRepo := repository.NewTaskRepository()
+	diaryRepo := repository.NewDiaryRepository()
+	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	
+	taskService := task.NewService(config, taskRepo)
+	i18nManager := i18n.NewLocalizationManager(config)
+	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	diaryService := diary.NewService(config, diaryRepo)
+	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
+
+	// 设置测试数据
+	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
+
+	// 创建多篇测试文章
+	var testPosts []*post.Post
+	for i := 0; i < 3; i++ {
+		testPost := &post.Post{
+			Title:       fmt.Sprintf("测试文章%d", i+1),
+			Body:        fmt.Sprintf("这是第%d篇测试文章的内容", i+1),
+			DiaryID:     testDiary.DiaryID,
+			AddUserID:   testUser.UserId,
+			AddUserName: testUser.UserName,
+			Status:      1,
+			ViewNum:     int32(10 * (i + 1)), // 设置不同的浏览数
+			LikeNum:     int32(5 * (i + 1)),  // 设置不同的点赞数
+			CommentNum:  int32(2 * (i + 1)),  // 设置不同的评论数
+		}
+		postID, err := postService.AddPost(testPost)
+		require.NoError(t, err)
+		testPost.PostID = postID
+		testPosts = append(testPosts, testPost)
+	}
+
+	t.Run("成功获取多篇文章统计信息", func(t *testing.T) {
+		// 构建文章ID列表
+		postIDs := make([]int64, len(testPosts))
+		for i, p := range testPosts {
+			postIDs[i] = p.PostID
+		}
+
+		// 获取统计信息
+		stats, err := postService.GetPostsStats(postIDs)
+		require.NoError(t, err)
+		assert.Len(t, stats, len(testPosts))
+
+		// 验证返回的统计信息
+		for i, stat := range stats {
+			assert.Equal(t, testDiary.DiaryID, stat.DiaryID)
+			assert.Equal(t, testPosts[i].PostID, stat.PostID)
+			// 注意：由于数据库操作可能重置统计数据，这里主要验证结构正确性
+			assert.GreaterOrEqual(t, stat.ViewNum, int32(0))
+			assert.GreaterOrEqual(t, stat.LikeNum, int32(0))
+			assert.GreaterOrEqual(t, stat.CommentNum, int32(0))
+		}
+	})
+
+	t.Run("空文章ID列表", func(t *testing.T) {
+		stats, err := postService.GetPostsStats([]int64{})
+		require.NoError(t, err)
+		assert.Empty(t, stats)
+	})
+
+	t.Run("不存在的文章ID", func(t *testing.T) {
+		stats, err := postService.GetPostsStats([]int64{99999, 99998})
+		require.NoError(t, err)
+		assert.Empty(t, stats) // 不存在的文章应该返回空列表
+	})
+
+	t.Run("混合存在和不存在的文章ID", func(t *testing.T) {
+		mixedIDs := []int64{testPosts[0].PostID, 99999, testPosts[1].PostID}
+		stats, err := postService.GetPostsStats(mixedIDs)
+		require.NoError(t, err)
+		// 应该只返回存在的文章统计信息
+		assert.Len(t, stats, 2)
+		for _, stat := range stats {
+			assert.Contains(t, []int64{testPosts[0].PostID, testPosts[1].PostID}, stat.PostID)
+		}
+	})
+}

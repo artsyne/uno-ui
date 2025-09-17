@@ -152,19 +152,56 @@ func TestGetLocalTimeFromUTC(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
 	defer cancel()
 	
-	select {
-	case <-ctx.Done():
-		t.Fatal("测试超时")
-	default:
+	tests := []struct {
+		name     string
+		timeZone string
+		wantErr  bool
+	}{
+		{
+			name:     "Valid timezone - New York",
+			timeZone: "America/New_York",
+			wantErr:  false,
+		},
+		{
+			name:     "Valid timezone - Shanghai",
+			timeZone: "Asia/Shanghai",
+			wantErr:  false,
+		},
+		{
+			name:     "Invalid timezone",
+			timeZone: "Invalid/TimeZone",
+			wantErr:  true,
+		},
+		{
+			name:     "Empty timezone",
+			timeZone: "",
+			wantErr:  false, // 空字符串会使用UTC，不会报错
+		},
 	}
 	
 	now := time.Now().UnixMilli()
-	localTime, err := pkg.GetLocalTimeFromUTC(now, "America/New_York")
-	if err != nil {
-		t.Errorf("GetLocalTimeFromUTC returned an error: %v", err)
-	}
-	if localTime.UnixMilli() != now {
-		t.Errorf("GetLocalTimeFromUTC is not returning correct local time")
+	
+	for _, tt := range tests {
+		select {
+		case <-ctx.Done():
+			t.Fatal("测试超时")
+		default:
+		}
+		t.Run(tt.name, func(t *testing.T) {
+			localTime, err := pkg.GetLocalTimeFromUTC(now, tt.timeZone)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("GetLocalTimeFromUTC() expected error for timezone %s, got nil", tt.timeZone)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("GetLocalTimeFromUTC() returned unexpected error: %v", err)
+				}
+				if localTime.UnixMilli() != now {
+					t.Errorf("GetLocalTimeFromUTC() time mismatch, got %d, want %d", localTime.UnixMilli(), now)
+				}
+			}
+		})
 	}
 }
 

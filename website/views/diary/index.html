@@ -2,7 +2,7 @@
 {{template "header" .}}
 {{template "navbar" .}}
 
-<main class="main dt{{.Data.Diary.ThemeID}} transition-colors duration-200">
+<main class="main dt{{.Data.Diary.ThemeID}} transition-colors duration-200" data-social-setting="{{.Data.Diary.SocialSetting}}">
     <section class="flex justify-between mb-10">
         <div id="page-nav">
             <ul class="flex text-lg">
@@ -74,9 +74,6 @@
             {{
             $timezone := .Data.TimeZone
             }}
-            {{
-            $socialSetting := .Data.Diary.SocialSetting
-            }}
             {{range .Data.Posts}}
             <div class="card mb-6 break-inside-avoid" data-post-id="{{.PostID}}">
                 {{if $.Data.IsOwner}}
@@ -116,16 +113,8 @@
                             {{formatLocalTime .AddUTCTime $timezone}}
                         </span>
                     </div>
-                    {{if eq $socialSetting 1}}
-                    <div>
-                        <a href="#" class="mr-2">
-                            <i class="mdi mdi-comment-text-outline mr-1"></i> <span>{{.CommentNum}}</span>
-                        </a>
-                        <a href="#">
-                            <i class="mdi mdi-thumb-up-outline mr-1"></i><span>{{.LikeNum}}</span>
-                        </a>
+                    <div id="stats_{{.PostID}}">
                     </div>
-                    {{end}}
                 </div>
             </div>
             {{end}}

@@ -622,13 +622,23 @@ func TestWorkerEdgeCases(t *testing.T) {
 		}
 		worker := pkg.NewWorker(1, "NilFuncWorker", nil, false, 1*time.Second)
 		
+		var failureCalled bool
+		var failureMsg string
+		worker.OnFailure = func(sender interface{}, e pkg.WorkEventArgs) {
+			failureCalled = true
+			failureMsg = e.ExceptionMsg
+		}
+		
 		worker.Start()
 		
-		// 添加任务会导致panic（调用nil函数）
+		// 添加任务应该触发OnFailure事件而不是panic
 		worker.AddTask("task")
 		
-		// 等待一段时间让panic发生
-		time.Sleep(100 * time.Millisecond)
+		// 等待一段时间让事件触发
+		time.Sleep(200 * time.Millisecond)
+		
+		assert.True(t, failureCalled, "nil工作函数应该触发OnFailure事件")
+		assert.Equal(t, "Worker action is nil", failureMsg, "应该有正确的错误消息")
 		
 		worker.Dispose()
 	})

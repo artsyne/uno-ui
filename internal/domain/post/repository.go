@@ -78,4 +78,12 @@ type RepositoryInterface interface {
 	//   - int64: 下一篇日记ID，未找到时返回0
 	//   - error: 查询失败时返回错误
 	GetNextPostByDiaryID(currentPostID int64, diaryID int64) (int64, error)
+
+	// GetStatsByIDs 根据日记ID列表获取统计信息
+	// 参数:
+	//   - postIDs: 日记ID列表
+	// 返回:
+	//   - []Post: 包含统计信息的日记列表
+	//   - error: 查询失败时返回错误
+	GetStatsByIDs(postIDs []int64) ([]Post, error)
 }

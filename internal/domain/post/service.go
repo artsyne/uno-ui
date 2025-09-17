@@ -202,3 +202,18 @@ func (s *Service) GetPreviousPostByDiaryID(currentPostID int64, diaryID int64) (
 func (s *Service) GetNextPostByDiaryID(currentPostID int64, diaryID int64) (int64, error) {
 	return s.repo.GetNextPostByDiaryID(currentPostID, diaryID)
 }
+
+// GetPostsStats 根据日记ID列表获取统计信息
+func (s *Service) GetPostsStats(postIDs []int64) ([]Post, error) {
+	if len(postIDs) == 0 {
+		return []Post{}, nil
+	}
+
+	// 调用repository层获取统计信息
+	posts, err := s.repo.GetStatsByIDs(postIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	return posts, nil
+}

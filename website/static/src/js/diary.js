@@ -17,6 +17,8 @@ const Diary = {
    */
   init: function (baseUrl = '') {
     this.baseUrl = baseUrl;
+    // 自动加载统计信息
+    this.loadPostsStats();
     return [
       this.showDiaryBoxAction,
       this.showPostBoxAction,
@@ -25,6 +27,109 @@ const Diary = {
       this.gotoUrlAction,
       this.getAjaxContentAction,
     ];
+  },
+
+  /**
+   * 获取社交设置值
+   * @returns {number} 社交设置值，1表示开启，2表示关闭
+   */
+  _getSocialSetting: function() {
+    // 首先尝试从页面的data属性获取
+    const pageData = $('main').data('social-setting');
+    if (pageData !== undefined) {
+      return parseInt(pageData, 10);
+    }
+    return 2;
+  },
+
+  /**
+   * 加载日记统计信息
+   * 自动检测页面中的stats容器并加载对应的统计数据
+   * 只有当SocialSetting为1时才会加载统计信息
+   */
+  loadPostsStats: function() {
+    // 检查SocialSetting，只有为1时才加载统计信息
+    const socialSetting = this._getSocialSetting();
+    if (socialSetting !== 1) {
+      return;
+    }
+
+    // 查找所有stats容器
+    const $statsContainers = $('[id^="stats_"]');
+    
+    if ($statsContainers.length === 0) {
+      return;
+    }
+
+    // 提取所有PostID
+    const postIds = [];
+    $statsContainers.each(function() {
+      const postId = $(this).attr('id').replace('stats_', '');
+      if (postId) {
+        postIds.push(postId);
+      }
+    });
+
+    if (postIds.length === 0) {
+      return;
+    }
+
+    // 获取当前日记本ID（从URL路径中提取）
+    const pathParts = window.location.pathname.split('/');
+    const diaryId = pathParts[2]; // /d/{diaryId} 格式
+
+    if (!diaryId) {
+      return;
+    }
+
+    // 发送ajax请求获取统计信息
+    $.ajax({
+      url: `${this.baseUrl}/d/${diaryId}/posts/stats`,
+      type: 'GET',
+      data: {
+        postids: postIds.join(',')
+      },
+      global: false,
+      dataType: 'json',
+      success: (response) => {
+        if (response.code === 0 && response.data && response.data.stats) {
+          this._updatePostsStats(response.data.stats);
+        }
+      },
+      error: (xhr, status, error) => {
+        // 静默处理错误，不显示通知
+        console.log('加载统计信息失败:', error);
+      }
+    });
+  },
+
+  /**
+   * 更新日记统计信息到页面
+   * @private
+   * @param {Array} statsData - 统计数据数组
+   */
+  _updatePostsStats: function(statsData) {
+    // 遍历统计数据数组，更新对应的DOM元素
+    statsData.forEach(stats => {
+      const $container = $(`#stats_${stats.post_id}`);
+      
+      if ($container.length && stats) {
+        // 构建统计信息HTML
+        const statsHtml = `
+          <a href="#" class="mr-2">
+            <i class="mdi mdi-eye mr-1"></i> <span>${stats.view_num || 0}</span>
+          </a>
+          <a href="#" class="mr-2">
+            <i class="mdi mdi-comment-text-outline mr-1"></i> <span>${stats.comment_num || 0}</span>
+          </a>
+          <a href="#">
+            <i class="mdi mdi-thumb-up-outline mr-1"></i><span>${stats.like_num || 0}</span>
+          </a>`;
+        
+        // 更新容器内容
+        $container.html(statsHtml);
+      }
+    });
   },
   /**
    * 获取ajax内容行为
@@ -452,10 +557,10 @@ const Diary = {
             this._handleSubmitSuccess(data.formAction, response.data);
             kiko.ui.box.close(boxId);
             kiko.ui.notify.success(
-              kiko.i18n.getMessage('operation.success') || '操作成功',
+              kiko.i18n.getMessage('operation.success'),
             );
           } else {
-            this._handleSubmitError(response.message || '操作失败');
+            this._handleSubmitError(response.message);
           }
         },
         error: (xhr, status, error) => {
@@ -509,6 +614,9 @@ const Diary = {
      * @private
      */
     _updateDiaryInfo: function (diaryData) {
+      // 获取当前的SocialSetting值
+      const currentSocialSetting = Diary._getSocialSetting();
+      
       // 更新标题
       const $title = $('#diary_title');
       $title.text(diaryData.title);
@@ -528,6 +636,25 @@ const Diary = {
         return (className.match(/(^|\s)dt\d+/g) || []).join(' ');
       });
       $main.addClass(`dt${diaryData.theme_id}`);
+      
+      // 更新SocialSetting到data属性
+      if (diaryData.social_setting !== undefined) {
+        // 先更新data属性（使用.data()方法保持与_getSocialSetting的一致性）
+        $main.data('social-setting', diaryData.social_setting);
+        $main.attr('data-social-setting', diaryData.social_setting);
+        
+        // 检查SocialSetting是否有变化
+        if (currentSocialSetting !== diaryData.social_setting) {
+          // 如果SocialSetting从2修改为1，重新加载统计信息
+          if (currentSocialSetting === 2 && diaryData.social_setting === 1) {
+            Diary.loadPostsStats();
+          }
+          // 如果SocialSetting从1修改为2，清空统计信息容器
+          else if (currentSocialSetting === 1 && diaryData.social_setting === 2) {
+            $('[id^="stats_"]').empty();
+          }
+        }
+      }
     },
 
     /**

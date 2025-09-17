@@ -204,6 +204,61 @@ func (ctrl *PostController) DeletePost(c *gin.Context) {
 	})
 }
 
+// GetPostsStats 获取日记统计信息
+// 根据路径参数diaryid和查询参数postids获取指定日记的统计信息
+//
+// 路由: GET /diary/:diaryid/stats?postids=1,2,3
+// 参数:
+//   - diaryid: 日记本ID (路径参数)
+//   - postids: 日记ID列表，逗号分隔 (查询参数)
+//
+// 返回:
+//   - 包含统计信息的日记列表
+func (ctrl *PostController) GetPostsStats(c *gin.Context) {
+	// 解析请求参数
+	var req GetPostsStatsRequest
+	if err := c.ShouldBindUri(&req); err != nil {
+		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
+		return
+	}
+	if err := c.ShouldBindQuery(&req); err != nil {
+		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
+		return
+	}
+
+	// 解析postids字符串为int64切片
+	postIDs, err := req.ParsePostIDs()
+	if err != nil {
+		ctrl.renderService.JSONError(c, err) // ParsePostIDs已经返回了合适的错误类型
+		return
+	}
+
+	// 调用服务层获取统计信息
+	posts, err := ctrl.postService.GetPostsStats(postIDs)
+	if err != nil {
+		ctrl.renderService.JSONError(c, err)
+		return
+	}
+
+	// 构建响应数据
+	statsResponse := make([]PostStatsResponse, 0, len(posts))
+	for _, p := range posts {
+		statsResponse = append(statsResponse, PostStatsResponse{
+			DiaryID:    p.DiaryID,
+			PostID:     p.PostID,
+			ViewNum:    p.ViewNum,
+			LikeNum:    p.LikeNum,
+			CommentNum: p.CommentNum,
+		})
+	}
+
+	// 返回成功响应
+	response := GetPostsStatsResponse{
+		Stats: statsResponse,
+	}
+	ctrl.renderService.JSONSuccess(c, response)
+}
+
 // respondSuccess 统一的成功响应格式
 // 严格保持原有的响应格式，确保前后端配合不出错
 //
