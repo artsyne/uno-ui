@@ -89,7 +89,7 @@ func (ctrl *PostController) CreatePost(c *gin.Context, loginUser *types.AuthUser
 	}
 
 	// 返回成功响应
-	ctrl.respondSuccess(c, postData)
+	ctrl.renderService.JSONSuccess(c, postData)
 }
 
 // UpdatePost 处理编辑现有日记的业务逻辑
@@ -152,7 +152,7 @@ func (ctrl *PostController) UpdatePost(c *gin.Context, loginUser *types.AuthUser
 	}
 
 	// 返回成功响应
-	ctrl.respondSuccess(c, postData)
+	ctrl.renderService.JSONSuccess(c, postData)
 }
 
 // DeletePost 处理删除日记请求
@@ -257,17 +257,4 @@ func (ctrl *PostController) GetPostsStats(c *gin.Context) {
 		Stats: statsResponse,
 	}
 	ctrl.renderService.JSONSuccess(c, response)
-}
-
-// respondSuccess 统一的成功响应格式
-// 严格保持原有的响应格式，确保前后端配合不出错
-//
-// 参数:
-//   - c: Gin上下文对象
-//   - postData: 要返回的日记数据
-//
-// 功能:
-//   - 将日记数据以JSON格式返回给客户端
-func (ctrl *PostController) respondSuccess(c *gin.Context, postData *post.Post) {
-	ctrl.renderService.JSONSuccess(c, postData)
 }

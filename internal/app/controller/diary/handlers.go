@@ -83,7 +83,7 @@ func (ctrl *DiaryController) CreateDiary(c *gin.Context, req *ProcessDiaryReques
 	diaryData.DiaryID = diaryID
 
 	// 返回成功响应
-	ctrl.respondSuccess(c, diaryData)
+	ctrl.renderService.JSONSuccess(c, diaryData)
 }
 
 // UpdateDiary 处理编辑现有日记本的业务逻辑
@@ -141,7 +141,7 @@ func (ctrl *DiaryController) UpdateDiary(c *gin.Context, req *ProcessDiaryReques
 	}
 
 	// 返回成功响应
-	ctrl.respondSuccess(c, formData)
+	ctrl.renderService.JSONSuccess(c, formData)
 }
 
 // DeleteDiary 处理删除日记本请求（未来扩展功能）
@@ -152,14 +152,4 @@ func (ctrl *DiaryController) UpdateDiary(c *gin.Context, req *ProcessDiaryReques
 func (ctrl *DiaryController) DeleteDiary(c *gin.Context) {
 	// 预留的删除功能实现
 	ctrl.renderService.JSONError(c, &errors.InvalidParams)
-}
-
-// respondSuccess 返回成功响应
-// 统一的成功响应格式，便于后续维护和修改
-//
-// 参数:
-//   - c: Gin上下文对象
-//   - diaryData: 要返回的日记本数据
-func (ctrl *DiaryController) respondSuccess(c *gin.Context, diaryData *diary.Diary) {
-	ctrl.renderService.JSONSuccess(c, diaryData)
 }

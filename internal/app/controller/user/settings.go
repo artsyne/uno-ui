@@ -1,8 +1,6 @@
 package user
 
 import (
-	"strings"
-
 	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/gin-gonic/gin"
 )
@@ -81,7 +79,3 @@ func (ctrl *UserController) UpdatePassword(c *gin.Context) {
 	ctrl.renderService.JSONSuccess(c, gin.H{"message": "密码修改成功"})
 }
 
-// validateFullNameFormat 验证全名格式
-func (ctrl *UserController) validateFullNameFormat(fullName string) bool {
-	return len(strings.TrimSpace(fullName)) > 0 && len(fullName) <= 50
-}

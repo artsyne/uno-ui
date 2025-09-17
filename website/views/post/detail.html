@@ -44,9 +44,9 @@
                 </div>
                  {{if eq .Data.Diary.SocialSetting 1}}
                 <div class="flex justify-between text-gray-600 dark:text-gray-400 text-sm">
-                    <span><i class="mdi mdi-eye mr-1"></i>{{.Data.Post.ViewNum}}</span>
-                    <span><i class="mdi mdi-comment-text-outline mr-1"></i>{{.Data.Post.CommentNum}}</span>
-                    <span><i class="mdi mdi-thumb-up-outline mr-1"></i>{{.Data.Post.LikeNum}}</span>
+                    <span><button class="btn-social"><i class="mdi mdi-eye mr-1"></i>{{.Data.Post.ViewNum}}</button></span>
+                    <span><button class="btn-social"><i class="mdi mdi-comment-text-outline mr-1"></i>{{.Data.Post.CommentNum}}</button></span>
+                    <span><button class="btn-social"><i class="mdi mdi-thumb-up-outline mr-1"></i>{{.Data.Post.LikeNum}}</button></span>
                 </div>
                  {{end}}
             </div>

@@ -3,8 +3,9 @@
   border-color: #e53935;
 }
 
-.dt1 a {
+.dt1 a ,.dt1 button{
   color: #e53935;
+  cursor: pointer;
 }
 
 .dtf1 {
@@ -17,8 +18,9 @@
   border-color: #ef5350;
 }
 
-.dark .dt1 a {
+.dark .dt1 a,.dark .dt1 button {
   color: #ef5350;
+  cursor: pointer;
 }
 
 .dark .dtf1 {
@@ -30,8 +32,9 @@
   border-color: #eb3f79;
 }
 
-.dt2 a {
+.dt2 a ,.dt2 button{
   color: #eb3f79;
+  cursor: pointer;
 }
 
 .dtf2 {
@@ -44,8 +47,9 @@
   border-color: #f06292;
 }
 
-.dark .dt2 a {
+.dark .dt2 a,.dark .dt2 button {
   color: #f06292;
+  cursor: pointer;
 }
 
 .dark .dtf2 {
@@ -57,8 +61,9 @@
   border-color: #a900ff;
 }
 
-.dt3 a {
+.dt3 a ,.dt3 button{
   color: #a900ff;
+  cursor: pointer;
 }
 
 .dtf3 {
@@ -71,8 +76,9 @@
   border-color: #ba68c8;
 }
 
-.dark .dt3 a {
+.dark .dt3 a,.dark .dt3 button {
   color: #ba68c8;
+  cursor: pointer;
 }
 
 .dark .dtf3 {
@@ -84,8 +90,9 @@
   border-color: #7d56c1;
 }
 
-.dt4 a {
+.dt4 a ,.dt4 button{
   color: #7d56c1;
+  cursor: pointer;
 }
 
 .dtf4 {
@@ -98,8 +105,9 @@
   border-color: #9575cd;
 }
 
-.dark .dt4 a {
+.dark .dt4 a,.dark .dt4 button {
   color: #9575cd;
+  cursor: pointer;
 }
 
 .dark .dtf4 {
@@ -111,8 +119,9 @@
   border-color: #5b6abf;
 }
 
-.dt5 a {
+.dt5 a ,.dt5 button{
   color: #5b6abf;
+  cursor: pointer;
 }
 
 .dtf5 {
@@ -125,8 +134,9 @@
   border-color: #7986cb;
 }
 
-.dark .dt5 a {
+.dark .dt5 a,.dark .dt5 button {
   color: #7986cb;
+  cursor: pointer;
 }
 
 .dark .dtf5 {
@@ -138,8 +148,9 @@
   border-color: #1d87e4;
 }
 
-.dt6 a {
+.dt6 a ,.dt6 button{
   color: #1d87e4;
+  cursor: pointer;
 }
 
 .dtf6 {
@@ -152,8 +163,9 @@
   border-color: #42a5f5;
 }
 
-.dark .dt6 a {
+.dark .dt6 a,.dark .dt6 button {
   color: #42a5f5;
+  cursor: pointer;
 }
 
 .dark .dtf6 {
@@ -165,8 +177,9 @@
   border-color: #029ae4;
 }
 
-.dt7 a {
+.dt7 a ,.dt7 button{
   color: #029ae4;
+  cursor: pointer;
 }
 
 .dtf7 {
@@ -179,8 +192,9 @@
   border-color: #29b6f6;
 }
 
-.dark .dt7 a {
+.dark .dt7 a,.dark .dt7 button {
   color: #29b6f6;
+  cursor: pointer;
 }
 
 .dark .dtf7 {
@@ -192,8 +206,9 @@
   border-color: #00abc0;
 }
 
-.dt8 a {
+.dt8 a ,.dt8 button{
   color: #00abc0;
+  cursor: pointer;
 }
 
 .dtf8 {
@@ -206,8 +221,9 @@
   border-color: #26c6da;
 }
 
-.dark .dt8 a {
+.dark .dt8 a,.dark .dt8 button {
   color: #26c6da;
+  cursor: pointer;
 }
 
 .dark .dtf8 {
@@ -219,8 +235,9 @@
   border-color: #00887a;
 }
 
-.dt9 a {
+.dt9 a ,.dt9 button{
   color: #00887a;
+  cursor: pointer;
 }
 
 .dtf9 {
@@ -233,8 +250,9 @@
   border-color: #26a69a;
 }
 
-.dark .dt9 a {
+.dark .dt9 a,.dark .dt9 button {
   color: #26a69a;
+  cursor: pointer;
 }
 
 .dark .dtf9 {
@@ -246,8 +264,9 @@
   border-color: #378d3b;
 }
 
-.dt10 a {
+.dt10 a ,.dt10 button{
   color: #378d3b;
+  cursor: pointer;
 }
 
 .dtf10 {
@@ -260,8 +279,9 @@
   border-color: #66bb6a;
 }
 
-.dark .dt10 a {
+.dark .dt10 a,.dark .dt10 button {
   color: #66bb6a;
+  cursor: pointer;
 }
 
 .dark .dtf10 {
@@ -273,8 +293,9 @@
   border-color: #679e37;
 }
 
-.dt11 a {
+.dt11 a ,.dt11 button{
   color: #679e37;
+  cursor: pointer;
 }
 
 .dtf11 {
@@ -287,8 +308,9 @@
   border-color: #9ccc65;
 }
 
-.dark .dt11 a {
+.dark .dt11 a,.dark .dt11 button {
   color: #9ccc65;
+  cursor: pointer;
 }
 
 .dark .dtf11 {
@@ -300,8 +322,9 @@
   border-color: #f8a724;
 }
 
-.dt12 a {
+.dt12 a ,.dt12 button{
   color: #f8a724;
+  cursor: pointer;
 }
 
 .dtf12 {
@@ -314,8 +337,9 @@
   border-color: #ffb74d;
 }
 
-.dark .dt12 a {
+.dark .dt12 a,.dark .dt12 button {
   color: #ffb74d;
+  cursor: pointer;
 }
 
 .dark .dtf12 {
@@ -327,8 +351,9 @@
   border-color: #ff6f42;
 }
 
-.dt13 a {
+.dt13 a ,.dt13 button{
   color: #ff6f42;
+  cursor: pointer;
 }
 
 .dtf13 {
@@ -341,8 +366,9 @@
   border-color: #ff8a65;
 }
 
-.dark .dt13 a {
+.dark .dt13 a,.dark .dt13 button {
   color: #ff8a65;
+  cursor: pointer;
 }
 
 .dark .dtf13 {
@@ -354,8 +380,9 @@
   border-color: #8c6d62;
 }
 
-.dt14 a {
+.dt14 a ,.dt14 button{
   color: #8c6d62;
+  cursor: pointer;
 }
 
 .dtf14 {
@@ -368,8 +395,9 @@
   border-color: #a1887f;
 }
 
-.dark .dt14 a {
+.dark .dt14 a,.dark .dt14 button {
   color: #a1887f;
+  cursor: pointer;
 }
 
 .dark .dtf14 {
@@ -381,8 +409,9 @@
   border-color: #778f9b;
 }
 
-.dt15 a {
+.dt15 a ,.dt15 button{
   color: #778f9b;
+  cursor: pointer;
 }
 
 .dtf15 {
@@ -395,8 +424,9 @@
   border-color: #90a4ae;
 }
 
-.dark .dt15 a {
+.dark .dt15 a,.dark .dt15 button {
   color: #90a4ae;
+  cursor: pointer;
 }
 
 .dark .dtf15 {
@@ -408,8 +438,9 @@
   border-color: #414141;
 }
 
-.dt16 a {
+.dt16 a ,.dt16 button{
   color: #414141;
+  cursor: pointer;
 }
 
 .dtf16 {
@@ -422,8 +453,9 @@
   border-color: #757575;
 }
 
-.dark .dt16 a {
+.dark .dt16 a,.dark .dt16 button {
   color: #757575;
+  cursor: pointer;
 }
 
 .dark .dtf16 {

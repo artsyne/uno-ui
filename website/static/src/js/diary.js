@@ -116,15 +116,15 @@ const Diary = {
       if ($container.length && stats) {
         // 构建统计信息HTML
         const statsHtml = `
-          <a href="#" class="mr-2">
+          <button class="btn-social mr-2">
             <i class="mdi mdi-eye mr-1"></i> <span>${stats.view_num || 0}</span>
-          </a>
-          <a href="#" class="mr-2">
+          </button>
+          <button class="btn-social mr-2">
             <i class="mdi mdi-comment-text-outline mr-1"></i> <span>${stats.comment_num || 0}</span>
-          </a>
-          <a href="#">
+          </button>
+          <button class="btn-social">
             <i class="mdi mdi-thumb-up-outline mr-1"></i><span>${stats.like_num || 0}</span>
-          </a>`;
+          </button>`;
         
         // 更新容器内容
         $container.html(statsHtml);

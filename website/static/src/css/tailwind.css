@@ -11,6 +11,8 @@ a {
   @apply text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300;
 }
 
+
+
 .main {
   @apply flex-1 container px-3 pt-10 mx-auto;
 }
@@ -27,6 +29,10 @@ a {
 /* 按钮样式 - 支持 dark mode */
 .btn {
   @apply border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm tracking-widest text-black dark:text-white bg-gray-50 dark:bg-gray-800 transition hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer;
+}
+
+.btn-social{
+@apply cursor-pointer text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300;
 }
 
 .btn-red {

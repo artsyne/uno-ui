@@ -24,8 +24,11 @@
                 data-diary-id="{{.Data.Diary.DiaryID}}"><i class="mdi mdi-cogs"></i> {{getMessage
                 "diary.button.settings" .Context.Lang}}</button>
             {{end}}
-            <button class="btn" href="#"><i class="mdi mdi-thumb-up-outline mr-1"></i>{{getMessage "common.like"
+            {{if eq .Data.Diary.SocialSetting 1}}
+            <div id="diary-social"></div>
+            <button class="btn"><i class="mdi mdi-thumb-up-outline mr-1"></i>{{getMessage "common.like"
                 .Context.Lang}}</button>
+                {{end}}
         </div>
     </section>
 
