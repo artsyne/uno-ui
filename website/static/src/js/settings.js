@@ -51,18 +51,17 @@ const Settings = {
           lang: form.find('#lang').val(),
         };
 
-      // 发送POST请求保存数据
+      // 发送AJAX请求 - 全局ajaxSetup会处理表单状态
       $.ajax({
-        url: '/u/settings/profile',
-        method: 'POST',
+        url: `${Settings.baseUrl}/u/settings/profile`,
+        type: 'POST',
         data: data,
-        success: function (response) {
-          log('保存个人资料:', response);
-          kiko.ui.notify.success(kiko.i18n.getMessage('operation.success'));
-        },
-        error: function (response) {
-          kiko.ui.notify.error(kiko.i18n.getMessage('operation.fail'));
-        },
+      })
+      .done(function (response) {
+        kiko.ui.notify.success(kiko.i18n.getMessage('operation.success'));
+      })
+      .fail(function (response) {
+        kiko.ui.notify.error(kiko.i18n.getMessage('operation.fail'));
       });
     },
   },
@@ -123,20 +122,19 @@ const Settings = {
         confirm_pwd: form.find('#confirm_pwd').val(),
       };
 
-      // TODO: 实现服务端保存逻辑
+      // 发送AJAX请求 - 全局ajaxSetup会处理表单状态
       $.ajax({
-        url: '/u/settings/password',
-        method: 'POST',
+        url: `${Settings.baseUrl}/u/settings/password`,
+        type: 'POST',
         data: data,
-        success: function (response) {
-          log('修改密码:', response);
-          kiko.ui.notify.success(kiko.i18n.getMessage('operation.success'));
-          // 清空密码字段
-          form.find('#current_pwd, #new_pwd, #confirm_pwd').val('');
-        },
-        error: function (response) {
-          kiko.ui.notify.error(kiko.i18n.getMessage('operation.fail'));
-        },
+      })
+      .done(function (response) {
+        kiko.ui.notify.success(kiko.i18n.getMessage('operation.success'));
+        // 清空表单
+         form.find('#current_pwd, #new_pwd, #confirm_pwd').val('');
+      })
+      .fail(function (response) {
+        kiko.ui.notify.error(kiko.i18n.getMessage('operation.fail'));
       });
     },
   },

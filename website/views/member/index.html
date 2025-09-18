@@ -75,8 +75,8 @@
                         </h1>
                         {{ if gt .InfoNum 0 }}
                         <p class="mb-2">
-                            {{ .InfoNum }}{{getMessage "member.profile.posts_count" $lang}}
-                        </p>
+                            <span class="mr-1">{{ .InfoNum }}</span>{{getMessage "member.profile.posts_count" $lang}}
+                        </span>
                         <p class="mb-2">
                             {{ formatLocalTime .LastActionUTCTime $timeZone}}
                         </p>

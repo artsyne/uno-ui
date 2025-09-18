@@ -94,17 +94,17 @@ const Diary = {
       }),
       global: false,
       dataType: 'json',
-      success: (response) => {
-        if (response.code === 0 && response.data && response.data.stats) {
-          this._updatePostsStats(response.data.stats);
-          // 加载点赞状态（仅在用户登录时）
-          this._loadPostsLikeStatus(postIds);
-        }
-      },
-      error: (xhr, status, error) => {
-        // 静默处理错误，不显示通知
-        console.log('加载统计信息失败:', error);
-      },
+    })
+    .done((response) => {
+      if (response.code === 0 && response.data && response.data.stats) {
+        this._updatePostsStats(response.data.stats);
+        // 加载点赞状态（仅在用户登录时）
+        this._loadPostsLikeStatus(postIds);
+      }
+    })
+    .fail((xhr, status, error) => {
+      // 静默处理错误，不显示通知
+      console.log('加载统计信息失败:', error);
     });
   },
 
@@ -169,15 +169,15 @@ const Diary = {
       }),
       global: false,
       dataType: 'json',
-      success: (response) => {
-        if (response.code === 0 && response.data && response.data.status) {
-          this._updatePostsLikeStatus(response.data.status);
-        }
-      },
-      error: (xhr, status, error) => {
-        // 静默处理错误，不显示通知
-        console.log('加载点赞状态失败:', error);
-      },
+    })
+    .done((response) => {
+      if (response.code === 0 && response.data && response.data.status) {
+        this._updatePostsLikeStatus(response.data.status);
+      }
+    })
+    .fail((xhr, status, error) => {
+      // 静默处理错误，不显示通知
+      console.log('加载点赞状态失败:', error);
     });
   },
 
@@ -234,15 +234,15 @@ const Diary = {
       url: `${this.baseUrl}/api/diary/like/status?diaryid=${diaryId}`,
       method: 'GET',
       global: false,
-      success: (response) => {
-        if (response.success && response.data) {
-          this._renderDiaryLikeButton(response.data);
-        }
-      },
-      error: (xhr, status, error) => {
-        // 静默处理错误，不显示通知
-        console.log('加载日记点赞状态失败:', error);
-      },
+    })
+    .done((response) => {
+      if (response.success && response.data) {
+        this._renderDiaryLikeButton(response.data);
+      }
+    })
+    .fail((xhr, status, error) => {
+      // 静默处理错误，不显示通知
+      console.log('加载日记点赞状态失败:', error);
     });
   },
 
@@ -257,8 +257,8 @@ const Diary = {
 
     // 根据点赞状态选择图标和样式类
     const iconClass = likeData.is_liked
-      ? 'mdi mdi-heart like-icon-liked'
-      : 'mdi mdi-heart-outline';
+      ? 'mdi mdi-thumb-up like-icon-liked'
+      : 'mdi mdi-thumb-up-outline';
 
     const buttonHtml = `
       <button class="btn" data-action="likeDiary" data-diary-id="${diaryId}">
@@ -313,23 +313,23 @@ const Diary = {
               post_id: data.postId,
               diary_id: data.diaryId,
             },
-            success: (response) => {
-              if (response.code === 0) {
-                // 删除成功，从页面移除对应的日记卡片
-                const $postCard = $(`.card[data-post-id="${data.postId}"]`);
-                $postCard.fadeOut(300, function () {
-                  $(this).remove();
-                });
-                kiko.ui.notify.success(
-                  kiko.i18n.getMessage('post.delete.success') || '删除成功',
-                );
-              } else {
-                kiko.ui.notify.error(response.message || '删除失败');
-              }
-            },
-            error: (xhr, status, error) => {
-              kiko.ui.notify.error('网络错误，删除失败');
-            },
+          })
+          .done((response) => {
+            if (response.code === 0) {
+              // 删除成功，从页面移除对应的日记卡片
+              const $postCard = $(`.card[data-post-id="${data.postId}"]`);
+              $postCard.fadeOut(300, function () {
+                $(this).remove();
+              });
+              kiko.ui.notify.success(
+                kiko.i18n.getMessage('post.delete.success') || '删除成功',
+              );
+            } else {
+              kiko.ui.notify.error(response.message || '删除失败');
+            }
+          })
+          .fail((xhr, status, error) => {
+            kiko.ui.notify.error('网络错误，删除失败');
           });
         },
       });
@@ -475,25 +475,25 @@ const Diary = {
         type: 'POST',
         data: $form.serialize(),
         dataType: 'json',
-        success: (response) => {
-          // 恢复按钮状态
-          $okButton.prop('disabled', false).text(originalText);
+      })
+      .done((response) => {
+        // 恢复按钮状态
+        $okButton.prop('disabled', false).text(originalText);
 
-          if (response.code === 0) {
-            this._handlePostSubmitSuccess(data.formAction, response.data);
-            kiko.ui.box.close(boxId);
-            kiko.ui.notify.success(kiko.i18n.getMessage('post.save.success'));
-          } else {
-            this._handleSubmitError(response.message);
-          }
-        },
-        error: (xhr, status, error) => {
-          // 恢复按钮状态
-          $okButton.prop('disabled', false).text(originalText);
+        if (response.code === 0) {
+          this._handlePostSubmitSuccess(data.formAction, response.data);
+          kiko.ui.box.close(boxId);
+          kiko.ui.notify.success(kiko.i18n.getMessage('post.save.success'));
+        } else {
+          this._handleSubmitError(response.message);
+        }
+      })
+      .fail((xhr, status, error) => {
+        // 恢复按钮状态
+        $okButton.prop('disabled', false).text(originalText);
 
-          log('提交失败:', error, 'error');
-          this._handleSubmitError('网络错误，请重试');
-        },
+        log('提交失败:', error, 'error');
+        this._handleSubmitError('网络错误，请重试');
       });
 
       return false; // 阻止对话框自动关闭
@@ -692,25 +692,25 @@ const Diary = {
         type: 'POST',
         data: $form.serialize(),
         dataType: 'json',
-        success: (response) => {
-          // 恢复按钮状态
-          $okButton.prop('disabled', false).text(originalText);
+      })
+      .done((response) => {
+        // 恢复按钮状态
+        $okButton.prop('disabled', false).text(originalText);
 
-          if (response.code === 0) {
-            this._handleSubmitSuccess(data.formAction, response.data);
-            kiko.ui.box.close(boxId);
-            kiko.ui.notify.success(kiko.i18n.getMessage('operation.success'));
-          } else {
-            this._handleSubmitError(response.message);
-          }
-        },
-        error: (xhr, status, error) => {
-          // 恢复按钮状态
-          $okButton.prop('disabled', false).text(originalText);
+        if (response.code === 0) {
+          this._handleSubmitSuccess(data.formAction, response.data);
+          kiko.ui.box.close(boxId);
+          kiko.ui.notify.success(kiko.i18n.getMessage('operation.success'));
+        } else {
+          this._handleSubmitError(response.message);
+        }
+      })
+      .fail((xhr, status, error) => {
+        // 恢复按钮状态
+        $okButton.prop('disabled', false).text(originalText);
 
-          log('提交失败:', error, 'error');
-          this._handleSubmitError('网络错误，请重试');
-        },
+        log('提交失败:', error, 'error');
+        this._handleSubmitError('网络错误，请重试');
       });
 
       return false; // 阻止对话框自动关闭
@@ -913,16 +913,16 @@ const Diary = {
         type: 'POST',
         data: form.serialize(),
         dataType: 'json',
-        success: (response) => {
-          if (response.code === 0) {
-            // 处理成功响应
-            if (response.data?.redirect) {
-              window.location = response.data.redirect;
-            } else {
-              kiko.ui.notify.success(appI18n.getMessage('operation.success'));
-            }
+      })
+      .done((response) => {
+        if (response.code === 0) {
+          // 处理成功响应
+          if (response.data?.redirect) {
+            window.location = response.data.redirect;
+          } else {
+            kiko.ui.notify.success(appI18n.getMessage('operation.success'));
           }
-        },
+        }
       });
     },
   },
@@ -965,37 +965,38 @@ const Diary = {
           post_id: parseInt(postId),
         }),
         dataType: 'json',
-        success: (response) => {
-          if (response.code === 0 && response.data) {
-            // 更新点赞状态
-            const isLiked = response.data.is_liked;
-            const likeCount = response.data.like_count || 0;
+      })
+      .done((response) => {
+        if (response.code === 0 && response.data) {
+          // 更新点赞状态
+          const isLiked = response.data.is_liked;
+          const likeCount = response.data.like_count || 0;
 
-            // 更新图标和样式类
-            if (isLiked) {
-              $icon
-                .removeClass('mdi-thumb-up-outline')
-                .addClass('mdi-thumb-up like-icon-liked');
-            } else {
-              $icon
-                .removeClass('mdi-thumb-up like-icon-liked')
-                .addClass('mdi-thumb-up-outline');
-            }
-
-            // 更新计数
-            $count.text(likeCount);
-
-            // 显示成功提示
-            const message = isLiked ? '点赞成功' : '取消点赞';
-            kiko.ui.notify.success(message);
+          // 更新图标和样式类
+          if (isLiked) {
+            $icon
+              .removeClass('mdi-thumb-up-outline')
+              .addClass('mdi-thumb-up like-icon-liked');
           } else {
-            kiko.ui.notify.error(response.message || '操作失败');
+            $icon
+              .removeClass('mdi-thumb-up like-icon-liked')
+              .addClass('mdi-thumb-up-outline');
           }
-        },
-        error: (xhr, status, error) => {
-          kiko.ui.notify.error('网络错误，请重试');
+
+          // 更新计数
+          $count.text(likeCount);
+
+          // 显示成功提示
+          const message = isLiked ? '点赞成功' : '取消点赞';
+          kiko.ui.notify.success(message);
+        } else {
+          kiko.ui.notify.error(response.message || '操作失败');
         }
-      }).always(() => {
+      })
+      .fail((xhr, status, error) => {
+        kiko.ui.notify.error('网络错误，请重试');
+      })
+      .always(() => {
         $button.removeClass('liking');
       });
     },
@@ -1039,37 +1040,38 @@ const Diary = {
           diary_id: parseInt(diaryId),
         }),
         dataType: 'json',
-        success: (response) => {
-          if (response.code === 0 && response.data) {
-            // 更新点赞状态
-            const isLiked = response.data.is_liked;
-            const likeCount = response.data.like_count || 0;
+      })
+      .done((response) => {
+        if (response.code === 0 && response.data) {
+          // 更新点赞状态
+          const isLiked = response.data.is_liked;
+          const likeCount = response.data.like_count || 0;
 
-            // 更新图标和样式类
-            if (isLiked) {
-              $icon
-                .removeClass('mdi-heart-outline')
-                .addClass('mdi-heart like-icon-liked');
-            } else {
-              $icon
-                .removeClass('mdi-heart like-icon-liked')
-                .addClass('mdi-heart-outline');
-            }
-
-            // 更新计数
-            $count.text(likeCount);
-
-            // 显示成功提示
-            const message = isLiked ? '点赞成功' : '取消点赞';
-            kiko.ui.notify.success(message);
+          // 更新图标和样式类
+          if (isLiked) {
+            $icon
+              .removeClass('mdi-thumb-up-outline')
+              .addClass('mdi-thumb-up like-icon-liked');
           } else {
-            kiko.ui.notify.error(response.message || '操作失败');
+            $icon
+              .removeClass('mdi-thumb-up like-icon-liked')
+              .addClass('mdi-thumb-up-outline');
           }
-        },
-        error: (xhr, status, error) => {
-          kiko.ui.notify.error('网络错误，请重试');
+
+          // 更新计数
+          $count.text(likeCount);
+
+          // 显示成功提示
+          const message = isLiked ? '点赞成功' : '取消点赞';
+          kiko.ui.notify.success(message);
+        } else {
+          kiko.ui.notify.error(response.message || '操作失败');
         }
-      }).always(() => {
+      })
+      .fail((xhr, status, error) => {
+        kiko.ui.notify.error('网络错误，请重试');
+      })
+      .always(() => {
         $button.removeClass('liking');
       });
     },

@@ -55,17 +55,17 @@ const Auth = {
           dataType: 'json',
           global: false, // 禁用全局AJAX事件,覆盖 beforeSend 全局定义
           beforeSend: function () {},
-          error: function (xhr) {
-            // 使用全局错误处理函数处理错误响应
-            const result = handleError(xhr, 'validation.username', {
-              showNotify: false, // 不显示通知，仅返回消息
-              errorCodeMessages: errorCodeMessages,
-              messageData: { value: value },
-            });
+        })
+        .fail(function (xhr) {
+          // 使用全局错误处理函数处理错误响应
+          const result = handleError(xhr, 'validation.username', {
+            showNotify: false, // 不显示通知，仅返回消息
+            errorCodeMessages: errorCodeMessages,
+            messageData: { value: value },
+          });
 
-            // 如果是验证错误，返回错误消息，否则返回true
-            resolve(result.isValid ? true : result.message);
-          },
+          // 如果是验证错误，返回错误消息，否则返回true
+          resolve(result.isValid ? true : result.message);
         });
       });
     });
@@ -89,18 +89,17 @@ const Auth = {
           data: { email: value },
           dataType: 'json',
           global: false, // 禁用全局AJAX事件,覆盖 beforeSend 全局定义
-          beforeSend: function () {},
-          error: function (xhr) {
-            // 使用全局错误处理函数处理错误响应
-            const result = handleError(xhr, 'validation.email', {
-              showNotify: false, // 不显示通知，仅返回消息
-              errorCodeMessages: errorCodeMessages,
-              messageData: { value: value },
-            });
+        })
+        .fail(function (xhr) {
+          // 使用全局错误处理函数处理错误响应
+          const result = handleError(xhr, 'validation.email', {
+            showNotify: false, // 不显示通知，仅返回消息
+            errorCodeMessages: errorCodeMessages,
+            messageData: { value: value },
+          });
 
-            // 如果是验证错误，返回错误消息，否则返回true
-            resolve(result.isValid ? true : result.message);
-          },
+          // 如果是验证错误，返回错误消息，否则返回true
+          resolve(result.isValid ? true : result.message);
         });
       });
     });
@@ -134,9 +133,15 @@ const Auth = {
         type: 'POST',
         data: form.serialize(),
         dataType: 'json',
-        success: function (response) {
-          window.location = `/u/${response.data.UserId}`;
-        },
+      })
+      .done(function (response) {
+        window.location = `/u/${response.data.UserId}`;
+      })
+      .fail(function (xhr) {
+        // 使用全局错误处理函数处理错误响应
+        handleError(xhr, 'login', {
+          showNotify: true,
+        });
       });
     },
 
@@ -186,12 +191,12 @@ const Auth = {
         type: 'POST',
         data: form.serialize() + extraData,
         dataType: 'json',
-        success: function (response) {
-          // 注册成功后跳转
-          if (response.data && response.data.redirect) {
-            window.location = response.data.redirect;
-          }
-        },
+      })
+      .done(function (response) {
+        // 注册成功后跳转
+        if (response.data && response.data.redirect) {
+          window.location = response.data.redirect;
+        }
       });
     },
 
@@ -241,9 +246,9 @@ const Auth = {
         type: 'POST',
         data: form.serialize(),
         dataType: 'json',
-        success: function (response) {
-          kiko.ui.notify.success(kiko.i18n.getMessage('operation.success'));
-        },
+      })
+      .done(function (response) {
+        kiko.ui.notify.success(kiko.i18n.getMessage('operation.success'));
       });
     },
   },
