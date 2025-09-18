@@ -229,3 +229,17 @@ func (r *DiaryRepository) IsDiaryOwner(diaryID, userID int64) (bool, error) {
 	}
 	return ownerID == userID, nil
 }
+
+// IncrementLikeNum 增加日记本的点赞数量
+func (r *DiaryRepository) IncrementLikeNum(diaryID int64) error {
+	sqlstr := "UPDATE br_diary SET like_num = like_num + 1 WHERE diary_id = ?"
+	_, err := r.db.Exec(sqlstr, diaryID)
+	return err
+}
+
+// DecrementLikeNum 减少日记本的点赞数量
+func (r *DiaryRepository) DecrementLikeNum(diaryID int64) error {
+	sqlstr := "UPDATE br_diary SET like_num = like_num - 1 WHERE diary_id = ? AND like_num > 0"
+	_, err := r.db.Exec(sqlstr, diaryID)
+	return err
+}

@@ -16,6 +16,7 @@ import (
 	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/domain/diary"
+	"github.com/biuren/hebe/internal/domain/like"
 	"github.com/biuren/hebe/internal/domain/user"
 )
 
@@ -29,6 +30,7 @@ func TestNewPostController(t *testing.T) {
 	mockAuth := &user.AuthHelper{}
 	mockViewSvc := &view.ViewService{}
 	mockUserSvc := &user.Service{}
+	var mockLikeSvc like.Service
 
 	// 创建控制器
 	controller := post.NewPostController(
@@ -38,6 +40,7 @@ func TestNewPostController(t *testing.T) {
 		mockAuth,
 		mockViewSvc,
 		mockUserSvc,
+		mockLikeSvc,
 	)
 
 	// 验证控制器不为空

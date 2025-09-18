@@ -13,6 +13,7 @@ import (
 
 	types "github.com/biuren/hebe/internal/contracts"
 	diaryDomain "github.com/biuren/hebe/internal/domain/diary"
+	likeDomain "github.com/biuren/hebe/internal/domain/like"
 	userDomain "github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/app/view"
@@ -73,10 +74,14 @@ func TestDiaryController_Basic(t *testing.T) {
 			}
 		}()
 
+		// 创建mock like service
+		var likeService likeDomain.Service
+
 		controller := diary.NewDiaryController(
 			cfg,
 			diaryService,
 			userService,
+			likeService,
 			authHelper,
 			viewService,
 		)

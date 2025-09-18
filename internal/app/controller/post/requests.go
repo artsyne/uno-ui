@@ -89,17 +89,15 @@ type ShowPostDetailRequest struct {
 }
 
 // GetPostsStatsRequest 获取日记统计信息请求
-// 用于获取指定日记本下多个日记的统计信息
+// 用于获取多个日记的统计信息
 //
 // 字段:
-//   - DiaryID: 日记本ID，必需且大于0
 //   - PostIDs: 日记ID列表，格式为"33,334,55,56"，必需且不能为空
 //
 // 路由:
-//   - /d/:diaryid/stats?postids=33,334,55,56
+//   - POST /api/post/stats
 type GetPostsStatsRequest struct {
-	DiaryID int64  `uri:"diaryid" json:"diary_id" binding:"required,min=1"`
-	PostIDs string `form:"postids" json:"postids" binding:"required,min=1"`
+	PostIDs string `json:"postids" binding:"required,min=1"`
 }
 
 // PostStatsResponse 单个日记统计信息响应
@@ -154,4 +152,73 @@ func (r *GetPostsStatsRequest) ParsePostIDs() ([]int64, error) {
 	}
 
 	return postIDs, nil
+}
+
+// GetPostLikeStatusRequest 获取日记点赞状态请求
+// 用于获取多个日记的点赞状态信息
+//
+// 字段:
+//   - PostIDs: 日记ID列表，格式为"33,334,55,56"，必需且不能为空
+//
+// 路由:
+//   - POST /api/post/like/status
+type GetPostLikeStatusRequest struct {
+	PostIDs string `json:"postids" binding:"required,min=1"`
+}
+
+// ParsePostIDs 解析postids字符串为int64切片
+// 切片id 不能超过 50，这是hardcode，确保数据库安全
+func (r *GetPostLikeStatusRequest) ParsePostIDs() ([]int64, error) {
+	if r.PostIDs == "" {
+		return []int64{}, nil
+	}
+
+	parts := strings.Split(r.PostIDs, ",")
+	postIDs := make([]int64, 0, len(parts))
+	if len(parts) > 50 {
+		return nil, errors.ValidationError.WithDetails("postids 最多 50 个")
+	}
+
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		id, err := strconv.ParseInt(part, 10, 64)
+		if err != nil {
+			return nil, errors.InvalidFormat.WithDetails(fmt.Sprintf("invalid post id: %s", part))
+		}
+		postIDs = append(postIDs, id)
+	}
+
+	return postIDs, nil
+}
+
+// PostLikeStatusResponse 单个日记点赞状态响应
+// 用于返回单个日记的点赞状态
+//
+// 字段:
+//   - PostID: 日记ID
+//   - Liked: 是否已点赞
+type PostLikeStatusResponse struct {
+	PostID int64 `json:"postid"`
+	Liked  bool  `json:"liked"`
+}
+
+// GetPostLikeStatusResponse 获取日记点赞状态响应
+// 用于返回多个日记的点赞状态列表
+//
+// 字段:
+//   - Status: 日记点赞状态列表
+type GetPostLikeStatusResponse struct {
+	Status []PostLikeStatusResponse `json:"status"`
+}
+
+// LikePostRequest 日记点赞请求
+// 用于日记点赞/取消点赞操作的请求数据结构
+//
+// 字段:
+//   - PostID: 要点赞的日记ID，必需且大于0
+type LikePostRequest struct {
+	PostID int64 `json:"post_id" binding:"required,min=1"`
 }

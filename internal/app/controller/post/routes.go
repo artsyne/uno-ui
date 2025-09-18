@@ -21,8 +21,6 @@ func (ctrl *PostController) RegisterRoutes(router *gin.Engine) {
 	{
 		diary.GET("/:diaryid", ctrl.ShowDiaryIndex)
 		diary.GET("/:diaryid/:pageindex", ctrl.ShowDiaryIndex)
-		// 根据postIds获取日记社交统计信息
-		diary.GET("/:diaryid/posts/stats", ctrl.GetPostsStats)
 	}
 
 	// 显示单个日记详情页面
@@ -48,5 +46,21 @@ func (ctrl *PostController) RegisterRoutes(router *gin.Engine) {
 	authDelete.Use(ctrl.auth.RequireAuth())
 	{
 		authDelete.POST("/delete", ctrl.DeletePost)
+	}
+
+	// 需要鉴权的日记点赞操作路由
+	api := router.Group("/api/post")
+	api.Use(ctrl.auth.RequireAuth())
+	{
+		// 根据postIds获取日记社交统计信息
+		api.POST("/stats", ctrl.GetPostsStats)
+		// 根据postIds获取日记点赞状态
+		api.POST("/like/status", ctrl.GetPostsLikeStatus)
+		
+		// 日记点赞/取消点赞
+		apiAuth := api.Group("/").Use(ctrl.auth.RequireAuth())
+		{
+			apiAuth.POST("/like", ctrl.LikePost)
+		}
 	}
 }

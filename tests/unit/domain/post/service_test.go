@@ -60,7 +60,7 @@ func TestPostService_AddPost(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postRepo := repository.NewPostRepository()
 	
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
@@ -127,7 +127,7 @@ func TestPostService_GetPostByID(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postRepo := repository.NewPostRepository()
 	
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
@@ -179,7 +179,7 @@ func TestPostService_UpdatePost(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postRepo := repository.NewPostRepository()
 	
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
@@ -273,7 +273,7 @@ func TestPostService_ListPostsByUserID(t *testing.T) {
 	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(config, diaryRepo)
-	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postRepo := repository.NewPostRepository()
 	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
 
 	// 设置测试数据
@@ -398,7 +398,7 @@ func TestPostService_GetPostCountByUserID(t *testing.T) {
 	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(config, diaryRepo)
-	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postRepo := repository.NewPostRepository()
 	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
 
 	// 设置测试数据
@@ -458,7 +458,7 @@ func TestPostService_UpdatePostByID(t *testing.T) {
 	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(config, diaryRepo)
-	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postRepo := repository.NewPostRepository()
 	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
 
 	// 设置测试数据
@@ -532,7 +532,7 @@ func TestPostService_DeletePostByID(t *testing.T) {
 	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(config, diaryRepo)
-	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postRepo := repository.NewPostRepository()
 	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
 
 	// 设置测试数据
@@ -591,7 +591,7 @@ func TestPostService_GetPostsStats(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postRepo := repository.NewPostRepository()
 	
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)

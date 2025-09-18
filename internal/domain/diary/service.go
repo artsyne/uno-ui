@@ -186,6 +186,24 @@ func (s *Service) IsDiaryOwner(diaryID, userID int64) (bool, error) {
 	return IsDiaryOwner, nil
 }
 
+// IncrementLikeCount 增加日记本的点赞数量
+// 参数:
+//   - diaryID: 日记本ID
+// 返回:
+//   - error: 操作失败时返回错误
+func (s *Service) IncrementLikeCount(diaryID int64) error {
+	return s.repo.IncrementLikeNum(diaryID)
+}
+
+// DecrementLikeCount 减少日记本的点赞数量
+// 参数:
+//   - diaryID: 日记本ID
+// 返回:
+//   - error: 操作失败时返回错误
+func (s *Service) DecrementLikeCount(diaryID int64) error {
+	return s.repo.DecrementLikeNum(diaryID)
+}
+
 // ===================== 私有辅助方法 =====================
 
 // validateDiary 校验日记本参数

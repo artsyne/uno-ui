@@ -14,10 +14,10 @@ import (
 	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/app/route"
 	"github.com/biuren/hebe/internal/core/initializer"
-	"github.com/biuren/hebe/internal/core/database"
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/core/di"
 	"github.com/biuren/hebe/internal/domain/diary"
+	"github.com/biuren/hebe/internal/domain/like"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
@@ -175,23 +175,27 @@ func (a *Application) registerAppServices() error {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository(database.GetDB())
+	postRepo := repository.NewPostRepository()
+	likeRepo := repository.NewLikeRepository()
 	
 	// 创建服务实例
 	taskService := task.NewService(a.config, taskRepo)
 	userService := user.NewService(a.config, userRepo, taskService, i18nManager)
 	diaryService := diary.NewService(a.config, diaryRepo)
 	postService := post.NewService(a.config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
+	likeService := like.NewLikeService(likeRepo)
 	
 	// 注册为预创建实例，避免循环依赖
 	di.Value(a.container, userRepo)
 	di.Value(a.container, taskRepo)
 	di.Value(a.container, diaryRepo)
 	di.Value(a.container, postRepo)
+	di.Value(a.container, likeRepo)
 	di.Value(a.container, taskService)
 	di.Value(a.container, userService)
 	di.Value(a.container, diaryService)
 	di.Value(a.container, postService)
+	di.Value(a.container, likeService)
 
 	// 注册 AuthHelper 为单例服务
 	di.Singleton(a.container, func() *user.AuthHelper {

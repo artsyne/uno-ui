@@ -57,6 +57,7 @@ const jsFiles = [
   'kiko-init.js', // 首先加载Kiko初始化
   'i18n.js', // 网站多语言初始化
   'theme.js', // 主题切换功能
+  'user-state.js', // 用户状态管理模块
   'auth.js', // 认证模块
   'diary.js', // 日记本模块
   'settings.js', // 设置模块

@@ -313,7 +313,7 @@ func (sr *ServiceRegistry) InitializeServices(db *sqlx.DB, testConfig TestConfig
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository(db)
+	postRepo := repository.NewPostRepository()
 	
 	// 创建服务实例
 	taskService := task.NewService(appConfig, taskRepo)

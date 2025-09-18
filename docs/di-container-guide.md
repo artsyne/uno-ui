@@ -252,9 +252,9 @@ func (a *Application) registerAppServices() error {
     diaryService := diary.NewService(a.config, diaryRepo)
     
     // 注册服务实例到DI容器
-    di.Value(a.container, taskService)
-    di.Value(a.container, userService)
-    di.Value(a.container, diaryService)
+    di.Value(container, taskService)
+    di.Value(container, userService)
+    di.Value(container, diaryService)
     
     return nil
 }
@@ -445,7 +445,7 @@ func (a *Application) registerAppServices() error {
     userRepo := repository.NewUserRepository()
     taskRepo := repository.NewTaskRepository()
     diaryRepo := repository.NewDiaryRepository()
-    postRepo := repository.NewPostRepository(database.GetDB())
+    postRepo := repository.NewPostRepository()
 
     // 创建服务实例
     taskService := task.NewService(a.config, taskRepo)
@@ -590,7 +590,7 @@ func BuildComplexDependencyChain(container *di.Container) error {
     di.Value(container, diaryService)
 
     // PostService 依赖多个服务和仓储
-    postRepo := repository.NewPostRepository(database.GetDB())
+    postRepo := repository.NewPostRepository()
     postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo)
     di.Value(container, postRepo)
     di.Value(container, postService)
@@ -804,7 +804,7 @@ func registerAppServices(container *di.Container) error {
     userRepo := repository.NewUserRepository()
     taskRepo := repository.NewTaskRepository()
     diaryRepo := repository.NewDiaryRepository()
-    postRepo := repository.NewPostRepository(database.GetDB())
+    postRepo := repository.NewPostRepository()
 
     // 2. 按依赖顺序创建服务实例
     config := di.Get[*config.Config](container)

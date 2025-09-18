@@ -51,7 +51,7 @@ window.formatTime = (timestamp, timezone) => {
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false
+    hour12: false,
   };
 
   if (timezone) {
@@ -70,7 +70,7 @@ window.formatTime = (timestamp, timezone) => {
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false
+      hour12: false,
     });
     return fallbackFormatter.format(date);
   }
@@ -158,7 +158,7 @@ $(() => {
   $.ajaxSetup({
     beforeSend: (xhr, settings) => {
       // 显示加载指示器
-      kiko.ui.notify.loading(true,'progressbar');
+      kiko.ui.notify.loading(true, 'progressbar');
 
       // 只处理POST请求，寻找当前活动表单并禁用
       if (settings.type === 'POST') {
@@ -275,10 +275,14 @@ function initScrollHeader() {
     if (window.scrollY !== lastScrollY) {
       lastScrollY = window.scrollY;
       $topNav.html(lastScrollY > 1 ? pageNavHtml : '');
-      
+
       // 重新初始化新插入的tooltip元素
       if (lastScrollY > 1 && kiko.ui && kiko.ui.tooltip) {
-        kiko.ui.tooltip.initElement($topNav.find('[data-tooltip], [data-tooltip-content], [data-tooltip-target]'));
+        kiko.ui.tooltip.initElement(
+          $topNav.find(
+            '[data-tooltip], [data-tooltip-content], [data-tooltip-target]',
+          ),
+        );
       }
     }
   });

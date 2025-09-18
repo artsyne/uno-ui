@@ -81,4 +81,18 @@ type RepositoryInterface interface {
 	//   - bool: 是否为拥有者
 	//   - error: 验证失败时返回错误
 	IsDiaryOwner(diaryID, userID int64) (bool, error)
+
+	// IncrementLikeNum 增加日记本的点赞数量
+	// 参数:
+	//   - diaryID: 日记本ID
+	// 返回:
+	//   - error: 操作失败时返回错误
+	IncrementLikeNum(diaryID int64) error
+
+	// DecrementLikeNum 减少日记本的点赞数量
+	// 参数:
+	//   - diaryID: 日记本ID
+	// 返回:
+	//   - error: 操作失败时返回错误
+	DecrementLikeNum(diaryID int64) error
 }

@@ -24,11 +24,8 @@
                 data-diary-id="{{.Data.Diary.DiaryID}}"><i class="mdi mdi-cogs"></i> {{getMessage
                 "diary.button.settings" .Context.Lang}}</button>
             {{end}}
-            {{if eq .Data.Diary.SocialSetting 1}}
-            <div id="diary-social"></div>
-            <button class="btn"><i class="mdi mdi-thumb-up-outline mr-1"></i>{{getMessage "common.like"
-                .Context.Lang}}</button>
-                {{end}}
+            <!-- 日记本点赞按钮容器，通过JavaScript动态加载 -->
+            <span id="diary-like-container" data-diary-id="{{.Data.Diary.DiaryID}}"></span>
         </div>
     </section>
 

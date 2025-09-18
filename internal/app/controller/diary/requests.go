@@ -31,3 +31,21 @@ type ProcessDiaryRequest struct {
 type ShowDiaryRequest struct {
 	DiaryID int64 `form:"diary_id" json:"diary_id" binding:"required"`
 }
+
+// LikeDiaryRequest 日记本点赞请求
+// 用于处理日记本点赞操作的请求数据结构
+//
+// 字段:
+//   - DiaryID: 要点赞的日记本ID，必需参数
+type LikeDiaryRequest struct {
+	DiaryID int64 `form:"diary_id" json:"diary_id" binding:"required"`
+}
+
+// GetLikeStatusRequest 获取点赞状态请求
+// 用于获取日记本点赞状态的请求数据结构
+//
+// 字段:
+//   - DiaryID: 要查询的日记本ID，必需参数
+type GetLikeStatusRequest struct {
+	DiaryID int64 `form:"diary_id" json:"diary_id" binding:"required"`
+}

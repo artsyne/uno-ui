@@ -1,7 +1,11 @@
 package post
 
 import (
+	"log/slog"
+	"strconv"
+
 	types "github.com/biuren/hebe/internal/contracts"
+	"github.com/biuren/hebe/internal/domain/like"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/pkg"
@@ -205,23 +209,18 @@ func (ctrl *PostController) DeletePost(c *gin.Context) {
 }
 
 // GetPostsStats 获取日记统计信息
-// 根据路径参数diaryid和查询参数postids获取指定日记的统计信息
+// 根据POST请求体中的postids获取日记的统计信息
 //
-// 路由: GET /diary/:diaryid/stats?postids=1,2,3
+// 路由: POST /api/post/stats
 // 参数:
-//   - diaryid: 日记本ID (路径参数)
-//   - postids: 日记ID列表，逗号分隔 (查询参数)
+//   - postids: 日记ID列表，逗号分隔 (JSON请求体)
 //
 // 返回:
 //   - 包含统计信息的日记列表
 func (ctrl *PostController) GetPostsStats(c *gin.Context) {
 	// 解析请求参数
 	var req GetPostsStatsRequest
-	if err := c.ShouldBindUri(&req); err != nil {
-		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
-		return
-	}
-	if err := c.ShouldBindQuery(&req); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
 		return
 	}
@@ -257,4 +256,154 @@ func (ctrl *PostController) GetPostsStats(c *gin.Context) {
 		Stats: statsResponse,
 	}
 	ctrl.renderService.JSONSuccess(c, response)
+}
+
+// LikePost 日记点赞
+// 处理日记点赞/取消点赞操作，需要用户登录
+//
+// 参数:
+//   - c: Gin上下文对象
+func (ctrl *PostController) LikePost(c *gin.Context) {
+	// 获取登录用户信息
+	loginUser, exists := ctrl.auth.GetCurrentUser(c)
+	if !exists {
+		ctrl.renderService.JSONError(c, &errors.Unauthorized)
+		return
+	}
+
+	// 从POST请求体获取post_id
+	var req LikePostRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		ctrl.renderService.JSONError(c, &errors.InvalidParams)
+		return
+	}
+	postID := req.PostID
+
+	// 获取点赞前的状态，用于判断是点赞还是取消点赞
+	beforeStatus, err := ctrl.likeService.GetLikeStatus(loginUser.UserId, postID, like.LikeTypePost)
+	if err != nil {
+		slog.Error("获取点赞状态失败", "error", err, "user_id", loginUser.UserId, "post_id", postID)
+		ctrl.renderService.JSONError(c, &errors.InternalError)
+		return
+	}
+
+	// 切换点赞状态
+	err = ctrl.likeService.ToggleLike(loginUser.UserId, postID, like.LikeTypePost)
+	if err != nil {
+		slog.Error("点赞操作失败", "error", err, "user_id", loginUser.UserId, "post_id", postID)
+		ctrl.renderService.JSONError(c, &errors.InternalError)
+		return
+	}
+
+	// 根据之前的状态更新日记的like_num字段
+	if beforeStatus.IsLiked {
+		// 之前已点赞，现在是取消点赞，减少like_num
+		err = ctrl.postService.DecrementLikeCount(postID)
+	} else {
+		// 之前未点赞，现在是点赞，增加like_num
+		err = ctrl.postService.IncrementLikeCount(postID)
+	}
+	
+	if err != nil {
+		slog.Error("更新日记点赞数失败", "error", err, "post_id", postID)
+		// 这里不返回错误，因为点赞状态已经更新成功，只是统计数字更新失败
+		// 可以考虑记录日志或者异步重试
+	}
+
+	// 获取最新的点赞状态
+	status, err := ctrl.likeService.GetLikeStatus(loginUser.UserId, postID, like.LikeTypePost)
+	if err != nil {
+		slog.Error("获取点赞状态失败", "error", err, "user_id", loginUser.UserId, "post_id", postID)
+		ctrl.renderService.JSONError(c, &errors.InternalError)
+		return
+	}
+
+	ctrl.renderService.JSONSuccess(c, status)
+}
+
+// GetPostsLikeStatus 获取多个日记的点赞状态
+// 根据POST请求体中的postids获取用户对这些日记的点赞状态
+//
+// 路由: POST /api/post/like/status
+// 参数:
+//   - postids: 日记ID列表，逗号分隔 (JSON请求体)
+//
+// 返回:
+//   - 包含点赞状态信息的日记列表
+func (ctrl *PostController) GetPostsLikeStatus(c *gin.Context) {
+	// 解析请求参数
+	var req GetPostLikeStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
+		return
+	}
+
+	// 解析postids字符串为int64切片
+	postIDs, err := req.ParsePostIDs()
+	if err != nil {
+		ctrl.renderService.JSONError(c, err) // ParsePostIDs已经返回了合适的错误类型
+		return
+	}
+
+	// 获取登录用户信息（可能为空，访客也可以查看点赞状态）
+	loginUser, _ := ctrl.auth.GetCurrentUser(c)
+	var userID int64 = 0
+	if loginUser != nil {
+		userID = loginUser.UserId
+	}
+
+	// 构建响应数据
+	statusResponse := make([]PostLikeStatusResponse, 0, len(postIDs))
+	for _, postID := range postIDs {
+		// 获取点赞状态
+		status, err := ctrl.likeService.GetLikeStatus(userID, postID, like.LikeTypePost)
+		if err != nil {
+			slog.Error("获取点赞状态失败", "error", err, "user_id", userID, "post_id", postID)
+			// 对于单个日记的错误，我们继续处理其他日记，但记录错误
+			continue
+		}
+
+		statusResponse = append(statusResponse, PostLikeStatusResponse{
+			PostID: postID,
+			Liked:  status.IsLiked,
+		})
+	}
+
+	// 返回成功响应
+	response := GetPostLikeStatusResponse{
+		Status: statusResponse,
+	}
+	ctrl.renderService.JSONSuccess(c, response)
+}
+
+// GetPostLikeStatus 获取日记点赞状态
+// 获取指定日记的点赞状态信息，包括是否已点赞和点赞总数
+//
+// 参数:
+//   - c: Gin上下文对象
+func (ctrl *PostController) GetPostLikeStatus(c *gin.Context) {
+	// 从路径参数获取post_id
+	postIDStr := c.Param("post_id")
+	postID, err := strconv.ParseInt(postIDStr, 10, 64)
+	if err != nil {
+		ctrl.renderService.JSONError(c, &errors.InvalidParams)
+		return
+	}
+
+	// 获取登录用户信息（可能为空，访客也可以查看点赞状态）
+	loginUser, _ := ctrl.auth.GetCurrentUser(c)
+	var userID int64 = 0
+	if loginUser != nil {
+		userID = loginUser.UserId
+	}
+
+	// 获取点赞状态
+	status, err := ctrl.likeService.GetLikeStatus(userID, postID, like.LikeTypePost)
+	if err != nil {
+		slog.Error("获取点赞状态失败", "error", err, "user_id", userID, "post_id", postID)
+		ctrl.renderService.JSONError(c, &errors.InternalError)
+		return
+	}
+
+	ctrl.renderService.JSONSuccess(c, status)
 }

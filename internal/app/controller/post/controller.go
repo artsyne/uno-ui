@@ -3,6 +3,7 @@ package post
 import (
 	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/domain/diary"
+	"github.com/biuren/hebe/internal/domain/like"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/config"
@@ -18,13 +19,15 @@ import (
 //   - config: 应用配置
 //   - renderService: 视图渲染服务
 //   - userService: 用户业务逻辑服务
+//   - likeService: 点赞业务逻辑服务
 type PostController struct {
 	postService   *post.Service
 	diaryService  *diary.Service
 	auth          *user.AuthHelper
 	config        *config.Config
 	renderService *view.ViewService
-	userService *user.Service
+	userService   *user.Service
+	likeService   like.Service
 }
 
 // NewPostController 创建新的日记控制器实例
@@ -37,10 +40,11 @@ type PostController struct {
 //   - auth: 用户认证辅助工具
 //   - renderService: 视图渲染服务
 //   - userService: 用户业务逻辑服务
+//   - likeService: 点赞业务逻辑服务
 //
 // 返回:
 //   - *PostController: 初始化完成的日记控制器实例
-func NewPostController(config *config.Config, postService *post.Service, diaryService *diary.Service, auth *user.AuthHelper, renderService *view.ViewService, userService *user.Service) *PostController {
+func NewPostController(config *config.Config, postService *post.Service, diaryService *diary.Service, auth *user.AuthHelper, renderService *view.ViewService, userService *user.Service, likeService like.Service) *PostController {
 	return &PostController{
 		config:        config,
 		postService:   postService,
@@ -48,5 +52,6 @@ func NewPostController(config *config.Config, postService *post.Service, diarySe
 		auth:          auth,
 		renderService: renderService,
 		userService:   userService,
+		likeService:   likeService,
 	}
 }

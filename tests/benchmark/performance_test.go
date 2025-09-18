@@ -38,7 +38,7 @@ func initBenchmarkEnv() {
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		diaryRepo := repository.NewDiaryRepository()
-		postRepo := repository.NewPostRepository(benchCtx.GetDatabase().GetDB())
+		postRepo := repository.NewPostRepository()
 		config := benchCtx.GetConfig().GetAppConfig()
 
 		taskService := task.NewService(config, taskRepo)

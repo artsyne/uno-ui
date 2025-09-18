@@ -15,6 +15,7 @@ import (
 	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/core/di"
 	diaryDomain "github.com/biuren/hebe/internal/domain/diary"
+	likeDomain "github.com/biuren/hebe/internal/domain/like"
 	postDomain "github.com/biuren/hebe/internal/domain/post"
 	userDomain "github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/config"
@@ -68,6 +69,7 @@ type controllerDependencies struct {
 	userService   *userDomain.Service
 	diaryService  *diaryDomain.Service
 	postService   *postDomain.Service
+	likeService   likeDomain.Service
 	authHelper    *userDomain.AuthHelper
 	config        *config.Config
 	renderService *view.ViewService
@@ -86,6 +88,7 @@ type controllerDependencies struct {
 //   - userService: 用户业务服务
 //   - diaryService: 日记业务服务
 //   - postService: 文章业务服务
+//   - likeService: 点赞业务服务
 //   - authHelper: 认证辅助服务
 //   - config: 应用配置
 //   - renderService: 视图渲染服务
@@ -94,6 +97,7 @@ func getControllerDependencies(container *di.Container) *controllerDependencies 
 		userService:   di.Get[*userDomain.Service](container),
 		diaryService:  di.Get[*diaryDomain.Service](container),
 		postService:   di.Get[*postDomain.Service](container),
+		likeService:   di.Get[likeDomain.Service](container),
 		authHelper:    di.Get[*userDomain.AuthHelper](container),
 		config:        di.Get[*config.Config](container),
 		renderService: di.Get[*view.ViewService](container),
@@ -136,7 +140,7 @@ func createUserController(container *di.Container) *userController.UserControlle
 //   - *diaryController.DiaryController: 日记控制器实例
 func createDiaryController(container *di.Container) *diaryController.DiaryController {
 	deps := getControllerDependencies(container)
-	return diaryController.NewDiaryController(deps.config, deps.diaryService, deps.userService, deps.authHelper, deps.renderService)
+	return diaryController.NewDiaryController(deps.config, deps.diaryService, deps.userService, deps.likeService, deps.authHelper, deps.renderService)
 }
 
 // createPostController 通过DI容器创建PostController
@@ -149,7 +153,7 @@ func createDiaryController(container *di.Container) *diaryController.DiaryContro
 //   - *postController.PostController: 文章控制器实例
 func createPostController(container *di.Container) *postController.PostController {
 	deps := getControllerDependencies(container)
-	return postController.NewPostController(deps.config, deps.postService, deps.diaryService, deps.authHelper, deps.renderService, deps.userService)
+	return postController.NewPostController(deps.config, deps.postService, deps.diaryService, deps.authHelper, deps.renderService, deps.userService, deps.likeService)
 }
 
 // setTemplate 设置模板引擎

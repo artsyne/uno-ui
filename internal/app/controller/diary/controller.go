@@ -3,6 +3,7 @@ package diary
 import (
 	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/domain/diary"
+	"github.com/biuren/hebe/internal/domain/like"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/config"
 )
@@ -14,12 +15,14 @@ import (
 //   - config: 应用程序配置实例
 //   - diaryService: 日记本业务逻辑服务
 //   - userService: 用户业务逻辑服务
+//   - likeService: 点赞业务逻辑服务
 //   - auth: 用户认证辅助工具
 //   - renderService: 视图渲染服务实例
 type DiaryController struct {
 	config        *config.Config
 	diaryService  *diary.Service
 	userService   *user.Service
+	likeService   like.Service
 	auth          *user.AuthHelper
 	renderService *view.ViewService
 }
@@ -31,16 +34,18 @@ type DiaryController struct {
 //   - config: 应用程序配置实例
 //   - diaryService: 日记本业务逻辑服务
 //   - userService: 用户业务逻辑服务
+//   - likeService: 点赞业务逻辑服务
 //   - auth: 用户认证辅助工具
 //   - renderService: 视图渲染服务实例
 //
 // 返回:
 //   - *DiaryController: 初始化完成的日记本控制器实例
-func NewDiaryController(config *config.Config, diaryService *diary.Service, userService *user.Service, auth *user.AuthHelper, renderService *view.ViewService) *DiaryController {
+func NewDiaryController(config *config.Config, diaryService *diary.Service, userService *user.Service, likeService like.Service, auth *user.AuthHelper, renderService *view.ViewService) *DiaryController {
 	return &DiaryController{
 		config:        config,
 		diaryService:  diaryService,
 		userService:   userService,
+		likeService:   likeService,
 		auth:          auth,
 		renderService: renderService,
 	}

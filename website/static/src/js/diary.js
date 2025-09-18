@@ -19,6 +19,8 @@ const Diary = {
     this.baseUrl = baseUrl;
     // 自动加载统计信息
     this.loadPostsStats();
+    // 自动加载日记本点赞状态
+    this.loadDiaryLikeStatus();
     return [
       this.showDiaryBoxAction,
       this.showPostBoxAction,
@@ -26,6 +28,8 @@ const Diary = {
       this.postInfoAction,
       this.gotoUrlAction,
       this.getAjaxContentAction,
+      this.likePostAction,
+      this.likeDiaryAction,
     ];
   },
 
@@ -33,7 +37,7 @@ const Diary = {
    * 获取社交设置值
    * @returns {number} 社交设置值，1表示开启，2表示关闭
    */
-  _getSocialSetting: function() {
+  _getSocialSetting: function () {
     // 首先尝试从页面的data属性获取
     const pageData = $('main').data('social-setting');
     if (pageData !== undefined) {
@@ -47,24 +51,30 @@ const Diary = {
    * 自动检测页面中的stats容器并加载对应的统计数据
    * 只有当SocialSetting为1时才会加载统计信息
    */
-  loadPostsStats: function() {
+  loadPostsStats: function () {
     // 检查SocialSetting，只有为1时才加载统计信息
     const socialSetting = this._getSocialSetting();
     if (socialSetting !== 1) {
       return;
     }
 
-    // 查找所有stats容器
-    const $statsContainers = $('[id^="stats_"]');
-    
+    // 查找所有stats容器（包括日记列表页和详情页）
+    const $statsContainers = $('[id^="stats_"], [id^="detail_stats_"]');
+
     if ($statsContainers.length === 0) {
       return;
     }
 
     // 提取所有PostID
     const postIds = [];
-    $statsContainers.each(function() {
-      const postId = $(this).attr('id').replace('stats_', '');
+    $statsContainers.each(function () {
+      const id = $(this).attr('id');
+      let postId = '';
+      if (id.startsWith('stats_')) {
+        postId = id.replace('stats_', '');
+      } else if (id.startsWith('detail_stats_')) {
+        postId = id.replace('detail_stats_', '');
+      }
       if (postId) {
         postIds.push(postId);
       }
@@ -74,32 +84,27 @@ const Diary = {
       return;
     }
 
-    // 获取当前日记本ID（从URL路径中提取）
-    const pathParts = window.location.pathname.split('/');
-    const diaryId = pathParts[2]; // /d/{diaryId} 格式
-
-    if (!diaryId) {
-      return;
-    }
-
     // 发送ajax请求获取统计信息
     $.ajax({
-      url: `${this.baseUrl}/d/${diaryId}/posts/stats`,
-      type: 'GET',
-      data: {
-        postids: postIds.join(',')
-      },
+      url: `${this.baseUrl}/api/post/stats`,
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({
+        postids: postIds.join(','),
+      }),
       global: false,
       dataType: 'json',
       success: (response) => {
         if (response.code === 0 && response.data && response.data.stats) {
           this._updatePostsStats(response.data.stats);
+          // 加载点赞状态（仅在用户登录时）
+          this._loadPostsLikeStatus(postIds);
         }
       },
       error: (xhr, status, error) => {
         // 静默处理错误，不显示通知
         console.log('加载统计信息失败:', error);
-      }
+      },
     });
   },
 
@@ -108,28 +113,161 @@ const Diary = {
    * @private
    * @param {Array} statsData - 统计数据数组
    */
-  _updatePostsStats: function(statsData) {
+  _updatePostsStats: function (statsData) {
+    // 获取当前日记本ID（从URL路径中提取）
+    const pathParts = window.location.pathname.split('/');
+    const diaryId = pathParts[2]; // /d/{diaryId} 格式
+
     // 遍历统计数据数组，更新对应的DOM元素
-    statsData.forEach(stats => {
-      const $container = $(`#stats_${stats.post_id}`);
-      
-      if ($container.length && stats) {
-        // 构建统计信息HTML
-        const statsHtml = `
-          <button class="btn-social mr-2">
-            <i class="mdi mdi-eye mr-1"></i> <span>${stats.view_num || 0}</span>
-          </button>
-          <button class="btn-social mr-2">
-            <i class="mdi mdi-comment-text-outline mr-1"></i> <span>${stats.comment_num || 0}</span>
-          </button>
-          <button class="btn-social">
-            <i class="mdi mdi-thumb-up-outline mr-1"></i><span>${stats.like_num || 0}</span>
-          </button>`;
-        
-        // 更新容器内容
-        $container.html(statsHtml);
+    statsData.forEach((stats) => {
+      // 查找日记列表页的容器
+      const $listContainer = $(`#stats_${stats.post_id}`);
+      // 查找日记详情页的容器
+      const $detailContainer = $(`#detail_stats_${stats.post_id}`);
+
+      // 构建统计信息HTML
+      const statsHtml = `
+        <button class="btn-social mr-2">
+          <i class="mdi mdi-eye mr-1"></i> <span>${stats.view_num || 0}</span>
+        </button>
+        <button class="btn-social mr-2">
+          <i class="mdi mdi-comment-text-outline mr-1"></i> <span>${stats.comment_num || 0}</span>
+        </button>
+        <button class="btn-social" data-action="likePost" data-post-id="${stats.post_id}" data-diary-id="${diaryId}">
+          <i class="mdi mdi-thumb-up-outline mr-1"></i><span>${stats.like_num || 0}</span>
+        </button>`;
+
+      // 更新日记列表页容器内容
+      if ($listContainer.length && stats) {
+        $listContainer.html(statsHtml);
+      }
+
+      // 更新日记详情页容器内容
+      if ($detailContainer.length && stats) {
+        $detailContainer.html(statsHtml);
       }
     });
+  },
+
+  /**
+   * 加载日记点赞状态
+   * 仅在用户登录时调用，更新点赞按钮的状态
+   */
+  _loadPostsLikeStatus: function (postIds) {
+    // 检查用户是否登录
+    if (!UserState.isLoggedIn()) {
+      return; // 用户未登录，不加载点赞状态
+    }
+
+    // 发送ajax请求获取点赞状态
+    $.ajax({
+      url: `${this.baseUrl}/api/post/like/status`,
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({
+        postids: postIds.join(','),
+      }),
+      global: false,
+      dataType: 'json',
+      success: (response) => {
+        if (response.code === 0 && response.data && response.data.status) {
+          this._updatePostsLikeStatus(response.data.status);
+        }
+      },
+      error: (xhr, status, error) => {
+        // 静默处理错误，不显示通知
+        console.log('加载点赞状态失败:', error);
+      },
+    });
+  },
+
+  /**
+   * 更新日记点赞状态
+   * 根据返回的点赞状态更新按钮样式
+   */
+  _updatePostsLikeStatus: function (likeStatusData) {
+    likeStatusData.forEach((status) => {
+      const $likeBtn = $(
+        `button[data-action="likePost"][data-post-id="${status.postid}"]`,
+      );
+
+      if ($likeBtn.length) {
+        const $icon = $likeBtn.find('i');
+
+        if (status.liked) {
+          // 已点赞状态
+          $icon
+            .removeClass('mdi-thumb-up-outline')
+            .addClass('mdi-thumb-up like-icon-liked');
+        } else {
+          // 未点赞状态
+          $icon.removeClass('mdi-thumb-up').addClass('mdi-thumb-up-outline');
+        }
+      }
+    });
+  },
+
+  /**
+   * 加载日记本点赞状态
+   * 根据data-social-setting决定是否显示点赞按钮
+   */
+  loadDiaryLikeStatus: function () {
+    // 检查社交设置
+    const socialSetting = this._getSocialSetting();
+    if (socialSetting !== 1) {
+      // 如果社交设置不为1，清空容器
+      $('#diary-like-container').empty();
+      return;
+    }
+
+    // 获取日记ID
+    const $container = $('#diary-like-container');
+    const diaryId = $container.data('diary-id');
+
+    if (!diaryId) {
+      console.log('未找到日记ID，无法加载点赞状态');
+      return;
+    }
+
+    // 发送AJAX请求获取日记点赞状态
+    $.ajax({
+      url: `${this.baseUrl}/api/diary/like/status?diaryid=${diaryId}`,
+      method: 'GET',
+      global: false,
+      success: (response) => {
+        if (response.success && response.data) {
+          this._renderDiaryLikeButton(response.data);
+        }
+      },
+      error: (xhr, status, error) => {
+        // 静默处理错误，不显示通知
+        console.log('加载日记点赞状态失败:', error);
+      },
+    });
+  },
+
+  /**
+   * 渲染日记本点赞按钮
+   * @private
+   * @param {Object} likeData - 点赞数据
+   */
+  _renderDiaryLikeButton: function (likeData) {
+    const $container = $('#diary-like-container');
+    const diaryId = $container.data('diary-id');
+
+    // 根据点赞状态选择图标和样式类
+    const iconClass = likeData.is_liked
+      ? 'mdi mdi-heart like-icon-liked'
+      : 'mdi mdi-heart-outline';
+
+    const buttonHtml = `
+      <button class="btn" data-action="likeDiary" data-diary-id="${diaryId}">
+        <i class="${iconClass} mr-1"></i>
+        <span>${likeData.like_count || 0}</span>
+      </button>
+    `;
+
+    $container.html(buttonHtml);
   },
   /**
    * 获取ajax内容行为
@@ -140,7 +278,7 @@ const Diary = {
     handler: function (id, target, eventData, data) {
       history.pushState(null, '', data.url);
       return $.ajax({
-        url: data.url+ '?isajax=true',
+        url: data.url + '?isajax=true',
         type: 'GET',
         dataType: 'html',
         success: function (data) {
@@ -158,43 +296,46 @@ const Diary = {
     type: 'function',
     handler: function (id, target, eventData, data) {
       // 确认删除
-      const confirmMessage = kiko.i18n.getMessage('post.delete.confirm') || '确定要删除这篇日记吗？';
-      
+      const confirmMessage =
+        kiko.i18n.getMessage('post.delete.confirm') || '确定要删除这篇日记吗？';
+
       kiko.ui.box.confirm({
         content: confirmMessage,
         width: 500,
         height: 80,
-        okButtonClass:'btn',
-        onOk: function() {
+        okButtonClass: 'btn',
+        onOk: function () {
           // 发送删除请求
           $.ajax({
             url: `${Diary.baseUrl}/post/delete`,
             type: 'POST',
             data: {
               post_id: data.postId,
-              diary_id: data.diaryId
+              diary_id: data.diaryId,
             },
             success: (response) => {
               if (response.code === 0) {
                 // 删除成功，从页面移除对应的日记卡片
                 const $postCard = $(`.card[data-post-id="${data.postId}"]`);
-                $postCard.fadeOut(300, function() {
+                $postCard.fadeOut(300, function () {
                   $(this).remove();
                 });
-                kiko.ui.notify.success(kiko.i18n.getMessage('post.delete.success') || '删除成功');
+                kiko.ui.notify.success(
+                  kiko.i18n.getMessage('post.delete.success') || '删除成功',
+                );
               } else {
                 kiko.ui.notify.error(response.message || '删除失败');
               }
             },
             error: (xhr, status, error) => {
               kiko.ui.notify.error('网络错误，删除失败');
-            }
+            },
           });
-        }
+        },
       });
     },
   },
-  
+
   /**
    * 跳转url行为
    */
@@ -204,10 +345,10 @@ const Diary = {
     handler: function (id, target, eventData, data) {
       const originalUrl = window.location.href;
       kiko.ui.box.dialog({
-        ajaxUrl: data.url+ '?isajax=true',
-        containerClass:'!border',
-        widthClass:'lg:w-[90%]',
-        heightClass:'h-full',
+        ajaxUrl: data.url + '?isajax=true',
+        containerClass: '!border',
+        widthClass: 'lg:w-[90%]',
+        heightClass: 'h-full',
         onClose: () => {
           history.pushState(null, '', originalUrl);
         },
@@ -246,7 +387,7 @@ const Diary = {
         height: 570,
         showOkButton: true,
         okButtonText: kiko.i18n.getMessage('post.save') || '保存',
-        containerClass:'!border',
+        containerClass: '!border',
         okButtonClass: 'btn',
         buttonAlign: 'right',
         onOk: () => this._handlePostSubmit(data, boxId),
@@ -393,7 +534,9 @@ const Diary = {
 
       // 更新标题和摘要
       $postCard.find('h1.post-title').text(escapeHtml(postData.title || ''));
-      $postCard.find('p.text-relaxed a').text(escapeHtml(postData.summary || ''));
+      $postCard
+        .find('p.text-relaxed a')
+        .text(escapeHtml(postData.summary || ''));
     },
     /**
      * 添加新日记到列表
@@ -515,7 +658,7 @@ const Diary = {
         width: 800,
         height: 500,
         showOkButton: true,
-        containerClass:'!border',
+        containerClass: '!border',
         okButtonText: kiko.i18n.getMessage('diary.save') || '保存',
         okButtonClass: 'btn',
         buttonAlign: 'right',
@@ -556,9 +699,7 @@ const Diary = {
           if (response.code === 0) {
             this._handleSubmitSuccess(data.formAction, response.data);
             kiko.ui.box.close(boxId);
-            kiko.ui.notify.success(
-              kiko.i18n.getMessage('operation.success'),
-            );
+            kiko.ui.notify.success(kiko.i18n.getMessage('operation.success'));
           } else {
             this._handleSubmitError(response.message);
           }
@@ -616,7 +757,7 @@ const Diary = {
     _updateDiaryInfo: function (diaryData) {
       // 获取当前的SocialSetting值
       const currentSocialSetting = Diary._getSocialSetting();
-      
+
       // 更新标题
       const $title = $('#diary_title');
       $title.text(diaryData.title);
@@ -636,22 +777,27 @@ const Diary = {
         return (className.match(/(^|\s)dt\d+/g) || []).join(' ');
       });
       $main.addClass(`dt${diaryData.theme_id}`);
-      
+
       // 更新SocialSetting到data属性
       if (diaryData.social_setting !== undefined) {
         // 先更新data属性（使用.data()方法保持与_getSocialSetting的一致性）
         $main.data('social-setting', diaryData.social_setting);
         $main.attr('data-social-setting', diaryData.social_setting);
-        
+
         // 检查SocialSetting是否有变化
         if (currentSocialSetting !== diaryData.social_setting) {
-          // 如果SocialSetting从2修改为1，重新加载统计信息
+          // 如果SocialSetting从2修改为1，重新加载统计信息和日记本点赞状态
           if (currentSocialSetting === 2 && diaryData.social_setting === 1) {
             Diary.loadPostsStats();
+            Diary.loadDiaryLikeStatus();
           }
-          // 如果SocialSetting从1修改为2，清空统计信息容器
-          else if (currentSocialSetting === 1 && diaryData.social_setting === 2) {
+          // 如果SocialSetting从1修改为2，清空统计信息容器和日记本点赞按钮
+          else if (
+            currentSocialSetting === 1 &&
+            diaryData.social_setting === 2
+          ) {
             $('[id^="stats_"]').empty();
+            $('#diary-like-container').empty();
           }
         }
       }
@@ -720,13 +866,21 @@ const Diary = {
 
         // 重置所有主题样式
         $themes
-          .removeClass('ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800')
-          .addClass('hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300');
+          .removeClass(
+            'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800',
+          )
+          .addClass(
+            'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300',
+          );
 
         // 设置选中样式 - 支持dark模式
         $this
-          .removeClass('hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300')
-          .addClass('ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800');
+          .removeClass(
+            'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300',
+          )
+          .addClass(
+            'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800',
+          );
 
         // 更新隐藏字段值
         $form.find('#theme_id').val($this.attr('theme'));
@@ -769,6 +923,154 @@ const Diary = {
             }
           }
         },
+      });
+    },
+  },
+
+  /**
+   * 日记点赞行为
+   * @type {Object}
+   */
+  likePostAction: {
+    id: 'likePost',
+    type: 'function',
+
+    /**
+     * 处理日记点赞请求
+     */
+    handler: function (id, target, eventData, data) {
+      const $button = $(eventData.element);
+      const postId = data.postId;
+
+      if (!postId) {
+        kiko.ui.notify.error('参数错误');
+        return;
+      }
+
+      // 防止重复点击
+      if ($button.hasClass('liking')) {
+        return;
+      }
+
+      $button.addClass('liking');
+      const $icon = $button.find('i');
+      const $count = $button.find('span');
+
+      // 发送点赞请求
+      $.ajax({
+        url: `${Diary.baseUrl}/api/post/like`,
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+          post_id: parseInt(postId),
+        }),
+        dataType: 'json',
+        success: (response) => {
+          if (response.code === 0 && response.data) {
+            // 更新点赞状态
+            const isLiked = response.data.is_liked;
+            const likeCount = response.data.like_count || 0;
+
+            // 更新图标和样式类
+            if (isLiked) {
+              $icon
+                .removeClass('mdi-thumb-up-outline')
+                .addClass('mdi-thumb-up like-icon-liked');
+            } else {
+              $icon
+                .removeClass('mdi-thumb-up like-icon-liked')
+                .addClass('mdi-thumb-up-outline');
+            }
+
+            // 更新计数
+            $count.text(likeCount);
+
+            // 显示成功提示
+            const message = isLiked ? '点赞成功' : '取消点赞';
+            kiko.ui.notify.success(message);
+          } else {
+            kiko.ui.notify.error(response.message || '操作失败');
+          }
+        },
+        error: (xhr, status, error) => {
+          kiko.ui.notify.error('网络错误，请重试');
+        }
+      }).always(() => {
+        $button.removeClass('liking');
+      });
+    },
+  },
+
+  /**
+   * 日记本点赞行为
+   * @type {Object}
+   */
+  likeDiaryAction: {
+    id: 'likeDiary',
+    type: 'function',
+
+    /**
+     * 处理日记本点赞请求
+     */
+    handler: function (id, target, eventData, data) {
+      const $button = $(eventData.element);
+      const diaryId = data.diaryId;
+
+      if (!diaryId) {
+        kiko.ui.notify.error('参数错误');
+        return;
+      }
+
+      // 防止重复点击
+      if ($button.hasClass('liking')) {
+        return;
+      }
+
+      $button.addClass('liking');
+      const $icon = $button.find('i');
+      const $count = $button.find('span');
+
+      // 发送点赞请求
+      $.ajax({
+        url: `${Diary.baseUrl}/api/diary/like`,
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+          diary_id: parseInt(diaryId),
+        }),
+        dataType: 'json',
+        success: (response) => {
+          if (response.code === 0 && response.data) {
+            // 更新点赞状态
+            const isLiked = response.data.is_liked;
+            const likeCount = response.data.like_count || 0;
+
+            // 更新图标和样式类
+            if (isLiked) {
+              $icon
+                .removeClass('mdi-heart-outline')
+                .addClass('mdi-heart like-icon-liked');
+            } else {
+              $icon
+                .removeClass('mdi-heart like-icon-liked')
+                .addClass('mdi-heart-outline');
+            }
+
+            // 更新计数
+            $count.text(likeCount);
+
+            // 显示成功提示
+            const message = isLiked ? '点赞成功' : '取消点赞';
+            kiko.ui.notify.success(message);
+          } else {
+            kiko.ui.notify.error(response.message || '操作失败');
+          }
+        },
+        error: (xhr, status, error) => {
+          kiko.ui.notify.error('网络错误，请重试');
+        }
+      }).always(() => {
+        $button.removeClass('liking');
       });
     },
   },

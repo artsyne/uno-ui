@@ -217,3 +217,21 @@ func (s *Service) GetPostsStats(postIDs []int64) ([]Post, error) {
 
 	return posts, nil
 }
+
+// IncrementLikeCount 增加日记的点赞数量
+// 参数:
+//   - postID: 日记ID
+// 返回:
+//   - error: 操作失败时返回错误
+func (s *Service) IncrementLikeCount(postID int64) error {
+	return s.repo.IncrementLikeNum(postID)
+}
+
+// DecrementLikeCount 减少日记的点赞数量
+// 参数:
+//   - postID: 日记ID
+// 返回:
+//   - error: 操作失败时返回错误
+func (s *Service) DecrementLikeCount(postID int64) error {
+	return s.repo.DecrementLikeNum(postID)
+}

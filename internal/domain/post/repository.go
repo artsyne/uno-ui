@@ -86,4 +86,18 @@ type RepositoryInterface interface {
 	//   - []Post: 包含统计信息的日记列表
 	//   - error: 查询失败时返回错误
 	GetStatsByIDs(postIDs []int64) ([]Post, error)
+
+	// IncrementLikeNum 增加日记的点赞数量
+	// 参数:
+	//   - postID: 日记ID
+	// 返回:
+	//   - error: 操作失败时返回错误
+	IncrementLikeNum(postID int64) error
+
+	// DecrementLikeNum 减少日记的点赞数量
+	// 参数:
+	//   - postID: 日记ID
+	// 返回:
+	//   - error: 操作失败时返回错误
+	DecrementLikeNum(postID int64) error
 }

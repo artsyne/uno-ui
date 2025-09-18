@@ -31,7 +31,7 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		diaryRepo := repository.NewDiaryRepository()
-		postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+		postRepo := repository.NewPostRepository()
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		
 		taskService := task.NewService(config, taskRepo)

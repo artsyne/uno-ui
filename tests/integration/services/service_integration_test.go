@@ -96,7 +96,7 @@ func TestUserPostDiaryIntegration(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postRepo := repository.NewPostRepository()
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	
 	taskService := task.NewService(config, taskRepo)
@@ -232,7 +232,7 @@ func TestMultiUserScenario(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postRepo := repository.NewPostRepository()
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	
 	i18nManager := i18n.NewLocalizationManager(config)
@@ -354,7 +354,7 @@ func TestServiceErrorHandling(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postRepo := repository.NewPostRepository()
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	
 	i18nManager := i18n.NewLocalizationManager(config)
@@ -434,7 +434,7 @@ func TestServicePerformance(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository(ctx.GetDatabase().GetDB())
+	postRepo := repository.NewPostRepository()
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	
 	i18nManager := i18n.NewLocalizationManager(config)

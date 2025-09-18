@@ -18,15 +18,19 @@
             <div class="card border-none">
                 <div class="flex justify-between mb-4">
                     {{if .Data.PreviousPostID}}
-                    <a href="/p/{{.Data.PreviousPostID}}" data-action="getAjaxContent" data-url="/p/{{.Data.PreviousPostID}}" data-ajax="true"  title='{{getMessage "common.previous" .Context.Lang}}'>
+                    <a href="/p/{{.Data.PreviousPostID}}" data-action="getAjaxContent"
+                        data-url="/p/{{.Data.PreviousPostID}}" data-ajax="true"
+                        title='{{getMessage "common.previous" .Context.Lang}}'>
                         {{else}}
                         <a href="javascript:void(0)" title='{{getMessage "common.is_first_page" .Context.Lang}}'>
                             {{end}}
                             <i class="mdi mdi-arrow-left"></i></a>
                         {{if .Data.NextPostID}}
-                        <a href="/p/{{.Data.NextPostID}}" data-action="getAjaxContent" data-url="/p/{{.Data.NextPostID}}" data-ajax="true"  title='{{getMessage "common.next" .Context.Lang}}'>
+                        <a href="/p/{{.Data.NextPostID}}" data-action="getAjaxContent"
+                            data-url="/p/{{.Data.NextPostID}}" data-ajax="true"
+                            title='{{getMessage "common.next" .Context.Lang}}'>
                             {{else}}
-                            <a href="javascript:void(0)"  title='{{getMessage "common.is_last_page" .Context.Lang}}'>
+                            <a href="javascript:void(0)" title='{{getMessage "common.is_last_page" .Context.Lang}}'>
                                 {{end}}
                                 <i class="mdi mdi-arrow-right"></i></a>
                 </div>
@@ -42,15 +46,11 @@
                         .Context.Lang}}</p>
                     <p>{{formatLocalTime .Data.Post.AddUTCTime .Data.TimeZone}}</p>
                 </div>
-                 {{if eq .Data.Diary.SocialSetting 1}}
-                <div class="flex justify-between text-gray-600 dark:text-gray-400 text-sm">
-                    <span><button class="btn-social"><i class="mdi mdi-eye mr-1"></i>{{.Data.Post.ViewNum}}</button></span>
-                    <span><button class="btn-social"><i class="mdi mdi-comment-text-outline mr-1"></i>{{.Data.Post.CommentNum}}</button></span>
-                    <span><button class="btn-social"><i class="mdi mdi-thumb-up-outline mr-1"></i>{{.Data.Post.LikeNum}}</button></span>
+                <div id="detail_stats_{{.Data.Post.PostID}}" class="flex justify-between text-gray-600 dark:text-gray-400 text-sm">
                 </div>
-                 {{end}}
             </div>
         </div>
     </section>
 </div>
+<script>$(function() {Diary.loadPostsStats();});</script>
 {{end}}

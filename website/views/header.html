@@ -16,8 +16,13 @@
 	<link href="/public/dist/css/materialdesignicons.min.css?v=6.5.95" rel="stylesheet">
 	{{if isLogin .}}
 	<script>
-		var login_user_name = '{{getUserName .}}';
-		var login_user_id = '{{getUserID .}}';
+		// 初始化用户状态管理
+		$(document).ready(function() {
+			UserState.init({
+				id: '{{getUserID .}}',
+				name: '{{getUserName .}}'
+			});
+		});
 	</script>
 	{{end}}
 </head>

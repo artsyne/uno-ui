@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/biuren/hebe/internal/core/database"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/jmoiron/sqlx"
@@ -16,7 +17,11 @@ type PostRepository struct {
 }
 
 // NewPostRepository 创建新的文章数据访问层实例
-func NewPostRepository(db *sqlx.DB) post.RepositoryInterface {
+func NewPostRepository() post.RepositoryInterface {
+	db := database.GetDB()
+	if db == nil {
+		panic("database connection is nil")
+	}
 	return &PostRepository{
 		db: db,
 	}
@@ -222,4 +227,18 @@ func (r *PostRepository) GetStatsByIDs(postIDs []int64) ([]post.Post, error) {
 		return []post.Post{}, nil
 	}
 	return posts, err
+}
+
+// IncrementLikeNum 增加日记的点赞数量
+func (r *PostRepository) IncrementLikeNum(postID int64) error {
+	sqlstr := "UPDATE br_post SET like_num = like_num + 1 WHERE post_id = ?"
+	_, err := r.db.Exec(sqlstr, postID)
+	return err
+}
+
+// DecrementLikeNum 减少日记的点赞数量
+func (r *PostRepository) DecrementLikeNum(postID int64) error {
+	sqlstr := "UPDATE br_post SET like_num = like_num - 1 WHERE post_id = ? AND like_num > 0"
+	_, err := r.db.Exec(sqlstr, postID)
+	return err
 }

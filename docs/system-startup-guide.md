@@ -160,7 +160,7 @@ func (a *Application) registerAppServices() error {
     userRepo := repository.NewUserRepository()
     taskRepo := repository.NewTaskRepository()
     diaryRepo := repository.NewDiaryRepository()
-    postRepo := repository.NewPostRepository(database.GetDB())
+    postRepo := repository.NewPostRepository()
     
     // 创建领域服务实例 - 配置通过构造函数注入
     // 这是配置系统优化的体现：明确的依赖注入而非全局访问
