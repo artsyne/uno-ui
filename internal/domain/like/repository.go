@@ -11,6 +11,4 @@ type Repository interface {
 	// GetLikeCount 获取点赞总数
 	GetLikeCount(ownerID int64, likeType int) (int, error)
 
-	// GetLikesByUser 获取用户的所有点赞记录
-	GetLikesByUser(userID int64, likeType int) ([]Like, error)
 }

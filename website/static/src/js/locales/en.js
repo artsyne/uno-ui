@@ -31,6 +31,8 @@ if (typeof window !== 'undefined' && window.kiko && window.kiko.i18n) {
     'password.reset.success': 'Password reset email has been sent',
     'diary.save': 'Save',
     'theme.switch.dark': 'Switch to dark theme',
-    'theme.switch.light': 'Switch to light theme'
+    'theme.switch.light': 'Switch to light theme',
+    'common.edit': 'Edit',
+    'common.delete': 'Delete'
   });
 }

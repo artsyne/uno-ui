@@ -31,6 +31,8 @@ if (typeof window !== 'undefined' && window.kiko && window.kiko.i18n) {
         "password.reset.success": "密码重置邮件已发送",
         "diary.save": "保存",
         "theme.switch.dark": "切换到暗色主题",
-        "theme.switch.light": "切换到亮色主题"
+        "theme.switch.light": "切换到亮色主题",
+        "common.edit": "编辑",
+        "common.delete": "删除"
     });
 }

@@ -10,7 +10,6 @@ import (
 	"strings"
 	"sync"
 
-	types "github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/gin-gonic/gin"
 )
@@ -321,90 +320,24 @@ func (m *LocalizationManager) GetMessagesByLanguage(locale string) map[string]st
 	return GetMessagesByPrefix(prefix)
 }
 
-// GetLocaleFromContext 从 Gin 上下文中智能检测语言
-// 优先级：用户设置 > Cookie > 浏览器偏好 > 系统默认
+// GetLocaleFromContext 从 Gin 上下文中检测语言
+// 简化优先级：idiary-lang cookie > 默认 en
 func (m *LocalizationManager) GetLocaleFromContext(c *gin.Context) string {
-	// 优先级1：用户设置 (如果已登录)
-	if locale := m.getUserLocaleFromContext(c); locale != "" {
-		return locale
-	}
-
-	// 优先级2：Cookie 设置
-	if cookieLocale, err := c.Cookie("lang"); err == nil && cookieLocale != "" {
+	// 检查 idiary-lang cookie
+	if cookieLocale, err := c.Cookie("idiary-lang"); err == nil && cookieLocale != "" {
 		if m.IsLanguageSupported(cookieLocale) {
-			slog.Debug("从 Cookie 获取语言", "locale", cookieLocale)
+			slog.Debug("从 idiary-lang Cookie 获取语言", "locale", cookieLocale)
 			return cookieLocale
 		}
 	}
 
-	// 优先级3：浏览器偏好
-	if browserLocale := m.getBrowserPreferredLocale(c); browserLocale != "" {
-		slog.Debug("从浏览器偏好获取语言", "locale", browserLocale)
-		return browserLocale
-	}
-
-	// 优先级4：系统默认
+	// 默认使用 en
 	defaultLocale := m.GetDefaultLanguage()
 	slog.Debug("使用系统默认语言", "locale", defaultLocale)
 	return defaultLocale
 }
 
-// getUserLocaleFromContext 从上下文中获取已认证用户的语言设置
-func (m *LocalizationManager) getUserLocaleFromContext(c *gin.Context) string {
-	isLogin, exists := c.Get("IsLogin")
-	if !exists || isLogin != true {
-		return ""
-	}
 
-	authUserRaw, exists := c.Get("AuthUser")
-	if !exists || authUserRaw == nil {
-		return ""
-	}
-
-	authUser, ok := authUserRaw.(*types.AuthUser)
-	if !ok || authUser.Lang == "" || !m.IsLanguageSupported(authUser.Lang) {
-		return ""
-	}
-
-	slog.Debug("从用户设置获取语言", "locale", authUser.Lang)
-	return authUser.Lang
-}
-
-// getBrowserPreferredLocale 从 Accept-Language 头中提取最佳匹配的语言
-func (m *LocalizationManager) getBrowserPreferredLocale(c *gin.Context) string {
-	acceptLang := c.GetHeader("Accept-Language")
-	if acceptLang == "" {
-		return ""
-	}
-
-	languages := m.parseAcceptLanguage(acceptLang)
-
-	for _, lang := range languages {
-		// 尝试规范化匹配
-		if normalized := m.normalizeLocale(lang); normalized != "" && m.IsLanguageSupported(normalized) {
-			return normalized
-		}
-	}
-
-	return ""
-}
-
-// parseAcceptLanguage 解析 Accept-Language 头
-func (m *LocalizationManager) parseAcceptLanguage(acceptLang string) []string {
-	// 简化实现，实际项目中可能需要更复杂的解析
-	var languages []string
-	parts := strings.Split(acceptLang, ",")
-
-	for _, part := range parts {
-		// 移除质量值 (如 ";q=0.9")
-		lang := strings.TrimSpace(strings.Split(part, ";")[0])
-		if lang != "" {
-			languages = append(languages, lang)
-		}
-	}
-
-	return languages
-}
 
 // ReloadMessages 重新加载消息（开发环境使用）
 func (m *LocalizationManager) ReloadMessages() error {

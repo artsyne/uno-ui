@@ -10,7 +10,8 @@
 // 必须在任何其他代码执行前运行
 (function() {
   try {
-    const theme = localStorage.getItem('idiary-theme');
+    const theme = window.getCookie('idiary-theme');
+    
     const isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
     if (isDark) document.documentElement.classList.add('dark');
   } catch (e) {
@@ -52,9 +53,9 @@
      */
     getStoredTheme() {
       try {
-        return localStorage.getItem(this.storageKey);
+        return window.getCookie ? window.getCookie(this.storageKey) : null;
       } catch (e) {
-        return 'system';
+        return null;
       }
     },
     
@@ -155,7 +156,11 @@
      */
     setTheme(theme) {
       try {
-        localStorage.setItem(this.storageKey, theme);
+        if (window.setCookie) {
+          window.setCookie(this.storageKey, theme);
+        } else {
+          console.warn('Cookie工具函数不可用，无法保存主题设置');
+        }
       } catch (e) {
         console.warn('无法保存主题设置:', e);
       }

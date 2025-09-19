@@ -54,7 +54,8 @@ const getLanguageFiles = () => {
 
 // 定义JS文件合并顺序
 const jsFiles = [
-  'kiko-init.js', // 首先加载Kiko初始化
+  'utils.js', // 首先加载通用工具函数
+  'kiko-init.js', // Kiko初始化
   'i18n.js', // 网站多语言初始化
   'theme.js', // 主题切换功能
   'user-state.js', // 用户状态管理模块

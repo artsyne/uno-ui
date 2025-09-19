@@ -35,8 +35,8 @@ type I18nManager interface {
 	// GetMessagesByLanguage 获取指定语言的所有消息（用于调试）
 	GetMessagesByLanguage(locale string) map[string]string
 
-	// GetLocaleFromContext 从 Gin 上下文中智能检测语言
-	// 优先级：用户设置 > Cookie > 浏览器偏好 > 系统默认
+	// GetLocaleFromContext 从 Gin 上下文中检测语言
+	// 简化优先级：idiary-lang cookie > 默认 en
 	GetLocaleFromContext(c *gin.Context) string
 
 	// ReloadMessages 重新加载消息（开发环境使用）

@@ -76,29 +76,3 @@ func (r *LikeRepository) GetLikeCount(ownerID int64, likeType int) (int, error) 
 
 	return count, nil
 }
-
-// GetLikesByUser 获取用户的所有点赞记录
-func (r *LikeRepository) GetLikesByUser(userID int64, likeType int) ([]like.Like, error) {
-	query := `SELECT like_id, user_id, owner_id, like_type FROM br_like WHERE user_id = ? AND like_type = ?`
-	rows, err := r.db.Query(query, userID, likeType)
-	if err != nil {
-		return nil, fmt.Errorf("查询用户点赞记录失败: %w", err)
-	}
-	defer rows.Close()
-
-	var likes []like.Like
-	for rows.Next() {
-		var l like.Like
-		err := rows.Scan(&l.LikeID, &l.UserID, &l.OwnerID, &l.LikeType)
-		if err != nil {
-			return nil, fmt.Errorf("扫描点赞记录失败: %w", err)
-		}
-		likes = append(likes, l)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("遍历点赞记录失败: %w", err)
-	}
-
-	return likes, nil
-}

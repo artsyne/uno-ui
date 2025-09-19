@@ -31,7 +31,7 @@ const Social = {
    * 获取社交设置值
    * @returns {number} 社交设置值，1表示开启，2表示关闭
    */
-  _getSocialSetting: function () {
+  getSocialSetting: function () {
     // 首先尝试从页面的data属性获取
     const pageData = $('main').data('social-setting');
     if (pageData !== undefined) {
@@ -47,7 +47,7 @@ const Social = {
    */
   loadPostsStats: function () {
     // 检查SocialSetting，只有为1时才加载统计信息
-    const socialSetting = this._getSocialSetting();
+    const socialSetting = this.getSocialSetting();
     if (socialSetting !== 1) {
       return;
     }
@@ -207,7 +207,7 @@ const Social = {
    */
   loadDiaryLikeStatus: function () {
     // 检查社交设置
-    const socialSetting = this._getSocialSetting();
+    const socialSetting = this.getSocialSetting();
     if (socialSetting !== 1) {
       // 如果社交设置不为1，清空容器
       $('#diary-like-container').empty();

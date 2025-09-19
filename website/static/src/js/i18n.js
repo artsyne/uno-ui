@@ -6,7 +6,7 @@
 (function() {
   'use strict';
 
-  // 存储键名
+  // 存储键名（前后端约定）
   const STORAGE_KEY = 'idiary-lang';
   
   // 默认语言
@@ -32,19 +32,11 @@
   }
   
   /**
-   * 获取HTML lang属性
-   */
-  function getHtmlLang() {
-    const htmlLang = document.documentElement.lang;
-    return htmlLang && SUPPORTED_LANGUAGE_CODES.includes(htmlLang.toLowerCase()) ? htmlLang.toLowerCase() : null;
-  }
-  
-  /**
    * 获取存储的语言
    */
   function getStoredLanguage() {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = window.getCookie(STORAGE_KEY);
       return stored && SUPPORTED_LANGUAGE_CODES.includes(stored) ? stored : null;
     } catch (e) {
       return null;
@@ -53,28 +45,22 @@
 
   /**
    * 获取当前应该使用的语言
-   * 优先级：localStorage > html lang属性 > 浏览器默认语言 > 系统默认en
+   * 简化优先级：cookie > 浏览器默认 > 默认en
    */
   function getCurrentLanguage() {
-    // 1. localStorage 优先级最高
+    // 1. cookie 优先级最高
     const storedLang = getStoredLanguage();
     if (storedLang) {
       return storedLang;
     }
     
-    // 2. HTML lang 属性
-    const htmlLang = getHtmlLang();
-    if (htmlLang) {
-      return htmlLang;
-    }
-    
-    // 3. 浏览器默认语言
+    // 2. 浏览器默认语言
     const browserLang = detectBrowserLanguage();
     if (browserLang && browserLang !== DEFAULT_LANGUAGE) {
       return browserLang;
     }
     
-    // 4. 系统默认
+    // 3. 系统默认
     return DEFAULT_LANGUAGE;
   }
 
@@ -90,8 +76,7 @@
     }
     
     try {
-      // 保存到本地存储
-      localStorage.setItem(STORAGE_KEY, lang);
+      window.setCookie(STORAGE_KEY, lang);
       
       // 使用 Kiko UI 设置语言
       if (typeof kiko !== 'undefined' && kiko.i18n) {
@@ -147,23 +132,23 @@
 
   /**
    * 初始化 Website 多语言系统
-   * 简化版本：由于kiko一定会先加载，所以不需要复杂的等待机制
+   * 页面初始化时设置 idiary-lang cookie 和 html 的 lang 属性
    */
   function initWebsiteI18n() {
     try {
       // 暴露全局 API
       exposeGlobalAPI();
       
-      // 设置当前语言（语言包已通过构建脚本打包）
+      // 获取当前语言（语言包已通过构建脚本打包）
       const currentLang = getCurrentLanguage();
       
-      // 如果kiko已经可用，立即设置语言
-      if (typeof kiko !== 'undefined' && kiko.i18n) {
-        kiko.i18n.setLang(currentLang);
-      }
+      // 确保 cookie 和 HTML lang 属性同步
+      window.setCookie(STORAGE_KEY, currentLang);
+      document.documentElement.lang = currentLang;
       
-      console.log(`[Website I18n] 初始化完成，当前语言: ${currentLang}`);
-      
+      // 立即设置 kiko 语言
+      kiko.i18n.setLang(currentLang);
+
       // 触发语言包加载完成事件
       document.dispatchEvent(new CustomEvent('websiteI18nReady', {
         detail: { language: currentLang }
@@ -188,7 +173,7 @@
         e.preventDefault();
         const langCode = langLink.getAttribute('data-lang');
         
-        // 设置语言到localStorage
+        // 设置语言（现在使用cookie存储）
         if (setLanguage(langCode)) {
           // 隐藏tooltip
           const tooltip = document.getElementById('lang_menu');

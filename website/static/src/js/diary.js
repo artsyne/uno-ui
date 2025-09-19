@@ -289,8 +289,28 @@ const Diary = {
         return;
       }
 
-      // 更新标题和摘要
-      $postCard.find('h1.post-title').text(escapeHtml(postData.title || ''));
+      // 处理标题更新
+      const $titleElement = $postCard.find('h1.post-title');
+      const $cardContent = $postCard.find('.mb-4');
+      
+      if (postData.title && postData.title.trim()) {
+        // 有标题的情况
+        if ($titleElement.length) {
+          // 标题元素存在，直接更新文本
+          $titleElement.text(escapeHtml(postData.title));
+        } else {
+          // 标题元素不存在，需要创建
+          const titleHtml = `<h1 class="post-title">${escapeHtml(postData.title)}</h1>`;
+          $cardContent.prepend(titleHtml);
+        }
+      } else {
+        // 没有标题的情况，移除标题元素（如果存在）
+        if ($titleElement.length) {
+          $titleElement.remove();
+        }
+      }
+
+      // 更新摘要
       $postCard
         .find('p.text-relaxed a')
         .text(escapeHtml(postData.summary || ''));
@@ -306,35 +326,49 @@ const Diary = {
         return;
       }
 
+      // 获取国际化文本
+      const editText = kiko.i18n.getMessage('common.edit') || '编辑';
+      const deleteText = kiko.i18n.getMessage('common.delete') || '删除';
+      
+      // 构建编辑按钮HTML（服务端已有权限校验，前端直接显示）
+      const editButtonHtml = `
+        <div class="post-edit">
+          <a href="#" data-tooltip-target="post_edit${postData.post_id}" data-tooltip-position="bottom"
+             data-tooltip-event="click,mouseover">
+            <i class="mdi mdi-dots-horizontal"></i>
+          </a>
+        </div>
+        <div id="post_edit${postData.post_id}" class="tooltip hidden">
+          <ul>
+            <li>
+              <a href="" class="tooltip-link" data-action="showPostBox" data-form-action="post.edit"
+                 data-diary-id="${postData.diary_id || ''}" data-post-id="${postData.post_id}">
+                <i class="mdi mdi-pencil-outline mr-2"></i> ${editText}
+              </a>
+            </li>
+            <li>
+              <a href="" class="tooltip-link" data-action="deletePost"
+                 data-diary-id="${postData.diary_id || ''}" data-post-id="${postData.post_id}">
+                <i class="mdi mdi-delete-outline mr-2"></i> ${deleteText}
+              </a>
+            </li>
+          </ul>
+        </div>
+      `;
+      
+      // 构建标题HTML（仅当有标题时显示）
+      const titleHtml = postData.title ? `
+        <h1 class="post-title">
+          ${escapeHtml(postData.title)}
+        </h1>
+      ` : '';
+      
       // 构建日记卡片HTML，基于最新的diary/index.html结构
       const postHtml = `
         <div class="card mb-6 break-inside-avoid" data-post-id="${postData.post_id}">
-          <div class="post-edit">
-            <a href="#" data-tooltip-target="post_edit${postData.post_id}" data-tooltip-position="bottom"
-               data-tooltip-event="click,mouseover">
-              <i class="mdi mdi-dots-horizontal"></i>
-            </a>
-          </div>
-          <div id="post_edit${postData.post_id}" class="tooltip hidden">
-            <ul>
-              <li>
-                <a href="" class="tooltip-link" data-action="showPostBox" data-form-action="post.edit"
-                   data-diary-id="${postData.diary_id || ''}" data-post-id="${postData.post_id}">
-                  <i class="mdi mdi-pencil-outline mr-2"></i> 编辑
-                </a>
-              </li>
-              <li>
-                <a href="" class="tooltip-link" data-action="deletePost"
-                   data-diary-id="${postData.diary_id || ''}" data-post-id="${postData.post_id}">
-                  <i class="mdi mdi-delete-outline mr-2"></i> 删除
-                </a>
-              </li>
-            </ul>
-          </div>
+          ${editButtonHtml}
           <div class="mb-4">
-            <h1 class="post-title">
-              ${escapeHtml(postData.title)}
-            </h1>
+            ${titleHtml}
             <p class="text-relaxed cursor-pointer">
               <a href="/p/${postData.post_id}" data-action="gotoUrl" data-url="/p/${postData.post_id}" data-ajax="true"
                  style="all:unset !important">
@@ -348,13 +382,7 @@ const Diary = {
                 ${formatTime(postData.add_utc_time || '')}
               </span>
             </div>
-            <div>
-              <a href="#" class="mr-2">
-                <i class="mdi mdi-comment-text-outline mr-1"></i> <span>${postData.comment_num || 0}</span>
-              </a>
-              <a href="#">
-                <i class="mdi mdi-thumb-up-outline mr-1"></i><span>${postData.like_num || 0}</span>
-              </a>
+            <div id="stats_${postData.post_id}">
             </div>
           </div>
         </div>
@@ -375,6 +403,11 @@ const Diary = {
       $newPost.hide().fadeIn(600);
 
       // 注意：使用事件委托后，tooltip会自动工作，无需手动初始化
+
+      // 根据socialSetting按需加载社交统计信息
+      if (typeof Social !== 'undefined' && Social.loadPostsStats) {
+        Social.loadPostsStats();
+      }
 
       log('成功添加新日记到列表', postData);
     },
@@ -513,7 +546,7 @@ const Diary = {
      */
     _updateDiaryInfo: function (diaryData) {
       // 获取当前的SocialSetting值
-      const currentSocialSetting = Diary._getSocialSetting();
+      const currentSocialSetting = Social.getSocialSetting();
 
       // 更新标题
       const $title = $('#diary_title');
@@ -537,7 +570,7 @@ const Diary = {
 
       // 更新SocialSetting到data属性
       if (diaryData.social_setting !== undefined) {
-        // 先更新data属性（使用.data()方法保持与_getSocialSetting的一致性）
+        // 先更新data属性（使用.data()方法保持与Social.getSocialSetting的一致性）
         $main.data('social-setting', diaryData.social_setting);
         $main.attr('data-social-setting', diaryData.social_setting);
 
@@ -545,8 +578,8 @@ const Diary = {
         if (currentSocialSetting !== diaryData.social_setting) {
           // 如果SocialSetting从2修改为1，重新加载统计信息和日记本点赞状态
           if (currentSocialSetting === 2 && diaryData.social_setting === 1) {
-            Diary.loadPostsStats();
-            Diary.loadDiaryLikeStatus();
+            Social.loadPostsStats();
+            Social.loadDiaryLikeStatus();
           }
           // 如果SocialSetting从1修改为2，清空统计信息容器和日记本点赞按钮
           else if (
