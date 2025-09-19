@@ -31,7 +31,7 @@ a {
   @apply border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm tracking-widest text-black dark:text-white bg-gray-50 dark:bg-gray-800 transition hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer;
 }
 
-.btn-social{
+button.btn-social{
 @apply cursor-pointer text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300;
 }
 

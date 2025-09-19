@@ -194,6 +194,9 @@ $(() => {
   // 初始化日记本模块
   const diaryActions = Diary.init(AJAX_URL);
 
+  // 初始化社交功能模块
+  const socialActions = Social.init(AJAX_URL);
+
   // 初始化设置模块
   const settingsActions = Settings.init(AJAX_URL);
 
@@ -224,6 +227,7 @@ $(() => {
       // 合并所有行为配置
       ...authActions,
       ...diaryActions,
+      ...socialActions,
       ...settingsActions,
     ],
   );
@@ -246,6 +250,7 @@ $(() => {
   log('调用初始化方法...');
   initActionModules(authActions, '认证模块');
   initActionModules(diaryActions, '日记本模块');
+  initActionModules(socialActions, '社交功能模块');
   initActionModules(settingsActions, '设置模块');
 
   // 初始化滚动监听

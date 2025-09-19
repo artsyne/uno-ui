@@ -2,6 +2,7 @@
   "common": {
     "home": "Home",
     "theme_switch": "Switch theme",
+    "lang_switch": "Switch language",
     "settings": "Settings",
     "profile": "Profile",
     "logout": "Logout",

@@ -60,6 +60,7 @@ const jsFiles = [
   'user-state.js', // 用户状态管理模块
   'auth.js', // 认证模块
   'diary.js', // 日记本模块
+  'social.js', // 社交功能模块
   'settings.js', // 设置模块
   'app.js', // 最后是主应用
 ];
