@@ -159,7 +159,7 @@ func TestI18nContextDetection(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("GET", "/", nil)
-		c.Request.AddCookie(&http.Cookie{Name: "lang", Value: "en"})
+		c.Request.AddCookie(&http.Cookie{Name: "idiary-lang", Value: "en"})
 
 		locale := manager.GetLocaleFromContext(c)
 		assert.Equal(t, "en", locale, "应该从Cookie中检测到英文")
