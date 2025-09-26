@@ -203,6 +203,8 @@ func (ctrl *PostController) ShowPost(c *gin.Context) {
 	data.Data["IsAjax"] = req.IsAjax
 	data.Data["PreviousPostID"] = previousPostID
 	data.Data["NextPostID"] = nextPostID
+	// 渲染 Markdown 内容为 HTML
+	data.Data["BodyHTML"] = pkg.RenderMarkdown(postInfo.Body)
 
 	// 构建页面数据
 	viewPath:="post/view"

@@ -153,8 +153,8 @@ func TestRenderMarkdown(t *testing.T) {
 	source := "# Hello World"
 	expected := "<h1 id=\"hello-world\">Hello World</h1>"
 
-	result, err := pkg.RenderMarkdown(source)
-	require.NoError(t, err)
+	result := pkg.RenderMarkdown(source)
+	// require.NoError(t, err) // RenderMarkdown 不再返回 error
 	resultStr := strings.TrimSpace(string(result))
 	expectedStr := strings.TrimSpace(expected)
 	assert.Equal(t, expectedStr, resultStr)
@@ -165,8 +165,8 @@ func TestRenderMarkdownBytes(t *testing.T) {
 	expected := "<h2 id=\"subtitle\">Subtitle</h2>"
 
 	// 使用 RenderMarkdown 方法，因为 RenderMarkdownBytes 方法不存在
-	result, err := pkg.RenderMarkdown(string(source))
-	require.NoError(t, err)
+	result := pkg.RenderMarkdown(string(source))
+	// require.NoError(t, err) // RenderMarkdown 不再返回 error
 	resultStr := strings.TrimSpace(string(result))
 	expectedStr := strings.TrimSpace(expected)
 	assert.Equal(t, expectedStr, resultStr)
@@ -378,10 +378,10 @@ func TestGetDefaultMarkdownProcessor_Singleton(t *testing.T) {
 // BenchmarkRenderMarkdown 性能测试
 func BenchmarkRenderMarkdown(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := pkg.RenderMarkdown("# Hello World\n\nThis is a **test** with _italic_ text.")
-		if err != nil {
-			b.Fatal(err)
-		}
+		_ = pkg.RenderMarkdown("# Hello World\n\nThis is a **test** with _italic_ text.")
+		// if err != nil {
+		//	b.Fatal(err)
+		// }
 	}
 }
 
@@ -389,9 +389,9 @@ func BenchmarkRenderMarkdownLarge(b *testing.B) {
 	largeMd := strings.Repeat("# Header\n\nThis is a **large** markdown document with _italic_ text and `code`.\n\n", 100)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := pkg.RenderMarkdown(largeMd)
-		if err != nil {
-			b.Fatal(err)
-		}
+		_ = pkg.RenderMarkdown(largeMd)
+		// if err != nil {
+		//	b.Fatal(err)
+		// }
 	}
 }

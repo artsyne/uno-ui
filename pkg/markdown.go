@@ -95,6 +95,11 @@ func GetDefaultMarkdownProcessor() *MarkdownProcessor {
 
 // RenderMarkdown 使用默认处理器将 Markdown 渲染为安全的 HTML
 // 这是一个便捷函数，用于快速渲染 Markdown
-func RenderMarkdown(source string) (template.HTML, error) {
-	return GetDefaultMarkdownProcessor().RenderToHTML(source)
+func RenderMarkdown(source string) template.HTML {
+	renderedHTML, err := GetDefaultMarkdownProcessor().RenderToHTML(source)
+	if err != nil {
+		// If rendering fails, return the source string escaped as HTML
+		return template.HTML(template.HTMLEscapeString(source))
+	}
+	return renderedHTML
 }

@@ -20,6 +20,7 @@ const CSS_SRC_DIR = './website/static/src/css';
 const CSS_DIST_DIR = './website/static/dist/css';
 const TAILWIND_SRC = path.join(CSS_SRC_DIR, 'tailwind.css');
 const THEME_CSS = path.join(CSS_SRC_DIR, 'diary-theme.css');
+const MARKDOWN_CSS = path.join(CSS_SRC_DIR, 'markdown.css');
 const TAILWIND_OUTPUT = path.join(CSS_DIST_DIR, 'tailwind.css');
 const COMBINED_CSS = path.join(CSS_DIST_DIR, 'combined.css');
 const FINAL_OUTPUT = path.join(CSS_DIST_DIR, 'idiary.min.css');
@@ -39,8 +40,15 @@ if (!fs.existsSync(CSS_DIST_DIR)) {
 }
 
 try {
-  // Step 1: 生成Tailwind CSS（支持主题系统）
-  console.log('Step 1: Generating tailwind.css with theme support...');
+  // Step 1: 合并所有源CSS文件
+  console.log('Step 1: Combining source CSS files...');
+  const themeContent = fs.readFileSync(THEME_CSS, 'utf8');
+  const markdownContent = fs.readFileSync(MARKDOWN_CSS, 'utf8');
+  const tailwindContent = fs.readFileSync(TAILWIND_SRC, 'utf8');
+  fs.writeFileSync(COMBINED_CSS, themeContent + '\n' + markdownContent + '\n' + tailwindContent);
+
+  // Step 2: 生成Tailwind CSS（支持主题系统）
+  console.log('Step 2: Generating tailwind.css with theme support...');
   const contentPaths = [
     './website/views/**/*.html',
     './website/static/src/js/**/*.js',
@@ -48,22 +56,16 @@ try {
   ].join(' ');
   
   const tailwindCmd = isDevMode 
-    ? `npx @tailwindcss/cli -i "${TAILWIND_SRC}" -o "${TAILWIND_OUTPUT}" --content "${contentPaths}" --watch=false`
-    : `npx @tailwindcss/cli -i "${TAILWIND_SRC}" -o "${TAILWIND_OUTPUT}" --content "${contentPaths}" --minify`;
+    ? `npx @tailwindcss/cli -i "${COMBINED_CSS}" -o "${TAILWIND_OUTPUT}" --content "${contentPaths}" --watch=false`
+    : `npx @tailwindcss/cli -i "${COMBINED_CSS}" -o "${TAILWIND_OUTPUT}" --content "${contentPaths}" --minify`;
   
   execSync(tailwindCmd, { stdio: 'inherit', shell: true });
-
-  // Step 2: 合并CSS文件（使用Node.js文件操作代替shell命令）
-  console.log('Step 2: Combining CSS files...');
-  const themeContent = fs.readFileSync(THEME_CSS, 'utf8');
-  const tailwindContent = fs.readFileSync(TAILWIND_OUTPUT, 'utf8');
-  fs.writeFileSync(COMBINED_CSS, themeContent + '\n' + tailwindContent);
 
   // Step 3: 处理和压缩CSS
   console.log('Step 3: Processing CSS with PostCSS...');
   const postcssCmd = isDevMode
-    ? `npx postcss "${COMBINED_CSS}" -o "${FINAL_OUTPUT}" --no-map --env development`
-    : `npx postcss "${COMBINED_CSS}" -o "${FINAL_OUTPUT}" --no-map --env production`;
+    ? `npx postcss "${TAILWIND_OUTPUT}" -o "${FINAL_OUTPUT}" --no-map --env development`
+    : `npx postcss "${TAILWIND_OUTPUT}" -o "${FINAL_OUTPUT}" --no-map --env production`;
   
   execSync(postcssCmd, {
     stdio: 'inherit',

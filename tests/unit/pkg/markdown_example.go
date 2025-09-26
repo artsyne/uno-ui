@@ -60,9 +60,9 @@ func ExampleMarkdownUsage() {
 
 	// 方法 1: 使用默认处理器
 	fmt.Println("=== 使用默认处理器 ===")
-	html, err := pkg.RenderMarkdown(markdownText)
-	if err != nil {
-		log.Printf("渲染失败: %v", err)
+	html := pkg.RenderMarkdown(markdownText)
+	if html == "" { // 检查是否为空，表示渲染可能失败或内容为空
+		log.Printf("渲染失败或内容为空")
 		return
 	}
 	fmt.Println(html)
@@ -94,9 +94,9 @@ func ExampleSimpleMarkdown() {
 	simpleText := "**Hello** _World_!"
 
 	// 渲染为 HTML
-	html, err := pkg.RenderMarkdown(simpleText)
-	if err != nil {
-		log.Printf("渲染失败: %v", err)
+	html := pkg.RenderMarkdown(simpleText)
+	if html == "" { // 检查是否为空，表示渲染可能失败或内容为空
+		log.Printf("渲染失败或内容为空")
 		return
 	}
 
