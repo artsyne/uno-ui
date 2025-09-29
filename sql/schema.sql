@@ -25,9 +25,8 @@ DROP TABLE IF EXISTS br_comment;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE br_comment (
-  comment_id bigint unsigned NOT NULL,
-  comment_type tinyint unsigned NOT NULL,
-  owner_id bigint unsigned NOT NULL,
+  comment_id bigint unsigned NOT NULL AUTO_INCREMENT,
+  post_id bigint unsigned NOT NULL,
   content varchar(5000) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   gmt_create datetime NOT NULL,
   add_user_id bigint unsigned NOT NULL,
@@ -68,42 +67,6 @@ CREATE TABLE br_diary (
   `status` tinyint unsigned NOT NULL,
   PRIMARY KEY (diary_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `br_feed`
---
-
-DROP TABLE IF EXISTS br_feed;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE br_feed (
-  feed_id bigint NOT NULL AUTO_INCREMENT,
-  user_id bigint NOT NULL,
-  user_name varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  feed_type_id int NOT NULL,
-  body varchar(4000) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  add_time datetime NOT NULL,
-  add_ip varchar(39) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  PRIMARY KEY (feed_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `br_follow`
---
-
-DROP TABLE IF EXISTS br_follow;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE br_follow (
-  user_id bigint unsigned NOT NULL,
-  follow_user_id bigint unsigned NOT NULL,
-  follow_user_name varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  remark varchar(500) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  gmt_time datetime NOT NULL,
-  PRIMARY KEY (user_id,follow_user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -237,24 +200,6 @@ CREATE TABLE br_user (
   UNIQUE KEY user_name_UNIQUE (user_name),
   UNIQUE KEY email_UNIQUE (email)
 ) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `br_user_stat`
---
-
-DROP TABLE IF EXISTS br_user_stat;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE br_user_stat (
-  user_id bigint unsigned NOT NULL,
-  follow_num int unsigned NOT NULL DEFAULT '0',
-  info_num int unsigned NOT NULL DEFAULT '0',
-  fans_num int unsigned NOT NULL DEFAULT '0',
-  like_num int unsigned NOT NULL DEFAULT '0',
-  gmt_modified datetime NOT NULL,
-  PRIMARY KEY (user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
