@@ -8,12 +8,14 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/internal/app/controller"
+	commentController "github.com/biuren/hebe/internal/app/controller/comment"
 	diaryController "github.com/biuren/hebe/internal/app/controller/diary"
 	postController "github.com/biuren/hebe/internal/app/controller/post"
 	userController "github.com/biuren/hebe/internal/app/controller/user"
 	"github.com/biuren/hebe/internal/app/templates"
 	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/core/di"
+	commentDomain "github.com/biuren/hebe/internal/domain/comment"
 	diaryDomain "github.com/biuren/hebe/internal/domain/diary"
 	likeDomain "github.com/biuren/hebe/internal/domain/like"
 	postDomain "github.com/biuren/hebe/internal/domain/post"
@@ -62,17 +64,23 @@ func setPath(server *gin.Engine, container *di.Container) {
 	createUserController(container).RegisterRoutes(server)
 	createDiaryController(container).RegisterRoutes(server)
 	createPostController(container).RegisterRoutes(server)
+	
+	// 注册评论路由
+	commentCtrl := createCommentController(container)
+	apiGroup := server.Group("/api")
+	commentController.RegisterRoutes(apiGroup, commentCtrl)
 }
 
 // controllerDependencies 控制器通用依赖结构
 type controllerDependencies struct {
-	userService   *userDomain.Service
-	diaryService  *diaryDomain.Service
-	postService   *postDomain.Service
-	likeService   likeDomain.Service
-	authHelper    *userDomain.AuthHelper
-	config        *config.Config
-	renderService *view.ViewService
+	userService    *userDomain.Service
+	diaryService   *diaryDomain.Service
+	postService    *postDomain.Service
+	commentService *commentDomain.Service
+	likeService    likeDomain.Service
+	authHelper     *userDomain.AuthHelper
+	config         *config.Config
+	renderService  *view.ViewService
 }
 
 // getControllerDependencies 从DI容器获取控制器通用依赖
@@ -94,13 +102,14 @@ type controllerDependencies struct {
 //   - renderService: 视图渲染服务
 func getControllerDependencies(container *di.Container) *controllerDependencies {
 	return &controllerDependencies{
-		userService:   di.Get[*userDomain.Service](container),
-		diaryService:  di.Get[*diaryDomain.Service](container),
-		postService:   di.Get[*postDomain.Service](container),
-		likeService:   di.Get[likeDomain.Service](container),
-		authHelper:    di.Get[*userDomain.AuthHelper](container),
-		config:        di.Get[*config.Config](container),
-		renderService: di.Get[*view.ViewService](container),
+		userService:    di.Get[*userDomain.Service](container),
+		diaryService:   di.Get[*diaryDomain.Service](container),
+		postService:    di.Get[*postDomain.Service](container),
+		commentService: di.Get[*commentDomain.Service](container),
+		likeService:    di.Get[likeDomain.Service](container),
+		authHelper:     di.Get[*userDomain.AuthHelper](container),
+		config:         di.Get[*config.Config](container),
+		renderService:  di.Get[*view.ViewService](container),
 	}
 }
 
@@ -154,6 +163,19 @@ func createDiaryController(container *di.Container) *diaryController.DiaryContro
 func createPostController(container *di.Container) *postController.PostController {
 	deps := getControllerDependencies(container)
 	return postController.NewPostController(deps.config, deps.postService, deps.diaryService, deps.authHelper, deps.renderService, deps.userService, deps.likeService)
+}
+
+// createCommentController 通过DI容器创建CommentController
+// 创建评论控制器实例，处理评论的创建、删除、查看等功能
+//
+// 参数:
+//   - container: DI依赖注入容器
+//
+// 返回:
+//   - *commentController.CommentController: 评论控制器实例
+func createCommentController(container *di.Container) *commentController.CommentController {
+	deps := getControllerDependencies(container)
+	return commentController.NewCommentController(deps.config, deps.commentService, deps.authHelper, deps.renderService)
 }
 
 // setTemplate 设置模板引擎

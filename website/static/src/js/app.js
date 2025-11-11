@@ -145,11 +145,12 @@ function initScrollHeader() {
 
       // 重新初始化新插入的tooltip元素
       if (lastScrollY > 1 && kiko.ui && kiko.ui.tooltip) {
-        kiko.ui.tooltip.initElement(
-          $topNav.find(
-            '[data-tooltip], [data-tooltip-content], [data-tooltip-target]',
-          ),
+        const $tooltipElements = $topNav.find(
+          '[data-tooltip], [data-tooltip-content], [data-tooltip-target]'
         );
+        if ($tooltipElements.length > 0) {
+          kiko.ui.tooltip.initElement($tooltipElements);
+        }
       }
     }
   });

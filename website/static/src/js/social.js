@@ -21,9 +21,15 @@ const Social = {
     this.loadPostsStats();
     // 自动加载日记本点赞状态
     this.loadDiaryLikeStatus();
+    // 初始化评论模块
+    this.initCommentsModule();
+
     return [
       this.likePostAction,
       this.likeDiaryAction,
+      this.submitCommentAction,
+      this.deleteCommentAction,
+      this.loadMoreCommentsAction,
     ];
   },
 
@@ -217,9 +223,7 @@ const Social = {
     // 获取日记ID
     const $container = $('#diary-like-container');
     const diaryId = $container.data('diary-id');
-
     if (!diaryId) {
-      console.log('未找到日记ID，无法加载点赞状态');
       return;
     }
 
@@ -411,6 +415,250 @@ const Social = {
       .always(() => {
         $button.removeClass('liking');
       });
+    },
+  },
+
+  // 评论模块
+  initCommentsModule: function () {
+    const commentsSection = this._getCommentsContainer();
+    if (!commentsSection.length) {
+      return;
+    }
+
+    const socialSetting = commentsSection.data('social-setting');
+    if (socialSetting !== 1) {
+      return;
+    }
+
+    this._renderCommentsContainer();
+    this.loadComments();
+  },
+
+  _getCommentsContainer: function () {
+    return $('#comments-section');
+  },
+
+  _renderCommentsContainer: function () {
+    const container = this._getCommentsContainer();
+    const loggedIn = UserState.isLoggedIn();
+    const placeholder = kiko.i18n.getMessage('comments.placeholder');
+    const submitText = kiko.i18n.getMessage('comments.submit');
+    const loginToCommentText = kiko.i18n.getMessage('comments.login_to_comment');
+
+    const formHtml = loggedIn
+      ? `
+      <div class="mb-4">
+        <textarea id="comment-textarea" class="form-control" rows="3" placeholder="${placeholder}"></textarea>
+        <div class="text-right mt-2">
+          <button class="btn" data-action="submitComment">${submitText}</button>
+        </div>
+      </div>
+    `
+      : `
+      <div class="text-center p-4 border rounded">
+        <p>${loginToCommentText}</p>
+      </div>
+    `;
+
+    const listHtml = '<div id="comments-list"></div>';
+    const paginationHtml = '<div id="comments-pagination" class="text-center mt-4"></div>';
+
+    container.html(`
+      <h3 class="text-lg">${kiko.i18n.getMessage('comments.title')}</h3>
+      ${listHtml}
+      ${paginationHtml}
+      ${formHtml}
+    `);
+  },
+
+  _formatDateTime: function (dateString) {
+    const date = new Date(dateString);
+    if (isNaN(date)) {
+      return dateString; // Return original string if date is invalid
+    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+  },
+
+  loadComments: function (page = 1) {
+    const container = this._getCommentsContainer();
+    const postId = container.data('post-id');
+
+    $.ajax({
+      url: `/api/comment/list`,
+      type: 'GET',
+      data: { post_id: postId, page: page, limit: 10 },
+      dataType: 'json',
+    })
+      .done((response) => {
+        if (response.code === 0 && response.data) {
+          this._renderCommentsList(response.data.comments);
+          this._updatePagination(response.data.pagination);
+        } else {
+          $('#comments-list').html(`<p class="text-center text-gray-500">${kiko.i18n.getMessage('comments.no_comments')}</p>`);
+        }
+      })
+      .fail(() => {
+        $('#comments-list').html(`<p class="text-center text-red-500">Error loading comments.</p>`);
+      });
+  },
+
+  _renderCommentsList: function (comments) {
+    const listContainer = $('#comments-list');
+    if (comments.length === 0) {
+      listContainer.html(`<p class="text-center text-gray-500">${kiko.i18n.getMessage('comments.no_comments')}</p>`);
+      return;
+    }
+
+    let commentsHtml = '';
+    const currentUserId = UserState.getUserId();
+
+    comments.forEach(comment => {
+      const canDelete = currentUserId === comment.add_user_id;
+      const deleteButton = canDelete
+        ? `<button class="btn btn-sm btn-danger" data-action="deleteComment" data-comment-id="${comment.comment_id}">${kiko.i18n.getMessage('comments.delete')}</button>`
+        : '';
+
+      commentsHtml += `
+        <div class="comment-item p-3" id="comment-${comment.comment_id}">
+          <div class="flex items-center mb-2">
+            <a href="/u/${comment.add_user_id}" class="font-semibold text-gray-800 dark:text-gray-200 no-underline hover:underline">${comment.add_user_name}</a>
+            <p class="text-sm text-gray-500 dark:text-gray-400 ml-4">${this._formatDateTime(comment.gmt_create)}</p>
+          </div>
+          <p class="text-gray-800 dark:text-gray-300">${comment.content}</p>
+          <div class="text-right mt-2">
+            ${deleteButton}
+          </div>
+        </div>
+      `;
+    });
+
+    listContainer.html(commentsHtml);
+  },
+
+  _updatePagination: function (pagination) {
+    const paginationContainer = $('#comments-pagination');
+    if (!pagination || pagination.total_pages <= 1) {
+      paginationContainer.empty();
+      return;
+    }
+
+    const loadMoreButton = `<button class="btn" data-action="loadMoreComments" data-next-page="${pagination.next_page}">${kiko.i18n.getMessage('comments.load_more')}</button>`;
+    paginationContainer.html(loadMoreButton);
+  },
+
+  submitCommentAction: {
+    id: 'submitComment',
+    type: 'function',
+    handler: function () {
+      const postId = Social._getCommentsContainer().data('post-id');
+      const content = $('#comment-textarea').val().trim();
+
+      if (!content) {
+        kiko.ui.notify.warning(kiko.i18n.getMessage('comments.placeholder'));
+        return;
+      }
+
+      const sanitizedContent = $('<div>').text(content).html();
+
+      $.ajax({
+        url: '/api/comment/create',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+          post_id: postId,
+          content: sanitizedContent,
+          parent_id: 0,
+        }),
+        dataType: 'json',
+      })
+        .done((response) => {
+          if (response.code === 0 && response.data) {
+            kiko.ui.notify.success(kiko.i18n.getMessage('comments.submit_success'));
+            
+            const listContainer = $('#comments-list');
+            // Remove 'no comments' placeholder if it exists
+            if (listContainer.find('p').length > 0 && listContainer.children().length === 1) {
+                listContainer.empty();
+            }
+
+            const comment = response.data;
+            const currentUserId = UserState.getUserId();
+            const canDelete = currentUserId === comment.add_user_id;
+            const deleteButton = canDelete
+              ? `<button class="btn btn-sm btn-danger" data-action="deleteComment" data-comment-id="${comment.comment_id}">${kiko.i18n.getMessage('comments.delete')}</button>`
+              : '';
+
+            const newCommentHtml = `
+              <div class="comment-item p-3" id="comment-${comment.comment_id}">
+                <div class="flex items-center mb-2">
+                  <a href="/u/${comment.add_user_id}" class="font-semibold text-gray-800 dark:text-gray-200 no-underline hover:underline">${comment.add_user_name}</a>
+                  <p class="text-sm text-gray-500 dark:text-gray-400 ml-4">${Social._formatDateTime(comment.gmt_create)}</p>
+                </div>
+                <p class="text-gray-800 dark:text-gray-300">${comment.content}</p>
+                <div class="text-right mt-2">
+                  ${deleteButton}
+                </div>
+              </div>
+            `;
+
+            listContainer.append(newCommentHtml);
+            $('#comment-textarea').val('');
+          } else {
+            kiko.ui.notify.error(response.message);
+          }
+        })
+        .fail(() => {
+          kiko.ui.notify.error('Network error');
+        });
+    },
+  },
+
+  deleteCommentAction: {
+    id: 'deleteComment',
+    type: 'function',
+    handler: function (id, target, eventData, data) {
+      const commentId = data.commentId;
+      if (!confirm(kiko.i18n.getMessage('comments.delete_confirm'))) {
+        return;
+      }
+
+      $.ajax({
+        url: '/api/comment/delete',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ comment_id: commentId }),
+        dataType: 'json',
+      })
+        .done((response) => {
+          if (response.code === 0) {
+            kiko.ui.notify.success(kiko.i18n.getMessage('comments.delete_success'));
+            $(`#comment-${commentId}`).remove();
+            
+            const listContainer = $('#comments-list');
+            if (listContainer.children().length === 0) {
+                listContainer.html(`<p class="text-center text-gray-500">${kiko.i18n.getMessage('comments.no_comments')}</p>`);
+            }
+          } else {
+            kiko.ui.notify.error(response.message);
+          }
+        })
+        .fail(() => {
+          kiko.ui.notify.error('Network error');
+        });
+    },
+  },
+
+  loadMoreCommentsAction: {
+    id: 'loadMoreComments',
+    type: 'function',
+    handler: function (id, target, eventData, data) {
+      const nextPage = data.nextPage;
+      Social.loadComments(nextPage);
     },
   },
 };

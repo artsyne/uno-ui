@@ -136,7 +136,7 @@ func TestResourceNotFoundErrors(t *testing.T) {
 		{"ResourceNotFound", errorsPkg.ResourceNotFound, 1302, "resource_not_found", 404},
 		{"DiaryNotFound", errorsPkg.DiaryNotFound, 1303, "diary_not_found", 404},
 		{"PostNotFound", errorsPkg.PostNotFound, 1304, "post_not_found", 404},
-		{"PageNotFound", errorsPkg.PageNotFound, 1305, "page_not_found", 404},
+		{"PageNotFound", errorsPkg.PageNotFound, 1306, "page_not_found", 404},
 	}
 
 	for _, tt := range tests {

@@ -46,11 +46,19 @@
                         .Context.Lang}}</p>
                     <p>{{formatLocalTime .Data.Post.AddUTCTime .Data.TimeZone}}</p>
                 </div>
-                <div id="detail_stats_{{.Data.Post.PostID}}" class="flex justify-between text-gray-600 dark:text-gray-400 text-sm">
-                </div>
+                <div id="detail_stats_{{.Data.Post.PostID}}"
+                    class="flex justify-between text-gray-600 dark:text-gray-400 text-sm"></div>
+            </div>
+            <!-- 评论区域容器 -->
+            <div id="comments-section" class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4"
+                data-post-id="{{.Data.Post.PostID}}" data-social-setting="{{.Data.Diary.SocialSetting}}">
+                <!-- 评论内容将通过JavaScript动态加载 -->
             </div>
         </div>
-    </section>
 </div>
-<script>$(function() {Social.loadPostsStats();});</script>
+</section>
+</div>
+    {{if .Data.IsAjax}}
+    <script>$(function() {Social.loadPostsStats();Social.initCommentsModule();});</script>
+    {{end}}
 {{end}}

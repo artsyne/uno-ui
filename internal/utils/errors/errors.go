@@ -97,7 +97,8 @@ var (
 	ResourceNotFound = NewAppError(1302, "resource_not_found", 404)
 	DiaryNotFound    = NewAppError(1303, "diary_not_found", 404)
 	PostNotFound     = NewAppError(1304, "post_not_found", 404)
-	PageNotFound     = NewAppError(1305, "page_not_found", 404)
+	CommentNotFound  = NewAppError(1305, "comment_not_found", 404)
+	PageNotFound     = NewAppError(1306, "page_not_found", 404)
 
 	// 2000-2999: 用户相关业务错误 (400)
 	UserExists        = NewAppError(2001, "user_exists", 400)

@@ -33,6 +33,16 @@ if (typeof window !== 'undefined' && window.kiko && window.kiko.i18n) {
         "theme.switch.dark": "切换到暗色主题",
         "theme.switch.light": "切换到亮色主题",
         "common.edit": "编辑",
-        "common.delete": "删除"
+        "common.delete": "删除",
+        "comments.title": "评论",
+        "comments.placeholder": "发表评论",
+        "comments.submit": "提交",
+        "comments.login_to_comment": "请登录后发表评论",
+        "comments.no_comments": "暂无评论",
+        "comments.delete": "删除",
+        "comments.load_more": "加载更多",
+        "comments.submit_success": "评论发表成功",
+        "comments.delete_confirm": "确定要删除这条评论吗？",
+        "comments.delete_success": "评论删除成功"
     });
 }

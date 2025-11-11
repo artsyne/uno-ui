@@ -33,6 +33,16 @@ if (typeof window !== 'undefined' && window.kiko && window.kiko.i18n) {
     'theme.switch.dark': 'Switch to dark theme',
     'theme.switch.light': 'Switch to light theme',
     'common.edit': 'Edit',
-    'common.delete': 'Delete'
+    'common.delete': 'Delete',
+    'comments.title': 'Comments',
+    'comments.placeholder': 'Leave a comment',
+    'comments.submit': 'Submit',
+    'comments.login_to_comment': 'Please log in to comment',
+    'comments.no_comments': 'No comments yet',
+    'comments.delete': 'Delete',
+    'comments.load_more': 'Load More',
+    'comments.submit_success': 'Comment submitted successfully',
+    'comments.delete_confirm': 'Are you sure you want to delete this comment?',
+    'comments.delete_success': 'Comment deleted successfully'
   });
 }
