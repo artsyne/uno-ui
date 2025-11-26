@@ -95,7 +95,7 @@ func TestCommentServiceIntegration(t *testing.T) {
 		assert.Equal(t, newComment.PostID, savedComment.PostID)
 		assert.Equal(t, newComment.Content, savedComment.Content)
 		assert.Equal(t, newComment.AddUserID, savedComment.AddUserID)
-		assert.NotEmpty(t, savedComment.GmtCreate)
+		assert.NotEmpty(t, savedComment.AddUtcTime)
 
 		// 3. 验证评论数量
 		count, err := commentService.GetCommentCountByPostID(testPost.PostID)

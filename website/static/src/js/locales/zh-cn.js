@@ -34,6 +34,8 @@ if (typeof window !== 'undefined' && window.kiko && window.kiko.i18n) {
         "theme.switch.light": "切换到亮色主题",
         "common.edit": "编辑",
         "common.delete": "删除",
+        "common.previous": "上一页",
+        "common.next": "下一页",
         "comments.title": "评论",
         "comments.placeholder": "发表评论",
         "comments.submit": "提交",

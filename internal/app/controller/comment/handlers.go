@@ -31,6 +31,12 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 		return
 	}
 
+	// 校验评论内容不能超过1000字符
+	if len(req.Content) > 1000 {
+		ctrl.renderService.JSONError(c, errors.ValidationError)
+		return
+	}
+
 	// 构建新评论对象，设置所有必要字段
 	commentData := &comment.Comment{
 		PostID:      req.PostID,
@@ -48,10 +54,20 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 	}
 	commentData.CommentID = commentID
 
-	// 返回成功响应
+	// 读取完整评论对象
+	latestComment, err := ctrl.commentService.GetCommentByID(commentID)
+	if err != nil {
+		ctrl.renderService.JSONError(c, err)
+		return
+	}
+
+	// 不返回用户提交ip
+	latestComment.AddUserIP = ""
+
+	// 返回最新评论对象和用户时区，供前端格式化显示
 	ctrl.renderService.JSONSuccess(c, gin.H{
-		"comment_id": commentID,
-		"message":    "评论创建成功",
+		"comment":   latestComment,
+		"time_zone": loginUser.TimeZone,
 	})
 }
 
@@ -114,9 +130,8 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 	if req.PageIndex <= 0 {
 		req.PageIndex = 1
 	}
-	if req.PageSize <= 0 {
-		req.PageSize = 10
-	}
+	// 始终使用系统配置的页面大小，不接受外部limit/page_size
+	req.PageSize = ctrl.config.App.PageSize
 
 	// 调用服务层获取评论列表
 	comments, total, err := ctrl.commentService.ListCommentsByPostID(req.PostID, req.PageIndex, req.PageSize)
@@ -127,18 +142,26 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 
 	// 计算总页数
 	totalPages := (total + req.PageSize - 1) / req.PageSize
-
-	// 构建响应数据
-	response := comment.CommentListResponse{
-		Comments:   comments,
-		Total:      total,
-		PageIndex:  req.PageIndex,
-		PageSize:   req.PageSize,
-		TotalPages: totalPages,
+	nextPage := 0
+	if req.PageIndex < totalPages {
+		nextPage = req.PageIndex + 1
 	}
 
-	// 返回成功响应
-	ctrl.renderService.JSONSuccess(c, response)
+	// 获取用户时区（未登录则为UTC）
+	tz := "UTC"
+	if user, ok := ctrl.auth.GetCurrentUser(c); ok && user != nil && user.TimeZone != "" {
+		tz = user.TimeZone
+	}
+
+	// 返回成功响应（包含分页和时区）
+	ctrl.renderService.JSONSuccess(c, gin.H{
+		"comments": comments,
+		"pagination": gin.H{
+			"total_pages": totalPages,
+			"next_page":   nextPage,
+		},
+		"time_zone": tz,
+	})
 }
 
 // GetCommentsByPostIDFromPath 从URL路径参数获取日记ID并返回评论列表
@@ -157,19 +180,15 @@ func (ctrl *CommentController) GetCommentsByPostIDFromPath(c *gin.Context) {
 		return
 	}
 
-	// 获取分页参数
+	// 获取分页参数（仅允许指定页码），页面大小固定为配置项
 	pageIndexStr := c.DefaultQuery("page_index", "1")
-	pageSizeStr := c.DefaultQuery("page_size", "10")
 
 	pageIndex, err := strconv.Atoi(pageIndexStr)
 	if err != nil || pageIndex <= 0 {
 		pageIndex = 1
 	}
-
-	pageSize, err := strconv.Atoi(pageSizeStr)
-	if err != nil || pageSize <= 0 || pageSize > 100 {
-		pageSize = 10
-	}
+	// 固定页面大小为配置中的 PageSize
+	pageSize := ctrl.config.App.PageSize
 
 	// 调用服务层获取评论列表
 	comments, total, err := ctrl.commentService.ListCommentsByPostID(postID, pageIndex, pageSize)
@@ -180,16 +199,24 @@ func (ctrl *CommentController) GetCommentsByPostIDFromPath(c *gin.Context) {
 
 	// 计算总页数
 	totalPages := (total + pageSize - 1) / pageSize
-
-	// 构建响应数据
-	response := comment.CommentListResponse{
-		Comments:   comments,
-		Total:      total,
-		PageIndex:  pageIndex,
-		PageSize:   pageSize,
-		TotalPages: totalPages,
+	nextPage := 0
+	if pageIndex < totalPages {
+		nextPage = pageIndex + 1
 	}
 
-	// 返回成功响应
-	ctrl.renderService.JSONSuccess(c, response)
+	// 获取用户时区（未登录则为UTC）
+	tz := "UTC"
+	if user, ok := ctrl.auth.GetCurrentUser(c); ok && user != nil && user.TimeZone != "" {
+		tz = user.TimeZone
+	}
+
+	// 返回成功响应（包含分页和时区）
+	ctrl.renderService.JSONSuccess(c, gin.H{
+		"comments": comments,
+		"pagination": gin.H{
+			"total_pages": totalPages,
+			"next_page":   nextPage,
+		},
+		"time_zone": tz,
+	})
 }

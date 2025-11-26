@@ -29,7 +29,7 @@ const Social = {
       this.likeDiaryAction,
       this.submitCommentAction,
       this.deleteCommentAction,
-      this.loadMoreCommentsAction,
+      this.paginateCommentsAction,
     ];
   },
 
@@ -95,17 +95,17 @@ const Social = {
       global: false,
       dataType: 'json',
     })
-    .done((response) => {
-      if (response.code === 0 && response.data && response.data.stats) {
-        this._updatePostsStats(response.data.stats);
-        // 加载点赞状态（仅在用户登录时）
-        this._loadPostsLikeStatus(postIds);
-      }
-    })
-    .fail((xhr, status, error) => {
-      // 静默处理错误，不显示通知
-      console.log('加载统计信息失败:', error);
-    });
+      .done((response) => {
+        if (response.code === 0 && response.data && response.data.stats) {
+          this._updatePostsStats(response.data.stats);
+          // 加载点赞状态（仅在用户登录时）
+          this._loadPostsLikeStatus(postIds);
+        }
+      })
+      .fail((xhr, status, error) => {
+        // 静默处理错误，不显示通知
+        console.log('加载统计信息失败:', error);
+      });
   },
 
   /**
@@ -170,15 +170,15 @@ const Social = {
       global: false,
       dataType: 'json',
     })
-    .done((response) => {
-      if (response.code === 0 && response.data && response.data.status) {
-        this._updatePostsLikeStatus(response.data.status);
-      }
-    })
-    .fail((xhr, status, error) => {
-      // 静默处理错误，不显示通知
-      console.log('加载点赞状态失败:', error);
-    });
+      .done((response) => {
+        if (response.code === 0 && response.data && response.data.status) {
+          this._updatePostsLikeStatus(response.data.status);
+        }
+      })
+      .fail((xhr, status, error) => {
+        // 静默处理错误，不显示通知
+        console.log('加载点赞状态失败:', error);
+      });
   },
 
   /**
@@ -233,15 +233,15 @@ const Social = {
       method: 'GET',
       global: false,
     })
-    .done((response) => {
-      if (response.success && response.data) {
-        this._renderDiaryLikeButton(response.data);
-      }
-    })
-    .fail((xhr, status, error) => {
-      // 静默处理错误，不显示通知
-      console.log('加载日记点赞状态失败:', error);
-    });
+      .done((response) => {
+        if (response.success && response.data) {
+          this._renderDiaryLikeButton(response.data);
+        }
+      })
+      .fail((xhr, status, error) => {
+        // 静默处理错误，不显示通知
+        console.log('加载日记点赞状态失败:', error);
+      });
   },
 
   /**
@@ -307,39 +307,39 @@ const Social = {
         }),
         dataType: 'json',
       })
-      .done((response) => {
-        if (response.code === 0 && response.data) {
-          // 更新点赞状态
-          const isLiked = response.data.is_liked;
-          const likeCount = response.data.like_count || 0;
+        .done((response) => {
+          if (response.code === 0 && response.data) {
+            // 更新点赞状态
+            const isLiked = response.data.is_liked;
+            const likeCount = response.data.like_count || 0;
 
-          // 更新图标和样式类
-          if (isLiked) {
-            $icon
-              .removeClass('mdi-thumb-up-outline')
-              .addClass('mdi-thumb-up like-icon-liked');
+            // 更新图标和样式类
+            if (isLiked) {
+              $icon
+                .removeClass('mdi-thumb-up-outline')
+                .addClass('mdi-thumb-up like-icon-liked');
+            } else {
+              $icon
+                .removeClass('mdi-thumb-up like-icon-liked')
+                .addClass('mdi-thumb-up-outline');
+            }
+
+            // 更新计数
+            $count.text(likeCount);
+
+            // 显示成功提示
+            const message = isLiked ? '点赞成功' : '取消点赞';
+            kiko.ui.notify.success(message);
           } else {
-            $icon
-              .removeClass('mdi-thumb-up like-icon-liked')
-              .addClass('mdi-thumb-up-outline');
+            kiko.ui.notify.error(response.message || '操作失败');
           }
-
-          // 更新计数
-          $count.text(likeCount);
-
-          // 显示成功提示
-          const message = isLiked ? '点赞成功' : '取消点赞';
-          kiko.ui.notify.success(message);
-        } else {
-          kiko.ui.notify.error(response.message || '操作失败');
-        }
-      })
-      .fail((xhr, status, error) => {
-        kiko.ui.notify.error('网络错误，请重试');
-      })
-      .always(() => {
-        $button.removeClass('liking');
-      });
+        })
+        .fail((xhr, status, error) => {
+          kiko.ui.notify.error('网络错误，请重试');
+        })
+        .always(() => {
+          $button.removeClass('liking');
+        });
     },
   },
 
@@ -382,39 +382,39 @@ const Social = {
         }),
         dataType: 'json',
       })
-      .done((response) => {
-        if (response.code === 0 && response.data) {
-          // 更新点赞状态
-          const isLiked = response.data.is_liked;
-          const likeCount = response.data.like_count || 0;
+        .done((response) => {
+          if (response.code === 0 && response.data) {
+            // 更新点赞状态
+            const isLiked = response.data.is_liked;
+            const likeCount = response.data.like_count || 0;
 
-          // 更新图标和样式类
-          if (isLiked) {
-            $icon
-              .removeClass('mdi-thumb-up-outline')
-              .addClass('mdi-thumb-up like-icon-liked');
+            // 更新图标和样式类
+            if (isLiked) {
+              $icon
+                .removeClass('mdi-thumb-up-outline')
+                .addClass('mdi-thumb-up like-icon-liked');
+            } else {
+              $icon
+                .removeClass('mdi-thumb-up like-icon-liked')
+                .addClass('mdi-thumb-up-outline');
+            }
+
+            // 更新计数
+            $count.text(likeCount);
+
+            // 显示成功提示
+            const message = isLiked ? '点赞成功' : '取消点赞';
+            kiko.ui.notify.success(message);
           } else {
-            $icon
-              .removeClass('mdi-thumb-up like-icon-liked')
-              .addClass('mdi-thumb-up-outline');
+            kiko.ui.notify.error(response.message || '操作失败');
           }
-
-          // 更新计数
-          $count.text(likeCount);
-
-          // 显示成功提示
-          const message = isLiked ? '点赞成功' : '取消点赞';
-          kiko.ui.notify.success(message);
-        } else {
-          kiko.ui.notify.error(response.message || '操作失败');
-        }
-      })
-      .fail((xhr, status, error) => {
-        kiko.ui.notify.error('网络错误，请重试');
-      })
-      .always(() => {
-        $button.removeClass('liking');
-      });
+        })
+        .fail((xhr, status, error) => {
+          kiko.ui.notify.error('网络错误，请重试');
+        })
+        .always(() => {
+          $button.removeClass('liking');
+        });
     },
   },
 
@@ -443,15 +443,19 @@ const Social = {
     const loggedIn = UserState.isLoggedIn();
     const placeholder = kiko.i18n.getMessage('comments.placeholder');
     const submitText = kiko.i18n.getMessage('comments.submit');
-    const loginToCommentText = kiko.i18n.getMessage('comments.login_to_comment');
+    const loginToCommentText = kiko.i18n.getMessage(
+      'comments.login_to_comment',
+    );
 
     const formHtml = loggedIn
       ? `
-      <div class="mb-4">
-        <textarea id="comment-textarea" class="form-control" rows="3" placeholder="${placeholder}"></textarea>
-        <div class="text-right mt-2">
-          <button class="btn" data-action="submitComment">${submitText}</button>
-        </div>
+      <div class="mb-4 mt-4">
+        <form id="comment_editor_form">
+          <textarea id="comment-textarea" class="form-control" rows="3" valid='[{"type":"limit","max":1000,"show":true}]' placeholder="${placeholder}"></textarea>
+          <div class="text-right mt-2">
+            <button class="btn" data-action="submitComment">${submitText}</button>
+          </div>
+        </form>
       </div>
     `
       : `
@@ -461,7 +465,8 @@ const Social = {
     `;
 
     const listHtml = '<div id="comments-list"></div>';
-    const paginationHtml = '<div id="comments-pagination" class="text-center mt-4"></div>';
+    const paginationHtml =
+      '<div id="comments-pagination" class="text-center mt-4"></div>';
 
     container.html(`
       <h3 class="text-lg">${kiko.i18n.getMessage('comments.title')}</h3>
@@ -469,19 +474,40 @@ const Social = {
       ${paginationHtml}
       ${formHtml}
     `);
+
+    // 初始化表单校验
+    kiko.ui.valid.refresh('#comment_editor_form');
   },
 
-  _formatDateTime: function (dateString) {
-    const date = new Date(dateString);
-    if (isNaN(date)) {
-      return dateString; // Return original string if date is invalid
+  _formatLocalTime: function (unixMilli, timeZone) {
+    try {
+      const dt = new Date(unixMilli);
+      const parts = new Intl.DateTimeFormat(undefined, {
+        timeZone: timeZone || 'UTC',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }).formatToParts(dt);
+      const lookup = (type) => parts.find((p) => p.type === type)?.value || '';
+      const year = lookup('year');
+      const month = lookup('month');
+      const day = lookup('day');
+      const hour = lookup('hour');
+      const minute = lookup('minute');
+      return `${year}-${month}-${day} ${hour}:${minute}`;
+    } catch (e) {
+      const d = new Date(unixMilli);
+      // Fallback to local browser time
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const h = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return `${y}-${m}-${dd} ${h}:${min}`;
     }
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day} ${hours}:${minutes}`;
   },
 
   loadComments: function (page = 1) {
@@ -491,34 +517,45 @@ const Social = {
     $.ajax({
       url: `/api/comment/list`,
       type: 'GET',
-      data: { post_id: postId, page: page, limit: 10 },
+      // 后端固定使用全局 PageSize，这里仅传递页码参数
+      data: { post_id: postId, page_index: page },
       dataType: 'json',
     })
       .done((response) => {
         if (response.code === 0 && response.data) {
-          this._renderCommentsList(response.data.comments);
+          // 记录当前页码，供分页组件计算上一页
+          container.data('current-page', page);
+          const tz = response.data.time_zone || 'UTC';
+          this._renderCommentsList(response.data.comments, tz);
           this._updatePagination(response.data.pagination);
         } else {
-          $('#comments-list').html(`<p class="text-center text-gray-500">${kiko.i18n.getMessage('comments.no_comments')}</p>`);
+          $('#comments-list').html(
+            `<p class="text-center text-gray-500">${kiko.i18n.getMessage('comments.no_comments')}</p>`,
+          );
         }
       })
       .fail(() => {
-        $('#comments-list').html(`<p class="text-center text-red-500">Error loading comments.</p>`);
+        $('#comments-list').html(
+          `<p class="text-center text-red-500">Error loading comments.</p>`,
+        );
       });
   },
 
-  _renderCommentsList: function (comments) {
+  _renderCommentsList: function (comments, timeZone) {
     const listContainer = $('#comments-list');
     if (comments.length === 0) {
-      listContainer.html(`<p class="text-center text-gray-500">${kiko.i18n.getMessage('comments.no_comments')}</p>`);
+      listContainer.html(
+        `<p class="text-center text-gray-500">${kiko.i18n.getMessage('comments.no_comments')}</p>`,
+      );
       return;
     }
 
     let commentsHtml = '';
     const currentUserId = UserState.getUserId();
 
-    comments.forEach(comment => {
+    comments.forEach((comment) => {
       const canDelete = currentUserId === comment.add_user_id;
+      console.log(canDelete + ',currentUserId:' + currentUserId + ' comment_add_user_id:' + comment.add_user_id);
       const deleteButton = canDelete
         ? `<button class="btn btn-sm btn-danger" data-action="deleteComment" data-comment-id="${comment.comment_id}">${kiko.i18n.getMessage('comments.delete')}</button>`
         : '';
@@ -527,7 +564,7 @@ const Social = {
         <div class="comment-item p-3" id="comment-${comment.comment_id}">
           <div class="flex items-center mb-2">
             <a href="/u/${comment.add_user_id}" class="font-semibold text-gray-800 dark:text-gray-200 no-underline hover:underline">${comment.add_user_name}</a>
-            <p class="text-sm text-gray-500 dark:text-gray-400 ml-4">${this._formatDateTime(comment.gmt_create)}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 ml-4">${this._formatLocalTime(comment.add_utc_time, timeZone)}</p>
           </div>
           <p class="text-gray-800 dark:text-gray-300">${comment.content}</p>
           <div class="text-right mt-2">
@@ -542,13 +579,40 @@ const Social = {
 
   _updatePagination: function (pagination) {
     const paginationContainer = $('#comments-pagination');
-    if (!pagination || pagination.total_pages <= 1) {
+    if (!pagination) {
       paginationContainer.empty();
       return;
     }
 
-    const loadMoreButton = `<button class="btn" data-action="loadMoreComments" data-next-page="${pagination.next_page}">${kiko.i18n.getMessage('comments.load_more')}</button>`;
-    paginationContainer.html(loadMoreButton);
+    const currentPage = this._getCommentsContainer().data('current-page') || 1;
+    const prevPage = currentPage > 1 ? currentPage - 1 : 0;
+    const nextPage = pagination.next_page || 0;
+
+    // 如果只有一页或没有下一页且当前页为1，则不显示分页
+    if (pagination.total_pages <= 1) {
+      paginationContainer.empty();
+      return;
+    }
+
+    const prevLabel = kiko.i18n.getMessage('common.previous');
+    const nextLabel = kiko.i18n.getMessage('common.next');
+
+    const prevLink =
+      prevPage > 0
+        ? `<a class="mr-4" data-action="paginateComments" data-page="${prevPage}">${prevLabel}</a>`
+        : '';
+    const nextLink =
+      nextPage > 0
+        ? `<a data-action="paginateComments" data-page="${nextPage}">${nextLabel}</a>`
+        : '';
+
+    // 如果两者都不可用，清空
+    if (!prevLink && !nextLink) {
+      paginationContainer.empty();
+      return;
+    }
+
+    paginationContainer.html(`${prevLink}${nextLink}`);
   },
 
   submitCommentAction: {
@@ -578,35 +642,14 @@ const Social = {
       })
         .done((response) => {
           if (response.code === 0 && response.data) {
-            kiko.ui.notify.success(kiko.i18n.getMessage('comments.submit_success'));
-            
-            const listContainer = $('#comments-list');
-            // Remove 'no comments' placeholder if it exists
-            if (listContainer.find('p').length > 0 && listContainer.children().length === 1) {
-                listContainer.empty();
-            }
-
-            const comment = response.data;
-            const currentUserId = UserState.getUserId();
-            const canDelete = currentUserId === comment.add_user_id;
-            const deleteButton = canDelete
-              ? `<button class="btn btn-sm btn-danger" data-action="deleteComment" data-comment-id="${comment.comment_id}">${kiko.i18n.getMessage('comments.delete')}</button>`
-              : '';
-
-            const newCommentHtml = `
-              <div class="comment-item p-3" id="comment-${comment.comment_id}">
-                <div class="flex items-center mb-2">
-                  <a href="/u/${comment.add_user_id}" class="font-semibold text-gray-800 dark:text-gray-200 no-underline hover:underline">${comment.add_user_name}</a>
-                  <p class="text-sm text-gray-500 dark:text-gray-400 ml-4">${Social._formatDateTime(comment.gmt_create)}</p>
-                </div>
-                <p class="text-gray-800 dark:text-gray-300">${comment.content}</p>
-                <div class="text-right mt-2">
-                  ${deleteButton}
-                </div>
-              </div>
-            `;
-
-            listContainer.append(newCommentHtml);
+            kiko.ui.notify.success(
+              kiko.i18n.getMessage('comments.submit_success'),
+            );
+            // 需求：成功后回到第一页并在顶部显示最新评论
+            // 统一切换到第一页并重新加载，以保证排序和分页状态正确
+            const container = Social._getCommentsContainer();
+            container.data('current-page', 1);
+            Social.loadComments(1);
             $('#comment-textarea').val('');
           } else {
             kiko.ui.notify.error(response.message);
@@ -636,12 +679,16 @@ const Social = {
       })
         .done((response) => {
           if (response.code === 0) {
-            kiko.ui.notify.success(kiko.i18n.getMessage('comments.delete_success'));
+            kiko.ui.notify.success(
+              kiko.i18n.getMessage('comments.delete_success'),
+            );
             $(`#comment-${commentId}`).remove();
-            
+
             const listContainer = $('#comments-list');
             if (listContainer.children().length === 0) {
-                listContainer.html(`<p class="text-center text-gray-500">${kiko.i18n.getMessage('comments.no_comments')}</p>`);
+              listContainer.html(
+                `<p class="text-center text-gray-500">${kiko.i18n.getMessage('comments.no_comments')}</p>`,
+              );
             }
           } else {
             kiko.ui.notify.error(response.message);
@@ -653,12 +700,13 @@ const Social = {
     },
   },
 
-  loadMoreCommentsAction: {
-    id: 'loadMoreComments',
+  paginateCommentsAction: {
+    id: 'paginateComments',
     type: 'function',
     handler: function (id, target, eventData, data) {
-      const nextPage = data.nextPage;
-      Social.loadComments(nextPage);
+      const pageAttr = $(eventData.element).data('page');
+      const page = data?.page ?? pageAttr ?? 1;
+      Social.loadComments(parseInt(page, 10));
     },
   },
 };

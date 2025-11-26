@@ -1,8 +1,8 @@
 // Kiko UI English Language Pack
 // This file defines the English language pack for Kiko UI
 
-if (typeof window !== 'undefined' && window.kiko && window.kiko.i18n) {
-  window.kiko.i18n.addMessages('en', {
+  if (typeof window !== 'undefined' && window.kiko && window.kiko.i18n) {
+    window.kiko.i18n.addMessages('en', {
     'network.error': 'Network error, please check your connection',
     'operation.success': 'Operation completed successfully',
     'operation.fail': 'Operation failed',
@@ -34,6 +34,8 @@ if (typeof window !== 'undefined' && window.kiko && window.kiko.i18n) {
     'theme.switch.light': 'Switch to light theme',
     'common.edit': 'Edit',
     'common.delete': 'Delete',
+    'common.previous': 'Previous',
+    'common.next': 'Next',
     'comments.title': 'Comments',
     'comments.placeholder': 'Leave a comment',
     'comments.submit': 'Submit',

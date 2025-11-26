@@ -28,7 +28,7 @@ CREATE TABLE br_comment (
   comment_id bigint unsigned NOT NULL AUTO_INCREMENT,
   post_id bigint unsigned NOT NULL,
   content varchar(5000) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  gmt_create datetime NOT NULL,
+  add_utc_time bigint unsigned NOT NULL DEFAULT '0',
   add_user_id bigint unsigned NOT NULL,
   add_user_name varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   add_user_ip varchar(128) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',

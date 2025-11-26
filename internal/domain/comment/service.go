@@ -1,23 +1,22 @@
 package comment
 
 import (
-	"time"
-
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/utils/errors"
+	"github.com/biuren/hebe/pkg"
 )
 
 // Service 评论业务逻辑层实现
 // 负责处理所有与评论相关的业务逻辑和规则验证
 type Service struct {
-	config       *config.Config        // 配置管理器
-	repo         RepositoryInterface   // 评论数据访问层接口
-	userService  *user.Service         // 用户业务逻辑层
-	postService  *post.Service         // 日记业务逻辑层
-	diaryService *diary.Service        // 日记本业务逻辑层
+	config       *config.Config      // 配置管理器
+	repo         RepositoryInterface // 评论数据访问层接口
+	userService  *user.Service       // 用户业务逻辑层
+	postService  *post.Service       // 日记业务逻辑层
+	diaryService *diary.Service      // 日记本业务逻辑层
 }
 
 // NewService 创建新的评论业务逻辑层实例
@@ -27,6 +26,7 @@ type Service struct {
 //   - userService: 用户业务逻辑层
 //   - postService: 日记业务逻辑层
 //   - diaryService: 日记本业务逻辑层
+//
 // 返回:
 //   - *Service: 评论业务逻辑层实例
 func NewService(config *config.Config, commentRepo RepositoryInterface, userService *user.Service, postService *post.Service, diaryService *diary.Service) *Service {
@@ -44,6 +44,7 @@ func NewService(config *config.Config, commentRepo RepositoryInterface, userServ
 // AddComment 增加新的评论
 // 参数:
 //   - comment: 要添加的评论对象
+//
 // 返回:
 //   - int64: 新增评论的ID
 //   - error: 添加失败时返回错误
@@ -71,8 +72,8 @@ func (s *Service) AddComment(comment *Comment) (int64, error) {
 		return 0, errors.DiaryNotFound.WithDetails("日记本不存在")
 	}
 
-	// 设置创建时间
-	comment.GmtCreate = time.Now().Format("2006-01-02 15:04:05")
+	// 设置创建时间为 UTC 毫秒时间戳
+	comment.AddUtcTime = pkg.GetNowTimeUnixMilli()
 
 	// 插入数据库
 	commentID, err := s.repo.Insert(comment)
@@ -94,6 +95,7 @@ func (s *Service) AddComment(comment *Comment) (int64, error) {
 // 参数:
 //   - commentID: 评论ID
 //   - userID: 操作用户ID
+//
 // 返回:
 //   - error: 删除失败时返回错误
 func (s *Service) DeleteComment(commentID int64, userID int64) error {
@@ -138,6 +140,7 @@ func (s *Service) DeleteComment(commentID int64, userID int64) error {
 // GetCommentByID 根据评论ID获取评论信息
 // 参数:
 //   - commentID: 评论ID
+//
 // 返回:
 //   - *Comment: 评论对象
 //   - error: 获取失败时返回错误
@@ -150,6 +153,7 @@ func (s *Service) GetCommentByID(commentID int64) (*Comment, error) {
 //   - postID: 日记ID
 //   - pageIndex: 页码（从1开始）
 //   - pageSize: 每页大小
+//
 // 返回:
 //   - []Comment: 评论列表
 //   - int: 总记录数
@@ -167,6 +171,7 @@ func (s *Service) ListCommentsByPostID(postID int64, pageIndex, pageSize int) ([
 // GetCommentCountByPostID 根据日记ID统计评论数量
 // 参数:
 //   - postID: 日记ID
+//
 // 返回:
 //   - int: 评论数量
 //   - error: 查询失败时返回错误

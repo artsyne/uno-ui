@@ -144,7 +144,7 @@ func TestCommentService_AddComment(t *testing.T) {
 				assert.Equal(t, tt.comment.PostID, savedComment.PostID)
 				assert.Equal(t, tt.comment.Content, savedComment.Content)
 				assert.Equal(t, tt.comment.AddUserID, savedComment.AddUserID)
-				assert.NotEmpty(t, savedComment.GmtCreate)
+				assert.NotEmpty(t, savedComment.AddUtcTime)
 			}
 		})
 	}

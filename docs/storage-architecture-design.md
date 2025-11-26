@@ -10,11 +10,12 @@
 
 ### 业务特性
 
-- **多云存储**: 支持 Dropbox、Google Drive、阿里云盘、WebDAV
+- **多云存储**: 支持 Dropbox、Google Drive、OneDrive、阿里云盘
+- **混合存储模式**: 日记元信息存储于 iDiary.ai 数据库，日记内容（Markdown 文件）存储于用户个人云盘
 - **多内容类型**: 文字、图片、视频、链接等富媒体内容
 - **用户自主**: 用户控制自己的存储授权和数据
 - **智能配置**: 每个日记本可独立配置存储策略
-- **安全加密**: 端到端加密，保护用户隐私
+- **安全与验证**: 通过验证串保证云端文件内容不被篡改
 
 ## DDD 存储架构设计
 
@@ -40,7 +41,7 @@
 [多云存储扩展规划]
 ┌─────────────────────────────────────────────────────────┐
 │         Cloud Storage Abstraction (Future)             │
-│   Dropbox  │ GoogleDrive │ 阿里云盘 │ WebDAV │ S3-Compatible │
+│   Dropbox  │ GoogleDrive │   OneDrive  │   阿里云盘      │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -65,29 +66,50 @@
    - 上传文件的临时存储
    - 日志文件存储
 
-#### 规划中的云存储功能
+#### 云存储功能规划
 
-1. **多云存储接口设计**
+1. **云存储接口设计**
 
    ```go
+   // CloudStorage 定义了与云存储服务交互的统一接口
    type CloudStorage interface {
-       Upload(file io.Reader, path string) (*UploadResult, error)
-       Download(path string) (io.Reader, error)
-       Delete(path string) error
-       List(prefix string) ([]FileInfo, error)
+       // Upload 将日记内容上传到指定的云端路径
+       Upload(ctx context.Context, remotePath string, content io.Reader) (*UploadResult, error)
+       // Download 从指定的云端路径下载日记内容
+       Download(ctx context.Context, remotePath string) (io.ReadCloser, error)
+       // Delete 删除指定的云端文件
+       Delete(ctx context.Context, remotePath string) error
+       // GetFileMetadata 获取云端文件的元信息，用于校验
+       GetFileMetadata(ctx context.Context, remotePath string) (*FileMetadata, error)
+   }
+
+   // UploadResult 包含上传操作的结果
+   type UploadResult struct {
+       FileID   string // 云端文件的唯一标识
+       Path     string // 文件的云端路径
+       Version  string // 文件的版本或 ETag，用于后续的一致性检查
+       Size     int64  // 文件大小
+   }
+
+   // FileMetadata 包含云端文件的元信息
+   type FileMetadata struct {
+       FileID   string
+       Path     string
+       Version  string
+       Size     int64
+       Modified time.Time // 文件最后修改时间
    }
    ```
 
 2. **存储策略配置**
 
-   - 每个日记本独立配置存储后端
+   - 每个日记本独立配置存储后端（即选择哪个云盘）
    - 用户自主授权云存储访问
    - 支持存储迁移和备份
 
-3. **安全特性**
-   - 端到端加密
-   - 用户密钥管理
-   - 访问权限控制
+3. **安全与验证**
+   - 通过文件内容哈希生成的验证串，防止云端文件被意外篡改
+   - OAuth 2.0 协议安全管理用户授权
 
 ## 技术实现路径
 
@@ -183,30 +205,12 @@ ALTER TABLE br_user ADD COLUMN storage_quota_limit bigint unsigned DEFAULT 53687
 
 ```sql
 -- 日记本信息表，扩展存储配置字段
-ALTER TABLE br_diary ADD COLUMN storage_config text DEFAULT NULL COMMENT '存储配置JSON，包含存储类型、云盘授权ID、加密设置、按内容类型的存储策略等';
+ALTER TABLE br_diary ADD COLUMN storage_config text DEFAULT NULL COMMENT '存储配置JSON，包含存储类型和云盘授权ID';
 
 -- storage_config JSON结构示例:
 -- {
---   "default_type": "cloud",                    // 默认存储类型: database/cloud/hybrid
---   "cloud_auth_id": 123,                       // 默认云盘授权ID
---   "encryption_enabled": true,                 // 是否启用加密
---   "content_strategies": {                     // 按内容类型的存储策略
---     "text": {                                 // 文字内容
---       "storage": "database",                  // 存储位置
---       "encryption": true                      // 是否加密
---     },
---     "image": {                                // 图片内容
---       "storage": "cloud",                     // 存储位置
---       "encryption": false,                    // 是否加密
---       "thumbnail": true,                      // 是否生成缩略图
---       "compression": 80                       // 压缩质量
---     },
---     "video": {                                // 视频内容
---       "storage": "cloud",                     // 存储位置
---       "encryption": false,                    // 是否加密
---       "transcoding": true                     // 是否转码
---     }
---   }
+--   "storage_type": "cloud",             // 存储类型: database/cloud
+--   "cloud_auth_id": 123                 // 云盘授权ID
 -- }
 ```
 
@@ -216,20 +220,13 @@ ALTER TABLE br_diary ADD COLUMN storage_config text DEFAULT NULL COMMENT '存储
 -- 多媒体内容表，扩展存储相关字段
 ALTER TABLE br_post ADD COLUMN storage_type varchar(20) DEFAULT 'database' COMMENT '存储类型: database/cloud';
 ALTER TABLE br_post ADD COLUMN storage_path varchar(500) DEFAULT '' COMMENT '云盘存储路径或文件ID';
-ALTER TABLE br_post ADD COLUMN is_encrypted tinyint unsigned DEFAULT 0 COMMENT '是否加密存储: 0否 1是';
+ALTER TABLE br_post ADD COLUMN content_hash varchar(64) DEFAULT '' COMMENT '文件内容的SHA-256哈希值，用于验证文件完整性';
 ALTER TABLE br_post ADD COLUMN file_size bigint unsigned DEFAULT 0 COMMENT '文件大小(字节)';
-ALTER TABLE br_post ADD COLUMN mime_type varchar(100) DEFAULT '' COMMENT 'MIME类型，如image/jpeg、video/mp4等';
-ALTER TABLE br_post ADD COLUMN thumbnail_path varchar(500) DEFAULT '' COMMENT '缩略图路径(针对图片/视频)';
+ALTER TABLE br_post ADD COLUMN mime_type varchar(100) DEFAULT 'text/markdown' COMMENT 'MIME类型';
 
 -- info_type字段说明 (已有字段，重新定义含义):
--- 0: 文字日记
--- 1: 图片内容
--- 2: 视频内容
--- 3: 链接分享
--- 4: 音频内容
--- 5: 文件附件
--- 6-99: 预留扩展
--- 100: 混合存储内容
+-- 0: 文字日记 (Markdown)
+-- 1-99: 预留扩展
 ```
 
 ### 3.2 新增表结构
@@ -336,76 +333,82 @@ Storage Backend (存储后端: DB/Cloud)
 
 ### 4.3 存储适配器设计
 
+存储适配器层将遵循统一的 `CloudStorage` 接口，为上层应用提供一致的云存储操作体验。每个适配器负责将通用接口调用转换为特定云盘服务的 API 请求。
+
 #### Database Adapter
 
-- **职责**: 处理数据库存储的内容
-- **支持内容**: 文字、链接、小文件
-- **特点**: 快速访问、事务支持、全文检索
+- **职责**: 处理存储在 iDiary.ai 本地数据库中的日记内容。
+- **支持内容**: 适用于未配置或禁用云存储的日记本。
+- **特点**: 访问速度快，依赖内置数据库，无需外部网络请求。
 
 #### Cloud Adapters
 
-每个云盘一个独立适配器:
+每个云盘服务都将有一个独立的适配器实现。
 
 - **Dropbox Adapter**
-
-  - API版本: v2
-  - 支持功能: 文件上传/下载、分享链接、版本管理
-  - 限制: 单文件150MB，API限流
+  - **API**: Dropbox API v2
+  - **职责**: 实现文件的上传、下载和删除操作。
 
 - **Google Drive Adapter**
+  - **API**: Google Drive API v3
+  - **职责**: 实现文件的上传、下载和删除操作。
 
-  - API版本: v3
-  - 支持功能: 文件操作、OCR识别、协作编辑
-  - 限制: 日请求限制、文件大小限制
+- **OneDrive Adapter**
+  - **API**: Microsoft Graph API
+  - **职责**: 实现文件的上传、下载和删除操作。
 
 - **阿里云盘 Adapter**
+  - **API**: 官方 API
+  - **职责**: 实现文件的上传、下载和删除操作。
 
-  - API版本: 最新版
-  - 支持功能: 大文件上传、秒传、分享
-  - 特点: 国内访问快、容量大
+### 4.5 云端存储结构设计
 
-- **WebDAV Adapter**
-  - 协议: WebDAV
-  - 支持功能: 文件上传/下载、目录管理
-  - 特点: 广泛兼容性，适用于私有云存储
+#### 目录结构
 
-### 4.4 内容处理器设计
+为了保持云端文件的整洁和高效管理，所有日记文件将存储在指定的目录结构中。在用户授权的云盘根目录下，系统将创建一个名为 `idiary` 的主文件夹。
 
-#### Text Processor
+```
+/idiary/{diary_id}/{year}/{month}/{post_id}_{validation_hash}.md
+```
 
-- **功能**: Markdown解析、敏感词过滤、全文索引
-- **加密**: 支持AES-256加密
-- **存储**: 优先数据库，超大文本可存云盘
+- **`/idiary`**: 应用的根目录，用于存放所有与 iDiary.ai 相关的数据。
+- **`/{diary_id}`**: 日记本的唯一标识符（ID），每个日记本一个文件夹。
+- **`/{year}`**: 四位数的年份，例如 `2024`。
+- **`/{month}`**: 两位数的月份，例如 `07`。
+- **`/{post_id}_{validation_hash}.md`**: 日记文件名，由三部分组成：
+    - `post_id`: 日记内容的唯一标识符（ID）。
+    - `validation_hash`: 用于验证文件完整性的哈希串（取哈希值的前8位）。
+    - `.md`: 文件扩展名，表示 Markdown 格式。
 
-#### Image Processor
+#### 文件名验证哈希算法
 
-- **功能**:
-  - 格式转换 (HEIC→JPEG)
-  - 尺寸调整和压缩
-  - EXIF信息清理
-  - 缩略图生成 (多种尺寸)
-- **加密**: 支持图片加密 (性能考虑可选)
-- **存储**: 原图云盘，缩略图本地缓存
+为了防止云端文件被意外修改或篡改，文件名中包含一个验证哈希。此哈希的计算方式如下：
 
-#### Video Processor
+1.  **选择算法**: 使用 `SHA-256` 哈希算法，它在安全性和性能之间取得了良好的平衡。
+2.  **计算内容**: 哈希值是根据日记的**完整原始内容**（UTF-8 编码的 Markdown 文本）计算得出的。
+3.  **生成验证串**: 将计算出的 `SHA-256` 哈希值（一个64位的十六进制字符串）**截取其前8位**作为文件名中的 `validation_hash`。
 
-- **功能**:
-  - 格式标准化 (转换为MP4 H.264)
-  - 视频压缩 (多码率)
-  - 截图生成 (封面和预览)
-  - 时长和分辨率检测
-- **加密**: 支持 (性能考虑可选)
-- **存储**: 必须云盘存储
+**伪代码示例**:
 
-#### File Processor
+```go
+import (
+    "crypto/sha256"
+    "fmt"
+    "io"
+)
 
-- **功能**:
-  - 文件类型检测
-  - 病毒扫描 (集成ClamAV)
-  - 文档预览生成 (PDF/Office)
-  - 压缩包内容扫描
-- **加密**: 支持通用文件加密
-- **存储**: 根据大小选择存储位置
+// calculateValidationHash 计算并返回用于文件名的验证哈希
+func calculateValidationHash(content string) string {
+    hasher := sha256.New()
+    io.WriteString(hasher, content)
+    fullHash := fmt.Sprintf("%x", hasher.Sum(nil))
+    return fullHash[:8] // 取前8位作为验证串
+}
+```
+
+**验证流程**:
+
+当从云端下载文件时，系统会重新计算文件内容的 `SHA-256` 哈希值，并将其前8位与文件名中的 `validation_hash`进行比较。如果不匹配，则表明文件可能已损坏或被修改，系统将向用户发出警告。
 
 ## 5. 关键技术实现
 
@@ -439,45 +442,38 @@ func (s *CloudService) RefreshTokenIfNeeded(authID int) error {
 
 ### 5.3 存储路由算法
 
-```go
-func (m *StorageManager) RouteStorage(post *Post, config *StorageConfig) StorageAdapter {
-    contentType := post.InfoType
-    strategy := config.ContentStrategies[contentType]
+存储路由的核心是根据日记本的配置，决定将日记内容存储到数据库还是云端。这个决策由 `StorageManager` 服务来执行。
 
-    switch strategy.Storage {
-    case "database":
-        return m.databaseAdapter
-    case "cloud":
-        return m.getCloudAdapter(config.CloudAuthID)
-    case "hybrid":
-        // 混合存储逻辑，例如：小文件存数据库，大文件存云盘
-        // 这里需要更复杂的判断逻辑，根据文件大小、类型等决定
-        return m.getHybridAdapter(config.CloudAuthID)
-    default:
-        return m.databaseAdapter // 默认回退
+```go
+// StorageManager 负责根据配置选择合适的存储适配器
+type StorageManager struct {
+    databaseAdapter StorageAdapter
+    cloudAdapters   map[string]StorageAdapter // key: provider_name
+}
+
+// RouteStorage 根据日记本的存储配置返回相应的存储适配器
+func (m *StorageManager) RouteStorage(config *StorageConfig) (StorageAdapter, error) {
+    if config.StorageType == "cloud" {
+        // 从 cloudAdapters 中查找对应的云存储适配器
+        adapter, ok := m.cloudAdapters[config.CloudProvider]
+        if !ok {
+            return nil, fmt.Errorf("unsupported cloud provider: %s", config.CloudProvider)
+        }
+        return adapter, nil
     }
+    
+    // 默认或明确配置为 database 时，返回数据库适配器
+    return m.databaseAdapter, nil
 }
 ```
 
-### 5.4 加密实现
+**处理流程**:
 
-```go
-// 使用AES-256-GCM加密
-func (e *Encryptor) Encrypt(data []byte, userKey string) ([]byte, error) {
-    // 1. 派生密钥 (PBKDF2)
-    key := pbkdf2.Key([]byte(userKey), salt, 10000, 32, sha256.New)
-
-    // 2. AES-GCM加密
-    block, _ := aes.NewCipher(key)
-    gcm, _ := cipher.NewGCM(block)
-
-    nonce := make([]byte, gcm.NonceSize())
-    rand.Read(nonce)
-
-    ciphertext := gcm.Seal(nonce, nonce, data, nil)
-    return ciphertext, nil
-}
-```
+1.  当用户创建或更新一篇日记时，应用层会获取该日记所属日记本的 `storage_config`。
+2.  `StorageManager` 的 `RouteStorage` 方法被调用，并传入配置信息。
+3.  如果 `storage_type` 为 `cloud`，则根据 `cloud_provider`（例如 `dropbox`, `googledrive`）从适配器映射中选择对应的云存储适配器。
+4.  如果 `storage_type` 为 `database` 或未配置，则默认使用 `databaseAdapter`。
+5.  获取到适配器后，执行相应的 `Upload`、`Download` 或 `Delete` 操作。
 
 ## 6. 部署和运维
 

@@ -30,19 +30,18 @@ func NewCommentRepository() comment.RepositoryInterface {
 // Insert 插入评论信息到数据库
 func (r *CommentRepository) Insert(comment *comment.Comment) (int64, error) {
 	sqlstr := `
-		INSERT INTO br_comment(
-			post_id, content, gmt_create, add_user_id, add_user_name, add_user_ip
-		)
-		VALUES(?, ?, ?, ?, ?, ?)
-	`
-	res, err := r.db.Exec(sqlstr, comment.PostID, comment.Content, comment.GmtCreate,
+        INSERT INTO br_comment(
+            post_id, content, add_utc_time, add_user_id, add_user_name, add_user_ip
+        )
+        VALUES(?, ?, ?, ?, ?, ?)
+    `
+	res, err := r.db.Exec(sqlstr, comment.PostID, comment.Content, comment.AddUtcTime,
 		comment.AddUserID, comment.AddUserName, comment.AddUserIP)
 
 	if err != nil {
 		return 0, err
 	}
-	id, err := res.LastInsertId()
-	return id, err
+	return res.LastInsertId()
 }
 
 // Delete 删除评论
@@ -68,8 +67,8 @@ func (r *CommentRepository) Delete(commentID int64) error {
 // GetByID 根据评论ID获取评论信息
 func (r *CommentRepository) GetByID(commentID int64) (*comment.Comment, error) {
 	var commentData comment.Comment
-	sqlstr := `SELECT comment_id, post_id, content, gmt_create, add_user_id, add_user_name, add_user_ip 
-			   FROM br_comment WHERE comment_id = ?`
+	sqlstr := `SELECT comment_id, post_id, content, add_utc_time, add_user_id, add_user_name, add_user_ip 
+               FROM br_comment WHERE comment_id = ?`
 	err := r.db.Get(&commentData, sqlstr, commentID)
 	if err == sql.ErrNoRows {
 		return nil, errors.CommentNotFound.WithDetails(fmt.Sprintf("comment_id: %d", commentID))
@@ -84,9 +83,9 @@ func (r *CommentRepository) GetByID(commentID int64) (*comment.Comment, error) {
 func (r *CommentRepository) ListByPostID(postID int64, pageIndex, pageSize int) ([]comment.Comment, int, error) {
 	commentArray := []comment.Comment{}
 	offset := (pageIndex - 1) * pageSize
-	sqlstr := `SELECT comment_id, post_id, content, gmt_create, add_user_id, add_user_name, add_user_ip 
-			   FROM br_comment WHERE post_id = ?
-			   ORDER BY gmt_create ASC LIMIT ? OFFSET ?`
+	sqlstr := `SELECT comment_id, post_id, content, add_utc_time, add_user_id, add_user_name, add_user_ip 
+               FROM br_comment WHERE post_id = ?
+               ORDER BY comment_id DESC LIMIT ? OFFSET ?`
 	err := r.db.Select(&commentArray, sqlstr, postID, pageSize, offset)
 	if err == sql.ErrNoRows {
 		return []comment.Comment{}, 0, nil
