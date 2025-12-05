@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uno Framework - Manual Tests</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
+    <script src="../dist/uno.umd.js" defer></script>
+</head>
+
+<body class="bg-gray-50 p-10">
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-10 border-b pb-4">
+            <h1 class="text-3xl font-bold text-gray-900">Uno Framework</h1>
+            <p class="text-gray-600 mt-2">Manual Test Suite (Running compiled assets)</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Components List -->
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">Components</h2>
+                <ul class="space-y-3">
+                    <li>
+                        <a href="components/box.html"
+                            class="block p-3 bg-gray-50 rounded hover:bg-blue-50 hover:text-blue-700 transition-colors flex justify-between items-center group">
+                            <span class="font-medium">Box</span>
+                            <span class="text-gray-400 group-hover:text-blue-500">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="components/notify.html"
+                            class="block p-3 bg-gray-50 rounded hover:bg-blue-50 hover:text-blue-700 transition-colors flex justify-between items-center group">
+                            <span class="font-medium">Notify</span>
+                            <span class="text-gray-400 group-hover:text-blue-500">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="components/tab.html"
+                            class="block p-3 bg-gray-50 rounded hover:bg-blue-50 hover:text-blue-700 transition-colors flex justify-between items-center group">
+                            <span class="font-medium">Tab</span>
+                            <span class="text-gray-400 group-hover:text-blue-500">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="components/valid.html"
+                            class="block p-3 bg-gray-50 rounded hover:bg-blue-50 hover:text-blue-700 transition-colors flex justify-between items-center group">
+                            <span class="font-medium">Valid</span>
+                            <span class="text-gray-400 group-hover:text-blue-500">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="components/tooltip.html"
+                            class="block p-3 bg-gray-50 rounded hover:bg-blue-50 hover:text-blue-700 transition-colors flex justify-between items-center group">
+                            <span class="font-medium">Tooltip</span>
+                            <span class="text-gray-400 group-hover:text-blue-500">→</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- System Status -->
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">System Status</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Alpine.js</span>
+                        <span x-data
+                            class="px-2 py-1 text-xs rounded bg-green-100 text-green-800 font-bold">Active</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Tailwind CSS</span>
+                        <span class="px-2 py-1 text-xs rounded bg-green-100 text-green-800 font-bold">Compiled</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>HTMX</span>
+                        <span id="htmx-status"
+                            class="px-2 py-1 text-xs rounded bg-gray-100 text-gray-800">Checking...</span>
+                    </div>
+                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const htmxStatus = document.getElementById('htmx-status');
+                        if (window.htmx) {
+                            htmxStatus.textContent = 'Active';
+                            htmxStatus.className = 'px-2 py-1 text-xs rounded bg-green-100 text-green-800 font-bold';
+                        } else {
+                            htmxStatus.textContent = 'Missing';
+                            htmxStatus.className = 'px-2 py-1 text-xs rounded bg-red-100 text-red-800 font-bold';
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

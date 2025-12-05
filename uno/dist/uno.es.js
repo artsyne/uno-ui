@@ -1,0 +1,1017 @@
+import R from "alpinejs";
+import D from "htmx.org";
+const H = {
+  box: {
+    ok: "OK",
+    cancel: "Cancel",
+    loading: "Loading",
+    close: "Close"
+  },
+  valid: {
+    required: "Required",
+    pattern: "Invalid format",
+    min: "At least {n} characters",
+    validname: "Letters, numbers, - and _ only",
+    en: "English letters only",
+    domain: "Invalid domain format",
+    mobile: "Invalid mobile number",
+    int: "Integer required",
+    email: "Invalid email address",
+    date: "Invalid date format (YYYY-MM-DD)",
+    url: "Invalid URL",
+    pwd: "At least 8 chars, 1 letter, 1 number",
+    strongpwd: "At least 8 chars, 1 letter, 1 number, 1 special char"
+  },
+  charCount: "Remaining: {count}"
+}, F = {
+  box: {
+    ok: "确认",
+    cancel: "取消",
+    loading: "加载中",
+    close: "关闭"
+  },
+  valid: {
+    required: "必填",
+    pattern: "格式无效",
+    min: "至少 {n} 个字符",
+    validname: "仅限字母、数字、- 和 _",
+    en: "仅限英文字母",
+    domain: "无效的域名格式",
+    mobile: "无效的手机号",
+    int: "需要整数",
+    email: "无效的邮箱地址",
+    date: "无效的日期格式 (YYYY-MM-DD)",
+    url: "无效的 URL",
+    pwd: "至少 8 位，包含 1 个字母和 1 个数字",
+    strongpwd: "至少 8 位，包含字母、数字和特殊字符"
+  },
+  charCount: "剩余: {count}"
+}, V = {
+  box: {
+    ok: "確認",
+    cancel: "取消",
+    loading: "加載中",
+    close: "關閉"
+  },
+  valid: {
+    required: "必填",
+    pattern: "格式無效",
+    min: "至少 {n} 個字符",
+    validname: "僅限字母、數字、- 和 _",
+    en: "僅限英文字母",
+    domain: "無效的域名格式",
+    mobile: "無效的手機號",
+    int: "需要整數",
+    email: "無效的電子郵件地址",
+    date: "無效的日期格式 (YYYY-MM-DD)",
+    url: "無效的 URL",
+    pwd: "至少 8 位，包含 1 個字母和 1 個數字",
+    strongpwd: "至少 8 位，包含字母、數字和特殊字符"
+  },
+  charCount: "剩餘: {count}"
+};
+const q = {
+  en: H,
+  "zh-CN": F,
+  "zh-TW": V
+}, S = Object.keys(q);
+function U() {
+  const d = typeof localStorage < "u" ? localStorage.getItem("uno.lang") : null;
+  if (d && S.includes(d)) return d;
+  const o = typeof navigator < "u" ? navigator.language : "en", i = o.startsWith("zh") ? o.includes("TW") || o.includes("Hant") ? "zh-TW" : "zh-CN" : "en";
+  return S.includes(i) ? i : "en";
+}
+let j = U();
+function W(d) {
+  S.includes(d) && (j = d, typeof localStorage < "u" && localStorage.setItem("uno.lang", d), typeof document < "u" && (document.documentElement.lang = d));
+}
+function Y(d, o) {
+  const i = o.split(".");
+  let a = d;
+  for (const h of i) {
+    if (!a || typeof a != "object" || !(h in a)) return;
+    a = a[h];
+  }
+  return a;
+}
+function Z(d, o = {}) {
+  const i = Y(q[j], d);
+  return (typeof i == "string" ? i : d).replace(/\{(\w+)\}/g, (h, y) => y in o ? String(o[y]) : `{${y}}`);
+}
+function J(d) {
+  for (const o in d)
+    if (!q[o])
+      q[o] = d[o], S.push(o);
+    else {
+      const i = (a, h) => {
+        for (const y in h)
+          h[y] && typeof h[y] == "object" ? (a[y] || Object.assign(a, { [y]: {} }), i(a[y], h[y])) : Object.assign(a, { [y]: h[y] });
+      };
+      i(q[o], d[o]);
+    }
+}
+function K(d) {
+  const o = {
+    lang: j,
+    setLang(i) {
+      !S.includes(i) && !S.includes(i) || (W(i), this.lang = i);
+    },
+    extend: J,
+    t: Z
+  };
+  d.store("i18n", o);
+}
+function X(d, o, i) {
+  const a = d.getBoundingClientRect(), h = o.getBoundingClientRect(), y = h.width, w = h.height, c = a.width, t = a.height, u = { top: a.top, left: a.left }, l = window.innerWidth, s = window.innerHeight, m = 0, v = 0, p = s, x = l, g = (e, f) => {
+    if (f) {
+      if (e + y > x)
+        return x - y - 10;
+      if (e < v)
+        return v + 10;
+    } else {
+      if (e + w > p)
+        return p - w - 10;
+      if (e < m)
+        return m + 10;
+    }
+    return e;
+  };
+  let b, r, n = i;
+  switch (i) {
+    case "left":
+      r = u.left - y - 5, r < v && (r = u.left + c + 5, n = "right"), b = g(u.top + t / 2 - w / 2, !1);
+      break;
+    case "top":
+      b = u.top - w - 8, b < m && (b = u.top + t + 8, n = "bottom"), r = u.left + (c - y) / 2, r = g(r, !0);
+      break;
+    case "right":
+      r = u.left + c + 5, r + y > x && (r = u.left - y - 5, n = "left"), b = g(u.top + t / 2 - w / 2, !1);
+      break;
+    case "bottom":
+    default:
+      b = u.top + t + 8, b + w > p && (b = u.top - w - 8, n = "top"), r = u.left + (c - y) / 2, r = g(r, !0);
+      break;
+  }
+  return { top: b, left: r, position: n };
+}
+const I = {
+  /**
+   * Log info message
+   * @param {...any} args - Arguments to log
+   */
+  info(...d) {
+    console.log("[Uno Info]", ...d);
+  },
+  /**
+   * Log warning message
+   * @param {...any} args - Arguments to log
+   */
+  warn(...d) {
+    console.warn("[Uno Warn]", ...d);
+  },
+  /**
+   * Log error message
+   * @param {...any} args - Arguments to log
+   */
+  error(...d) {
+    console.error("[Uno Error]", ...d);
+  }
+};
+const Q = (d) => {
+  d.data("tooltip", (o = "", { position: i = "top", trigger: a = "hover", timeout: h = 100, target: y = null } = {}) => ({
+    open: !1,
+    content: o,
+    position: i,
+    currentPosition: i,
+    trigger: a,
+    timeout: h,
+    targetId: y,
+    timer: null,
+    top: 0,
+    left: 0,
+    positioned: !1,
+    get classes() {
+      return "absolute z-50 px-3 py-2 text-sm font-medium rounded-lg shadow-sm whitespace-nowrap transition-opacity duration-200 border border-gray-200 bg-white text-gray-900 dark:bg-gray-900 dark:text-white dark:border-gray-700 " + this.currentPosition;
+    },
+    get arrowClasses() {
+      const w = "absolute w-2 h-2 rotate-45 bg-white dark:bg-gray-900";
+      let c = "";
+      switch (this.currentPosition) {
+        case "top":
+          c = "top-full left-1/2 -translate-x-1/2 -mt-1";
+          break;
+        case "bottom":
+          c = "bottom-full left-1/2 -translate-x-1/2 -mb-1";
+          break;
+        case "left":
+          c = "left-full top-1/2 -translate-y-1/2 -ml-1";
+          break;
+        case "right":
+          c = "right-full top-1/2 -translate-y-1/2 -mr-1";
+          break;
+      }
+      return `${w} ${c}`;
+    },
+    /**
+     * Initialize component
+     */
+    init() {
+      if (this.targetId) {
+        const c = document.getElementById(this.targetId);
+        c && (this.content = c.innerHTML);
+      }
+      const w = () => {
+        this.open && this.updatePosition();
+      };
+      window.addEventListener("scroll", w, !0), window.addEventListener("resize", w);
+    },
+    /**
+     * Show tooltip
+     */
+    show() {
+      clearTimeout(this.timer), this.positioned = !1, this.open = !0;
+      const w = () => {
+        if (!this.open) return;
+        const c = this.$refs.tooltipRef;
+        c && c.getBoundingClientRect().width > 0 ? (this.updatePosition(), this.positioned = !0) : requestAnimationFrame(w);
+      };
+      this.$nextTick(w);
+    },
+    /**
+     * Hide tooltip with delay
+     */
+    hide() {
+      this.timer = setTimeout(() => {
+        this.open = !1;
+      }, this.timeout);
+    },
+    onMouseEnter() {
+      this.trigger === "hover" && this.show();
+    },
+    onMouseLeave() {
+      this.trigger === "hover" && this.hide();
+    },
+    onClick() {
+      this.trigger === "click" && (this.open ? this.open = !1 : this.show());
+    },
+    onClickOutside() {
+      this.trigger === "click" && this.open && (this.open = !1);
+    },
+    /**
+     * Calculate and update tooltip position
+     */
+    updatePosition() {
+      let w = this.$el.querySelector("[data-trigger]");
+      w || (this.$el.hasAttribute("data-trigger") ? w = this.$el : w = this.$el.firstElementChild);
+      const c = this.$refs.tooltipRef;
+      if (!(!w || !c))
+        try {
+          const t = X(w, c, this.position);
+          I.info("Position calculated:", { pos: this.position, result: t }), this.top = t.top, this.left = t.left, this.positioned = !0, this.currentPosition = t.position;
+        } catch (t) {
+          I.error("Error in calculatePosition", t);
+        }
+    }
+  }));
+};
+function P(d) {
+  const o = { position: "fixed" };
+  switch (d) {
+    case "top":
+      o.top = "0px", o.left = "0px", o.right = "0px";
+      break;
+    case "bottom":
+      o.bottom = "0px", o.left = "0px", o.right = "0px";
+      break;
+    case "top-right":
+      o.top = "20px", o.right = "20px";
+      break;
+    case "bottom-right":
+      o.bottom = "12px", o.right = "20px";
+      break;
+    case "top-left":
+      o.top = "20px", o.left = "20px";
+      break;
+    case "bottom-left":
+      o.bottom = "12px", o.left = "20px";
+      break;
+    case "center":
+      o.top = "50%", o.left = "50%", o.transform = "translate(-50%, -50%)";
+      break;
+    case "top-center":
+      o.top = "0px", o.left = "50%", o.transform = "translateX(-50%)";
+      break;
+    case "bottom-center":
+      o.bottom = "0px", o.left = "50%", o.transform = "translateX(-50%)";
+      break;
+    default:
+      o.top = "20px", o.right = "20px";
+  }
+  return o;
+}
+let M = null, B = !1;
+function G(d, o = 1e3) {
+  if (!d) return;
+  B = !0;
+  const i = () => {
+    B && (d.style.transition = "none", d.style.width = "0%", d.offsetHeight, setTimeout(() => {
+      B && (d.style.transition = `width ${o}ms ease-in-out`, d.style.width = "100%", M = setTimeout(i, o + 200));
+    }, 50));
+  };
+  i();
+}
+function tt(d) {
+  B = !1, M && (clearTimeout(M), M = null), d && (d.style.width = "0%");
+}
+const et = (d) => {
+  d.data("notify", ({ position: o = "top-right" } = {}) => ({
+    items: [],
+    position: o,
+    nextId: 1,
+    showCloseButton: !1,
+    closeIndicatorEnabled: !1,
+    activeRequests: 0,
+    progressBarRunning: !1,
+    get containerClasses() {
+      switch (this.position) {
+        case "top-left":
+          return "flex flex-col space-y-2 items-start";
+        case "bottom-right":
+          return "flex flex-col-reverse space-y-2 space-y-reverse items-end";
+        case "bottom-left":
+          return "flex flex-col-reverse space-y-2 space-y-reverse items-start";
+        case "top-right":
+        default:
+          return "flex flex-col space-y-2 items-end";
+      }
+    },
+    get containerStyle() {
+      return P(this.position);
+    },
+    itemClasses(i) {
+      const a = "relative border-l-4 pl-3 pr-3 py-4 mb-2 rounded shadow-sm dark:shadow-md transition-colors duration-300 overflow-hidden animate-fadeIn", h = {
+        success: "bg-green-100 dark:bg-green-800 border-green-500 dark:border-green-400 text-green-700 dark:text-green-100",
+        warning: "bg-yellow-100 dark:bg-yellow-800 border-yellow-500 dark:border-yellow-400 text-yellow-700 dark:text-yellow-100",
+        error: "bg-red-100 dark:bg-red-800 border-red-500 dark:border-red-400 text-red-700 dark:text-red-100",
+        info: "bg-blue-100 dark:bg-blue-800 border-blue-500 dark:border-blue-400 text-blue-700 dark:text-blue-100"
+      }, y = h[i] || h.error;
+      return `${a} ${y}`;
+    },
+    /**
+     * Show a notification
+     * @param {string} text - Message text
+     * @param {Object} options - Options { type, timeout, position, closeIndicator, showCloseButton }
+     */
+    show(i, { type: a = "error", timeout: h, position: y, closeIndicator: w, showCloseButton: c } = {}) {
+      const t = this.nextId++, u = y || this.position;
+      I.info("notify.show", { text: i, type: a, timeout: h, position: u });
+      const l = { id: t, text: i, type: a, targetPosition: u, showCloseButton: !!c, closeIndicator: !!w };
+      this.items = [l, ...this.items];
+      let s = h;
+      if (s === void 0)
+        switch (a) {
+          case "success":
+            s = 1e3;
+            break;
+          case "warning":
+            s = 2e3;
+            break;
+          case "error":
+          default:
+            s = 3e3;
+            break;
+        }
+      if (s && s > 0) {
+        const m = t;
+        setTimeout(() => this.remove(m), s);
+      }
+    },
+    /**
+     * Remove a notification by ID
+     * @param {number} id 
+     */
+    remove(i) {
+      this.items = this.items.filter((a) => a.id !== i);
+    },
+    success(i, a) {
+      const h = i || this.$store?.i18n?.t("notify.operation.success") || "Success";
+      typeof a == "number" ? this.show(h, { type: "success", timeout: a }) : this.show(h, { type: "success", ...a || {} });
+    },
+    warning(i, a) {
+      typeof a == "number" ? this.show(i, { type: "warning", timeout: a }) : this.show(i, { type: "warning", ...a || {} });
+    },
+    error(i, a) {
+      typeof a == "number" ? this.show(i, { type: "error", timeout: a }) : this.show(i, { type: "error", ...a || {} });
+    },
+    /**
+     * Show or hide loading indicator
+     * @param {boolean} show 
+     * @param {string|Object} styleOrOptions - 'indicator' | 'progressbar' | { style, position }
+     */
+    loading(i, a) {
+      let h = "indicator", y = null;
+      typeof a == "string" ? h = a : typeof a == "object" && a && (h = a.style || "indicator", y = a.position), i ? (this.activeRequests++, h === "progressbar" ? (this._ensureProgressBar(), this._showProgressBar()) : (this._ensureLoadingIndicator(), this._showLoadingIndicator(y))) : (this.activeRequests = Math.max(0, this.activeRequests - 1), this.activeRequests === 0 && (this._hideLoadingIndicator(), this._hideProgressBar()));
+    },
+    _ensureLoadingIndicator() {
+      if (!document.getElementById("uno-loading-indicator")) {
+        const i = document.createElement("div");
+        i.id = "uno-loading-indicator", i.className = "fixed top-4 right-4 z-[150] bg-blue-100 border-blue-500 text-blue-700 p-2 rounded-full shadow-md flex items-center hidden dark:bg-blue-900 dark:text-blue-100", i.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-blue-500 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Loading</span>', document.body.appendChild(i);
+      }
+    },
+    _showLoadingIndicator(i) {
+      const a = document.getElementById("uno-loading-indicator");
+      a && (a.style.display = "flex");
+    },
+    _hideLoadingIndicator() {
+      const i = document.getElementById("uno-loading-indicator");
+      i && (i.style.display = "none");
+    },
+    _progressFill() {
+      const i = document.getElementById("uno-progress-bar");
+      return i ? i.querySelector(".uno-progress-fill") : null;
+    },
+    _ensureProgressBar() {
+      if (!document.getElementById("uno-progress-bar")) {
+        const i = document.createElement("div");
+        i.id = "uno-progress-bar", i.className = "fixed top-0 left-0 right-0 z-[9999] bg-blue-100 dark:bg-blue-900 hidden";
+        const a = document.createElement("div");
+        a.className = "uno-progress-fill bg-blue-500 dark:bg-blue-400 transition-all duration-1000 ease-in-out", a.style.height = "4px", a.style.width = "0%", i.appendChild(a), document.body.appendChild(i);
+      }
+    },
+    _showProgressBar() {
+      const i = document.getElementById("uno-progress-bar"), a = this._progressFill();
+      !i || !a || (i.style.display = "block", this.progressBarRunning = !0, G(a, 1e3));
+    },
+    _hideProgressBar() {
+      const i = document.getElementById("uno-progress-bar"), a = this._progressFill();
+      !i || !a || (i.style.display = "none", this.progressBarRunning = !1, tt(a));
+    }
+  }));
+};
+let T = 0, N = "";
+function _() {
+  T === 0 && (N = document.body.style.overflow || "", document.body.style.overflow = "hidden"), T++;
+}
+function nt() {
+  T = Math.max(0, T - 1), T === 0 && (document.body.style.overflow = N || "", N = "");
+}
+async function rt(d) {
+  const o = await fetch(d);
+  return (o.headers.get("content-type") || "").includes("application/json") ? o.json() : o.text();
+}
+const it = (d) => {
+  const o = {};
+  let i = "uno-box-";
+  function a() {
+    return Math.random().toString(36).slice(2, 10);
+  }
+  function h(r, n) {
+    return `#${i}${n}${r}`;
+  }
+  function y(r) {
+    const n = r.dataset, e = {
+      boxTitle: "title",
+      boxContent: "content",
+      boxWidth: "width",
+      boxHeight: "height",
+      boxModal: "modal",
+      boxPosition: "position",
+      boxAjaxUrl: "ajaxUrl",
+      boxIframeUrl: "iframeUrl",
+      boxOkText: "okButtonText",
+      boxCancelText: "cancelButtonText",
+      boxCache: "cache",
+      boxId: "boxId",
+      boxWidthClass: "widthClass",
+      boxHeightClass: "heightClass",
+      boxContainerClass: "containerClass",
+      boxContentOverflow: "contentOverflow",
+      boxButtonAlign: "buttonAlign"
+    }, f = {};
+    for (const $ in e) {
+      const k = n[$];
+      if (k !== void 0) {
+        const L = e[$];
+        L === "width" || L === "height" ? f[L] = parseInt(k, 10) : L === "modal" || L === "cache" ? f[L] = k === "true" || k === !0 : f[L] = k;
+      }
+    }
+    return f;
+  }
+  function w(r, n) {
+    try {
+      const e = d?.store("i18n");
+      return e && e.t(`box.${r}`) || n;
+    } catch {
+      return n;
+    }
+  }
+  function c(r) {
+    const n = r.uniqueId, e = !!r.title, f = (r.containerClass || "").trim(), $ = e ? `
+      <div id="${i}header${n}" class="flex justify-between items-center p-4 border-b border-gray-300 dark:border-gray-600">
+        <div id="${i}title${n}" class="text-lg font-semibold text-gray-900 dark:text-gray-100"></div>
+        <button id="${i}close${n}" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" title="${w("close", "Close")}">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+    ` : "", k = e ? "" : `
+      <button id="${i}close${n}" class="absolute top-2 right-2 z-[101] text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 bg-white dark:bg-gray-900 p-1" title="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    `, L = e ? "p-4 text-gray-900 dark:text-gray-100" : "pt-12 px-4 pb-4 text-gray-900 dark:text-gray-100", E = document.createElement("div");
+    E.id = `${i}outer-container${n}`, E.className = "hidden fixed inset-0 z-[103] p-4 flex items-center justify-center";
+    const A = document.createElement("div");
+    A.id = `${i}container${n}`, A.className = `bg-white dark:bg-gray-900 border-8 border-gray-200 dark:border-gray-600 shadow-lg overflow-hidden transition-colors duration-300 ${f}`, A.style.position = "relative", A.innerHTML = `${$}${k}<div id="${i}wrapper${n}" class="${L}"><div id="${i}content${n}" class="overflow-auto"></div></div><div id="${i}footer${n}" class="p-4 border-t border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hidden"></div>`, E.appendChild(A);
+    const C = document.createElement("div");
+    return C.id = `${i}overlay${n}`, C.className = "hidden fixed inset-0 bg-black z-[102]", C.style.opacity = String(r.overlayOpacity ?? 0.5), document.body.appendChild(E), document.body.appendChild(C), { outer: E, container: A, overlay: C };
+  }
+  function t(r, n) {
+    const e = document.querySelector(h(r, "container")), f = document.querySelector(h(r, "content")), $ = document.querySelector(h(r, "wrapper"));
+    if (!e || !f) return;
+    n.widthClass || n.heightClass ? (e.style.width = "", e.style.height = "", e.style.maxWidth = "", e.style.maxHeight = "", n.widthClass && e.classList.add(...n.widthClass.split(" ")), n.heightClass && (e.classList.add(...n.heightClass.split(" ")), $ && ($.classList.add("flex", "flex-col", "h-full"), f.classList.add("flex-1", "min-h-0")))) : window.innerWidth <= 768 ? (e.style.width = "calc(100% - 2rem)", e.style.height = "calc(100% - 2rem)", $ ? ($.classList.add("flex", "flex-col", "h-full"), f.classList.add("flex-1", "min-h-0")) : f.style.height = "100%") : (n.width && (e.style.width = `${n.width}px`), n.height && (f.style.height = `${n.height}px`)), f.classList.remove("overflow-auto", "overflow-hidden", "overflow-visible");
+    const k = n.contentOverflow || "auto";
+    k === "hidden" ? f.classList.add("overflow-hidden") : k === "visible" ? f.classList.add("overflow-visible") : f.classList.add("overflow-auto");
+  }
+  function u(r, n) {
+    const e = document.querySelector(h(r, "outer-container"));
+    if (!e) return;
+    const f = P(n || "center");
+    Object.assign(e.style, f), e.classList.remove("hidden");
+  }
+  function l(r, n) {
+    const e = document.querySelector(h(r, "close"));
+    e && e.addEventListener("click", () => p({ uniqueId: r, modal: n }));
+  }
+  async function s(r, n) {
+    const e = document.querySelector(h(r, "content"));
+    if (e)
+      if (typeof n.content == "string")
+        e.innerHTML = n.content;
+      else if (typeof n.targetId == "string") {
+        const f = document.getElementById(n.targetId);
+        f && (e.innerHTML = f.innerHTML);
+      } else if (typeof n.ajaxUrl == "string") {
+        e.innerHTML = `<div class="flex justify-center items-center h-full"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div><span class="ml-2 text-gray-900 dark:text-gray-100">${w("loading", "Loading")}</span></div>`;
+        try {
+          const f = await rt(n.ajaxUrl);
+          typeof f == "object" && f !== null ? e.innerHTML = `<pre class="bg-gray-100 p-3 rounded overflow-x-auto whitespace-pre-wrap">${JSON.stringify(f, null, 2)}</pre>` : e.innerHTML = String(f);
+        } catch (f) {
+          I.error("box ajax error", f);
+        }
+      } else typeof n.iframeUrl == "string" && (e.innerHTML = `<iframe frameborder="0" class="w-full h-full" src="${n.iframeUrl}"></iframe>`);
+  }
+  function m(r, n, e) {
+    const f = document.querySelector(h(r, "footer"));
+    if (!f) return;
+    const $ = { left: "justify-start", center: "justify-center", right: "justify-end" }[e.buttonAlign] || "justify-end";
+    f.classList.remove("hidden"), f.className = `p-4 border-t border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 flex ${$} space-x-4`;
+    const k = e.okButtonText || w("ok", "OK"), L = e.cancelButtonText || w("cancel", "Cancel"), E = n === "confirm" || n === "message" || n === "dialog" && e.showOkButton === !0, A = n === "confirm" || n === "dialog" && e.showCancelButton === !0;
+    if (f.innerHTML = "", E) {
+      const C = document.createElement("button");
+      C.id = `${i}ok${r}`, C.className = "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200", C.textContent = k, C.addEventListener("click", () => {
+        let z = !0;
+        typeof e.onOk == "function" && (z = e.onOk() !== !1), z && p({ uniqueId: r, modal: e.modal !== !1 });
+      }), f.appendChild(C);
+    }
+    if (A) {
+      const C = document.createElement("button");
+      C.id = `${i}cancel${r}`, C.className = "px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors duration-200", C.textContent = L, C.addEventListener("click", () => {
+        p({ uniqueId: r, modal: e.modal !== !1 }), typeof e.onCancel == "function" && e.onCancel();
+      }), f.appendChild(C);
+    }
+    !E && !A && f.classList.add("hidden");
+  }
+  async function v(r, n) {
+    const e = {
+      modal: !0,
+      position: "center",
+      width: 400,
+      height: void 0,
+      overlayOpacity: 0.5,
+      responsive: !0,
+      contentOverflow: "auto",
+      ...n
+    };
+    typeof e.onBeforeOpen == "function" && e.onBeforeOpen();
+    let f = e.boxId || a();
+    if (e.uniqueId = f, e.cache && e.boxId && o[e.boxId])
+      return f = o[e.boxId].uniqueId, document.querySelector(h(f, "outer-container"))?.classList.remove("hidden"), document.querySelector(h(f, "overlay"))?.classList.toggle("hidden", e.modal === !1), e.modal !== !1 && _(), m(f, r, e), l(f, e.modal !== !1), typeof e.onOpen == "function" && e.onOpen(), f;
+    const $ = c(e);
+    if (e.cache && e.boxId && (o[e.boxId] = { uniqueId: f, modal: e.modal !== !1 }), e.title) {
+      const k = document.querySelector(h(f, "title"));
+      k && (k.textContent = e.title);
+    }
+    return e.modal !== !1 && ($.overlay.classList.remove("hidden"), _()), u(f, e.position), t(f, e), await s(f, e), m(f, r, e), l(f, e.modal !== !1), typeof e.onOpen == "function" && e.onOpen(), f;
+  }
+  function p({ uniqueId: r, modal: n }) {
+    document.querySelector(h(r, "outer-container"))?.classList.add("hidden"), document.querySelector(h(r, "overlay"))?.classList.add("hidden"), n && nt();
+  }
+  function x() {
+    Object.keys(o).forEach((r) => {
+      const n = o[r].uniqueId;
+      document.querySelector(h(n, "outer-container"))?.remove(), document.querySelector(h(n, "overlay"))?.remove(), delete o[r];
+    });
+  }
+  function g(r) {
+    const n = o[r];
+    if (!n) return;
+    const e = n.uniqueId;
+    document.querySelector(h(e, "outer-container"))?.remove(), document.querySelector(h(e, "overlay"))?.remove(), delete o[r];
+  }
+  function b() {
+    document.addEventListener("click", (r) => {
+      const n = r.target.closest("[data-box-type]");
+      if (!n) return;
+      r.preventDefault();
+      const e = n.getAttribute("data-box-type");
+      if (!["dialog", "confirm", "message"].includes(e)) return;
+      const f = y(n);
+      v(e, f);
+    });
+  }
+  b(), d.store("box", {
+    open: v,
+    close: p,
+    clearCache: x,
+    clearCacheById: g
+  });
+};
+const st = (d) => {
+  const o = `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23ef4444'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linecap='round' d='M5.8 3.6h.4L6 6.5zM6 8.2af.6.6 0 110-1.2.6.6 0 010 1.2z'/%3e%3c/svg%3e")`, i = `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2322c55e' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e")`, a = (c, t) => {
+    c.classList.remove("!border-red-500", "!border-green-500", "pr-10", "bg-no-repeat", "bg-[right_0.75rem_center]", "bg-[length:1rem_1rem]"), c.style.backgroundImage = "", c.classList.remove("is-valid", "is-invalid");
+    const u = c.nextElementSibling;
+    if (u && u.tagName === "DIV") {
+      const l = u.querySelector(".animate-spin");
+      l && (l.style.display = t === "validating" ? "block" : "");
+    }
+    if (t === "validating") {
+      c.classList.add("validating");
+      return;
+    }
+    c.classList.remove("validating"), t === "invalid" ? (c.classList.add("is-invalid"), c.classList.add("!border-red-500", "pr-10", "bg-no-repeat", "bg-[right_0.75rem_center]", "bg-[length:1rem_1rem]"), c.style.backgroundImage = o) : t === "valid" && (c.classList.add("is-valid"), c.classList.add("!border-green-500", "pr-10", "bg-no-repeat", "bg-[right_0.75rem_center]", "bg-[length:1rem_1rem]"), c.style.backgroundImage = i);
+  };
+  d.store("valid", {
+    callbacks: {},
+    events: {},
+    /**
+     * Register a custom validation callback
+     * @param {string} name - Callback name
+     * @param {Function} callback - Async validation function
+     * @param {string} [eventType='blur'] - Trigger event (blur/input)
+     */
+    registerCallback(c, t, u = "blur") {
+      typeof t == "function" && (this.callbacks[c] = t, this.events[c] = u);
+    }
+  }), d.data("validForm", ({ rules: c = {} } = {}) => ({
+    errors: {},
+    rules: c,
+    /**
+     * Translate message key
+     * @param {string} key - Message key
+     * @param {Object} [vars] - Variables to replace
+     * @returns {string} Translated message
+     */
+    t(t, u) {
+      try {
+        const l = d.store("i18n");
+        let s = l && l.t(`valid.${t}`, u) || "";
+        return !s && t === "min" && u?.n != null && (s = `At least ${u.n} characters`), !s && t === "required" && (s = "Required"), !s && t === "pattern" && (s = "Invalid format"), s;
+      } catch {
+        return "";
+      }
+    },
+    VALIDATORS: {
+      validname: /^[a-zA-Z0-9_-]+$/,
+      en: /^[a-zA-Z]+$/,
+      domain: new RegExp("^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$"),
+      mobile: /^\+?[\d\s-]{7,}$/,
+      int: /^-?\d+$/,
+      email: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
+      date: /^(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}|\d{2}\.\d{2}\.\d{4})$/,
+      url: /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.-]{2,6})([\/\w \.-]*)*\/?$/i,
+      pwd: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
+      strongpwd: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
+    },
+    resolvePattern(t, u) {
+      const l = t.dataset.validType;
+      if (l && this.VALIDATORS[l]) return this.VALIDATORS[l];
+      if (t.type === "email") return this.VALIDATORS.email;
+      if (t.type === "url") return this.VALIDATORS.url;
+      const s = this.rules[u];
+      if (s && s.pattern) {
+        if (typeof s.pattern == "string") {
+          if (this.VALIDATORS[s.pattern]) return this.VALIDATORS[s.pattern];
+          const { pattern: m, flags: v } = y(s.pattern);
+          return new RegExp(m, v || "i");
+        }
+        return s.pattern;
+      }
+      if (t.dataset.validPattern) {
+        const { pattern: m, flags: v } = y(t.dataset.validPattern);
+        return new RegExp(m, v || "i");
+      }
+      return null;
+    },
+    init() {
+      try {
+        const t = this.$el.tagName === "FORM" ? this.$el : this.$el.closest("form"), u = t || this.$el;
+        if (u.querySelectorAll("[name]").forEach((l) => {
+          l.addEventListener("input", () => this.validateField(l)), l.addEventListener("blur", () => this.validateField(l));
+        }), u.querySelectorAll("[valid]").forEach((l) => {
+          try {
+            if (!l.dataset.loadedvalid) {
+              const s = l.nextElementSibling;
+              let m = !1;
+              if (s && (s.classList.contains("valid-feedback") || s.classList.contains("valid-hint")) && (m = !0), !m) {
+                const x = document.createElement("div");
+                x.className = "valid-feedback text-xs text-red-600", l.after(x);
+              }
+              const v = h(l.getAttribute("valid"));
+              v.some((x) => (x.type || x) === "callback") ? (l.addEventListener("input", (x) => this.checkElement(l, { event: x.type })), l.addEventListener("blur", (x) => this.checkElement(l, { event: x.type })), v.forEach((x) => {
+                if ((x.type || x) === "callback") {
+                  const b = x.fn, r = d.store("valid").events[b] || "blur";
+                  r !== "input" && r !== "blur" && l.addEventListener(r, () => this.checkElement(l, { event: r, onlyCallback: !0, callbackName: b }));
+                }
+              })) : (l.addEventListener("input", (x) => this.checkElement(l, { event: x.type })), l.addEventListener("blur", (x) => this.checkElement(l, { event: x.type }))), v.forEach((x) => {
+                if (x.show === !0) {
+                  const g = w(l);
+                  g.className = "valid-count block w-full text-xs text-gray-500 dark:text-gray-400 text-right mt-2", l.addEventListener("input", () => this.updateCharCount(l)), this.updateCharCount(l);
+                }
+              }), l.dataset.loadedvalid = "true";
+            }
+          } catch (s) {
+            I.error("Error in valid loop for element:", l, s);
+          }
+        }), t) {
+          t.addEventListener("submit", async (s) => {
+            if (!this.validateForm()) {
+              s.preventDefault(), s.stopPropagation(), s.stopImmediatePropagation(), I.warn("valid: prevent submit due to errors", this.errors);
+              return;
+            }
+            const v = t.getAttribute("hx-target"), p = t.getAttribute("hx-post") || t.getAttribute("hx-get");
+            if (p && v) {
+              s.preventDefault();
+              const x = document.querySelector(v);
+              try {
+                const g = await fetch(p), b = g.headers.get("content-type") || "";
+                let r = "";
+                if (b.includes("application/json")) {
+                  const n = await g.json();
+                  r = `<pre class="bg-gray-100 p-3 rounded overflow-x-auto whitespace-pre-wrap">${JSON.stringify(n, null, 2)}</pre>`;
+                } else
+                  r = await g.text();
+                x.innerHTML = r;
+              } catch (g) {
+                I.error("valid: submit fetch error", g);
+              }
+            }
+          }, { capture: !0 });
+          const l = t.querySelector('[type="submit"]');
+          l && l.addEventListener("click", async (s) => {
+            if (!this.validateForm()) {
+              s.preventDefault();
+              return;
+            }
+            const v = t.getAttribute("hx-target"), p = t.getAttribute("hx-post") || t.getAttribute("hx-get");
+            if (p && v) {
+              s.preventDefault();
+              const x = document.querySelector(v);
+              try {
+                const g = await fetch(p), b = g.headers.get("content-type") || "";
+                let r = "";
+                if (b.includes("application/json")) {
+                  const n = await g.json();
+                  r = `<pre class="bg-gray-100 p-3 rounded overflow-x-auto whitespace-pre-wrap">${JSON.stringify(n, null, 2)}</pre>`;
+                } else
+                  r = await g.text();
+                x.innerHTML = r;
+              } catch {
+              }
+            }
+          }, { capture: !0 });
+        }
+      } catch (t) {
+        I.error("Valid Init Error:", t);
+      }
+    },
+    validateField(t) {
+      const u = t.getAttribute("name"), s = (t.value || "").trim(), m = t.dataset.validRequired === "true", v = this.resolvePattern(t, u), p = t.dataset.validMin ? parseInt(t.dataset.validMin, 10) : null, g = h(t.getAttribute("valid")).some((n) => (n.type || n) === "emptyquit");
+      let b = "";
+      if (m && !s) b = this.t("required");
+      else if (g && s.length === 0) b = "";
+      else if (v && s.length > 0 && !v.test(s)) {
+        let n = t.dataset.validType || (t.type === "email" ? "email" : t.type === "url" ? "url" : "");
+        b = n && this.t(n) || this.t("pattern");
+      } else p !== null && s.length > 0 && s.length < p && (b = this.t("min", { n: p }));
+      if (!b && this.rules[u]) {
+        const n = this.rules[u];
+        if (n.required && !s && (b = this.t("required")), !b && n.pattern && s.length > 0) {
+          const e = typeof n.pattern == "string" && this.VALIDATORS[n.pattern];
+          (e ? this.VALIDATORS[n.pattern] : typeof n.pattern == "string" ? new RegExp(n.pattern) : n.pattern).test(s) || (b = e && this.t(n.pattern) || this.t("pattern"));
+        }
+        !b && n.min && s.length > 0 && s.length < n.min && (b = this.t("min", { n: n.min }));
+      }
+      b ? this.errors[u] = b : delete this.errors[u], b ? a(t, "invalid") : t.classList.contains("validating") || a(t, "valid");
+      const r = t.nextElementSibling;
+      if (r && (r.classList.contains("valid-hint") || r.classList.contains("valid-feedback"))) {
+        r.textContent = b || "";
+        const n = r.classList.contains("valid-feedback"), e = "valid-hint text-xs transition-colors duration-200", f = b ? "valid-hint-error text-red-600" : "valid-hint-normal text-gray-400";
+        r.className = `${e} ${f} ${n ? "valid-feedback" : ""}`;
+      }
+      return !b;
+    },
+    updateCharCount(t) {
+      const u = h(t.getAttribute("valid"));
+      if (!u) return;
+      const l = w(t);
+      if (l) {
+        for (const s of u)
+          if (s.show === !0) {
+            const m = s.max, v = t.value || "";
+            v.length > m && (t.value = v.substring(0, m));
+            const p = m - (t.value || "").length, x = d?.store("i18n"), g = x && x.t("charCount", { count: p }) || `Remaining: ${p}`;
+            l.innerHTML = g;
+            break;
+          }
+      }
+    },
+    checkError() {
+      const t = this.$el.tagName === "FORM" ? this.$el : this.$el.closest("form"), l = Array.from(t.querySelectorAll("[valid]")).map((m) => ({ el: m, hasError: this.checkElement(m, { event: "submit" }) })), s = l.find((m) => m.hasError);
+      return s && s.el.focus(), l.some((m) => m.hasError);
+    },
+    checkElement(t, u = {}) {
+      const l = h(t.getAttribute("valid")) || [], s = t.nextElementSibling, m = s && (s.classList.contains("valid-feedback") || s.classList.contains("valid-hint")) ? s : null;
+      let v = !1, p = "";
+      const x = u.event || "blur";
+      for (const g of l) {
+        const b = g.type || g, r = t.value || "";
+        if (!(u.onlyCallback && b === "callback" && g.fn !== u.callbackName) && !(u.onlyCallback && b !== "callback")) {
+          if (b === "callback") {
+            const n = g.fn, e = d.store("valid").events[n] || "blur";
+            if (x !== e && x !== "submit") continue;
+          }
+          switch (b) {
+            case "emptyquit":
+              if (r.length === 0) return !1;
+              break;
+            case "required":
+              r.length === 0 && (p = g.msg || this.t("required"));
+              break;
+            case "limit":
+              g.min !== void 0 && r.length < g.min && (p = g.msg || `Min ${g.min}`), !p && g.max !== void 0 && r.length > g.max && (p = g.msg || `Max ${g.max}`);
+              break;
+            case "validname":
+            case "en":
+            case "domain":
+            case "mobile":
+            case "int":
+            case "email":
+            case "date":
+            case "url":
+            case "pwd":
+            case "strongpwd":
+              r.length > 0 && (this.VALIDATORS[b].test(r) || (p = g.msg || this.t(b)));
+              break;
+            case "regexp":
+              if (r.length > 0) {
+                const { pattern: k, flags: L } = y(g.expression);
+                new RegExp(k, L || "i").test(r) || (p = g.msg || this.t("pattern"));
+              }
+              break;
+            case "range":
+              if (r.length > 0) {
+                const k = parseFloat(r);
+                g.min !== void 0 && k < g.min && (p = g.msg || `Min ${g.min}`), !p && g.max !== void 0 && k > g.max && (p = g.msg || `Max ${g.max}`);
+              }
+              break;
+            case "tag":
+              const n = g.mark || ",", e = r.split(n).filter((k) => k.trim());
+              g.max && e.length > g.max && (p = g.msg || `Max ${g.max} items`);
+              break;
+            case "compareto":
+              const f = document.getElementById(g.destid);
+              f && r !== f.value && (p = g.msg || "Not match");
+              break;
+            case "callback":
+              const $ = g.fn;
+              d.store("valid").callbacks[$] && (a(t, "validating"), d.store("valid").callbacks[$](t.id, r).then((k) => {
+                a(t, "clear");
+                let L = "";
+                k === !1 ? L = "Invalid" : typeof k == "string" ? L = k : typeof k == "object" && k.valid === !1 && (L = k.message), L ? (a(t, "invalid"), m && (m.textContent = L)) : t.classList.contains("is-invalid") || a(t, "valid");
+              }));
+              break;
+          }
+          if (p) {
+            v = !0;
+            break;
+          }
+        }
+      }
+      return v ? (a(t, "invalid"), m && (m.textContent = p)) : t.classList.contains("validating") || this.validateField(t) && (a(t, "valid"), m && (m.textContent = "")), v;
+    },
+    /**
+     * Validate the entire form
+     * @returns {boolean} True if valid
+     */
+    validateForm() {
+      const t = this.$el.tagName === "FORM" ? this.$el : this.$el.closest("form");
+      let u = !0;
+      return t.querySelectorAll("[name]").forEach((l) => {
+        this.validateField(l) || (u = !1);
+      }), this.checkError() && (u = !1), u;
+    }
+  }));
+  function h(c) {
+    try {
+      return c ? JSON.parse(c) : [];
+    } catch {
+      return [];
+    }
+  }
+  function y(c) {
+    const t = c.match(/^\/(.*?)\/([gimsuy]*)$/);
+    return t ? { pattern: t[1], flags: t[2] } : { pattern: c, flags: "" };
+  }
+  function w(c) {
+    let t = c.parentNode.querySelector(".valid-count");
+    return t || (t = document.createElement("span"), t.className = "valid-count block w-full text-xs text-gray-500 dark:text-gray-400 text-right mt-2", c.parentNode.appendChild(t)), t;
+  }
+};
+const at = (d) => {
+  const o = {
+    activeClass: "text-blue-600 dark:text-blue-400 border-b-2 border-blue-500 dark:border-blue-400",
+    inactiveClass: "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200",
+    baseTabClass: "px-4 py-2 transition-colors duration-150 cursor-pointer"
+  }, i = (c, t) => {
+    const u = o.activeClass.split(" "), l = o.inactiveClass.split(" ");
+    t ? (c.classList.add("current"), c.classList.remove(...l), c.classList.add(...u)) : (c.classList.remove("current"), c.classList.remove(...u), c.classList.add(...l));
+  }, a = (c, t) => {
+    const u = document.querySelectorAll(`[data-tab-group="${c}"], [tabgroup="${c}"]`);
+    u.forEach((s) => {
+      const v = (s.getAttribute("data-tab-target") || s.getAttribute("tabtarget")) === t;
+      i(s, v);
+    });
+    const l = /* @__PURE__ */ new Set();
+    u.forEach((s) => {
+      const m = s.getAttribute("data-tab-target") || s.getAttribute("tabtarget");
+      m && l.add(m);
+    }), l.forEach((s) => {
+      const m = document.getElementById(s);
+      m && (s === t ? (m.classList.remove("hidden"), m.style.display = "") : m.classList.add("hidden"));
+    });
+  }, h = () => {
+    const c = window.location.hash.substring(1);
+    if (!c) return;
+    const t = document.querySelector(`[data-tab-hash="${c}"], [rel="${c}"]`);
+    if (t) {
+      const u = t.getAttribute("data-tab-group") || t.getAttribute("tabgroup"), l = t.getAttribute("data-tab-target") || t.getAttribute("tabtarget");
+      u && l && a(u, l);
+    }
+  }, y = () => {
+    document.querySelectorAll("[data-tab-group], [tabgroup]").forEach((t) => {
+      if (!t.className.includes("transition-colors")) {
+        const l = o.baseTabClass.split(" ");
+        t.classList.add(...l);
+      }
+      const u = t.classList.contains("current") || t.getAttribute("data-tab-active") === "true";
+      i(t, u);
+    });
+  };
+  document.addEventListener("click", (c) => {
+    const t = c.target.closest("[data-tab-target], [tabtarget]");
+    if (!t) return;
+    const u = t.getAttribute("data-tab-group") || t.getAttribute("tabgroup"), l = t.getAttribute("data-tab-target") || t.getAttribute("tabtarget"), s = t.getAttribute("data-tab-hash") || t.getAttribute("rel"), m = t.getAttribute("data-tab-url");
+    if (u && l) {
+      if (c.preventDefault(), m) {
+        const v = document.getElementById(l);
+        v && !v.getAttribute("data-tab-loaded") && (v.innerHTML = `<div class="animate-pulse p-4 space-y-2">
+             <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+             <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+           </div>`, fetch(m).then((p) => {
+          if (!p.ok) throw new Error("Network response was not ok");
+          return p.text();
+        }).then((p) => {
+          v.innerHTML = p, v.setAttribute("data-tab-loaded", "true");
+        }).catch((p) => {
+          v.innerHTML = `<div class="text-red-500 p-4">Error loading content: ${p.message}</div>`;
+        }));
+      }
+      a(u, l), s && history.replaceState(null, null, "#" + s);
+    }
+  });
+  const w = () => {
+    h(), y(), window.addEventListener("hashchange", h);
+  };
+  document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", w) : w(), d.store("tabs", {
+    switch(c, t) {
+      a(c, t);
+    }
+  });
+};
+window.Alpine = R;
+window.htmx = D;
+const O = (d) => {
+  d && (K(d), Q(d), et(d), it(d), st(d), at(d));
+};
+R ? O(R) : document.addEventListener("alpine:init", () => {
+  O(window.Alpine);
+});

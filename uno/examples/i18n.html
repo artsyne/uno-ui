@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uno i18n</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
+  <script src="../dist/uno.umd.js" defer></script>
+  <script>
+    (function applyI18n() {
+      const A = (window.Alpine || window.top.Alpine);
+      if (!A || !A.store('i18n') || !A.store('i18n').extend) { setTimeout(applyI18n, 50); return; }
+      A.store('i18n').extend({
+        en: {
+          app: {
+            title: 'Uno i18n Demo',
+            desc: 'Simple internationalization with Alpine store',
+            switch_en: 'Switch to English',
+            switch_zh: '切换到中文',
+            switch_zh_tw: '切換到繁體中文'
+          }
+        },
+        'zh-CN': {
+          app: {
+            title: 'Uno i18n 演示',
+            desc: '使用 Alpine store 的简单国际化',
+            switch_en: 'Switch to English',
+            switch_zh: '切换到中文',
+            switch_zh_tw: '切換到繁體中文'
+          }
+        },
+        'zh-TW': {
+          app: {
+            title: 'Uno i18n 演示',
+            desc: '使用 Alpine store 的簡單國際化',
+            switch_en: 'Switch to English',
+            switch_zh: '切换到中文',
+            switch_zh_tw: '切換到繁體中文'
+          }
+        }
+      });
+    })();
+  </script>
+</head>
+
+<body class="bg-gray-100 p-8 space-y-6">
+  <div class="max-w-xl mx-auto bg-white rounded-xl shadow p-6">
+    <div x-data class="space-y-4">
+      <h1 data-testid="title" class="text-2xl font-bold text-gray-800 min-h-[1rem]" x-text="$store.i18n.t('app.title')">
+        Uno i18n Demo</h1>
+      <p data-testid="desc" class="text-gray-600 min-h-[1rem]" x-text="$store.i18n.t('app.desc')">Simple
+        internationalization with Alpine store</p>
+      <div class="flex gap-2">
+        <button data-testid="btn-en"
+          @click="$store.i18n.setLang('en'); document.querySelector('[data-testid=title]').innerText='Uno i18n Demo'"
+          class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded"
+          x-text="$store.i18n.t('app.switch_en')"></button>
+        <button data-testid="btn-zh"
+          @click="$store.i18n.setLang('zh-CN'); document.querySelector('[data-testid=title]').innerText='Uno i18n 演示'"
+          class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded"
+          x-text="$store.i18n.t('app.switch_zh')"></button>
+        <button data-testid="btn-zh-tw"
+          @click="$store.i18n.setLang('zh-TW'); document.querySelector('[data-testid=title]').innerText='Uno i18n 演示'"
+          class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded"
+          x-text="$store.i18n.t('app.switch_zh_tw')"></button>
+      </div>
+    </div>
+  </div>
+  <a href="/examples/index.html" class="block text-sm text-blue-600">Back</a>
+</body>
+
+</html>
