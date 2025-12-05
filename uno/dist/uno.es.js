@@ -1,6 +1,6 @@
-import j from "alpinejs";
-import O from "htmx.org";
-const D = {
+import $ from "alpinejs";
+import z from "htmx.org";
+const B = {
   box: {
     ok: "OK",
     cancel: "Cancel",
@@ -23,7 +23,7 @@ const D = {
     strongpwd: "At least 8 chars, 1 letter, 1 number, 1 special char"
   },
   charCount: "Remaining: {count}"
-}, W = {
+}, j = {
   box: {
     ok: "确认",
     cancel: "取消",
@@ -46,7 +46,7 @@ const D = {
     strongpwd: "至少 8 位，包含字母、数字和特殊字符"
   },
   charCount: "剩余: {count}"
-}, Y = {
+}, O = {
   box: {
     ok: "確認",
     cancel: "取消",
@@ -70,121 +70,121 @@ const D = {
   },
   charCount: "剩餘: {count}"
 };
-const U = {
-  en: D,
-  "zh-CN": W,
-  "zh-TW": Y
-}, _ = Object.keys(U);
-function Z() {
+const I = {
+  en: B,
+  "zh-CN": j,
+  "zh-TW": O
+}, E = Object.keys(I);
+function R() {
   if (typeof localStorage < "u") {
-    const r = localStorage.getItem("uno.lang");
-    if (r && _.includes(r)) return r;
+    const s = localStorage.getItem("uno.lang");
+    if (s && E.includes(s)) return s;
   }
   if (typeof navigator < "u") {
-    const r = navigator.language, s = r.startsWith("zh") ? r.includes("TW") || r.includes("Hant") ? "zh-TW" : "zh-CN" : "en";
-    return _.includes(s) ? s : "en";
+    const s = navigator.language, d = s.startsWith("zh") ? s.includes("TW") || s.includes("Hant") ? "zh-TW" : "zh-CN" : "en";
+    return E.includes(d) ? d : "en";
   }
   return "en";
 }
-function V(r, s) {
-  const e = s.split(".");
-  let t = r;
-  for (const i of e) {
-    if (!t || typeof t != "object" || !(i in t)) return;
-    t = t[i];
+function S(s, d) {
+  const o = d.split(".");
+  let t = s;
+  for (const n of o) {
+    if (!t || typeof t != "object" || !(n in t)) return;
+    t = t[n];
   }
   return t;
 }
-function N(r, s) {
-  for (const e in s)
-    s[e] && typeof s[e] == "object" ? (r[e] || Object.assign(r, { [e]: {} }), N(r[e], s[e])) : Object.assign(r, { [e]: s[e] });
+function A(s, d) {
+  for (const o in d)
+    d[o] && typeof d[o] == "object" ? (s[o] || Object.assign(s, { [o]: {} }), A(s[o], d[o])) : Object.assign(s, { [o]: d[o] });
 }
-function F(r) {
-  r.store("i18n", {
-    locale: Z(),
-    messages: U,
+function q(s) {
+  s.store("i18n", {
+    locale: R(),
+    messages: I,
     init() {
       typeof document < "u" && (document.documentElement.lang = this.locale);
     },
-    t(s, e = {}) {
-      const t = this.locale, i = this.messages[t] || this.messages.en, f = V(i, s);
-      return (typeof f == "string" ? f : s).replace(/\{(\w+)\}/g, (d, l) => l in e ? String(e[l]) : `{${l}}`);
+    t(d, o = {}) {
+      const t = this.locale, n = this.messages[t] || this.messages.en, e = S(n, d);
+      return (typeof e == "string" ? e : d).replace(/\{(\w+)\}/g, (a, r) => r in o ? String(o[r]) : `{${r}}`);
     },
-    setLang(s) {
-      if (!this.messages[s]) {
-        console.warn(`[Uno] Language ${s} not found`);
+    setLang(d) {
+      if (!this.messages[d]) {
+        console.warn(`[Uno] Language ${d} not found`);
         return;
       }
-      this.locale = s, typeof localStorage < "u" && localStorage.setItem("uno.lang", s), typeof document < "u" && (document.documentElement.lang = s);
+      this.locale = d, typeof localStorage < "u" && localStorage.setItem("uno.lang", d), typeof document < "u" && (document.documentElement.lang = d);
     },
-    extend(s) {
-      for (const e in s)
-        this.messages[e] ? N(this.messages[e], s[e]) : this.messages[e] = s[e];
+    extend(d) {
+      for (const o in d)
+        this.messages[o] ? A(this.messages[o], d[o]) : this.messages[o] = d[o];
     }
   });
 }
-const E = {
+const h = {
   /**
    * Log info message
    * @param {...any} args - Arguments to log
    */
-  info(...r) {
-    console.log("[Uno Info]", ...r);
+  info(...s) {
+    console.log("[Uno Info]", ...s);
   },
   /**
    * Log warning message
    * @param {...any} args - Arguments to log
    */
-  warn(...r) {
-    console.warn("[Uno Warn]", ...r);
+  warn(...s) {
+    console.warn("[Uno Warn]", ...s);
   },
   /**
    * Log error message
    * @param {...any} args - Arguments to log
    */
-  error(...r) {
-    console.error("[Uno Error]", ...r);
+  error(...s) {
+    console.error("[Uno Error]", ...s);
   }
 };
-function J(r, s, e) {
-  const t = r.getBoundingClientRect(), i = s.getBoundingClientRect(), f = i.width, g = i.height, d = t.width, l = t.height, n = { top: t.top, left: t.left }, p = window.innerWidth, m = window.innerHeight, h = 0, y = 0, b = m, x = p, k = (o, u) => {
-    if (u) {
-      if (o + f > x)
-        return x - f - 10;
-      if (o < y)
-        return y + 10;
+function U(s, d, o) {
+  const t = s.getBoundingClientRect(), n = d.getBoundingClientRect(), e = n.width, l = n.height, a = t.width, r = t.height, i = { top: t.top, left: t.left }, c = window.innerWidth, f = window.innerHeight, u = 0, m = 0, g = f, p = c, v = (w, M) => {
+    if (M) {
+      if (w + e > p)
+        return p - e - 10;
+      if (w < m)
+        return m + 10;
     } else {
-      if (o + g > b)
-        return b - g - 10;
-      if (o < h)
-        return h + 10;
+      if (w + l > g)
+        return g - l - 10;
+      if (w < u)
+        return u + 10;
     }
-    return o;
+    return w;
   };
-  let L, c, a = e;
-  switch (e) {
+  let x, b, y = o;
+  switch (o) {
     case "left":
-      c = n.left - f - 5, c < y && (c = n.left + d + 5, a = "right"), L = k(n.top + l / 2 - g / 2, !1);
+      b = i.left - e - 5, b < m && (b = i.left + a + 5, y = "right"), x = v(i.top + r / 2 - l / 2, !1);
       break;
     case "top":
-      L = n.top - g - 8, L < h && (L = n.top + l + 8, a = "bottom"), c = n.left + (d - f) / 2, c = k(c, !0);
+      x = i.top - l - 8, x < u && (x = i.top + r + 8, y = "bottom"), b = i.left + (a - e) / 2, b = v(b, !0);
       break;
     case "right":
-      c = n.left + d + 5, c + f > x && (c = n.left - f - 5, a = "left"), L = k(n.top + l / 2 - g / 2, !1);
+      b = i.left + a + 5, b + e > p && (b = i.left - e - 5, y = "left"), x = v(i.top + r / 2 - l / 2, !1);
       break;
     case "bottom":
     default:
-      L = n.top + l + 8, L + g > b && (L = n.top - g - 8, a = "top"), c = n.left + (d - f) / 2, c = k(c, !0);
+      x = i.top + r + 8, x + l > g && (x = i.top - l - 8, y = "top"), b = i.left + (a - e) / 2, b = v(b, !0);
       break;
   }
-  return { top: L, left: c, position: a };
+  return { top: x, left: b, position: y };
 }
-const K = (r) => {
-  if (!r) {
-    E.error("Tooltip: Alpine is undefined. Plugin initialization failed.");
+const H = (s) => {
+  if (!s) {
+    h.error("Tooltip: Alpine is undefined. Plugin initialization failed.");
     return;
   }
-  r.store("tooltip", {
+  s.store("tooltip", {
     visible: !1,
     content: "",
     placement: "top",
@@ -194,28 +194,28 @@ const K = (r) => {
     theme: "dark",
     // 'dark' | 'light'
     triggerEl: null,
-    async show(e, t, i = {}) {
-      this.triggerEl = e, this.content = t, this.placement = i.placement || "top", this.theme = i.theme || "dark", this.visible = !0, this.ensureContainer(), await r.nextTick(), this.updatePosition();
+    async show(o, t, n = {}) {
+      this.triggerEl = o, this.content = t, this.placement = n.placement || "top", this.theme = n.theme || "dark", this.visible = !0, this.ensureContainer(), await s.nextTick(), this.updatePosition();
     },
     hide() {
       this.visible = !1, this.triggerEl = null;
     },
     updatePosition() {
       if (!this.triggerEl) return;
-      const e = document.getElementById("uno-tooltip-content");
-      if (!e) return;
-      const t = J(this.triggerEl, e, this.placement);
+      const o = document.getElementById("uno-tooltip-content");
+      if (!o) return;
+      const t = U(this.triggerEl, o, this.placement);
       this.top = t.top, this.left = t.left;
     },
     ensureContainer() {
-      document.getElementById("uno-tooltip-container") || s();
+      document.getElementById("uno-tooltip-container") || d();
     }
   });
-  const s = () => {
+  const d = () => {
     if (!document.getElementById("uno-tooltip-container"))
       try {
-        const e = document.createElement("div");
-        e.id = "uno-tooltip-container", e.setAttribute("x-data", "{}"), e.innerHTML = `
+        const o = document.createElement("div");
+        o.id = "uno-tooltip-container", o.setAttribute("x-data", "{}"), o.innerHTML = `
           <div id="uno-tooltip-content"
                x-show="$store.tooltip.visible"
                x-transition:enter="transition ease-out duration-200"
@@ -230,423 +230,405 @@ const K = (r) => {
                style="display: none;">
                <span x-html="$store.tooltip.content"></span>
           </div>
-        `, document.body ? document.body.appendChild(e) : document.documentElement.appendChild(e);
-      } catch (e) {
-        E.error("Tooltip: Failed to inject container", e);
+        `, document.body ? document.body.appendChild(o) : document.documentElement.appendChild(o);
+      } catch (o) {
+        h.error("Tooltip: Failed to inject container", o);
       }
   };
-  document.body ? s() : document.addEventListener("DOMContentLoaded", s), r.directive(
+  document.body ? d() : document.addEventListener("DOMContentLoaded", d), s.directive(
     "tooltip",
-    (e, { expression: t, modifiers: i }, { evaluateLater: f, effect: g, cleanup: d }) => {
-      const l = f(t);
-      let n = {
+    (o, { expression: t, modifiers: n }, { evaluateLater: e, effect: l, cleanup: a }) => {
+      const r = e(t);
+      let i = {
         content: "",
-        placement: i[0] || "top",
-        trigger: i.includes("click") ? "click" : "hover",
+        placement: n[0] || "top",
+        trigger: n.includes("click") ? "click" : "hover",
         theme: "dark"
       };
-      i.includes("top") && (n.placement = "top"), i.includes("bottom") && (n.placement = "bottom"), i.includes("left") && (n.placement = "left"), i.includes("right") && (n.placement = "right"), i.includes("light") && (n.theme = "light");
-      const p = (b) => {
-        if (typeof b == "string" ? n.content = b : typeof b == "object" && (n = { ...n, ...b }), n.content && n.content.startsWith("#") && !n.content.includes(" ")) {
-          const x = document.querySelector(n.content);
-          x && (n.content = x.innerHTML);
-        } else if (n.target) {
-          const x = document.querySelector(n.target);
-          x && (n.content = x.innerHTML);
+      n.includes("top") && (i.placement = "top"), n.includes("bottom") && (i.placement = "bottom"), n.includes("left") && (i.placement = "left"), n.includes("right") && (i.placement = "right"), n.includes("light") && (i.theme = "light");
+      const c = (g) => {
+        if (typeof g == "string" ? i.content = g : typeof g == "object" && (i = { ...i, ...g }), i.content && i.content.startsWith("#") && !i.content.includes(" ")) {
+          const p = document.querySelector(i.content);
+          p && (i.content = p.innerHTML);
+        } else if (i.target) {
+          const p = document.querySelector(i.target);
+          p && (i.content = p.innerHTML);
         }
       };
-      g(() => {
-        l((b) => {
-          p(b);
+      l(() => {
+        r((g) => {
+          c(g);
         });
       });
-      const m = () => r.store("tooltip").show(e, n.content, n), h = () => r.store("tooltip").hide(), y = () => {
-        const b = r.store("tooltip");
-        b.visible && b.triggerEl === e ? b.hide() : m();
+      const f = () => s.store("tooltip").show(o, i.content, i), u = () => s.store("tooltip").hide(), m = () => {
+        const g = s.store("tooltip");
+        g.visible && g.triggerEl === o ? g.hide() : f();
       };
-      if (n.trigger === "click") {
-        e.addEventListener("click", y);
-        const b = (x) => {
-          const k = r.store("tooltip");
-          k.visible && k.triggerEl === e && !e.contains(x.target) && k.hide();
+      if (i.trigger === "click") {
+        o.addEventListener("click", m);
+        const g = (p) => {
+          const v = s.store("tooltip");
+          v.visible && v.triggerEl === o && !o.contains(p.target) && v.hide();
         };
-        window.addEventListener("click", b), d(() => window.removeEventListener("click", b));
+        window.addEventListener("click", g), a(() => window.removeEventListener("click", g));
       } else
-        e.addEventListener("mouseenter", m), e.addEventListener("mouseleave", h), e.addEventListener("focus", m), e.addEventListener("blur", h);
-      d(() => {
-        n.trigger === "click" ? e.removeEventListener("click", y) : (e.removeEventListener("mouseenter", m), e.removeEventListener("mouseleave", h), e.removeEventListener("focus", m), e.removeEventListener("blur", h));
+        o.addEventListener("mouseenter", f), o.addEventListener("mouseleave", u), o.addEventListener("focus", f), o.addEventListener("blur", u);
+      a(() => {
+        i.trigger === "click" ? o.removeEventListener("click", m) : (o.removeEventListener("mouseenter", f), o.removeEventListener("mouseleave", u), o.removeEventListener("focus", f), o.removeEventListener("blur", u));
       });
     }
   );
 };
-function P(r) {
-  const s = { position: "fixed" };
-  switch (r) {
-    case "top":
-      s.top = "0px", s.left = "0px", s.right = "0px";
-      break;
-    case "bottom":
-      s.bottom = "0px", s.left = "0px", s.right = "0px";
-      break;
-    case "top-right":
-      s.top = "20px", s.right = "20px";
-      break;
-    case "bottom-right":
-      s.bottom = "12px", s.right = "20px";
-      break;
-    case "top-left":
-      s.top = "20px", s.left = "20px";
-      break;
-    case "bottom-left":
-      s.bottom = "12px", s.left = "20px";
-      break;
-    case "center":
-      s.top = "50%", s.left = "50%", s.transform = "translate(-50%, -50%)";
-      break;
-    case "top-center":
-      s.top = "0px", s.left = "50%", s.transform = "translateX(-50%)";
-      break;
-    case "bottom-center":
-      s.bottom = "0px", s.left = "50%", s.transform = "translateX(-50%)";
-      break;
-    default:
-      s.top = "20px", s.right = "20px";
-  }
-  return s;
-}
-let A = null, M = !1;
-function X(r, s = 1e3) {
-  if (!r) return;
-  M = !0;
-  const e = () => {
-    M && (r.style.transition = "none", r.style.width = "0%", r.offsetHeight, setTimeout(() => {
-      M && (r.style.transition = `width ${s}ms ease-in-out`, r.style.width = "100%", A = setTimeout(e, s + 200));
-    }, 50));
-  };
-  e();
-}
-function G(r) {
-  M = !1, A && (clearTimeout(A), A = null), r && (r.style.width = "0%");
-}
-const Q = (r) => {
-  r.data("notify", ({ position: s = "top-right" } = {}) => ({
+const D = (s) => {
+  s.store("notify", {
     items: [],
-    position: s,
     nextId: 1,
-    showCloseButton: !1,
-    closeIndicatorEnabled: !1,
     activeRequests: 0,
-    progressBarRunning: !1,
-    get containerClasses() {
-      switch (this.position) {
-        case "top-left":
-          return "flex flex-col space-y-2 items-start";
-        case "bottom-right":
-          return "flex flex-col-reverse space-y-2 space-y-reverse items-end";
-        case "bottom-left":
-          return "flex flex-col-reverse space-y-2 space-y-reverse items-start";
-        case "top-right":
-        default:
-          return "flex flex-col space-y-2 items-end";
-      }
-    },
-    get containerStyle() {
-      return P(this.position);
-    },
-    itemClasses(e) {
-      const t = "relative border-l-4 pl-3 pr-3 py-4 mb-2 rounded shadow-sm dark:shadow-md transition-colors duration-300 overflow-hidden animate-fadeIn", i = {
-        success: "bg-green-100 dark:bg-green-800 border-green-500 dark:border-green-400 text-green-700 dark:text-green-100",
-        warning: "bg-yellow-100 dark:bg-yellow-800 border-yellow-500 dark:border-yellow-400 text-yellow-700 dark:text-yellow-100",
-        error: "bg-red-100 dark:bg-red-800 border-red-500 dark:border-red-400 text-red-700 dark:text-red-100",
-        info: "bg-blue-100 dark:bg-blue-800 border-blue-500 dark:border-blue-400 text-blue-700 dark:text-blue-100"
-      }, f = i[e] || i.error;
-      return `${t} ${f}`;
-    },
-    /**
-     * Show a notification
-     * @param {string} text - Message text
-     * @param {Object} options - Options { type, timeout, position, closeIndicator, showCloseButton }
-     */
-    show(e, { type: t = "error", timeout: i, position: f, closeIndicator: g, showCloseButton: d } = {}) {
-      const l = this.nextId++, n = f || this.position;
-      E.info("notify.show", { text: e, type: t, timeout: i, position: n });
-      const p = {
-        id: l,
-        text: e,
-        type: t,
-        targetPosition: n,
-        showCloseButton: !!d,
-        closeIndicator: !!g
+    activeProgress: 0,
+    // Notification Methods
+    show(t, n = {}) {
+      const {
+        type: e = "info",
+        timeout: l = 3e3,
+        position: a = "top-right",
+        closeIndicator: r = !1,
+        showCloseButton: i = !0
+      } = n, c = this.nextId++, f = {
+        id: c,
+        text: t,
+        type: e,
+        position: a,
+        closeIndicator: r,
+        showCloseButton: i,
+        visible: !0
+        // For transition
       };
-      this.items = [p, ...this.items];
-      let m = i;
-      if (m === void 0)
-        switch (t) {
-          case "success":
-            m = 1e3;
-            break;
-          case "warning":
-            m = 2e3;
-            break;
-          case "error":
-          default:
-            m = 3e3;
-            break;
-        }
-      if (m && m > 0) {
-        const h = l;
-        setTimeout(() => this.remove(h), m);
-      }
+      this.items.unshift(f), l > 0 && setTimeout(() => {
+        this.close(c);
+      }, l), this.ensureContainer();
     },
-    /**
-     * Remove a notification by ID
-     * @param {number} id
-     */
-    remove(e) {
-      this.items = this.items.filter((t) => t.id !== e);
+    close(t) {
+      this.items.find((e) => e.id === t) && (this.items = this.items.filter((e) => e.id !== t));
     },
-    success(e, t) {
-      const i = e || this.$store?.i18n?.t("notify.operation.success") || "Success";
-      typeof t == "number" ? this.show(i, { type: "success", timeout: t }) : this.show(i, { type: "success", ...t || {} });
+    success(t, n = {}) {
+      const e = typeof n == "number" ? { timeout: n } : n;
+      this.show(t, { type: "success", ...e });
     },
-    warning(e, t) {
-      typeof t == "number" ? this.show(e, { type: "warning", timeout: t }) : this.show(e, { type: "warning", ...t || {} });
+    warning(t, n = {}) {
+      const e = typeof n == "number" ? { timeout: n } : n;
+      this.show(t, { type: "warning", ...e });
     },
-    error(e, t) {
-      typeof t == "number" ? this.show(e, { type: "error", timeout: t }) : this.show(e, { type: "error", ...t || {} });
+    error(t, n = {}) {
+      const e = typeof n == "number" ? { timeout: n } : n;
+      this.show(t, { type: "error", ...e });
     },
-    /**
-     * Show or hide loading indicator
-     * @param {boolean} show
-     * @param {string|Object} styleOrOptions - 'indicator' | 'progressbar' | { style, position }
-     */
-    loading(e, t) {
-      let i = "indicator", f = null;
-      typeof t == "string" ? i = t : typeof t == "object" && t && (i = t.style || "indicator", f = t.position), e ? (this.activeRequests++, i === "progressbar" ? (this._ensureProgressBar(), this._showProgressBar()) : (this._ensureLoadingIndicator(), this._showLoadingIndicator(f))) : (this.activeRequests = Math.max(0, this.activeRequests - 1), this.activeRequests === 0 && (this._hideLoadingIndicator(), this._hideProgressBar()));
+    info(t, n = {}) {
+      const e = typeof n == "number" ? { timeout: n } : n;
+      this.show(t, { type: "info", ...e });
     },
-    _ensureLoadingIndicator() {
-      if (!document.getElementById("uno-loading-indicator")) {
-        const e = document.createElement("div");
-        e.id = "uno-loading-indicator", e.className = "fixed top-4 right-4 z-[150] bg-blue-100 border-blue-500 text-blue-700 p-2 rounded-full shadow-md flex items-center hidden dark:bg-blue-900 dark:text-blue-100", e.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-blue-500 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Loading</span>', document.body.appendChild(e);
-      }
+    // Loading Indicator Methods
+    loading(t, n = {}) {
+      t ? this.activeRequests++ : this.activeRequests = Math.max(0, this.activeRequests - 1), this.ensureContainer();
     },
-    _showLoadingIndicator() {
-      const e = document.getElementById("uno-loading-indicator");
-      e && (e.style.display = "flex");
+    // Progress Bar Methods
+    progress(t) {
+      t ? this.activeProgress++ : this.activeProgress = Math.max(0, this.activeProgress - 1), this.ensureContainer();
     },
-    _hideLoadingIndicator() {
-      const e = document.getElementById("uno-loading-indicator");
-      e && (e.style.display = "none");
-    },
-    _progressFill() {
-      const e = document.getElementById("uno-progress-bar");
-      return e ? e.querySelector(".uno-progress-fill") : null;
-    },
-    _ensureProgressBar() {
-      if (!document.getElementById("uno-progress-bar")) {
-        const e = document.createElement("div");
-        e.id = "uno-progress-bar", e.className = "fixed top-0 left-0 right-0 z-[9999] bg-blue-100 dark:bg-blue-900 hidden";
-        const t = document.createElement("div");
-        t.className = "uno-progress-fill bg-blue-500 dark:bg-blue-400 transition-all duration-1000 ease-in-out", t.style.height = "4px", t.style.width = "0%", e.appendChild(t), document.body.appendChild(e);
-      }
-    },
-    _showProgressBar() {
-      const e = document.getElementById("uno-progress-bar"), t = this._progressFill();
-      !e || !t || (e.style.display = "block", this.progressBarRunning = !0, X(t, 1e3));
-    },
-    _hideProgressBar() {
-      const e = document.getElementById("uno-progress-bar"), t = this._progressFill();
-      !e || !t || (e.style.display = "none", this.progressBarRunning = !1, G(t));
+    // Container Injection
+    ensureContainer() {
+      document.getElementById("uno-notify-container") || d();
     }
-  }));
-};
-let S = 0, B = "";
-function R() {
-  S === 0 && (B = document.body.style.overflow || "", document.body.style.overflow = "hidden"), S++;
-}
-function tt() {
-  S = Math.max(0, S - 1), S === 0 && (document.body.style.overflow = B || "", B = "");
-}
-async function et(r) {
-  const s = await fetch(r);
-  return (s.headers.get("content-type") || "").includes("application/json") ? s.json() : s.text();
-}
-const nt = (r) => {
-  const s = {};
-  let e = "uno-box-";
-  function t() {
-    return Math.random().toString(36).slice(2, 10);
-  }
-  function i(c, a) {
-    return `#${e}${a}${c}`;
-  }
-  function f(c) {
-    const a = c.dataset, o = {
-      boxTitle: "title",
-      boxContent: "content",
-      boxWidth: "width",
-      boxHeight: "height",
-      boxModal: "modal",
-      boxPosition: "position",
-      boxAjaxUrl: "ajaxUrl",
-      boxIframeUrl: "iframeUrl",
-      boxOkText: "okButtonText",
-      boxCancelText: "cancelButtonText",
-      boxCache: "cache",
-      boxId: "boxId",
-      boxWidthClass: "widthClass",
-      boxHeightClass: "heightClass",
-      boxContainerClass: "containerClass",
-      boxContentOverflow: "contentOverflow",
-      boxButtonAlign: "buttonAlign"
-    }, u = {};
-    for (const $ in o) {
-      const w = a[$];
-      if (w !== void 0) {
-        const C = o[$];
-        C === "width" || C === "height" ? u[C] = parseInt(w, 10) : C === "modal" || C === "cache" ? u[C] = w === "true" || w === !0 : u[C] = w;
-      }
-    }
-    return u;
-  }
-  function g(c, a) {
-    try {
-      const o = r?.store("i18n");
-      return o && o.t(`box.${c}`) || a;
-    } catch {
-      return a;
-    }
-  }
-  function d(c) {
-    const a = c.uniqueId, o = !!c.title, u = (c.containerClass || "").trim(), $ = o ? `
-      <div id="${e}header${a}" class="flex justify-between items-center p-4 border-b border-gray-300 dark:border-gray-600">
-        <div id="${e}title${a}" class="text-lg font-semibold text-gray-900 dark:text-gray-100"></div>
-        <button id="${e}close${a}" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" title="${g("close", "Close")}">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-        </button>
-      </div>
-    ` : "", w = o ? "" : `
-      <button id="${e}close${a}" class="absolute top-2 right-2 z-[101] text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 bg-white dark:bg-gray-900 p-1" title="Close">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-      </button>
-    `, C = o ? "p-4 text-gray-900 dark:text-gray-100" : "pt-12 px-4 pb-4 text-gray-900 dark:text-gray-100", I = document.createElement("div");
-    I.id = `${e}outer-container${a}`, I.className = "hidden fixed inset-0 z-[103] p-4 flex items-center justify-center";
-    const q = document.createElement("div");
-    q.id = `${e}container${a}`, q.className = `bg-white dark:bg-gray-900 border-8 border-gray-200 dark:border-gray-600 shadow-lg overflow-hidden transition-colors duration-300 ${u}`, q.style.position = "relative", q.innerHTML = `${$}${w}<div id="${e}wrapper${a}" class="${C}"><div id="${e}content${a}" class="overflow-auto"></div></div><div id="${e}footer${a}" class="p-4 border-t border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hidden"></div>`, I.appendChild(q);
-    const v = document.createElement("div");
-    return v.id = `${e}overlay${a}`, v.className = "hidden fixed inset-0 bg-black z-[102]", v.style.opacity = String(c.overlayOpacity ?? 0.5), document.body.appendChild(I), document.body.appendChild(v), { outer: I, container: q, overlay: v };
-  }
-  function l(c, a) {
-    const o = document.querySelector(i(c, "container")), u = document.querySelector(i(c, "content")), $ = document.querySelector(i(c, "wrapper"));
-    if (!o || !u) return;
-    a.widthClass || a.heightClass ? (o.style.width = "", o.style.height = "", o.style.maxWidth = "", o.style.maxHeight = "", a.widthClass && o.classList.add(...a.widthClass.split(" ")), a.heightClass && (o.classList.add(...a.heightClass.split(" ")), $ && ($.classList.add("flex", "flex-col", "h-full"), u.classList.add("flex-1", "min-h-0")))) : window.innerWidth <= 768 ? (o.style.width = "calc(100% - 2rem)", o.style.height = "calc(100% - 2rem)", $ ? ($.classList.add("flex", "flex-col", "h-full"), u.classList.add("flex-1", "min-h-0")) : u.style.height = "100%") : (a.width && (o.style.width = `${a.width}px`), a.height && (u.style.height = `${a.height}px`)), u.classList.remove("overflow-auto", "overflow-hidden", "overflow-visible");
-    const w = a.contentOverflow || "auto";
-    w === "hidden" ? u.classList.add("overflow-hidden") : w === "visible" ? u.classList.add("overflow-visible") : u.classList.add("overflow-auto");
-  }
-  function n(c, a) {
-    const o = document.querySelector(i(c, "outer-container"));
-    if (!o) return;
-    const u = P(a || "center");
-    Object.assign(o.style, u), o.classList.remove("hidden");
-  }
-  function p(c, a) {
-    const o = document.querySelector(i(c, "close"));
-    o && o.addEventListener("click", () => b({ uniqueId: c, modal: a }));
-  }
-  async function m(c, a) {
-    const o = document.querySelector(i(c, "content"));
-    if (o)
-      if (typeof a.content == "string")
-        o.innerHTML = a.content;
-      else if (typeof a.targetId == "string") {
-        const u = document.getElementById(a.targetId);
-        u && (o.innerHTML = u.innerHTML);
-      } else if (typeof a.ajaxUrl == "string") {
-        o.innerHTML = `<div class="flex justify-center items-center h-full"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div><span class="ml-2 text-gray-900 dark:text-gray-100">${g("loading", "Loading")}</span></div>`;
-        try {
-          const u = await et(a.ajaxUrl);
-          typeof u == "object" && u !== null ? o.innerHTML = `<pre class="bg-gray-100 p-3 rounded overflow-x-auto whitespace-pre-wrap">${JSON.stringify(u, null, 2)}</pre>` : o.innerHTML = String(u);
-        } catch (u) {
-          E.error("box ajax error", u);
-        }
-      } else typeof a.iframeUrl == "string" && (o.innerHTML = `<iframe frameborder="0" class="w-full h-full" src="${a.iframeUrl}"></iframe>`);
-  }
-  function h(c, a, o) {
-    const u = document.querySelector(i(c, "footer"));
-    if (!u) return;
-    const $ = { left: "justify-start", center: "justify-center", right: "justify-end" }[o.buttonAlign] || "justify-end";
-    u.classList.remove("hidden"), u.className = `p-4 border-t border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 flex ${$} space-x-4`;
-    const w = o.okButtonText || g("ok", "OK"), C = o.cancelButtonText || g("cancel", "Cancel"), I = a === "confirm" || a === "message" || a === "dialog" && o.showOkButton === !0, q = a === "confirm" || a === "dialog" && o.showCancelButton === !0;
-    if (u.innerHTML = "", I) {
-      const v = document.createElement("button");
-      v.id = `${e}ok${c}`, v.className = "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200", v.textContent = w, v.addEventListener("click", () => {
-        let z = !0;
-        typeof o.onOk == "function" && (z = o.onOk() !== !1), z && b({ uniqueId: c, modal: o.modal !== !1 });
-      }), u.appendChild(v);
-    }
-    if (q) {
-      const v = document.createElement("button");
-      v.id = `${e}cancel${c}`, v.className = "px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors duration-200", v.textContent = C, v.addEventListener("click", () => {
-        b({ uniqueId: c, modal: o.modal !== !1 }), typeof o.onCancel == "function" && o.onCancel();
-      }), u.appendChild(v);
-    }
-    !I && !q && u.classList.add("hidden");
-  }
-  async function y(c, a) {
-    const o = {
-      modal: !0,
-      position: "center",
-      width: 400,
-      height: void 0,
-      overlayOpacity: 0.5,
-      responsive: !0,
-      contentOverflow: "auto",
-      ...a
-    };
-    typeof o.onBeforeOpen == "function" && o.onBeforeOpen();
-    let u = o.boxId || t();
-    if (o.uniqueId = u, o.cache && o.boxId && s[o.boxId])
-      return u = s[o.boxId].uniqueId, document.querySelector(i(u, "outer-container"))?.classList.remove("hidden"), document.querySelector(i(u, "overlay"))?.classList.toggle("hidden", o.modal === !1), o.modal !== !1 && R(), h(u, c, o), p(u, o.modal !== !1), typeof o.onOpen == "function" && o.onOpen(), u;
-    const $ = d(o);
-    if (o.cache && o.boxId && (s[o.boxId] = { uniqueId: u, modal: o.modal !== !1 }), o.title) {
-      const w = document.querySelector(i(u, "title"));
-      w && (w.textContent = o.title);
-    }
-    return o.modal !== !1 && ($.overlay.classList.remove("hidden"), R()), n(u, o.position), l(u, o), await m(u, o), h(u, c, o), p(u, o.modal !== !1), typeof o.onOpen == "function" && o.onOpen(), u;
-  }
-  function b({ uniqueId: c, modal: a }) {
-    document.querySelector(i(c, "outer-container"))?.classList.add("hidden"), document.querySelector(i(c, "overlay"))?.classList.add("hidden"), a && tt();
-  }
-  function x() {
-    Object.keys(s).forEach((c) => {
-      const a = s[c].uniqueId;
-      document.querySelector(i(a, "outer-container"))?.remove(), document.querySelector(i(a, "overlay"))?.remove(), delete s[c];
-    });
-  }
-  function k(c) {
-    const a = s[c];
-    if (!a) return;
-    const o = a.uniqueId;
-    document.querySelector(i(o, "outer-container"))?.remove(), document.querySelector(i(o, "overlay"))?.remove(), delete s[c];
-  }
-  function L() {
-    document.addEventListener("click", (c) => {
-      const a = c.target.closest("[data-box-type]");
-      if (!a) return;
-      c.preventDefault();
-      const o = a.getAttribute("data-box-type");
-      if (!["dialog", "confirm", "message"].includes(o)) return;
-      const u = f(a);
-      y(o, u);
-    });
-  }
-  L(), r.store("box", {
-    open: y,
-    close: b,
-    clearCache: x,
-    clearCacheById: k
   });
-}, H = {
+  const d = () => {
+    try {
+      const t = document.createElement("div");
+      t.id = "uno-notify-container", t.setAttribute("x-data", "{}");
+      const n = `
+        <style>
+          @keyframes uno-progress-indeterminate {
+            0% { left: -35%; width: 35%; }
+            100% { left: 100%; width: 35%; }
+          }
+          .uno-progress-anim {
+            animation: uno-progress-indeterminate 1.5s infinite linear;
+          }
+        </style>
+
+        <!-- Progress Bar (Top Fixed) -->
+        <div id="uno-progress-bar"
+             x-show="$store.notify.activeProgress > 0"
+             class="fixed top-0 left-0 w-full h-1 bg-blue-100 z-[200]"
+             style="display: none;">
+             <div class="absolute top-0 h-full bg-blue-600 uno-progress-anim"></div>
+        </div>
+
+        <!-- Loading Indicator (Top Right Fixed) -->
+        <div id="uno-loading-indicator" 
+             x-show="$store.notify.activeRequests > 0"
+             class="fixed top-4 right-4 z-[150] bg-blue-100 border-blue-500 text-blue-700 p-2 rounded-full shadow-md flex items-center dark:bg-blue-900 dark:text-blue-100"
+             style="display: none;">
+             <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-blue-500 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+             <span>Loading</span>
+        </div>
+
+        <!-- Top Right -->
+        <div class="fixed top-0 right-0 z-[100] p-4 flex flex-col space-y-2 items-end pointer-events-none">
+            <template x-for="item in $store.notify.items.filter(i => i.position === 'top-right')" :key="item.id">
+                ${o()}
+            </template>
+        </div>
+
+        <!-- Top Left -->
+        <div class="fixed top-0 left-0 z-[100] p-4 flex flex-col space-y-2 items-start pointer-events-none">
+            <template x-for="item in $store.notify.items.filter(i => i.position === 'top-left')" :key="item.id">
+                ${o()}
+            </template>
+        </div>
+
+        <!-- Bottom Right -->
+        <div class="fixed bottom-0 right-0 z-[100] p-4 flex flex-col-reverse space-y-2 space-y-reverse items-end pointer-events-none">
+            <template x-for="item in $store.notify.items.filter(i => i.position === 'bottom-right')" :key="item.id">
+                ${o()}
+            </template>
+        </div>
+
+        <!-- Bottom Left -->
+        <div class="fixed bottom-0 left-0 z-[100] p-4 flex flex-col-reverse space-y-2 space-y-reverse items-start pointer-events-none">
+            <template x-for="item in $store.notify.items.filter(i => i.position === 'bottom-left')" :key="item.id">
+                ${o()}
+            </template>
+        </div>
+      `;
+      t.innerHTML = n, document.body.appendChild(t);
+    } catch (t) {
+      h.error("Notify: Failed to inject container", t);
+    }
+  }, o = () => `
+    <div x-show="true"
+         data-testid="notify-item"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform scale-90 translate-y-2"
+         x-transition:enter-end="opacity-100 transform scale-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-300"
+         x-transition:leave-start="opacity-100 transform scale-100 translate-y-0"
+         x-transition:leave-end="opacity-0 transform scale-90 translate-y-2"
+         class="pointer-events-auto relative w-80 max-w-full border-l-4 pl-3 pr-3 py-4 rounded shadow-sm dark:shadow-md overflow-hidden"
+         :class="{
+            'bg-green-100 dark:bg-green-800 border-green-500 text-green-700 dark:text-green-100': item.type === 'success',
+            'bg-yellow-100 dark:bg-yellow-800 border-yellow-500 text-yellow-700 dark:text-yellow-100': item.type === 'warning',
+            'bg-red-100 dark:bg-red-800 border-red-500 text-red-700 dark:text-red-100': item.type === 'error',
+            'bg-blue-100 dark:bg-blue-800 border-blue-500 text-blue-700 dark:text-blue-100': item.type === 'info'
+         }"
+         role="alert">
+         
+         <div class="flex items-start justify-between">
+            <div x-text="item.text" class="text-sm font-medium"></div>
+            <button x-show="item.showCloseButton" 
+                    @click="$store.notify.close(item.id)" 
+                    class="ml-4 opacity-50 hover:opacity-100 transition-opacity focus:outline-none">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+         </div>
+    </div>
+    `;
+  document.body ? d() : document.addEventListener("DOMContentLoaded", d);
+};
+let k = 0, L = "";
+function P() {
+  k === 0 && (L = document.body.style.overflow || "", document.body.style.overflow = "hidden"), k++;
+}
+function _() {
+  k = Math.max(0, k - 1), k === 0 && (document.body.style.overflow = L || "", L = "");
+}
+async function N(s) {
+  const d = await fetch(s);
+  return (d.headers.get("content-type") || "").includes("application/json") ? d.json() : d.text();
+}
+const W = (s) => {
+  s.store("box", {
+    items: [],
+    init() {
+      s.effect(() => {
+        this.items.filter((t) => t.modal).length > 0 ? P() : _();
+      });
+    },
+    async open(o, t = {}) {
+      let n = "dialog", e = t;
+      typeof o == "object" ? (e = o, n = e.type || "dialog") : n = o;
+      const l = e.boxId || Math.random().toString(36).slice(2, 10), a = {
+        id: l,
+        type: n,
+        title: e.title || "",
+        content: e.content || "",
+        width: e.width || 400,
+        height: e.height,
+        modal: e.modal !== !1,
+        // default true
+        overlayOpacity: e.overlayOpacity ?? 0.5,
+        position: e.position || "center",
+        showCloseButton: !0,
+        // default true?
+        // Buttons
+        okText: e.okButtonText,
+        cancelText: e.cancelButtonText,
+        onOk: e.onOk,
+        onCancel: e.onCancel,
+        showOk: n === "confirm" || n === "message" || n === "dialog" && e.showOkButton,
+        showCancel: n === "confirm" || n === "dialog" && e.showCancelButton,
+        // State
+        loading: !1,
+        visible: !0
+      }, r = s.store("i18n");
+      if (a.okText || (a.okText = r ? r.t("box.ok") : "OK"), a.cancelText || (a.cancelText = r ? r.t("box.cancel") : "Cancel"), e.targetId) {
+        const i = document.getElementById(e.targetId);
+        i ? a.content = i.innerHTML : (h.warn("Box: Target element not found:", e.targetId), a.content = '<div class="p-4 text-red-500">Error: Content target not found</div>');
+      } else if (e.ajaxUrl) {
+        a.loading = !0, this.add(a);
+        try {
+          const i = await N(e.ajaxUrl), c = typeof i == "object" ? `<pre class="bg-gray-100 p-3 rounded overflow-x-auto whitespace-pre-wrap">${JSON.stringify(i, null, 2)}</pre>` : String(i), f = this.items.find((u) => u.id === l);
+          f && (f.content = c, f.loading = !1);
+        } catch (i) {
+          h.error("Box: Ajax failed", i);
+          const c = this.items.find((f) => f.id === l);
+          c && (c.content = '<div class="text-red-500">Error loading content</div>', c.loading = !1);
+        }
+        return l;
+      } else e.iframeUrl && (a.content = `<iframe frameborder="0" class="w-full h-full" src="${e.iframeUrl}"></iframe>`);
+      return this.add(a), l;
+    },
+    add(o) {
+      this.items.push(o), this.ensureContainer();
+    },
+    close(o) {
+      this.items = this.items.filter((t) => t.id !== o);
+    },
+    closeAll() {
+      this.items = [];
+    },
+    ensureContainer() {
+      document.getElementById("uno-box-container") || d();
+    }
+  });
+  const d = () => {
+    try {
+      const o = document.createElement("div");
+      o.id = "uno-box-container", o.setAttribute("x-data", "{}");
+      const t = `
+        <template x-for="(item, index) in $store.box.items" :key="item.id">
+            <div :id="'uno-box-outer-container' + item.id"
+                 class="fixed inset-0 flex items-center justify-center transition-opacity duration-300"
+                 :style="\`z-index: \${100 + index}\`"
+                 role="dialog"
+                 aria-modal="true">
+                 
+                 <!-- Overlay: Covers viewport, blocks interaction, does NOT close modal on click -->
+                 <div :id="'uno-box-overlay' + item.id"
+                      class="absolute inset-0 bg-black transition-opacity duration-300"
+                      :style="\`opacity: \${item.overlayOpacity}\`"
+                      x-show="item.modal"
+                      x-transition:enter="ease-out duration-300"
+                      x-transition:enter-start="opacity-0"
+                      x-transition:enter-end="opacity-100"
+                      x-transition:leave="ease-in duration-200"
+                      x-transition:leave-start="opacity-100"
+                      x-transition:leave-end="opacity-0"></div>
+
+                 <!-- Box Container -->
+                 <div :id="'uno-box-container' + item.id"
+                      class="relative bg-white dark:bg-gray-900 rounded-lg shadow-2xl ring-1 ring-black/5 overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300 transform"
+                      :style="\`width: \${item.width}px; \${item.height ? 'height:' + item.height + 'px' : ''}\`"
+                      x-show="item.visible"
+                      x-transition:enter="ease-out duration-300"
+                      x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                      x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                      x-transition:leave="ease-in duration-200"
+                      x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                      x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+                      
+                      <!-- Header -->
+                      <div :id="'uno-box-header' + item.id" x-show="item.title" class="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700">
+                          <h3 :id="'uno-box-title' + item.id" class="text-lg font-semibold text-slate-800 dark:text-slate-200" x-text="item.title"></h3>
+                          <button :id="'uno-box-close' + item.id" @click="$store.box.close(item.id)" class="text-slate-400 hover:text-slate-500 focus:outline-none">
+                              <span class="sr-only">Close</span>
+                              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                          </button>
+                      </div>
+                      
+                      <!-- Close button if no title -->
+                      <button x-show="!item.title && item.showCloseButton" 
+                              :id="'uno-box-close' + item.id"
+                              @click="$store.box.close(item.id)" 
+                              class="absolute top-2 right-2 z-10 text-slate-400 hover:text-slate-500 focus:outline-none">
+                          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                      </button>
+
+                      <!-- Content -->
+                      <div :id="'uno-box-wrapper' + item.id" class="p-4 overflow-auto flex-1 text-slate-600 dark:text-slate-300">
+                          <div x-show="item.loading" class="flex justify-center items-center h-full">
+                              <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                          </div>
+                          <div :id="'uno-box-content' + item.id" x-show="!item.loading" x-html="item.content"></div>
+                      </div>
+
+                      <!-- Footer -->
+                      <div :id="'uno-box-footer' + item.id" x-show="item.showOk || item.showCancel" class="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-end space-x-3 bg-slate-50 dark:bg-slate-800">
+                          <button :id="'uno-box-cancel' + item.id"
+                                  x-show="item.showCancel"
+                                  @click="item.onCancel ? (item.onCancel(), $store.box.close(item.id)) : $store.box.close(item.id)"
+                                  x-text="item.cancelText"
+                                  class="px-4 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-md text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                          </button>
+                          <button :id="'uno-box-ok' + item.id"
+                                  x-show="item.showOk"
+                                  @click="() => {
+                                      const shouldClose = item.onOk ? item.onOk() : true;
+                                      if (shouldClose !== false) $store.box.close(item.id);
+                                  }"
+                                  x-text="item.okText"
+                                  class="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                          </button>
+                      </div>
+                 </div>
+            </div>
+        </template>
+      `;
+      o.innerHTML = t, document.body.appendChild(o);
+    } catch (o) {
+      h.error("Box: Failed to inject container", o);
+    }
+  };
+  document.body ? d() : document.addEventListener("DOMContentLoaded", d), document.addEventListener("click", (o) => {
+    const t = o.target.closest("[data-box-type]");
+    if (!t) return;
+    const n = t.getAttribute("data-box-type");
+    if (!["dialog", "confirm", "message"].includes(n)) return;
+    o.preventDefault();
+    const e = t.dataset, l = {
+      title: e.boxTitle,
+      content: e.boxContent,
+      width: e.boxWidth ? parseInt(e.boxWidth) : void 0,
+      height: e.boxHeight ? parseInt(e.boxHeight) : void 0,
+      ajaxUrl: e.boxAjaxUrl,
+      iframeUrl: e.boxIframeUrl,
+      targetId: e.boxTargetId,
+      position: e.boxPosition,
+      okButtonText: e.boxOkText,
+      cancelButtonText: e.boxCancelText,
+      overlayOpacity: e.boxOverlayOpacity ? parseFloat(e.boxOverlayOpacity) : void 0,
+      showCloseButton: e.boxShowClose !== "false",
+      boxId: e.boxId,
+      cache: e.boxCache === "true"
+    };
+    e.boxModal === "false" && (l.modal = !1), s.store("box").open(n, l);
+  });
+}, T = {
   validname: /^[a-zA-Z0-9_-]+$/,
   en: /^[a-zA-Z]+$/,
   domain: new RegExp("^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$"),
@@ -658,58 +640,58 @@ const nt = (r) => {
   pwd: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
   strongpwd: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
 };
-function it(r) {
-  const s = r.match(/^\/(.*?)\/([gimsuy]*)$/);
-  return s ? { pattern: s[1], flags: s[2] } : { pattern: r, flags: "" };
+function Y(s) {
+  const d = s.match(/^\/(.*?)\/([gimsuy]*)$/);
+  return d ? { pattern: d[1], flags: d[2] } : { pattern: s, flags: "" };
 }
-function ot(r) {
+function Z(s) {
   try {
-    return r ? JSON.parse(r) : [];
+    return s ? JSON.parse(s) : [];
   } catch {
     return [];
   }
 }
-const rt = (r) => {
-  const s = {
+const V = (s) => {
+  const d = {
     invalid: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23ef4444'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linecap='round' d='M5.8 3.6h.4L6 6.5zM6 8.2af.6.6 0 110-1.2.6.6 0 010 1.2z'/%3e%3c/svg%3e")`,
     valid: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2322c55e' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e")`
-  }, e = (t, i) => {
-    const f = r.store("i18n");
-    if (!f) return t;
-    const g = {
+  }, o = (t, n) => {
+    const e = s.store("i18n");
+    if (!e) return t;
+    const l = {
       required: "Required",
       pattern: "Invalid format",
-      min: `At least ${i?.n} characters`,
-      max: `Max ${i?.n} characters`,
+      min: `At least ${n?.n} characters`,
+      max: `Max ${n?.n} characters`,
       int: "Integer required",
       email: "Invalid email address",
       url: "Invalid URL"
     };
-    return f.t(`valid.${t}`, i) || g[t] || t;
+    return e.t(`valid.${t}`, n) || l[t] || t;
   };
-  r.store("valid", {
+  s.store("valid", {
     callbacks: {},
-    registerCallback(t, i) {
-      typeof i == "function" && (this.callbacks[t] = i);
+    registerCallback(t, n) {
+      typeof n == "function" && (this.callbacks[t] = n);
     }
-  }), r.data("validForm", () => ({
+  }), s.data("validForm", () => ({
     fields: {},
     // Reactive state: { [name]: { value, error, valid, ... } }
     init() {
       this.$el.noValidate = !0;
     },
     // Register field (called by x-validate directive)
-    register(t, i, f = []) {
+    register(t, n, e = []) {
       if (this.fields[t]) return;
-      const g = [...f];
-      if ((i.hasAttribute("required") || i.dataset.validRequired === "true") && g.push({ type: "required" }), (i.type === "email" || i.dataset.validType === "email") && g.push("email"), (i.type === "url" || i.dataset.validType === "url") && g.push("url"), i.dataset.validType) {
-        const d = i.dataset.validType;
-        d !== "email" && d !== "url" && g.push(d);
+      const l = [...e];
+      if ((n.hasAttribute("required") || n.dataset.validRequired === "true") && l.push({ type: "required" }), (n.type === "email" || n.dataset.validType === "email") && l.push("email"), (n.type === "url" || n.dataset.validType === "url") && l.push("url"), n.dataset.validType) {
+        const a = n.dataset.validType;
+        a !== "email" && a !== "url" && l.push(a);
       }
-      i.dataset.validPattern && g.push({ type: "regexp", expression: i.dataset.validPattern }), this.fields[t] = {
-        el: i,
-        rules: g,
-        value: i.value,
+      n.dataset.validPattern && l.push({ type: "regexp", expression: n.dataset.validPattern }), this.fields[t] = {
+        el: n,
+        rules: l,
+        value: n.value,
         error: null,
         valid: !0,
         dirty: !1,
@@ -717,109 +699,109 @@ const rt = (r) => {
         validating: !1
       };
     },
-    update(t, i) {
-      this.fields[t] && (this.fields[t].value = i, this.fields[t].dirty = !0, this.validate(t));
+    update(t, n) {
+      this.fields[t] && (this.fields[t].value = n, this.fields[t].dirty = !0, this.validate(t));
     },
     touch(t) {
       this.fields[t] && (this.fields[t].touched = !0, this.validate(t));
     },
     async validate(t) {
-      const i = this.fields[t];
-      if (!i) return !0;
-      i.validating = !0, i.error = null;
-      const f = (i.value || "").trim();
-      let g = null;
-      for (const d of i.rules) {
-        const l = d.type || d, n = typeof d == "object" ? d : {};
-        if (!f) {
-          if (l === "required") {
-            g = n.msg || e("required");
+      const n = this.fields[t];
+      if (!n) return !0;
+      n.validating = !0, n.error = null;
+      const e = (n.value || "").trim();
+      let l = null;
+      for (const a of n.rules) {
+        const r = a.type || a, i = typeof a == "object" ? a : {};
+        if (!e) {
+          if (r === "required") {
+            l = i.msg || o("required");
             break;
           }
-          if (l === "emptyquit") break;
+          if (r === "emptyquit") break;
           continue;
         }
-        if (H[l])
-          H[l].test(f) || (g = n.msg || e(l) || e("pattern"));
-        else if (l === "regexp" && n.expression) {
-          const { pattern: p, flags: m } = it(n.expression);
-          new RegExp(p, m || "i").test(f) || (g = n.msg || e("pattern"));
-        } else if (l === "limit")
-          n.min && f.length < n.min && (g = n.msg || e("min", { n: n.min })), n.max && f.length > n.max && (g = n.msg || e("max", { n: n.max }));
-        else if (l === "range") {
-          const p = parseFloat(f);
-          n.min !== void 0 && p < n.min && (g = n.msg || `Min ${n.min}`), n.max !== void 0 && p > n.max && (g = n.msg || `Max ${n.max}`);
-        } else if (l === "compareto") {
-          const p = document.getElementById(n.destid);
-          p && f !== p.value && (g = n.msg || "Not match");
-        } else if (l === "tag") {
-          const p = n.mark || ",", m = f.split(p).filter((h) => h.trim());
-          n.max && m.length > n.max && (g = n.msg || `Max ${n.max} items`);
+        if (T[r])
+          T[r].test(e) || (l = i.msg || o(r) || o("pattern"));
+        else if (r === "regexp" && i.expression) {
+          const { pattern: c, flags: f } = Y(i.expression);
+          new RegExp(c, f || "i").test(e) || (l = i.msg || o("pattern"));
+        } else if (r === "limit")
+          i.min && e.length < i.min && (l = i.msg || o("min", { n: i.min })), i.max && e.length > i.max && (l = i.msg || o("max", { n: i.max }));
+        else if (r === "range") {
+          const c = parseFloat(e);
+          i.min !== void 0 && c < i.min && (l = i.msg || `Min ${i.min}`), i.max !== void 0 && c > i.max && (l = i.msg || `Max ${i.max}`);
+        } else if (r === "compareto") {
+          const c = document.getElementById(i.destid);
+          c && e !== c.value && (l = i.msg || "Not match");
+        } else if (r === "tag") {
+          const c = i.mark || ",", f = e.split(c).filter((u) => u.trim());
+          i.max && f.length > i.max && (l = i.msg || `Max ${i.max} items`);
         }
-        if (g) break;
-        if (l === "callback" && n.fn) {
-          const p = r.store("valid").callbacks[n.fn];
-          if (p)
+        if (l) break;
+        if (r === "callback" && i.fn) {
+          const c = s.store("valid").callbacks[i.fn];
+          if (c)
             try {
-              const m = await p(i.el.id, f);
-              m === !1 || typeof m == "object" && m.valid === !1 ? g = (typeof m == "object" ? m.message : "") || "Invalid" : typeof m == "string" && (g = m);
+              const f = await c(n.el.id, e);
+              f === !1 || typeof f == "object" && f.valid === !1 ? l = (typeof f == "object" ? f.message : "") || "Invalid" : typeof f == "string" && (l = f);
             } catch {
             }
         }
-        if (g) break;
+        if (l) break;
       }
-      return i.error = g, i.valid = !g, i.validating = !1, i.valid;
+      return n.error = l, n.valid = !l, n.validating = !1, n.valid;
     },
     async validateAll() {
       const t = Object.keys(this.fields);
-      return (await Promise.all(t.map((f) => this.validate(f)))).every((f) => f);
+      return (await Promise.all(t.map((e) => this.validate(e)))).every((e) => e);
     },
     async submit(t) {
-      if (t && (t.preventDefault(), t.stopPropagation()), Object.keys(this.fields).forEach((f) => {
-        this.fields[f].touched = !0;
+      if (t && (t.preventDefault(), t.stopPropagation()), Object.keys(this.fields).forEach((e) => {
+        this.fields[e].touched = !0;
       }), await this.validateAll())
         this.$el.dispatchEvent(new CustomEvent("valid-submit", { bubbles: !0 })), !this.$el.hasAttribute("hx-post") && !this.$el.hasAttribute("hx-get") && this.$el.submit();
       else {
-        const f = Object.keys(this.fields).find((g) => !this.fields[g].valid);
-        f && this.fields[f].el && this.fields[f].el.focus();
+        const e = Object.keys(this.fields).find((l) => !this.fields[l].valid);
+        e && this.fields[e].el && this.fields[e].el.focus();
       }
     }
-  })), r.directive("validate", (t, i, { effect: f, cleanup: g }) => {
-    const d = t.getAttribute("name");
-    if (!d) return;
-    let l = [];
-    const n = t.getAttribute("valid");
-    n && (l = ot(n)), f(() => {
-      const h = r.$data(t);
-      h && typeof h.register == "function" && h.register(d, t, l);
+  })), s.directive("validate", (t, n, { effect: e, cleanup: l }) => {
+    const a = t.getAttribute("name");
+    if (!a) return;
+    let r = [];
+    const i = t.getAttribute("valid");
+    i && (r = Z(i)), e(() => {
+      const u = s.$data(t);
+      u && typeof u.register == "function" && u.register(a, t, r);
     });
-    const p = () => {
-      const h = r.$data(t);
-      if (h && h.update && h.update(d, t.value), l.find((y) => (y.type === "limit" || y === "limit") && y.show === !0)) {
-        const y = l.find((b) => b.type === "limit" || b === "limit");
-        y && y.max && t.value.length > y.max && (t.value = t.value.substring(0, y.max), h && h.update && h.update(d, t.value));
+    const c = () => {
+      const u = s.$data(t);
+      if (u && u.update && u.update(a, t.value), r.find((m) => (m.type === "limit" || m === "limit") && m.show === !0)) {
+        const m = r.find((g) => g.type === "limit" || g === "limit");
+        m && m.max && t.value.length > m.max && (t.value = t.value.substring(0, m.max), u && u.update && u.update(a, t.value));
       }
-    }, m = () => {
-      const h = r.$data(t);
-      h && h.touch && h.touch(d);
+    }, f = () => {
+      const u = s.$data(t);
+      u && u.touch && u.touch(a);
     };
-    t.addEventListener("input", p), t.addEventListener("blur", m), f(() => {
-      const h = r.$data(t);
-      if (h && h.fields && h.fields[d]) {
-        const y = h.fields[d], b = !!y.error, x = y.valid && y.dirty && !y.error;
-        t.classList.toggle("is-invalid", b), t.classList.toggle("is-valid", x), t.classList.toggle("validating", y.validating), b ? (t.classList.add(
+    t.addEventListener("input", c), t.addEventListener("blur", f), e(() => {
+      const u = s.$data(t);
+      if (u && u.fields && u.fields[a]) {
+        const m = u.fields[a], g = !!m.error, p = m.valid && m.dirty && !m.error;
+        t.classList.toggle("is-invalid", g), t.classList.toggle("is-valid", p), t.classList.toggle("validating", m.validating), g ? (t.classList.add(
           "!border-red-500",
           "pr-10",
           "bg-no-repeat",
           "bg-[right_0.75rem_center]",
           "bg-[length:1rem_1rem]"
-        ), t.classList.remove("!border-green-500"), t.style.backgroundImage = s.invalid) : x ? (t.classList.add(
+        ), t.classList.remove("!border-green-500"), t.style.backgroundImage = d.invalid) : p ? (t.classList.add(
           "!border-green-500",
           "pr-10",
           "bg-no-repeat",
           "bg-[right_0.75rem_center]",
           "bg-[length:1rem_1rem]"
-        ), t.classList.remove("!border-red-500"), t.style.backgroundImage = s.valid) : (t.classList.remove(
+        ), t.classList.remove("!border-red-500"), t.style.backgroundImage = d.valid) : (t.classList.remove(
           "!border-red-500",
           "!border-green-500",
           "pr-10",
@@ -827,129 +809,129 @@ const rt = (r) => {
           "bg-[right_0.75rem_center]",
           "bg-[length:1rem_1rem]"
         ), t.style.backgroundImage = "");
-        const k = t.nextElementSibling;
-        if (k && k.tagName === "DIV") {
-          const L = k.querySelector(".animate-spin") || t.parentNode.querySelector(".animate-spin");
-          L && (L.style.display = y.validating ? "block" : "");
+        const v = t.nextElementSibling;
+        if (v && v.tagName === "DIV") {
+          const x = v.querySelector(".animate-spin") || t.parentNode.querySelector(".animate-spin");
+          x && (x.style.display = m.validating ? "block" : "");
         }
       }
-    }), g(() => {
-      t.removeEventListener("input", p), t.removeEventListener("blur", m);
+    }), l(() => {
+      t.removeEventListener("input", c), t.removeEventListener("blur", f);
     });
-  }), r.directive("valid-error", (t, { expression: i }, { effect: f }) => {
-    const g = i;
-    t.style.display = "none", f(() => {
-      const d = r.$data(t);
-      if (d && d.fields && d.fields[g]) {
-        const n = d.fields[g].error;
-        n ? (t.textContent = n, t.style.display = "block", t.classList.add("text-red-600", "text-xs"), t.classList.remove("text-gray-400")) : t.style.display = "none";
+  }), s.directive("valid-error", (t, { expression: n }, { effect: e }) => {
+    const l = n;
+    t.style.display = "none", e(() => {
+      const a = s.$data(t);
+      if (a && a.fields && a.fields[l]) {
+        const i = a.fields[l].error;
+        i ? (t.textContent = i, t.style.display = "block", t.classList.add("text-red-600", "text-xs"), t.classList.remove("text-gray-400")) : t.style.display = "none";
       }
     });
-  }), r.directive("valid-count", (t, { expression: i }, { effect: f }) => {
-    const g = i;
-    f(() => {
-      const d = r.$data(t);
-      if (d && d.fields && d.fields[g]) {
-        const l = d.fields[g], n = l.rules.find((p) => p.type === "limit" || p === "limit");
-        if (n && n.max) {
-          const p = (l.value || "").length, m = n.max - p, h = r.store("i18n");
-          t.textContent = h && h.t("charCount", { count: m }) || `Remaining: ${m}`, t.style.display = "block";
+  }), s.directive("valid-count", (t, { expression: n }, { effect: e }) => {
+    const l = n;
+    e(() => {
+      const a = s.$data(t);
+      if (a && a.fields && a.fields[l]) {
+        const r = a.fields[l], i = r.rules.find((c) => c.type === "limit" || c === "limit");
+        if (i && i.max) {
+          const c = (r.value || "").length, f = i.max - c, u = s.store("i18n");
+          t.textContent = u && u.t("charCount", { count: f }) || `Remaining: ${f}`, t.style.display = "block";
         } else
           t.style.display = "none";
       }
     });
   });
 };
-const st = (r) => {
-  const s = {
+const F = (s) => {
+  const d = {
     activeClass: "text-blue-600 dark:text-blue-400 border-b-2 border-blue-500 dark:border-blue-400",
     inactiveClass: "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200",
     baseTabClass: "px-4 py-2 transition-colors duration-150 cursor-pointer"
-  }, e = (d, l) => {
-    const n = s.activeClass.split(" "), p = s.inactiveClass.split(" ");
-    l ? (d.classList.add("current"), d.classList.remove(...p), d.classList.add(...n)) : (d.classList.remove("current"), d.classList.remove(...n), d.classList.add(...p));
-  }, t = (d, l) => {
-    const n = document.querySelectorAll(`[data-tab-group="${d}"], [tabgroup="${d}"]`);
-    n.forEach((m) => {
-      const y = (m.getAttribute("data-tab-target") || m.getAttribute("tabtarget")) === l;
-      e(m, y);
+  }, o = (a, r) => {
+    const i = d.activeClass.split(" "), c = d.inactiveClass.split(" ");
+    r ? (a.classList.add("current"), a.classList.remove(...c), a.classList.add(...i)) : (a.classList.remove("current"), a.classList.remove(...i), a.classList.add(...c));
+  }, t = (a, r) => {
+    const i = document.querySelectorAll(`[data-tab-group="${a}"], [tabgroup="${a}"]`);
+    i.forEach((f) => {
+      const m = (f.getAttribute("data-tab-target") || f.getAttribute("tabtarget")) === r;
+      o(f, m);
     });
-    const p = /* @__PURE__ */ new Set();
-    n.forEach((m) => {
-      const h = m.getAttribute("data-tab-target") || m.getAttribute("tabtarget");
-      h && p.add(h);
-    }), p.forEach((m) => {
-      const h = document.getElementById(m);
-      h && (m === l ? (h.classList.remove("hidden"), h.style.display = "") : h.classList.add("hidden"));
+    const c = /* @__PURE__ */ new Set();
+    i.forEach((f) => {
+      const u = f.getAttribute("data-tab-target") || f.getAttribute("tabtarget");
+      u && c.add(u);
+    }), c.forEach((f) => {
+      const u = document.getElementById(f);
+      u && (f === r ? (u.classList.remove("hidden"), u.style.display = "") : u.classList.add("hidden"));
     });
-  }, i = () => {
-    const d = window.location.hash.substring(1);
-    if (!d) return;
-    const l = document.querySelector(`[data-tab-hash="${d}"], [rel="${d}"]`);
-    if (l) {
-      const n = l.getAttribute("data-tab-group") || l.getAttribute("tabgroup"), p = l.getAttribute("data-tab-target") || l.getAttribute("tabtarget");
-      n && p && t(n, p);
+  }, n = () => {
+    const a = window.location.hash.substring(1);
+    if (!a) return;
+    const r = document.querySelector(`[data-tab-hash="${a}"], [rel="${a}"]`);
+    if (r) {
+      const i = r.getAttribute("data-tab-group") || r.getAttribute("tabgroup"), c = r.getAttribute("data-tab-target") || r.getAttribute("tabtarget");
+      i && c && t(i, c);
     }
-  }, f = () => {
-    document.querySelectorAll("[data-tab-group], [tabgroup]").forEach((l) => {
-      if (!l.className.includes("transition-colors")) {
-        const p = s.baseTabClass.split(" ");
-        l.classList.add(...p);
+  }, e = () => {
+    document.querySelectorAll("[data-tab-group], [tabgroup]").forEach((r) => {
+      if (!r.className.includes("transition-colors")) {
+        const c = d.baseTabClass.split(" ");
+        r.classList.add(...c);
       }
-      const n = l.classList.contains("current") || l.getAttribute("data-tab-active") === "true";
-      e(l, n);
+      const i = r.classList.contains("current") || r.getAttribute("data-tab-active") === "true";
+      o(r, i);
     });
   };
-  document.addEventListener("click", (d) => {
-    const l = d.target.closest("[data-tab-target], [tabtarget]");
-    if (!l) return;
-    const n = l.getAttribute("data-tab-group") || l.getAttribute("tabgroup"), p = l.getAttribute("data-tab-target") || l.getAttribute("tabtarget"), m = l.getAttribute("data-tab-hash") || l.getAttribute("rel"), h = l.getAttribute("data-tab-url");
-    if (n && p) {
-      if (d.preventDefault(), h) {
-        const y = document.getElementById(p);
-        y && !y.getAttribute("data-tab-loaded") && (y.innerHTML = `<div class="animate-pulse p-4 space-y-2">
+  document.addEventListener("click", (a) => {
+    const r = a.target.closest("[data-tab-target], [tabtarget]");
+    if (!r) return;
+    const i = r.getAttribute("data-tab-group") || r.getAttribute("tabgroup"), c = r.getAttribute("data-tab-target") || r.getAttribute("tabtarget"), f = r.getAttribute("data-tab-hash") || r.getAttribute("rel"), u = r.getAttribute("data-tab-url");
+    if (i && c) {
+      if (a.preventDefault(), u) {
+        const m = document.getElementById(c);
+        m && !m.getAttribute("data-tab-loaded") && (m.innerHTML = `<div class="animate-pulse p-4 space-y-2">
              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
              <div class="h-4 bg-gray-200 rounded w-1/2"></div>
-           </div>`, fetch(h).then((b) => {
-          if (!b.ok) throw new Error("Network response was not ok");
-          return b.text();
-        }).then((b) => {
-          y.innerHTML = b, y.setAttribute("data-tab-loaded", "true");
-        }).catch((b) => {
-          y.innerHTML = `<div class="text-red-500 p-4">Error loading content: ${b.message}</div>`;
+           </div>`, fetch(u).then((g) => {
+          if (!g.ok) throw new Error("Network response was not ok");
+          return g.text();
+        }).then((g) => {
+          m.innerHTML = g, m.setAttribute("data-tab-loaded", "true");
+        }).catch((g) => {
+          m.innerHTML = `<div class="text-red-500 p-4">Error loading content: ${g.message}</div>`;
         }));
       }
-      t(n, p), m && history.replaceState(null, null, "#" + m);
+      t(i, c), f && history.replaceState(null, null, "#" + f);
     }
   });
-  const g = () => {
-    i(), f(), window.addEventListener("hashchange", i);
+  const l = () => {
+    n(), e(), window.addEventListener("hashchange", n);
   };
-  document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", g) : g(), r.store("tabs", {
-    switch(d, l) {
-      t(d, l);
+  document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", l) : l(), s.store("tabs", {
+    switch(a, r) {
+      t(a, r);
     }
   });
 };
-window.Alpine = j;
-window.htmx = O;
-E.info("Uno: Script loaded. Import Alpine:", !!j, "Window Alpine:", !!window.Alpine);
-const T = (r) => {
-  if (!r) {
-    E.error("Uno: Alpine is undefined, cannot register plugins");
+window.Alpine = $;
+window.htmx = z;
+h.info("Uno: Script loaded. Import Alpine:", !!$, "Window Alpine:", !!window.Alpine);
+const C = (s) => {
+  if (!s) {
+    h.error("Uno: Alpine is undefined, cannot register plugins");
     return;
   }
-  if (r.store && r.store("tooltip")) {
-    E.info("Uno: Plugins already registered");
+  if (s.store && s.store("tooltip")) {
+    h.info("Uno: Plugins already registered");
     return;
   }
-  E.info("Uno: Registering plugins"), F(r), K(r), Q(r), nt(r), rt(r), st(r);
-}, at = () => {
-  let r = j || window.Alpine;
-  r ? (E.info("Uno: Alpine found, registering"), T(r)) : (E.info("Uno: Alpine not found, waiting for alpine:init"), document.addEventListener("alpine:init", () => {
-    E.info("Uno: alpine:init fired"), T(window.Alpine);
+  h.info("Uno: Registering plugins"), q(s), H(s), D(s), W(s), V(s), F(s);
+}, J = () => {
+  let s = $ || window.Alpine;
+  s ? (h.info("Uno: Alpine found, registering"), C(s)) : (h.info("Uno: Alpine not found, waiting for alpine:init"), document.addEventListener("alpine:init", () => {
+    h.info("Uno: alpine:init fired"), C(window.Alpine);
   }), document.addEventListener("DOMContentLoaded", () => {
-    window.Alpine && (E.info("Uno: DOMContentLoaded fallback"), T(window.Alpine));
+    window.Alpine && (h.info("Uno: DOMContentLoaded fallback"), C(window.Alpine));
   }));
 };
-at();
+J();

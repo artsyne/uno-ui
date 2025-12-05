@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Uno Notify Comprehensive Test</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
     <script src="../../dist/uno.umd.js" defer></script>
-    <script src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
 </head>
 
-<body class="bg-slate-50 min-h-screen pb-20">
+<body class="bg-slate-50 min-h-screen pb-20" x-data>
     <!-- Header -->
     <header class="bg-white shadow-sm sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -36,141 +36,84 @@
         <!-- Introduction -->
         <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
             <p class="text-slate-600">
-                The <code>notify</code> plugin provides a flexible notification system.
-                Each <code>x-data="notify(options)"</code> creates an independent notification instance with its own
-                position
-                and queue.
-                However, the <strong>Loading Indicator</strong> and <strong>Progress Bar</strong> are global singletons.
+                The <code>notify</code> plugin provides a flexible notification system powered by a global store.
+                Use <code>$store.notify.show()</code> to trigger notifications from anywhere.
             </p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
             <!-- Card 1: Standard Notifications (Top Right) -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"
-                x-data="notify({ position: 'top-right' })">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
                     <h2 class="font-semibold text-slate-800">1. Standard (Top Right)</h2>
                     <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Default</span>
                 </div>
                 <div class="p-6 space-y-4">
                     <div class="grid grid-cols-2 gap-4">
-                        <button data-testid="btn-info" @click="show('Info message', { type: 'info' })"
+                        <button data-testid="btn-info" @click="$store.notify.show('Info message', { type: 'info' })"
                             class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium">
                             Info
                         </button>
-                        <button @click="show('Success message', { type: 'success' })"
+                        <button @click="$store.notify.show('Success message', { type: 'success' })"
                             class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
                             Success
                         </button>
-                        <button @click="show('Warning message', { type: 'warning' })"
+                        <button @click="$store.notify.show('Warning message', { type: 'warning' })"
                             class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm font-medium">
                             Warning
                         </button>
-                        <button @click="show('Error message', { type: 'error' })"
+                        <button @click="$store.notify.show('Error message', { type: 'error' })"
                             class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
                             Error
                         </button>
                     </div>
-                    <div class="pt-4 border-t border-slate-100">
+                    <div class="pt-4 border-t border-slate-100 flex gap-4">
                         <button data-testid="btn-sticky"
-                            @click="show('Sticky message (click to close)', { type: 'info', duration: 0 })"
-                            class="w-full px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors text-sm font-medium">
-                            Sticky Notification (No Timeout)
+                            @click="$store.notify.show('Sticky message (click to close)', { type: 'info', timeout: 0 })"
+                            class="flex-1 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors text-sm font-medium">
+                            Sticky Notification
                         </button>
-                    </div>
-
-                    <!-- Notification Container for this instance -->
-                    <div data-testid="notify-container-default" :class="containerClasses" :style="containerStyle"
-                        class="pointer-events-auto fixed z-50">
-                        <template x-for="item in items" :key="item.id">
-                            <div data-testid="notify-item" :class="itemClasses(item.type)" x-transition
-                                @click="remove(item.id)" class="cursor-pointer min-w-[300px]">
-                                <div class="flex items-center justify-between">
-                                    <span x-text="item.text"></span>
-                                    <span x-show="item.showCloseButton" class="text-xs opacity-50 ml-2">×</span>
-                                </div>
-                            </div>
-                        </template>
+                        <button data-testid="btn-progress"
+                            @click="$store.notify.progress(true); setTimeout(() => $store.notify.progress(false), 3000)"
+                            class="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium">
+                            Test Progress Bar (3s)
+                        </button>
                     </div>
                 </div>
             </div>
 
             <!-- Card 2: Custom Position (Bottom Left) -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"
-                x-data="notify({ position: 'bottom-left' })">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-semibold text-slate-800">2. Custom Position</h2>
-                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Bottom Left</span>
+                    <h2 class="font-semibold text-slate-800">2. Custom Position (Bottom Left)</h2>
+                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Position Override</span>
                 </div>
-                <div class="p-6 space-y-4">
-                    <p class="text-sm text-slate-500 mb-4">
-                        This instance is configured with <code>{ position: 'bottom-left' }</code>.
-                    </p>
-                    <div class="flex flex-col gap-3">
-                        <button data-testid="btn-bl" @click="show('Notification at Bottom Left', { type: 'info' })"
-                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
-                            Show Bottom Left
-                        </button>
-                        <button @click="show('Another one', { type: 'success' })"
-                            class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium">
-                            Stack Messages
-                        </button>
-                    </div>
-
-                    <!-- Notification Container for this instance -->
-                    <div data-testid="notify-container-bottom-left" :class="containerClasses" :style="containerStyle"
-                        class="pointer-events-auto fixed z-50">
-                        <template x-for="item in items" :key="item.id">
-                            <div data-testid="notify-item-bl" :class="itemClasses(item.type)" x-transition
-                                @click="remove(item.id)" class="cursor-pointer min-w-[300px]">
-                                <span x-text="item.text"></span>
-                            </div>
-                        </template>
-                    </div>
+                <div class="p-6 flex items-center justify-center h-full">
+                    <button data-testid="btn-bl"
+                        @click="$store.notify.show('Bottom Left Message', { type: 'success', position: 'bottom-left' })"
+                        class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-sm">
+                        Show Bottom Left
+                    </button>
                 </div>
             </div>
 
-            <!-- Card 3: Loading Indicators (Global) -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden" x-data="notify()">
+            <!-- Card 3: Loading Indicator -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-semibold text-slate-800">3. Loading Indicators</h2>
-                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Global Singleton</span>
+                    <h2 class="font-semibold text-slate-800">3. Loading Indicator</h2>
+                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Global</span>
                 </div>
-                <div class="p-6 space-y-4">
-                    <div class="space-y-4">
-                        <div>
-                            <h4 class="text-sm font-medium text-slate-700 mb-2">Spinner (Top Right)</h4>
-                            <div class="flex gap-2">
-                                <button @click="loading(true, 'indicator')"
-                                    class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-                                    Start Spinner
-                                </button>
-                                <button @click="loading(false)"
-                                    class="flex-1 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors text-sm font-medium">
-                                    Stop
-                                </button>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 class="text-sm font-medium text-slate-700 mb-2">Top Progress Bar</h4>
-                            <div class="flex gap-2">
-                                <button @click="loading(true, 'progressbar')"
-                                    class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
-                                    Start Progress Bar
-                                </button>
-                                <button @click="loading(false)"
-                                    class="flex-1 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors text-sm font-medium">
-                                    Stop
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="p-6 flex flex-col gap-4 items-center justify-center h-full">
+                    <button @click="$store.notify.loading(true); setTimeout(() => $store.notify.loading(false), 2000)"
+                        class="px-6 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors font-medium shadow-sm">
+                        Show Loading (2s)
+                    </button>
                 </div>
             </div>
 
         </div>
+
     </main>
 </body>
 

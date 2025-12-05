@@ -45,23 +45,23 @@ _Objective: Convert simple DOM-manipulating components into elegant Alpine Direc
 
 _Objective: Move global UI elements (Modals, Toasts) to a state-driven architecture using `Alpine.store` and `x-teleport`._
 
-- [ ] **Step 3.1: Refactor Notify (Toast)**
+- [x] **Step 3.1: Refactor Notify (Toast)**
   - **Input**: `src/components/notify/notify.js`
   - **Action**:
-    1. Create `Alpine.store('notifications')` with `add()`, `remove()`.
-    2. Create a single global rendering component (e.g., `<div id="uno-notifications" ...>`) that uses `x-for` to render toasts from the store.
+    1. Create `Alpine.store('notify')` with `show()`, `close()`.
+    2. Create a single global rendering component that uses `x-for` to render toasts from the store.
     3. Remove `document.createElement` for individual toasts.
-  - **Verification**: Calling `Alpine.store('notifications').success('Hi')` adds a toast to the UI.
+  - **Verification**: Calling `Alpine.store('notify').success('Hi')` adds a toast to the UI.
 
-- [ ] **Step 3.2: Refactor Box (Modal) - Part 1: State Management**
+- [x] **Step 3.2: Refactor Box (Modal) - Part 1: State Management**
   - **Input**: `src/components/box/box.js`
   - **Action**: Create `Alpine.store('box')` to manage the stack of open modals.
   - **Goal**: Support multiple stacked modals (z-index management).
 
-- [ ] **Step 3.3: Refactor Box (Modal) - Part 2: Rendering**
-  - **Action**: Implement the Modal Container using `<template x-teleport="body">` and `x-for` iterating over the store.
+- [x] **Step 3.3: Refactor Box (Modal) - Part 2: Rendering**
+  - **Action**: Implement the Modal Container using injected template and `x-for` iterating over the store.
   - **Change**: Instead of creating DOM nodes in JS, the JS only pushes data to the store. The Alpine view handles the rendering.
-  - **HTMX**: Ensure the modal content can be loaded via HTMX (e.g., the store item can contain HTML string or a URL to fetch).
+  - **HTMX**: Ensure the modal content can be loaded via HTMX.
 
 ## 📑 Phase 4: Structural Components
 

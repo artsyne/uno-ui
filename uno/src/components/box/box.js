@@ -1,331 +1,286 @@
 /**
- * Uno - Box Component
+ * Uno - Box Component (Store-Driven Refactor)
  *
  * @module uno.components.box
- * @version 0.1.0
+ * @version 0.2.0
  * @license MIT
  */
 
-import { getPositionStyle } from '../../utils/overlayContainers'
 import { lock, unlock } from '../../utils/bodyScroll'
 import { get as httpGet } from '../../utils/ajax'
 import { log } from '../../utils/log'
 
 export default (Alpine) => {
-  const cached = {}
-  let idPrefix = 'uno-box-'
-
-  function genId() {
-    return Math.random().toString(36).slice(2, 10)
-  }
-
-  function sel(id, name) {
-    return `#${idPrefix}${name}${id}`
-  }
-
-  function parseData(el) {
-    const d = el.dataset
-    const map = {
-      boxTitle: 'title',
-      boxContent: 'content',
-      boxWidth: 'width',
-      boxHeight: 'height',
-      boxModal: 'modal',
-      boxPosition: 'position',
-      boxAjaxUrl: 'ajaxUrl',
-      boxIframeUrl: 'iframeUrl',
-      boxOkText: 'okButtonText',
-      boxCancelText: 'cancelButtonText',
-      boxCache: 'cache',
-      boxId: 'boxId',
-      boxWidthClass: 'widthClass',
-      boxHeightClass: 'heightClass',
-      boxContainerClass: 'containerClass',
-      boxContentOverflow: 'contentOverflow',
-      boxButtonAlign: 'buttonAlign'
-    }
-    const out = {}
-    for (const k in map) {
-      const v = d[k]
-      if (v !== undefined) {
-        const key = map[k]
-        if (key === 'width' || key === 'height') out[key] = parseInt(v, 10)
-        else if (key === 'modal' || key === 'cache') out[key] = v === 'true' || v === true
-        else out[key] = v
-      }
-    }
-    return out
-  }
-
-  function t(key, fallback) {
-    try {
-      const s = Alpine?.store('i18n')
-      return (s && s.t(`box.${key}`)) || fallback
-    } catch { return fallback }
-  }
-
-  function build(opts) {
-    const id = opts.uniqueId
-    const hasTitle = !!opts.title
-    const containerClasses = (opts.containerClass || '').trim()
-    const header = hasTitle ? `
-      <div id="${idPrefix}header${id}" class="flex justify-between items-center p-4 border-b border-gray-300 dark:border-gray-600">
-        <div id="${idPrefix}title${id}" class="text-lg font-semibold text-gray-900 dark:text-gray-100"></div>
-        <button id="${idPrefix}close${id}" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" title="${t('close','Close')}">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-        </button>
-      </div>
-    ` : ''
-    const noTitleClose = !hasTitle ? `
-      <button id="${idPrefix}close${id}" class="absolute top-2 right-2 z-[101] text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 bg-white dark:bg-gray-900 p-1" title="Close">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-      </button>
-    ` : ''
-    const wrapperClasses = hasTitle ? 'p-4 text-gray-900 dark:text-gray-100' : 'pt-12 px-4 pb-4 text-gray-900 dark:text-gray-100'
-    const outer = document.createElement('div')
-    outer.id = `${idPrefix}outer-container${id}`
-    outer.className = 'hidden fixed inset-0 z-[103] p-4 flex items-center justify-center'
-    const container = document.createElement('div')
-    container.id = `${idPrefix}container${id}`
-    container.className = `bg-white dark:bg-gray-900 border-8 border-gray-200 dark:border-gray-600 shadow-lg overflow-hidden transition-colors duration-300 ${containerClasses}`
-    container.style.position = 'relative'
-    container.innerHTML = `${header}${noTitleClose}<div id="${idPrefix}wrapper${id}" class="${wrapperClasses}"><div id="${idPrefix}content${id}" class="overflow-auto"></div></div><div id="${idPrefix}footer${id}" class="p-4 border-t border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hidden"></div>`
-    outer.appendChild(container)
-    const overlay = document.createElement('div')
-    overlay.id = `${idPrefix}overlay${id}`
-    overlay.className = 'hidden fixed inset-0 bg-black z-[102]'
-    overlay.style.opacity = String(opts.overlayOpacity ?? 0.5)
-    document.body.appendChild(outer)
-    document.body.appendChild(overlay)
-    return { outer, container, overlay }
-  }
-
-  function applySizeAndOverflow(id, opts) {
-    const container = document.querySelector(sel(id, 'container'))
-    const content = document.querySelector(sel(id, 'content'))
-    const wrapper = document.querySelector(sel(id, 'wrapper'))
-    if (!container || !content) return
-    if (opts.widthClass || opts.heightClass) {
-      container.style.width = ''
-      container.style.height = ''
-      container.style.maxWidth = ''
-      container.style.maxHeight = ''
-      if (opts.widthClass) container.classList.add(...opts.widthClass.split(' '))
-      if (opts.heightClass) {
-        container.classList.add(...opts.heightClass.split(' '))
-        if (wrapper) {
-          wrapper.classList.add('flex', 'flex-col', 'h-full')
-          content.classList.add('flex-1', 'min-h-0')
-        }
-      }
-    } else {
-      const md = 768
-      const ww = window.innerWidth
-      if (ww <= md) {
-        container.style.width = 'calc(100% - 2rem)'
-        container.style.height = 'calc(100% - 2rem)'
-        if (wrapper) {
-          wrapper.classList.add('flex', 'flex-col', 'h-full')
-          content.classList.add('flex-1', 'min-h-0')
-        } else {
-          content.style.height = '100%'
-        }
-      } else {
-        if (opts.width) container.style.width = `${opts.width}px`
-        if (opts.height) content.style.height = `${opts.height}px`
-      }
-    }
-    content.classList.remove('overflow-auto', 'overflow-hidden', 'overflow-visible')
-    const ov = opts.contentOverflow || 'auto'
-    if (ov === 'hidden') content.classList.add('overflow-hidden')
-    else if (ov === 'visible') content.classList.add('overflow-visible')
-    else content.classList.add('overflow-auto')
-  }
-
-  function setPosition(id, position) {
-    const outer = document.querySelector(sel(id, 'outer-container'))
-    if (!outer) return
-    const style = getPositionStyle(position || 'center')
-    Object.assign(outer.style, style)
-    outer.classList.remove('hidden')
-  }
-
-  function bindClose(id, modal) {
-    const btn = document.querySelector(sel(id, 'close'))
-    if (btn) {
-      btn.addEventListener('click', () => close({ uniqueId: id, modal }))
-    }
-  }
-
-  async function loadContent(id, opts) {
-    const content = document.querySelector(sel(id, 'content'))
-    if (!content) return
-    if (typeof opts.content === 'string') {
-      content.innerHTML = opts.content
-    } else if (typeof opts.targetId === 'string') {
-      const src = document.getElementById(opts.targetId)
-      if (src) content.innerHTML = src.innerHTML
-    } else if (typeof opts.ajaxUrl === 'string') {
-      content.innerHTML = `<div class="flex justify-center items-center h-full"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div><span class="ml-2 text-gray-900 dark:text-gray-100">${t('loading','Loading')}</span></div>`
-      try {
-        const data = await httpGet(opts.ajaxUrl)
-        if (typeof data === 'object' && data !== null) {
-          content.innerHTML = `<pre class="bg-gray-100 p-3 rounded overflow-x-auto whitespace-pre-wrap">${JSON.stringify(data, null, 2)}</pre>`
-        } else {
-          content.innerHTML = String(data)
-        }
-      } catch (e) {
-        log.error('box ajax error', e)
-      }
-    } else if (typeof opts.iframeUrl === 'string') {
-      content.innerHTML = `<iframe frameborder="0" class="w-full h-full" src="${opts.iframeUrl}"></iframe>`
-    }
-  }
-
-  function renderButtons(id, type, opts) {
-    const footer = document.querySelector(sel(id, 'footer'))
-    if (!footer) return
-    const align = ({ left: 'justify-start', center: 'justify-center', right: 'justify-end' }[opts.buttonAlign] || 'justify-end')
-    footer.classList.remove('hidden')
-    footer.className = `p-4 border-t border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 flex ${align} space-x-4`
-    const okText = opts.okButtonText || t('ok','OK')
-    const cancelText = opts.cancelButtonText || t('cancel','Cancel')
-    const okNeeded = type === 'confirm' || type === 'message' || (type === 'dialog' && opts.showOkButton === true)
-    const cancelNeeded = type === 'confirm' || (type === 'dialog' && opts.showCancelButton === true)
-    footer.innerHTML = ''
-    if (okNeeded) {
-      const ok = document.createElement('button')
-      ok.id = `${idPrefix}ok${id}`
-      ok.className = 'px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200'
-      ok.textContent = okText
-      ok.addEventListener('click', () => {
-        let shouldClose = true
-        if (typeof opts.onOk === 'function') {
-          const r = opts.onOk()
-          shouldClose = r !== false
-        }
-        if (shouldClose) close({ uniqueId: id, modal: opts.modal !== false })
-      })
-      footer.appendChild(ok)
-    }
-    if (cancelNeeded) {
-      const cancel = document.createElement('button')
-      cancel.id = `${idPrefix}cancel${id}`
-      cancel.className = 'px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors duration-200'
-      cancel.textContent = cancelText
-      cancel.addEventListener('click', () => {
-        close({ uniqueId: id, modal: opts.modal !== false })
-        if (typeof opts.onCancel === 'function') opts.onCancel()
-      })
-      footer.appendChild(cancel)
-    }
-    if (!okNeeded && !cancelNeeded) {
-      footer.classList.add('hidden')
-    }
-  }
-
-  /**
-   * Open a box
-   * @param {string} type - Box type (dialog, confirm, message)
-   * @param {Object} opts - Options
-   * @returns {Promise<string>} Box ID
-   */
-  async function open(type, opts) {
-    const options = {
-      modal: true,
-      position: 'center',
-      width: 400,
-      height: undefined,
-      overlayOpacity: 0.5,
-      responsive: true,
-      contentOverflow: 'auto',
-      ...opts
-    }
-    if (typeof options.onBeforeOpen === 'function') options.onBeforeOpen()
-    let id = options.boxId || genId()
-    options.uniqueId = id
-    if (options.cache && options.boxId && cached[options.boxId]) {
-      id = cached[options.boxId].uniqueId
-      document.querySelector(sel(id, 'outer-container'))?.classList.remove('hidden')
-      document.querySelector(sel(id, 'overlay'))?.classList.toggle('hidden', options.modal === false)
-      if (options.modal !== false) lock()
-      renderButtons(id, type, options)
-      bindClose(id, options.modal !== false)
-      if (typeof options.onOpen === 'function') options.onOpen()
-      return id
-    }
-    const nodes = build(options)
-    if (options.cache && options.boxId) cached[options.boxId] = { uniqueId: id, modal: options.modal !== false }
-    if (options.title) {
-      const tEl = document.querySelector(sel(id, 'title'))
-      if (tEl) tEl.textContent = options.title
-    }
-    if (options.modal !== false) {
-      nodes.overlay.classList.remove('hidden')
-      lock()
-    }
-    setPosition(id, options.position)
-    applySizeAndOverflow(id, options)
-    await loadContent(id, options)
-    renderButtons(id, type, options)
-    bindClose(id, options.modal !== false)
-    if (typeof options.onOpen === 'function') options.onOpen()
-    return id
-  }
-
-  /**
-   * Close a box
-   * @param {Object} params - { uniqueId, modal }
-   */
-  function close({ uniqueId, modal }) {
-    document.querySelector(sel(uniqueId, 'outer-container'))?.classList.add('hidden')
-    document.querySelector(sel(uniqueId, 'overlay'))?.classList.add('hidden')
-    if (modal) unlock()
-  }
-
-  /**
-   * Clear all cached boxes
-   */
-  function clearCache() {
-    Object.keys(cached).forEach((key) => {
-      const id = cached[key].uniqueId
-      document.querySelector(sel(id, 'outer-container'))?.remove()
-      document.querySelector(sel(id, 'overlay'))?.remove()
-      delete cached[key]
-    })
-  }
-
-  /**
-   * Clear a specific cached box
-   * @param {string} boxId 
-   */
-  function clearCacheById(boxId) {
-    const rec = cached[boxId]
-    if (!rec) return
-    const id = rec.uniqueId
-    document.querySelector(sel(id, 'outer-container'))?.remove()
-    document.querySelector(sel(id, 'overlay'))?.remove()
-    delete cached[boxId]
-  }
-
-  function bindDelegation() {
-    document.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-box-type]')
-      if (!t) return
-      e.preventDefault()
-      const type = t.getAttribute('data-box-type')
-      if (!['dialog', 'confirm', 'message'].includes(type)) return
-      const opts = parseData(t)
-      open(type, opts)
-    })
-  }
-
-  bindDelegation()
-
+  // 1. Store
   Alpine.store('box', {
-    open,
-    close,
-    clearCache,
-    clearCacheById
+    items: [],
+
+    init() {
+      // Watch for modal count to lock/unlock body scroll
+      Alpine.effect(() => {
+        const modals = this.items.filter((i) => i.modal)
+        if (modals.length > 0) {
+          lock()
+        } else {
+          unlock()
+        }
+      })
+    },
+
+    async open(typeOrOpts, opts = {}) {
+      let type = 'dialog'
+      let options = opts
+
+      if (typeof typeOrOpts === 'object') {
+        options = typeOrOpts
+        type = options.type || 'dialog'
+      } else {
+        type = typeOrOpts
+      }
+
+      const id = options.boxId || Math.random().toString(36).slice(2, 10)
+
+      // Check if exists (for cache) - though data-driven usually means state is source of truth
+      // If boxId provided and already open, do nothing or bring to front?
+      // For simplicity, we assume new open.
+
+      const item = {
+        id,
+        type,
+        title: options.title || '',
+        content: options.content || '',
+        width: options.width || 400,
+        height: options.height,
+        modal: options.modal !== false, // default true
+        overlayOpacity: options.overlayOpacity ?? 0.5,
+        position: options.position || 'center',
+        showCloseButton: true, // default true?
+        // Buttons
+        okText: options.okButtonText,
+        cancelText: options.cancelButtonText,
+        onOk: options.onOk,
+        onCancel: options.onCancel,
+        showOk:
+          type === 'confirm' || type === 'message' || (type === 'dialog' && options.showOkButton),
+        showCancel: type === 'confirm' || (type === 'dialog' && options.showCancelButton),
+
+        // State
+        loading: false,
+        visible: true
+      }
+
+      // I18n fallbacks
+      const i18n = Alpine.store('i18n')
+      if (!item.okText) item.okText = i18n ? i18n.t('box.ok') : 'OK'
+      if (!item.cancelText) item.cancelText = i18n ? i18n.t('box.cancel') : 'Cancel'
+
+      // Content Loading
+      if (options.targetId) {
+        const target = document.getElementById(options.targetId)
+        if (target) {
+          item.content = target.innerHTML
+        } else {
+          log.warn('Box: Target element not found:', options.targetId)
+          item.content = '<div class="p-4 text-red-500">Error: Content target not found</div>'
+        }
+      } else if (options.ajaxUrl) {
+        item.loading = true
+        // Add immediately to show loading state
+        this.add(item)
+
+        try {
+          const data = await httpGet(options.ajaxUrl)
+          const content =
+            typeof data === 'object'
+              ? `<pre class="bg-gray-100 p-3 rounded overflow-x-auto whitespace-pre-wrap">${JSON.stringify(data, null, 2)}</pre>`
+              : String(data)
+
+          // Update item in store
+          const current = this.items.find((i) => i.id === id)
+          if (current) {
+            current.content = content
+            current.loading = false
+          }
+        } catch (e) {
+          log.error('Box: Ajax failed', e)
+          const current = this.items.find((i) => i.id === id)
+          if (current) {
+            current.content = `<div class="text-red-500">Error loading content</div>`
+            current.loading = false
+          }
+        }
+        return id
+      } else if (options.iframeUrl) {
+        item.content = `<iframe frameborder="0" class="w-full h-full" src="${options.iframeUrl}"></iframe>`
+      }
+
+      this.add(item)
+      return id
+    },
+
+    add(item) {
+      this.items.push(item)
+      this.ensureContainer()
+    },
+
+    close(id) {
+      this.items = this.items.filter((i) => i.id !== id)
+    },
+
+    closeAll() {
+      this.items = []
+    },
+
+    ensureContainer() {
+      if (document.getElementById('uno-box-container')) return
+      injectContainer()
+    }
+  })
+
+  // 2. Container Injection
+  const injectContainer = () => {
+    try {
+      const container = document.createElement('div')
+      container.id = 'uno-box-container'
+      container.setAttribute('x-data', '{}')
+
+      // Template
+      // We use x-for to render stacked modals.
+      // Each modal is a fixed inset-0 container (to center itself).
+      // z-index starts at 100 and increases?
+      // Alpine x-for index is available. :style="{ zIndex: 100 + index }"
+
+      const template = `
+        <template x-for="(item, index) in $store.box.items" :key="item.id">
+            <div :id="'uno-box-outer-container' + item.id"
+                 class="fixed inset-0 flex items-center justify-center transition-opacity duration-300"
+                 :style="\`z-index: \${100 + index}\`"
+                 role="dialog"
+                 aria-modal="true">
+                 
+                 <!-- Overlay: Covers viewport, blocks interaction, does NOT close modal on click -->
+                 <div :id="'uno-box-overlay' + item.id"
+                      class="absolute inset-0 bg-black transition-opacity duration-300"
+                      :style="\`opacity: \${item.overlayOpacity}\`"
+                      x-show="item.modal"
+                      x-transition:enter="ease-out duration-300"
+                      x-transition:enter-start="opacity-0"
+                      x-transition:enter-end="opacity-100"
+                      x-transition:leave="ease-in duration-200"
+                      x-transition:leave-start="opacity-100"
+                      x-transition:leave-end="opacity-0"></div>
+
+                 <!-- Box Container -->
+                 <div :id="'uno-box-container' + item.id"
+                      class="relative bg-white dark:bg-gray-900 rounded-lg shadow-2xl ring-1 ring-black/5 overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300 transform"
+                      :style="\`width: \${item.width}px; \${item.height ? 'height:' + item.height + 'px' : ''}\`"
+                      x-show="item.visible"
+                      x-transition:enter="ease-out duration-300"
+                      x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                      x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                      x-transition:leave="ease-in duration-200"
+                      x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                      x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+                      
+                      <!-- Header -->
+                      <div :id="'uno-box-header' + item.id" x-show="item.title" class="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700">
+                          <h3 :id="'uno-box-title' + item.id" class="text-lg font-semibold text-slate-800 dark:text-slate-200" x-text="item.title"></h3>
+                          <button :id="'uno-box-close' + item.id" @click="$store.box.close(item.id)" class="text-slate-400 hover:text-slate-500 focus:outline-none">
+                              <span class="sr-only">Close</span>
+                              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                          </button>
+                      </div>
+                      
+                      <!-- Close button if no title -->
+                      <button x-show="!item.title && item.showCloseButton" 
+                              :id="'uno-box-close' + item.id"
+                              @click="$store.box.close(item.id)" 
+                              class="absolute top-2 right-2 z-10 text-slate-400 hover:text-slate-500 focus:outline-none">
+                          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                      </button>
+
+                      <!-- Content -->
+                      <div :id="'uno-box-wrapper' + item.id" class="p-4 overflow-auto flex-1 text-slate-600 dark:text-slate-300">
+                          <div x-show="item.loading" class="flex justify-center items-center h-full">
+                              <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                          </div>
+                          <div :id="'uno-box-content' + item.id" x-show="!item.loading" x-html="item.content"></div>
+                      </div>
+
+                      <!-- Footer -->
+                      <div :id="'uno-box-footer' + item.id" x-show="item.showOk || item.showCancel" class="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-end space-x-3 bg-slate-50 dark:bg-slate-800">
+                          <button :id="'uno-box-cancel' + item.id"
+                                  x-show="item.showCancel"
+                                  @click="item.onCancel ? (item.onCancel(), $store.box.close(item.id)) : $store.box.close(item.id)"
+                                  x-text="item.cancelText"
+                                  class="px-4 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-md text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                          </button>
+                          <button :id="'uno-box-ok' + item.id"
+                                  x-show="item.showOk"
+                                  @click="() => {
+                                      const shouldClose = item.onOk ? item.onOk() : true;
+                                      if (shouldClose !== false) $store.box.close(item.id);
+                                  }"
+                                  x-text="item.okText"
+                                  class="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                          </button>
+                      </div>
+                 </div>
+            </div>
+        </template>
+      `
+      container.innerHTML = template
+      document.body.appendChild(container)
+    } catch (e) {
+      log.error('Box: Failed to inject container', e)
+    }
+  }
+
+  // Eager injection
+  if (document.body) {
+    injectContainer()
+  } else {
+    document.addEventListener('DOMContentLoaded', injectContainer)
+  }
+
+  // Global delegator for data-box-type (backward compatibility / ease of use)
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-box-type]')
+    if (!t) return
+
+    const type = t.getAttribute('data-box-type')
+    if (!['dialog', 'confirm', 'message'].includes(type)) return
+
+    e.preventDefault()
+
+    // Parse data attributes
+    const d = t.dataset
+    const opts = {
+      title: d.boxTitle,
+      content: d.boxContent,
+      width: d.boxWidth ? parseInt(d.boxWidth) : undefined,
+      height: d.boxHeight ? parseInt(d.boxHeight) : undefined,
+      ajaxUrl: d.boxAjaxUrl,
+      iframeUrl: d.boxIframeUrl,
+      targetId: d.boxTargetId,
+      position: d.boxPosition,
+      okButtonText: d.boxOkText,
+      cancelButtonText: d.boxCancelText,
+      overlayOpacity: d.boxOverlayOpacity ? parseFloat(d.boxOverlayOpacity) : undefined,
+      showCloseButton: d.boxShowClose !== 'false',
+      boxId: d.boxId,
+      cache: d.boxCache === 'true'
+    }
+
+    if (d.boxModal === 'false') opts.modal = false
+
+    Alpine.store('box').open(type, opts)
   })
 }
