@@ -4,20 +4,20 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Uno Valid Comprehensive Test</title>
+    <title>Uno Valid Data-Driven Test</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script src="../../dist/uno.umd.js" defer></script>
     <script src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
 </head>
 
-<body class="bg-slate-50 min-h-screen pb-20">
+<body class="bg-slate-50 min-h-screen pb-20" x-data>
     <!-- Header -->
     <header class="bg-white shadow-sm sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">Uno</span>
-                Valid Plugin
+                Valid Plugin (Data-Driven)
             </h1>
             <div class="flex items-center gap-4">
                 <div class="text-sm text-slate-500">Switch Lang:</div>
@@ -36,8 +36,9 @@
         <!-- Introduction -->
         <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
             <p class="text-slate-600">
-                This page demonstrates all capabilities of the <code>valid.js</code> plugin, including built-in
-                validators, logic rules, async callbacks, and HTMX integration.
+                This page demonstrates the new <strong>Data-Driven</strong> validation plugin.
+                It uses <code>x-data="validForm"</code> and declarative directives like
+                <code>x-valid-error</code> and <code>x-valid-count</code>.
             </p>
         </div>
 
@@ -49,33 +50,33 @@
                     <h2 class="font-semibold text-slate-800">1. Built-in Validators</h2>
                     <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Client-side Regex</span>
                 </div>
-                <form x-data="validForm()" class="p-6 space-y-5">
+                <form x-data="validForm" @submit.prevent="submit" class="p-6 space-y-5">
                     <!-- Validname -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Username
                             <code>validname</code></label>
-                        <input name="username" data-valid-type="validname" data-valid-required="true"
+                        <input x-validate name="username" data-valid-type="validname" data-valid-required="true"
                             class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="Letters, numbers, _ -" />
-                        <div class="valid-hint text-xs mt-1 h-4 transition-all"></div>
+                        <div x-valid-error="username" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <!-- Email -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Email <code>email</code></label>
-                        <input name="email" type="email" data-valid-required="true"
+                        <input x-validate name="email" type="email" data-valid-required="true"
                             class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="user@example.com" />
-                        <div class="valid-hint text-xs mt-1 h-4 transition-all"></div>
+                        <div x-valid-error="email" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <!-- Mobile -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Mobile <code>mobile</code></label>
-                        <input name="mobile" data-valid-type="mobile"
+                        <input x-validate name="mobile" data-valid-type="mobile"
                             class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="+1234567890" />
-                        <div class="valid-hint text-xs mt-1 h-4 transition-all"></div>
+                        <div x-valid-error="mobile" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <!-- URL & Domain -->
@@ -83,18 +84,18 @@
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Website
                                 <code>url</code></label>
-                            <input name="url" type="url" data-valid-type="url"
+                            <input x-validate name="url" type="url" data-valid-type="url"
                                 class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                 placeholder="https://..." />
-                            <div class="valid-hint text-xs mt-1 h-4 transition-all"></div>
+                            <div x-valid-error="url" class="text-xs mt-1 h-4 transition-all"></div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Domain
                                 <code>domain</code></label>
-                            <input name="domain" data-valid-type="domain"
+                            <input x-validate name="domain" data-valid-type="domain"
                                 class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                 placeholder="example.com" />
-                            <div class="valid-hint text-xs mt-1 h-4 transition-all"></div>
+                            <div x-valid-error="domain" class="text-xs mt-1 h-4 transition-all"></div>
                         </div>
                     </div>
 
@@ -102,18 +103,18 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Date <code>date</code></label>
-                            <input name="date" data-valid-type="date"
+                            <input x-validate name="date" data-valid-type="date"
                                 class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                 placeholder="YYYY-MM-DD" />
-                            <div class="valid-hint text-xs mt-1 h-4 transition-all"></div>
+                            <div x-valid-error="date" class="text-xs mt-1 h-4 transition-all"></div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Integer
                                 <code>int</code></label>
-                            <input name="int" data-valid-type="int"
+                            <input x-validate name="int" data-valid-type="int"
                                 class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                 placeholder="123" />
-                            <div class="valid-hint text-xs mt-1 h-4 transition-all"></div>
+                            <div x-valid-error="int" class="text-xs mt-1 h-4 transition-all"></div>
                         </div>
                     </div>
 
@@ -129,56 +130,56 @@
                     <h2 class="font-semibold text-slate-800">2. Logic Rules</h2>
                     <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Complex Logic</span>
                 </div>
-                <form x-data="validForm()" class="p-6 space-y-5">
+                <form x-data="validForm" @submit.prevent="submit" class="p-6 space-y-5">
 
                     <!-- Password & Compare -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Password <code>pwd</code> (min
                             6)</label>
-                        <input id="logic_pwd" name="password" type="password" data-valid-type="pwd" data-valid-min="6"
-                            data-valid-required="true"
+                        <input x-validate id="logic_pwd" name="password" type="password" data-valid-type="pwd"
+                            data-valid-min="6" data-valid-required="true"
                             class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors" />
-                        <div class="valid-hint text-xs mt-1 h-4 transition-all"></div>
+                        <div x-valid-error="password" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Confirm
                             <code>compareto</code></label>
-                        <input name="confirm" type="password"
+                        <input x-validate name="confirm" type="password"
                             valid='[{"type":"compareto","destid":"logic_pwd","msg":"Must match password"}]'
                             class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors" />
-                        <div class="valid-hint text-xs mt-1 h-4 transition-all"></div>
+                        <div x-valid-error="confirm" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <!-- Range -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Age <code>range</code>
                             (18-60)</label>
-                        <input name="age"
+                        <input x-validate name="age"
                             valid='[{"type":"int"},{"type":"range","min":18,"max":60,"msg":"Only 18-60 allowed"}]'
                             class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="25" />
-                        <div class="valid-hint text-xs mt-1 h-4 transition-all"></div>
+                        <div x-valid-error="age" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <!-- Custom Regexp -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">API Key <code>regexp</code>
                             (A-Z0-9, len 8)</label>
-                        <input name="apikey"
+                        <input x-validate name="apikey"
                             valid='[{"type":"regexp","expression":"[A-Z0-9]{8}","msg":"Must be 8 uppercase alphanumeric chars"}]'
                             class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="ABC123XY" />
-                        <div class="valid-hint text-xs mt-1 h-4 transition-all"></div>
+                        <div x-valid-error="apikey" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <!-- Empty Quit -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Optional Code
                             <code>emptyquit</code> + <code>int</code></label>
-                        <input name="opt_code" valid='[{"type":"emptyquit"},{"type":"int"}]'
+                        <input x-validate name="opt_code" valid='[{"type":"emptyquit"},{"type":"int"}]'
                             class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="Empty is ok, but if filled must be int" />
-                        <div class="valid-hint text-xs mt-1 h-4 transition-all"></div>
+                        <div x-valid-error="opt_code" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <button type="submit"
@@ -193,36 +194,40 @@
                     <h2 class="font-semibold text-slate-800">3. Text Processing</h2>
                     <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Limits & Tags</span>
                 </div>
-                <form x-data="validForm()" class="p-6 space-y-5">
+                <form x-data="validForm" @submit.prevent="submit" class="p-6 space-y-5">
 
                     <!-- Tags -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Skills <code>tag</code> (max 3,
                             comma sep)</label>
-                        <input name="tags" valid='[{"type":"tag","max":3,"mark":",","msg":"Max 3 tags allowed"}]'
+                        <input x-validate name="tags"
+                            valid='[{"type":"tag","max":3,"mark":",","msg":"Max 3 tags allowed"}]'
                             class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="js,css,html" />
-                        <div class="valid-hint text-xs mt-1 h-4 transition-all"></div>
+                        <div x-valid-error="tags" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <!-- Limit with Counter (Textarea) -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Bio <code>limit</code> (max
                             100)</label>
-                        <textarea valid='[{"type":"limit","max":100,"show":true}]'
+                        <textarea x-validate name="bio" valid='[{"type":"limit","max":100,"show":true}]'
                             class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors h-24"
                             placeholder="Tell us about yourself..."></textarea>
-                        <!-- valid-count will be auto inserted here -->
+                        <div x-valid-count="bio"
+                            class="valid-count block w-full text-xs text-gray-500 dark:text-gray-400 text-right mt-2">
+                        </div>
                     </div>
 
                     <!-- Limit with Min (Input) -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Nickname <code>limit</code> (min 3,
                             max 10)</label>
-                        <input name="nickname" valid='[{"type":"limit","min":3,"max":10,"msg":"Length must be 3-10"}]'
+                        <input x-validate name="nickname"
+                            valid='[{"type":"limit","min":3,"max":10,"msg":"Length must be 3-10"}]'
                             class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="Nick" />
-                        <div class="valid-hint text-xs mt-1 h-4 transition-all"></div>
+                        <div x-valid-error="nickname" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <button type="submit"
@@ -239,20 +244,20 @@
                 </div>
 
                 <!-- HTMX Form -->
-                <form x-data="validForm()" hx-post="/examples/data/sample.json" hx-target="#htmx-result"
-                    class="p-6 space-y-5">
+                <form x-data="validForm" @submit.prevent="submit" hx-post="/examples/data/sample.json"
+                    hx-target="#htmx-result" hx-trigger="valid-submit" class="p-6 space-y-5">
 
                     <!-- Async Check -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Server User Check
                             <code>callback</code></label>
                         <div class="relative">
-                            <input id="async_user" name="username"
+                            <input x-validate id="async_user" name="username"
                                 valid='[{"type":"required"},{"type":"callback","fn":"checkUserUnique"}]'
                                 class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors pr-10"
                                 placeholder="Try 'admin' (taken) or 'guest' (error)" />
-                            <!-- Explicit hint to ensure it's the immediate sibling for valid.js -->
-                            <div class="valid-hint text-xs mt-1 h-4 transition-all"></div>
+                            <!-- Explicit error container -->
+                            <div x-valid-error="username" class="text-xs mt-1 h-4 transition-all"></div>
 
                             <div class="absolute right-3 top-2.5 text-slate-400 pointer-events-none">
                                 <svg xmlns="http://www.w3.org/2000/svg"
@@ -285,8 +290,6 @@
         </div>
     </main>
 
-    <!-- Styles for validation states handled by Tailwind CSS -->
-
     <script>
         window.addEventListener('alpine:init', () => {
             Alpine.store('valid').registerCallback('checkUserUnique', async (id, value) => {
@@ -299,7 +302,7 @@
                 if (val === 'guest') return { valid: false, message: 'Guest accounts not allowed' };
 
                 return true;
-            }, 'input');
+            });
         });
     </script>
 </body>

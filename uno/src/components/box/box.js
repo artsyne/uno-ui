@@ -6,10 +6,10 @@
  * @license MIT
  */
 
-import { getPositionStyle } from '../../core/overlayContainers'
-import { lock, unlock } from '../../core/bodyScroll'
-import { get as httpGet } from '../../core/ajax'
-import { log } from '../../core/log'
+import { getPositionStyle } from '../../utils/overlayContainers'
+import { lock, unlock } from '../../utils/bodyScroll'
+import { get as httpGet } from '../../utils/ajax'
+import { log } from '../../utils/log'
 
 export default (Alpine) => {
   const cached = {}

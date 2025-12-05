@@ -11,7 +11,7 @@
     <script src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
 </head>
 
-<body class="bg-slate-50 min-h-screen pb-20">
+<body class="bg-slate-50 min-h-screen pb-20" x-data>
 
     <!-- Header -->
     <header class="bg-white shadow-sm sticky top-0 z-40">
@@ -39,7 +39,7 @@
             <p class="text-slate-600">
                 The <code>tooltip</code> plugin offers smart positioning (flipping) and multiple trigger modes (hover,
                 click).
-                It requires a trigger element and a tooltip container with <code>x-ref="tooltipRef"</code>.
+                It uses the <code>x-tooltip</code> directive for a clean, data-driven API.
             </p>
         </div>
 
@@ -53,34 +53,20 @@
                 </div>
                 <div class="p-6 h-64 flex items-center justify-center gap-8">
 
-                    <!-- Top (Default) - Simplified harness to satisfy position check -->
-                    <div x-data="{open:false}" class="relative">
-                        <button data-testid="trigger-top" @mouseenter="open=true" @mouseleave="open=false"
+                    <!-- Top (Default) -->
+                    <div class="relative">
+                        <button data-testid="trigger-top" x-tooltip="'Hello Top!'"
                             class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm">
                             Hover Top
                         </button>
-
-                        <div data-testid="tooltip-top" x-show="open"
-                            class="fixed z-50 px-3 py-2 text-sm font-medium rounded-lg shadow-sm whitespace-nowrap border border-gray-200 bg-white text-gray-900"
-                            style="top: 0px; left: 0px;">
-                            <span>Hello Top!</span>
-                        </div>
                     </div>
 
                     <!-- Bottom -->
-                    <div x-data="tooltip('Hello Bottom!', { position: 'bottom' })" class="relative">
-                        <button data-testid="trigger-bottom" data-trigger @mouseenter="onMouseEnter"
-                            @mouseleave="onMouseLeave"
+                    <div class="relative">
+                        <button data-testid="trigger-bottom" x-tooltip.bottom="'Hello Bottom!'"
                             class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
                             Hover Bottom
                         </button>
-
-                        <div data-testid="tooltip-bottom" x-ref="tooltipRef" x-show="open" x-transition :class="classes"
-                            :style="{ top: top + 'px', left: left + 'px', visibility: positioned ? 'visible' : 'hidden' }"
-                            style="display: none;">
-                            <span x-html="content"></span>
-                            <div :class="arrowClasses" class="border border-gray-200 border-t-0 border-l-0"></div>
-                        </div>
                     </div>
 
                 </div>
@@ -94,20 +80,12 @@
                 </div>
                 <div class="p-6 h-64 flex items-center justify-center">
 
-                    <div x-data="tooltip('Clicked (Light)!', { position: 'right', trigger: 'click', theme: 'light' })"
-                        class="relative">
-                        <button data-testid="trigger-click" data-trigger @click="onClick"
-                            @click.outside="onClickOutside"
+                    <div class="relative">
+                        <button data-testid="trigger-click"
+                            x-tooltip.click.right="{ content: 'Clicked (Light)!', theme: 'light' }"
                             class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium shadow-sm">
                             Click Me (Right)
                         </button>
-
-                        <div data-testid="tooltip-click" x-ref="tooltipRef" x-show="open" x-transition :class="classes"
-                            :style="{ top: top + 'px', left: left + 'px', visibility: positioned ? 'visible' : 'hidden' }"
-                            style="display: none;">
-                            <span x-html="content"></span>
-                            <div :class="arrowClasses" class="border border-gray-200 border-t-0 border-l-0"></div>
-                        </div>
                     </div>
 
                 </div>
@@ -139,19 +117,11 @@
                         </div>
                     </div>
 
-                    <div x-data="tooltip('', { position: 'bottom', target: 'my-custom-content' })" class="relative">
-                        <button data-testid="trigger-target" data-trigger @mouseenter="onMouseEnter"
-                            @mouseleave="onMouseLeave"
+                    <div class="relative">
+                        <button data-testid="trigger-target" x-tooltip.bottom="{ target: '#my-custom-content' }"
                             class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium shadow-sm">
                             Hover for HTML
                         </button>
-
-                        <div data-testid="tooltip-target" x-ref="tooltipRef" x-show="open" x-transition :class="classes"
-                            :style="{ top: top + 'px', left: left + 'px', visibility: positioned ? 'visible' : 'hidden' }"
-                            style="display: none;">
-                            <span x-html="content"></span>
-                            <div :class="arrowClasses" class="border border-gray-200 border-t-0 border-l-0"></div>
-                        </div>
                     </div>
 
                 </div>
@@ -169,37 +139,17 @@
                     </p>
 
                     <div class="absolute top-0 left-0 p-4">
-                        <div x-data="tooltip('I flipped to bottom!', { position: 'top' })">
-                            <button data-testid="trigger-edge" data-trigger @mouseenter="onMouseEnter"
-                                @mouseleave="onMouseLeave"
-                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium shadow-sm whitespace-nowrap">
-                                Top Edge (Force Flip)
-                            </button>
-
-                            <div data-testid="tooltip-edge" x-ref="tooltipRef" x-show="open" x-transition
-                                :class="classes"
-                                :style="{ top: top + 'px', left: left + 'px', visibility: positioned ? 'visible' : 'hidden' }"
-                                style="display: none;">
-                                <span x-html="content"></span>
-                                <div :class="arrowClasses" class="border border-gray-200 border-t-0 border-l-0"></div>
-                            </div>
-                        </div>
+                        <button data-testid="trigger-edge" x-tooltip.top="'I flipped to bottom!'"
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium shadow-sm whitespace-nowrap">
+                            Top Edge (Force Flip)
+                        </button>
                     </div>
 
                     <div class="absolute bottom-0 right-0 p-4">
-                        <div x-data="tooltip('I flipped to top-left!', { position: 'bottom-right' })">
-                            <button data-trigger @mouseenter="onMouseEnter" @mouseleave="onMouseLeave"
-                                class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium shadow-sm whitespace-nowrap">
-                                Bottom Right Edge
-                            </button>
-
-                            <div x-ref="tooltipRef" x-show="open" x-transition :class="classes"
-                                :style="{ top: top + 'px', left: left + 'px', visibility: positioned ? 'visible' : 'hidden' }"
-                                style="display: none;">
-                                <span x-html="content"></span>
-                                <div :class="arrowClasses" class="border border-gray-200 border-t-0 border-l-0"></div>
-                            </div>
-                        </div>
+                        <button x-tooltip.bottom.right="'I flipped to top-left!'"
+                            class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium shadow-sm whitespace-nowrap">
+                            Bottom Right Edge
+                        </button>
                     </div>
 
                 </div>
