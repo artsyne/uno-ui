@@ -7,8 +7,22 @@
     <title>Uno Tab Comprehensive Test</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-    <script src="../../dist/uno.umd.js" defer></script>
-    <script src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
+    <!-- Load Uno before Alpine so it can register on alpine:init -->
+    <script src="../../dist/uno.umd.js?v=0.2.0"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x"></script>
+    <style>
+        .tab-base {
+            @apply text-slate-500 hover:text-slate-700 cursor-pointer transition-colors border-b-2 border-transparent outline-none;
+        }
+
+        .tab-base[aria-selected="true"] {
+            @apply text-blue-600 border-blue-600;
+        }
+
+        .tab-base:focus-visible {
+            @apply ring-2 ring-blue-300 ring-offset-2 rounded-sm;
+        }
+    </style>
 </head>
 
 <body class="bg-slate-50 min-h-screen pb-20">
@@ -34,107 +48,90 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
+        <!-- Introduction -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+            <p class="text-slate-600">
+                The refactored <code>tab.js</code> uses <code>Alpine.data('tabs')</code>.
+                It supports declarative bindings, hash navigation, and AJAX loading.
+            </p>
+        </div>
+
         <!-- TEST HARNESS: Match e2e selectors -->
         <section class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
             <h2 class="font-semibold text-slate-800 mb-4">Test Harness (Minimal)</h2>
-            <!-- Modern Tabs -->
-            <div class="mb-6">
-                <div class="flex border-b mb-4">
-                    <button data-tab-group="main" data-tab-target="tab1" class="tab-base current px-4 py-2">Tab
-                        1</button>
-                    <button data-tab-group="main" data-tab-target="tab2" data-tab-hash="settings"
-                        class="tab-base px-4 py-2">Tab 2</button>
-                    <button data-tab-group="main" data-tab-target="tab3" data-tab-hash="billing"
-                        class="tab-base px-4 py-2">Tab 3</button>
-                </div>
-                <div>
-                    <div id="tab1">Content 1</div>
-                    <div id="tab2" class="hidden">Content 2</div>
-                    <div id="tab3" class="hidden">Content 3</div>
-                </div>
-            </div>
 
-            <!-- Legacy Attributes -->
-            <div class="mb-6">
-                <div class="flex border-b mb-4">
-                    <a href="#" tabgroup="legacy" tabtarget="l-tab1" rel="legacy1" class="current px-4 py-2">Legacy
-                        1</a>
-                    <a href="#" tabgroup="legacy" tabtarget="l-tab2" rel="legacy2" class="px-4 py-2">Legacy 2</a>
+            <!-- Modern Tabs -->
+            <div class="mb-6" x-data="window.unoTabs('tab1')">
+                <div class="flex border-b mb-4" x-bind="tablist">
+                    <button x-bind="trigger('tab1')" class="tab-base px-4 py-2">Tab 1</button>
+                    <button x-bind="trigger('tab2', null, 'settings')" class="tab-base px-4 py-2">Tab 2</button>
+                    <button x-bind="trigger('tab3', null, 'billing')" class="tab-base px-4 py-2">Tab 3</button>
                 </div>
                 <div>
-                    <div id="l-tab1">Legacy Content 1</div>
-                    <div id="l-tab2" class="hidden">Legacy Content 2</div>
+                    <div x-bind="panel('tab1')">Content 1</div>
+                    <div x-bind="panel('tab2')">Content 2</div>
+                    <div x-bind="panel('tab3')">Content 3</div>
                 </div>
             </div>
 
             <!-- Separated Elements + AJAX -->
-            <div class="mb-2">
-                <div class="flex border-b mb-4">
-                    <button data-tab-group="sep" data-tab-target="s-tab1" class="tab-base current px-4 py-2">S-Tab
-                        1</button>
-                    <button data-tab-group="sep" data-tab-target="s-tab2" class="tab-base px-4 py-2">S-Tab 2</button>
-                    <button data-tab-group="sep" data-tab-target="s-tab3" data-tab-url="/examples/data/tab-content.html"
+            <div class="mb-2" x-data="window.unoTabs('s-tab1')">
+                <div class="flex border-b mb-4" x-bind="tablist">
+                    <button x-bind="trigger('s-tab1')" class="tab-base px-4 py-2">S-Tab 1</button>
+                    <button x-bind="trigger('s-tab2')" class="tab-base px-4 py-2">S-Tab 2</button>
+                    <button x-bind="trigger('s-tab3', '/examples/data/tab-content.html')"
                         class="tab-base px-4 py-2">S-Tab 3 (AJAX)</button>
                 </div>
                 <div>
-                    <div id="s-tab1">Separated Content 1</div>
-                    <div id="s-tab2" class="hidden">Separated Content 2</div>
-                    <div id="s-tab3" class="hidden"><!-- ajax --></div>
+                    <div x-bind="panel('s-tab1')">Separated Content 1</div>
+                    <div x-bind="panel('s-tab2')">Separated Content 2</div>
+                    <div x-bind="panel('s-tab3')"><!-- ajax --></div>
                 </div>
             </div>
         </section>
-
-        <!-- Introduction -->
-        <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-            <p class="text-slate-600">
-                The <code>tab.js</code> plugin automatically handles tab switching via data attributes.
-                It supports hash navigation, AJAX content loading, and legacy attributes.
-                No <code>x-data</code> is required.
-            </p>
-        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
             <!-- Card 1: Standard Tabs -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-semibold text-slate-800">1. Standard Tabs (Group: main)</h2>
-                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Modern API</span>
+                    <h2 class="font-semibold text-slate-800">1. Standard Tabs</h2>
+                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Alpine API</span>
                 </div>
-                <div class="p-6">
+                <div class="p-6" x-data="window.unoTabs('tab-profile')">
                     <!-- Tab Navigation -->
-                    <div class="flex border-b border-slate-200 mb-6">
-                        <button data-tab-group="main" data-tab-target="tab-profile" data-tab-hash="profile"
-                            class="current px-4 py-2 font-medium text-sm focus:outline-none transition-colors">
+                    <div class="flex border-b border-slate-200 mb-6" x-bind="tablist">
+                        <button x-bind="trigger('tab-profile', null, 'profile')"
+                            class="tab-base px-4 py-2 font-medium text-sm">
                             Profile
                         </button>
-                        <button data-tab-group="main" data-tab-target="tab-settings" data-tab-hash="settings"
-                            class="px-4 py-2 font-medium text-sm focus:outline-none transition-colors">
+                        <button x-bind="trigger('tab-settings', null, 'settings')"
+                            class="tab-base px-4 py-2 font-medium text-sm">
                             Settings
                         </button>
-                        <button data-tab-group="main" data-tab-target="tab-billing" data-tab-hash="billing"
-                            class="px-4 py-2 font-medium text-sm focus:outline-none transition-colors">
+                        <button x-bind="trigger('tab-billing', null, 'billing')"
+                            class="tab-base px-4 py-2 font-medium text-sm">
                             Billing
                         </button>
                     </div>
 
                     <!-- Tab Content -->
                     <div class="min-h-[150px]">
-                        <div id="tab-profile" class="space-y-2 animate-fadeIn">
+                        <div x-bind="panel('tab-profile')" class="space-y-2">
                             <h3 class="font-bold text-slate-800">User Profile</h3>
                             <p class="text-slate-600 text-sm">Manage your public profile and bio.</p>
                             <div class="bg-blue-50 p-4 rounded text-blue-700 text-sm border border-blue-100">
                                 Active Tab: Profile (Hash: #profile)
                             </div>
                         </div>
-                        <div id="tab-settings" class="hidden space-y-2 animate-fadeIn">
+                        <div x-bind="panel('tab-settings')" class="space-y-2">
                             <h3 class="font-bold text-slate-800">Account Settings</h3>
                             <p class="text-slate-600 text-sm">Update password and security preferences.</p>
                             <div class="bg-green-50 p-4 rounded text-green-700 text-sm border border-green-100">
                                 Active Tab: Settings (Hash: #settings)
                             </div>
                         </div>
-                        <div id="tab-billing" class="hidden space-y-2 animate-fadeIn">
+                        <div x-bind="panel('tab-billing')" class="space-y-2">
                             <h3 class="font-bold text-slate-800">Billing Information</h3>
                             <p class="text-slate-600 text-sm">View invoices and payment methods.</p>
                             <div class="bg-purple-50 p-4 rounded text-purple-700 text-sm border border-purple-100">
@@ -145,26 +142,26 @@
                 </div>
             </div>
 
-            <!-- Card 2: AJAX & Layouts -->
+            <!-- Card 2: Sidebar & AJAX -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-semibold text-slate-800">2. Sidebar & AJAX (Group: side)</h2>
+                    <h2 class="font-semibold text-slate-800">2. Sidebar & AJAX</h2>
                     <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Advanced</span>
                 </div>
-                <div class="p-6 flex flex-col sm:flex-row gap-6">
+                <div class="p-6 flex flex-col sm:flex-row gap-6"
+                    x-data="window.unoTabs('side-dashboard', { manual: false })">
                     <!-- Sidebar Nav -->
-                    <div class="flex flex-col space-y-1 w-full sm:w-1/3">
-                        <button data-tab-group="side" data-tab-target="side-dashboard"
-                            class="current text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-50 border border-transparent">
+                    <div class="flex flex-col space-y-1 w-full sm:w-1/3" x-bind="tablist">
+                        <button x-bind="trigger('side-dashboard')"
+                            class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50">
                             Dashboard
                         </button>
-                        <button data-tab-group="side" data-tab-target="side-reports"
-                            class="text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-50 border border-transparent">
+                        <button x-bind="trigger('side-reports')"
+                            class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50">
                             Reports
                         </button>
-                        <button data-tab-group="side" data-tab-target="side-ajax"
-                            data-tab-url="/examples/data/tab-content.html"
-                            class="text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-50 border border-transparent flex justify-between items-center">
+                        <button x-bind="trigger('side-ajax', '/examples/data/tab-content.html')"
+                            class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50 flex justify-between items-center">
                             <span>External (AJAX)</span>
                             <span class="text-xs text-slate-400">HTML</span>
                         </button>
@@ -172,7 +169,7 @@
 
                     <!-- Content Area -->
                     <div class="w-full sm:w-2/3 bg-slate-50 rounded-lg border border-slate-100 p-4 min-h-[200px]">
-                        <div id="side-dashboard">
+                        <div x-bind="panel('side-dashboard')">
                             <h4 class="font-bold text-slate-700 mb-2">Dashboard Overview</h4>
                             <div class="grid grid-cols-2 gap-2">
                                 <div class="bg-white p-3 rounded shadow-sm text-center">
@@ -185,72 +182,21 @@
                                 </div>
                             </div>
                         </div>
-                        <div id="side-reports" class="hidden">
+                        <div x-bind="panel('side-reports')">
                             <h4 class="font-bold text-slate-700 mb-2">Reports</h4>
                             <p class="text-sm text-slate-600">Select a report type to view details.</p>
                         </div>
-                        <div id="side-ajax" class="hidden">
+                        <div x-bind="panel('side-ajax')">
                             <!-- Content will be loaded here -->
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Card 3: Legacy Support -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-semibold text-slate-800">3. Legacy Attributes</h2>
-                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Backwards Compat</span>
-                </div>
-                <div class="p-6">
-                    <p class="text-sm text-slate-500 mb-4">
-                        Supports <code>tabgroup</code>, <code>tabtarget</code>, and <code>rel</code> attributes.
-                    </p>
-                    <div class="border rounded-lg overflow-hidden">
-                        <div class="flex bg-slate-100 border-b">
-                            <a href="#" tabgroup="legacy" tabtarget="leg-1" rel="leg1"
-                                class="current px-4 py-2 text-sm font-medium">
-                                Legacy A
-                            </a>
-                            <a href="#" tabgroup="legacy" tabtarget="leg-2" rel="leg2"
-                                class="px-4 py-2 text-sm font-medium">
-                                Legacy B
-                            </a>
-                        </div>
-                        <div class="p-4 bg-white">
-                            <div id="leg-1">Content for Legacy A</div>
-                            <div id="leg-2" class="hidden">Content for Legacy B</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 4: Programmatic Control -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-semibold text-slate-800">4. Programmatic Control</h2>
-                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">JS API</span>
-                </div>
-                <div class="p-6">
-                    <p class="text-sm text-slate-500 mb-4">
-                        Use <code>Alpine.store('tabs').switch(group, targetId)</code> to change tabs via JavaScript.
-                    </p>
-                    <div class="flex gap-2">
-                        <button onclick="(window.Alpine||window.top.Alpine).store('tabs').switch('main', 'tab-billing')"
-                            class="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors text-sm font-medium">
-                            Switch Main to Billing
-                        </button>
-                        <button
-                            onclick="(window.Alpine||window.top.Alpine).store('tabs').switch('side', 'side-reports')"
-                            class="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors text-sm font-medium">
-                            Switch Side to Reports
-                        </button>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </main>
+
+    <!-- Uno already loaded above; Alpine CDN starts the app -->
 </body>
 
 </html>

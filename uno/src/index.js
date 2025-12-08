@@ -15,13 +15,13 @@ import tooltip from './components/tooltip/tooltip'
 import notify from './components/notify/notify'
 import box from './components/box/box'
 import valid from './components/valid/valid'
-import tab from './components/tab/tab'
+import tab, { factory as unoTabsFactory } from './components/tab/tab'
 
 window.Alpine = Alpine
 window.htmx = htmx
-
-// Debug log
-log.info('Uno: Script loaded. Import Alpine:', !!Alpine, 'Window Alpine:', !!window.Alpine)
+if (typeof window !== 'undefined') {
+  window.unoTabs = unoTabsFactory
+}
 
 const register = (alpine) => {
   if (!alpine) {
@@ -44,28 +44,26 @@ const register = (alpine) => {
 }
 
 const init = () => {
-  let alpine = Alpine || window.Alpine
-
+  const alpine = Alpine || window.Alpine
   if (alpine) {
     log.info('Uno: Alpine found, registering')
     register(alpine)
-  } else {
-    log.info('Uno: Alpine not found, waiting for alpine:init')
-    document.addEventListener('alpine:init', () => {
-      log.info('Uno: alpine:init fired')
-      register(window.Alpine)
-    })
-
-    // Fallback: Check on DOMContentLoaded in case alpine:init missed
-    document.addEventListener('DOMContentLoaded', () => {
-      if (!window.Alpine) return
-      // If not yet registered (checked inside register)
-      log.info('Uno: DOMContentLoaded fallback')
-      register(window.Alpine)
-    })
   }
+
+  // Ensure registration happens before Alpine starts when using CDN
+  if (typeof window !== 'undefined') {
+    window.deferLoadingAlpine = (start) => {
+      try { register(window.Alpine) } catch {}
+      start()
+    }
+  }
+
+  // Safety: if Alpine is added later and the above hook missed
+  document.addEventListener('alpine:init', () => {
+    register(window.Alpine)
+  })
 }
 
 init()
 
-// Alpine.start(); // Let the user or Alpine CDN start it
+// Do not auto-start Alpine here; use CDN to start it

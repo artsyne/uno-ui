@@ -131,6 +131,23 @@ export default (Alpine) => {
       this.items = []
     },
 
+    getPositionClass(position) {
+      const pos = position || 'center'
+      const base = 'fixed inset-0 flex transition-opacity duration-300 p-4 pointer-events-none'
+      const positions = {
+        center: 'items-center justify-center',
+        'top-center': 'items-start justify-center',
+        'top-left': 'items-start justify-start',
+        'top-right': 'items-start justify-end',
+        'bottom-center': 'items-end justify-center',
+        'bottom-left': 'items-end justify-start',
+        'bottom-right': 'items-end justify-end',
+        'center-left': 'items-center justify-start',
+        'center-right': 'items-center justify-end'
+      }
+      return `${base} ${positions[pos] || positions['center']}`
+    },
+
     ensureContainer() {
       if (document.getElementById('uno-box-container')) return
       injectContainer()
@@ -153,14 +170,14 @@ export default (Alpine) => {
       const template = `
         <template x-for="(item, index) in $store.box.items" :key="item.id">
             <div :id="'uno-box-outer-container' + item.id"
-                 class="fixed inset-0 flex items-center justify-center transition-opacity duration-300"
+                 :class="$store.box.getPositionClass(item.position)"
                  :style="\`z-index: \${100 + index}\`"
                  role="dialog"
                  aria-modal="true">
                  
                  <!-- Overlay: Covers viewport, blocks interaction, does NOT close modal on click -->
                  <div :id="'uno-box-overlay' + item.id"
-                      class="absolute inset-0 bg-black transition-opacity duration-300"
+                      class="absolute inset-0 bg-black transition-opacity duration-300 pointer-events-auto"
                       :style="\`opacity: \${item.overlayOpacity}\`"
                       x-show="item.modal"
                       x-transition:enter="ease-out duration-300"
@@ -172,7 +189,7 @@ export default (Alpine) => {
 
                  <!-- Box Container -->
                  <div :id="'uno-box-container' + item.id"
-                      class="relative bg-white dark:bg-gray-900 rounded-lg shadow-2xl ring-1 ring-black/5 overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300 transform"
+                      class="relative bg-white dark:bg-gray-900 rounded-lg shadow-2xl ring-1 ring-black/5 overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300 transform pointer-events-auto"
                       :style="\`width: \${item.width}px; \${item.height ? 'height:' + item.height + 'px' : ''}\`"
                       x-show="item.visible"
                       x-transition:enter="ease-out duration-300"

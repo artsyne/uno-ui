@@ -1,6 +1,6 @@
-import $ from "alpinejs";
-import z from "htmx.org";
-const B = {
+import I from "alpinejs";
+import B from "htmx.org";
+const O = {
   box: {
     ok: "OK",
     cancel: "Cancel",
@@ -23,7 +23,7 @@ const B = {
     strongpwd: "At least 8 chars, 1 letter, 1 number, 1 special char"
   },
   charCount: "Remaining: {count}"
-}, j = {
+}, R = {
   box: {
     ok: "确认",
     cancel: "取消",
@@ -46,7 +46,7 @@ const B = {
     strongpwd: "至少 8 位，包含字母、数字和特殊字符"
   },
   charCount: "剩余: {count}"
-}, O = {
+}, A = {
   box: {
     ok: "確認",
     cancel: "取消",
@@ -70,60 +70,60 @@ const B = {
   },
   charCount: "剩餘: {count}"
 };
-const I = {
-  en: B,
-  "zh-CN": j,
-  "zh-TW": O
-}, E = Object.keys(I);
-function R() {
+const j = {
+  en: O,
+  "zh-CN": R,
+  "zh-TW": A
+}, E = Object.keys(j);
+function q() {
   if (typeof localStorage < "u") {
     const s = localStorage.getItem("uno.lang");
     if (s && E.includes(s)) return s;
   }
   if (typeof navigator < "u") {
-    const s = navigator.language, d = s.startsWith("zh") ? s.includes("TW") || s.includes("Hant") ? "zh-TW" : "zh-CN" : "en";
-    return E.includes(d) ? d : "en";
+    const s = navigator.language, a = s.startsWith("zh") ? s.includes("TW") || s.includes("Hant") ? "zh-TW" : "zh-CN" : "en";
+    return E.includes(a) ? a : "en";
   }
   return "en";
 }
-function S(s, d) {
-  const o = d.split(".");
+function S(s, a) {
+  const n = a.split(".");
   let t = s;
-  for (const n of o) {
-    if (!t || typeof t != "object" || !(n in t)) return;
-    t = t[n];
+  for (const i of n) {
+    if (!t || typeof t != "object" || !(i in t)) return;
+    t = t[i];
   }
   return t;
 }
-function A(s, d) {
-  for (const o in d)
-    d[o] && typeof d[o] == "object" ? (s[o] || Object.assign(s, { [o]: {} }), A(s[o], d[o])) : Object.assign(s, { [o]: d[o] });
+function M(s, a) {
+  for (const n in a)
+    a[n] && typeof a[n] == "object" ? (s[n] || Object.assign(s, { [n]: {} }), M(s[n], a[n])) : Object.assign(s, { [n]: a[n] });
 }
-function q(s) {
+function H(s) {
   s.store("i18n", {
-    locale: R(),
-    messages: I,
+    locale: q(),
+    messages: j,
     init() {
       typeof document < "u" && (document.documentElement.lang = this.locale);
     },
-    t(d, o = {}) {
-      const t = this.locale, n = this.messages[t] || this.messages.en, e = S(n, d);
-      return (typeof e == "string" ? e : d).replace(/\{(\w+)\}/g, (a, r) => r in o ? String(o[r]) : `{${r}}`);
+    t(a, n = {}) {
+      const t = this.locale, i = this.messages[t] || this.messages.en, e = S(i, a);
+      return (typeof e == "string" ? e : a).replace(/\{(\w+)\}/g, (l, d) => d in n ? String(n[d]) : `{${d}}`);
     },
-    setLang(d) {
-      if (!this.messages[d]) {
-        console.warn(`[Uno] Language ${d} not found`);
+    setLang(a) {
+      if (!this.messages[a]) {
+        console.warn(`[Uno] Language ${a} not found`);
         return;
       }
-      this.locale = d, typeof localStorage < "u" && localStorage.setItem("uno.lang", d), typeof document < "u" && (document.documentElement.lang = d);
+      this.locale = a, typeof localStorage < "u" && localStorage.setItem("uno.lang", a), typeof document < "u" && (document.documentElement.lang = a);
     },
-    extend(d) {
-      for (const o in d)
-        this.messages[o] ? A(this.messages[o], d[o]) : this.messages[o] = d[o];
+    extend(a) {
+      for (const n in a)
+        this.messages[n] ? M(this.messages[n], a[n]) : this.messages[n] = a[n];
     }
   });
 }
-const h = {
+const x = {
   /**
    * Log info message
    * @param {...any} args - Arguments to log
@@ -146,42 +146,42 @@ const h = {
     console.error("[Uno Error]", ...s);
   }
 };
-function U(s, d, o) {
-  const t = s.getBoundingClientRect(), n = d.getBoundingClientRect(), e = n.width, l = n.height, a = t.width, r = t.height, i = { top: t.top, left: t.left }, c = window.innerWidth, f = window.innerHeight, u = 0, m = 0, g = f, p = c, v = (w, M) => {
-    if (M) {
-      if (w + e > p)
-        return p - e - 10;
-      if (w < m)
-        return m + 10;
+function P(s, a, n) {
+  const t = s.getBoundingClientRect(), i = a.getBoundingClientRect(), e = i.width, r = i.height, l = t.width, d = t.height, o = { top: t.top, left: t.left }, u = window.innerWidth, f = window.innerHeight, c = 0, h = 0, m = f, g = u, v = (w, z) => {
+    if (z) {
+      if (w + e > g)
+        return g - e - 10;
+      if (w < h)
+        return h + 10;
     } else {
-      if (w + l > g)
-        return g - l - 10;
-      if (w < u)
-        return u + 10;
+      if (w + r > m)
+        return m - r - 10;
+      if (w < c)
+        return c + 10;
     }
     return w;
   };
-  let x, b, y = o;
-  switch (o) {
+  let b, p, y = n;
+  switch (n) {
     case "left":
-      b = i.left - e - 5, b < m && (b = i.left + a + 5, y = "right"), x = v(i.top + r / 2 - l / 2, !1);
+      p = o.left - e - 5, p < h && (p = o.left + l + 5, y = "right"), b = v(o.top + d / 2 - r / 2, !1);
       break;
     case "top":
-      x = i.top - l - 8, x < u && (x = i.top + r + 8, y = "bottom"), b = i.left + (a - e) / 2, b = v(b, !0);
+      b = o.top - r - 8, b < c && (b = o.top + d + 8, y = "bottom"), p = o.left + (l - e) / 2, p = v(p, !0);
       break;
     case "right":
-      b = i.left + a + 5, b + e > p && (b = i.left - e - 5, y = "left"), x = v(i.top + r / 2 - l / 2, !1);
+      p = o.left + l + 5, p + e > g && (p = o.left - e - 5, y = "left"), b = v(o.top + d / 2 - r / 2, !1);
       break;
     case "bottom":
     default:
-      x = i.top + r + 8, x + l > g && (x = i.top - l - 8, y = "top"), b = i.left + (a - e) / 2, b = v(b, !0);
+      b = o.top + d + 8, b + r > m && (b = o.top - r - 8, y = "top"), p = o.left + (l - e) / 2, p = v(p, !0);
       break;
   }
-  return { top: x, left: b, position: y };
+  return { top: b, left: p, position: y };
 }
-const H = (s) => {
+const U = (s) => {
   if (!s) {
-    h.error("Tooltip: Alpine is undefined. Plugin initialization failed.");
+    x.error("Tooltip: Alpine is undefined. Plugin initialization failed.");
     return;
   }
   s.store("tooltip", {
@@ -194,28 +194,28 @@ const H = (s) => {
     theme: "dark",
     // 'dark' | 'light'
     triggerEl: null,
-    async show(o, t, n = {}) {
-      this.triggerEl = o, this.content = t, this.placement = n.placement || "top", this.theme = n.theme || "dark", this.visible = !0, this.ensureContainer(), await s.nextTick(), this.updatePosition();
+    async show(n, t, i = {}) {
+      this.triggerEl = n, this.content = t, this.placement = i.placement || "top", this.theme = i.theme || "dark", this.visible = !0, this.ensureContainer(), await s.nextTick(), this.updatePosition();
     },
     hide() {
       this.visible = !1, this.triggerEl = null;
     },
     updatePosition() {
       if (!this.triggerEl) return;
-      const o = document.getElementById("uno-tooltip-content");
-      if (!o) return;
-      const t = U(this.triggerEl, o, this.placement);
+      const n = document.getElementById("uno-tooltip-content");
+      if (!n) return;
+      const t = P(this.triggerEl, n, this.placement);
       this.top = t.top, this.left = t.left;
     },
     ensureContainer() {
-      document.getElementById("uno-tooltip-container") || d();
+      document.getElementById("uno-tooltip-container") || a();
     }
   });
-  const d = () => {
+  const a = () => {
     if (!document.getElementById("uno-tooltip-container"))
       try {
-        const o = document.createElement("div");
-        o.id = "uno-tooltip-container", o.setAttribute("x-data", "{}"), o.innerHTML = `
+        const n = document.createElement("div");
+        n.id = "uno-tooltip-container", n.setAttribute("x-data", "{}"), n.innerHTML = `
           <div id="uno-tooltip-content"
                x-show="$store.tooltip.visible"
                x-transition:enter="transition ease-out duration-200"
@@ -230,104 +230,104 @@ const H = (s) => {
                style="display: none;">
                <span x-html="$store.tooltip.content"></span>
           </div>
-        `, document.body ? document.body.appendChild(o) : document.documentElement.appendChild(o);
-      } catch (o) {
-        h.error("Tooltip: Failed to inject container", o);
+        `, document.body ? document.body.appendChild(n) : document.documentElement.appendChild(n);
+      } catch (n) {
+        x.error("Tooltip: Failed to inject container", n);
       }
   };
-  document.body ? d() : document.addEventListener("DOMContentLoaded", d), s.directive(
+  document.body ? a() : document.addEventListener("DOMContentLoaded", a), s.directive(
     "tooltip",
-    (o, { expression: t, modifiers: n }, { evaluateLater: e, effect: l, cleanup: a }) => {
-      const r = e(t);
-      let i = {
+    (n, { expression: t, modifiers: i }, { evaluateLater: e, effect: r, cleanup: l }) => {
+      const d = e(t);
+      let o = {
         content: "",
-        placement: n[0] || "top",
-        trigger: n.includes("click") ? "click" : "hover",
+        placement: i[0] || "top",
+        trigger: i.includes("click") ? "click" : "hover",
         theme: "dark"
       };
-      n.includes("top") && (i.placement = "top"), n.includes("bottom") && (i.placement = "bottom"), n.includes("left") && (i.placement = "left"), n.includes("right") && (i.placement = "right"), n.includes("light") && (i.theme = "light");
-      const c = (g) => {
-        if (typeof g == "string" ? i.content = g : typeof g == "object" && (i = { ...i, ...g }), i.content && i.content.startsWith("#") && !i.content.includes(" ")) {
-          const p = document.querySelector(i.content);
-          p && (i.content = p.innerHTML);
-        } else if (i.target) {
-          const p = document.querySelector(i.target);
-          p && (i.content = p.innerHTML);
+      i.includes("top") && (o.placement = "top"), i.includes("bottom") && (o.placement = "bottom"), i.includes("left") && (o.placement = "left"), i.includes("right") && (o.placement = "right"), i.includes("light") && (o.theme = "light");
+      const u = (m) => {
+        if (typeof m == "string" ? o.content = m : typeof m == "object" && (o = { ...o, ...m }), o.content && o.content.startsWith("#") && !o.content.includes(" ")) {
+          const g = document.querySelector(o.content);
+          g && (o.content = g.innerHTML);
+        } else if (o.target) {
+          const g = document.querySelector(o.target);
+          g && (o.content = g.innerHTML);
         }
       };
-      l(() => {
-        r((g) => {
-          c(g);
+      r(() => {
+        d((m) => {
+          u(m);
         });
       });
-      const f = () => s.store("tooltip").show(o, i.content, i), u = () => s.store("tooltip").hide(), m = () => {
-        const g = s.store("tooltip");
-        g.visible && g.triggerEl === o ? g.hide() : f();
+      const f = () => s.store("tooltip").show(n, o.content, o), c = () => s.store("tooltip").hide(), h = () => {
+        const m = s.store("tooltip");
+        m.visible && m.triggerEl === n ? m.hide() : f();
       };
-      if (i.trigger === "click") {
-        o.addEventListener("click", m);
-        const g = (p) => {
+      if (o.trigger === "click") {
+        n.addEventListener("click", h);
+        const m = (g) => {
           const v = s.store("tooltip");
-          v.visible && v.triggerEl === o && !o.contains(p.target) && v.hide();
+          v.visible && v.triggerEl === n && !n.contains(g.target) && v.hide();
         };
-        window.addEventListener("click", g), a(() => window.removeEventListener("click", g));
+        window.addEventListener("click", m), l(() => window.removeEventListener("click", m));
       } else
-        o.addEventListener("mouseenter", f), o.addEventListener("mouseleave", u), o.addEventListener("focus", f), o.addEventListener("blur", u);
-      a(() => {
-        i.trigger === "click" ? o.removeEventListener("click", m) : (o.removeEventListener("mouseenter", f), o.removeEventListener("mouseleave", u), o.removeEventListener("focus", f), o.removeEventListener("blur", u));
+        n.addEventListener("mouseenter", f), n.addEventListener("mouseleave", c), n.addEventListener("focus", f), n.addEventListener("blur", c);
+      l(() => {
+        o.trigger === "click" ? n.removeEventListener("click", h) : (n.removeEventListener("mouseenter", f), n.removeEventListener("mouseleave", c), n.removeEventListener("focus", f), n.removeEventListener("blur", c));
       });
     }
   );
 };
-const D = (s) => {
+const _ = (s) => {
   s.store("notify", {
     items: [],
     nextId: 1,
     activeRequests: 0,
     activeProgress: 0,
     // Notification Methods
-    show(t, n = {}) {
+    show(t, i = {}) {
       const {
         type: e = "info",
-        timeout: l = 3e3,
-        position: a = "top-right",
-        closeIndicator: r = !1,
-        showCloseButton: i = !0
-      } = n, c = this.nextId++, f = {
-        id: c,
+        timeout: r = 3e3,
+        position: l = "top-right",
+        closeIndicator: d = !1,
+        showCloseButton: o = !0
+      } = i, u = this.nextId++, f = {
+        id: u,
         text: t,
         type: e,
-        position: a,
-        closeIndicator: r,
-        showCloseButton: i,
+        position: l,
+        closeIndicator: d,
+        showCloseButton: o,
         visible: !0
         // For transition
       };
-      this.items.unshift(f), l > 0 && setTimeout(() => {
-        this.close(c);
-      }, l), this.ensureContainer();
+      this.items.unshift(f), r > 0 && setTimeout(() => {
+        this.close(u);
+      }, r), this.ensureContainer();
     },
     close(t) {
       this.items.find((e) => e.id === t) && (this.items = this.items.filter((e) => e.id !== t));
     },
-    success(t, n = {}) {
-      const e = typeof n == "number" ? { timeout: n } : n;
+    success(t, i = {}) {
+      const e = typeof i == "number" ? { timeout: i } : i;
       this.show(t, { type: "success", ...e });
     },
-    warning(t, n = {}) {
-      const e = typeof n == "number" ? { timeout: n } : n;
+    warning(t, i = {}) {
+      const e = typeof i == "number" ? { timeout: i } : i;
       this.show(t, { type: "warning", ...e });
     },
-    error(t, n = {}) {
-      const e = typeof n == "number" ? { timeout: n } : n;
+    error(t, i = {}) {
+      const e = typeof i == "number" ? { timeout: i } : i;
       this.show(t, { type: "error", ...e });
     },
-    info(t, n = {}) {
-      const e = typeof n == "number" ? { timeout: n } : n;
+    info(t, i = {}) {
+      const e = typeof i == "number" ? { timeout: i } : i;
       this.show(t, { type: "info", ...e });
     },
     // Loading Indicator Methods
-    loading(t, n = {}) {
+    loading(t, i = {}) {
       t ? this.activeRequests++ : this.activeRequests = Math.max(0, this.activeRequests - 1), this.ensureContainer();
     },
     // Progress Bar Methods
@@ -336,14 +336,14 @@ const D = (s) => {
     },
     // Container Injection
     ensureContainer() {
-      document.getElementById("uno-notify-container") || d();
+      document.getElementById("uno-notify-container") || a();
     }
   });
-  const d = () => {
+  const a = () => {
     try {
       const t = document.createElement("div");
       t.id = "uno-notify-container", t.setAttribute("x-data", "{}");
-      const n = `
+      const i = `
         <style>
           @keyframes uno-progress-indeterminate {
             0% { left: -35%; width: 35%; }
@@ -374,36 +374,36 @@ const D = (s) => {
         <!-- Top Right -->
         <div class="fixed top-0 right-0 z-[100] p-4 flex flex-col space-y-2 items-end pointer-events-none">
             <template x-for="item in $store.notify.items.filter(i => i.position === 'top-right')" :key="item.id">
-                ${o()}
+                ${n()}
             </template>
         </div>
 
         <!-- Top Left -->
         <div class="fixed top-0 left-0 z-[100] p-4 flex flex-col space-y-2 items-start pointer-events-none">
             <template x-for="item in $store.notify.items.filter(i => i.position === 'top-left')" :key="item.id">
-                ${o()}
+                ${n()}
             </template>
         </div>
 
         <!-- Bottom Right -->
         <div class="fixed bottom-0 right-0 z-[100] p-4 flex flex-col-reverse space-y-2 space-y-reverse items-end pointer-events-none">
             <template x-for="item in $store.notify.items.filter(i => i.position === 'bottom-right')" :key="item.id">
-                ${o()}
+                ${n()}
             </template>
         </div>
 
         <!-- Bottom Left -->
         <div class="fixed bottom-0 left-0 z-[100] p-4 flex flex-col-reverse space-y-2 space-y-reverse items-start pointer-events-none">
             <template x-for="item in $store.notify.items.filter(i => i.position === 'bottom-left')" :key="item.id">
-                ${o()}
+                ${n()}
             </template>
         </div>
       `;
-      t.innerHTML = n, document.body.appendChild(t);
+      t.innerHTML = i, document.body.appendChild(t);
     } catch (t) {
-      h.error("Notify: Failed to inject container", t);
+      x.error("Notify: Failed to inject container", t);
     }
-  }, o = () => `
+  }, n = () => `
     <div x-show="true"
          data-testid="notify-item"
          x-transition:enter="transition ease-out duration-300"
@@ -431,33 +431,33 @@ const D = (s) => {
          </div>
     </div>
     `;
-  document.body ? d() : document.addEventListener("DOMContentLoaded", d);
+  document.body ? a() : document.addEventListener("DOMContentLoaded", a);
 };
-let k = 0, L = "";
-function P() {
-  k === 0 && (L = document.body.style.overflow || "", document.body.style.overflow = "hidden"), k++;
+let k = 0, C = "";
+function D() {
+  k === 0 && (C = document.body.style.overflow || "", document.body.style.overflow = "hidden"), k++;
 }
-function _() {
-  k = Math.max(0, k - 1), k === 0 && (document.body.style.overflow = L || "", L = "");
+function N() {
+  k = Math.max(0, k - 1), k === 0 && (document.body.style.overflow = C || "", C = "");
 }
-async function N(s) {
-  const d = await fetch(s);
-  return (d.headers.get("content-type") || "").includes("application/json") ? d.json() : d.text();
+async function W(s) {
+  const a = await fetch(s);
+  return (a.headers.get("content-type") || "").includes("application/json") ? a.json() : a.text();
 }
-const W = (s) => {
+const Y = (s) => {
   s.store("box", {
     items: [],
     init() {
       s.effect(() => {
-        this.items.filter((t) => t.modal).length > 0 ? P() : _();
+        this.items.filter((t) => t.modal).length > 0 ? D() : N();
       });
     },
-    async open(o, t = {}) {
-      let n = "dialog", e = t;
-      typeof o == "object" ? (e = o, n = e.type || "dialog") : n = o;
-      const l = e.boxId || Math.random().toString(36).slice(2, 10), a = {
-        id: l,
-        type: n,
+    async open(n, t = {}) {
+      let i = "dialog", e = t;
+      typeof n == "object" ? (e = n, i = e.type || "dialog") : i = n;
+      const r = e.boxId || Math.random().toString(36).slice(2, 10), l = {
+        id: r,
+        type: i,
         title: e.title || "",
         content: e.content || "",
         width: e.width || 400,
@@ -473,57 +473,71 @@ const W = (s) => {
         cancelText: e.cancelButtonText,
         onOk: e.onOk,
         onCancel: e.onCancel,
-        showOk: n === "confirm" || n === "message" || n === "dialog" && e.showOkButton,
-        showCancel: n === "confirm" || n === "dialog" && e.showCancelButton,
+        showOk: i === "confirm" || i === "message" || i === "dialog" && e.showOkButton,
+        showCancel: i === "confirm" || i === "dialog" && e.showCancelButton,
         // State
         loading: !1,
         visible: !0
-      }, r = s.store("i18n");
-      if (a.okText || (a.okText = r ? r.t("box.ok") : "OK"), a.cancelText || (a.cancelText = r ? r.t("box.cancel") : "Cancel"), e.targetId) {
-        const i = document.getElementById(e.targetId);
-        i ? a.content = i.innerHTML : (h.warn("Box: Target element not found:", e.targetId), a.content = '<div class="p-4 text-red-500">Error: Content target not found</div>');
+      }, d = s.store("i18n");
+      if (l.okText || (l.okText = d ? d.t("box.ok") : "OK"), l.cancelText || (l.cancelText = d ? d.t("box.cancel") : "Cancel"), e.targetId) {
+        const o = document.getElementById(e.targetId);
+        o ? l.content = o.innerHTML : (x.warn("Box: Target element not found:", e.targetId), l.content = '<div class="p-4 text-red-500">Error: Content target not found</div>');
       } else if (e.ajaxUrl) {
-        a.loading = !0, this.add(a);
+        l.loading = !0, this.add(l);
         try {
-          const i = await N(e.ajaxUrl), c = typeof i == "object" ? `<pre class="bg-gray-100 p-3 rounded overflow-x-auto whitespace-pre-wrap">${JSON.stringify(i, null, 2)}</pre>` : String(i), f = this.items.find((u) => u.id === l);
-          f && (f.content = c, f.loading = !1);
-        } catch (i) {
-          h.error("Box: Ajax failed", i);
-          const c = this.items.find((f) => f.id === l);
-          c && (c.content = '<div class="text-red-500">Error loading content</div>', c.loading = !1);
+          const o = await W(e.ajaxUrl), u = typeof o == "object" ? `<pre class="bg-gray-100 p-3 rounded overflow-x-auto whitespace-pre-wrap">${JSON.stringify(o, null, 2)}</pre>` : String(o), f = this.items.find((c) => c.id === r);
+          f && (f.content = u, f.loading = !1);
+        } catch (o) {
+          x.error("Box: Ajax failed", o);
+          const u = this.items.find((f) => f.id === r);
+          u && (u.content = '<div class="text-red-500">Error loading content</div>', u.loading = !1);
         }
-        return l;
-      } else e.iframeUrl && (a.content = `<iframe frameborder="0" class="w-full h-full" src="${e.iframeUrl}"></iframe>`);
-      return this.add(a), l;
+        return r;
+      } else e.iframeUrl && (l.content = `<iframe frameborder="0" class="w-full h-full" src="${e.iframeUrl}"></iframe>`);
+      return this.add(l), r;
     },
-    add(o) {
-      this.items.push(o), this.ensureContainer();
+    add(n) {
+      this.items.push(n), this.ensureContainer();
     },
-    close(o) {
-      this.items = this.items.filter((t) => t.id !== o);
+    close(n) {
+      this.items = this.items.filter((t) => t.id !== n);
     },
     closeAll() {
       this.items = [];
     },
+    getPositionClass(n) {
+      const t = n || "center", i = "fixed inset-0 flex transition-opacity duration-300 p-4 pointer-events-none", e = {
+        center: "items-center justify-center",
+        "top-center": "items-start justify-center",
+        "top-left": "items-start justify-start",
+        "top-right": "items-start justify-end",
+        "bottom-center": "items-end justify-center",
+        "bottom-left": "items-end justify-start",
+        "bottom-right": "items-end justify-end",
+        "center-left": "items-center justify-start",
+        "center-right": "items-center justify-end"
+      };
+      return `${i} ${e[t] || e.center}`;
+    },
     ensureContainer() {
-      document.getElementById("uno-box-container") || d();
+      document.getElementById("uno-box-container") || a();
     }
   });
-  const d = () => {
+  const a = () => {
     try {
-      const o = document.createElement("div");
-      o.id = "uno-box-container", o.setAttribute("x-data", "{}");
+      const n = document.createElement("div");
+      n.id = "uno-box-container", n.setAttribute("x-data", "{}");
       const t = `
         <template x-for="(item, index) in $store.box.items" :key="item.id">
             <div :id="'uno-box-outer-container' + item.id"
-                 class="fixed inset-0 flex items-center justify-center transition-opacity duration-300"
+                 :class="$store.box.getPositionClass(item.position)"
                  :style="\`z-index: \${100 + index}\`"
                  role="dialog"
                  aria-modal="true">
                  
                  <!-- Overlay: Covers viewport, blocks interaction, does NOT close modal on click -->
                  <div :id="'uno-box-overlay' + item.id"
-                      class="absolute inset-0 bg-black transition-opacity duration-300"
+                      class="absolute inset-0 bg-black transition-opacity duration-300 pointer-events-auto"
                       :style="\`opacity: \${item.overlayOpacity}\`"
                       x-show="item.modal"
                       x-transition:enter="ease-out duration-300"
@@ -535,7 +549,7 @@ const W = (s) => {
 
                  <!-- Box Container -->
                  <div :id="'uno-box-container' + item.id"
-                      class="relative bg-white dark:bg-gray-900 rounded-lg shadow-2xl ring-1 ring-black/5 overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300 transform"
+                      class="relative bg-white dark:bg-gray-900 rounded-lg shadow-2xl ring-1 ring-black/5 overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300 transform pointer-events-auto"
                       :style="\`width: \${item.width}px; \${item.height ? 'height:' + item.height + 'px' : ''}\`"
                       x-show="item.visible"
                       x-transition:enter="ease-out duration-300"
@@ -599,18 +613,18 @@ const W = (s) => {
             </div>
         </template>
       `;
-      o.innerHTML = t, document.body.appendChild(o);
-    } catch (o) {
-      h.error("Box: Failed to inject container", o);
+      n.innerHTML = t, document.body.appendChild(n);
+    } catch (n) {
+      x.error("Box: Failed to inject container", n);
     }
   };
-  document.body ? d() : document.addEventListener("DOMContentLoaded", d), document.addEventListener("click", (o) => {
-    const t = o.target.closest("[data-box-type]");
+  document.body ? a() : document.addEventListener("DOMContentLoaded", a), document.addEventListener("click", (n) => {
+    const t = n.target.closest("[data-box-type]");
     if (!t) return;
-    const n = t.getAttribute("data-box-type");
-    if (!["dialog", "confirm", "message"].includes(n)) return;
-    o.preventDefault();
-    const e = t.dataset, l = {
+    const i = t.getAttribute("data-box-type");
+    if (!["dialog", "confirm", "message"].includes(i)) return;
+    n.preventDefault();
+    const e = t.dataset, r = {
       title: e.boxTitle,
       content: e.boxContent,
       width: e.boxWidth ? parseInt(e.boxWidth) : void 0,
@@ -626,7 +640,7 @@ const W = (s) => {
       boxId: e.boxId,
       cache: e.boxCache === "true"
     };
-    e.boxModal === "false" && (l.modal = !1), s.store("box").open(n, l);
+    e.boxModal === "false" && (r.modal = !1), s.store("box").open(i, r);
   });
 }, T = {
   validname: /^[a-zA-Z0-9_-]+$/,
@@ -640,39 +654,39 @@ const W = (s) => {
   pwd: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
   strongpwd: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
 };
-function Y(s) {
-  const d = s.match(/^\/(.*?)\/([gimsuy]*)$/);
-  return d ? { pattern: d[1], flags: d[2] } : { pattern: s, flags: "" };
-}
 function Z(s) {
+  const a = s.match(/^\/(.*?)\/([gimsuy]*)$/);
+  return a ? { pattern: a[1], flags: a[2] } : { pattern: s, flags: "" };
+}
+function V(s) {
   try {
     return s ? JSON.parse(s) : [];
   } catch {
     return [];
   }
 }
-const V = (s) => {
-  const d = {
+const F = (s) => {
+  const a = {
     invalid: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23ef4444'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linecap='round' d='M5.8 3.6h.4L6 6.5zM6 8.2af.6.6 0 110-1.2.6.6 0 010 1.2z'/%3e%3c/svg%3e")`,
     valid: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2322c55e' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e")`
-  }, o = (t, n) => {
+  }, n = (t, i) => {
     const e = s.store("i18n");
     if (!e) return t;
-    const l = {
+    const r = {
       required: "Required",
       pattern: "Invalid format",
-      min: `At least ${n?.n} characters`,
-      max: `Max ${n?.n} characters`,
+      min: `At least ${i?.n} characters`,
+      max: `Max ${i?.n} characters`,
       int: "Integer required",
       email: "Invalid email address",
       url: "Invalid URL"
     };
-    return e.t(`valid.${t}`, n) || l[t] || t;
+    return e.t(`valid.${t}`, i) || r[t] || t;
   };
   s.store("valid", {
     callbacks: {},
-    registerCallback(t, n) {
-      typeof n == "function" && (this.callbacks[t] = n);
+    registerCallback(t, i) {
+      typeof i == "function" && (this.callbacks[t] = i);
     }
   }), s.data("validForm", () => ({
     fields: {},
@@ -681,17 +695,17 @@ const V = (s) => {
       this.$el.noValidate = !0;
     },
     // Register field (called by x-validate directive)
-    register(t, n, e = []) {
+    register(t, i, e = []) {
       if (this.fields[t]) return;
-      const l = [...e];
-      if ((n.hasAttribute("required") || n.dataset.validRequired === "true") && l.push({ type: "required" }), (n.type === "email" || n.dataset.validType === "email") && l.push("email"), (n.type === "url" || n.dataset.validType === "url") && l.push("url"), n.dataset.validType) {
-        const a = n.dataset.validType;
-        a !== "email" && a !== "url" && l.push(a);
+      const r = [...e];
+      if ((i.hasAttribute("required") || i.dataset.validRequired === "true") && r.push({ type: "required" }), (i.type === "email" || i.dataset.validType === "email") && r.push("email"), (i.type === "url" || i.dataset.validType === "url") && r.push("url"), i.dataset.validType) {
+        const l = i.dataset.validType;
+        l !== "email" && l !== "url" && r.push(l);
       }
-      n.dataset.validPattern && l.push({ type: "regexp", expression: n.dataset.validPattern }), this.fields[t] = {
-        el: n,
-        rules: l,
-        value: n.value,
+      i.dataset.validPattern && r.push({ type: "regexp", expression: i.dataset.validPattern }), this.fields[t] = {
+        el: i,
+        rules: r,
+        value: i.value,
         error: null,
         valid: !0,
         dirty: !1,
@@ -699,58 +713,58 @@ const V = (s) => {
         validating: !1
       };
     },
-    update(t, n) {
-      this.fields[t] && (this.fields[t].value = n, this.fields[t].dirty = !0, this.validate(t));
+    update(t, i) {
+      this.fields[t] && (this.fields[t].value = i, this.fields[t].dirty = !0, this.validate(t));
     },
     touch(t) {
       this.fields[t] && (this.fields[t].touched = !0, this.validate(t));
     },
     async validate(t) {
-      const n = this.fields[t];
-      if (!n) return !0;
-      n.validating = !0, n.error = null;
-      const e = (n.value || "").trim();
-      let l = null;
-      for (const a of n.rules) {
-        const r = a.type || a, i = typeof a == "object" ? a : {};
+      const i = this.fields[t];
+      if (!i) return !0;
+      i.validating = !0, i.error = null;
+      const e = (i.value || "").trim();
+      let r = null;
+      for (const l of i.rules) {
+        const d = l.type || l, o = typeof l == "object" ? l : {};
         if (!e) {
-          if (r === "required") {
-            l = i.msg || o("required");
+          if (d === "required") {
+            r = o.msg || n("required");
             break;
           }
-          if (r === "emptyquit") break;
+          if (d === "emptyquit") break;
           continue;
         }
-        if (T[r])
-          T[r].test(e) || (l = i.msg || o(r) || o("pattern"));
-        else if (r === "regexp" && i.expression) {
-          const { pattern: c, flags: f } = Y(i.expression);
-          new RegExp(c, f || "i").test(e) || (l = i.msg || o("pattern"));
-        } else if (r === "limit")
-          i.min && e.length < i.min && (l = i.msg || o("min", { n: i.min })), i.max && e.length > i.max && (l = i.msg || o("max", { n: i.max }));
-        else if (r === "range") {
-          const c = parseFloat(e);
-          i.min !== void 0 && c < i.min && (l = i.msg || `Min ${i.min}`), i.max !== void 0 && c > i.max && (l = i.msg || `Max ${i.max}`);
-        } else if (r === "compareto") {
-          const c = document.getElementById(i.destid);
-          c && e !== c.value && (l = i.msg || "Not match");
-        } else if (r === "tag") {
-          const c = i.mark || ",", f = e.split(c).filter((u) => u.trim());
-          i.max && f.length > i.max && (l = i.msg || `Max ${i.max} items`);
+        if (T[d])
+          T[d].test(e) || (r = o.msg || n(d) || n("pattern"));
+        else if (d === "regexp" && o.expression) {
+          const { pattern: u, flags: f } = Z(o.expression);
+          new RegExp(u, f || "i").test(e) || (r = o.msg || n("pattern"));
+        } else if (d === "limit")
+          o.min && e.length < o.min && (r = o.msg || n("min", { n: o.min })), o.max && e.length > o.max && (r = o.msg || n("max", { n: o.max }));
+        else if (d === "range") {
+          const u = parseFloat(e);
+          o.min !== void 0 && u < o.min && (r = o.msg || `Min ${o.min}`), o.max !== void 0 && u > o.max && (r = o.msg || `Max ${o.max}`);
+        } else if (d === "compareto") {
+          const u = document.getElementById(o.destid);
+          u && e !== u.value && (r = o.msg || "Not match");
+        } else if (d === "tag") {
+          const u = o.mark || ",", f = e.split(u).filter((c) => c.trim());
+          o.max && f.length > o.max && (r = o.msg || `Max ${o.max} items`);
         }
-        if (l) break;
-        if (r === "callback" && i.fn) {
-          const c = s.store("valid").callbacks[i.fn];
-          if (c)
+        if (r) break;
+        if (d === "callback" && o.fn) {
+          const u = s.store("valid").callbacks[o.fn];
+          if (u)
             try {
-              const f = await c(n.el.id, e);
-              f === !1 || typeof f == "object" && f.valid === !1 ? l = (typeof f == "object" ? f.message : "") || "Invalid" : typeof f == "string" && (l = f);
+              const f = await u(i.el.id, e);
+              f === !1 || typeof f == "object" && f.valid === !1 ? r = (typeof f == "object" ? f.message : "") || "Invalid" : typeof f == "string" && (r = f);
             } catch {
             }
         }
-        if (l) break;
+        if (r) break;
       }
-      return n.error = l, n.valid = !l, n.validating = !1, n.valid;
+      return i.error = r, i.valid = !r, i.validating = !1, i.valid;
     },
     async validateAll() {
       const t = Object.keys(this.fields);
@@ -762,46 +776,46 @@ const V = (s) => {
       }), await this.validateAll())
         this.$el.dispatchEvent(new CustomEvent("valid-submit", { bubbles: !0 })), !this.$el.hasAttribute("hx-post") && !this.$el.hasAttribute("hx-get") && this.$el.submit();
       else {
-        const e = Object.keys(this.fields).find((l) => !this.fields[l].valid);
+        const e = Object.keys(this.fields).find((r) => !this.fields[r].valid);
         e && this.fields[e].el && this.fields[e].el.focus();
       }
     }
-  })), s.directive("validate", (t, n, { effect: e, cleanup: l }) => {
-    const a = t.getAttribute("name");
-    if (!a) return;
-    let r = [];
-    const i = t.getAttribute("valid");
-    i && (r = Z(i)), e(() => {
-      const u = s.$data(t);
-      u && typeof u.register == "function" && u.register(a, t, r);
+  })), s.directive("validate", (t, i, { effect: e, cleanup: r }) => {
+    const l = t.getAttribute("name");
+    if (!l) return;
+    let d = [];
+    const o = t.getAttribute("valid");
+    o && (d = V(o)), e(() => {
+      const c = s.$data(t);
+      c && typeof c.register == "function" && c.register(l, t, d);
     });
-    const c = () => {
-      const u = s.$data(t);
-      if (u && u.update && u.update(a, t.value), r.find((m) => (m.type === "limit" || m === "limit") && m.show === !0)) {
-        const m = r.find((g) => g.type === "limit" || g === "limit");
-        m && m.max && t.value.length > m.max && (t.value = t.value.substring(0, m.max), u && u.update && u.update(a, t.value));
+    const u = () => {
+      const c = s.$data(t);
+      if (c && c.update && c.update(l, t.value), d.find((h) => (h.type === "limit" || h === "limit") && h.show === !0)) {
+        const h = d.find((m) => m.type === "limit" || m === "limit");
+        h && h.max && t.value.length > h.max && (t.value = t.value.substring(0, h.max), c && c.update && c.update(l, t.value));
       }
     }, f = () => {
-      const u = s.$data(t);
-      u && u.touch && u.touch(a);
+      const c = s.$data(t);
+      c && c.touch && c.touch(l);
     };
-    t.addEventListener("input", c), t.addEventListener("blur", f), e(() => {
-      const u = s.$data(t);
-      if (u && u.fields && u.fields[a]) {
-        const m = u.fields[a], g = !!m.error, p = m.valid && m.dirty && !m.error;
-        t.classList.toggle("is-invalid", g), t.classList.toggle("is-valid", p), t.classList.toggle("validating", m.validating), g ? (t.classList.add(
+    t.addEventListener("input", u), t.addEventListener("blur", f), e(() => {
+      const c = s.$data(t);
+      if (c && c.fields && c.fields[l]) {
+        const h = c.fields[l], m = !!h.error, g = h.valid && h.dirty && !h.error;
+        t.classList.toggle("is-invalid", m), t.classList.toggle("is-valid", g), t.classList.toggle("validating", h.validating), m ? (t.classList.add(
           "!border-red-500",
           "pr-10",
           "bg-no-repeat",
           "bg-[right_0.75rem_center]",
           "bg-[length:1rem_1rem]"
-        ), t.classList.remove("!border-green-500"), t.style.backgroundImage = d.invalid) : p ? (t.classList.add(
+        ), t.classList.remove("!border-green-500"), t.style.backgroundImage = a.invalid) : g ? (t.classList.add(
           "!border-green-500",
           "pr-10",
           "bg-no-repeat",
           "bg-[right_0.75rem_center]",
           "bg-[length:1rem_1rem]"
-        ), t.classList.remove("!border-red-500"), t.style.backgroundImage = d.valid) : (t.classList.remove(
+        ), t.classList.remove("!border-red-500"), t.style.backgroundImage = a.valid) : (t.classList.remove(
           "!border-red-500",
           "!border-green-500",
           "pr-10",
@@ -811,127 +825,143 @@ const V = (s) => {
         ), t.style.backgroundImage = "");
         const v = t.nextElementSibling;
         if (v && v.tagName === "DIV") {
-          const x = v.querySelector(".animate-spin") || t.parentNode.querySelector(".animate-spin");
-          x && (x.style.display = m.validating ? "block" : "");
+          const b = v.querySelector(".animate-spin") || t.parentNode.querySelector(".animate-spin");
+          b && (b.style.display = h.validating ? "block" : "");
         }
       }
-    }), l(() => {
-      t.removeEventListener("input", c), t.removeEventListener("blur", f);
+    }), r(() => {
+      t.removeEventListener("input", u), t.removeEventListener("blur", f);
     });
-  }), s.directive("valid-error", (t, { expression: n }, { effect: e }) => {
-    const l = n;
+  }), s.directive("valid-error", (t, { expression: i }, { effect: e }) => {
+    const r = i;
     t.style.display = "none", e(() => {
-      const a = s.$data(t);
-      if (a && a.fields && a.fields[l]) {
-        const i = a.fields[l].error;
-        i ? (t.textContent = i, t.style.display = "block", t.classList.add("text-red-600", "text-xs"), t.classList.remove("text-gray-400")) : t.style.display = "none";
+      const l = s.$data(t);
+      if (l && l.fields && l.fields[r]) {
+        const o = l.fields[r].error;
+        o ? (t.textContent = o, t.style.display = "block", t.classList.add("text-red-600", "text-xs"), t.classList.remove("text-gray-400")) : t.style.display = "none";
       }
     });
-  }), s.directive("valid-count", (t, { expression: n }, { effect: e }) => {
-    const l = n;
+  }), s.directive("valid-count", (t, { expression: i }, { effect: e }) => {
+    const r = i;
     e(() => {
-      const a = s.$data(t);
-      if (a && a.fields && a.fields[l]) {
-        const r = a.fields[l], i = r.rules.find((c) => c.type === "limit" || c === "limit");
-        if (i && i.max) {
-          const c = (r.value || "").length, f = i.max - c, u = s.store("i18n");
-          t.textContent = u && u.t("charCount", { count: f }) || `Remaining: ${f}`, t.style.display = "block";
+      const l = s.$data(t);
+      if (l && l.fields && l.fields[r]) {
+        const d = l.fields[r], o = d.rules.find((u) => u.type === "limit" || u === "limit");
+        if (o && o.max) {
+          const u = (d.value || "").length, f = o.max - u, c = s.store("i18n");
+          t.textContent = c && c.t("charCount", { count: f }) || `Remaining: ${f}`, t.style.display = "block";
         } else
           t.style.display = "none";
       }
     });
   });
 };
-const F = (s) => {
-  const d = {
-    activeClass: "text-blue-600 dark:text-blue-400 border-b-2 border-blue-500 dark:border-blue-400",
-    inactiveClass: "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200",
-    baseTabClass: "px-4 py-2 transition-colors duration-150 cursor-pointer"
-  }, o = (a, r) => {
-    const i = d.activeClass.split(" "), c = d.inactiveClass.split(" ");
-    r ? (a.classList.add("current"), a.classList.remove(...c), a.classList.add(...i)) : (a.classList.remove("current"), a.classList.remove(...i), a.classList.add(...c));
-  }, t = (a, r) => {
-    const i = document.querySelectorAll(`[data-tab-group="${a}"], [tabgroup="${a}"]`);
-    i.forEach((f) => {
-      const m = (f.getAttribute("data-tab-target") || f.getAttribute("tabtarget")) === r;
-      o(f, m);
-    });
-    const c = /* @__PURE__ */ new Set();
-    i.forEach((f) => {
-      const u = f.getAttribute("data-tab-target") || f.getAttribute("tabtarget");
-      u && c.add(u);
-    }), c.forEach((f) => {
-      const u = document.getElementById(f);
-      u && (f === r ? (u.classList.remove("hidden"), u.style.display = "") : u.classList.add("hidden"));
-    });
-  }, n = () => {
-    const a = window.location.hash.substring(1);
-    if (!a) return;
-    const r = document.querySelector(`[data-tab-hash="${a}"], [rel="${a}"]`);
-    if (r) {
-      const i = r.getAttribute("data-tab-group") || r.getAttribute("tabgroup"), c = r.getAttribute("data-tab-target") || r.getAttribute("tabtarget");
-      i && c && t(i, c);
-    }
-  }, e = () => {
-    document.querySelectorAll("[data-tab-group], [tabgroup]").forEach((r) => {
-      if (!r.className.includes("transition-colors")) {
-        const c = d.baseTabClass.split(" ");
-        r.classList.add(...c);
+const L = (s = "", a = {}) => ({
+  active: s,
+  options: {
+    hash: !0,
+    manual: !1,
+    // if true, arrow keys only move focus, don't select
+    ...a
+  },
+  loaded: {},
+  // Track loaded AJAX content
+  init() {
+    this.options && this.options.hash && this.$nextTick(() => {
+      const n = window.location.hash.substring(1);
+      if (n) {
+        const t = this.$el.querySelector(`[data-tab-hash="${n}"]`);
+        if (t) {
+          const i = t.getAttribute("data-tab-target");
+          i && (this.active = i);
+        }
       }
-      const i = r.classList.contains("current") || r.getAttribute("data-tab-active") === "true";
-      o(r, i);
+    }), this.options.hash && window.addEventListener("hashchange", () => {
+      const n = window.location.hash.substring(1);
+      if (n) {
+        const t = this.$el.querySelector(`[data-tab-hash="${n}"]`);
+        if (t) {
+          const i = t.getAttribute("data-tab-target");
+          i && (this.active = i);
+        }
+      }
     });
-  };
-  document.addEventListener("click", (a) => {
-    const r = a.target.closest("[data-tab-target], [tabtarget]");
-    if (!r) return;
-    const i = r.getAttribute("data-tab-group") || r.getAttribute("tabgroup"), c = r.getAttribute("data-tab-target") || r.getAttribute("tabtarget"), f = r.getAttribute("data-tab-hash") || r.getAttribute("rel"), u = r.getAttribute("data-tab-url");
-    if (i && c) {
-      if (a.preventDefault(), u) {
-        const m = document.getElementById(c);
-        m && !m.getAttribute("data-tab-loaded") && (m.innerHTML = `<div class="animate-pulse p-4 space-y-2">
+  },
+  isActive(n) {
+    return this.active === n;
+  },
+  async open(n, t = null, i = null) {
+    if (this.active = n, this.options.hash && i && window.location.hash.substring(1) !== i && history.pushState(null, null, "#" + i), t) {
+      const e = document.getElementById(n);
+      if (e && !this.loaded[n]) {
+        e.innerHTML = `<div class="animate-pulse p-4 space-y-2">
              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
              <div class="h-4 bg-gray-200 rounded w-1/2"></div>
-           </div>`, fetch(u).then((g) => {
-          if (!g.ok) throw new Error("Network response was not ok");
-          return g.text();
-        }).then((g) => {
-          m.innerHTML = g, m.setAttribute("data-tab-loaded", "true");
-        }).catch((g) => {
-          m.innerHTML = `<div class="text-red-500 p-4">Error loading content: ${g.message}</div>`;
-        }));
+           </div>`;
+        try {
+          const r = await fetch(t);
+          if (!r.ok) throw new Error("Network response was not ok");
+          const l = await r.text();
+          e.innerHTML = l, e.setAttribute("data-tab-loaded", "true"), this.loaded[n] = !0, e.dispatchEvent(new CustomEvent("tab-loaded", { bubbles: !0 }));
+        } catch (r) {
+          e.innerHTML = `<div class="text-red-500 p-4">Error loading content: ${r.message}</div>`;
+        }
       }
-      t(i, c), f && history.replaceState(null, null, "#" + f);
     }
-  });
-  const l = () => {
-    n(), e(), window.addEventListener("hashchange", n);
-  };
-  document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", l) : l(), s.store("tabs", {
-    switch(a, r) {
-      t(a, r);
-    }
-  });
+  },
+  trigger(n, t = null, i = null) {
+    return {
+      "@click.prevent": () => this.open(n, t, i),
+      ":class": () => this.isActive(n) ? "current" : "",
+      role: "tab",
+      "aria-selected": () => this.isActive(n).toString(),
+      "data-tab-target": n,
+      "data-tab-hash": i || null,
+      "data-tab-url": t || null
+    };
+  },
+  tablist: {
+    role: "tablist",
+    "@keydown.right.prevent": "next()",
+    "@keydown.left.prevent": "prev()",
+    "@keydown.home.prevent": "first()",
+    "@keydown.end.prevent": "last()"
+  },
+  panel(n) {
+    return {
+      "x-show": () => this.isActive(n),
+      role: "tabpanel",
+      id: n
+    };
+  }
+});
+typeof window < "u" && (window.unoTabs = L);
+const J = (s) => {
+  s.data("unoTabs", L);
 };
-window.Alpine = $;
-window.htmx = z;
-h.info("Uno: Script loaded. Import Alpine:", !!$, "Window Alpine:", !!window.Alpine);
-const C = (s) => {
+window.Alpine = I;
+window.htmx = B;
+typeof window < "u" && (window.unoTabs = L);
+const $ = (s) => {
   if (!s) {
-    h.error("Uno: Alpine is undefined, cannot register plugins");
+    x.error("Uno: Alpine is undefined, cannot register plugins");
     return;
   }
   if (s.store && s.store("tooltip")) {
-    h.info("Uno: Plugins already registered");
+    x.info("Uno: Plugins already registered");
     return;
   }
-  h.info("Uno: Registering plugins"), q(s), H(s), D(s), W(s), V(s), F(s);
-}, J = () => {
-  let s = $ || window.Alpine;
-  s ? (h.info("Uno: Alpine found, registering"), C(s)) : (h.info("Uno: Alpine not found, waiting for alpine:init"), document.addEventListener("alpine:init", () => {
-    h.info("Uno: alpine:init fired"), C(window.Alpine);
-  }), document.addEventListener("DOMContentLoaded", () => {
-    window.Alpine && (h.info("Uno: DOMContentLoaded fallback"), C(window.Alpine));
-  }));
+  x.info("Uno: Registering plugins"), H(s), U(s), _(s), Y(s), F(s), J(s);
+}, K = () => {
+  const s = I || window.Alpine;
+  s && (x.info("Uno: Alpine found, registering"), $(s)), typeof window < "u" && (window.deferLoadingAlpine = (a) => {
+    try {
+      $(window.Alpine);
+    } catch {
+    }
+    a();
+  }), document.addEventListener("alpine:init", () => {
+    $(window.Alpine);
+  });
 };
-J();
+K();

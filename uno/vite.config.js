@@ -1,31 +1,31 @@
-import { defineConfig } from 'vite';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { defineConfig } from 'vite'
+import { resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
-  root: '.', 
+  root: '.',
   build: {
     outDir: 'dist',
     lib: {
       entry: resolve(__dirname, 'src/index.js'),
       name: 'Uno',
-      fileName: (format) => `uno.${format}.js`,
+      fileName: (format) => `uno.${format}.js`
     },
     rollupOptions: {
       external: ['alpinejs', 'htmx.org'],
       output: {
         globals: {
           alpinejs: 'Alpine',
-          'htmx.org': 'htmx',
-        },
-      },
-    },
+          'htmx.org': 'htmx'
+        }
+      }
+    }
   },
   server: {
     open: '/examples/index.html',
     port: 5176,
-    strictPort: true,
-  },
-});
+    strictPort: true
+  }
+})

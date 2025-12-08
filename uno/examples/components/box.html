@@ -82,20 +82,50 @@
           <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Layout</span>
         </div>
         <div class="p-6 space-y-4">
-          <div class="flex flex-wrap gap-4">
-            <button data-box-type="dialog" data-box-title="Centered Dialog"
-              data-box-content="I am centered on the screen." data-box-position="center"
-              class="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors text-sm font-medium">
-              Center (Default)
-            </button>
-            <button data-box-type="dialog" data-box-title="Bottom Right" data-box-content="I am in the corner."
+          <div class="grid grid-cols-3 gap-4 text-center">
+            <!-- Top Row -->
+            <button data-box-type="dialog" data-box-title="Top Left" data-box-content="Top Left Position"
+              data-box-position="top-left"
+              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-sm text-slate-700">Top
+              Left</button>
+            <button data-box-type="dialog" data-box-title="Top Center" data-box-content="Top Center Position"
+              data-box-position="top-center"
+              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-sm text-slate-700">Top
+              Center</button>
+            <button data-box-type="dialog" data-box-title="Top Right" data-box-content="Top Right Position"
+              data-box-position="top-right"
+              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-sm text-slate-700">Top
+              Right</button>
+
+            <!-- Center Row -->
+            <button data-box-type="dialog" data-box-title="Center Left" data-box-content="Center Left Position"
+              data-box-position="center-left"
+              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-sm text-slate-700">Center
+              Left</button>
+            <button data-box-type="dialog" data-box-title="Center" data-box-content="Center Position"
+              data-box-position="center"
+              class="px-3 py-2 bg-slate-800 text-white hover:bg-slate-900 rounded text-sm font-medium">Center</button>
+            <button data-box-type="dialog" data-box-title="Center Right" data-box-content="Center Right Position"
+              data-box-position="center-right"
+              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-sm text-slate-700">Center
+              Right</button>
+
+            <!-- Bottom Row -->
+            <button data-box-type="dialog" data-box-title="Bottom Left" data-box-content="Bottom Left Position"
+              data-box-position="bottom-left"
+              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-sm text-slate-700">Bottom
+              Left</button>
+            <button data-box-type="dialog" data-box-title="Bottom Center" data-box-content="Bottom Center Position"
+              data-box-position="bottom-center"
+              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-sm text-slate-700">Bottom
+              Center</button>
+            <button data-box-type="dialog" data-box-title="Bottom Right" data-box-content="Bottom Right Position"
               data-box-position="bottom-right"
-              class="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors text-sm font-medium">
-              Bottom Right
-            </button>
+              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-sm text-slate-700">Bottom
+              Right</button>
           </div>
           <p class="text-xs text-slate-500">
-            Control dialog position using <code>data-box-position</code>.
+            Control dialog position using <code>data-box-position</code>. Grid layout demonstrates all 9 positions.
           </p>
         </div>
       </div>

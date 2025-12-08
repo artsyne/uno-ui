@@ -1,169 +1,135 @@
-
 /**
  * Uno - Tab Component
  *
  * @module uno.components.tab
- * @version 0.1.0
+ * @version 0.2.0
  * @license MIT
  */
 
-export default (Alpine) => {
-  const settings = {
-    activeClass: 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500 dark:border-blue-400',
-    inactiveClass: 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
-    baseTabClass: 'px-4 py-2 transition-colors duration-150 cursor-pointer'
-  }
+export const factory = (defaultTab = '', options = {}) => ({
+  active: defaultTab,
+  options: {
+    hash: true,
+    manual: false, // if true, arrow keys only move focus, don't select
+    ...options
+  },
+  loaded: {}, // Track loaded AJAX content
 
-  /**
-   * Apply active/inactive state to a tab element
-   * @param {HTMLElement} el - Tab element
-   * @param {boolean} isActive - Whether the tab is active
-   */
-  const applyTabState = (el, isActive) => {
-    const activeCls = settings.activeClass.split(' ')
-    const inactiveCls = settings.inactiveClass.split(' ')
-
-    if (isActive) {
-      el.classList.add('current')
-      el.classList.remove(...inactiveCls)
-      el.classList.add(...activeCls)
-    } else {
-      el.classList.remove('current')
-      el.classList.remove(...activeCls)
-      el.classList.add(...inactiveCls)
-    }
-  }
-
-  /**
-   * Switch to a specific tab
-   * @param {string} group - Tab group name
-   * @param {string} targetId - Target content ID
-   */
-  const switchTab = (group, targetId) => {
-    // 1. Update Tab Buttons
-    const groupTabs = document.querySelectorAll(`[data-tab-group="${group}"], [tabgroup="${group}"]`)
-    groupTabs.forEach(tab => {
-      const tid = tab.getAttribute('data-tab-target') || tab.getAttribute('tabtarget')
-      const isMatch = tid === targetId
-      applyTabState(tab, isMatch)
-    })
-
-    // 2. Update Content
-    const targetsToManage = new Set()
-    groupTabs.forEach(tab => {
-      const tid = tab.getAttribute('data-tab-target') || tab.getAttribute('tabtarget')
-      if (tid) targetsToManage.add(tid)
-    })
-
-    targetsToManage.forEach(tid => {
-      const el = document.getElementById(tid)
-      if (el) {
-        if (tid === targetId) {
-          el.classList.remove('hidden')
-          el.style.display = ''
-        } else {
-          el.classList.add('hidden')
+  init() {
+    // Handle Hash on load
+    if (this.options && this.options.hash) {
+      // Use nextTick to ensure DOM is ready if needed, though init usually runs after DOM is parsed for this component
+      this.$nextTick(() => {
+        const hash = window.location.hash.substring(1)
+        if (hash) {
+          // Find the trigger associated with this hash
+          const trigger = this.$el.querySelector(`[data-tab-hash="${hash}"]`)
+          if (trigger) {
+            const target = trigger.getAttribute('data-tab-target')
+            if (target) this.active = target
+          }
         }
-      }
-    })
-  }
+      })
+    }
 
-  /**
-   * Handle hash change for deep linking
-   */
-  const handleHash = () => {
-    const hash = window.location.hash.substring(1)
-    if (!hash) return
+    // Listen for hash changes
+    if (this.options.hash) {
+      window.addEventListener('hashchange', () => {
+        const hash = window.location.hash.substring(1)
+        if (hash) {
+          const trigger = this.$el.querySelector(`[data-tab-hash="${hash}"]`)
+          if (trigger) {
+            const target = trigger.getAttribute('data-tab-target')
+            if (target) this.active = target
+          }
+        }
+      })
+    }
+  },
 
-    const tab = document.querySelector(`[data-tab-hash="${hash}"], [rel="${hash}"]`)
-    if (tab) {
-      const group = tab.getAttribute('data-tab-group') || tab.getAttribute('tabgroup')
-      const targetId = tab.getAttribute('data-tab-target') || tab.getAttribute('tabtarget')
-      if (group && targetId) {
-        switchTab(group, targetId)
+  isActive(tab) {
+    return this.active === tab
+  },
+
+  async open(tab, ajaxUrl = null, hash = null) {
+    this.active = tab
+
+    // Handle Hash
+    if (this.options.hash && hash) {
+      // Use replaceState to avoid cluttering history if desired, or pushState
+      // The spec test expects URL to contain hash
+      // If we just set window.location.hash, it triggers hashchange event
+      // which might cause loop if not careful, but here we set active first so it's fine.
+      // But typically tab switching updates URL.
+      // The test says "modern tabs switch content and hash".
+      // Let's use history API to be clean.
+      if (window.location.hash.substring(1) !== hash) {
+        history.pushState(null, null, '#' + hash)
       }
     }
-  }
 
-  /**
-   * Initialize tab styles
-   */
-  const initStyles = () => {
-    const tabs = document.querySelectorAll('[data-tab-group], [tabgroup]')
-    tabs.forEach(tab => {
-      if (!tab.className.includes('transition-colors')) {
-        const base = settings.baseTabClass.split(' ')
-        tab.classList.add(...base)
-      }
-      const isActive = tab.classList.contains('current') || tab.getAttribute('data-tab-active') === 'true'
-      applyTabState(tab, isActive)
-    })
-   }
-
-  // Initialize
-  document.addEventListener('click', (e) => {
-    const target = e.target.closest('[data-tab-target], [tabtarget]')
-    if (!target) return
-
-    const group = target.getAttribute('data-tab-group') || target.getAttribute('tabgroup')
-    const targetId = target.getAttribute('data-tab-target') || target.getAttribute('tabtarget')
-    const hash = target.getAttribute('data-tab-hash') || target.getAttribute('rel')
-    const ajaxUrl = target.getAttribute('data-tab-url')
-
-    if (group && targetId) {
-      e.preventDefault()
-      
-      if (ajaxUrl) {
-        const contentEl = document.getElementById(targetId)
-        if (contentEl && !contentEl.getAttribute('data-tab-loaded')) {
-           contentEl.innerHTML = `<div class="animate-pulse p-4 space-y-2">
+    // Handle AJAX
+    if (ajaxUrl) {
+      const contentEl = document.getElementById(tab)
+      // Check if already loaded or currently loading?
+      // We use this.loaded[tab] to track success.
+      if (contentEl && !this.loaded[tab]) {
+        // Loading state
+        contentEl.innerHTML = `<div class="animate-pulse p-4 space-y-2">
              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
              <div class="h-4 bg-gray-200 rounded w-1/2"></div>
            </div>`
-           fetch(ajaxUrl)
-             .then(res => {
-               if (!res.ok) throw new Error('Network response was not ok')
-               return res.text()
-             })
-             .then(html => {
-               contentEl.innerHTML = html
-               contentEl.setAttribute('data-tab-loaded', 'true')
-             })
-             .catch(err => {
-               contentEl.innerHTML = `<div class="text-red-500 p-4">Error loading content: ${err.message}</div>`
-             })
+
+        try {
+          const res = await fetch(ajaxUrl)
+          if (!res.ok) throw new Error('Network response was not ok')
+          const html = await res.text()
+          contentEl.innerHTML = html
+          contentEl.setAttribute('data-tab-loaded', 'true')
+          this.loaded[tab] = true
+
+          // Dispatch event for listeners (e.g. HTMX)
+          contentEl.dispatchEvent(new CustomEvent('tab-loaded', { bubbles: true }))
+        } catch (err) {
+          contentEl.innerHTML = `<div class="text-red-500 p-4">Error loading content: ${err.message}</div>`
         }
       }
-
-      switchTab(group, targetId)
-      if (hash) {
-        history.replaceState(null, null, '#' + hash)
-      }
     }
-  })
+  },
 
-  /**
-   * Initialize component
-   */
-  const init = () => {
-    handleHash()
-    initStyles()
-    window.addEventListener('hashchange', handleHash)
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init)
-  } else {
-    init()
-  }
-
-  // Expose internal logic via Alpine store if needed for programmatic access
-  /**
-   * Tab store for programmatic control
-   */
-  Alpine.store('tabs', {
-    switch(group, targetId) {
-      switchTab(group, targetId)
+  trigger(tab, ajaxUrl = null, hash = null) {
+    return {
+      ['@click.prevent']: () => this.open(tab, ajaxUrl, hash),
+      [':class']: () => (this.isActive(tab) ? 'current' : ''),
+      ['role']: 'tab',
+      ['aria-selected']: () => this.isActive(tab).toString(),
+      ['data-tab-target']: tab,
+      ['data-tab-hash']: hash || null,
+      ['data-tab-url']: ajaxUrl || null
     }
-  })
+  },
+
+  tablist: {
+    ['role']: 'tablist',
+    ['@keydown.right.prevent']: 'next()',
+    ['@keydown.left.prevent']: 'prev()',
+    ['@keydown.home.prevent']: 'first()',
+    ['@keydown.end.prevent']: 'last()'
+  },
+
+  panel(tab) {
+    return {
+      ['x-show']: () => this.isActive(tab),
+      ['role']: 'tabpanel',
+      ['id']: tab
+    }
+  }
+})
+
+if (typeof window !== 'undefined') {
+  window.unoTabs = factory
+}
+
+export default (Alpine) => {
+  Alpine.data('unoTabs', factory)
 }
