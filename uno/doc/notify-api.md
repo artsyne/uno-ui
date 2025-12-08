@@ -4,7 +4,7 @@ A lightweight notification component built on Alpine.js, supporting multiple pos
 
 ## Features
 
-- **Multi-Position**: `top-left`, `top-right`, `bottom-left`, `bottom-right`.
+- **Multi-Position**: `top-left`, `top-right`, `bottom-left`, `bottom-right`, `top-center`, `bottom-center`, `center`, `top`, `bottom`.
 - **Message Types**: `info`, `success`, `warning`, `error`.
 - **Dark Mode**: Perfectly adapted to Tailwind CSS Dark Mode (`dark:` variant).
 - **Auto Close**: Configurable display duration (`timeout`). Set to `0` for manual close.
@@ -16,74 +16,64 @@ A lightweight notification component built on Alpine.js, supporting multiple pos
 
 ### Basic Usage
 
-Initialize the component on a container and use the `show` method to display notifications.
+Use the global store `$store.notify.show()` to trigger notifications.
 
 ```html
-<div x-data="notify()">
-  <!-- Trigger Buttons -->
-  <button @click="show('Operation Successful', { type: 'success' })" class="btn">Success</button>
-  <button @click="show('Something went wrong', { type: 'error' })" class="btn">Error</button>
-  
-  <!-- Notification Container (Managed by component) -->
-  <div :class="containerClasses" :style="containerStyle">
-    <template x-for="item in items" :key="item.id">
-      <div :class="itemClasses(item.type)" @click="remove(item.id)">
-        <span x-text="item.text"></span>
-      </div>
-    </template>
-  </div>
-</div>
+<!-- Trigger Buttons -->
+<button @click="$store.notify.show('Operation Successful', { type: 'success' })">Success</button>
+<button @click="$store.notify.show('Something went wrong', { type: 'error' })">Error</button>
 ```
+
+The container is automatically injected into the DOM when needed.
 
 ## Programmatic Usage
 
-The component exposes methods via the Alpine data object or can be accessed if you make the store global (depending on implementation). Within the `x-data` scope:
-
-### `notify({ position })`
-Initializes the component.
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `position` | `String` | `'top-right'` | Container position. Options: `top-left`, `top-right`, `bottom-left`, `bottom-right`. |
+The component exposes methods via `Alpine.store('notify')`.
 
 ### `show(text, options)`
+
 Shows a notification.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `text` | `String` | - | Notification content. |
-| `options` | `Object` | `{}` | Configuration object. |
+| Parameter | Type     | Default | Description           |
+| --------- | -------- | ------- | --------------------- |
+| `text`    | `String` | -       | Notification content. |
+| `options` | `Object` | `{}`    | Configuration object. |
 
 **Options Object:**
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `type` | `String` | `'info'` | Message type: `info`, `success`, `warning`, `error`. |
-| `duration` | `Number` | `3000` | Auto-close duration in milliseconds. `0` to disable. |
+| Option            | Type      | Default       | Description                                                                                                                                    |
+| ----------------- | --------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`            | `String`  | `'info'`      | Message type: `info`, `success`, `warning`, `error`.                                                                                           |
+| `timeout`         | `Number`  | `3000`        | Auto-close duration in milliseconds. `0` to disable.                                                                                           |
+| `position`        | `String`  | `'top-right'` | Container position. Options: `top-left`, `top-right`, `bottom-left`, `bottom-right`, `top-center`, `bottom-center`, `center`, `top`, `bottom`. |
+| `showCloseButton` | `Boolean` | `true`        | Whether to show the close (x) button.                                                                                                          |
 
-### `remove(id)`
+### Shortcuts
+
+- `success(text, options)`
+- `error(text, options)`
+- `warning(text, options)`
+- `info(text, options)`
+
+### `close(id)`
+
 Manually removes a notification by ID.
 
 ## Loading Control
 
 Controls global loading state display (useful for page-level feedback).
 
-### `loading(isLoading, mode)`
+### `loading(isLoading)`
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `isLoading` | `Boolean` | `false` | `true` to show, `false` to hide. |
-| `mode` | `String` | `'indicator'` | Loading style: `'indicator'` (spinner) or `'progressbar'`. |
+| Parameter   | Type      | Default | Description                                                  |
+| ----------- | --------- | ------- | ------------------------------------------------------------ |
+| `isLoading` | `Boolean` | `false` | `true` to show loading indicator (spinner), `false` to hide. |
 
-```html
-<!-- Spinner -->
-<button @click="loading(true, 'indicator')">Start Loading</button>
-<button @click="loading(false)">Stop Loading</button>
+### `progress(isLoading)`
 
-<!-- Progress Bar -->
-<button @click="loading(true, 'progressbar')">Start Progress</button>
-<button @click="loading(false)">Stop Progress</button>
-```
+| Parameter   | Type      | Default | Description                                                   |
+| ----------- | --------- | ------- | ------------------------------------------------------------- |
+| `isLoading` | `Boolean` | `false` | `true` to show progress bar (top of screen), `false` to hide. |
 
 ## Internationalization (i18n)
 

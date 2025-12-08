@@ -1,114 +1,101 @@
 # Tab Component
 
-A tab component built on Alpine.js, supporting multiple tab groups, AJAX content loading, Hash routing synchronization, and programmatic control.
+A tab component built on Alpine.js, supporting multiple tab groups, AJAX content loading, HTMX integration, and Hash routing synchronization.
 
 ## Features
 
-- **Multiple Groups**: Supports multiple independent tab groups on a single page.
+- **Declarative API**: Use `x-data` and `x-bind` to set up tabs easily.
 - **Hash Navigation**: Deep linking support via URL Hash.
-- **AJAX Loading**: Asynchronous content loading with caching.
-- **Programmatic Control**: Switch tabs via Alpine Store.
+- **AJAX Loading**: Asynchronous content loading.
+- **HTMX Support**: Native support for HTMX content loading (`hxUrl`).
+- **Programmatic Control**: Extensible factory pattern.
 
 ## Quick Start
 
 ### HTML Structure
 
-The component uses `data-tab-group` to link buttons with content, and `data-tab-target` to specify the content ID to show.
+The component uses `x-data="window.unoTabs(defaultTab)"` to initialize, and `x-bind="trigger(tabName)"` and `x-bind="panel(tabName)"` to bind elements.
 
 ```html
-<!-- Tab Buttons -->
-<div class="flex border-b mb-4">
-  <button data-tab-group="main" data-tab-target="tab1" class="tab-base current px-4 py-2 border-b-2 border-blue-500 text-blue-500">Tab 1</button>
-  <button data-tab-group="main" data-tab-target="tab2" class="tab-base px-4 py-2 text-gray-500">Tab 2</button>
-</div>
+<div x-data="window.unoTabs('tab1')">
+  <!-- Tab List -->
+  <div x-bind="tablist" class="flex border-b mb-4">
+    <button x-bind="trigger('tab1')" class="tab-base px-4 py-2">Tab 1</button>
+    <button x-bind="trigger('tab2')" class="tab-base px-4 py-2">Tab 2</button>
+  </div>
 
-<!-- Tab Content -->
-<div id="tab1">
-  <p>Content for Tab 1</p>
-</div>
-<div id="tab2" class="hidden">
-  <p>Content for Tab 2</p>
+  <!-- Tab Panels -->
+  <div>
+    <div x-bind="panel('tab1')">Content 1</div>
+    <div x-bind="panel('tab2')">Content 2</div>
+  </div>
 </div>
 ```
 
-## Configuration / Options
+## API Reference
 
-### Tab Triggers (Buttons/Links)
+### Initialization
 
-| Attribute | Description | Example |
-|-----------|-------------|---------|
-| `data-tab-group` | **Required**. Defines the group namespace. Only tabs in the same group affect each other. | `data-tab-group="settings"` |
-| `data-tab-target` | **Required**. The ID of the content element to show. | `data-tab-target="profile"` |
-| `data-tab-hash` | Optional. Updates URL Hash on click. | `data-tab-hash="user-profile"` |
-| `data-tab-url` | Optional. URL to fetch content via AJAX. | `data-tab-url="/api/profile"` |
-| `class` | `tab-base` provides base styles; `current` marks the active tab. | `class="tab-base current"` |
+```javascript
+// x-data="window.unoTabs(defaultTab, options)"
+window.unoTabs('tab1', { 
+  hash: true,      // Enable hash navigation (default: true)
+  manual: false    // Manual activation via arrow keys (default: false)
+})
+```
 
-### Tab Content Containers
+### Bindings
 
-| Attribute | Description |
-|-----------|-------------|
-| `id` | **Required**. Must match the `data-tab-target` of the trigger. |
-| `class` | Use `hidden` class for content that should be initially hidden. |
-| `data-tab-loaded`| **Internal**. Added automatically after AJAX content is loaded to prevent re-fetching. |
+| Binding | Description | Arguments |
+|---------|-------------|-----------|
+| `tablist` | Binds accessibility roles and keyboard navigation (Left/Right/Home/End) to the container. | - |
+| `trigger(tab, ajaxUrl, hash, hxUrl)` | Binds click handlers, classes, and accessibility attributes to a tab button. | `tab`: Tab ID (string)<br>`ajaxUrl`: Optional URL for fetch<br>`hash`: Optional URL hash<br>`hxUrl`: Optional URL for HTMX |
+| `panel(tab)` | Binds visibility (`x-show`) and accessibility roles to a content panel. | `tab`: Tab ID (string) |
 
 ## Advanced Usage
 
 ### AJAX Content Loading
 
-Add `data-tab-url` attribute to enable dynamic loading. Content will be fetched via GET request and injected into the target element.
+Pass a URL as the second argument to `trigger()`. The content will be fetched via `fetch()` and injected into the panel.
 
 ```html
-<button 
-  data-tab-group="main" 
-  data-tab-target="ajax-content" 
-  data-tab-url="/partials/content.html">
-  Load Remote Content
-</button>
-
-<div id="ajax-content">
-  <!-- Skeleton loader will appear here automatically -->
-</div>
+<button x-bind="trigger('tab-ajax', '/api/content.html')">Load Ajax</button>
+<div x-bind="panel('tab-ajax')">Loading...</div>
 ```
 
-**Behavior Logic:**
-1. First click shows a skeleton loader.
-2. Fetches content from URL.
-3. On success, content replaces the inner HTML of the target element.
-4. Target element is marked with `data-tab-loaded="true"`.
-5. Subsequent clicks show cached content immediately.
+### HTMX Content Loading
+
+Pass a URL as the fourth argument to `trigger()` (or use named arguments if supported, but here strictly positional). The content will be fetched via `htmx.ajax()`.
+
+```html
+<!-- trigger(tabId, ajaxUrl, hash, hxUrl) -->
+<button x-bind="trigger('tab-htmx', null, null, '/api/content.html')">Load HTMX</button>
+<div x-bind="panel('tab-htmx')">Loading...</div>
+```
 
 ### Hash Navigation (Deep Linking)
 
-Use `data-tab-hash` to sync tab state with URL Hash.
+Pass a hash string as the third argument to `trigger()`.
 
 ```html
-<button 
-  data-tab-group="main" 
-  data-tab-target="tab1" 
-  data-tab-hash="section1">
-  Chapter 1
-</button>
+<button x-bind="trigger('tab-profile', null, 'profile')">Profile</button>
 ```
 
-- Clicking this tab changes URL to `...#section1`.
-- Visiting URL with `...#section1` automatically activates this tab.
-
-## Programmatic Usage
-
-The component exposes an Alpine store for programmatic control.
-
-```javascript
-// Switch Tab
-// Alpine.store('tabs').switch(groupName, targetId)
-Alpine.store('tabs').switch('main', 'tab2');
-```
+- Clicking updates URL to `...#profile`.
+- Loading URL with `#profile` activates this tab.
 
 ## Styling
 
-Component uses standard Tailwind CSS classes:
+The component manages state classes but leaves visual styling to you.
+It applies the `current` class to the active tab trigger.
 
-- `.tab-base`: Base style for tab buttons.
-- `.tab-active` / `.current`: Active state style (usually blue text, bottom border).
-- `.tab-inactive`: Inactive state style (gray text).
-
-Override these classes or add utility classes directly to elements for customization.
+```css
+.tab-base {
+  /* Base styles */
+}
+.tab-base.current {
+  /* Active styles */
+  color: blue;
+  border-bottom: 2px solid blue;
+}
+```

@@ -37,7 +37,7 @@
     <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
       <p class="text-slate-600">
         This page demonstrates the capabilities of the <code>box.js</code> plugin, including dialogs, confirmations,
-        notifications, positioning, and content loading strategies.
+        notifications, positioning, and content loading strategies (DOM, JSON, HTMX).
       </p>
     </div>
 
@@ -156,13 +156,19 @@
               </button>
             </div>
 
-            <!-- AJAX -->
-            <div>
+            <!-- AJAX & HTMX -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <!-- Test: Ajax button -->
-              <button data-box-type="dialog" data-box-title="Remote Content"
-                data-box-ajax-url="/examples/data/sample.json"
+              <button data-box-type="dialog" data-box-title="Remote JSON" data-box-ajax-url="/examples/data/sample.json"
                 class="w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium">
-                Ajax
+                Fetch (JSON)
+              </button>
+
+              <!-- Test: HTMX button -->
+              <button data-box-type="dialog" data-box-title="Remote HTML (HTMX)"
+                data-box-hx-url="/examples/data/tab-content.html"
+                class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium">
+                HTMX (HTML)
               </button>
             </div>
           </div>

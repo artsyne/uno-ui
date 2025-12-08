@@ -51,7 +51,7 @@ export const factory = (defaultTab = '', options = {}) => ({
     return this.active === tab
   },
 
-  async open(tab, ajaxUrl = null, hash = null) {
+  async open(tab, ajaxUrl = null, hash = null, hxUrl = null) {
     this.active = tab
 
     // Handle Hash
@@ -68,6 +68,31 @@ export const factory = (defaultTab = '', options = {}) => ({
       }
     }
 
+    // Handle HTMX
+    if (hxUrl && typeof window !== 'undefined' && window.htmx) {
+      const contentEl = document.getElementById(tab)
+      if (contentEl && !this.loaded[tab]) {
+        // Loading state
+        contentEl.innerHTML = `<div class="animate-pulse p-4 space-y-2">
+             <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+             <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+           </div>`
+
+        try {
+          await window.htmx.ajax('GET', hxUrl, {
+            target: `#${tab}`,
+            swap: 'innerHTML'
+          })
+          contentEl.setAttribute('data-tab-loaded', 'true')
+          this.loaded[tab] = true
+          contentEl.dispatchEvent(new CustomEvent('tab-loaded', { bubbles: true }))
+        } catch {
+          contentEl.innerHTML = `<div class="text-red-500 p-4">Error loading content via HTMX</div>`
+        }
+      }
+      return
+    }
+
     // Handle AJAX
     if (ajaxUrl) {
       const contentEl = document.getElementById(tab)
@@ -76,8 +101,8 @@ export const factory = (defaultTab = '', options = {}) => ({
       if (contentEl && !this.loaded[tab]) {
         // Loading state
         contentEl.innerHTML = `<div class="animate-pulse p-4 space-y-2">
-             <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-             <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+             <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+             <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
            </div>`
 
         try {
@@ -97,15 +122,16 @@ export const factory = (defaultTab = '', options = {}) => ({
     }
   },
 
-  trigger(tab, ajaxUrl = null, hash = null) {
+  trigger(tab, ajaxUrl = null, hash = null, hxUrl = null) {
     return {
-      ['@click.prevent']: () => this.open(tab, ajaxUrl, hash),
+      ['@click.prevent']: () => this.open(tab, ajaxUrl, hash, hxUrl),
       [':class']: () => (this.isActive(tab) ? 'current' : ''),
       ['role']: 'tab',
       ['aria-selected']: () => this.isActive(tab).toString(),
       ['data-tab-target']: tab,
       ['data-tab-hash']: hash || null,
-      ['data-tab-url']: ajaxUrl || null
+      ['data-tab-url']: ajaxUrl || null,
+      ['data-tab-hx-url']: hxUrl || null
     }
   },
 

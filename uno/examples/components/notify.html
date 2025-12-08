@@ -83,17 +83,47 @@
                 </div>
             </div>
 
-            <!-- Card 2: Custom Position (Bottom Left) -->
+            <!-- Card 2: Custom Positions -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-semibold text-slate-800">2. Custom Position (Bottom Left)</h2>
+                    <h2 class="font-semibold text-slate-800">2. Custom Positions</h2>
                     <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Position Override</span>
                 </div>
-                <div class="p-6 flex items-center justify-center h-full">
+                <div class="p-6 grid grid-cols-2 gap-4">
                     <button data-testid="btn-bl"
-                        @click="$store.notify.show('Bottom Left Message', { type: 'success', position: 'bottom-left' })"
-                        class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-sm">
-                        Show Bottom Left
+                        @click="$store.notify.show('Bottom Left', { type: 'success', position: 'bottom-left' })"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                        Bottom Left
+                    </button>
+                    <button
+                        @click="$store.notify.show('Bottom Right', { type: 'info', position: 'bottom-right' })"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                        Bottom Right
+                    </button>
+                    <button
+                        @click="$store.notify.show('Top Right', { type: 'info', position: 'top-right' })"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                        Top Right
+                    </button>
+                    <button
+                        @click="$store.notify.show('Top Left', { type: 'warning', position: 'top-left' })"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                        Top Left
+                    </button>
+                    <button
+                        @click="$store.notify.show('Top Center', { type: 'error', position: 'top-center' })"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                        Top Center
+                    </button>
+                    <button
+                        @click="$store.notify.show('Bottom Center', { type: 'success', position: 'bottom-center' })"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                        Bottom Center
+                    </button>
+                    <button
+                        @click="$store.notify.show('Center (Toast)', { type: 'info', position: 'center' })"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                        Center
                     </button>
                 </div>
             </div>

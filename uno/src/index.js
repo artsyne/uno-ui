@@ -53,7 +53,11 @@ const init = () => {
   // Ensure registration happens before Alpine starts when using CDN
   if (typeof window !== 'undefined') {
     window.deferLoadingAlpine = (start) => {
-      try { register(window.Alpine) } catch {}
+      try {
+        register(window.Alpine)
+      } catch {
+        /* ignore */
+      }
       start()
     }
   }

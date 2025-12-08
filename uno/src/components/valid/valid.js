@@ -9,10 +9,10 @@ import { VALIDATORS, sanitizeRegexString, safeParseJSON } from '../../utils/vali
  */
 
 export default (Alpine) => {
-  // 1. Validation Icons (SVG Data URIs)
-  const ICONS = {
-    invalid: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23ef4444'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linecap='round' d='M5.8 3.6h.4L6 6.5zM6 8.2af.6.6 0 110-1.2.6.6 0 010 1.2z'/%3e%3c/svg%3e")`,
-    valid: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2322c55e' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e")`
+  // 1. Validation Icons (SVG Strings)
+  const SVG_ICONS = {
+    invalid: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='currentColor' class='w-4 h-4'><circle cx='6' cy='6' r='4.5'/><path stroke-linecap='round' d='M5.8 3.6h.4L6 6.5zM6 8.2af.6.6 0 110-1.2.6.6 0 010 1.2z'/></svg>`,
+    valid: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' class='w-4 h-4'><path fill='currentColor' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/></svg>`
   }
 
   // 2. Helper: I18n
@@ -229,6 +229,36 @@ export default (Alpine) => {
     const name = el.getAttribute('name')
     if (!name) return
 
+    // Ensure DOM Structure (Wrapper + Icon)
+    const setupDom = () => {
+      // Check if already wrapped
+      let wrapper = el.parentNode
+      if (!wrapper.classList.contains('uno-input-wrapper')) {
+        wrapper = document.createElement('div')
+        wrapper.className = 'relative w-full uno-input-wrapper' // w-full to match typical input width
+
+        // Insert wrapper before input
+        el.parentNode.insertBefore(wrapper, el)
+        // Move input inside wrapper
+        wrapper.appendChild(el)
+      }
+
+      // Check if icon exists
+      let icon = wrapper.querySelector('.uno-valid-icon')
+      if (!icon) {
+        icon = document.createElement('div')
+        icon.className =
+          'uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200'
+        icon.style.opacity = '0'
+        wrapper.appendChild(icon)
+      }
+
+      return { wrapper, icon }
+    }
+
+    // Initialize DOM structure immediately to prevent layout shifts/focus loss later
+    const { icon } = setupDom()
+
     // Get Data Scope
     // We assume x-validate is used within x-data="validForm"
     // We can't easily inject, so we rely on the user setting up the form correctly.
@@ -282,52 +312,61 @@ export default (Alpine) => {
         const showError = !!field.error
         const showValid = field.valid && field.dirty && !field.error
 
-        // Classes
+        // Classes on Input
         el.classList.toggle('is-invalid', showError)
         el.classList.toggle('is-valid', showValid)
         el.classList.toggle('validating', field.validating)
 
-        // Tailwind borders (Hardcoded for now as per existing valid.js style, can be extracted later)
+        // Reset icon state
+        icon.innerHTML = ''
+        icon.style.opacity = '0'
+
+        // Tailwind borders
         if (showError) {
-          el.classList.add(
-            '!border-red-500',
-            'pr-10',
-            'bg-no-repeat',
-            'bg-[right_0.75rem_center]',
-            'bg-[length:1rem_1rem]'
-          )
+          el.classList.add('!border-red-500', 'pr-10')
           el.classList.remove('!border-green-500')
-          el.style.backgroundImage = ICONS.invalid
+
+          // Set Icon
+          icon.innerHTML = SVG_ICONS.invalid
+          icon.className =
+            'uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200 text-red-500 dark:text-red-400'
+          icon.style.opacity = '1'
         } else if (showValid) {
-          el.classList.add(
-            '!border-green-500',
-            'pr-10',
-            'bg-no-repeat',
-            'bg-[right_0.75rem_center]',
-            'bg-[length:1rem_1rem]'
-          )
+          el.classList.add('!border-green-500', 'pr-10')
           el.classList.remove('!border-red-500')
-          el.style.backgroundImage = ICONS.valid
+
+          // Set Icon
+          icon.innerHTML = SVG_ICONS.valid
+          icon.className =
+            'uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200 text-green-500 dark:text-green-400'
+          icon.style.opacity = '1'
         } else {
-          el.classList.remove(
-            '!border-red-500',
-            '!border-green-500',
-            'pr-10',
-            'bg-no-repeat',
-            'bg-[right_0.75rem_center]',
-            'bg-[length:1rem_1rem]'
-          )
-          el.style.backgroundImage = ''
+          el.classList.remove('!border-red-500', '!border-green-500', 'pr-10')
         }
 
         // Spinner
-        const nextDiv = el.nextElementSibling
-        if (nextDiv && nextDiv.tagName === 'DIV') {
-          // Heuristic for spinner container
-          const spinner =
-            nextDiv.querySelector('.animate-spin') || el.parentNode.querySelector('.animate-spin')
-          if (spinner) spinner.style.display = field.validating ? 'block' : ''
+        // Since we wrapped the input, we need to look outside the wrapper for the spinner.
+        // It might be the next sibling, or the one after (e.g. if error container is in between).
+        const wrapper = el.parentNode
+        let sibling = wrapper.nextElementSibling
+        let spinner = null
+        let checks = 0
+
+        while (sibling && checks < 3) {
+          if (sibling.nodeType === 1) {
+            // Element node
+            if (sibling.classList.contains('animate-spin')) {
+              spinner = sibling
+            } else {
+              spinner = sibling.querySelector('.animate-spin')
+            }
+            if (spinner) break
+          }
+          sibling = sibling.nextElementSibling
+          checks++
         }
+
+        if (spinner) spinner.style.display = field.validating ? 'block' : ''
       }
     })
 
@@ -351,7 +390,7 @@ export default (Alpine) => {
         if (error) {
           el.textContent = error
           el.style.display = 'block'
-          el.classList.add('text-red-600', 'text-xs') // Default styling
+          el.classList.add('text-red-600', 'dark:text-red-400', 'text-xs') // Default styling
           el.classList.remove('text-gray-400')
         } else {
           el.style.display = 'none'

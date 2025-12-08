@@ -39,6 +39,17 @@ export default (Alpine) => {
       }
 
       // Add to start of array (newest first)
+      // For bottom positions, we might want to push instead of unshift if we want them to stack upwards?
+      // The rendering template uses flex-col-reverse for bottom positions, so unshift (adding to start)
+      // means the newest item is first in array.
+      // flex-col-reverse: items are laid out from bottom to top. First DOM element is at the bottom.
+      // So if we unshift, the newest item (index 0) becomes the first DOM element, which is at the bottom.
+      // This pushes older items up. This is correct for bottom-stacking.
+
+      // For top positions (flex-col), items are top to bottom. First DOM element is at top.
+      // If we unshift, newest item (index 0) is at top. This pushes older items down.
+      // This is also correct for top-stacking.
+
       this.items.unshift(item)
 
       // Auto dismiss
@@ -81,7 +92,7 @@ export default (Alpine) => {
     },
 
     // Loading Indicator Methods
-    loading(show, options = {}) {
+    loading(show) {
       if (show) {
         this.activeRequests++
       } else {
@@ -160,6 +171,20 @@ export default (Alpine) => {
             </template>
         </div>
 
+        <!-- Top Center -->
+        <div class="fixed top-0 left-0 right-0 z-[100] p-4 flex flex-col space-y-2 items-center pointer-events-none">
+            <template x-for="item in $store.notify.items.filter(i => i.position === 'top-center' || i.position === 'top')" :key="item.id">
+                ${renderItem()}
+            </template>
+        </div>
+
+        <!-- Center -->
+        <div class="fixed inset-0 z-[100] p-4 flex flex-col space-y-2 items-center justify-center pointer-events-none">
+            <template x-for="item in $store.notify.items.filter(i => i.position === 'center')" :key="item.id">
+                ${renderItem()}
+            </template>
+        </div>
+
         <!-- Bottom Right -->
         <div class="fixed bottom-0 right-0 z-[100] p-4 flex flex-col-reverse space-y-2 space-y-reverse items-end pointer-events-none">
             <template x-for="item in $store.notify.items.filter(i => i.position === 'bottom-right')" :key="item.id">
@@ -170,6 +195,13 @@ export default (Alpine) => {
         <!-- Bottom Left -->
         <div class="fixed bottom-0 left-0 z-[100] p-4 flex flex-col-reverse space-y-2 space-y-reverse items-start pointer-events-none">
             <template x-for="item in $store.notify.items.filter(i => i.position === 'bottom-left')" :key="item.id">
+                ${renderItem()}
+            </template>
+        </div>
+
+        <!-- Bottom Center -->
+        <div class="fixed bottom-0 left-0 right-0 z-[100] p-4 flex flex-col-reverse space-y-2 space-y-reverse items-center pointer-events-none">
+            <template x-for="item in $store.notify.items.filter(i => i.position === 'bottom-center' || i.position === 'bottom')" :key="item.id">
                 ${renderItem()}
             </template>
         </div>

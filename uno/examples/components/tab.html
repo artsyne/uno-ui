@@ -10,12 +10,13 @@
     <!-- Load Uno before Alpine so it can register on alpine:init -->
     <script src="../../dist/uno.umd.js?v=0.2.0"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x"></script>
-    <style>
+    <style type="text/tailwindcss">
         .tab-base {
             @apply text-slate-500 hover:text-slate-700 cursor-pointer transition-colors border-b-2 border-transparent outline-none;
         }
 
-        .tab-base[aria-selected="true"] {
+        .tab-base[aria-selected="true"],
+        .tab-base.current {
             @apply text-blue-600 border-blue-600;
         }
 
@@ -165,6 +166,11 @@
                             <span>External (AJAX)</span>
                             <span class="text-xs text-slate-400">HTML</span>
                         </button>
+                        <button x-bind="trigger('side-htmx', null, null, '/examples/data/tab-content.html')"
+                            class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50 flex justify-between items-center">
+                            <span>External (HTMX)</span>
+                            <span class="text-xs text-orange-400">HTMX</span>
+                        </button>
                     </div>
 
                     <!-- Content Area -->
@@ -188,6 +194,9 @@
                         </div>
                         <div x-bind="panel('side-ajax')">
                             <!-- Content will be loaded here -->
+                        </div>
+                        <div x-bind="panel('side-htmx')">
+                            <!-- Content will be loaded here via HTMX -->
                         </div>
                     </div>
                 </div>

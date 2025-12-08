@@ -15,6 +15,7 @@ A reusable dialog component based on Alpine.js + TailwindCSS, featuring modal ov
   - `content`: Static text or HTML.
   - `targetId`: Inject existing DOM elements from the page.
   - `ajaxUrl`: Async content loading (with built-in Loading state).
+  - `hxUrl`: HTMX content loading (uses `htmx.ajax`).
   - `iframeUrl`: Embed an Iframe.
 - **Buttons & Interaction**:
   - Three presets: `dialog`, `confirm`, `message`.
@@ -31,7 +32,7 @@ A reusable dialog component based on Alpine.js + TailwindCSS, featuring modal ov
 The simplest way is to use `data-box-*` attributes directly on a button to trigger the dialog.
 
 ```html
-<button 
+<button
   data-box-type="confirm"
   data-box-title="Confirm Action"
   data-box-content="Are you sure you want to proceed?"
@@ -52,36 +53,37 @@ You can invoke the dialog programmatically via `Alpine.store('box')`.
 Alpine.store('box').dialog({
   title: 'System Notice',
   content: 'Operation Successful',
-  position: 'top-center', 
+  position: 'top-center',
   width: '400px',
   // Callback events
   onClose: () => console.log('Closed')
-});
+})
 
 // Clear Cache
-Alpine.store('box').clearCache();
+Alpine.store('box').clearCache()
 ```
 
 ## Configuration / Options
 
 ### Data Attributes (Declarative)
 
-| Attribute | Description | Default / Options |
-|-----------|-------------|-------------------|
-| `data-box-type` | Dialog type | `dialog`, `confirm`, `message` |
-| `data-box-title` | Title text | - |
-| `data-box-content` | Content text/HTML | - |
-| `data-box-modal` | Show overlay | `true` |
-| `data-box-position` | Screen position | `center` (default), `top`, `bottom`, `top-right`, `bottom-right`, `top-left`, `bottom-left` |
-| `data-box-width` | Width (px/rem) | - |
-| `data-box-height` | Height (px/rem) | Auto-adaptive |
-| `data-box-ajax-url` | AJAX URL | - |
-| `data-box-iframe-url` | Iframe URL | - |
-| `data-box-target-id` | Content Source DOM ID | - |
-| `data-box-ok-text` | Confirm button text | - |
-| `data-box-cancel-text` | Cancel button text | - |
-| `data-box-cache` | Cache DOM | `false` (Requires `data-box-id`) |
-| `data-box-id` | Unique Identifier | - |
+| Attribute              | Description               | Default / Options                                                                           |
+| ---------------------- | ------------------------- | ------------------------------------------------------------------------------------------- |
+| `data-box-type`        | Dialog type               | `dialog`, `confirm`, `message`                                                              |
+| `data-box-title`       | Title text                | -                                                                                           |
+| `data-box-content`     | Content text/HTML         | -                                                                                           |
+| `data-box-modal`       | Show overlay              | `true`                                                                                      |
+| `data-box-position`    | Screen position           | `center` (default), `top`, `bottom`, `top-right`, `bottom-right`, `top-left`, `bottom-left` |
+| `data-box-width`       | Width (px/rem)            | -                                                                                           |
+| `data-box-height`      | Height (px/rem)           | Auto-adaptive                                                                               |
+| `data-box-ajax-url`    | AJAX URL                  | -                                                                                           |
+| `data-box-hx-url`      | HTMX URL (uses htmx.ajax) | -                                                                                           |
+| `data-box-iframe-url`  | Iframe URL                | -                                                                                           |
+| `data-box-target-id`   | Content Source DOM ID     | -                                                                                           |
+| `data-box-ok-text`     | Confirm button text       | -                                                                                           |
+| `data-box-cancel-text` | Cancel button text        | -                                                                                           |
+| `data-box-cache`       | Cache DOM                 | `false` (Requires `data-box-id`)                                                            |
+| `data-box-id`          | Unique Identifier         | -                                                                                           |
 
 ## Internationalization (i18n)
 

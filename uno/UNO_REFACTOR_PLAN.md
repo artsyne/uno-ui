@@ -75,17 +75,13 @@ _Objective: Modernize layout components._
 
 ## 🚀 Phase 5: Ecosystem Integration & Polish
 
-_Objective: Ensure seamless compatibility with HTMX and Tailwind._
+_Objective: Ensure seamless compatibility with HTMX
 
-- [ ] **Step 5.1: HTMX Events**
+- [x] **Step 5.1: HTMX Events**
   - **Action**: Add listeners for `htmx:afterSwap` to re-initialize or update Alpine components if necessary (usually Alpine handles this, but custom logic might need checks).
   - **Feature**: Add `hx-` attributes support to Box/Modal for dynamic loading.
 
-- [ ] **Step 5.2: Tailwind Config Extraction**
-  - **Action**: Move hardcoded class strings (e.g., `bg-blue-500`) into a configuration object or CSS variables strategy to allow theming.
-  - **Goal**: Users should be able to override primary colors without editing library code.
-
-- [ ] **Step 5.3: Documentation & Examples**
+- [x] **Step 5.2 Documentation & Examples**
   - **Action**: Update `examples/` folder to use the new API.
   - **Doc**: Generate a new `README.md` with "Getting Started".
 

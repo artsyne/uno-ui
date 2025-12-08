@@ -49,7 +49,7 @@ test.describe('Box Component', () => {
   })
 
   test('ajax loads local json and displays content', async ({ page }) => {
-    const btn = page.getByText('Ajax')
+    const btn = page.getByText('Fetch (JSON)')
     await btn.click()
 
     const content = page.locator('[id^="uno-box-content"]')

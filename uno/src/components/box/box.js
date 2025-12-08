@@ -83,6 +83,41 @@ export default (Alpine) => {
           log.warn('Box: Target element not found:', options.targetId)
           item.content = '<div class="p-4 text-red-500">Error: Content target not found</div>'
         }
+      } else if (options.hxUrl) {
+        // HTMX Loading
+        item.loading = true
+        this.add(item)
+
+        Alpine.nextTick(() => {
+          const targetSelector = '#uno-box-content' + id
+          const target = document.getElementById('uno-box-content' + id)
+
+          if (window.htmx && target) {
+            window.htmx
+              .ajax('GET', options.hxUrl, {
+                target: targetSelector,
+                swap: 'innerHTML'
+              })
+              .then(() => {
+                const current = this.items.find((i) => i.id === id)
+                if (current) current.loading = false
+              })
+              .catch((err) => {
+                log.error('Box: HTMX Load Failed', err)
+                const current = this.items.find((i) => i.id === id)
+                if (current) {
+                  current.loading = false
+                  current.content =
+                    '<div class="p-4 text-red-500">Error loading content via HTMX</div>'
+                }
+              })
+          } else {
+            log.error('Box: HTMX not found or target missing')
+            const current = this.items.find((i) => i.id === id)
+            if (current) current.loading = false
+          }
+        })
+        return id
       } else if (options.ajaxUrl) {
         item.loading = true
         // Add immediately to show loading state
@@ -100,6 +135,15 @@ export default (Alpine) => {
           if (current) {
             current.content = content
             current.loading = false
+
+            // Re-initialize Alpine components in the new content
+            Alpine.nextTick(() => {
+              const el = document.getElementById('uno-box-content' + id)
+              if (el) {
+                // We need to use initTree to initialize x-data etc. in the new HTML
+                Alpine.initTree(el)
+              }
+            })
           }
         } catch (e) {
           log.error('Box: Ajax failed', e)
@@ -285,6 +329,7 @@ export default (Alpine) => {
       width: d.boxWidth ? parseInt(d.boxWidth) : undefined,
       height: d.boxHeight ? parseInt(d.boxHeight) : undefined,
       ajaxUrl: d.boxAjaxUrl,
+      hxUrl: d.boxHxUrl,
       iframeUrl: d.boxIframeUrl,
       targetId: d.boxTargetId,
       position: d.boxPosition,
@@ -300,4 +345,14 @@ export default (Alpine) => {
 
     Alpine.store('box').open(type, opts)
   })
+
+  // HTMX Integration: Re-initialize Alpine on swapped content
+  // This ensures that if HTMX is used within a box (or anywhere), Alpine components are initialized.
+  if (typeof window !== 'undefined') {
+    document.addEventListener('htmx:afterSwap', (event) => {
+      if (event.detail.elt && Alpine) {
+        Alpine.initTree(event.detail.elt)
+      }
+    })
+  }
 }

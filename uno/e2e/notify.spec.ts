@@ -56,12 +56,10 @@ test.describe('Notify Component', () => {
   })
 
   test('bottom-left position', async ({ page }) => {
-    const btn = page.getByTestId('btn-bl')
+    const btn = page.getByText('Bottom Left')
     await btn.click()
 
-    const item = page
-      .locator('[data-testid="notify-item"]')
-      .filter({ hasText: 'Bottom Left Message' })
+    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Bottom Left' })
     await expect(item).toBeVisible()
 
     const box = await item.boundingBox()
@@ -70,6 +68,113 @@ test.describe('Notify Component', () => {
       // Bottom Left: y should be large (bottom), x should be large (bottom), x should be small (left)
       expect(box.y + box.height).toBeGreaterThanOrEqual(vp.height - 20)
       expect(box.x).toBeLessThanOrEqual(100)
+    }
+  })
+
+  test('center position', async ({ page }) => {
+    const btn = page.getByText('Center', { exact: true })
+    await btn.click()
+
+    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Center (Toast)' })
+    await expect(item).toBeVisible()
+
+    const box = await item.boundingBox()
+    const vp = page.viewportSize()
+    if (box && vp) {
+      // Center: roughly centered
+      const centerX = box.x + box.width / 2
+      const centerY = box.y + box.height / 2
+      const viewportCenterX = vp.width / 2
+      const viewportCenterY = vp.height / 2
+
+      expect(Math.abs(centerX - viewportCenterX)).toBeLessThan(20)
+      expect(Math.abs(centerY - viewportCenterY)).toBeLessThan(20)
+    }
+  })
+
+  test('top-center position', async ({ page }) => {
+    const btn = page.getByText('Top Center')
+    await btn.click()
+
+    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Top Center' })
+    await expect(item).toBeVisible()
+
+    const box = await item.boundingBox()
+    const vp = page.viewportSize()
+    if (box && vp) {
+      // Top Center: y should be small (top), x should be centered
+      expect(box.y).toBeLessThanOrEqual(100)
+
+      const centerX = box.x + box.width / 2
+      const viewportCenterX = vp.width / 2
+      expect(Math.abs(centerX - viewportCenterX)).toBeLessThan(20)
+    }
+  })
+
+  test('bottom-center position', async ({ page }) => {
+    const btn = page.getByText('Bottom Center')
+    await btn.click()
+
+    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Bottom Center' })
+    await expect(item).toBeVisible()
+
+    const box = await item.boundingBox()
+    const vp = page.viewportSize()
+    if (box && vp) {
+      // Bottom Center: y should be large (bottom), x should be centered
+      expect(box.y + box.height).toBeGreaterThanOrEqual(vp.height - 20)
+
+      const centerX = box.x + box.width / 2
+      const viewportCenterX = vp.width / 2
+      expect(Math.abs(centerX - viewportCenterX)).toBeLessThan(20)
+    }
+  })
+
+  test('top-right position (explicit)', async ({ page }) => {
+    const btn = page.getByText('Top Right', { exact: true })
+    await btn.click()
+
+    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Top Right' })
+    await expect(item).toBeVisible()
+
+    const box = await item.boundingBox()
+    const vp = page.viewportSize()
+    if (box && vp) {
+      // Top Right: y small, x large
+      expect(box.y).toBeLessThanOrEqual(100)
+      expect(box.x + box.width).toBeGreaterThanOrEqual(vp.width - 20)
+    }
+  })
+
+  test('top-left position', async ({ page }) => {
+    const btn = page.getByText('Top Left')
+    await btn.click()
+
+    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Top Left' })
+    await expect(item).toBeVisible()
+
+    const box = await item.boundingBox()
+    const vp = page.viewportSize()
+    if (box && vp) {
+      // Top Left: y small, x small
+      expect(box.y).toBeLessThanOrEqual(100)
+      expect(box.x).toBeLessThanOrEqual(100)
+    }
+  })
+
+  test('bottom-right position', async ({ page }) => {
+    const btn = page.getByText('Bottom Right')
+    await btn.click()
+
+    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Bottom Right' })
+    await expect(item).toBeVisible()
+
+    const box = await item.boundingBox()
+    const vp = page.viewportSize()
+    if (box && vp) {
+      // Bottom Right: y large, x large
+      expect(box.y + box.height).toBeGreaterThanOrEqual(vp.height - 20)
+      expect(box.x + box.width).toBeGreaterThanOrEqual(vp.width - 20)
     }
   })
 

@@ -13,9 +13,9 @@ It provides a curated set of essential UI components that require no complex bui
 - 🌍 **I18n Support**: Built-in internationalization mechanism for easy multi-language switching.
 - ♿ **Accessible**: Follows WAI-ARIA best practices to ensure good accessibility.
 
-## Installation
+## Getting Started
 
-### Option 1: CDN (Recommended for Prototyping)
+### 1. Using CDN (Fastest)
 
 Simply include the compiled CSS and JS files in your HTML.
 
@@ -24,30 +24,30 @@ Simply include the compiled CSS and JS files in your HTML.
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Uno App</title>
-    
+
     <!-- 1. Styles (Tailwind CSS 4.x) -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    
+
     <!-- 2. HTMX (Optional) -->
     <script src="https://unpkg.com/htmx.org@2.0.8"></script>
-    
+
     <!-- 3. Alpine.js (Required) -->
     <script src="https://unpkg.com/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
-    
+
     <!-- 4. Uno Framework -->
     <script src="https://unpkg.com/uno-ui@0.1.0/dist/uno.umd.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <!-- Component Usage -->
     <button data-box-type="confirm" data-box-title="Hello World">Click Me</button>
-</body>
+  </body>
 </html>
 ```
 
-### Option 2: NPM (Recommended for Production)
+### 2. Using NPM (Module)
 
 ```bash
 npm install uno-ui alpinejs htmx.org
@@ -56,26 +56,25 @@ npm install uno-ui alpinejs htmx.org
 Import into your project's entry file:
 
 ```javascript
-import Alpine from 'alpinejs';
-import uno from 'uno-ui';
+import Alpine from 'alpinejs'
+import 'uno-ui' // Registers Uno plugins automatically
 
 // Initialize Alpine
-window.Alpine = Alpine;
-uno(Alpine); // Register all Uno components
-Alpine.start();
+window.Alpine = Alpine
+Alpine.start()
 ```
 
 ## Components
 
 Uno provides a set of essential components. Detailed documentation is available in the `doc/` directory.
 
-| Component | Description | Documentation |
-|-----------|-------------|---------------|
-| **Box** | Modals, dialogs, slide-overs with flexible positioning and lazy loading. | [Box API](doc/box-api.md) |
-| **Notify** | Global notifications and toast alerts, supporting multiple positions and states. | [Notify API](doc/notify-api.md) |
-| **Tab** | Tab switching with support for AJAX content loading and URL Hash synchronization. | [Tab API](doc/tab-api.md) |
-| **Tooltip** | Smart positioning tooltips supporting Hover/Click triggers. | [Tooltip API](doc/tooltip-api.md) |
-| **Valid** | Powerful form validation engine with declarative rules and async support. | [Valid API](doc/valid-api.md) |
+| Component   | Description                                                                       | Documentation                     |
+| ----------- | --------------------------------------------------------------------------------- | --------------------------------- |
+| **Box**     | Modals, dialogs, slide-overs with flexible positioning and lazy loading (AJAX/HTMX). | [Box API](doc/box-api.md)         |
+| **Notify**  | Global notifications and toast alerts, supporting multiple positions and states.     | [Notify API](doc/notify-api.md)   |
+| **Tab**     | Tab switching with support for AJAX/HTMX content loading and URL Hash synchronization. | [Tab API](doc/tab-api.md)         |
+| **Tooltip** | Smart positioning tooltips supporting Hover/Click triggers.                       | [Tooltip API](doc/tooltip-api.md) |
+| **Valid**   | Powerful form validation engine with declarative rules and async support.         | [Valid API](doc/valid-api.md)     |
 
 ## Internationalization (i18n)
 
@@ -84,6 +83,7 @@ Uno components include built-in support for internationalization.
 ### Supported Languages
 
 The library comes with the following built-in locales:
+
 - `en` (English) - Default
 - `zh-CN` (Simplified Chinese)
 - `zh-TW` (Traditional Chinese)
@@ -94,9 +94,9 @@ You can switch languages globally using the `i18n` store. This should be done af
 
 ```javascript
 document.addEventListener('alpine:init', () => {
-    // Switch to Simplified Chinese
-    Alpine.store('i18n').setLang('zh-CN');
-});
+  // Switch to Simplified Chinese
+  Alpine.store('i18n').setLang('zh-CN')
+})
 ```
 
 ### Extending Locales
@@ -105,37 +105,38 @@ You can add support for new languages or override existing translations using th
 
 ```javascript
 document.addEventListener('alpine:init', () => {
-    Alpine.store('i18n').extend({
-        // Override existing English text
-        'en': {
-            box: {
-                ok: 'Yes',
-                cancel: 'No'
-            }
-        },
-        // Add a new language (French)
-        'fr-FR': {
-            box: {
-                ok: 'Confirmer',
-                cancel: 'Annuler',
-                loading: 'Chargement...',
-                close: 'Fermer'
-            },
-            valid: {
-                required: 'Ce champ est requis',
-                email: 'Veuillez entrer une adresse email valide'
-            }
-        }
-    });
-    
-    // Switch to the new language
-    Alpine.store('i18n').setLang('fr-FR');
-});
+  Alpine.store('i18n').extend({
+    // Override existing English text
+    en: {
+      box: {
+        ok: 'Yes',
+        cancel: 'No'
+      }
+    },
+    // Add a new language (French)
+    'fr-FR': {
+      box: {
+        ok: 'Confirmer',
+        cancel: 'Annuler',
+        loading: 'Chargement...',
+        close: 'Fermer'
+      },
+      valid: {
+        required: 'Ce champ est requis',
+        email: 'Veuillez entrer une adresse email valide'
+      }
+    }
+  })
+
+  // Switch to the new language
+  Alpine.store('i18n').setLang('fr-FR')
+})
 ```
 
 ## Development
 
 ### Prerequisites
+
 - Node.js 18+
 - NPM 9+
 
