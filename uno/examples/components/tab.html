@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Uno Tab Comprehensive Test</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
     <!-- Load Uno before Alpine so it can register on alpine:init -->
-    <script src="../../dist/uno.umd.js?v=0.2.0"></script>
+    <script src="../../dist/uno.umd.js?v=0.2.1"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x"></script>
     <style type="text/tailwindcss">
         .tab-base {
@@ -166,7 +166,7 @@
                             <span>External (AJAX)</span>
                             <span class="text-xs text-slate-400">HTML</span>
                         </button>
-                        <button x-bind="trigger('side-htmx', null, null, '/examples/data/tab-content.html')"
+                        <button x-bind="trigger('side-htmx', null, null, '/examples/data/tab-content-htmx.html')"
                             class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50 flex justify-between items-center">
                             <span>External (HTMX)</span>
                             <span class="text-xs text-orange-400">HTMX</span>

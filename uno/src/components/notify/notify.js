@@ -7,6 +7,7 @@
  */
 
 import { log } from '../../utils/log'
+import { getFixedPositionClass, getStackingConfig } from '../../utils/position'
 
 export default (Alpine) => {
   // 1. Store
@@ -129,6 +130,35 @@ export default (Alpine) => {
       // Using x-teleport approach in future? For now, fixed divs.
       // We assume 4 corners.
 
+      const regions = [
+        'top-right',
+        'top-left',
+        'top-center',
+        'center',
+        'bottom-right',
+        'bottom-left',
+        'bottom-center'
+      ]
+
+      const regionHtml = regions
+        .map((pos) => {
+          const fixedClass = getFixedPositionClass(pos)
+          const { flexDir, alignItems, spaceY } = getStackingConfig(pos)
+          // Backward compatibility for 'top' and 'bottom'
+          let filter = `i.position === '${pos}'`
+          if (pos === 'top-center') filter += " || i.position === 'top'"
+          if (pos === 'bottom-center') filter += " || i.position === 'bottom'"
+
+          return `
+        <!-- ${pos} -->
+        <div class="fixed ${fixedClass} z-[100] p-4 flex ${flexDir} ${spaceY} ${alignItems} pointer-events-none">
+            <template x-for="item in $store.notify.items.filter(i => ${filter})" :key="item.id">
+                ${renderItem()}
+            </template>
+        </div>`
+        })
+        .join('\n')
+
       const template = `
         <style>
           @keyframes uno-progress-indeterminate {
@@ -157,54 +187,7 @@ export default (Alpine) => {
              <span>Loading</span>
         </div>
 
-        <!-- Top Right -->
-        <div class="fixed top-0 right-0 z-[100] p-4 flex flex-col space-y-2 items-end pointer-events-none">
-            <template x-for="item in $store.notify.items.filter(i => i.position === 'top-right')" :key="item.id">
-                ${renderItem()}
-            </template>
-        </div>
-
-        <!-- Top Left -->
-        <div class="fixed top-0 left-0 z-[100] p-4 flex flex-col space-y-2 items-start pointer-events-none">
-            <template x-for="item in $store.notify.items.filter(i => i.position === 'top-left')" :key="item.id">
-                ${renderItem()}
-            </template>
-        </div>
-
-        <!-- Top Center -->
-        <div class="fixed top-0 left-0 right-0 z-[100] p-4 flex flex-col space-y-2 items-center pointer-events-none">
-            <template x-for="item in $store.notify.items.filter(i => i.position === 'top-center' || i.position === 'top')" :key="item.id">
-                ${renderItem()}
-            </template>
-        </div>
-
-        <!-- Center -->
-        <div class="fixed inset-0 z-[100] p-4 flex flex-col space-y-2 items-center justify-center pointer-events-none">
-            <template x-for="item in $store.notify.items.filter(i => i.position === 'center')" :key="item.id">
-                ${renderItem()}
-            </template>
-        </div>
-
-        <!-- Bottom Right -->
-        <div class="fixed bottom-0 right-0 z-[100] p-4 flex flex-col-reverse space-y-2 space-y-reverse items-end pointer-events-none">
-            <template x-for="item in $store.notify.items.filter(i => i.position === 'bottom-right')" :key="item.id">
-                ${renderItem()}
-            </template>
-        </div>
-
-        <!-- Bottom Left -->
-        <div class="fixed bottom-0 left-0 z-[100] p-4 flex flex-col-reverse space-y-2 space-y-reverse items-start pointer-events-none">
-            <template x-for="item in $store.notify.items.filter(i => i.position === 'bottom-left')" :key="item.id">
-                ${renderItem()}
-            </template>
-        </div>
-
-        <!-- Bottom Center -->
-        <div class="fixed bottom-0 left-0 right-0 z-[100] p-4 flex flex-col-reverse space-y-2 space-y-reverse items-center pointer-events-none">
-            <template x-for="item in $store.notify.items.filter(i => i.position === 'bottom-center' || i.position === 'bottom')" :key="item.id">
-                ${renderItem()}
-            </template>
-        </div>
+        ${regionHtml}
       `
 
       container.innerHTML = template

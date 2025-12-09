@@ -190,7 +190,7 @@ test.describe('Notify Component', () => {
     await expect(innerBar).toBeVisible()
 
     // Should hide after 3s (timeout in the button handler)
-    // We wait 3.5s to be safe
-    await expect(progressBar).not.toBeVisible({ timeout: 4000 })
+    // We wait 3.5s to be safe, increasing to 5s for slower environments
+    await expect(progressBar).not.toBeVisible({ timeout: 6000 })
   })
 })

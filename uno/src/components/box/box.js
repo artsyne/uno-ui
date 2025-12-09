@@ -9,6 +9,7 @@
 import { lock, unlock } from '../../utils/bodyScroll'
 import { get as httpGet } from '../../utils/ajax'
 import { log } from '../../utils/log'
+import { getFlexAlignmentClass } from '../../utils/position'
 
 export default (Alpine) => {
   // 1. Store
@@ -176,20 +177,9 @@ export default (Alpine) => {
     },
 
     getPositionClass(position) {
-      const pos = position || 'center'
       const base = 'fixed inset-0 flex transition-opacity duration-300 p-4 pointer-events-none'
-      const positions = {
-        center: 'items-center justify-center',
-        'top-center': 'items-start justify-center',
-        'top-left': 'items-start justify-start',
-        'top-right': 'items-start justify-end',
-        'bottom-center': 'items-end justify-center',
-        'bottom-left': 'items-end justify-start',
-        'bottom-right': 'items-end justify-end',
-        'center-left': 'items-center justify-start',
-        'center-right': 'items-center justify-end'
-      }
-      return `${base} ${positions[pos] || positions['center']}`
+      const alignment = getFlexAlignmentClass(position)
+      return `${base} ${alignment}`
     },
 
     ensureContainer() {

@@ -6,7 +6,7 @@
  * @license MIT
  */
 
-import { calculatePosition } from '../../utils/positioning'
+import { calculatePosition } from '../../utils/position'
 import { log } from '../../utils/log'
 
 export default (Alpine) => {

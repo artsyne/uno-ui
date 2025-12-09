@@ -1,6 +1,6 @@
 {
   "name": "uno-ui",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "type": "module",
   "main": "./dist/uno.umd.js",
   "module": "./dist/uno.es.js",
@@ -15,8 +15,7 @@
     "src"
   ],
   "directories": {
-    "example": "examples",
-    "test": "tests"
+    "example": "examples"
   },
   "scripts": {
     "dev": "vite",

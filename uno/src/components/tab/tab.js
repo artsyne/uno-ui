@@ -2,7 +2,7 @@
  * Uno - Tab Component
  *
  * @module uno.components.tab
- * @version 0.2.0
+ * @version 0.2.1
  * @license MIT
  */
 
@@ -69,25 +69,35 @@ export const factory = (defaultTab = '', options = {}) => ({
     }
 
     // Handle HTMX
-    if (hxUrl && typeof window !== 'undefined' && window.htmx) {
-      const contentEl = document.getElementById(tab)
-      if (contentEl && !this.loaded[tab]) {
-        // Loading state
-        contentEl.innerHTML = `<div class="animate-pulse p-4 space-y-2">
-             <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-             <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-           </div>`
+    if (hxUrl) {
+      if (typeof window !== 'undefined' && window.htmx) {
+        const contentEl = document.getElementById(tab)
+        if (contentEl && !this.loaded[tab]) {
+          // Loading state
+          contentEl.innerHTML = `<div class="animate-pulse p-4 space-y-2">
+               <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+               <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+             </div>`
 
-        try {
-          await window.htmx.ajax('GET', hxUrl, {
-            target: `#${tab}`,
-            swap: 'innerHTML'
-          })
-          contentEl.setAttribute('data-tab-loaded', 'true')
-          this.loaded[tab] = true
-          contentEl.dispatchEvent(new CustomEvent('tab-loaded', { bubbles: true }))
-        } catch {
-          contentEl.innerHTML = `<div class="text-red-500 p-4">Error loading content via HTMX</div>`
+          try {
+            await window.htmx.ajax('GET', hxUrl, {
+              target: `#${tab}`,
+              swap: 'innerHTML'
+            })
+            contentEl.setAttribute('data-tab-loaded', 'true')
+            this.loaded[tab] = true
+            contentEl.dispatchEvent(new CustomEvent('tab-loaded', { bubbles: true }))
+          } catch {
+            contentEl.innerHTML = `<div class="text-red-500 p-4">Error loading content via HTMX</div>`
+          }
+        }
+      } else {
+        console.warn('Uno Tab: HTMX requested but window.htmx is not defined.')
+        const contentEl = document.getElementById(tab)
+        if (contentEl) {
+          contentEl.innerHTML = `<div class="text-amber-600 bg-amber-50 p-4 rounded border border-amber-200">
+            <strong>Warning:</strong> HTMX library not found. Please include htmx.org script.
+          </div>`
         }
       }
       return
