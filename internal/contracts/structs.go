@@ -33,11 +33,12 @@ type AuthUser struct {
 // - 提供便捷的访问方法（如IsAuthenticated、GetAuthUser）
 //
 // 使用示例：
-//   data := &PageData[map[string]interface{}]{
-//       Title: "首页",
-//       Context: renderContext,
-//       Data: map[string]interface{}{"posts": posts},
-//   }
+//
+//	data := &PageData[map[string]interface{}]{
+//	    Title: "首页",
+//	    Context: renderContext,
+//	    Data: map[string]interface{}{"posts": posts},
+//	}
 type PageData[T any] struct {
 	// 页面元信息
 	Title       string `json:"title"`
@@ -83,7 +84,7 @@ type RenderContext struct {
 	Lang string `json:"lang"`
 
 	// Theme 页面主题设置
-	Theme  string `json:"theme,omitempty"`
+	Theme string `json:"theme,omitempty"`
 	// Layout 页面布局设置
-	Layout string `json:"layout,omitempty"`
+	IsHXRequest bool `json:"is_hx_request"`
 }

@@ -9,6 +9,8 @@
 	<link rel="icon" href="/public/favicon.ico?v=7">
 	<title>{{.Title}}</title>
 
+	</script>
+
 	<script src="https://code.jquery.com/jquery-4.0.0-rc.1.min.js"></script>
 	<script src="/public/dist/js/kiko.min.js?v={{getRandomVersion .}}"></script>
 	<script src="/public/dist/js/idiary.min.js?v={{getRandomVersion .}}"></script>
@@ -18,9 +20,9 @@
 	<link href="/public/dist/css/materialdesignicons.min.css?v=6.5.95" rel="stylesheet">
 	{{if isLogin .}}
 	<script>
-		// 初始化用户状态管理
-		UserState.init({
 			id: {{getUserID .}},
+		UserState.init({
+			id: {{ getUserID .}},
 			name: '{{getUserName .}}'
 		});
 	</script>

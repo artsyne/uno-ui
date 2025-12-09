@@ -3,15 +3,15 @@ package view
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/biuren/hebe/internal/utils/config"
 	contracts "github.com/biuren/hebe/internal/contracts"
+	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/utils/i18n"
 )
 
 // ViewService 视图服务实现 - 直接实现核心逻辑
 // 提供页面渲染、数据组装、响应处理等视图层相关功能
 type ViewService struct {
-	config      *config.Config    // 应用配置
+	config      *config.Config   // 应用配置
 	i18nManager i18n.I18nManager // 国际化管理器
 }
 
@@ -45,10 +45,10 @@ func NewViewService(cfg *config.Config, i18nManager i18n.I18nManager) *ViewServi
 func (s *ViewService) CreatePageData(c *gin.Context, titleKey string) *contracts.PageData[map[string]interface{}] {
 	// 构建渲染上下文
 	ctx := s.BuildRenderContext(c)
-	
+
 	// 生成完整标题
 	title := s.generateTitle(c, titleKey)
-	
+
 	return &contracts.PageData[map[string]interface{}]{
 		Title:   title,
 		Context: ctx,
@@ -69,10 +69,10 @@ func (s *ViewService) CreatePageData(c *gin.Context, titleKey string) *contracts
 func (s *ViewService) CreatePageDataWithData(c *gin.Context, titleKey string, data interface{}) *contracts.PageData[interface{}] {
 	// 构建渲染上下文
 	ctx := s.BuildRenderContext(c)
-	
+
 	// 生成完整标题
 	title := s.generateTitle(c, titleKey)
-	
+
 	return &contracts.PageData[interface{}]{
 		Title:   title,
 		Context: ctx,
@@ -91,10 +91,10 @@ func (s *ViewService) CreatePageDataWithData(c *gin.Context, titleKey string, da
 func (s *ViewService) BuildRenderContext(c *gin.Context) *contracts.RenderContext {
 	// 获取登录状态
 	isLogin := s.getLoginStatus(c)
-	
+
 	// 获取认证用户
 	authUser := s.getAuthUser(c)
-	
+
 	// 获取语言设置
 	lang := s.GetLocaleFromContext(c)
 	
