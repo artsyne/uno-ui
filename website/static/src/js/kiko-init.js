@@ -10,6 +10,20 @@
 
 // 在DOM就绪后初始化Kiko UI
 $(function () {
+  // Disable Kiko tooltip to avoid conflict with Uno/Alpine
+  try {
+    if (typeof kiko !== 'undefined' && kiko.ui && kiko.ui.tooltip) {
+      kiko.ui.tooltip.init = function () {
+        console.log('[Kiko] Tooltip init disabled to avoid conflict with Uno UI');
+      };
+      kiko.ui.tooltip.initElement = function () {
+        console.log('[Kiko] Tooltip element init disabled');
+      };
+    }
+  } catch (e) {
+    console.warn('[Kiko] Failed to disable tooltip', e);
+  }
+
   // 直接调用kiko.init初始化UI框架
   kiko.init({
     debug: true,

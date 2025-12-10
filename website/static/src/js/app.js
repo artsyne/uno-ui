@@ -144,6 +144,7 @@ function initScrollHeader() {
       $topNav.html(lastScrollY > 1 ? pageNavHtml : '');
 
       // 重新初始化新插入的tooltip元素
+      /*
       if (lastScrollY > 1 && kiko.ui && kiko.ui.tooltip) {
         const $tooltipElements = $topNav.find(
           '[data-tooltip], [data-tooltip-content], [data-tooltip-target]'
@@ -152,6 +153,7 @@ function initScrollHeader() {
           kiko.ui.tooltip.initElement($tooltipElements);
         }
       }
+      */
     }
   });
 }

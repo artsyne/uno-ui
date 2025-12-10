@@ -8,10 +8,12 @@
     "build:js": "node scripts/build/build-js.js --dev",
     "build:js:dev": "node scripts/build/build-js.js --dev",
     "build:js:prod": "node scripts/build/build-js.js --prod",
+    "build:frontend": "node scripts/build/build-new-frontend.js",
+    "build:frontend:dev": "node scripts/build/build-new-frontend.js --dev",
     "build:kiko": "cd kiko && node build.js --dev",
     "build:kiko:prod": "cd kiko && node build.js",
-    "build:dev": "npm run build:kiko && npm run build:css:dev && npm run build:js:dev",
-    "build:prod": "npm run build:kiko:prod && npm run build:css:prod && npm run build:js:prod",
+    "build:dev": "npm run build:kiko && npm run build:css:dev && npm run build:js:dev && npm run build:frontend:dev",
+    "build:prod": "npm run build:kiko:prod && npm run build:css:prod && npm run build:js:prod && npm run build:frontend",
     "build": "npm run build:dev",
     "create:dirs": "node scripts/build/create-dirs.js",
     "verify:theme": "node scripts/build/verify-theme.js",
@@ -35,6 +37,7 @@
     "autoprefixer": "^10.4.21",
     "css-loader": "^7.1.2",
     "cssnano": "^6.0.5",
+    "esbuild": "^0.27.1",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^9.1.2",
     "eslint-plugin-prettier": "^5.5.4",
@@ -52,6 +55,8 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.5",
+    "alpinejs": "^3.15.2",
+    "htmx.org": "^2.0.8",
     "mysql2": "^3.14.1"
   }
 }

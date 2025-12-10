@@ -52,7 +52,8 @@ try {
   const contentPaths = [
     './website/views/**/*.html',
     './website/static/src/js/**/*.js',
-    './kiko/src/ui/**/*.js'
+    './kiko/src/ui/**/*.js',
+    './uno/src/**/*.js'
   ].join(' ');
   
   const tailwindCmd = isDevMode 

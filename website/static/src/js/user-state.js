@@ -14,6 +14,17 @@ const UserState = {
   init: function(userInfo = null) {
     if (userInfo) {
       this._userInfo = userInfo;
+    } else {
+      // 尝试从 meta 标签获取
+      const userId = document.querySelector('meta[name="user-id"]')?.content;
+      const userName = document.querySelector('meta[name="user-name"]')?.content;
+      
+      if (userId) {
+        this._userInfo = {
+          id: userId,
+          name: userName || ''
+        };
+      }
     }
     this._initialized = true;
   },

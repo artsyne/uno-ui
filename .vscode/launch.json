@@ -10,7 +10,10 @@
       "cwd": "${workspaceFolder}/",
       "showLog": true,
       "preLaunchTask": "build:go",
-      "dlvFlags": ["--log", "--log-output=rpc"],
+      "dlvFlags": [
+        "--log",
+        "--log-output=rpc"
+      ],
       "envFile": "${workspaceFolder}/.env.local"
     },
     {
@@ -22,7 +25,10 @@
       "cwd": "${workspaceFolder}/",
       "showLog": true,
       "preLaunchTask": "build:frontend",
-      "dlvFlags": ["--log", "--log-output=rpc"],
+      "dlvFlags": [
+        "--log",
+        "--log-output=rpc"
+      ],
       "envFile": "${workspaceFolder}/.env.local"
     },
     {
@@ -34,12 +40,30 @@
       "cwd": "${workspaceFolder}/",
       "showLog": true,
       "preLaunchTask": "build",
-      "dlvFlags": ["--log", "--log-output=rpc"],
+      "dlvFlags": [
+        "--log",
+        "--log-output=rpc"
+      ],
       "envFile": "${workspaceFolder}/.env.local",
       "presentation": {
         "group": "launch",
         "order": 1
       }
+    },
+    {
+      "name": "Launch All (Frontend + Backend)",
+      "type": "go",
+      "request": "launch",
+      "mode": "exec",
+      "program": "${workspaceFolder}/__debug_bin/debug.idiary.site",
+      "cwd": "${workspaceFolder}/",
+      "showLog": true,
+      "preLaunchTask": "build",
+      "dlvFlags": [
+        "--log",
+        "--log-output=rpc"
+      ],
+      "envFile": "${workspaceFolder}/.env.local"
     }
   ]
 }

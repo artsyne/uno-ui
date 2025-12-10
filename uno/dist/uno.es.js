@@ -1,4 +1,4 @@
-import j from "alpinejs";
+import I from "alpinejs";
 import H from "htmx.org";
 const z = {
   box: {
@@ -70,11 +70,11 @@ const z = {
   },
   charCount: "剩餘: {count}"
 };
-const I = {
+const j = {
   en: z,
   "zh-CN": O,
   "zh-TW": S
-}, T = Object.keys(I);
+}, T = Object.keys(j);
 function R() {
   if (typeof localStorage < "u") {
     const s = localStorage.getItem("uno.lang");
@@ -102,7 +102,7 @@ function B(s, l) {
 function A(s) {
   s.store("i18n", {
     locale: R(),
-    messages: I,
+    messages: j,
     init() {
       typeof document < "u" && (document.documentElement.lang = this.locale);
     },
@@ -179,37 +179,37 @@ const x = {
   return l.includes("bottom") && (e = "flex-col-reverse", n = "space-y-reverse space-y-2"), l.includes("left") ? t = "items-start" : l.includes("center") ? l === "center" ? t = "items-center justify-center" : t = "items-center" : t = "items-end", { flexDir: e, alignItems: t, spaceY: n };
 };
 function D(s, l, e) {
-  const t = s.getBoundingClientRect(), n = l.getBoundingClientRect(), i = n.width, r = n.height, a = t.width, u = t.height, o = { top: t.top, left: t.left }, f = window.innerWidth, c = window.innerHeight, m = 0, y = 0, d = c, h = f, g = (w, C) => {
+  const t = s.getBoundingClientRect(), n = l.getBoundingClientRect(), i = n.width, r = n.height, a = t.width, u = t.height, o = { top: t.top, left: t.left }, f = window.innerWidth, c = window.innerHeight, h = 0, y = 0, d = c, m = f, p = (w, C) => {
     if (C) {
-      if (w + i > h)
-        return h - i - 10;
+      if (w + i > m)
+        return m - i - 10;
       if (w < y)
         return y + 10;
     } else {
       if (w + r > d)
         return d - r - 10;
-      if (w < m)
-        return m + 10;
+      if (w < h)
+        return h + 10;
     }
     return w;
   };
-  let v, p, b = e;
+  let g, b, v = e;
   switch (e) {
     case "left":
-      p = o.left - i - 5, p < y && (p = o.left + a + 5, b = "right"), v = g(o.top + u / 2 - r / 2, !1);
+      b = o.left - i - 5, b < y && (b = o.left + a + 5, v = "right"), g = p(o.top + u / 2 - r / 2, !1);
       break;
     case "top":
-      v = o.top - r - 8, v < m && (v = o.top + u + 8, b = "bottom"), p = o.left + (a - i) / 2, p = g(p, !0);
+      g = o.top - r - 8, g < h && (g = o.top + u + 8, v = "bottom"), b = o.left + (a - i) / 2, b = p(b, !0);
       break;
     case "right":
-      p = o.left + a + 5, p + i > h && (p = o.left - i - 5, b = "left"), v = g(o.top + u / 2 - r / 2, !1);
+      b = o.left + a + 5, b + i > m && (b = o.left - i - 5, v = "left"), g = p(o.top + u / 2 - r / 2, !1);
       break;
     case "bottom":
     default:
-      v = o.top + u + 8, v + r > d && (v = o.top - r - 8, b = "top"), p = o.left + (a - i) / 2, p = g(p, !0);
+      g = o.top + u + 8, g + r > d && (g = o.top - r - 8, v = "top"), b = o.left + (a - i) / 2, b = p(b, !0);
       break;
   }
-  return { top: v, left: p, position: b };
+  return { top: g, left: b, position: v };
 }
 const W = (s) => {
   if (!s) {
@@ -227,7 +227,9 @@ const W = (s) => {
     // 'dark' | 'light'
     triggerEl: null,
     async show(e, t, n = {}) {
-      this.triggerEl = e, this.content = t, this.placement = n.placement || "top", this.theme = n.theme || "dark", this.visible = !0, this.ensureContainer(), await s.nextTick(), this.updatePosition();
+      this.triggerEl = e, this.content = t, this.placement = n.placement || "top", this.theme = n.theme || "dark", this.visible = !0, this.ensureContainer();
+      const i = document.getElementById("uno-tooltip-body");
+      i && (i.innerHTML = this.content, s.initTree(i)), await s.nextTick(), this.updatePosition();
     },
     hide() {
       this.visible = !1, this.triggerEl = null;
@@ -260,7 +262,7 @@ const W = (s) => {
                :class="$store.tooltip.theme === 'light' ? 'bg-white text-gray-900 border-gray-200' : 'bg-slate-800 text-white border-slate-700'"
                :style="\`top: \${$store.tooltip.top}px; left: \${$store.tooltip.left}px\`"
                style="display: none;">
-               <span x-html="$store.tooltip.content"></span>
+               <div id="uno-tooltip-body" class="pointer-events-auto"></div>
           </div>
         `, document.body ? document.body.appendChild(e) : document.documentElement.appendChild(e);
       } catch (e) {
@@ -280,11 +282,11 @@ const W = (s) => {
       n.includes("top") && (o.placement = "top"), n.includes("bottom") && (o.placement = "bottom"), n.includes("left") && (o.placement = "left"), n.includes("right") && (o.placement = "right"), n.includes("light") && (o.theme = "light");
       const f = (d) => {
         if (typeof d == "string" ? o.content = d : typeof d == "object" && (o = { ...o, ...d }), o.content && o.content.startsWith("#") && !o.content.includes(" ")) {
-          const h = document.querySelector(o.content);
-          h && (o.content = h.innerHTML);
+          const m = document.querySelector(o.content);
+          m && (o.content = m.innerHTML);
         } else if (o.target) {
-          const h = document.querySelector(o.target);
-          h && (o.content = h.innerHTML);
+          const m = document.querySelector(o.target);
+          m && (o.content = m.innerHTML);
         }
       };
       r(() => {
@@ -292,21 +294,21 @@ const W = (s) => {
           f(d);
         });
       });
-      const c = () => s.store("tooltip").show(e, o.content, o), m = () => s.store("tooltip").hide(), y = () => {
+      const c = () => s.store("tooltip").show(e, o.content, o), h = () => s.store("tooltip").hide(), y = () => {
         const d = s.store("tooltip");
         d.visible && d.triggerEl === e ? d.hide() : c();
       };
       if (o.trigger === "click") {
         e.addEventListener("click", y);
-        const d = (h) => {
-          const g = s.store("tooltip");
-          g.visible && g.triggerEl === e && !e.contains(h.target) && g.hide();
+        const d = (m) => {
+          const p = s.store("tooltip"), g = document.getElementById("uno-tooltip-content");
+          p.visible && p.triggerEl === e && !e.contains(m.target) && (!g || !g.contains(m.target)) && p.hide();
         };
         window.addEventListener("click", d), a(() => window.removeEventListener("click", d));
       } else
-        e.addEventListener("mouseenter", c), e.addEventListener("mouseleave", m), e.addEventListener("focus", c), e.addEventListener("blur", m);
+        e.addEventListener("mouseenter", c), e.addEventListener("mouseleave", h), e.addEventListener("focus", c), e.addEventListener("blur", h);
       a(() => {
-        o.trigger === "click" ? e.removeEventListener("click", y) : (e.removeEventListener("mouseenter", c), e.removeEventListener("mouseleave", m), e.removeEventListener("focus", c), e.removeEventListener("blur", m));
+        o.trigger === "click" ? e.removeEventListener("click", y) : (e.removeEventListener("mouseenter", c), e.removeEventListener("mouseleave", h), e.removeEventListener("focus", c), e.removeEventListener("blur", h));
       });
     }
   );
@@ -413,11 +415,11 @@ const Y = (s) => {
         "bottom-center"
       ].map((a) => {
         const u = U(a), { flexDir: o, alignItems: f, spaceY: c } = N(a);
-        let m = `i.position === '${a}'`;
-        return a === "top-center" && (m += " || i.position === 'top'"), a === "bottom-center" && (m += " || i.position === 'bottom'"), `
+        let h = `i.position === '${a}'`;
+        return a === "top-center" && (h += " || i.position === 'top'"), a === "bottom-center" && (h += " || i.position === 'bottom'"), `
         <!-- ${a} -->
         <div class="fixed ${u} z-[100] p-4 flex ${o} ${c} ${f} pointer-events-none">
-            <template x-for="item in $store.notify.items.filter(i => ${m})" :key="item.id">
+            <template x-for="item in $store.notify.items.filter(i => ${h})" :key="item.id">
                 ${e()}
             </template>
         </div>`;
@@ -458,12 +460,12 @@ const Y = (s) => {
     `;
   document.body ? l() : document.addEventListener("DOMContentLoaded", l);
 };
-let k = 0, E = "";
+let k = 0, L = "";
 function F() {
-  k === 0 && (E = document.body.style.overflow || "", document.body.style.overflow = "hidden"), k++;
+  k === 0 && (L = document.body.style.overflow || "", document.body.style.overflow = "hidden"), k++;
 }
 function Z() {
-  k = Math.max(0, k - 1), k === 0 && (document.body.style.overflow = E || "", E = "");
+  k = Math.max(0, k - 1), k === 0 && (document.body.style.overflow = L || "", L = "");
 }
 async function V(s) {
   const l = await fetch(s);
@@ -516,26 +518,26 @@ const _ = (s) => {
                 target: o,
                 swap: "innerHTML"
               }).then(() => {
-                const c = this.items.find((m) => m.id === r);
+                const c = this.items.find((h) => h.id === r);
                 c && (c.loading = !1);
               }).catch((c) => {
                 x.error("Box: HTMX Load Failed", c);
-                const m = this.items.find((y) => y.id === r);
-                m && (m.loading = !1, m.content = '<div class="p-4 text-red-500">Error loading content via HTMX</div>');
+                const h = this.items.find((y) => y.id === r);
+                h && (h.loading = !1, h.content = '<div class="p-4 text-red-500">Error loading content via HTMX</div>');
               });
             else {
               x.error("Box: HTMX not found or target missing");
-              const c = this.items.find((m) => m.id === r);
+              const c = this.items.find((h) => h.id === r);
               c && (c.loading = !1);
             }
           }), r;
         if (i.ajaxUrl) {
           a.loading = !0, this.add(a);
           try {
-            const o = await V(i.ajaxUrl), f = typeof o == "object" ? `<pre class="bg-gray-100 p-3 rounded overflow-x-auto whitespace-pre-wrap">${JSON.stringify(o, null, 2)}</pre>` : String(o), c = this.items.find((m) => m.id === r);
+            const o = await V(i.ajaxUrl), f = typeof o == "object" ? `<pre class="bg-gray-100 p-3 rounded overflow-x-auto whitespace-pre-wrap">${JSON.stringify(o, null, 2)}</pre>` : String(o), c = this.items.find((h) => h.id === r);
             c && (c.content = f, c.loading = !1, s.nextTick(() => {
-              const m = document.getElementById("uno-box-content" + r);
-              m && s.initTree(m);
+              const h = document.getElementById("uno-box-content" + r);
+              h && s.initTree(h);
             }));
           } catch (o) {
             x.error("Box: Ajax failed", o);
@@ -793,7 +795,7 @@ const J = (s) => {
           const f = document.getElementById(o.destid);
           f && i !== f.value && (r = o.msg || "Not match");
         } else if (u === "tag") {
-          const f = o.mark || ",", c = i.split(f).filter((m) => m.trim());
+          const f = o.mark || ",", c = i.split(f).filter((h) => h.trim());
           o.max && c.length > o.max && (r = o.msg || `Max ${o.max} items`);
         }
         if (r) break;
@@ -830,8 +832,8 @@ const J = (s) => {
     const u = () => {
       let d = t.parentNode;
       d.classList.contains("uno-input-wrapper") || (d = document.createElement("div"), d.className = "relative w-full uno-input-wrapper", t.parentNode.insertBefore(d, t), d.appendChild(t));
-      let h = d.querySelector(".uno-valid-icon");
-      return h || (h = document.createElement("div"), h.className = "uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200", h.style.opacity = "0", d.appendChild(h)), { wrapper: d, icon: h };
+      let m = d.querySelector(".uno-valid-icon");
+      return m || (m = document.createElement("div"), m.className = "uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200", m.style.opacity = "0", d.appendChild(m)), { wrapper: d, icon: m };
     }, { icon: o } = u();
     let f = [];
     const c = t.getAttribute("valid");
@@ -839,28 +841,28 @@ const J = (s) => {
       const d = s.$data(t);
       d && typeof d.register == "function" && d.register(a, t, f);
     });
-    const m = () => {
+    const h = () => {
       const d = s.$data(t);
-      if (d && d.update && d.update(a, t.value), f.find((h) => (h.type === "limit" || h === "limit") && h.show === !0)) {
-        const h = f.find((g) => g.type === "limit" || g === "limit");
-        h && h.max && t.value.length > h.max && (t.value = t.value.substring(0, h.max), d && d.update && d.update(a, t.value));
+      if (d && d.update && d.update(a, t.value), f.find((m) => (m.type === "limit" || m === "limit") && m.show === !0)) {
+        const m = f.find((p) => p.type === "limit" || p === "limit");
+        m && m.max && t.value.length > m.max && (t.value = t.value.substring(0, m.max), d && d.update && d.update(a, t.value));
       }
     }, y = () => {
       const d = s.$data(t);
       d && d.touch && d.touch(a);
     };
-    t.addEventListener("input", m), t.addEventListener("blur", y), i(() => {
+    t.addEventListener("input", h), t.addEventListener("blur", y), i(() => {
       const d = s.$data(t);
       if (d && d.fields && d.fields[a]) {
-        const h = d.fields[a], g = !!h.error, v = h.valid && h.dirty && !h.error;
-        t.classList.toggle("is-invalid", g), t.classList.toggle("is-valid", v), t.classList.toggle("validating", h.validating), o.innerHTML = "", o.style.opacity = "0", g ? (t.classList.add("!border-red-500", "pr-10"), t.classList.remove("!border-green-500"), o.innerHTML = l.invalid, o.className = "uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200 text-red-500 dark:text-red-400", o.style.opacity = "1") : v ? (t.classList.add("!border-green-500", "pr-10"), t.classList.remove("!border-red-500"), o.innerHTML = l.valid, o.className = "uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200 text-green-500 dark:text-green-400", o.style.opacity = "1") : t.classList.remove("!border-red-500", "!border-green-500", "pr-10");
-        let b = t.parentNode.nextElementSibling, w = null, C = 0;
-        for (; b && C < 3 && !(b.nodeType === 1 && (b.classList.contains("animate-spin") ? w = b : w = b.querySelector(".animate-spin"), w)); )
-          b = b.nextElementSibling, C++;
-        w && (w.style.display = h.validating ? "block" : "");
+        const m = d.fields[a], p = !!m.error, g = m.valid && m.dirty && !m.error;
+        t.classList.toggle("is-invalid", p), t.classList.toggle("is-valid", g), t.classList.toggle("validating", m.validating), o.innerHTML = "", o.style.opacity = "0", p ? (t.classList.add("!border-red-500", "pr-10"), t.classList.remove("!border-green-500"), o.innerHTML = l.invalid, o.className = "uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200 text-red-500 dark:text-red-400", o.style.opacity = "1") : g ? (t.classList.add("!border-green-500", "pr-10"), t.classList.remove("!border-red-500"), o.innerHTML = l.valid, o.className = "uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200 text-green-500 dark:text-green-400", o.style.opacity = "1") : t.classList.remove("!border-red-500", "!border-green-500", "pr-10");
+        let v = t.parentNode.nextElementSibling, w = null, C = 0;
+        for (; v && C < 3 && !(v.nodeType === 1 && (v.classList.contains("animate-spin") ? w = v : w = v.querySelector(".animate-spin"), w)); )
+          v = v.nextElementSibling, C++;
+        w && (w.style.display = m.validating ? "block" : "");
       }
     }), r(() => {
-      t.removeEventListener("input", m), t.removeEventListener("blur", y);
+      t.removeEventListener("input", h), t.removeEventListener("blur", y);
     });
   }), s.directive("valid-error", (t, { expression: n }, { effect: i }) => {
     const r = n;
@@ -878,15 +880,15 @@ const J = (s) => {
       if (a && a.fields && a.fields[r]) {
         const u = a.fields[r], o = u.rules.find((f) => f.type === "limit" || f === "limit");
         if (o && o.max) {
-          const f = (u.value || "").length, c = o.max - f, m = s.store("i18n");
-          t.textContent = m && m.t("charCount", { count: c }) || `Remaining: ${c}`, t.style.display = "block";
+          const f = (u.value || "").length, c = o.max - f, h = s.store("i18n");
+          t.textContent = h && h.t("charCount", { count: c }) || `Remaining: ${c}`, t.style.display = "block";
         } else
           t.style.display = "none";
       }
     });
   });
 };
-const L = (s = "", l = {}) => ({
+const $ = (s = "", l = {}) => ({
   active: s,
   options: {
     hash: !0,
@@ -992,14 +994,14 @@ const L = (s = "", l = {}) => ({
     };
   }
 });
-typeof window < "u" && (window.unoTabs = L);
+typeof window < "u" && (window.unoTabs = $);
 const K = (s) => {
-  s.data("unoTabs", L);
+  s.data("unoTabs", $);
 };
-window.Alpine = j;
+window.Alpine = I;
 window.htmx = H;
-typeof window < "u" && (window.unoTabs = L);
-const $ = (s) => {
+typeof window < "u" && (window.unoTabs = $);
+const E = (s) => {
   if (!s) {
     x.error("Uno: Alpine is undefined, cannot register plugins");
     return;
@@ -1010,15 +1012,15 @@ const $ = (s) => {
   }
   x.info("Uno: Registering plugins"), A(s), W(s), Y(s), _(s), J(s), K(s);
 }, Q = () => {
-  const s = j || window.Alpine;
-  s && (x.info("Uno: Alpine found, registering"), $(s)), typeof window < "u" && (window.deferLoadingAlpine = (l) => {
+  const s = I || window.Alpine;
+  s && (x.info("Uno: Alpine found, registering"), E(s)), typeof window < "u" && (window.deferLoadingAlpine = (l) => {
     try {
-      $(window.Alpine);
+      E(window.Alpine);
     } catch {
     }
     l();
   }), document.addEventListener("alpine:init", () => {
-    $(window.Alpine);
+    E(window.Alpine);
   });
 };
 Q();

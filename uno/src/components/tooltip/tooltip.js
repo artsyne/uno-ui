@@ -36,6 +36,13 @@ export default (Alpine) => {
       // Ensure container exists (defensive)
       this.ensureContainer()
 
+      // Inject content and init Alpine for interactivity
+      const body = document.getElementById('uno-tooltip-body')
+      if (body) {
+        body.innerHTML = this.content
+        Alpine.initTree(body)
+      }
+
       // Wait for DOM update to measure tooltip size
       await Alpine.nextTick()
 
@@ -89,7 +96,7 @@ export default (Alpine) => {
                :class="$store.tooltip.theme === 'light' ? 'bg-white text-gray-900 border-gray-200' : 'bg-slate-800 text-white border-slate-700'"
                :style="\`top: \${$store.tooltip.top}px; left: \${$store.tooltip.left}px\`"
                style="display: none;">
-               <span x-html="$store.tooltip.content"></span>
+               <div id="uno-tooltip-body" class="pointer-events-auto"></div>
           </div>
         `
 
@@ -174,7 +181,13 @@ export default (Alpine) => {
         // Click outside to close
         const clickOutside = (e) => {
           const store = Alpine.store('tooltip')
-          if (store.visible && store.triggerEl === el && !el.contains(e.target)) {
+          const tooltipContent = document.getElementById('uno-tooltip-content')
+          if (
+            store.visible &&
+            store.triggerEl === el &&
+            !el.contains(e.target) &&
+            (!tooltipContent || !tooltipContent.contains(e.target))
+          ) {
             store.hide()
           }
         }

@@ -1,6 +1,7 @@
 {{define "header"}}
 <!DOCTYPE html>
 <html lang="{{.Context.Lang}}" class="dark">
+
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -9,24 +10,24 @@
 	<link rel="icon" href="/public/favicon.ico?v=7">
 	<title>{{.Title}}</title>
 
-	</script>
+	<meta name="user-id" content="{{ getUserID .}}">
+	<meta name="user-name" content="{{getUserName .}}">
 
 	<script src="https://code.jquery.com/jquery-4.0.0-rc.1.min.js"></script>
 	<script src="/public/dist/js/kiko.min.js?v={{getRandomVersion .}}"></script>
 	<script src="/public/dist/js/idiary.min.js?v={{getRandomVersion .}}"></script>
 	<link href="/public/dist/css/idiary.min.css?v={{getRandomVersion .}}" rel="stylesheet">
 
+	<!-- Modern Stack: HTMX, Alpine, Uno -->
+	<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+	<!-- Load Uno BEFORE Alpine to ensure event listeners are registered -->
+	<script defer src="/public/dist/js/uno.umd.js?v={{getRandomVersion .}}"></script>
+	<!-- Bundle must be loaded AFTER Uno to allow Store extending -->
+	<script defer src="/public/dist/js/bundle.js?v={{getRandomVersion .}}"></script>
+	<script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
+
 
 	<link href="/public/dist/css/materialdesignicons.min.css?v=6.5.95" rel="stylesheet">
-	{{if isLogin .}}
-	<script>
-			id: {{getUserID .}},
-		UserState.init({
-			id: {{ getUserID .}},
-			name: '{{getUserName .}}'
-		});
-	</script>
-	{{end}}
 </head>
 
 <body class="bg-white dark:bg-gray-900 transition-colors duration-200">

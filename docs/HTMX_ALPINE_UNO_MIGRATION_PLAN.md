@@ -1,8 +1,9 @@
 # Hebe 前端架构重构计划：Kiko 迁移至 Uno + HTMX + Alpine + Tailwind v4
 
-**文档版本**: v1.5
+**文档版本**: v1.7
 **创建日期**: 2025-12-09
-**状态**: 提案 (Proposed)
+**更新日期**: 2025-12-10
+**状态**: 进行中 (In Progress)
 
 ---
 
@@ -20,7 +21,14 @@
     - **允许微调** Controller 层以支持 **Content Negotiation**（内容协商），即根据请求头（如 `HX-Request`）决定返回 HTML 片段还是完整页面。
 4.  **功能与样式零回归 (Zero Regression)**: 重构后的页面在视觉上和功能流程上必须与旧版完全一致。
 5.  **CSS 代码保留 (Keep CSS As-Is)**: `/website/static/src/css` 目录下的代码不需要重构。当前基于 Tailwind CSS v4 的样式定义已经是最佳实践，应予以保留并直接复用。
+    - **禁止** 在 HTML 模板中添加冗长的内联 Utility Classes (如 `block px-4 py-2...`)，必须优先使用现有的组件类 (如 `.tooltip-link`, `.btn`)。
+    - **禁止** 添加新的自定义 CSS，除非确有必要且经过评审。
 6.  **JS 代码规范 (Structured JS)**: **禁止在 HTML 模板中编写内联 JavaScript**。所有 JS 逻辑必须位于 `/website/static/src/js` 目录中，通过模块化方式组织。
+7.  **Uno 插件优先 (Uno Plugins First)**: 所有通用 UI 交互（如 Tooltip, Dialog, Tabs）必须优先使用或扩展 Uno UI 的插件，禁止在业务代码中重复造轮子。对 Uno 的扩展或修改必须在 `/uno` 项目中进行，编译后供主站使用。
+8.  **移动端优先与简洁性 (Mobile-First Simplicity)**: Tailwind CSS v4 本身即是移动端友好的。
+    - **禁止** 引入复杂的移动端特定逻辑（如独立的侧边栏 JS、复杂的 Overlay 切换），除非绝对必要。
+    - **应使用** 响应式 Utility Classes (如 `hidden md:block`, `w-full md:w-auto`) 来处理布局适配。
+    - **避免** 引入不必要的复杂度，保持代码简洁。
 
 ### 1.2 重构核心目标
 
@@ -87,8 +95,8 @@
 本重构引入了新的构建流程，需确保构建脚本能够自动化处理以下任务：
 
 1.  **CSS 构建 (CSS Build)**:
-    - **策略**: **保持现状 (As-Is)**。
-    - **说明**: 继续沿用项目现有的 CSS 构建流程（基于 Tailwind CSS v4）。`/website/static/src/css` 目录下的所有文件保持不变，构建输出路径仍为 `/website/static/dist/css`。
+    - **策略**: **调整 (Adjusted)**。
+    - **说明**: 继续沿用项目现有的 CSS 构建流程（基于 Tailwind CSS v4），但**必须包含 Uno UI 源码**。`/website/static/src/css` 目录下的文件保持不变，但构建脚本需增加对 `./uno/src/**/*.js` 的扫描，以确保 Uno 组件的 Tailwind 类被正确生成。构建输出路径仍为 `/website/static/dist/css`。
 
 2.  **JS 构建 (JS Build)**:
     - **策略**: **模块化打包 (Modular Bundling)**。
@@ -98,11 +106,14 @@
     - **规范**: 构建过程需支持 ES Module 语法，并确保不破坏代码的执行顺序（如 `core/init.js` 必须最先执行）。
 
 3.  **Uno UI 资源同步 (Uno UI Sync)**:
-    - **策略**: **自动复制 (Auto-Copy)**。
-    - **逻辑**: 每次执行前端构建时，必须包含一个自动复制步骤。
+    - **策略**: **独立编译与引用 (Independent Compilation & Reference)**。
+    - **开发工作流**:
+      1.  **修改**: 任何 Uno UI 的修改（如修复 Bug 或新增插件功能）必须在 `/Users/yasong.cy/go/src/idiary.ai/hebe/uno` 项目中进行。
+      2.  **编译**: 修改完成后，在 `/uno` 目录下运行 `npm run build`，生成最新的 `/uno/dist/uno.umd.js`。
+      3.  **同步**: 运行 `npm run build:frontend`，脚本会自动将编译好的文件复制到 `/website/static/dist/js/uno.umd.js`。
+    - **引用方式**: 网站前端必须通过 `<script src="/public/dist/js/uno.umd.js">` 引用，**严禁**在业务代码中 import Uno 的源码文件。
     - **源文件**: `/Users/yasong.cy/go/src/idiary.ai/hebe/uno/dist/uno.umd.js`
     - **目标路径**: `/Users/yasong.cy/go/src/idiary.ai/hebe/website/static/dist/js/uno.umd.js`
-    - **要求**: 不需要重新编译 Uno 项目，仅执行文件复制操作，确保 Website 始终使用最新的 Uno UI 产物。
 
 ---
 
@@ -110,37 +121,28 @@
 
 采用按**文件目录结构**划分的渐进式重构策略。
 
-### **Phase 1: 基础设施与静态资源 (预计 3 天)**
+### **Phase 1: 基础设施与静态资源 (已完成)**
 
 - **目标**: 建立新老共存的环境，搭建新的 JS 架构。
-- **涉及文件**: `views/header.html`, `static/src/js/core/init.js`, `static/src/js/stores/*.js`
-- **任务**:
-  1.  **JS 架构搭建**:
-      - 创建 `static/src/js/core/init.js`: 引入 Alpine.js 和 HTMX 的初始化配置。
-      - 创建 `static/src/js/stores/theme.js`: 迁移原 `theme.js` 逻辑到 Alpine Store。
-      - 创建 `static/src/js/stores/i18n.js`: 迁移原 `i18n.js` 逻辑到 Alpine Store。
-  2.  **资源引用更新**:
-      - 修改 `views/header.html`，移除旧的 `kiko` 初始化脚本。
-      - 引入 `/public/dist/js/uno.umd.js`。
-      - 引入新的模块化 JS 文件 (开发阶段可分别引入，生产阶段合并)。
-  3.  **后端扩展**: 创建 `internal/app/view/htmx.go` 扩展，实现 `RenderPartial` 逻辑。
+- **状态**: ✅ 完成
+- **主要成果**:
+  - 创建了 `static/src/js/core/init.js`，初始化了 Alpine 和 HTMX。
+  - 创建了 `theme.js` 和 `i18n.js` stores。
+  - 更新了 `header.html` 引用。
 
-- **验证与测试 (Verification & Testing)**:
-  - [ ] **浏览器控制台检查**: 确保 Alpine.js, HTMX, Uno UI 初始化成功，无 JS 错误。
-  - [ ] **资源加载验证**: 检查 Network 面板，确认 `uno.umd.js` 和新模块化 JS 文件均返回 200 OK。
-  - [ ] **Store 状态验证**: 在控制台输入 `Alpine.store('theme')`，确认能获取到主题状态对象。
-
-### **Phase 2: 公共布局与导航 (预计 5 天)**
+### **Phase 2: 公共布局与导航 (进行中)**
 
 - **目标**: 迁移全局导航、页脚和用户菜单，验证 Alpine.js 交互能力。
 - **涉及文件**: `views/navbar.html`, `views/footer.html`, `static/src/js/modules/layout.js`
 - **任务**:
-  1.  **创建 Layout 模块**: 新建 `static/src/js/modules/layout.js`，定义 `navbar` 和 `footer` 的 Alpine 组件。
-  2.  **用户下拉菜单**: 在 `navbar.html` 中使用 `x-data="layout.navbar()"`，移除 `data-tooltip-target`。
-  3.  **语言切换**: 使用 Uno 的 i18n 支持，在 `layout.js` 中调用 `Alpine.store('i18n')`。
-  4.  **暗色模式**: 绑定 `x-data` 到 `Alpine.store('theme')`。
+  1.  **创建 Layout 模块**: 新建 `static/src/js/modules/layout.js`，定义 `Navbar` 和 `Footer` 的 Alpine 组件。 (已完成)
+  2.  **用户下拉菜单**: 在 `navbar.html` 中使用 `x-data="navbar"`, 移除 `data-tooltip-target`。 (已完成)
+  3.  **语言切换**: 使用 Uno 的 i18n 支持，在 `layout.js` 中调用 `Alpine.store('i18n')`。 (已完成)
+  4.  **暗色模式**: 绑定 `x-data` 到 `Alpine.store('theme')`。 (已完成)
+  5.  **文档更新**: 更新 API 文档和使用指南。
 
 - **验证与测试 (Verification & Testing)**:
+  - [x] **单元测试**: 对 `Navbar` 和 `Footer` 逻辑进行 Jest 测试。
   - [ ] **视觉回归**: 对比重构前后 Navbar 和 Footer 的截图，确保布局、间距、字体完全一致。
   - [ ] **交互功能**:
     - 点击用户头像，下拉菜单应平滑展开/收起。
@@ -157,15 +159,6 @@
   3.  **点赞功能**: 将 `data-action="like"` 替换为 `hx-post`，或在 `diary.js` 中封装 Alpine Action。
   4.  **删除功能**: 使用 Uno 的 `Box` 组件。在 `diary.js` 中定义 `confirmDelete` 方法，触发 Uno Box 弹窗。
 
-- **验证与测试 (Verification & Testing)**:
-  - [ ] **列表渲染**: 首页日记列表加载正常，样式无崩坏。
-  - [ ] **HTMX 交互**:
-    - 点击“下一页”，列表应局部刷新，页面不闪烁，Network 面板可见 `HX-Request: true`。
-    - 点击“点赞”，计数器应即时 +1。
-  - [ ] **Uno 组件**:
-    - 点击“删除”，应弹出 Uno 风格的确认框。
-    - 确认删除后，该条目应从列表中平滑消失。
-
 ### **Phase 4: 核心业务 - 表单与提交 (预计 10 天)**
 
 - **目标**: 处理最复杂的表单交互，验证服务端校验反馈机制。
@@ -174,13 +167,6 @@
   1.  **创建 Auth 模块**: 新建 `static/src/js/modules/auth.js`。
   2.  **登录/注册**: 改造为 `hx-post`，服务端返回带错误信息的 HTML 片段更新表单区域。使用 Uno `Valid` 组件进行表单验证。
   3.  **日记发布**: 确保富文本编辑器与 Alpine 组件的生命周期 (`init`, `destroy`) 集成。
-
-- **验证与测试 (Verification & Testing)**:
-  - [ ] **表单验证**: 提交空表单，应显示 Uno Valid 组件定义的错误提示样式。
-  - [ ] **提交反馈**:
-    - 登录成功，应跳转至首页。
-    - 登录失败，应在表单区域内显示错误信息，不刷新页面。
-  - [ ] **富文本编辑器**: 确保编辑器能正常加载、输入内容，并随表单一起提交。
 
 ### **Phase 5: 清理与验收 (预计 5 天)**
 
@@ -197,11 +183,6 @@
       - 执行完整的视觉回归测试套件。
       - 模拟用户完整操作路径（注册 -> 登录 -> 写日记 -> 点赞 -> 删除 -> 登出）。
 
-- **验证与测试 (Verification & Testing)**:
-  - [ ] **控制台零错误**: 全站浏览，控制台不应出现 404 (资源丢失) 或 JS Error。
-  - [ ] **网络请求检查**: 确认不再加载任何 jQuery 或 Kiko 相关资源。
-  - [ ] **最终验收**: 确认所有功能点均已迁移，且用户体验无退化。
-
 ---
 
 ## 4. 测试策略总纲 (Testing Strategy Overview)
@@ -210,11 +191,13 @@
 
 ### 4.1 工具链
 
+- **Jest**: 用于 JavaScript 模块的单元测试 (Unit Testing)。
 - **Playwright/Puppeteer**: 用于自动化视觉回归测试（截图对比）和端到端（E2E）功能测试。
 - **Chrome DevTools**: 用于开发过程中的手动验证（Console, Network, Elements）。
 
 ### 4.2 核心测试类型
 
+- **单元测试 (Unit Testing)**: 验证 Alpine 组件 (`layout.js`, `diary.js`) 的逻辑正确性。
 - **视觉回归 (Visual Regression)**: 像素级对比重构前后的页面截图，确保样式零差异。
 - **功能验证 (Functional Verification)**: 验证交互逻辑（点击、提交、弹窗）是否符合预期。
 - **接口验证 (API Verification)**: 确保 HTMX 请求正确发送 `HX-Request` 头，且服务端正确返回 HTML 片段。
