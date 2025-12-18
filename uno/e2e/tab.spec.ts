@@ -85,4 +85,32 @@ test.describe('Tab Component', () => {
     // Verify loaded attribute
     await expect(ajaxContent).toHaveAttribute('data-tab-loaded', 'true')
   })
+
+  test('perf: switch 200 times (same tab group)', async ({ page }) => {
+    const durationMs = await page.evaluate(async () => {
+      // @ts-ignore
+      const AlpineRef = window.Alpine || window.top.Alpine
+      const btn1 = document.querySelector('button[data-tab-target="tab1"]')
+      const btn2 = document.querySelector('button[data-tab-target="tab2"]')
+      if (!btn1 || !btn2) return -1
+
+      const root = btn1.closest('[x-data]')
+      if (!root) return -1
+
+      // @ts-ignore
+      const data = AlpineRef.$data(root)
+      if (!data || typeof data.open !== 'function') return -1
+
+      const start = performance.now()
+      for (let i = 0; i < 100; i++) {
+        await data.open('tab2', null, 'settings')
+        await data.open('tab1')
+      }
+      await AlpineRef.nextTick()
+      return performance.now() - start
+    })
+
+    console.log(`[Perf] tab switch 200 times: ${durationMs.toFixed(2)}ms`)
+    expect(durationMs).toBeGreaterThan(0)
+  })
 })

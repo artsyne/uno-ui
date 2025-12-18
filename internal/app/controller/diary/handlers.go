@@ -2,7 +2,6 @@ package diary
 
 import (
 	"log/slog"
-	"strconv"
 
 	"github.com/biuren/hebe/internal/app/middleware"
 	"github.com/biuren/hebe/internal/domain/diary"
@@ -73,16 +72,8 @@ func (ctrl *DiaryController) UpdateDiary(c *gin.Context) {
 	// 获取当前登录用户信息
 	loginUser := ctrl.auth.MustGetCurrentUser(c)
 
-	// 解析请求数据
-	var req UpdateDiaryRequest
-	if err := c.ShouldBindUri(&req); err != nil {
-		ctrl.renderService.JSONError(c, &errors.InvalidParams)
-		return
-	}
-	if err := c.ShouldBind(&req); err != nil {
-		ctrl.renderService.JSONError(c, &errors.InvalidParams)
-		return
-	}
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[UpdateDiaryRequest](c)
 
 	// 验证日记本所有权
 	originalDiary, err := ctrl.diaryService.GetDiaryByID(req.DiaryID)
@@ -138,13 +129,28 @@ func (ctrl *DiaryController) UpdateDiary(c *gin.Context) {
 }
 
 // DeleteDiary 删除日记本
-// 预留的删除功能实现，目前返回无效参数错误
+// 处理删除日记本的请求，需要用户登录且为日记本所有者
 //
 // 参数:
 //   - c: Gin上下文对象
+//
+// 路由: DELETE /diary/:id
 func (ctrl *DiaryController) DeleteDiary(c *gin.Context) {
-	// 预留的删除功能实现
-	ctrl.renderService.JSONError(c, &errors.InvalidParams)
+	// 获取当前登录用户信息
+	loginUser := ctrl.auth.MustGetCurrentUser(c)
+
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[DeleteDiaryRequest](c)
+
+	// 调用服务层删除日记本
+	err := ctrl.diaryService.DeleteDiary(req.DiaryID, loginUser.UserId)
+	if err != nil {
+		ctrl.renderService.JSONError(c, err)
+		return
+	}
+
+	// 返回成功响应
+	ctrl.renderService.JSONSuccess(c, nil)
 }
 
 // LikeDiary 日记本点赞
@@ -160,12 +166,8 @@ func (ctrl *DiaryController) LikeDiary(c *gin.Context) {
 		return
 	}
 
-	// 从POST请求体获取diary_id
-	var req LikeDiaryRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		ctrl.renderService.JSONError(c, &errors.InvalidParams)
-		return
-	}
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[LikeDiaryRequest](c)
 	diaryID := req.DiaryID
 
 	// 获取点赞前的状态，用于判断是点赞还是取消点赞
@@ -216,17 +218,9 @@ func (ctrl *DiaryController) LikeDiary(c *gin.Context) {
 // 参数:
 //   - c: Gin上下文对象
 func (ctrl *DiaryController) GetDiaryLikeStatus(c *gin.Context) {
-	// 从URL参数获取diary_id
-	diaryIDStr := c.Query("diaryid")
-	if diaryIDStr == "" {
-		ctrl.renderService.JSONError(c, &errors.InvalidParams)
-		return
-	}
-	diaryID, err := strconv.ParseInt(diaryIDStr, 10, 64)
-	if err != nil {
-		ctrl.renderService.JSONError(c, &errors.InvalidParams)
-		return
-	}
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[GetLikeStatusRequest](c)
+	diaryID := req.DiaryID
 
 	// 获取登录用户信息（可能为空，访客也可以查看点赞状态）
 	loginUser, _ := ctrl.auth.GetCurrentUser(c)

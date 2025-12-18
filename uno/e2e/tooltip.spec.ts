@@ -127,4 +127,56 @@ test.describe('Tooltip Component', () => {
     const list = tooltipContent.locator('ul')
     await expect(list).toBeVisible()
   })
+
+  test('sanitizes dangerous HTML from DOM target', async ({ page }) => {
+    const trigger = page.getByTestId('trigger-target')
+    const tooltipContent = page.locator('#uno-tooltip-content')
+
+    // Reset flags (img onerror might have fired on page load)
+    await page.evaluate(() => {
+      const win = window as any
+      win.__UNO_XSS_LINK__ = undefined
+      win.__UNO_XSS_IMG__ = undefined
+    })
+
+    await trigger.hover()
+    await expect(tooltipContent).toBeVisible()
+
+    const unsafeLink = tooltipContent.getByText('Unsafe Link')
+    await expect(unsafeLink).toBeVisible()
+    await expect(unsafeLink).not.toHaveAttribute('href', /.+/)
+
+    await expect(tooltipContent.locator('img')).toHaveCount(0)
+
+    const flags = await page.evaluate(() => {
+      const win = window as any
+      return {
+        link: win.__UNO_XSS_LINK__,
+        img: win.__UNO_XSS_IMG__
+      }
+    })
+    expect(flags.link).toBeUndefined()
+    expect(flags.img).toBeUndefined()
+  })
+
+  test('perf: show/hide 100 tooltips', async ({ page }) => {
+    const durationMs = await page.evaluate(async () => {
+      // @ts-ignore
+      const AlpineRef = window.Alpine || window.top.Alpine
+      const store = AlpineRef.store('tooltip')
+      const trigger = document.querySelector('[data-testid="trigger-top"]')
+      if (!trigger) return -1
+
+      const start = performance.now()
+      for (let i = 0; i < 100; i++) {
+        await store.show(trigger, 'Perf', { placement: 'top' })
+        store.hide()
+        await AlpineRef.nextTick()
+      }
+      return performance.now() - start
+    })
+
+    console.log(`[Perf] tooltip show/hide 100 times: ${durationMs.toFixed(2)}ms`)
+    expect(durationMs).toBeGreaterThan(0)
+  })
 })

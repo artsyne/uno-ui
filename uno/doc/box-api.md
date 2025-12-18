@@ -84,6 +84,19 @@ Alpine.store('box').clearCache()
 | `data-box-cancel-text` | Cancel button text        | -                                                                                           |
 | `data-box-cache`       | Cache DOM                 | `false` (Requires `data-box-id`)                                                            |
 | `data-box-id`          | Unique Identifier         | -                                                                                           |
+| `data-box-trusted`     | Trust HTML Content        | `false` (Default: sanitizes content)                                                        |
+
+## Security & HTMX
+
+### Content Sanitization
+All content loaded via `content`, `ajax-url`, or `hx-url` is sanitized by default.
+- Use `data-box-trusted="true"` (or `trusted: true` in JS) to bypass sanitization for trusted content.
+- Dangerous tags (`script`, `iframe`, etc.) are stripped unless trusted.
+
+### HTMX Integration
+- **Unified Request**: `ajax-url` and `hx-url` both use `Uno.request`, which prioritizes `htmx.ajax` if available.
+- **HX-Trigger**: Responses can trigger client-side events via the `HX-Trigger` header.
+- **CSRF**: Requests automatically include CSRF tokens if `htmx.config.request` is configured.
 
 ## Internationalization (i18n)
 

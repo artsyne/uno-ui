@@ -41,18 +41,19 @@ func (ctrl *DiaryController) RegisterRoutes(router *gin.Engine) {
 	{
 		authAPI.POST("/diary", middleware.Validate[CreateDiaryRequest](), ctrl.CreateDiary)
 		authAPI.PUT("/diary/:id", middleware.Validate[UpdateDiaryRequest](), ctrl.UpdateDiary)
+		authAPI.DELETE("/diary/:id", middleware.Validate[DeleteDiaryRequest](), ctrl.DeleteDiary)
 	}
 
 	// 点赞相关API路由
 	api := router.Group("/api/diary")
 	{
 		// 获取日记本点赞状态（无需鉴权，访客也可查看）
-		api.GET("/like/status", ctrl.GetDiaryLikeStatus)
+		api.GET("/like/status", middleware.Validate[GetLikeStatusRequest](), ctrl.GetDiaryLikeStatus)
 
 		// 点赞/取消点赞操作（需要鉴权）
 		apiAuth := api.Group("/").Use(ctrl.auth.RequireAuth())
 		{
-			apiAuth.POST("/like", ctrl.LikeDiary)
+			apiAuth.POST("/like", middleware.Validate[LikeDiaryRequest](), ctrl.LikeDiary)
 		}
 	}
 }

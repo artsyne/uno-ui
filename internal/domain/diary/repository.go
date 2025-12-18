@@ -18,6 +18,13 @@ type RepositoryInterface interface {
 	//   - error: 更新失败时返回错误
 	Update(diary *Diary) error
 
+	// Delete 删除日记本
+	// 参数:
+	//   - diaryID: 日记本ID
+	// 返回:
+	//   - error: 删除失败时返回错误
+	Delete(diaryID int64) error
+
 	// IncrementPostNum 增加日记本的日记数量
 	// 参数:
 	//   - diaryID: 日记本ID

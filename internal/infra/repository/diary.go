@@ -116,6 +116,15 @@ func (r *DiaryRepository) Update(d *diary.Diary) error {
 	return nil
 }
 
+// Delete 删除日记本
+// 参数: diaryID - 日记本ID
+// 返回: 可能的错误
+func (r *DiaryRepository) Delete(diaryID int64) error {
+	sql := "DELETE FROM br_diary WHERE diary_id = ?"
+	_, err := r.db.Exec(sql, diaryID)
+	return err
+}
+
 // IncrementPostNum 增加日记本的日记数量
 // 通过空间 ID 把空间信息数量加一，并更新最后动作时间,用户ID,用户名
 // 参数: diaryID - 日记本ID, userID - 用户ID, userName - 用户名, actionUTCTime - 操作时间

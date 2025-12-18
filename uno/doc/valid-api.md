@@ -82,6 +82,13 @@ The plugin has built-in common validation rules, which can be used via `data-val
 | `pwd` | Simple Password | At least letters and numbers, 8+ characters |
 | `strongpwd`| Strong Password | Letters, numbers, special characters, 8+ characters |
 
+## Security: ReDoS Protection
+
+To prevent Regular Expression Denial of Service (ReDoS) attacks:
+- **Length Limit**: Regex patterns are limited to 1000 characters.
+- **Safe Execution**: Pattern execution is wrapped in try-catch blocks.
+- **Complexity**: Avoid nested quantifiers in custom regex rules.
+
 ## Rule Details (JSON Config)
 
 Rule objects defined in the `valid` attribute support the following fields:

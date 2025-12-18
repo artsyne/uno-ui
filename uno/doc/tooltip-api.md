@@ -63,6 +63,14 @@ Initializes the Tooltip data object.
 | `timeout` | `Number` | `100` | Delay in ms before closing on mouse leave (hover mode). |
 | `target` | `String` | `null` | ID of the DOM element to use as content source. |
 | `onShow` | `Function` | `null` | Callback function triggered when tooltip is shown. Receives content element. |
+| `trustedHTML` | `Boolean` | `false` | If true, disables HTML sanitization. Use with caution. |
+
+## Security & Sanitization
+
+By default, all HTML content (whether from `content` prop or `target` DOM) is sanitized using `Uno.dom.sanitizeHTML`.
+- **Dangerous Tags**: `<script>`, `<style>`, `<iframe>`, `<object>`, `<embed>` are completely stripped.
+- **Attributes**: Only safe attributes (e.g. `class`, `id`) are allowed. `href` in `<a>` tags is validated (no `javascript:`).
+- **Trusted Mode**: Set `trustedHTML: true` to bypass sanitization if you trust the content source.
 
 ## Examples
 

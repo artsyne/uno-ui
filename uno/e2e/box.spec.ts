@@ -243,4 +243,29 @@ test.describe('Box Component', () => {
     expect(logs).toContain('onContentLoad')
     expect(logs).toContain('element_received')
   })
+
+  test('perf: open/close 50 dialogs', async ({ page }) => {
+    const durationMs = await page.evaluate(async () => {
+      // @ts-ignore
+      const AlpineRef = window.Alpine || window.top.Alpine
+      const store = AlpineRef.store('box')
+
+      const start = performance.now()
+      for (let i = 0; i < 50; i++) {
+        const id = store.open({
+          title: 'Perf',
+          content: 'Perf',
+          modal: false,
+          width: 400
+        })
+        await AlpineRef.nextTick()
+        store.close(id)
+        await AlpineRef.nextTick()
+      }
+      return performance.now() - start
+    })
+
+    console.log(`[Perf] box open/close 50 dialogs: ${durationMs.toFixed(2)}ms`)
+    expect(Number.isFinite(durationMs)).toBeTruthy()
+  })
 })

@@ -6,8 +6,8 @@
  * @license MIT
  */
 
-import { log } from '../../utils/log'
-import { getFixedPositionClass, getStackingConfig } from '../../utils/position'
+import { log } from '../utils/log'
+import { getFixedPositionClass, getStackingConfig } from '../utils/position'
 
 export default (Alpine) => {
   // 1. Store

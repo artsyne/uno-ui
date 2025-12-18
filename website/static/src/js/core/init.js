@@ -3,7 +3,7 @@ import i18nStore from '../stores/i18n.js';
 import { Navbar, Footer } from '../modules/layout.js';
 import { DiaryList } from '../modules/diary.js';
 import { LikeButton, CommentsMixin } from '../modules/social.js';
-import { initAuth, initValidationCallbacks } from '../modules/auth.js';
+import { initAuth, initValidationCallbacks, ValidForm } from '../modules/auth.js';
 import { Member } from '../modules/member.js';
 import { Settings } from '../modules/settings.js';
 import { Notify } from '../utils/uno-shim.js';
@@ -34,6 +34,7 @@ document.addEventListener('alpine:init', () => {
   Alpine.data('CommentsMixin', CommentsMixin);
   Alpine.data('member', () => Member);
   Alpine.data('settings', Settings);
+  Alpine.data('validForm', ValidForm);
 
   // 注册 Alpine Stores
   Alpine.store('theme', themeStore);

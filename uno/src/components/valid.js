@@ -1,4 +1,4 @@
-import { VALIDATORS, sanitizeRegexString, safeParseJSON } from '../../utils/validation'
+import { VALIDATORS, buildSafeRegExp, safeParseJSON } from '../utils/validation'
 
 /**
  * Uno - Validation Component (Data-Driven Refactor)
@@ -144,9 +144,14 @@ export default (Alpine) => {
             error = ruleObj.msg || t(type) || t('pattern')
           }
         } else if (type === 'regexp' && ruleObj.expression) {
-          const { pattern, flags } = sanitizeRegexString(ruleObj.expression)
-          const re = new RegExp(pattern, flags || 'i')
-          if (!re.test(val)) error = ruleObj.msg || t('pattern')
+          const cacheKey = String(ruleObj.expression)
+          if (ruleObj.__reSrc !== cacheKey) {
+            ruleObj.__re = buildSafeRegExp(cacheKey, { defaultFlags: 'i' })
+            ruleObj.__reSrc = cacheKey
+          }
+          const re = ruleObj.__re
+          if (!re) error = ruleObj.msg || t('pattern')
+          else if (!re.test(val)) error = ruleObj.msg || t('pattern')
         } else if (type === 'limit') {
           if (ruleObj.min && val.length < ruleObj.min)
             error = ruleObj.msg || t('min', { n: ruleObj.min })

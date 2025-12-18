@@ -6,8 +6,9 @@
  * @license MIT
  */
 
-import { calculatePosition } from '../../utils/position'
-import { log } from '../../utils/log'
+import { calculatePosition } from '../utils/position'
+import { log } from '../utils/log'
+import { setHTML } from '../utils/dom'
 
 export default (Alpine) => {
   if (!Alpine) {
@@ -39,8 +40,7 @@ export default (Alpine) => {
       // Inject content and init Alpine for interactivity
       const body = document.getElementById('uno-tooltip-body')
       if (body) {
-        body.innerHTML = this.content
-        Alpine.initTree(body)
+        setHTML(body, this.content, { trusted: config.trustedHTML === true, alpine: Alpine })
       }
 
       // Wait for DOM update to measure tooltip size

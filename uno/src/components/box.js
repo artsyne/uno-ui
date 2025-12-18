@@ -6,25 +6,92 @@
  * @license MIT
  */
 
-import { lock, unlock } from '../../utils/bodyScroll'
-import { get as httpGet } from '../../utils/ajax'
-import { log } from '../../utils/log'
-import { getFlexAlignmentClass } from '../../utils/position'
+import { lock, unlock } from '../utils/bodyScroll'
+import { escapeHTML, once, setHTML } from '../utils/dom'
+import { log } from '../utils/log'
+import { getFlexAlignmentClass } from '../utils/position'
+import { requestHTML, requestData } from '../utils/request'
 
 export default (Alpine) => {
+  if (once(Alpine, 'uno:directive:safe-html')) {
+    Alpine.directive('safe-html', (el, { expression }, { evaluateLater, effect }) => {
+      const get = evaluateLater(expression)
+      let lastHTML = null
+      let lastTrusted = null
+
+      effect(() => {
+        get((value) => {
+          let html = ''
+          let trusted = false
+
+          if (typeof value === 'string') {
+            html = value
+          } else if (typeof value === 'object' && value !== null) {
+            html = value.html || ''
+            trusted = value.trusted === true
+          }
+
+          if (html === lastHTML && trusted === lastTrusted) return
+          lastHTML = html
+          lastTrusted = trusted
+
+          setHTML(el, html, { trusted, alpine: Alpine })
+        })
+      })
+    })
+  }
+
   // 1. Store
   Alpine.store('box', {
     items: [],
 
-    init() {
-      // Watch for modal count to lock/unlock body scroll
-      Alpine.effect(() => {
-        const modals = this.items.filter((i) => i.modal)
-        if (modals.length > 0) {
-          lock()
-        } else {
-          unlock()
-        }
+    // Public API
+    alert(message, options = {}) {
+      const opts = typeof options === 'string' ? { title: options } : options
+      return this.open('dialog', {
+        content: message,
+        showOkButton: true,
+        ...opts
+      })
+    },
+
+    confirm(message, options = {}) {
+      return new Promise((resolve) => {
+        this.open('confirm', {
+          content: message,
+          onOk: () => resolve(true),
+          onCancel: () => resolve(false),
+          onClose: () => resolve(false), // Closing without choice = cancel
+          ...options
+        })
+      })
+    },
+
+    prompt(message, defaultValue = '', options = {}) {
+      // TODO: Implement prompt UI with input
+      return new Promise((resolve) => {
+        // Simple fallback or custom content with input?
+        // For now, let's use a custom content with input
+        const id = 'prompt-' + Math.random().toString(36).substr(2, 9)
+        const content = `
+          <div class="space-y-3">
+            <p>${escapeHTML(message)}</p>
+            <input id="${id}" type="text" class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value="${escapeHTML(
+          defaultValue
+        )}">
+          </div>
+        `
+        this.open('confirm', {
+          title: options.title || 'Prompt',
+          content,
+          trustedHTML: true,
+          onOk: () => {
+            const input = document.getElementById(id)
+            resolve(input ? input.value : null)
+          },
+          onCancel: () => resolve(null),
+          ...options
+        })
       })
     },
 
@@ -50,6 +117,7 @@ export default (Alpine) => {
         type,
         title: options.title || '',
         content: options.content || '',
+        trustedHTML: options.trustedHTML === true,
         width: options.width !== undefined ? options.width : options.widthClass ? null : 400,
         height: options.height,
         widthClass: options.widthClass,
@@ -86,51 +154,38 @@ export default (Alpine) => {
         const target = document.getElementById(options.targetId)
         if (target) {
           item.content = target.innerHTML
+          item.trustedHTML = true
         } else {
           log.warn('Box: Target element not found:', options.targetId)
           item.content = '<div class="p-4 text-red-500">Error: Content target not found</div>'
+          item.trustedHTML = true
         }
       } else if (options.hxUrl) {
-        // HTMX Loading
         item.loading = true
         this.add(item)
 
-        Alpine.nextTick(() => {
-          const targetSelector = '#uno-box-content' + id
-          const target = document.getElementById('uno-box-content' + id)
-
-          if (window.htmx && target) {
-            window.htmx
-              .ajax('GET', options.hxUrl, {
-                target: targetSelector,
-                swap: 'innerHTML'
+        try {
+          const html = await requestHTML(options.hxUrl, { method: 'GET' })
+          const current = this.items.find((i) => i.id === id)
+          if (current) {
+            current.content = html
+            current.trustedHTML = true
+            current.loading = false
+            if (current.onContentLoad) {
+              Alpine.nextTick(() => {
+                current.onContentLoad(document.getElementById('uno-box-content' + id))
               })
-              .then(() => {
-                const current = this.items.find((i) => i.id === id)
-                if (current) {
-                  current.loading = false
-                  if (current.onContentLoad) {
-                    Alpine.nextTick(() => {
-                      current.onContentLoad(document.getElementById('uno-box-content' + id))
-                    })
-                  }
-                }
-              })
-              .catch((err) => {
-                log.error('Box: HTMX Load Failed', err)
-                const current = this.items.find((i) => i.id === id)
-                if (current) {
-                  current.loading = false
-                  current.content =
-                    '<div class="p-4 text-red-500">Error loading content via HTMX</div>'
-                }
-              })
-          } else {
-            log.error('Box: HTMX not found or target missing')
-            const current = this.items.find((i) => i.id === id)
-            if (current) current.loading = false
+            }
           }
-        })
+        } catch (err) {
+          log.error('Box: HTMX Load Failed', err)
+          const current = this.items.find((i) => i.id === id)
+          if (current) {
+            current.loading = false
+            current.trustedHTML = true
+            current.content = '<div class="p-4 text-red-500">Error loading content via HTMX</div>'
+          }
+        }
         return id
       } else if (options.ajaxUrl) {
         item.loading = true
@@ -138,7 +193,7 @@ export default (Alpine) => {
         this.add(item)
 
         try {
-          const data = await httpGet(options.ajaxUrl)
+          const data = await requestData(options.ajaxUrl)
           const content =
             typeof data === 'object'
               ? `<pre class="bg-gray-100 p-3 rounded overflow-x-auto whitespace-pre-wrap">${JSON.stringify(data, null, 2)}</pre>`
@@ -148,15 +203,13 @@ export default (Alpine) => {
           const current = this.items.find((i) => i.id === id)
           if (current) {
             current.content = content
+            current.trustedHTML = true
             current.loading = false
 
             // Re-initialize Alpine components in the new content
             Alpine.nextTick(() => {
               const el = document.getElementById('uno-box-content' + id)
               if (el) {
-                // We need to use initTree to initialize x-data etc. in the new HTML
-                Alpine.initTree(el)
-
                 if (current.onContentLoad) {
                   current.onContentLoad(el)
                 }
@@ -168,12 +221,14 @@ export default (Alpine) => {
           const current = this.items.find((i) => i.id === id)
           if (current) {
             current.content = `<div class="text-red-500">Error loading content</div>`
+            current.trustedHTML = true
             current.loading = false
           }
         }
         return id
       } else if (options.iframeUrl) {
-        item.content = `<iframe frameborder="0" class="w-full h-full" src="${options.iframeUrl}"></iframe>`
+        item.content = `<iframe frameborder="0" class="w-full h-full" src="${escapeHTML(options.iframeUrl)}"></iframe>`
+        item.trustedHTML = true
       }
 
       this.add(item)
@@ -285,7 +340,7 @@ export default (Alpine) => {
                                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                               </svg>
                           </div>
-                          <div :id="'uno-box-content' + item.id" x-show="!item.loading" x-html="item.content"></div>
+                          <div :id="'uno-box-content' + item.id" x-show="!item.loading" x-safe-html="{ html: item.content, trusted: item.trustedHTML }"></div>
                       </div>
 
                       <!-- Footer -->
@@ -325,51 +380,58 @@ export default (Alpine) => {
   if (document.body) {
     injectContainer()
   } else {
-    document.addEventListener('DOMContentLoaded', injectContainer)
+    if (once(document, 'uno:box:domcontentloaded')) {
+      document.addEventListener('DOMContentLoaded', injectContainer)
+    }
   }
 
   // Global delegator for data-box-type (backward compatibility / ease of use)
-  document.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-box-type]')
-    if (!t) return
+  if (once(document, 'uno:box:delegator')) {
+    document.addEventListener('click', (e) => {
+      const t = e.target.closest('[data-box-type]')
+      if (!t) return
 
-    const type = t.getAttribute('data-box-type')
-    if (!['dialog', 'confirm', 'message'].includes(type)) return
+      const type = t.getAttribute('data-box-type')
+      if (!['dialog', 'confirm', 'message'].includes(type)) return
 
-    e.preventDefault()
+      e.preventDefault()
 
-    // Parse data attributes
-    const d = t.dataset
-    const opts = {
-      title: d.boxTitle,
-      content: d.boxContent,
-      width: d.boxWidth ? parseInt(d.boxWidth) : undefined,
-      height: d.boxHeight ? parseInt(d.boxHeight) : undefined,
-      ajaxUrl: d.boxAjaxUrl,
-      hxUrl: d.boxHxUrl,
-      iframeUrl: d.boxIframeUrl,
-      targetId: d.boxTargetId,
-      position: d.boxPosition,
-      okButtonText: d.boxOkText,
-      cancelButtonText: d.boxCancelText,
-      overlayOpacity: d.boxOverlayOpacity ? parseFloat(d.boxOverlayOpacity) : undefined,
-      showCloseButton: d.boxShowClose !== 'false',
-      boxId: d.boxId,
-      cache: d.boxCache === 'true'
-    }
+      // Parse data attributes
+      const d = t.dataset
+      const opts = {
+        title: d.boxTitle,
+        content: d.boxContent,
+        width: d.boxWidth ? parseInt(d.boxWidth) : undefined,
+        height: d.boxHeight ? parseInt(d.boxHeight) : undefined,
+        ajaxUrl: d.boxAjaxUrl,
+        hxUrl: d.boxHxUrl,
+        iframeUrl: d.boxIframeUrl,
+        targetId: d.boxTargetId,
+        position: d.boxPosition,
+        okButtonText: d.boxOkText,
+        cancelButtonText: d.boxCancelText,
+        overlayOpacity: d.boxOverlayOpacity ? parseFloat(d.boxOverlayOpacity) : undefined,
+        showCloseButton: d.boxShowClose !== 'false',
+        boxId: d.boxId,
+        cache: d.boxCache === 'true',
+        trustedHTML: d.boxTrusted === 'true'
+      }
 
-    if (d.boxModal === 'false') opts.modal = false
+      if (d.boxModal === 'false') opts.modal = false
 
-    Alpine.store('box').open(type, opts)
-  })
+      Alpine.store('box').open(type, opts)
+    })
+  }
 
   // HTMX Integration: Re-initialize Alpine on swapped content
   // This ensures that if HTMX is used within a box (or anywhere), Alpine components are initialized.
   if (typeof window !== 'undefined') {
-    document.addEventListener('htmx:afterSwap', (event) => {
-      if (event.detail.elt && Alpine) {
-        Alpine.initTree(event.detail.elt)
-      }
-    })
+    if (once(document, 'uno:box:htmx-afterSwap')) {
+      document.addEventListener('htmx:afterSwap', (event) => {
+        if (event.detail.elt && Alpine) {
+          Alpine.initTree(event.detail.elt)
+        }
+      })
+    }
   }
 }

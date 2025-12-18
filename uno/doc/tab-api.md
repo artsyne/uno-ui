@@ -84,6 +84,17 @@ Pass a hash string as the third argument to `trigger()`.
 - Clicking updates URL to `...#profile`.
 - Loading URL with `#profile` activates this tab.
 
+## Security & Optimization
+
+### Content Sanitization
+AJAX and HTMX loaded content is sanitized via `Uno.dom.sanitizeHTML` before injection.
+- Dangerous tags are removed.
+- Use secure endpoints for `ajaxUrl` and `hxUrl`.
+
+### Memory Management
+- **Event Cleanup**: Hash change listeners are automatically managed and cleaned up when tabs are destroyed or re-initialized.
+- **Idempotency**: Initialization is safe to call multiple times (via `Uno.utils.once`).
+
 ## Styling
 
 The component manages state classes but leaves visual styling to you.

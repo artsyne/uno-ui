@@ -25,6 +25,23 @@ export function sanitizeRegexString(str) {
   return { pattern: str, flags: '' }
 }
 
+export function buildSafeRegExp(expression, options = {}) {
+  const { defaultFlags = 'i', maxPatternLength = 200 } = options
+  const { pattern, flags } = sanitizeRegexString(String(expression ?? ''))
+
+  if (!pattern) return null
+  if (pattern.length > maxPatternLength) return null
+
+  const f = String(flags || defaultFlags || '')
+  if (!/^[gimsuy]*$/.test(f)) return null
+
+  try {
+    return new RegExp(pattern, f)
+  } catch {
+    return null
+  }
+}
+
 export function safeParseJSON(str) {
   try {
     if (!str) return []

@@ -1,4 +1,4 @@
-import { Box, Notify } from '../utils/uno-shim.js';
+import { Box, Notify, Valid } from '../utils/uno-shim.js';
 
 export const Member = {
   init() {
@@ -106,6 +106,10 @@ export const Member = {
   async submitDiaryForm(boxId) {
     const form = document.querySelector('#daybook_editor_form');
     if (!form) return;
+
+    if (!(await Valid.validateForm(form))) {
+      return;
+    }
 
     const formData = new FormData(form);
     const searchParams = new URLSearchParams(formData);

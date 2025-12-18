@@ -41,6 +41,33 @@ export function initAuth() {
 }
 
 /**
+ * ValidForm Alpine component
+ * Wrapper for form validation with HTMX integration
+ */
+export const ValidForm = () => ({
+  async submit(e) {
+    const form = e.target;
+    // Use Uno's validateForm via store
+    // We can't assume 'this.$store' works inside async callback immediately if context lost,
+    // but Alpine proxies usually handle it.
+    // However, safer to use global store access if needed, or assume this.$store.valid exists.
+    
+    let isValid = false;
+    if (this.$store.valid && this.$store.valid.validateForm) {
+      isValid = await this.$store.valid.validateForm(form);
+    } else {
+      console.warn('[ValidForm] Uno valid store not found, skipping validation');
+      isValid = true;
+    }
+
+    if (isValid) {
+      // Dispatch custom event for HTMX to trigger
+      form.dispatchEvent(new CustomEvent('valid-submit', { bubbles: true }));
+    }
+  }
+});
+
+/**
  * Validation callbacks module
  * Registers custom validation callbacks for the Uno valid plugin
  */

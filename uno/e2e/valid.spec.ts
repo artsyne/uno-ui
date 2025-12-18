@@ -132,4 +132,22 @@ test.describe('Valid Plugin (Data-Driven)', () => {
     // We check if the result container gets populated
     await expect(result).toContainText('Sample Data');
   });
+
+  test('handles invalid regex pattern gracefully', async ({ page }) => {
+    const form = page.locator('form').first();
+    const username = form.locator('input[name="username"]');
+
+    // Inject invalid pattern
+    await page.evaluate(() => {
+       const input = document.querySelector('input[name="username"]');
+       if (input) input.setAttribute('pattern', '['); 
+    });
+
+    // Trigger validation
+    await username.fill('anything');
+    await username.blur();
+
+    // Should fail open (valid) and log error, not crash page
+    await expect(form.locator('[x-valid-error="username"]')).toBeHidden();
+  });
 });

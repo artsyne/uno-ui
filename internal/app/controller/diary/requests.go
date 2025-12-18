@@ -64,3 +64,11 @@ type LikeDiaryRequest struct {
 type GetLikeStatusRequest struct {
 	DiaryID int64 `form:"diary_id" json:"diary_id" binding:"required"`
 }
+
+// DeleteDiaryRequest 删除日记本请求
+//
+// 字段:
+//   - DiaryID: 要删除的日记本ID，必需参数
+type DeleteDiaryRequest struct {
+	DiaryID int64 `uri:"id" binding:"required"`
+}

@@ -3,8 +3,10 @@
  *
  * @module uno.components.tab
  * @version 0.2.1
- * @license MIT
  */
+
+import { setHTML } from '../utils/dom'
+import { requestText } from '../utils/request'
 
 export const factory = (defaultTab = '', options = {}) => ({
   active: defaultTab,
@@ -16,35 +18,27 @@ export const factory = (defaultTab = '', options = {}) => ({
   loaded: {}, // Track loaded AJAX content
 
   init() {
-    // Handle Hash on load
     if (this.options && this.options.hash) {
-      // Use nextTick to ensure DOM is ready if needed, though init usually runs after DOM is parsed for this component
-      this.$nextTick(() => {
+      const applyHash = () => {
         const hash = window.location.hash.substring(1)
         if (hash) {
-          // Find the trigger associated with this hash
           const trigger = this.$el.querySelector(`[data-tab-hash="${hash}"]`)
           if (trigger) {
             const target = trigger.getAttribute('data-tab-target')
             if (target) this.active = target
           }
         }
-      })
-    }
+      }
 
-    // Listen for hash changes
-    if (this.options.hash) {
-      window.addEventListener('hashchange', () => {
-        const hash = window.location.hash.substring(1)
-        if (hash) {
-          const trigger = this.$el.querySelector(`[data-tab-hash="${hash}"]`)
-          if (trigger) {
-            const target = trigger.getAttribute('data-tab-target')
-            if (target) this.active = target
-          }
-        }
-      })
+      this.$nextTick(() => applyHash())
+
+      this._hashHandler = () => applyHash()
+      window.addEventListener('hashchange', this._hashHandler)
     }
+  },
+
+  destroy() {
+    if (this._hashHandler) window.removeEventListener('hashchange', this._hashHandler)
   },
 
   isActive(tab) {
@@ -74,10 +68,14 @@ export const factory = (defaultTab = '', options = {}) => ({
         const contentEl = document.getElementById(tab)
         if (contentEl && !this.loaded[tab]) {
           // Loading state
-          contentEl.innerHTML = `<div class="animate-pulse p-4 space-y-2">
+          setHTML(
+            contentEl,
+            `<div class="animate-pulse p-4 space-y-2">
                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-             </div>`
+             </div>`,
+            { trusted: true, alpine: window.Alpine || window.top?.Alpine }
+          )
 
           try {
             await window.htmx.ajax('GET', hxUrl, {
@@ -88,16 +86,22 @@ export const factory = (defaultTab = '', options = {}) => ({
             this.loaded[tab] = true
             contentEl.dispatchEvent(new CustomEvent('tab-loaded', { bubbles: true }))
           } catch {
-            contentEl.innerHTML = `<div class="text-red-500 p-4">Error loading content via HTMX</div>`
+            setHTML(contentEl, `<div class="text-red-500 p-4">Error loading content via HTMX</div>`, {
+              trusted: true
+            })
           }
         }
       } else {
         console.warn('Uno Tab: HTMX requested but window.htmx is not defined.')
         const contentEl = document.getElementById(tab)
         if (contentEl) {
-          contentEl.innerHTML = `<div class="text-amber-600 bg-amber-50 p-4 rounded border border-amber-200">
+          setHTML(
+            contentEl,
+            `<div class="text-amber-600 bg-amber-50 p-4 rounded border border-amber-200">
             <strong>Warning:</strong> HTMX library not found. Please include htmx.org script.
-          </div>`
+          </div>`,
+            { trusted: true }
+          )
         }
       }
       return
@@ -110,23 +114,29 @@ export const factory = (defaultTab = '', options = {}) => ({
       // We use this.loaded[tab] to track success.
       if (contentEl && !this.loaded[tab]) {
         // Loading state
-        contentEl.innerHTML = `<div class="animate-pulse p-4 space-y-2">
+        setHTML(
+          contentEl,
+          `<div class="animate-pulse p-4 space-y-2">
              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-           </div>`
+           </div>`,
+          { trusted: true, alpine: window.Alpine || window.top?.Alpine }
+        )
 
         try {
-          const res = await fetch(ajaxUrl)
-          if (!res.ok) throw new Error('Network response was not ok')
-          const html = await res.text()
-          contentEl.innerHTML = html
+          const html = await requestText(ajaxUrl, { method: 'GET' })
+          setHTML(contentEl, html, { trusted: true, alpine: window.Alpine || window.top?.Alpine })
           contentEl.setAttribute('data-tab-loaded', 'true')
           this.loaded[tab] = true
 
           // Dispatch event for listeners (e.g. HTMX)
           contentEl.dispatchEvent(new CustomEvent('tab-loaded', { bubbles: true }))
         } catch (err) {
-          contentEl.innerHTML = `<div class="text-red-500 p-4">Error loading content: ${err.message}</div>`
+          setHTML(
+            contentEl,
+            `<div class="text-red-500 p-4">Error loading content: ${err?.message || 'Unknown error'}</div>`,
+            { trusted: true }
+          )
         }
       }
     }

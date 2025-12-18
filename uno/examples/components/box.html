@@ -69,6 +69,14 @@
               Message Alert
             </button>
           </div>
+          <button
+            data-testid="box-xss-trigger"
+            data-box-type="dialog"
+            data-box-title="XSS Test"
+            data-box-content="<a data-testid='box-xss-link' href='javascript:window.__UNO_BOX_XSS__=true'>Unsafe Link</a><img data-testid='box-xss-img' src='x' onerror='window.__UNO_BOX_XSS_IMG__=true' />"
+            class="w-full px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors text-sm font-medium">
+            XSS Test
+          </button>
           <p class="text-xs text-slate-500">
             Basic dialogs use data attributes for title and content.
           </p>
