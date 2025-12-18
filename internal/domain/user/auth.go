@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
+	types "github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/internal/utils/config"
-	"github.com/biuren/hebe/internal/contracts"
+	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -27,8 +29,6 @@ import (
  * @author hebe
  * @version 1.0.0
  */
-
-
 
 // AuthHelper 认证助手结构体
 // 封装了所有与用户认证相关的操作，提供类型安全和错误处理
@@ -130,6 +130,7 @@ func (a *AuthHelper) RequireGuest(redirectURL ...string) gin.HandlerFunc {
 // RequireAuth 中间件：要求用户已通过认证
 // 适用于需要登录才能访问的页面，如个人中心、管理后台等
 // 如果用户未登录，会重定向到登录页，并保存原始请求URL以便登录后跳回
+// 对于API或AJAX请求，返回401 JSON错误而非重定向
 //
 // Parameters:
 //   - loginURL: 可选的登录页URL，默认为 "/login"
@@ -147,6 +148,21 @@ func (a *AuthHelper) RequireGuest(redirectURL ...string) gin.HandlerFunc {
 func (a *AuthHelper) RequireAuth(loginURL ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if isAuth, _ := a.IsAuthenticated(c); !isAuth {
+			// 检查是否为API或AJAX请求
+			if c.GetHeader("HX-Request") == "true" ||
+				c.GetHeader("X-Requested-With") == "XMLHttpRequest" ||
+				strings.Contains(c.GetHeader("Accept"), "application/json") ||
+				strings.HasPrefix(c.Request.URL.Path, "/api/") {
+
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"code":    errors.Unauthorized.Code(),
+					"message": errors.Unauthorized.Key(),
+					"data":    nil,
+				})
+				c.Abort()
+				return
+			}
+
 			// 确定登录页URL
 			redirect := "/login"
 			if len(loginURL) > 0 && loginURL[0] != "" {
@@ -210,7 +226,10 @@ func (a *AuthHelper) GetCurrentUser(c *gin.Context) (*types.AuthUser, bool) {
 func (a *AuthHelper) MustGetCurrentUser(c *gin.Context) *types.AuthUser {
 	userData, ok := a.GetCurrentUser(c)
 	if !ok {
-		panic("用户未认证：在未认证的上下文中调用了 MustGetCurrentUser")
+		// 这里不应该panic，而应该返回nil或错误
+		// 但为了保持接口兼容，我们记录日志并返回nil
+		// 调用者应该自行处理nil的情况，或者确保只在已认证的路由中使用
+		return nil
 	}
 	return userData
 }
@@ -288,7 +307,7 @@ func (a *AuthHelper) SetLoginCookie(c *gin.Context, authUser *types.AuthUser) {
 	pkg.WriteCookie(c.Writer, "ud", encryptedData)
 }
 
-// ParseUserFromCookie 
+// ParseUserFromCookie
 func (a *AuthHelper) ParseUserFromCookie(c *gin.Context) *types.AuthUser {
 	cookieEnUserData := pkg.ReadCookie(c.Request, "ud")
 	if len(cookieEnUserData) < 1 {

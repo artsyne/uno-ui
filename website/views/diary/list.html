@@ -1,0 +1,88 @@
+{{define "diary/list"}}
+<div id="diary-content">
+    <div class="lg:columns-3 md:columns-2 gap-6" id="diary_post_container">
+        {{if .Data.IsOwner}}
+        <div class="card p-6 mb-6 break-inside-avoid" id="write-entry-card">
+            <div class="flex items-center justify-center h-32 hover:cursor-pointer hover:text-red-500"
+                @click="openCreatePost({{.Data.Diary.DiaryID}})">
+                <a><i class="mdi mdi-plus text-xl"></i>
+                    {{getMessage "diary.button.write_entry" .Context.Lang}}</a>
+            </div>
+        </div>
+        {{end}}
+        {{
+        $lang := .Context.Lang
+        }}
+        {{
+        $timezone := .Data.TimeZone
+        }}
+        {{range .Data.Posts}}
+        <div class="card mb-6 break-inside-avoid" data-post-id="{{.PostID}}">
+            {{if $.Data.IsOwner}}
+            <div class="post-edit">
+                <a href="javascript:void(0)" x-tooltip.click.bottom="{ content: '#post-menu-{{.PostID}}' }">
+                    <i class="mdi mdi-dots-horizontal"></i>
+                </a>
+            </div>
+            <!-- Hidden Menu Content for Tooltip -->
+            <div id="post-menu-{{.PostID}}" class="hidden">
+                <ul class="text-left">
+                    <li class="py-1"><a href="#" class="block hover:text-blue-500"
+                            @click.prevent="openEditPost({{$.Data.Diary.DiaryID}}, {{.PostID}}); $store.tooltip.hide()">
+                            <i class="mdi mdi-pencil-outline mr-2"></i> {{getMessage "common.edit" $lang}}</a>
+                    </li>
+                    <li class="py-1"><a href="#" class="block hover:text-red-500"
+                            @click.prevent="confirmDelete({{$.Data.Diary.DiaryID}}, {{.PostID}}); $store.tooltip.hide()">
+                            <i class="mdi mdi-delete-outline mr-2"></i> {{getMessage "common.delete" $lang}}</a>
+                    </li>
+                </ul>
+            </div>
+            {{end}}
+            <div class="mb-4">
+                {{if .Title }}
+                <h1 class="post-title">
+                    {{.Title}}
+                </h1>
+                {{end}}
+                <p class="text-relaxed cursor-pointer">
+                    <a href="/p/{{.PostID}}" @click.prevent="openPostModal('/p/{{.PostID}}')"
+                        style="all:unset !important">
+                        {{ .Summary}}
+                    </a>
+                </p>
+            </div>
+            <div class="flex justify-between">
+                <div>
+                    <span class="post-time">
+                        {{formatLocalTime .AddUTCTime $timezone}}
+                    </span>
+                </div>
+                <!-- Alpine-based Stats Container -->
+                <div class="flex items-center" x-show="stats[{{.PostID}}]" style="display: none;">
+                    <button class="btn-social mr-2">
+                        <i class="mdi mdi-eye mr-1"></i> <span x-text="getStats({{.PostID}}).view_num"></span>
+                    </button>
+                    <button class="btn-social mr-2">
+                        <i class="mdi mdi-comment-text-outline mr-1"></i> <span
+                            x-text="getStats({{.PostID}}).comment_num"></span>
+                    </button>
+                    <button class="btn-social" @click="toggleLike({{.PostID}})"
+                        :class="getStats({{.PostID}}).liked ? 'text-red-500' : ''">
+                        <i class="mdi mr-1"
+                            :class="getStats({{.PostID}}).liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
+                        <span x-text="getStats({{.PostID}}).like_num"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {{end}}
+    </div>
+
+    {{if gt .Data.PostNum .Data.PageSize}}
+    <div class="flex justify-center mt-10" hx-boost="true" hx-target="#diary-content"
+        hx-swap="outerHTML">
+        {{template "pagination" .}}
+    </div>
+    {{end}}
+</div>
+{{end}}

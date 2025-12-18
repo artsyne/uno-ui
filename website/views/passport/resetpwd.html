@@ -2,39 +2,48 @@
 {{template "header" .}}
 {{template "navbar" .}}
 
-<div class="container">
-    <div class="row justify-content-center my-5">
-        <div class="col-md-6 py-5">
-            <div class="card border-0 my-3">
-                <div class="card-body my-2">
-                    {{if .Data.IsRightCode }}
-                    <form action="/resetpwd" method="post">
-                        <div class="form-floating mb-5">
-                            <input class="form-control" type="password" id="new_pwd" name="new_pwd"
-                                placeholder="{{getMessage "auth.label.new_password" .Context.Lang}}" valid='[{"type":"limit","min":6,"max":30}]' />
-                            <label for="new_pwd">{{getMessage "auth.label.new_password" .Context.Lang}}</label>
-                        </div>
-                        <div class="form-floating mb-5">
-                            <input class="form-control" type="password" id="confirm_pwd" name="confirm_pwd"
-                                placeholder="{{getMessage "auth.label.confirm_password" .Context.Lang}}"
-                                valid='[{"type":"compareto","destid":"new_pwd","msg":"{{getMessage "auth.message.password_mismatch" .Context.Lang}}"}]' />
-                            <label for="confirem_pwd">{{getMessage "auth.label.confirm_password" .Context.Lang}}</label>
-                        </div>
-                        <div class="text-center">
-                            <button class="btn btn-outline-secondary w-25 btn-lg" type="submit">{{getMessage "auth.button.reset_password" .Context.Lang}}
-                            </button>
-                            <input type="hidden" name="uid" value="{{.Data.UID}}" />
-                            <input type="hidden" name="sign" value="{{.Data.Sign}}" />
-                        </div>
-                    </form>
-                    {{else}}
-                    <p>{{getMessage "auth.message.verification_expired" .Context.Lang}}</p>
-                    {{end}}
+<main class="main">
+    <section>
+        <div id="resetpwd-container" class="flex flex-col my-20 mx-auto lg:w-2/5">
+            {{if .Data.IsRightCode }}
+            <form hx-post="/resetpwd" hx-target="#resetpwd-container" hx-swap="innerHTML"
+                  x-data="validForm" @submit.prevent="submit" hx-trigger="valid-submit">
+                <div class="form-group">
+                    <h1 class="form-header">{{getMessage "auth.button.reset_password" .Context.Lang}}</h1>
+                    <div id="error-message"></div>
+                    
+                    <div class="block">
+                        <label class="form-title" for="new_pwd">{{getMessage "auth.label.new_password" .Context.Lang}}</label>
+                        <input class="form-control" type="password" id="new_pwd" name="new_pwd"
+                            placeholder="{{getMessage "auth.label.new_password" .Context.Lang}}" 
+                            x-validate valid='[{"type":"limit","min":6,"max":30}]' />
+                        <div x-valid-error="new_pwd"></div>
+                    </div>
+
+                    <div class="block">
+                        <label class="form-title" for="confirm_pwd">{{getMessage "auth.label.confirm_password" .Context.Lang}}</label>
+                        <input class="form-control" type="password" id="confirm_pwd" name="confirm_pwd"
+                            placeholder="{{getMessage "auth.label.confirm_password" .Context.Lang}}"
+                            x-validate valid='[{"type":"compareto","destid":"new_pwd","msg":"{{getMessage "auth.message.password_mismatch" .Context.Lang}}"}]' />
+                        <div x-valid-error="confirm_pwd"></div>
+                    </div>
+
+                    <div class="block">
+                        <button class="w-full btn" type="submit">{{getMessage "auth.button.reset_password" .Context.Lang}}
+                        </button>
+                        <input type="hidden" name="uid" value="{{.Data.UID}}" />
+                        <input type="hidden" name="sign" value="{{.Data.Sign}}" />
+                    </div>
                 </div>
+            </form>
+            {{else}}
+            <div class="text-center">
+                <p class="text-lg text-red-500">{{getMessage "auth.message.verification_expired" .Context.Lang}}</p>
             </div>
+            {{end}}
         </div>
-    </div>
-</div>
+    </section>
+</main>
 
 {{template "footer" .}}
 {{end}}

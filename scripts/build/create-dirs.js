@@ -9,9 +9,11 @@ const path = require('path');
 
 // 要创建的目录
 const directories = [
-  'website/static/src/js/tools',
-  'website/static/src/js/app',
-  'website/static/src/js/vendors',
+  'website/static/src/js/core',
+  'website/static/src/js/modules',
+  'website/static/src/js/stores',
+  'website/static/src/js/utils',
+  'website/static/src/js/locales',
 ];
 
 // 确保目录存在

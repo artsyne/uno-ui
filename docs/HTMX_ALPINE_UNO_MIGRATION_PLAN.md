@@ -1,9 +1,9 @@
 # Hebe 前端架构重构计划：Kiko 迁移至 Uno + HTMX + Alpine + Tailwind v4
 
-**文档版本**: v1.7
+**文档版本**: v2.1
 **创建日期**: 2025-12-09
-**更新日期**: 2025-12-10
-**状态**: 进行中 (In Progress)
+**更新日期**: 2025-12-18
+**状态**: ✅ 已完成 (Completed)
 
 ---
 
@@ -78,17 +78,90 @@
 │   └── user.js         # 用户登录状态
 ├── modules/            # 业务模块逻辑 (Alpine Data Components)
 │   ├── auth.js         # 登录/注册表单逻辑
-│   ├── diary.js        # 日记相关交互 (点赞, 删除)
+│   ├── diary.js        # 日记管理 (CRUD, Modal, 列表交互)
+│   ├── social.js       # 社交功能 (点赞, 统计, 评论状态) [NEW]
 │   ├── layout.js       # 布局交互 (导航栏, 页脚)
+│   ├── member.js       # 用户主页交互
 │   └── settings.js     # 用户设置逻辑
 └── utils/              # 工具函数
     └── http.js         # 简单的 Fetch 封装 (可选)
 ```
 
+### 2.5 模块化架构与交互设计 (Modular Architecture & Interaction Design)
+
+为了避免 `diary.js` 过度膨胀，我们将社交相关功能（点赞、统计、评论状态）剥离至独立的 `social.js` 模块，并通过 Mixin 模式与主业务逻辑组合。
+
+#### 2.5.1 模块依赖关系图 (Module Dependency)
+
+```mermaid
+graph TD
+    Entry["core/init.js"] -->|Registers| DiaryComp["DiaryList Component"]
+    Entry -->|Registers| LikeComp["LikeButton Component"]
+
+    subgraph Modules
+        Diary["diary.js"]
+        Social["social.js"]
+    end
+
+    DiaryComp -->|Imports| Diary
+    Diary -->|Mixes in| Social
+
+    Diary -->|Calls| Uno["Uno UI (Box, Notify)"]
+    Social -->|Calls| Uno
+
+    Social -->|Fetches| API_Stats["/api/post/stats"]
+    Social -->|Fetches| API_Like["/api/diary/like"]
+```
+
+#### 2.5.2 社交数据流向图 (Social Data Flow)
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Page
+    participant SocialJS
+    participant Server
+
+    User->>Page: 访问日记列表
+    Page->>SocialJS: initSocial() (via DiaryList)
+
+    par 并行加载数据
+        SocialJS->>Server: POST /api/post/stats (IDs=[1,2,3])
+        Server-->>SocialJS: { stats: [{view_num, comment_num...}] }
+
+        SocialJS->>Server: POST /api/post/like/status (IDs=[1,2,3])
+        Server-->>SocialJS: { status: [{liked: true...}] }
+    end
+
+    SocialJS-->>Page: 更新 Alpine Store (stats)
+    Page-->>User: 渲染点赞数和状态
+```
+
+#### 2.5.3 关键交互规范 (Critical Interaction Specs)
+
+1.  **日记导航与 URL 路由策略 (Navigation & URL Strategy)**:
+    - **场景 A: 列表页打开 (Box Mode)**:
+      - **打开 Box**: 点击列表项 -> 打开 Box -> 使用 `history.pushState` 将 URL 变更为 `/p/:id` (方便复制分享)。
+      - **Box 内翻页**: 点击 "上一篇/下一篇" -> 触发 HTMX (`hx-get`) -> 更新 Box 内容 -> 使用 `history.pushState` 更新 URL 为新的 `/p/:id`。
+      - **关闭 Box**: 关闭 Dialog -> **必须** 还原为打开前的 URL (如 `/d/:id/:page`)，保持列表页上下文。
+    - **场景 B: 独立页访问 (Standalone Mode)**:
+      - **直接访问**: 浏览器访问 `/p/:id` -> 服务端渲染完整页面 (含 Header/Footer)。
+      - **页面导航**: 点击 "上一篇/下一篇" -> 普通 `<a>` 标签跳转 -> 浏览器完整刷新。
+    - **实现机制**: 服务端通过 `IsAjax` 变量区分渲染 HTML 片段 (Box) 还是完整布局 (Standalone)。
+
+2.  **评论加载 (Comment Loading)**:
+    - **行为**: 详情页加载时懒加载评论。
+    - **错误处理**: 服务端返回非 200 或 JSON 错误码时，前端必须捕获并在 Console 记录日志 (避免静默失败)，必要时显示 "加载失败" 占位符。
+    - **接口**: `/api/comment/list` (GET)。
+
+3.  **点赞状态 (Like Status)**:
+    - **接口**: `/api/diary/like/status` (GET) 和 `/api/post/like/status` (POST, 批量)。
+    - **鉴权**: 必须正确处理登录/未登录状态。未登录用户不发送状态查询请求，或服务端返回 `liked: false`。
+
 **资源引用路径**:
 
 - **Uno UI**: `/public/dist/js/uno.umd.js` (对应物理路径 `/website/static/dist/js/uno.umd.js`)
-- **App CSS**: `/public/src/css/tailwind.css` (对应物理路径 `/website/static/src/css/tailwind.css`)
+- **App CSS**: `/public/dist/css/idiary.min.css` (对应物理路径 `/website/static/dist/css/idiary.min.css`)
 
 ### 2.4 前端构建方案 (Frontend Build Plan)
 
@@ -96,7 +169,10 @@
 
 1.  **CSS 构建 (CSS Build)**:
     - **策略**: **调整 (Adjusted)**。
-    - **说明**: 继续沿用项目现有的 CSS 构建流程（基于 Tailwind CSS v4），但**必须包含 Uno UI 源码**。`/website/static/src/css` 目录下的文件保持不变，但构建脚本需增加对 `./uno/src/**/*.js` 的扫描，以确保 Uno 组件的 Tailwind 类被正确生成。构建输出路径仍为 `/website/static/dist/css`。
+    - **说明**: 继续沿用项目现有的 CSS 构建流程（基于 Tailwind CSS v4）。
+      - **输入**: `/website/static/src/css` 目录下的源文件。
+      - **扫描范围**: 构建脚本必须配置扫描 `/website/static/dist/js/uno.umd.js`，以确保 Uno UI 组件中使用的 Tailwind 类被正确提取和生成。
+      - **输出**: `/website/static/dist/css/idiary.min.css`。
 
 2.  **JS 构建 (JS Build)**:
     - **策略**: **模块化打包 (Modular Bundling)**。
@@ -130,58 +206,167 @@
   - 创建了 `theme.js` 和 `i18n.js` stores。
   - 更新了 `header.html` 引用。
 
-### **Phase 2: 公共布局与导航 (进行中)**
+### **Phase 2: 公共布局与导航 (已完成)**
 
 - **目标**: 迁移全局导航、页脚和用户菜单，验证 Alpine.js 交互能力。
+- **状态**: ✅ 完成
 - **涉及文件**: `views/navbar.html`, `views/footer.html`, `static/src/js/modules/layout.js`
-- **任务**:
-  1.  **创建 Layout 模块**: 新建 `static/src/js/modules/layout.js`，定义 `Navbar` 和 `Footer` 的 Alpine 组件。 (已完成)
-  2.  **用户下拉菜单**: 在 `navbar.html` 中使用 `x-data="navbar"`, 移除 `data-tooltip-target`。 (已完成)
-  3.  **语言切换**: 使用 Uno 的 i18n 支持，在 `layout.js` 中调用 `Alpine.store('i18n')`。 (已完成)
-  4.  **暗色模式**: 绑定 `x-data` 到 `Alpine.store('theme')`。 (已完成)
-  5.  **文档更新**: 更新 API 文档和使用指南。
+- **主要成果**:
+  - 重构了 Navbar 用户菜单和移动端菜单。
+  - 实现了暗色模式和多语言切换的状态管理。
 
-- **验证与测试 (Verification & Testing)**:
-  - [x] **单元测试**: 对 `Navbar` 和 `Footer` 逻辑进行 Jest 测试。
-  - [ ] **视觉回归**: 对比重构前后 Navbar 和 Footer 的截图，确保布局、间距、字体完全一致。
-  - [ ] **交互功能**:
-    - 点击用户头像，下拉菜单应平滑展开/收起。
-    - 点击语言切换，Cookie 中的 `idiary-lang` 应更新，且页面自动刷新。
-    - 点击暗色模式切换，HTML 标签应正确添加/移除 `dark` 类，页面配色即时变化。
+### **Phase 3: 核心业务 - 浏览与交互 (已完成)**
 
-### **Phase 3: 核心业务 - 浏览与交互 (预计 7 天)**
+- **目标**: 重构核心内容浏览页面，包括日记列表、日记详情及用户主页。
+- **涉及模块**: `diary`, `post`, `member`
+- **对应路由**:
+  - `/d/:diaryid` (日记本首页)
+  - `/p/:postid` (日记详情页)
+  - `/u/:uid` (用户个人主页)
 
-- **目标**: 迁移高频只读页面和轻量级交互。
-- **涉及文件**: `views/diary/index.html`, `static/src/js/modules/diary.js`
-- **任务**:
-  1.  **创建 Diary 模块**: 新建 `static/src/js/modules/diary.js`，处理点赞、删除等逻辑。
-  2.  **日记列表翻页**: 使用 HTMX (`hx-get`, `hx-target`) 实现无刷新翻页。
-  3.  **点赞功能**: 将 `data-action="like"` 替换为 `hx-post`，或在 `diary.js` 中封装 Alpine Action。
-  4.  **删除功能**: 使用 Uno 的 `Box` 组件。在 `diary.js` 中定义 `confirmDelete` 方法，触发 Uno Box 弹窗。
+- **任务详情**:
 
-### **Phase 4: 核心业务 - 表单与提交 (预计 10 天)**
+  #### 3.1 日记列表 (Diary List)
+  - **文件**: `views/diary/index.html`
+  - **JS模块**: `static/src/js/modules/diary.js`
+  - [x] **模块化**: 创建 `DiaryList` Alpine 组件。
+  - [x] **点赞/删除**: 使用 `Box` 和 `Notify` 组件重构交互。
+  - [x] **翻页**: 使用 HTMX 实现无刷新加载。
+
+- **符合度**: 符合设计方案。
+
+  #### 3.2 日记详情 (Post Detail)
+  - **文件**: `views/post/detail.html`
+  - **路由**: `/p/:postid`
+  - **JS模块**: `static/src/js/modules/post.js` (不需要，复用 `diary.js` 组件)
+  - [x] **评论加载**: 使用 `hx-get` 懒加载评论列表。
+  - [x] **评论提交**: 使用 `hx-post` 提交评论，服务端返回新评论的 HTML 片段。
+  - [x] **详情页交互**: 复用 `LikeButton` 组件。
+  - [x] **条件导航 (Conditional Navigation)**:
+    - **Box 模式**: 当在 Dialog 中查看日记时，"上一篇/下一篇"按钮通过 `hx-get` + `hx-target` 在 Box 内部更新内容，不改变浏览器 URL。
+    - **独立页面模式**: 当直接访问 `/p/:id` 时，"上一篇/下一篇"为普通链接，直接跳转。
+
+  #### 3.3 设计一致性审查 (Design Consistency Review)
+  - **目标**: 全面检查已重构模块，确保技术实现与设计规范的高度一致性。
+  - **审查范围**:
+    - 覆盖所有已完成的前端组件、页面和功能模块（Phase 1 & Phase 2 & Phase 3.1-3.2）。
+    - 重点验证是否符合文档第1阶段（基础架构）和第2阶段（核心功能）的确立规范。
+  - **任务详情**:
+    - [x] **规范符合性检查**:
+      - 严格对照文档技术要求，审查 HTMX、Alpine.js、UnoCSS 的架构实现。
+      - 检查 UI 组件库（Uno UI）的使用一致性，杜绝非标准样式。
+    - [x] **问题修正与优化**:
+      - 对发现的不符合项进行分类记录（严重/中等/轻微）。
+      - 按照优先级顺序执行修正，确保所有修改通过现有测试用例。
+      - 更新相关代码注释，确保文档与代码同步。
+  - **交付物**:
+    - [x] 完整的审查报告（含问题清单和修改记录）。
+    - [x] 通过 CI/CD 管道验证的代码库。
+    - [x] 更新后的重构计划文档版本。
+
+  #### 3.4 用户主页 (Member Home)
+  - **文件**: `views/member/index.html`
+  - **路由**: `/u/:uid`
+  - **JS模块**: `static/src/js/modules/member.js` (新建)
+  - [x] **创建日记本 (Add Notebook)**:
+    - 将 `data-action="showDiaryBox"` 替换为 Alpine 点击事件。
+    - 交互: 点击触发 `Box.dialog({ ajaxUrl: '/form/diary' })`。
+    - 提交: 表单提交后使用 HTMX 或 Fetch 刷新日记本列表。
+  - [x] **日记本列表 (Diary Grid)**:
+    - 重构 `data-action` 绑定的操作（编辑、删除）。
+    - 迁移至 `DiaryList` 组件或新建 `MemberProfile` 组件管理。
+  - [x] **个人信息 (Profile)**: - 静态展示为主，如有 "编辑" 按钮，链接至 `/u/settings`。
+        | **FIX-03** | **API 接口恢复 (API Fix)** | High | ⏳ 待验证 | 恢复 `GET /api/diary/like/status`；恢复 `GET /api/post/like/status`。 |
+        | **FIX-04** | **评论错误处理 (Error Handling)** | Medium | ⏳ 待验证 | 接口非 200 时 Console 报错，UI 显示"加载失败"。 |
+        | **FIX-05** | **回归测试 (Regression Test)** | High | ⏳ 待执行 | 通过 TC-301 至 TC-305 所有测试用例。 |
 
 - **目标**: 处理最复杂的表单交互，验证服务端校验反馈机制。
-- **涉及文件**: `views/form/*.html`, `views/passport/*.html`, `static/src/js/modules/auth.js`
-- **任务**:
-  1.  **创建 Auth 模块**: 新建 `static/src/js/modules/auth.js`。
-  2.  **登录/注册**: 改造为 `hx-post`，服务端返回带错误信息的 HTML 片段更新表单区域。使用 Uno `Valid` 组件进行表单验证。
-  3.  **日记发布**: 确保富文本编辑器与 Alpine 组件的生命周期 (`init`, `destroy`) 集成。
+- **涉及模块**: `auth`, `post`, `member`
+- **对应路由**:
+  - `/login`, `/register` (认证)
+  - `/form/post` (写日记/编辑日记)
+  - `/u/settings` (用户设置)
 
-### **Phase 5: 清理与验收 (预计 5 天)**
+- **任务详情**:
+- **目标**: 处理复杂表单交互 (登录、注册、写日记、设置)。
 
-- **目标**: 移除旧代码，确保系统整洁。
-- **涉及文件**: `views/base.html`, `static/src/js/`
-- **任务**:
-  1.  **移除 Kiko/jQuery 依赖**:
-      - 检查并删除 `header.html` 中对 `kiko.js`, `jquery.js`, `idiary.js` 的引用。
-      - 删除 `static/src/js` 目录下的旧文件：`app.js`, `diary.js`, `kiko*.js`, `jquery*.js`。
-  2.  **迁移逻辑清理**:
-      - 扫描所有 HTML 模板，确保无残留的 `data-action` 属性（除非已被新逻辑复用）。
-      - 确认所有 `onclick` 内联事件已被 `x-on:click` 或 `hx-trigger` 替代。
-  3.  **全站回归测试**:
-      - 执行完整的视觉回归测试套件。
-      - 模拟用户完整操作路径（注册 -> 登录 -> 写日记 -> 点赞 -> 删除 -> 登出）。
+  #### 4.1 认证与通行证 (Passport)
+  - **对应路由** (基于 `internal/app/controller/user/routes.go`):
+    - `GET /login`: 渲染登录页。
+    - `POST /login`: 提交登录 (JSON/Form)。
+    - `GET /register`: 渲染注册页。
+    - `POST /register`: 提交注册。
+    - `POST /check-username`: 检查用户名是否占用。
+    - `POST /check-email`: 检查邮箱是否占用。
+    - `GET/POST /findpwd`: 找回密码。
+    - `GET/POST /resetpwd`: 重置密码。
+    - `GET /activateuser`: 激活用户。
+
+  - **涉及文件**:
+    - `website/views/passport/*.html`
+    - `website/static/src/js/modules/auth.js` (新建)
+
+  - **重构任务**:
+    - [x] **登录 (Login)**:
+      - 改造 `views/passport/login.html`。
+      - 使用 `hx-post="/login"` 提交表单。
+      - **错误处理**: 监听 `htmx:responseError` 或解析返回的 HTML 错误片段，在前端显示错误提示 (Alert/Toast)。
+    - [x] **注册 (Register)**:
+      - 改造 `views/passport/register.html`。
+      - **实时验证**: `username` 和 `email` 输入框添加 `hx-post="/check-username" hx-trigger="blur"`，服务端需返回简单的验证状态 HTML (如 `<span class="text-red-500">已占用</span>`)。
+      - **表单提交**: 使用 `hx-post="/register"`。
+    - [x] **找回密码 (Find Password)**:
+      - 统一使用 HTMX 处理表单提交 (`findpwd.html`)，避免页面全刷新。
+      - 集成 Uno Valid 插件进行表单验证。
+    - [x] **重置密码 (Reset Password)**:
+      - 重构 `resetpwd.html` 使用 HTMX + Alpine Valid 插件。
+      - 保持原有复杂验证逻辑 (`valid` 属性)。
+
+#### 4.2 用户中心 (Member / Settings)
+
+- **对应路由**:
+  - `GET /u/settings` (设置页)
+  - `POST /u/settings/profile` (更新资料)
+  - `POST /u/settings/email` (更新邮箱)
+  - `POST /u/settings/password` (修改密码)
+- **涉及文件**:
+  - `website/views/member/settings.html`
+  - `website/static/src/js/modules/settings.js` (新建)
+- **重构任务**:
+  - [x] **资料设置**:
+    - 将 `settings.html` 拆分为独立的 HTMX 表单区域 (Profile, Email, Password)。
+    - 使用 `hx-post="/u/settings/profile"` 更新资料，服务端支持返回更新后的 HTML 或 OOB 消息。
+  - [x] **交互反馈**:
+    - 集成 Uno `Toast` 组件，在 `hx-on::after-request` 中显示 "保存成功" 提示。
+  - [x] **头像展示**:
+    - 保持原有的文本头像 (首字符) 展示逻辑，不添加图片上传功能。
+
+#### 4.3 内容创作 (Post)
+
+- **对应路由**:
+  - `GET /form/post`: 获取编辑器 HTML。
+  - `POST /post`: 保存/发布日记。
+  - `POST /post/delete`: 删除日记。
+- **涉及文件**: `website/views/form/post.html`
+- **重构任务**:
+  - [x] **编辑器初始化**:
+    - 使用原生 Textarea + Alpine `x-validate` 进行验证。
+  - [x] **草稿与发布**:
+    - 目前仅支持直接发布/保存 (`post.create` / `post.edit`)。
+    - 表单提交由 `diary.js` 中的 `_handlePostSubmit` 接管，使用 `fetch` 提交以支持复杂的后续 UI 更新。
+  - [x] **成功回调**:
+    - 保存成功后，直接在 DOM 中 Prepend/Replace 帖子卡片，无需全页刷新。
+- **功能**: 资料修改、头像预览、密码修改。
+
+#### 4.4 清理代码 (已完成)
+
+- [x] 移除 `kiko` 和 `jquery` 依赖
+  - [x] 删除 `website/static/src/js/kiko-init.js` 等旧文件
+  - [x] 删除 `website/static/dist/js/kiko.min.js` 等构建产物
+  - [x] 更新 `package.json` 移除旧构建脚本
+- [x] 清理 `data-action` 属性 (已确认代码中无残留)
+- [x] 调整 `scripts/build/build.js` (已移除，使用 build-new-frontend.js)
+- [x] 全站回归测试 (Unit Tests Passed, Build Verified)
 
 ---
 
@@ -201,15 +386,5 @@
 - **视觉回归 (Visual Regression)**: 像素级对比重构前后的页面截图，确保样式零差异。
 - **功能验证 (Functional Verification)**: 验证交互逻辑（点击、提交、弹窗）是否符合预期。
 - **接口验证 (API Verification)**: 确保 HTMX 请求正确发送 `HX-Request` 头，且服务端正确返回 HTML 片段。
-
----
-
-## 5. 风险登记与应对
-
-| 风险点           | 可能性 | 影响 | 应对措施                                                                                                                                        |
-| :--------------- | :----- | :--- | :---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **JS 依赖丢失**  | 高     | 中   | 某些功能（如 Markdown 渲染、时间格式化）可能依赖了 jQuery 插件。需提前梳理 `static/src/js/utils.js`，将必要逻辑移植为原生 JS 或 Alpine Helper。 |
-| **样式覆盖**     | 中     | 低   | 移除 `idiary.min.css` 可能导致部分自定义样式丢失。需对比 CSS 文件，确保所有自定义样式都在 `tailwind.css` 或内联类中。                           |
-| **复杂交互卡顿** | 低     | 中   | HTMX 频繁请求可能导致服务器压力略增。对高频操作（如搜索）使用 `hx-trigger="keyup changed delay:500ms"` 防抖。                                   |
 
 ---

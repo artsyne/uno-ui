@@ -56,7 +56,6 @@ func TestRenderContext(t *testing.T) {
 			AuthUser: user,
 			Lang:     "en",
 			Theme:    "default",
-			Layout:   "main",
 		}
 
 		assert.True(t, ctx.IsLogin)
@@ -64,7 +63,6 @@ func TestRenderContext(t *testing.T) {
 		assert.Equal(t, "testuser", ctx.AuthUser.LoginName)
 		assert.Equal(t, "en", ctx.Lang)
 		assert.Equal(t, "default", ctx.Theme)
-		assert.Equal(t, "main", ctx.Layout)
 	})
 
 	t.Run("未登录状态的RenderContext", func(t *testing.T) {

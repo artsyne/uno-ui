@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"strconv"
 
-	types "github.com/biuren/hebe/internal/contracts"
+	"github.com/biuren/hebe/internal/app/middleware"
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/like"
 	"github.com/biuren/hebe/internal/utils/errors"
@@ -12,42 +12,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ProcessDiary 处理日记本的创建和编辑请求
-// 根据表单中的action字段分发到对应的处理方法
+// CreateDiary 处理创建新日记本的请求
+// 绑定JSON或表单数据到CreateDiaryRequest，并调用服务层创建日记本
 //
-// 支持的表单action值:
-//   - "diary.add": 创建新日记本
-//   - "diary.edit": 编辑现有日记本
-func (ctrl *DiaryController) ProcessDiary(c *gin.Context) {
+// 路由: POST /diary
+func (ctrl *DiaryController) CreateDiary(c *gin.Context) {
 	// 获取当前登录用户信息
 	loginUser := ctrl.auth.MustGetCurrentUser(c)
 
-	// 解析表单数据到ProcessDiaryRequest结构体
-	var req ProcessDiaryRequest
-	if err := c.ShouldBind(&req); err != nil {
-		ctrl.renderService.JSONError(c, &errors.InvalidParams)
-		return
-	}
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[CreateDiaryRequest](c)
 
-	// 根据操作类型分发处理
-	switch req.Action {
-	case "diary.add":
-		ctrl.CreateDiary(c, &req, loginUser)
-	case "diary.edit":
-		ctrl.UpdateDiary(c, &req, loginUser)
-	default:
-		ctrl.renderService.JSONError(c, &errors.InvalidParams)
-	}
-}
-
-// CreateDiary 处理创建新日记本的业务逻辑
-// 设置日记本的所有必要字段，调用服务层创建日记本，并返回创建结果
-//
-// 参数:
-//   - c: Gin上下文对象
-//   - req: 处理日记本请求的数据结构
-//   - user: 当前登录用户信息
-func (ctrl *DiaryController) CreateDiary(c *gin.Context, req *ProcessDiaryRequest, user *types.AuthUser) {
 	nowTime := pkg.GetNowTimeUnixMilli()
 
 	// 使用结构体字面量创建完整的日记本对象
@@ -61,7 +36,7 @@ func (ctrl *DiaryController) CreateDiary(c *gin.Context, req *ProcessDiaryReques
 
 		// 系统设置的字段
 		DiaryID:            0, // 将由数据库生成
-		AccessPwd:          "",
+		AccessPwd:          req.AccessPwd,
 		AccessURL:          "",
 		CoverURL:           "",
 		CoverMidURL:        "",
@@ -71,11 +46,11 @@ func (ctrl *DiaryController) CreateDiary(c *gin.Context, req *ProcessDiaryReques
 		InfoNum:            0, // 日记数量初始为0
 		Status:             1, // 默认状态为正常
 		AddUTCTime:         nowTime,
-		AddUserID:          user.UserId,
-		AddUserName:        user.UserName,
+		AddUserID:          loginUser.UserId,
+		AddUserName:        loginUser.UserName,
 		LastActionUTCTime:  nowTime,
-		LastActionUserID:   user.UserId,
-		LastActionUserName: user.UserName,
+		LastActionUserID:   loginUser.UserId,
+		LastActionUserName: loginUser.UserName,
 	}
 
 	// 调用服务层创建日记本
@@ -90,18 +65,29 @@ func (ctrl *DiaryController) CreateDiary(c *gin.Context, req *ProcessDiaryReques
 	ctrl.renderService.JSONSuccess(c, diaryData)
 }
 
-// UpdateDiary 处理编辑现有日记本的业务逻辑
-// 验证用户权限，保留原有字段值，更新可编辑字段，调用服务层更新日记本
+// UpdateDiary 处理更新日记本的请求
+// 绑定URI参数(id)和JSON/表单数据到UpdateDiaryRequest，并调用服务层更新
 //
-// 参数:
-//   - c: Gin上下文对象
-//   - req: 处理日记本请求的数据结构
-//   - loginUser: 当前登录用户信息
-func (ctrl *DiaryController) UpdateDiary(c *gin.Context, req *ProcessDiaryRequest, loginUser *types.AuthUser) {
+// 路由: PUT /diary/:id
+func (ctrl *DiaryController) UpdateDiary(c *gin.Context) {
+	// 获取当前登录用户信息
+	loginUser := ctrl.auth.MustGetCurrentUser(c)
+
+	// 解析请求数据
+	var req UpdateDiaryRequest
+	if err := c.ShouldBindUri(&req); err != nil {
+		ctrl.renderService.JSONError(c, &errors.InvalidParams)
+		return
+	}
+	if err := c.ShouldBind(&req); err != nil {
+		ctrl.renderService.JSONError(c, &errors.InvalidParams)
+		return
+	}
+
 	// 验证日记本所有权
 	originalDiary, err := ctrl.diaryService.GetDiaryByID(req.DiaryID)
 	if err != nil {
-		ctrl.renderService.JSONError(c,  &errors.PermissionDenied)
+		ctrl.renderService.JSONError(c, &errors.PermissionDenied)
 		return
 	}
 	if originalDiary.AddUserID != loginUser.UserId {
@@ -132,6 +118,9 @@ func (ctrl *DiaryController) UpdateDiary(c *gin.Context, req *ProcessDiaryReques
 	formData.InfoNum = originalDiary.InfoNum
 	formData.Status = originalDiary.Status
 	formData.AccessPwd = originalDiary.AccessPwd
+	if req.AccessPwd != "" {
+		formData.AccessPwd = req.AccessPwd
+	}
 
 	// 更新最后操作时间和操作用户
 	formData.LastActionUTCTime = pkg.GetNowTimeUnixMilli()
@@ -203,7 +192,7 @@ func (ctrl *DiaryController) LikeDiary(c *gin.Context) {
 		// 之前未点赞，现在是点赞，增加like_num
 		err = ctrl.diaryService.IncrementLikeCount(diaryID)
 	}
-	
+
 	if err != nil {
 		slog.Error("更新日记本点赞数失败", "error", err, "diary_id", diaryID)
 		// 这里不返回错误，因为点赞状态已经更新成功，只是统计数字更新失败

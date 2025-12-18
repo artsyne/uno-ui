@@ -144,5 +144,11 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 	data.Data["PageIndex"] = pageIndex
 	data.Data["PageLinks"] = pageLinks
 
+	// 检查是否为HTMX请求
+	if c.GetHeader("HX-Request") == "true" {
+		ctrl.renderService.HTML(c, "member/list", data)
+		return
+	}
+
 	ctrl.renderService.HTML(c, "member/index", data)
 }

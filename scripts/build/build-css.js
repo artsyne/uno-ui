@@ -45,21 +45,25 @@ try {
   const themeContent = fs.readFileSync(THEME_CSS, 'utf8');
   const markdownContent = fs.readFileSync(MARKDOWN_CSS, 'utf8');
   const tailwindContent = fs.readFileSync(TAILWIND_SRC, 'utf8');
-  fs.writeFileSync(COMBINED_CSS, themeContent + '\n' + markdownContent + '\n' + tailwindContent);
+  fs.writeFileSync(
+    COMBINED_CSS,
+    themeContent + '\n' + markdownContent + '\n' + tailwindContent,
+  );
 
   // Step 2: 生成Tailwind CSS（支持主题系统）
   console.log('Step 2: Generating tailwind.css with theme support...');
   const contentPaths = [
     './website/views/**/*.html',
     './website/static/src/js/**/*.js',
-    './kiko/src/ui/**/*.js',
-    './uno/src/**/*.js'
-  ].join(' ');
-  
-  const tailwindCmd = isDevMode 
-    ? `npx @tailwindcss/cli -i "${COMBINED_CSS}" -o "${TAILWIND_OUTPUT}" --content "${contentPaths}" --watch=false`
-    : `npx @tailwindcss/cli -i "${COMBINED_CSS}" -o "${TAILWIND_OUTPUT}" --content "${contentPaths}" --minify`;
-  
+    './uno/src/**/*.js',
+  ];
+
+  const contentFlags = contentPaths.map((p) => `--content "${p}"`).join(' ');
+
+  const tailwindCmd = isDevMode
+    ? `npx @tailwindcss/cli -i "${COMBINED_CSS}" -o "${TAILWIND_OUTPUT}" ${contentFlags} --watch=false`
+    : `npx @tailwindcss/cli -i "${COMBINED_CSS}" -o "${TAILWIND_OUTPUT}" ${contentFlags} --minify`;
+
   execSync(tailwindCmd, { stdio: 'inherit', shell: true });
 
   // Step 3: 处理和压缩CSS
@@ -67,7 +71,7 @@ try {
   const postcssCmd = isDevMode
     ? `npx postcss "${TAILWIND_OUTPUT}" -o "${FINAL_OUTPUT}" --no-map --env development`
     : `npx postcss "${TAILWIND_OUTPUT}" -o "${FINAL_OUTPUT}" --no-map --env production`;
-  
+
   execSync(postcssCmd, {
     stdio: 'inherit',
     shell: true,

@@ -2,7 +2,7 @@
 {{template "header" .}}
 {{template "navbar" .}}
 
-<main class="main">
+<main class="main" x-data="settings">
     <!-- 导航路径 -->
     <section class="mb-10">
         <div id="page-nav">
@@ -22,13 +22,15 @@
 
     <section class="mx-auto lg:w-2/3">
         <!-- Profile Card -->
-        <div class="mb-8">
+        <div class="mb-8" x-data="{ loading: false }">
             <div class="card-title">{{getMessage "member.settings.profile_card_title" .Context.Lang}}</div>
-            <form id="profile-form">
+            <form id="profile-form" x-data="validForm" hx-post="/u/settings/profile" hx-trigger="valid-submit"
+                hx-swap="none" @submit.prevent="submit" @htmx:before-request="loading = true"
+                @htmx:after-request="loading = false">
                 <div>
                     <!-- Avatar -->
                     <div class="my-10 text-center">
-                        <div class="avatar-lg">
+                        <div class="avatar-lg inline-flex items-center justify-center relative">
                             {{getFirstCharOfName .}}
                         </div>
                     </div>
@@ -49,8 +51,9 @@
                             .Context.Lang}}</label>
                         <input type="text" class="form-control" id="full_name" name="full_name"
                             placeholder='{{getMessage "member.settings.full_name_placeholder" .Context.Lang}}'
-                            valid='[{"type":"required"},{"type":"limit","max":50}]' value="{{.Data.User.FullName}}"
-                            data-original-value="{{.Data.User.FullName}}" />
+                            value="{{.Data.User.FullName}}" data-original-value="{{.Data.User.FullName}}" x-validate
+                            valid='[{"type":"limit","max":30}]' />
+                        <div x-valid-error="full_name"></div>
                         <p class="form-info">
                             {{getMessage "member.settings.display_name_note" .Context.Lang}}
                         </p>
@@ -60,16 +63,17 @@
                     <div class="mb-4">
                         <label class="form-title" for="remark">{{getMessage "member.settings.bio_label"
                             .Context.Lang}}</label>
-                        <textarea class="form-control" id="remark" name="remark"
-                            valid='[{"type":"limit","max":250,"show":true}]' style="height: 120px;" placeholder='{{getMessage "member.settings.bio_placeholder"
-                            .Context.Lang}}'>{{.Data.User.Remark}}</textarea>
+                        <textarea class="form-control" id="remark" name="remark" style="height: 120px;" placeholder='{{getMessage "member.settings.bio_placeholder"
+                            .Context.Lang}}' x-validate
+                            valid='[{"type":"limit","max":250}]'>{{.Data.User.Remark}}</textarea>
+                        <div x-valid-error="remark"></div>
                     </div>
 
                     <!-- Timezone -->
                     <div class="mb-4">
                         <label class="form-title" for="time_zone">{{getMessage "common.time_zone"
                             .Context.Lang}}</label>
-                        <select class="form-control" id="time_zone" name="time_zone" valid='[{"type":"required"}]'
+                        <select class="form-control" id="time_zone" name="time_zone"
                             data-original-value="{{.Data.User.TimeZone}}">
                             {{range .Data.TimeZones}}
                             <option value="{{.}}" {{if eq . $.Data.User.TimeZone}}selected{{end}}>{{.}}</option>
@@ -83,8 +87,7 @@
                     <!-- Language -->
                     <div class="mb-4">
                         <label class="form-title" for="lang">{{getMessage "common.lang" .Context.Lang}}</label>
-                        <select class="form-control" id="lang" name="lang" valid='[{"type":"required"}]'
-                            data-original-value="{{.Data.User.Lang}}">
+                        <select class="form-control" id="lang" name="lang" data-original-value="{{.Data.User.Lang}}">
                             {{range .Data.SupportLangs}}
                             <option value="{{.Code}}" {{if eq .Code $.Data.User.Lang}}selected{{end}}>{{.LocalText}}
                             </option>
@@ -94,8 +97,11 @@
 
                     <!-- Save buttons -->
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="btn" data-action="save-profile">{{getMessage
-                            "member.settings.save_changes_button" .Context.Lang}}</button>
+                        <button type="submit" class="btn" :disabled="loading"
+                            :class="{'opacity-50 cursor-not-allowed': loading}">
+                            <span x-show="loading" class="mdi mdi-loading mdi-spin mr-1"></span>
+                            {{getMessage "member.settings.save_changes_button" .Context.Lang}}
+                        </button>
                     </div>
                 </div>
             </form>
@@ -104,13 +110,15 @@
         <!-- Email Card -->
         <div class="mb-8">
             <div class="card-title">{{getMessage "member.settings.email_card_title" .Context.Lang}}</div>
-            <form id="email-form">
+            <form id="email-form" x-data="{ loading: false }" hx-post="/u/settings/email" hx-trigger="valid-submit"
+                hx-swap="none" @htmx:before-request="loading = true" @htmx:after-request="loading = false">
                 <div>
                     <div class="mb-4">
                         <input type="email" class="form-control" id="email" name="email"
                             placeholder='{{getMessage "member.settings.email_placeholder" .Context.Lang}}'
-                            valid='[{"type":"required"},{"type":"email"}]' value="{{.Data.User.Email}}"
-                            data-original-value="{{.Data.User.Email}}">
+                            value="{{.Data.User.Email}}" data-original-value="{{.Data.User.Email}}" x-validate
+                            valid='[{"type":"required"},{"type":"email"},{"type":"callback","fn":"checkEmail","msg":"{{getMessage "auth.message.email_taken" .Context.Lang}}"}]'>
+                        <div x-valid-error="email"></div>
                         <p class="form-info">
                             {{getMessage "member.settings.email_note" .Context.Lang}}
                         </p>
@@ -118,17 +126,22 @@
 
                     <!-- Save buttons -->
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="btn" data-action="save-email">{{getMessage
-                            "member.settings.save_changes_button" .Context.Lang}}</button>
+                        <button type="submit" class="btn" :disabled="loading"
+                            :class="{'opacity-50 cursor-not-allowed': loading}">
+                            <span x-show="loading" class="mdi mdi-loading mdi-spin mr-1"></span>
+                            {{getMessage "member.settings.save_changes_button" .Context.Lang}}
+                        </button>
                     </div>
                 </div>
             </form>
         </div>
 
         <!-- Password Card -->
-        <div>
+        <div x-data="{ loading: false }">
             <div class="card-title">{{getMessage "member.settings.update_password_card_title" .Context.Lang}}</div>
-            <form id="password-form">
+            <form id="password-form" x-data="validForm" hx-post="/u/settings/password" hx-trigger="valid-submit"
+                hx-swap="none" @submit.prevent="submit" @htmx:before-request="loading = true"
+                @htmx:after-request="loading = false">
                 <div>
                     <!-- Current password -->
                     <div class="mb-4">
@@ -136,7 +149,8 @@
                             "member.settings.current_password_label" .Context.Lang}}</label>
                         <input type="password" class="form-control" id="current_pwd" name="current_pwd"
                             placeholder='{{getMessage "member.settings.current_password_placeholder" .Context.Lang}}'
-                            valid='[{"type":"required"},{"type":"limit","min":6,"max":30}]'>
+                            x-validate valid='["required"]'>
+                        <div x-valid-error="current_pwd"></div>
                     </div>
 
                     <!-- New password -->
@@ -145,7 +159,8 @@
                             .Context.Lang}}</label>
                         <input type="password" class="form-control" id="new_pwd" name="new_pwd"
                             placeholder='{{getMessage "member.settings.new_password_placeholder" .Context.Lang}}'
-                            valid='[{"type":"required"},{"type":"limit","min":6,"max":30}]'>
+                            x-validate valid='[{"type":"required"},{"type":"limit","min":6,"max":30}]'>
+                        <div x-valid-error="new_pwd"></div>
                     </div>
 
                     <!-- Confirm password -->
@@ -154,13 +169,18 @@
                             "member.settings.confirm_password_label" .Context.Lang}}</label>
                         <input type="password" class="form-control" id="confirm_pwd" name="confirm_pwd"
                             placeholder='{{getMessage "member.settings.confirm_password_placeholder" .Context.Lang}}'
-                            valid='[{"type":"required"},{"type":"compareto","destid":"new_pwd"}]'>
+                            x-validate
+                            valid='[{"type":"required"},{"type":"compareto","destid":"new_pwd","msg":"{{getMessage "auth.message.password_mismatch" .Context.Lang}}"}]'>
+                        <div x-valid-error="confirm_pwd"></div>
                     </div>
 
                     <!-- Change password button -->
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="btn" data-action="change-password">{{getMessage
-                            "member.settings.change_password_button" .Context.Lang}}</button>
+                        <button type="submit" class="btn" :disabled="loading"
+                            :class="{'opacity-50 cursor-not-allowed': loading}">
+                            <span x-show="loading" class="mdi mdi-loading mdi-spin mr-1"></span>
+                            {{getMessage "member.settings.change_password_button" .Context.Lang}}
+                        </button>
                     </div>
                 </div>
             </form>

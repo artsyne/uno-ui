@@ -35,7 +35,7 @@ type CreatePostRequest struct {
 //   - Body: 日记内容，必需且不能为空
 //   - IsTop: 是否置顶，0=否，1=是
 type UpdatePostRequest struct {
-	PostID   int64  `form:"post_id" json:"post_id" binding:"required,min=1"`
+	PostID   int64  `uri:"id" form:"post_id" json:"post_id" binding:"required,min=1"`
 	Title    string `form:"info_title" json:"title"`
 	InfoType int8   `form:"info_type" json:"info_type" binding:"required,oneof=1 2 3 4 5"`
 	Body     string `form:"info_body" json:"body" binding:"required,min=1"`
@@ -48,8 +48,8 @@ type UpdatePostRequest struct {
 // 字段:
 //   - PostID: 要删除的日记ID，必需且大于0
 type DeletePostRequest struct {
-	PostID int64 `form:"post_id" json:"post_id" binding:"required,min=1"`
-	DiaryID int64 `form:"diary_id" json:"diary_id" binding:"required,min=1"`
+	PostID int64 `uri:"id" form:"post_id" json:"post_id" binding:"required,min=1"`
+	DiaryID int64 `form:"diary_id" json:"diary_id"`
 }
 
 // ShowPostFormRequest 显示修改、增加post表单

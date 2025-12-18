@@ -34,25 +34,24 @@ iDiary.ai Hebe 主题系统提供以下核心功能：
 - **模板引擎**: Go HTML Templates
 - **JavaScript**: jQuery 4.x + Kiko UI 插件系统
 
-### 1.3 项目结构
+## 目录结构
 
 ```
-hebe/
-├── kiko/                     # Kiko UI 框架
-│   ├── src/
-│   │   ├── core.js          # 核心模块
-│   │   ├── theme.js         # 主题管理器
-│   │   ├── ui/              # UI 组件
-│   │   └── i18n/            # 国际化
-│   ├── dist/                # 构建输出
-│   └── build.js             # 构建脚本
-├── website/
-│   ├── static/src/css/      # 源 CSS 文件
-│   ├── static/src/js/       # 源 JavaScript 文件
-│   ├── static/dist/         # 构建输出
-│   └── views/               # 模板文件
-├── scripts/build/           # 构建脚本
-└── docs/                    # 文档
+website/static/
+├── src/
+│   ├── css/
+│   │   ├── components/       # 组件样式
+│   │   │   ├── button.css    # 按钮样式
+│   │   │   ├── input.css     # 输入框样式
+│   │   │   └── ...
+│   │   ├── base.css          # 基础样式
+│   │   └── tailwind.css      # Tailwind 入口
+│   └── js/
+│       ├── theme.js          # 主题切换逻辑
+│       └── ...
+└── dist/                     # 构建产物
+    └── css/
+        └── idiary.min.css
 ```
 
 ## 2. 架构设计
@@ -69,18 +68,6 @@ hebe/
 │  │   (website/static/src/js)      │ │
 │  └─────────────────────────────────┘ │
 └─────────────────┬───────────────────┘
-                  │ 使用
-┌─────────────────▼───────────────────┐
-│            Kiko UI Layer           │
-│  ┌─────────────────────────────────┐ │
-│  │      Kiko UI Theme Manager     │ │
-│  │        (kiko/src/theme.js)     │ │
-│  └─────────────────────────────────┘ │
-│  ┌─────────────────────────────────┐ │
-│  │     Kiko UI Components         │ │
-│  │   (支持 dark mode 的组件)        │ │
-│  └─────────────────────────────────┘ │
-└─────────────────┬───────────────────┘
                   │ 基于
 ┌─────────────────▼───────────────────┐
 │         Tailwind CSS 4 Layer       │
@@ -91,60 +78,31 @@ hebe/
 
 ### 2.2 核心组件
 
-#### 2.2.1 Kiko UI 主题管理器
+#### 2.2.1 Website 主题管理器
 
-**文件位置**: `kiko/src/theme.js`
-
-```javascript
-// 主题管理器核心 API
-const themeManager = {
-  // 获取当前主题
-  getCurrentTheme(): 'light' | 'dark',
-  
-  // 设置主题
-  setTheme(theme: 'light' | 'dark'): void,
-  
-  // 切换主题
-  toggleTheme(): void,
-  
-  // 监听主题变化
-  onThemeChange(callback: Function): void,
-  
-  // 初始化
-  init(): void
-}
-```
-
-**核心功能**:
-- 主题初始化和检测 (localStorage + 系统偏好)
-- 主题切换 (light/dark)
-- 主题状态管理和持久化
-- 主题变化监听和回调
-- 过渡动画支持
-- 主题切换按钮自动绑定
-
-#### 2.2.2 Website 主题管理器
-
-**文件位置**: `website/static/src/js/theme.js`
+**文件位置**: `website/static/src/js/modules/theme.js`
 
 ```javascript
 // Website 主题管理器 API
 const websiteThemeManager = {
   // 设置主题切换按钮
   setThemeToggleButton(selector): void,
-  
-  // 获取/设置主题 (代理到 Kiko UI)
+
+  // 获取/设置主题
   getTheme(): string,
   setTheme(theme): void,
-  
+
   // 初始化
   init(): void
 }
 ```
 
 **核心功能**:
-- 集成 Kiko UI 主题系统
-- 主题切换按钮管理 (创建和绑定)
+
+- 主题初始化和检测 (localStorage + 系统偏好)
+- 主题切换 (light/dark)
+- 主题状态管理和持久化
+- 主题切换按钮管理
 - 主题图标更新
 - 键盘快捷键支持 (Ctrl/Cmd + Shift + T)
 - Meta theme-color 更新
@@ -181,13 +139,52 @@ npm run build:dev
 npm run verify:theme
 ```
 
-### 3.2 为新页面添加主题支持
+### 3.2 变量映射
+
+#### 3.2.1 颜色系统
+
+```css
+@theme {
+  /* 语义化颜色 */
+  --color-primary: var(--color-blue-600);
+  --color-primary-hover: var(--color-blue-700);
+  --color-danger: var(--color-red-600);
+  --color-success: var(--color-green-600);
+  --color-warning: var(--color-yellow-500);
+
+  /* 背景色 */
+  --color-bg-base: var(--color-white);
+  --color-bg-muted: var(--color-gray-50);
+  --color-bg-card: var(--color-white);
+
+  /* 文本色 */
+  --color-text-base: var(--color-gray-900);
+  --color-text-muted: var(--color-gray-500);
+  --color-text-inverted: var(--color-white);
+}
+
+/* Dark Mode 覆盖 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 背景色 - Dark */
+    --color-bg-base: var(--color-gray-900);
+    --color-bg-muted: var(--color-gray-800);
+    --color-bg-card: var(--color-gray-800);
+
+    /* 文本色 - Dark */
+    --color-text-base: var(--color-gray-100);
+    --color-text-muted: var(--color-gray-400);
+  }
+}
+```
+
+### 3.3 为新页面添加主题支持
 
 #### 3.2.1 HTML 模板
 
 ```html
 <!-- 在 head 中确保引入主题相关文件 -->
-<link rel="stylesheet" href="/static/dist/css/app.css">
+<link rel="stylesheet" href="/static/dist/css/app.css" />
 <script src="/static/dist/js/kiko.min.js"></script>
 <script src="/static/src/js/theme.js"></script>
 
@@ -198,25 +195,22 @@ npm run verify:theme
 </div>
 
 <!-- 主题切换按钮 -->
-<button id="theme-toggle" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+<button
+  id="theme-toggle"
+  class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+>
   <i id="theme-icon" class="fas fa-moon text-gray-700 dark:text-gray-300"></i>
 </button>
 ```
 
-#### 3.2.2 JavaScript 集成
+#### 3.3.2 JavaScript 集成
 
 ```javascript
 // 在页面加载完成后初始化主题
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', () => {
   // 主题系统会自动初始化
-  
   // 监听主题变化（可选）
-  if (window.Kiko && window.Kiko.theme) {
-    window.Kiko.theme.onThemeChange((newTheme, oldTheme) => {
-      console.log(`主题从 ${oldTheme} 切换到 ${newTheme}`);
-      // 执行自定义逻辑
-    });
-  }
+  // 假设有 EventBus 或直接监听 DOM 事件
 });
 ```
 
@@ -303,18 +297,19 @@ class MyComponent {
 
 ```javascript
 // ✅ 正确：使用主题管理器
-const themeManager = window.Kiko.theme;
+import themeManager from './modules/theme.js';
 themeManager.setTheme('dark');
 
 // ❌ 错误：直接操作 DOM
-document.documentElement.setAttribute('data-theme', 'dark');
+document.documentElement.classList.add('dark');
 
 // ✅ 正确：监听主题变更
-themeManager.onThemeChange(handleThemeChange);
+// 假设使用事件总线
+EventBus.on('theme-changed', handleThemeChange);
 
 // ❌ 错误：轮询检查主题
 setInterval(() => {
-  const theme = document.documentElement.getAttribute('data-theme');
+  const isDark = document.documentElement.classList.contains('dark');
   // 处理主题变更
 }, 1000);
 ```
@@ -327,7 +322,7 @@ setInterval(() => {
     /\     E2E Tests (10%)
    /  \    - 用户体验测试
   /____\   - 跨浏览器测试
- 
+
   /______\  Integration Tests (20%)
  /        \ - 组件集成测试
 /__________\- API 集成测试
@@ -341,31 +336,24 @@ setInterval(() => {
 
 ```javascript
 // 主题管理器单元测试
-describe('Kiko Theme Manager', () => {
+describe('Theme Manager', () => {
   let themeManager;
-  
+
   beforeEach(() => {
     document.body.innerHTML = '';
     localStorage.clear();
-    themeManager = new Kiko.ThemeManager();
+    // 重新加载模块或重置单例
+    jest.resetModules();
+    // themeManager = require('./modules/theme.js').default;
   });
-  
+
   test('应该正确初始化默认主题', () => {
-    expect(themeManager.getCurrentTheme()).toBe('light');
+    // expect(themeManager.getTheme()).toBe('light');
   });
-  
+
   test('应该正确切换到 dark 主题', () => {
-    themeManager.setTheme('dark');
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-    expect(themeManager.getCurrentTheme()).toBe('dark');
-  });
-  
-  test('应该触发主题变更事件', () => {
-    const callback = jest.fn();
-    themeManager.onThemeChange(callback);
-    
-    themeManager.setTheme('dark');
-    expect(callback).toHaveBeenCalledWith('dark', 'light');
+    // themeManager.setTheme('dark');
+    // expect(document.documentElement.classList.contains('dark')).toBe(true);
   });
 });
 ```
@@ -377,18 +365,19 @@ describe('Kiko Theme Manager', () => {
 describe('Theme System E2E Tests', () => {
   test('用户可以通过界面切换主题', async () => {
     await page.goto('http://localhost:8080');
-    await page.waitForSelector('[data-theme]');
-    
-    const initialTheme = await page.getAttribute('html', 'data-theme');
-    
-    await page.click('#theme-toggle');
-    await page.waitForTimeout(300);
-    
-    const newTheme = await page.getAttribute('html', 'data-theme');
-    expect(newTheme).not.toBe(initialTheme);
+    // await page.waitForSelector('#theme-toggle');
+
+    // const isDark = await page.evaluate(() => document.documentElement.classList.contains('dark'));
+
+    // await page.click('#theme-toggle');
+    // await page.waitForTimeout(300);
+
+    // const isDarkAfter = await page.evaluate(() => document.documentElement.classList.contains('dark'));
+    // expect(isDarkAfter).not.toBe(isDark);
   });
 });
 ```
+
 
 ### 4.4 性能测试
 
@@ -396,18 +385,18 @@ describe('Theme System E2E Tests', () => {
 // 性能测试
 test('主题切换应该在 100ms 内完成', async () => {
   const startTime = Date.now();
-  
+
   await page.evaluate(() => {
     window.Kiko.theme.setTheme('dark');
   });
-  
+
   await page.waitForFunction(() => {
     return document.documentElement.getAttribute('data-theme') === 'dark';
   });
-  
+
   const endTime = Date.now();
   const switchTime = endTime - startTime;
-  
+
   expect(switchTime).toBeLessThan(100);
 });
 ```
@@ -464,12 +453,12 @@ npm run test:report
 
 ### 5.3 性能基准
 
-| 指标 | 目标值 | 当前值 |
-|------|--------|--------|
-| 主题切换时间 | < 100ms | ~50ms |
-| 首次加载时间 | < 2s | ~1.5s |
-| 包大小 | < 200KB | ~128KB |
-| 测试覆盖率 | > 80% | 85% |
+| 指标         | 目标值  | 当前值 |
+| ------------ | ------- | ------ |
+| 主题切换时间 | < 100ms | ~50ms  |
+| 首次加载时间 | < 2s    | ~1.5s  |
+| 包大小       | < 200KB | ~128KB |
+| 测试覆盖率   | > 80%   | 85%    |
 
 ## 6. 维护指南
 
@@ -540,12 +529,14 @@ git push origin main --tags
 **症状**: 点击主题切换按钮没有反应
 
 **排查步骤**:
+
 1. 检查 JavaScript 控制台错误
 2. 验证主题管理器是否正确初始化
 3. 检查事件监听器是否正确绑定
 4. 验证 CSS 文件是否正确加载
 
 **解决方案**:
+
 ```javascript
 // 重新初始化主题管理器
 window.Kiko.theme.init();
@@ -559,12 +550,14 @@ window.Kiko.theme.setTheme('dark');
 **症状**: 主题切换后样式显示异常
 
 **排查步骤**:
+
 1. 检查 Tailwind CSS 类是否正确使用
 2. 验证组件是否使用了正确的 dark: 前缀
 3. 检查 CSS 文件加载顺序
 4. 验证浏览器兼容性
 
 **解决方案**:
+
 ```css
 /* 确保使用正确的 Tailwind CSS 类 */
 .component {
@@ -578,12 +571,14 @@ window.Kiko.theme.setTheme('dark');
 **症状**: 运行构建命令时出现错误
 
 **排查步骤**:
+
 1. 检查 Node.js 版本
 2. 验证依赖是否正确安装
 3. 检查文件权限
 4. 查看详细错误信息
 
 **解决方案**:
+
 ```bash
 # 清理并重新安装
 rm -rf node_modules package-lock.json
@@ -601,6 +596,7 @@ npm run build:dev
 #### 7.2.1 主题切换缓慢
 
 **优化策略**:
+
 1. 减少 CSS 类的数量
 2. 优化 CSS 选择器
 3. 使用 CSS 动画而非 JavaScript
@@ -609,7 +605,9 @@ npm run build:dev
 ```css
 /* 优化动画性能 */
 .theme-transitioning * {
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
   will-change: background-color, color;
 }
 ```
@@ -617,6 +615,7 @@ npm run build:dev
 #### 7.2.2 包大小过大
 
 **优化策略**:
+
 1. 启用 Tree Shaking
 2. 压缩 CSS 和 JavaScript
 3. 移除未使用的代码
@@ -652,11 +651,11 @@ npm run build:dev
 .btn {
   /* 基础样式 */
   @apply px-4 py-2 rounded;
-  
+
   /* 主题样式 */
   @apply bg-white dark:bg-gray-800;
   @apply text-gray-900 dark:text-gray-100;
-  
+
   /* 交互样式 */
   @apply hover:bg-gray-50 dark:hover:bg-gray-700;
 }
@@ -683,7 +682,7 @@ class Component {
     this.handleThemeChange = this.handleThemeChange.bind(this);
     themeManager.onThemeChange(this.handleThemeChange);
   }
-  
+
   destroy() {
     themeManager.offThemeChange(this.handleThemeChange);
   }
@@ -696,7 +695,7 @@ class Component {
 // ✅ 测试主题切换
 test('should switch theme correctly', () => {
   const themeManager = window.Kiko.theme;
-  
+
   themeManager.setTheme('dark');
   expect(themeManager.getCurrentTheme()).toBe('dark');
   expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
@@ -705,7 +704,7 @@ test('should switch theme correctly', () => {
 // ✅ 测试错误情况
 test('should handle invalid theme gracefully', () => {
   const themeManager = window.Kiko.theme;
-  
+
   expect(() => {
     themeManager.setTheme('invalid-theme');
   }).toThrow('Invalid theme: invalid-theme');
@@ -714,11 +713,11 @@ test('should handle invalid theme gracefully', () => {
 // ✅ 测试性能
 test('theme switch should be fast', async () => {
   const themeManager = window.Kiko.theme;
-  
+
   const startTime = performance.now();
   themeManager.setTheme('dark');
   const endTime = performance.now();
-  
+
   expect(endTime - startTime).toBeLessThan(50); // 50ms 内完成
 });
 ```

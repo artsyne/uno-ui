@@ -9,94 +9,114 @@ import (
 	"github.com/biuren/hebe/internal/utils/errors"
 )
 
-// JSONResponse JSON响应结构
-// 用于标准化API成功响应的数据结构
-type JSONResponse struct {
-	Success bool        `json:"success"` // 请求是否成功
-	Message string      `json:"message"` // 响应消息
-	Code    int         `json:"code"`    // 业务状态码
-	Data    interface{} `json:"data"`    // 响应数据
+// APIResponse 标准化API响应结构
+type APIResponse[T any] struct {
+	Success   bool   `json:"success" example:"true"`
+	Message   string `json:"message,omitempty" example:"操作成功"`
+	Data      T      `json:"data,omitempty"`
+	RequestID string `json:"request_id" example:"req_123456"`
 }
 
-// ErrorResponse 错误响应结构
-// 用于标准化API错误响应的数据结构
-type ErrorResponse struct {
-	Success bool        `json:"success"`          // 请求是否成功，错误时为false
-	Message string      `json:"message"`          // 错误消息
-	Code    int         `json:"code"`             // 错误代码
-	Data    interface{} `json:"data,omitempty"`   // 可选的错误详细数据
+// APIErrorResponse 标准化错误响应结构
+type APIErrorResponse struct {
+	Success   bool        `json:"success" example:"false"`
+	Code      int         `json:"code" example:"4001001"`
+	Message   string      `json:"message" example:"验证失败"`
+	Details   interface{} `json:"details,omitempty"`
+	RequestID string      `json:"request_id"`
 }
 
-// JSON 返回JSON响应
-// 直接返回指定HTTP状态码和数据的JSON响应
-//
-// 参数:
-//   - c: Gin上下文对象
-//   - code: HTTP状态码
-//   - data: 响应数据
-func (s *ViewService) JSON(c *gin.Context, code int, data interface{}) {
-	c.JSON(code, data)
+// getRequestID 获取请求ID
+func getRequestID(c *gin.Context) string {
+	// 尝试从 header 获取
+	reqID := c.GetHeader("X-Request-ID")
+	if reqID == "" {
+		// 尝试从 context 获取
+		if v, exists := c.Get("RequestId"); exists {
+			reqID, _ = v.(string)
+		}
+	}
+	return reqID
 }
 
-// JSONSuccess 返回成功JSON响应
-// 返回标准化的成功响应，HTTP状态码为200
-//
-// 参数:
-//   - c: Gin上下文对象
-//   - data: 成功响应的数据
+// JSONSuccess 返回标准化的成功响应
 func (s *ViewService) JSONSuccess(c *gin.Context, data interface{}) {
-	response := JSONResponse{
-		Success: true,
-		Message: "success",
-		Code:    0,
-		Data:    data,
+	s.JSONSuccessWithMsg(c, data, "success")
+}
+
+// JSONSuccessWithMsg 返回带消息的成功响应
+func (s *ViewService) JSONSuccessWithMsg(c *gin.Context, data interface{}, msg string) {
+	// 处理 HTMX 触发器
+	if trigger := c.GetString("HX-Trigger"); trigger != "" {
+		c.Header("HX-Trigger", trigger)
+	}
+
+	response := APIResponse[interface{}]{
+		Success:   true,
+		Message:   msg,
+		Data:      data,
+		RequestID: getRequestID(c),
 	}
 	c.JSON(http.StatusOK, response)
 }
 
-// JSONError 返回错误JSON响应
-// 处理应用错误并返回标准化的错误响应
-//
-// 参数:
-//   - c: Gin上下文对象
-//   - err: 错误对象，应为*appErrors.AppError类型
-//   - data: 可选的错误详细数据
+// JSONError 返回标准化的错误响应
 func (s *ViewService) JSONError(c *gin.Context, err error, data ...interface{}) {
 	var responseData interface{}
 	if len(data) > 0 {
 		responseData = data[0]
 	}
 
-	if appErr, ok := err.(*errors.AppError); ok {
-		s.logAppError(appErr)
-		errorResponse := ErrorResponse{
-			Success: false,
-			Message: appErr.Key(),
-			Code:    appErr.Code(),
-			Data:    responseData,
-		}
-		c.JSON(appErr.HttpCode(), errorResponse)
+	var appErr *errors.AppError
+	if e, ok := err.(*errors.AppError); ok {
+		appErr = e
+	} else if e, ok := err.(errors.AppError); ok {
+		appErr = &e
+	} else {
+		// 如果是普通错误，转换为 InternalError，但保留原始错误信息作为详情
+		e := errors.InternalError.WithDetails(err.Error())
+		appErr = &e
 	}
+
+	s.logAppError(c, appErr)
+
+	// 如果没有提供详细数据，且错误包含详情，则将详情放入Data中
+	if responseData == nil && appErr.Details() != "" {
+		responseData = gin.H{"error_details": appErr.Details()}
+	}
+
+	errorResponse := APIErrorResponse{
+		Success:   false,
+		Code:      appErr.Code(),
+		Message:   appErr.Key(),
+		Details:   responseData,
+		RequestID: getRequestID(c),
+	}
+	c.JSON(appErr.HttpCode(), errorResponse)
+}
+
+// logAppError 记录应用错误日志
+func (s *ViewService) logAppError(c *gin.Context, appErr *errors.AppError) {
+	slog.Error("Application error",
+		"request_id", getRequestID(c),
+		"code", appErr.Code(),
+		"key", appErr.Key(),
+		"http_code", appErr.HttpCode(),
+		"details", appErr.Details(),
+	)
+}
+
+// JSON 直接返回指定HTTP状态码和数据的JSON响应 (保留以兼容旧代码，建议逐步迁移)
+func (s *ViewService) JSON(c *gin.Context, code int, data interface{}) {
+	c.JSON(code, data)
 }
 
 // HTML 渲染HTML模板
-// 使用指定的模板名称和数据渲染HTML页面
-//
-// 参数:
-//   - c: Gin上下文对象
-//   - name: 模板文件名
-//   - data: 传递给模板的数据
 func (s *ViewService) HTML(c *gin.Context, name string, data interface{}) {
 	c.HTML(http.StatusOK, name, data)
 }
 
 // HTMLError 渲染错误页面
-// 渲染通用错误页面，HTTP状态码为500
-//
-// 参数:
-//   - c: Gin上下文对象
-//   - title: 错误页面标题
-//   - message: 错误消息内容
 func (s *ViewService) HTMLError(c *gin.Context, title, message string) {
 	errorData := gin.H{
 		"Title":   title,
@@ -106,34 +126,11 @@ func (s *ViewService) HTMLError(c *gin.Context, title, message string) {
 }
 
 // HTMLErrorDefault 渲染默认错误页面
-// 渲染通用错误页面，HTTP状态码为500
-//
-// 参数:
-//   - c: Gin上下文对象
 func (s *ViewService) HTMLErrorDefault(c *gin.Context) {
 	c.HTML(http.StatusInternalServerError, "error", nil)
 }
 
 // Redirect 重定向响应
-// 执行HTTP重定向到指定URL，状态码为302
-//
-// 参数:
-//   - c: Gin上下文对象
-//   - url: 重定向目标URL
 func (s *ViewService) Redirect(c *gin.Context, url string) {
 	c.Redirect(http.StatusFound, url)
-}
-
-// logAppError 记录应用错误日志
-// 使用结构化日志记录应用错误的详细信息
-//
-// 参数:
-//   - appErr: 应用错误对象，包含错误代码、键名、HTTP状态码等信息
-func (s *ViewService) logAppError(appErr *errors.AppError) {
-	slog.Error("Application error",
-		"code", appErr.Code,
-		"key", appErr.Key,
-		"httpCode", appErr.HttpCode,
-		"details", appErr.Details,
-	)
 }

@@ -78,13 +78,13 @@ func (s *Service) AddComment(comment *Comment) (int64, error) {
 	// 插入数据库
 	commentID, err := s.repo.Insert(comment)
 	if err != nil {
-		return 0, &errors.DatabaseError
+		return 0, errors.DatabaseError.WithDetails(err.Error())
 	}
 
 	// 增加日记的评论数量
 	err = s.repo.IncrementPostCommentNum(comment.PostID)
 	if err != nil {
-		return 0, &errors.DatabaseError
+		return 0, errors.DatabaseError.WithDetails(err.Error())
 	}
 
 	return commentID, nil
@@ -162,7 +162,7 @@ func (s *Service) ListCommentsByPostID(postID int64, pageIndex, pageSize int) ([
 	// 验证日记是否存在
 	_, err := s.postService.GetPostByID(postID)
 	if err != nil {
-		return nil, 0, errors.PostNotFound.WithDetails("日记不存在")
+		return nil, 0, err
 	}
 
 	return s.repo.ListByPostID(postID, pageIndex, pageSize)

@@ -1,6 +1,9 @@
 package diary
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/biuren/hebe/internal/app/middleware"
+	"github.com/gin-gonic/gin"
+)
 
 // RegisterRoutes 注册所有日记本相关路由
 // 将所有diary相关路由聚合在一个地方，实现高内聚
@@ -36,8 +39,8 @@ func (ctrl *DiaryController) RegisterRoutes(router *gin.Engine) {
 	authAPI := router.Group("/")
 	authAPI.Use(ctrl.auth.RequireAuth())
 	{
-		authAPI.POST("/diary", ctrl.ProcessDiary)
-		authAPI.POST("/daybook", ctrl.ProcessDiary)
+		authAPI.POST("/diary", middleware.Validate[CreateDiaryRequest](), ctrl.CreateDiary)
+		authAPI.PUT("/diary/:id", middleware.Validate[UpdateDiaryRequest](), ctrl.UpdateDiary)
 	}
 
 	// 点赞相关API路由
@@ -45,7 +48,7 @@ func (ctrl *DiaryController) RegisterRoutes(router *gin.Engine) {
 	{
 		// 获取日记本点赞状态（无需鉴权，访客也可查看）
 		api.GET("/like/status", ctrl.GetDiaryLikeStatus)
-		
+
 		// 点赞/取消点赞操作（需要鉴权）
 		apiAuth := api.Group("/").Use(ctrl.auth.RequireAuth())
 		{

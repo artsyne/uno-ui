@@ -4,26 +4,32 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/pkg"
 )
 
-// Validator 全局校验器实例
+// Validator 全局校验器实例 (保留用于非Gin上下文的校验)
 var Validator *validator.Validate
 
 // init 初始化校验器
-// 在包加载时自动执行，创建全局校验器实例并注册自定义校验规则
+// 在包加载时自动执行，创建全局校验器实例并注册自定义校验规则到 Gin
 //
 // 功能:
 //   - 创建validator实例
-//   - 注册自定义校验器
+//   - 注册自定义校验器到 Gin binding
 func init() {
 	Validator = validator.New()
-	
-	// 注册自定义校验器
+
+	// 注册自定义校验器到本地实例
 	registerCustomValidators(Validator)
+
+	// 注册自定义校验器到 Gin 的 binding 引擎
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		registerCustomValidators(v)
+	}
 }
 
 // registerCustomValidators 注册自定义校验器
@@ -38,10 +44,9 @@ func init() {
 func registerCustomValidators(v *validator.Validate) {
 	// 用户名格式校验
 	v.RegisterValidation("username", validateUsername)
-	
+
 	// 密码强度校验
 	v.RegisterValidation("password", validatePassword)
-	
 
 }
 
@@ -76,8 +81,6 @@ func validatePassword(fl validator.FieldLevel) bool {
 	password := fl.Field().String()
 	return pkg.IsPwd(password)
 }
-
-
 
 // GetValidationError 获取校验错误的错误码
 // 将validator校验错误转换为应用程序统一的错误格式

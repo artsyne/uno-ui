@@ -11,7 +11,7 @@ import { VALIDATORS, sanitizeRegexString, safeParseJSON } from '../../utils/vali
 export default (Alpine) => {
   // 1. Validation Icons (SVG Strings)
   const SVG_ICONS = {
-    invalid: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='currentColor' class='w-4 h-4'><circle cx='6' cy='6' r='4.5'/><path stroke-linecap='round' d='M5.8 3.6h.4L6 6.5zM6 8.2af.6.6 0 110-1.2.6.6 0 010 1.2z'/></svg>`,
+    invalid: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='currentColor' class='w-4 h-4'><circle cx='6' cy='6' r='4.5'/><path stroke-linecap='round' d='M5.8 3.6h.4L6 6.5zM6 8.2a.6.6 0 110-1.2.6.6 0 010 1.2z'/></svg>`,
     valid: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' class='w-4 h-4'><path fill='currentColor' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/></svg>`
   }
 
@@ -39,6 +39,16 @@ export default (Alpine) => {
       if (typeof fn === 'function') {
         this.callbacks[name] = fn
       }
+    },
+    async validateForm(form) {
+      if (!form) return false
+      if (form._x_dataStack) {
+        const validComponent = form._x_dataStack.find((d) => d.validateAll)
+        if (validComponent) {
+          return await validComponent.validateAll()
+        }
+      }
+      return true
     }
   })
 

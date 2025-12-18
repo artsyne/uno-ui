@@ -2,7 +2,8 @@
 {{template "header" .}}
 {{template "navbar" .}}
 
-<main class="main dt{{.Data.Diary.ThemeID}} transition-colors duration-200" data-social-setting="{{.Data.Diary.SocialSetting}}">
+<main class="main dt{{.Data.Diary.ThemeID}} transition-colors duration-200"
+    data-social-setting="{{.Data.Diary.SocialSetting}}" data-is-owner="{{.Data.IsOwner}}" x-data="diaryList">
     <section class="flex justify-between mb-10">
         <div id="page-nav">
             <ul class="flex text-lg">
@@ -20,12 +21,20 @@
         </div>
         <div>
             {{if .Data.IsOwner}}
-            <button class="mr-3 btn" data-action="showDiaryBox" data-form-action="diary.edit"
-                data-diary-id="{{.Data.Diary.DiaryID}}"><i class="mdi mdi-cogs"></i> {{getMessage
+            <button class="mr-3 btn" @click="openEditDiary({{.Data.Diary.DiaryID}})"><i class="mdi mdi-cogs"></i>
+                {{getMessage
                 "diary.button.settings" .Context.Lang}}</button>
             {{end}}
-            <!-- 日记本点赞按钮容器，通过JavaScript动态加载 -->
-            <span id="diary-like-container" data-diary-id="{{.Data.Diary.DiaryID}}"></span>
+            <!-- 日记本点赞按钮容器 -->
+            {{if eq .Data.Diary.SocialSetting 1}}
+            <span id="diary-like-wrapper" data-diary-id="{{.Data.Diary.DiaryID}}">
+                <button class="btn" @click="toggleDiaryLike({{.Data.Diary.DiaryID}})" :disabled="diaryLike.loading">
+                    <i class="mdi mr-1"
+                        :class="diaryLike.liked ? 'mdi-thumb-up text-red-500' : 'mdi-thumb-up-outline'"></i>
+                    <span x-text="diaryLike.count"></span>
+                </button>
+            </span>
+            {{end}}
         </div>
     </section>
 
@@ -58,72 +67,7 @@
     </section>
 
     <section>
-        <div class="lg:columns-3 md:columns-2 gap-6" id="diary_post_container">
-            {{if .Data.IsOwner}}
-            <div class="card p-6 mb-6 break-inside-avoid">
-                <div class="flex items-center justify-center h-32 hover:cursor-pointer hover:text-red-500"
-                    data-action="showPostBox" data-form-action="post.create" data-diary-id="{{.Data.Diary.DiaryID}}">
-                    <a><i class="mdi mdi-plus text-xl"></i>
-                        {{getMessage "diary.button.write_entry" .Context.Lang}}</a>
-                </div>
-            </div>
-            {{end}}
-            {{
-            $lang := .Context.Lang
-            }}
-            {{
-            $timezone := .Data.TimeZone
-            }}
-            {{range .Data.Posts}}
-            <div class="card mb-6 break-inside-avoid" data-post-id="{{.PostID}}">
-                {{if $.Data.IsOwner}}
-                <div class="post-edit">
-                    <a href="#" data-tooltip-target="post_edit{{.PostID}}" data-tooltip-position="bottom"
-                        data-tooltip-event="click,mouseover">
-                        <i class="mdi mdi-dots-horizontal"></i></a>
-                </div>
-                <div id="post_edit{{.PostID}}" class="tooltip hidden">
-                    <ul>
-                        <li><a href="" class="tooltip-link" data-action="showPostBox" data-form-action="post.edit"
-                                data-diary-id="{{$.Data.Diary.DiaryID}}" data-post-id="{{.PostID}}">
-                                <i class="mdi mdi-pencil-outline mr-2"></i> {{getMessage "common.edit" $lang}}</a></li>
-                        <li><a href="" class="tooltip-link" data-action="deletePost"
-                                data-diary-id="{{$.Data.Diary.DiaryID}}" data-post-id="{{.PostID}}">
-                                <i class="mdi mdi-delete-outline mr-2"></i> {{getMessage "common.delete" $lang}}</a>
-                        </li>
-                    </ul>
-                </div>
-                {{end}}
-                <div class="mb-4">
-                    {{if .Title }}
-                    <h1 class="post-title">
-                        {{.Title}}
-                    </h1>
-                    {{end}}
-                    <p class="text-relaxed cursor-pointer">
-                        <a href="/p/{{.PostID}}" data-action="gotoUrl" data-url="/p/{{.PostID}}" data-ajax="true"
-                            style="all:unset !important">
-                            {{ .Summary}}
-                        </a>
-                    </p>
-                </div>
-                <div class="flex justify-between">
-                    <div>
-                        <span class="post-time">
-                            {{formatLocalTime .AddUTCTime $timezone}}
-                        </span>
-                    </div>
-                    <div id="stats_{{.PostID}}">
-                    </div>
-                </div>
-            </div>
-            {{end}}
-        </div>
-
-
-        {{if gt .Data.PostNum .Data.PageSize}}
-        <div class="flex justify-center mt-10">{{template "pagination" .}}</div>
-        {{end}}
+        {{ template "diary/list" . }}
     </section>
 </main>
 

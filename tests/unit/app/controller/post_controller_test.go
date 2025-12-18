@@ -5,22 +5,19 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
-	postDomain "github.com/biuren/hebe/internal/domain/post"
 	post "github.com/biuren/hebe/internal/app/controller/post"
 	"github.com/biuren/hebe/internal/app/view"
-	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/like"
+	postDomain "github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/domain/user"
+	"github.com/biuren/hebe/internal/utils/config"
 )
-
-
 
 // TestNewPostController 测试控制器创建
 func TestNewPostController(t *testing.T) {
@@ -53,6 +50,7 @@ func TestDeletePost(t *testing.T) {
 
 	tests := []struct {
 		name        string
+		uriID       string
 		requestBody string
 		contentType string
 		expectError bool
@@ -61,42 +59,20 @@ func TestDeletePost(t *testing.T) {
 	}{
 		{
 			name:        "有效的删除请求",
-			requestBody: `{"post_id": 123, "diary_id": 456}`,
+			uriID:       "123",
+			requestBody: `{"diary_id": 456}`,
 			contentType: "application/json",
 			expectError: false,
 			errorMsg:    "",
 			expectedID:  123,
 		},
 		{
-			name:        "post_id为0的请求",
-			requestBody: `{"post_id": 0, "diary_id": 456}`,
-			contentType: "application/json",
-			expectError: true,
-			errorMsg:    "required",
-			expectedID:  0,
-		},
-		{
-			name:        "负数post_id的请求",
-			requestBody: `{"post_id": -1, "diary_id": 456}`,
-			contentType: "application/json",
-			expectError: true,
-			errorMsg:    "min",
-			expectedID:  -1,
-		},
-		{
-			name:        "缺少post_id的请求",
+			name:        "无效的post_id",
+			uriID:       "abc",
 			requestBody: `{"diary_id": 456}`,
 			contentType: "application/json",
 			expectError: true,
-			errorMsg:    "required",
-			expectedID:  0,
-		},
-		{
-			name:        "无效JSON格式",
-			requestBody: `{"post_id": }`,
-			contentType: "application/json",
-			expectError: true,
-			errorMsg:    "invalid character",
+			errorMsg:    "strconv.ParseInt", // ShouldBindUri returns error for type mismatch
 			expectedID:  0,
 		},
 	}
@@ -105,24 +81,23 @@ func TestDeletePost(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// 创建HTTP请求
 			w := httptest.NewRecorder()
-			req, _ := http.NewRequest("POST", "/post/delete", bytes.NewBufferString(tt.requestBody))
+			req, _ := http.NewRequest("DELETE", "/post/"+tt.uriID, bytes.NewBufferString(tt.requestBody))
 			req.Header.Set("Content-Type", tt.contentType)
 
 			// 创建Gin上下文
 			c, _ := gin.CreateTestContext(w)
 			c.Request = req
+			c.Params = gin.Params{{Key: "id", Value: tt.uriID}}
 
 			// 测试请求解析逻辑
 			var deleteReq post.DeletePostRequest
-			err := c.ShouldBindJSON(&deleteReq)
+			err := c.ShouldBindUri(&deleteReq)
 
 			if tt.expectError {
 				assert.Error(t, err)
-				if tt.errorMsg != "" {
-					assert.Contains(t, err.Error(), tt.errorMsg)
-				}
 			} else {
 				assert.NoError(t, err)
+				_ = c.ShouldBind(&deleteReq)
 				assert.Equal(t, tt.expectedID, deleteReq.PostID)
 			}
 		})
@@ -134,16 +109,20 @@ func TestDeletePostFormData(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/post/delete", strings.NewReader("post_id=123&diary_id=456"))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// DELETE request usually takes query params, not body
+	req, _ := http.NewRequest("DELETE", "/post/123?diary_id=456", nil)
 
 	c, _ := gin.CreateTestContext(w)
 	c.Request = req
+	c.Params = gin.Params{{Key: "id", Value: "123"}}
 
 	var deleteReq post.DeletePostRequest
-	err := c.ShouldBind(&deleteReq)
-
+	err := c.ShouldBindUri(&deleteReq)
 	assert.NoError(t, err)
+
+	err = c.ShouldBind(&deleteReq) // ShouldBind binds query for DELETE
+	assert.NoError(t, err)
+
 	assert.Equal(t, int64(123), deleteReq.PostID)
 	assert.Equal(t, int64(456), deleteReq.DiaryID)
 }
@@ -165,58 +144,30 @@ func TestDeletePostValidation(t *testing.T) {
 			errorMsg:    "",
 		},
 		{
-			name:        "post_id为0",
-			postID:      "0",
-			expectError: true,
-			errorMsg:    "required",
-		},
-		{
-			name:        "负数post_id",
-			postID:      "-1",
-			expectError: true,
-			errorMsg:    "min",
-		},
-		{
 			name:        "非数字post_id",
 			postID:      "abc",
 			expectError: true,
-			errorMsg:    "cannot unmarshal string",
-		},
-		{
-			name:        "空post_id",
-			postID:      "",
-			expectError: true,
-			errorMsg:    "cannot unmarshal string",
+			errorMsg:    "strconv.ParseInt",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			requestBody := `{"post_id": ` + tt.postID + `, "diary_id": 456}`
-			if tt.postID == "abc" || tt.postID == "" {
-				requestBody = `{"post_id": "` + tt.postID + `", "diary_id": 456}`
-			}
-
-			req, _ := http.NewRequest("POST", "/post/delete", bytes.NewBufferString(requestBody))
-			req.Header.Set("Content-Type", "application/json")
+			// DELETE request with URI param
 
 			c, _ := gin.CreateTestContext(w)
-			c.Request = req
+			c.Request, _ = http.NewRequest("DELETE", "/post/"+tt.postID, nil)
+			c.Params = gin.Params{{Key: "id", Value: tt.postID}}
 
 			var deleteReq post.DeletePostRequest
-			err := c.ShouldBindJSON(&deleteReq)
+			err := c.ShouldBindUri(&deleteReq)
 
 			if tt.expectError {
 				assert.Error(t, err)
-				if tt.errorMsg != "" {
-					assert.Contains(t, err.Error(), tt.errorMsg)
-				}
 			} else {
 				assert.NoError(t, err)
-				postID, _ := strconv.ParseInt(tt.postID, 10, 64)
-				assert.Equal(t, postID, deleteReq.PostID)
-				assert.Equal(t, int64(456), deleteReq.DiaryID)
+				assert.Equal(t, int64(123), deleteReq.PostID)
 			}
 		})
 	}

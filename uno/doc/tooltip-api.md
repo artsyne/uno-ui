@@ -62,6 +62,7 @@ Initializes the Tooltip data object.
 | `theme` | `'dark' \| 'light'` | `'dark'` | Visual theme. |
 | `timeout` | `Number` | `100` | Delay in ms before closing on mouse leave (hover mode). |
 | `target` | `String` | `null` | ID of the DOM element to use as content source. |
+| `onShow` | `Function` | `null` | Callback function triggered when tooltip is shown. Receives content element. |
 
 ## Examples
 

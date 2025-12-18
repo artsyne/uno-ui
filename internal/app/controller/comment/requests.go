@@ -20,3 +20,10 @@ type GetCommentsRequest struct {
 	PageIndex int   `form:"page_index" json:"page_index" binding:"min=1"`        // 页码，最小为1，默认为1
 	PageSize  int   `form:"page_size" json:"page_size" binding:"min=1,max=100"`  // 每页大小，最小为1，最大为100，默认为10
 }
+
+// GetCommentsByPathRequest 获取评论列表请求结构体（路径参数）
+// 用于接收前端获取评论列表的请求参数（RESTful风格）
+type GetCommentsByPathRequest struct {
+	PostID    int64 `uri:"post_id" binding:"required,min=1"`                    // 日记ID，必填且大于0
+	PageIndex int   `form:"page_index" json:"page_index" binding:"omitempty,min=1"` // 页码，最小为1，默认为1
+}

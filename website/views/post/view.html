@@ -17,7 +17,9 @@
         </div>
     </section>
 
-   {{template "post/detail" .}}
+    <div id="post-detail-container-outer" class="container post-container mx-auto dt{{.Data.Diary.ThemeID}}">
+        {{template "post/detail" .}}
+    </div>
 </main>
 {{template "footer" .}}
 {{end}}

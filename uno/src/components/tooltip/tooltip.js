@@ -22,14 +22,14 @@ export default (Alpine) => {
     placement: 'top',
     top: -9999, // Start off-screen
     left: -9999,
-    theme: 'dark', // 'dark' | 'light'
     triggerEl: null,
+    onShow: null,
 
     async show(el, content, config = {}) {
       this.triggerEl = el
       this.content = content
       this.placement = config.placement || 'top'
-      this.theme = config.theme || 'dark'
+      this.onShow = config.onShow
 
       this.visible = true
 
@@ -47,6 +47,10 @@ export default (Alpine) => {
       await Alpine.nextTick()
 
       this.updatePosition()
+
+      if (this.onShow) {
+        this.onShow(document.getElementById('uno-tooltip-body'))
+      }
     },
 
     hide() {
@@ -92,11 +96,10 @@ export default (Alpine) => {
                x-transition:leave="transition ease-in duration-150"
                x-transition:leave-start="opacity-100 scale-100"
                x-transition:leave-end="opacity-0 scale-95"
-               class="fixed z-[9999] px-3 py-2 text-sm font-medium rounded-lg shadow-sm whitespace-nowrap pointer-events-none border"
-               :class="$store.tooltip.theme === 'light' ? 'bg-white text-gray-900 border-gray-200' : 'bg-slate-800 text-white border-slate-700'"
-               :style="\`top: \${$store.tooltip.top}px; left: \${$store.tooltip.left}px\`"
-               style="display: none;">
-               <div id="uno-tooltip-body" class="pointer-events-auto"></div>
+               class="fixed px-3 py-2 text-sm font-medium rounded-lg shadow-sm whitespace-nowrap pointer-events-none border bg-white text-gray-900 border-gray-200 dark:bg-slate-800 dark:text-white dark:border-slate-700 z-[20000]"
+              :style="\`top: \${$store.tooltip.top}px; left: \${$store.tooltip.left}px;\`"
+              style="display: none;">
+              <div id="uno-tooltip-body" class="pointer-events-auto"></div>
           </div>
         `
 
@@ -126,8 +129,7 @@ export default (Alpine) => {
       let config = {
         content: '',
         placement: modifiers[0] || 'top',
-        trigger: modifiers.includes('click') ? 'click' : 'hover',
-        theme: 'dark'
+        trigger: modifiers.includes('click') ? 'click' : 'hover'
       }
 
       // Handle modifiers
@@ -135,7 +137,6 @@ export default (Alpine) => {
       if (modifiers.includes('bottom')) config.placement = 'bottom'
       if (modifiers.includes('left')) config.placement = 'left'
       if (modifiers.includes('right')) config.placement = 'right'
-      if (modifiers.includes('light')) config.theme = 'light'
 
       // Helper to process value
       const processValue = (val) => {

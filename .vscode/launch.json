@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch go",
+      "name": "Debug Server (Go Only)",
       "type": "go",
       "request": "launch",
       "mode": "exec",
@@ -17,22 +17,7 @@
       "envFile": "${workspaceFolder}/.env.local"
     },
     {
-      "name": "Launch css&jss",
-      "type": "go",
-      "request": "launch",
-      "mode": "exec",
-      "program": "${workspaceFolder}/__debug_bin/debug.idiary.site",
-      "cwd": "${workspaceFolder}/",
-      "showLog": true,
-      "preLaunchTask": "build:frontend",
-      "dlvFlags": [
-        "--log",
-        "--log-output=rpc"
-      ],
-      "envFile": "${workspaceFolder}/.env.local"
-    },
-    {
-      "name": "Launch Dev",
+      "name": "Debug Server (Full Build)",
       "type": "go",
       "request": "launch",
       "mode": "exec",
@@ -49,21 +34,6 @@
         "group": "launch",
         "order": 1
       }
-    },
-    {
-      "name": "Launch All (Frontend + Backend)",
-      "type": "go",
-      "request": "launch",
-      "mode": "exec",
-      "program": "${workspaceFolder}/__debug_bin/debug.idiary.site",
-      "cwd": "${workspaceFolder}/",
-      "showLog": true,
-      "preLaunchTask": "build",
-      "dlvFlags": [
-        "--log",
-        "--log-output=rpc"
-      ],
-      "envFile": "${workspaceFolder}/.env.local"
     }
   ]
 }

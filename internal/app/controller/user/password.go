@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/biuren/hebe/internal/app/middleware"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/errors"
 	pkg "github.com/biuren/hebe/pkg"
@@ -9,12 +10,8 @@ import (
 
 // RequestPasswordReset 处理找回密码请求
 func (ctrl *UserController) RequestPasswordReset(c *gin.Context) {
-	// 解析请求数据
-	var req FindPasswordRequest
-	if err := c.ShouldBind(&req); err != nil {
-		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
-		return
-	}
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[FindPasswordRequest](c)
 
 	// 转换为Domain层结构体
 	domainReq := &user.FindPasswordRequest{
@@ -45,12 +42,8 @@ func (ctrl *UserController) RequestPasswordReset(c *gin.Context) {
 
 // ResetPassword 处理重置密码请求
 func (ctrl *UserController) ResetPassword(c *gin.Context) {
-	// 解析重置密码请求
-	var req ResetPasswordRequest
-	if err := c.ShouldBind(&req); err != nil {
-		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
-		return
-	}
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[ResetPasswordRequest](c)
 
 	// 转换为Domain层结构体
 	domainReq := &user.ResetPasswordRequest{

@@ -27,7 +27,7 @@ type ResetPasswordRequest struct {
 
 // CheckUserNameRequest 检查用户名请求
 type CheckUserNameRequest struct {
-	UserName string `form:"username" json:"username" binding:"required,username"`
+	UserName string `form:"user_name" json:"user_name" binding:"required,username"`
 }
 
 // CheckEmailRequest 检查邮箱请求

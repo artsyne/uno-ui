@@ -25,7 +25,7 @@ website/static/
 
 ```bash
 # 构建JavaScript
-npm run build:js
+npm run build:frontend
 
 # 构建CSS
 npm run build:css
@@ -51,9 +51,9 @@ npm run create:dirs
 
 - **CSS框架**: Tailwind CSS 4
 - **CSS处理**: PostCSS、Autoprefixer、CSSnano
-- **JS处理**: Terser (用于压缩和混淆)
+- **JS打包**: esbuild
 - **构建工具**: Node.js脚本
-- **主题系统**: 支持Light/Dark主题切换，与Kiko UI主题系统集成
+- **主题系统**: 支持Light/Dark主题切换，集成Uno UI主题系统
 
 ## 开发指南
 

@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"strconv"
 
-	types "github.com/biuren/hebe/internal/contracts"
+	"github.com/biuren/hebe/internal/app/middleware"
 	"github.com/biuren/hebe/internal/domain/like"
 	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/utils/errors"
@@ -12,49 +12,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ProcessPost 处理日记的创建和编辑请求
-// 根据表单中的action字段分发到对应的处理方法
+// CreatePost 处理创建新日记的请求
+// 绑定JSON或表单数据到CreatePostRequest，并调用服务层创建日记
 //
-// 支持的表单action值:
-//   - "post.create": 创建新日记
-//   - "post.edit": 编辑现有日记
-func (ctrl *PostController) ProcessPost(c *gin.Context) {
+// 路由: POST /post
+func (ctrl *PostController) CreatePost(c *gin.Context) {
 	// 获取当前登录用户信息
 	loginUser := ctrl.auth.MustGetCurrentUser(c)
 
-	// 根据操作类型分发处理
-	action, _ := c.GetPostForm("action")
-	switch action {
-	case "post.create":
-		ctrl.CreatePost(c, loginUser)
-	case "post.edit":
-		ctrl.UpdatePost(c, loginUser)
-	default:
-		ctrl.renderService.JSONError(c, &errors.InvalidParams)
-	}
-}
-
-// CreatePost 处理创建新日记的业务逻辑
-// 设置日记的所有必要字段，调用服务层创建日记，并返回创建结果
-// 同时更新对应日记本的文章数量统计
-//
-// 参数:
-//   - c: Gin上下文对象
-//   - loginUser: 当前登录用户信息
-//
-// 功能:
-//   - 解析创建日记请求参数
-//   - 构建新日记对象并设置默认值
-//   - 调用服务层创建日记
-//   - 更新日记本的文章数量
-//   - 返回创建成功的响应
-func (ctrl *PostController) CreatePost(c *gin.Context, loginUser *types.AuthUser) {
-	// 解析创建日记请求
-	var req CreatePostRequest
-	if err := c.ShouldBind(&req); err != nil {
-		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
-		return
-	}
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[CreatePostRequest](c)
 
 	nowTime := pkg.GetNowTimeUnixMilli()
 
@@ -96,26 +63,16 @@ func (ctrl *PostController) CreatePost(c *gin.Context, loginUser *types.AuthUser
 	ctrl.renderService.JSONSuccess(c, postData)
 }
 
-// UpdatePost 处理编辑现有日记的业务逻辑
-// 验证用户权限，保留原有字段值，更新可编辑字段，调用服务层更新日记
+// UpdatePost 处理更新日记的请求
+// 绑定URI参数(id)和JSON/表单数据到UpdatePostRequest，并调用服务层更新
 //
-// 参数:
-//   - c: Gin上下文对象
-//   - loginUser: 当前登录用户信息
-//
-// 功能:
-//   - 解析更新日记请求参数
-//   - 验证日记所有权
-//   - 构建更新后的日记对象（保留原有统计数据）
-//   - 调用服务层更新日记
-//   - 返回更新成功的响应
-func (ctrl *PostController) UpdatePost(c *gin.Context, loginUser *types.AuthUser) {
-	// 解析更新日记请求
-	var req UpdatePostRequest
-	if err := c.ShouldBind(&req); err != nil {
-		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
-		return
-	}
+// 路由: PUT /post/:id
+func (ctrl *PostController) UpdatePost(c *gin.Context) {
+	// 获取当前登录用户信息
+	loginUser := ctrl.auth.MustGetCurrentUser(c)
+
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[UpdatePostRequest](c)
 
 	postId := req.PostID
 
@@ -162,18 +119,10 @@ func (ctrl *PostController) UpdatePost(c *gin.Context, loginUser *types.AuthUser
 // DeletePost 处理删除日记请求
 // 执行软删除操作，将日记状态设置为0，并减少日记本的统计数
 //
-// 参数:
-//   - c: Gin上下文对象
-//
-// 返回:
-//   - JSON响应，成功或错误信息
+// 路由: DELETE /post/:id
 func (ctrl *PostController) DeletePost(c *gin.Context) {
-	// 解析请求参数
-	var req DeletePostRequest
-	if bindErr := c.ShouldBind(&req); bindErr != nil {
-		ctrl.renderService.JSONError(c, &errors.InvalidParams)
-		return
-	}
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[DeletePostRequest](c)
 
 	// 获取当前用户信息
 	userData, isAuthenticated := ctrl.auth.GetCurrentUser(c)
@@ -201,11 +150,10 @@ func (ctrl *PostController) DeletePost(c *gin.Context) {
 		return
 	}
 
-	// 返回成功响应
-	ctrl.renderService.JSONSuccess(c, gin.H{
-		"message": "删除成功",
-		"post_id": req.PostID,
-	})
+	// 减少日记本的文章数量
+	_ = ctrl.diaryService.DecrementPostCount(postData.DiaryID, userData.UserId, userData.UserName, currentTime)
+
+	ctrl.renderService.JSONSuccess(c, nil)
 }
 
 // GetPostsStats 获取日记统计信息
@@ -218,12 +166,8 @@ func (ctrl *PostController) DeletePost(c *gin.Context) {
 // 返回:
 //   - 包含统计信息的日记列表
 func (ctrl *PostController) GetPostsStats(c *gin.Context) {
-	// 解析请求参数
-	var req GetPostsStatsRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
-		return
-	}
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[GetPostsStatsRequest](c)
 
 	// 解析postids字符串为int64切片
 	postIDs, err := req.ParsePostIDs()
@@ -271,12 +215,8 @@ func (ctrl *PostController) LikePost(c *gin.Context) {
 		return
 	}
 
-	// 从POST请求体获取post_id
-	var req LikePostRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		ctrl.renderService.JSONError(c, &errors.InvalidParams)
-		return
-	}
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[LikePostRequest](c)
 	postID := req.PostID
 
 	// 获取点赞前的状态，用于判断是点赞还是取消点赞
@@ -303,7 +243,7 @@ func (ctrl *PostController) LikePost(c *gin.Context) {
 		// 之前未点赞，现在是点赞，增加like_num
 		err = ctrl.postService.IncrementLikeCount(postID)
 	}
-	
+
 	if err != nil {
 		slog.Error("更新日记点赞数失败", "error", err, "post_id", postID)
 		// 这里不返回错误，因为点赞状态已经更新成功，只是统计数字更新失败
@@ -331,12 +271,8 @@ func (ctrl *PostController) LikePost(c *gin.Context) {
 // 返回:
 //   - 包含点赞状态信息的日记列表
 func (ctrl *PostController) GetPostsLikeStatus(c *gin.Context) {
-	// 解析请求参数
-	var req GetPostLikeStatusRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
-		return
-	}
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[GetPostLikeStatusRequest](c)
 
 	// 解析postids字符串为int64切片
 	postIDs, err := req.ParsePostIDs()

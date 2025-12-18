@@ -50,8 +50,11 @@ export default (Alpine) => {
         type,
         title: options.title || '',
         content: options.content || '',
-        width: options.width || 400,
+        width: options.width !== undefined ? options.width : options.widthClass ? null : 400,
         height: options.height,
+        widthClass: options.widthClass,
+        heightClass: options.heightClass,
+        containerClass: options.containerClass,
         modal: options.modal !== false, // default true
         overlayOpacity: options.overlayOpacity ?? 0.5,
         position: options.position || 'center',
@@ -61,6 +64,9 @@ export default (Alpine) => {
         cancelText: options.cancelButtonText,
         onOk: options.onOk,
         onCancel: options.onCancel,
+        onClose: options.onClose,
+        onBeforeClose: options.onBeforeClose,
+        onContentLoad: options.onContentLoad, // Callback after content is loaded (ajax/htmx)
         showOk:
           type === 'confirm' || type === 'message' || (type === 'dialog' && options.showOkButton),
         showCancel: type === 'confirm' || (type === 'dialog' && options.showCancelButton),
@@ -101,7 +107,14 @@ export default (Alpine) => {
               })
               .then(() => {
                 const current = this.items.find((i) => i.id === id)
-                if (current) current.loading = false
+                if (current) {
+                  current.loading = false
+                  if (current.onContentLoad) {
+                    Alpine.nextTick(() => {
+                      current.onContentLoad(document.getElementById('uno-box-content' + id))
+                    })
+                  }
+                }
               })
               .catch((err) => {
                 log.error('Box: HTMX Load Failed', err)
@@ -143,6 +156,10 @@ export default (Alpine) => {
               if (el) {
                 // We need to use initTree to initialize x-data etc. in the new HTML
                 Alpine.initTree(el)
+
+                if (current.onContentLoad) {
+                  current.onContentLoad(el)
+                }
               }
             })
           }
@@ -169,7 +186,12 @@ export default (Alpine) => {
     },
 
     close(id) {
-      this.items = this.items.filter((i) => i.id !== id)
+      const item = this.items.find((i) => i.id === id)
+      if (item) {
+        if (item.onBeforeClose) item.onBeforeClose()
+        this.items = this.items.filter((i) => i.id !== id)
+        if (item.onClose) item.onClose()
+      }
     },
 
     closeAll() {
@@ -205,7 +227,7 @@ export default (Alpine) => {
         <template x-for="(item, index) in $store.box.items" :key="item.id">
             <div :id="'uno-box-outer-container' + item.id"
                  :class="$store.box.getPositionClass(item.position)"
-                 :style="\`z-index: \${100 + index}\`"
+                 :style="\`z-index: \${10000 + index}\`"
                  role="dialog"
                  aria-modal="true">
                  
@@ -224,7 +246,8 @@ export default (Alpine) => {
                  <!-- Box Container -->
                  <div :id="'uno-box-container' + item.id"
                       class="relative bg-white dark:bg-gray-900 rounded-lg shadow-2xl ring-1 ring-black/5 overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300 transform pointer-events-auto"
-                      :style="\`width: \${item.width}px; \${item.height ? 'height:' + item.height + 'px' : ''}\`"
+                      :class="[item.widthClass, item.heightClass, item.containerClass]"
+                      :style="\`\${item.width ? 'width: ' + item.width + 'px;' : ''} \${item.height ? 'height:' + item.height + 'px' : ''}\`"
                       x-show="item.visible"
                       x-transition:enter="ease-out duration-300"
                       x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -275,8 +298,12 @@ export default (Alpine) => {
                           </button>
                           <button :id="'uno-box-ok' + item.id"
                                   x-show="item.showOk"
-                                  @click="() => {
-                                      const shouldClose = item.onOk ? item.onOk() : true;
+                                  @click="async () => {
+                                      let shouldClose = true;
+                                      if (item.onOk) {
+                                          const result = item.onOk();
+                                          shouldClose = result instanceof Promise ? await result : result;
+                                      }
                                       if (shouldClose !== false) $store.box.close(item.id);
                                   }"
                                   x-text="item.okText"

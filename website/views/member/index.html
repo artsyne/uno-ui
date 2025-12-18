@@ -47,11 +47,11 @@
         </div>
     </section>
 
-    <section class="flex justify-between mb-10">
+    <section class="flex justify-between mb-10" x-data="member">
         <div class="text-lg">{{getMessage "member.profile.diary_notebook" .Context.Lang}}</div>
         <div>
             {{if .Data.IsOwner}}
-            <button class="btn" data-action="showDiaryBox" data-form-action="diary.add">
+            <button class="btn" @click="openAddDiary()">
                 <i class="mdi mdi-plus"></i> {{getMessage "member.profile.add_notebook" .Context.Lang}}
             </button>
             {{end}}
@@ -59,39 +59,7 @@
     </section>
 
     <section>
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8" id="daybook_list">
-            {{ $timeZone := .Data.TimeZone }}
-            {{ $lang := .Context.Lang }}
-            {{ range .Data.Diaries }}
-            <div class="border h-72 text-center dt{{ .ThemeID }}">
-                <div class="h-full flex flex-col p-3">
-                    <div class="flex-grow flex items-center justify-center flex-col">
-                        <h1 class="text-xl mb-2 break-words w-full">
-                            <a href="/d/{{ .DiaryID }}" class="block w-full">{{ .Title }}
-                                {{ if gt .ViewSetting 1 }}
-                                <i class="mdi mdi-lock-outline"></i>
-                                {{ end }}
-                            </a>
-                        </h1>
-                        {{ if gt .InfoNum 0 }}
-                        <p class="mb-2">
-                            <span class="mr-1">{{ .InfoNum }}</span>{{getMessage "member.profile.posts_count" $lang}}
-                        </span>
-                        <p class="mb-2">
-                            {{ formatLocalTime .LastActionUTCTime $timeZone}}
-                        </p>
-                        {{ end }}
-                    </div>
-                </div>
-            </div>
-            {{ end }}
-        </div>
-
-        {{ if gt .Data.DiariesNum .Data.PageSize }}
-        <div class="flex justify-center mt-10">
-            {{ template "pagination" . }}
-        </div>
-        {{ end }}
+        {{ template "member/list" . }}
     </section>
 </main>
 {{ template "footer" . }}

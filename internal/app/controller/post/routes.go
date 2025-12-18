@@ -1,6 +1,9 @@
 package post
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/biuren/hebe/internal/app/middleware"
+	"github.com/gin-gonic/gin"
+)
 
 // RegisterRoutes 注册所有日记相关路由
 // 将所有post相关路由聚合在一个地方，实现高内聚
@@ -33,34 +36,34 @@ func (ctrl *PostController) RegisterRoutes(router *gin.Engine) {
 		authForm.GET("/post", ctrl.ShowPostForm)
 	}
 
-	// 需要鉴权的日记数据操作路由（保持原路径）
+	// 需要鉴权的日记数据操作路由
 	authAPI := router.Group("/")
 	authAPI.Use(ctrl.auth.RequireAuth())
 	{
-		authAPI.POST("/post", ctrl.ProcessPost)
-		authAPI.POST("/info", ctrl.ProcessPost)
+		authAPI.POST("/post", middleware.Validate[CreatePostRequest](), ctrl.CreatePost)
+		authAPI.PUT("/post/:id", middleware.Validate[UpdatePostRequest](), ctrl.UpdatePost)
 	}
 
 	// 需要鉴权的日记删除路由
 	authDelete := router.Group("/post")
 	authDelete.Use(ctrl.auth.RequireAuth())
 	{
-		authDelete.POST("/delete", ctrl.DeletePost)
+		authDelete.DELETE("/:id", middleware.Validate[DeletePostRequest](), ctrl.DeletePost)
 	}
 
-	// 需要鉴权的日记点赞操作路由
+	// 日记点赞相关路由
 	api := router.Group("/api/post")
-	api.Use(ctrl.auth.RequireAuth())
 	{
-		// 根据postIds获取日记社交统计信息
-		api.POST("/stats", ctrl.GetPostsStats)
-		// 根据postIds获取日记点赞状态
-		api.POST("/like/status", ctrl.GetPostsLikeStatus)
-		
-		// 日记点赞/取消点赞
-		apiAuth := api.Group("/").Use(ctrl.auth.RequireAuth())
+		// 根据postIds获取日记社交统计信息（无需鉴权）
+		api.POST("/stats", middleware.Validate[GetPostsStatsRequest](), ctrl.GetPostsStats)
+		// 根据postIds获取日记点赞状态（无需鉴权，内部处理匿名用户）
+		api.POST("/like/status", middleware.Validate[GetPostLikeStatusRequest](), ctrl.GetPostsLikeStatus)
+
+		// 日记点赞/取消点赞（需要鉴权）
+		apiAuth := api.Group("/")
+		apiAuth.Use(ctrl.auth.RequireAuth())
 		{
-			apiAuth.POST("/like", ctrl.LikePost)
+			apiAuth.POST("/like", middleware.Validate[LikePostRequest](), ctrl.LikePost)
 		}
 	}
 }

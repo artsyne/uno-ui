@@ -1,19 +1,9 @@
 import { getCookie, setCookie } from '../utils/cookie.js';
+import localeData from '../locales/data.js';
 
 const STORAGE_KEY = 'idiary-lang';
 const DEFAULT_LANGUAGE = 'en';
-const SUPPORTED_LANGUAGES = [
-  'ar',
-  'de',
-  'en',
-  'es',
-  'fr',
-  'ja',
-  'ko',
-  'ru',
-  'zh-cn',
-  'zh-tw',
-];
+const SUPPORTED_LANGUAGES = ['en', 'zh-cn', 'zh-tw', 'fr', 'ja', 'ko'];
 
 export default {
   current: DEFAULT_LANGUAGE,
@@ -23,6 +13,78 @@ export default {
     this.current = this.detectLanguage();
     this.locale = this.current; // Sync with Uno
     this.apply(this.current);
+  },
+
+  /**
+   * Get translation for a key
+   * @param {string} key - Translation key
+   * @param {Object} params - Parameters for replacement (optional)
+   * @returns {string} Translated text
+   */
+  t(key, params = {}) {
+    const lang = this.current.toLowerCase();
+    const fallbackLang = DEFAULT_LANGUAGE;
+
+    // Try current language from localeData
+    let text = localeData[lang]?.[key];
+
+    // Helper to get from Uno messages
+    const getFromUno = (langCode) => {
+      if (!this.messages) {
+        return undefined;
+      }
+
+      // Map 'zh-cn' to 'zh-CN' for Uno
+      const mapToUnoLang = (code) => {
+        if (code === 'zh-cn') return 'zh-CN';
+        if (code === 'zh-tw') return 'zh-TW';
+        return code;
+      };
+
+      const unoLang = mapToUnoLang(langCode);
+      const dict = this.messages[unoLang];
+      if (!dict) {
+        return undefined;
+      }
+
+      const parts = key.split('.');
+      let cur = dict;
+      for (const p of parts) {
+        if (!cur || typeof cur !== 'object' || !(p in cur)) return undefined;
+        cur = cur[p];
+      }
+      return typeof cur === 'string' ? cur : undefined;
+    };
+
+    // If not in localeData, try Uno messages
+    if (!text) {
+      text = getFromUno(lang);
+    }
+
+    // Fallback to default language
+    if (!text && lang !== fallbackLang) {
+      text = localeData[fallbackLang]?.[key];
+      // If still not found, try Uno messages in default language
+      if (!text) {
+        text = getFromUno(fallbackLang);
+      }
+    }
+
+    // Return key if not found
+    if (!text) {
+      // Only warn if it's not a missing Uno key that we expect might be missing
+      console.warn(
+        `[i18n] Missing translation for key: ${key} in language: ${lang}`,
+      );
+      return key;
+    }
+
+    // Replace params if any
+    Object.keys(params).forEach((param) => {
+      text = text.replace(new RegExp(`{${param}}`, 'g'), params[param]);
+    });
+
+    return text;
   },
 
   detectLanguage() {
@@ -78,11 +140,5 @@ export default {
 
   apply(lang) {
     document.documentElement.lang = lang;
-
-    // 兼容性支持：如果 Kiko 存在，同步语言设置
-    // 这是 Strangler Fig 模式的一部分，确保旧组件也能感知语言变化
-    if (typeof window.kiko !== 'undefined' && window.kiko.i18n) {
-      window.kiko.i18n.setLang(lang);
-    }
   },
 };

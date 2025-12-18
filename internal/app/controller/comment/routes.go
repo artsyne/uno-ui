@@ -1,6 +1,7 @@
 package comment
 
 import (
+	"github.com/biuren/hebe/internal/app/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,17 +21,22 @@ func RegisterRoutes(router *gin.RouterGroup, ctrl *CommentController) {
 	// 评论相关API路由组
 	commentAPI := router.Group("/comment")
 	{
-		// 创建评论
-		commentAPI.POST("/create", ctrl.CreateComment)
-		
-		// 删除评论
-		commentAPI.POST("/delete", ctrl.DeleteComment)
-		
-		// 获取评论列表
-		commentAPI.GET("/list", ctrl.GetComments)
+		// 获取评论列表 (无需鉴权)
+		commentAPI.GET("/list", middleware.Validate[GetCommentsRequest](), ctrl.GetComments)
+
+		// 需要鉴权的路由
+		authGroup := commentAPI.Group("/")
+		authGroup.Use(ctrl.auth.RequireAuth())
+		{
+			// 创建评论
+			authGroup.POST("/create", middleware.Validate[CreateCommentRequest](), ctrl.CreateComment)
+
+			// 删除评论
+			authGroup.POST("/delete", middleware.Validate[DeleteCommentRequest](), ctrl.DeleteComment)
+		}
 	}
 
 	// RESTful风格的路由
 	// 根据日记ID获取评论列表
-	router.GET("/post/:post_id/comments", ctrl.GetCommentsByPostIDFromPath)
+	router.GET("/post/:post_id/comments", middleware.Validate[GetCommentsByPathRequest](), ctrl.GetCommentsByPostIDFromPath)
 }

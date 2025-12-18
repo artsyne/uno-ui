@@ -248,7 +248,6 @@ docker-compose logs -f idiary
 | **模板开发** | [模板函数指南](./docs/template-functions-guide.md)   | 模板函数系统和数据访问 |
 | **最佳实践** | [模板开发指南](./docs/template-usage-guide.md)       | 模板架构模式和实践     |
 | **国际化**   | [模板翻译指南](./docs/template-translation-guide.md) | 模板国际化实现         |
-| **组件库**   | [Kiko.js组件库](./kiko/README.md)                    | 自研前端UI组件         |
 
 ### 🧪 测试与架构文档
 

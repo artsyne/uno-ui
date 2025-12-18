@@ -6,8 +6,9 @@ import (
 	"strings"
 
 	"github.com/biuren/hebe/internal/app/controller/validation"
-	"github.com/biuren/hebe/internal/utils/errors"
+	"github.com/biuren/hebe/internal/domain/like"
 	"github.com/biuren/hebe/internal/domain/post"
+	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -49,6 +50,7 @@ func (ctrl *PostController) ShowPostForm(c *gin.Context) {
 	// 初始化页面数据
 	data := ctrl.renderService.CreatePageData(c, "post.form.title")
 	data.Data["Post"] = postData
+	data.Data["DiaryID"] = c.Query("diary_id")
 
 	ctrl.renderService.HTML(c, "form/post", data)
 }
@@ -90,7 +92,7 @@ func (ctrl *PostController) ShowDiaryIndex(c *gin.Context) {
 	// 获取日记列表
 	posts, postNum, err := ctrl.postService.ListPostsByUserID(diaryInfo.AddUserID, diaryID, pageIndex, pageSize)
 	if err != nil {
-		ctrl.renderErrorPage(c,"日记信息错误", "获取日记列表失败")
+		ctrl.renderErrorPage(c, "日记信息错误", "获取日记列表失败")
 		return
 	}
 
@@ -127,6 +129,12 @@ func (ctrl *PostController) ShowDiaryIndex(c *gin.Context) {
 	data.Data["TimeZone"] = timeZone
 	data.Data["IsOwner"] = isOwner
 
+	// 检查是否为HTMX请求
+	if c.GetHeader("HX-Request") == "true" {
+		ctrl.renderService.HTML(c, "diary/list", data)
+		return
+	}
+
 	ctrl.renderService.HTML(c, "diary/index", data)
 }
 
@@ -147,7 +155,7 @@ func (ctrl *PostController) ShowDiaryIndex(c *gin.Context) {
 func (ctrl *PostController) ShowPost(c *gin.Context) {
 	var req ShowPostDetailRequest
 	// 绑定 uri
-	if err:= c.ShouldBindUri(&req); err!= nil {
+	if err := c.ShouldBindUri(&req); err != nil {
 		ctrl.renderErrorPage(c, "参数错误", "请检查URL参数是否正确")
 		return
 	}
@@ -155,6 +163,11 @@ func (ctrl *PostController) ShowPost(c *gin.Context) {
 	if err := c.ShouldBindQuery(&req); err != nil {
 		ctrl.renderErrorPage(c, "参数错误", "请检查URL参数是否正确")
 		return
+	}
+
+	// 兼容 HTMX 请求头
+	if c.GetHeader("HX-Request") == "true" {
+		req.IsAjax = true
 	}
 
 	// 获取日记信息 - 调用post模块
@@ -169,6 +182,15 @@ func (ctrl *PostController) ShowPost(c *gin.Context) {
 	if err != nil || diaryInfo == nil {
 		ctrl.renderErrorPage(c, "日记本不存在", "未找到指定的日记本")
 		return
+	}
+
+	// 获取用户点赞状态
+	isLiked := false
+	if loginUser, exists := ctrl.auth.GetCurrentUser(c); exists && loginUser != nil {
+		status, err := ctrl.likeService.GetLikeStatus(loginUser.UserId, postInfo.PostID, like.LikeTypePost)
+		if err == nil {
+			isLiked = status.IsLiked
+		}
 	}
 
 	// todo: 未来判断访客的浏览权限
@@ -200,6 +222,7 @@ func (ctrl *PostController) ShowPost(c *gin.Context) {
 	data.Data["Post"] = postInfo
 	data.Data["Diary"] = diaryInfo
 	data.Data["TimeZone"] = timeZone
+	data.Data["IsLiked"] = isLiked
 	data.Data["IsAjax"] = req.IsAjax
 	data.Data["PreviousPostID"] = previousPostID
 	data.Data["NextPostID"] = nextPostID
@@ -207,9 +230,9 @@ func (ctrl *PostController) ShowPost(c *gin.Context) {
 	data.Data["BodyHTML"] = pkg.RenderMarkdown(postInfo.Body)
 
 	// 构建页面数据
-	viewPath:="post/view"
+	viewPath := "post/view"
 	if req.IsAjax {
-		viewPath="post/detail"
+		viewPath = "post/detail"
 	}
 	ctrl.renderService.HTML(c, viewPath, data)
 }

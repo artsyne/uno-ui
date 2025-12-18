@@ -1,32 +1,38 @@
 {{define "form/diary"}}
 
-<div class="px-4">
-    <form id="daybook_editor_form">
+<div class="px-4" x-data="{ 
+    theme: {{if .Data.Diary}}{{.Data.Diary.ThemeID}}{{else}}16{{end}} 
+}">
+    <form id="daybook_editor_form" x-data="validForm" onsubmit="return false;" @submit.prevent>
         <div class="block mb-4">
             <label class="form-title">{{getMessage "diary.form.name_required" .Context.Lang}} </label>
-            <input type="text" class="form-control" id="title" name="title"
-                valid='[{"type":"required"},{"type":"limit","min":1,"max":100}]' placeholder="{{getMessage "diary.form.name_required" .Context.Lang}}" {{if
+            <input type="text" class="form-control" id="title" name="title" x-validate
+                valid='[{"type":"required"},{"type":"limit","min":1,"max":100}]'
+                placeholder='{{getMessage "diary.form.name_required" .Context.Lang}}' {{if
                 .Data.Diary}}value="{{.Data.Diary.Title}}" {{end}}>
-            <div class="invalid-feedback"></div>
+            <div x-valid-error="title"></div>
         </div>
         <div class="block mb-4">
             <label class="form-title">{{getMessage "diary.form.description" .Context.Lang}}</label>
-            <textarea class="form-control" valid='[{"type":"limit","max":250,"show":true}]' id="remark" name="remark"
-                placeholder="{{getMessage "diary.form.description" .Context.Lang}}" style="height: 80px">{{if .Data.Diary}}{{.Data.Diary.Remark}}{{end}}</textarea>
-            <div class="invalid-feedback"></div>
+            <textarea class="form-control" x-validate valid='[{"type":"limit","max":250,"show":true}]' id="remark"
+                name="remark" placeholder='{{getMessage "diary.form.description" .Context.Lang}}'
+                style="height: 80px">{{if .Data.Diary}}{{.Data.Diary.Remark}}{{end}}</textarea>
+            <div x-valid-error="remark"></div>
         </div>
         <div class="block mb-4">
             <div class="flex items-center space-x-4 mb-2">
                 <div class="flex items-center">
                     <input class="mr-2 form-control-radio" type="radio" {{if and .Data.Diary (eq .Data.Diary.ViewSetting
-                        2)}}checked{{else if not .Data.Diary}}checked{{end}} name="view_setting" id="daybook_view_setting1"
-                        value="2">
-                    <label class="text-sm" for="daybook_view_setting1">{{getMessage "diary.form.privacy_private" .Context.Lang}}</label>
+                        2)}}checked{{else if not .Data.Diary}}checked{{end}} name="view_setting"
+                        id="daybook_view_setting1" value="2">
+                    <label class="text-sm" for="daybook_view_setting1">{{getMessage "diary.form.privacy_private"
+                        .Context.Lang}}</label>
                 </div>
                 <div class="flex items-center">
                     <input class="mr-2 form-control-radio" type="radio" {{if and .Data.Diary (eq .Data.Diary.ViewSetting
                         1)}}checked{{end}} name="view_setting" id="daybook_view_setting2" value="1">
-                    <label class="text-sm" for="daybook_view_setting2">{{getMessage "diary.form.privacy_public" .Context.Lang}}</label>
+                    <label class="text-sm" for="daybook_view_setting2">{{getMessage "diary.form.privacy_public"
+                        .Context.Lang}}</label>
                 </div>
             </div>
             <p class="text-red-500 text-xs">{{getMessage "diary.form.privacy_note" .Context.Lang}}</p>
@@ -35,15 +41,17 @@
             <div class="flex items-center space-x-4 mb-2">
                 <div class="flex items-center">
                     <input class="mr-2 form-control-radio" type="radio" {{if and .Data.Diary (eq
-                        .Data.Diary.SocialSetting 2)}}checked{{else if not .Data.Diary}}checked{{end}} name="social_setting"
-                        id="daybook_social_setting1" value="2">
-                    <label class="text-sm" for="daybook_social_setting1">{{getMessage "diary.form.social_disabled" .Context.Lang}}</label>
+                        .Data.Diary.SocialSetting 2)}}checked{{else if not .Data.Diary}}checked{{end}}
+                        name="social_setting" id="daybook_social_setting1" value="2">
+                    <label class="text-sm" for="daybook_social_setting1">{{getMessage "diary.form.social_disabled"
+                        .Context.Lang}}</label>
                 </div>
                 <div class="flex items-center">
                     <input class="mr-2 form-control-radio" type="radio" {{if and .Data.Diary (eq
                         .Data.Diary.SocialSetting 1)}}checked{{end}} name="social_setting" id="daybook_social_setting2"
                         value="1">
-                    <label class="text-sm" for="daybook_social_setting2">{{getMessage "diary.form.social_enabled" .Context.Lang}}</label>
+                    <label class="text-sm" for="daybook_social_setting2">{{getMessage "diary.form.social_enabled"
+                        .Context.Lang}}</label>
                 </div>
             </div>
             <p class="text-red-500 text-xs">{{getMessage "diary.form.social_note" .Context.Lang}}</p>
@@ -51,47 +59,59 @@
         <div class="block mb-4">
             <label class="form-title mb-2 block">{{getMessage "diary.form.style_selection" .Context.Lang}}</label>
             <div class="d-theme flex flex-wrap gap-3 py-2">
-                {{$selectedTheme := 16}}
-                {{if .Data.Diary}}
-                {{$selectedTheme = .Data.Diary.ThemeID}}
-                {{end}}
-                <div class="dtf16 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 16}}ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800{{else}}hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300{{end}}"
-                    theme="16"></div>
-                <div class="dtf15 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 15}}ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800{{else}}hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300{{end}}"
-                    theme="15"></div>
-                <div class="dtf14 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 14}}ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800{{else}}hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300{{end}}"
-                    theme="14"></div>
-                <div class="dtf13 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 13}}ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800{{else}}hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300{{end}}"
-                    theme="13"></div>
-                <div class="dtf12 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 12}}ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800{{else}}hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300{{end}}"
-                    theme="12"></div>
-                <div class="dtf11 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 11}}ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800{{else}}hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300{{end}}"
-                    theme="11"></div>
-                <div class="dtf10 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 10}}ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800{{else}}hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300{{end}}"
-                    theme="10"></div>
-                <div class="dtf9 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 9}}ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800{{else}}hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300{{end}}"
-                    theme="9"></div>
-                <div class="dtf8 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 8}}ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800{{else}}hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300{{end}}"
-                    theme="8"></div>
-                <div class="dtf7 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 7}}ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800{{else}}hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300{{end}}"
-                    theme="7"></div>
-                <div class="dtf6 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 6}}ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800{{else}}hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300{{end}}"
-                    theme="6"></div>
-                <div class="dtf5 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 5}}ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800{{else}}hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300{{end}}"
-                    theme="5"></div>
-                <div class="dtf4 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 4}}ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800{{else}}hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300{{end}}"
-                    theme="4"></div>
-                <div class="dtf3 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 3}}ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800{{else}}hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300{{end}}"
-                    theme="3"></div>
-                <div class="dtf2 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 2}}ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800{{else}}hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300{{end}}"
-                    theme="2"></div>
-                <div class="dtf1 h-8 w-8 rounded cursor-pointer {{if eq $selectedTheme 1}}ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800{{else}}hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300{{end}}"
-                    theme="1"></div>
+                <div class="dtf16 h-8 w-8 rounded cursor-pointer"
+                    :class="theme == 16 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
+                    @click="theme = 16"></div>
+                <div class="dtf15 h-8 w-8 rounded cursor-pointer"
+                    :class="theme == 15 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
+                    @click="theme = 15"></div>
+                <div class="dtf14 h-8 w-8 rounded cursor-pointer"
+                    :class="theme == 14 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
+                    @click="theme = 14"></div>
+                <div class="dtf13 h-8 w-8 rounded cursor-pointer"
+                    :class="theme == 13 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
+                    @click="theme = 13"></div>
+                <div class="dtf12 h-8 w-8 rounded cursor-pointer"
+                    :class="theme == 12 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
+                    @click="theme = 12"></div>
+                <div class="dtf11 h-8 w-8 rounded cursor-pointer"
+                    :class="theme == 11 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
+                    @click="theme = 11"></div>
+                <div class="dtf10 h-8 w-8 rounded cursor-pointer"
+                    :class="theme == 10 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
+                    @click="theme = 10"></div>
+                <div class="dtf9 h-8 w-8 rounded cursor-pointer"
+                    :class="theme == 9 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
+                    @click="theme = 9"></div>
+                <div class="dtf8 h-8 w-8 rounded cursor-pointer"
+                    :class="theme == 8 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
+                    @click="theme = 8"></div>
+                <div class="dtf7 h-8 w-8 rounded cursor-pointer"
+                    :class="theme == 7 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
+                    @click="theme = 7"></div>
+                <div class="dtf6 h-8 w-8 rounded cursor-pointer"
+                    :class="theme == 6 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
+                    @click="theme = 6"></div>
+                <div class="dtf5 h-8 w-8 rounded cursor-pointer"
+                    :class="theme == 5 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
+                    @click="theme = 5"></div>
+                <div class="dtf4 h-8 w-8 rounded cursor-pointer"
+                    :class="theme == 4 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
+                    @click="theme = 4"></div>
+                <div class="dtf3 h-8 w-8 rounded cursor-pointer"
+                    :class="theme == 3 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
+                    @click="theme = 3"></div>
+                <div class="dtf2 h-8 w-8 rounded cursor-pointer"
+                    :class="theme == 2 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
+                    @click="theme = 2"></div>
+                <div class="dtf1 h-8 w-8 rounded cursor-pointer"
+                    :class="theme == 1 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
+                    @click="theme = 1"></div>
             </div>
         </div>
         <input type="hidden" name="action" id="action" />
         <input type="hidden" name="diary_id" id="diary_id" value="{{if .Data.Diary}}{{.Data.Diary.DiaryID}}{{end}}" />
-        <input type="hidden" name="theme_id" id="theme_id" value="{{if .Data.Diary}}{{.Data.Diary.ThemeID}}{{else}}16{{end}}" />
+        <input type="hidden" name="theme_id" id="theme_id" :value="theme" />
     </form>
 </div>
 {{end}}

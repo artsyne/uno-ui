@@ -20,7 +20,7 @@ A reusable dialog component based on Alpine.js + TailwindCSS, featuring modal ov
 - **Buttons & Interaction**:
   - Three presets: `dialog`, `confirm`, `message`.
   - Button text supports i18n.
-  - Lifecycle events: `onBeforeOpen`, `onOpen`, `onBeforeClose`, `onClose`.
+  - Lifecycle events: `onBeforeOpen`, `onOpen`, `onBeforeClose`, `onClose`, `onContentLoad`.
   - Button alignment: `buttonAlign` (left/center/right).
 - **Declarative Usage**: Quickly use via `data-box-type` and `data-box-*` attributes without writing JS.
 - **Internationalization**: Supports `Alpine.store('i18n')` for text (`box.ok`, `box.cancel`, `box.loading`, `box.close`).
@@ -97,16 +97,48 @@ The component relies on `Alpine.store('i18n')` for multi-language support.
 
 ## Events & API
 
-### Lifecycle Events
+### Lifecycle & Button Callbacks
 
 When using programmatic usage, you can pass these callbacks in the options object:
+
+#### Lifecycle
 
 - `onBeforeOpen`: Fired before the dialog opens.
 - `onOpen`: Fired after the dialog is fully open.
 - `onBeforeClose`: Fired before the dialog closes.
 - `onClose`: Fired after the dialog is closed.
+- `onContentLoad`: Fired after AJAX or HTMX content has been loaded and inserted into the DOM. Receives the content element as an argument. Useful for initializing scripts or HTMX on the new content.
+
+#### Buttons
+
+- `onOk`: Fired when the "OK" / "Confirm" button is clicked.
+  - Return `false` to prevent the dialog from closing.
+  - Useful for validation or async operations.
+- `onCancel`: Fired when the "Cancel" button is clicked.
+  - The dialog will always close after this callback (unless you manually intervene, but generally cancel means close).
 
 ### Notes
 
 - **Height Adaptation**: Height is auto-adaptive if not set. Flex layout is used internally to accommodate header/footer when height is fixed.
 - **AJAX Loading**: Uses Fetch API. JSON responses are pretty-printed (for debugging), and HTML responses are injected directly.
+
+## Manual Testing
+
+### 1. Callback Verification
+
+Open the browser console and execute:
+
+```javascript
+Alpine.store('box').open({
+  title: 'Callback Test',
+  content: 'Close this box to check console logs',
+  onBeforeClose: () => console.log('onBeforeClose triggered'),
+  onClose: () => console.log('onClose triggered')
+})
+```
+
+Expected:
+
+1. Dialog opens.
+2. Click Close button or Overlay.
+3. Console shows "onBeforeClose triggered" then "onClose triggered".

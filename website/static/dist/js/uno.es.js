@@ -1,0 +1,1034 @@
+import I from "alpinejs";
+import H from "htmx.org";
+const z = {
+  box: {
+    ok: "OK",
+    cancel: "Cancel",
+    loading: "Loading",
+    close: "Close"
+  },
+  valid: {
+    required: "Required",
+    pattern: "Invalid format",
+    min: "At least {n} characters",
+    validname: "Letters, numbers, - and _ only",
+    en: "English letters only",
+    domain: "Invalid domain format",
+    mobile: "Invalid mobile number",
+    int: "Integer required",
+    email: "Invalid email address",
+    date: "Invalid date format (YYYY-MM-DD)",
+    url: "Invalid URL",
+    pwd: "At least 8 chars, 1 letter, 1 number",
+    strongpwd: "At least 8 chars, 1 letter, 1 number, 1 special char"
+  },
+  charCount: "Remaining: {count}"
+}, O = {
+  box: {
+    ok: "确认",
+    cancel: "取消",
+    loading: "加载中",
+    close: "关闭"
+  },
+  valid: {
+    required: "必填",
+    pattern: "格式无效",
+    min: "至少 {n} 个字符",
+    validname: "仅限字母、数字、- 和 _",
+    en: "仅限英文字母",
+    domain: "无效的域名格式",
+    mobile: "无效的手机号",
+    int: "需要整数",
+    email: "无效的邮箱地址",
+    date: "无效的日期格式 (YYYY-MM-DD)",
+    url: "无效的 URL",
+    pwd: "至少 8 位，包含 1 个字母和 1 个数字",
+    strongpwd: "至少 8 位，包含字母、数字和特殊字符"
+  },
+  charCount: "剩余: {count}"
+}, S = {
+  box: {
+    ok: "確認",
+    cancel: "取消",
+    loading: "加載中",
+    close: "關閉"
+  },
+  valid: {
+    required: "必填",
+    pattern: "格式無效",
+    min: "至少 {n} 個字符",
+    validname: "僅限字母、數字、- 和 _",
+    en: "僅限英文字母",
+    domain: "無效的域名格式",
+    mobile: "無效的手機號",
+    int: "需要整數",
+    email: "無效的電子郵件地址",
+    date: "無效的日期格式 (YYYY-MM-DD)",
+    url: "無效的 URL",
+    pwd: "至少 8 位，包含 1 個字母和 1 個數字",
+    strongpwd: "至少 8 位，包含字母、數字和特殊字符"
+  },
+  charCount: "剩餘: {count}"
+};
+const B = {
+  en: z,
+  "zh-CN": O,
+  "zh-TW": S
+}, T = Object.keys(B);
+function R() {
+  if (typeof localStorage < "u") {
+    const s = localStorage.getItem("uno.lang");
+    if (s && T.includes(s)) return s;
+  }
+  if (typeof navigator < "u") {
+    const s = navigator.language, l = s.startsWith("zh") ? s.includes("TW") || s.includes("Hant") ? "zh-TW" : "zh-CN" : "en";
+    return T.includes(l) ? l : "en";
+  }
+  return "en";
+}
+function q(s, l) {
+  const i = l.split(".");
+  let t = s;
+  for (const n of i) {
+    if (!t || typeof t != "object" || !(n in t)) return;
+    t = t[n];
+  }
+  return t;
+}
+function j(s, l) {
+  for (const i in l)
+    l[i] && typeof l[i] == "object" ? (s[i] || Object.assign(s, { [i]: {} }), j(s[i], l[i])) : Object.assign(s, { [i]: l[i] });
+}
+function A(s) {
+  s.store("i18n", {
+    locale: R(),
+    messages: B,
+    init() {
+      typeof document < "u" && (document.documentElement.lang = this.locale);
+    },
+    t(l, i = {}) {
+      const t = this.locale, n = this.messages[t] || this.messages.en, e = q(n, l);
+      return (typeof e == "string" ? e : l).replace(/\{(\w+)\}/g, (a, u) => u in i ? String(i[u]) : `{${u}}`);
+    },
+    setLang(l) {
+      if (!this.messages[l]) {
+        console.warn(`[Uno] Language ${l} not found`);
+        return;
+      }
+      this.locale = l, typeof localStorage < "u" && localStorage.setItem("uno.lang", l), typeof document < "u" && (document.documentElement.lang = l);
+    },
+    extend(l) {
+      for (const i in l)
+        this.messages[i] ? j(this.messages[i], l[i]) : this.messages[i] = l[i];
+    }
+  });
+}
+const x = {
+  /**
+   * Log info message
+   * @param {...any} args - Arguments to log
+   */
+  info(...s) {
+    console.log("[Uno Info]", ...s);
+  },
+  /**
+   * Log warning message
+   * @param {...any} args - Arguments to log
+   */
+  warn(...s) {
+    console.warn("[Uno Warn]", ...s);
+  },
+  /**
+   * Log error message
+   * @param {...any} args - Arguments to log
+   */
+  error(...s) {
+    console.error("[Uno Error]", ...s);
+  }
+}, P = (s) => {
+  const l = s || "center", i = {
+    center: "items-center justify-center",
+    "top-center": "items-start justify-center",
+    "top-left": "items-start justify-start",
+    "top-right": "items-start justify-end",
+    "bottom-center": "items-end justify-center",
+    "bottom-left": "items-end justify-start",
+    "bottom-right": "items-end justify-end",
+    "center-left": "items-center justify-start",
+    "center-right": "items-center justify-end"
+  };
+  return i[l] || i.center;
+}, U = (s) => {
+  const l = s || "top-right", i = {
+    "top-right": "top-0 right-0",
+    "top-left": "top-0 left-0",
+    "top-center": "top-0 left-0 right-0",
+    // Full width for center alignment
+    center: "inset-0",
+    // Full screen for center
+    "center-right": "top-1/2 right-0 -translate-y-1/2",
+    "center-left": "top-1/2 left-0 -translate-y-1/2",
+    "bottom-right": "bottom-0 right-0",
+    "bottom-left": "bottom-0 left-0",
+    "bottom-center": "bottom-0 left-0 right-0"
+  };
+  return i[l] || i["top-right"];
+}, N = (s) => {
+  const l = s || "top-right";
+  let i = "flex-col", t = "items-end", n = "space-y-2";
+  return l.includes("bottom") && (i = "flex-col-reverse", n = "space-y-reverse space-y-2"), l.includes("left") ? t = "items-start" : l.includes("center") ? l === "center" ? t = "items-center justify-center" : t = "items-center" : t = "items-end", { flexDir: i, alignItems: t, spaceY: n };
+};
+function D(s, l, i) {
+  const t = s.getBoundingClientRect(), n = l.getBoundingClientRect(), e = n.width, r = n.height, a = t.width, u = t.height, o = { top: t.top, left: t.left }, f = window.innerWidth, d = window.innerHeight, m = 0, y = 0, c = d, h = f, p = (w, C) => {
+    if (C) {
+      if (w + e > h)
+        return h - e - 10;
+      if (w < y)
+        return y + 10;
+    } else {
+      if (w + r > c)
+        return c - r - 10;
+      if (w < m)
+        return m + 10;
+    }
+    return w;
+  };
+  let g, b, v = i;
+  switch (i) {
+    case "left":
+      b = o.left - e - 5, b < y && (b = o.left + a + 5, v = "right"), g = p(o.top + u / 2 - r / 2, !1);
+      break;
+    case "top":
+      g = o.top - r - 8, g < m && (g = o.top + u + 8, v = "bottom"), b = o.left + (a - e) / 2, b = p(b, !0);
+      break;
+    case "right":
+      b = o.left + a + 5, b + e > h && (b = o.left - e - 5, v = "left"), g = p(o.top + u / 2 - r / 2, !1);
+      break;
+    case "bottom":
+    default:
+      g = o.top + u + 8, g + r > c && (g = o.top - r - 8, v = "top"), b = o.left + (a - e) / 2, b = p(b, !0);
+      break;
+  }
+  return { top: g, left: b, position: v };
+}
+const W = (s) => {
+  if (!s) {
+    x.error("Tooltip: Alpine is undefined. Plugin initialization failed.");
+    return;
+  }
+  s.store("tooltip", {
+    visible: !1,
+    content: "",
+    placement: "top",
+    top: -9999,
+    // Start off-screen
+    left: -9999,
+    triggerEl: null,
+    onShow: null,
+    async show(i, t, n = {}) {
+      this.triggerEl = i, this.content = t, this.placement = n.placement || "top", this.onShow = n.onShow, this.visible = !0, this.ensureContainer();
+      const e = document.getElementById("uno-tooltip-body");
+      e && (e.innerHTML = this.content, s.initTree(e)), await s.nextTick(), this.updatePosition(), this.onShow && this.onShow(document.getElementById("uno-tooltip-body"));
+    },
+    hide() {
+      this.visible = !1, this.triggerEl = null;
+    },
+    updatePosition() {
+      if (!this.triggerEl) return;
+      const i = document.getElementById("uno-tooltip-content");
+      if (!i) return;
+      const t = D(this.triggerEl, i, this.placement);
+      this.top = t.top, this.left = t.left;
+    },
+    ensureContainer() {
+      document.getElementById("uno-tooltip-container") || l();
+    }
+  });
+  const l = () => {
+    if (!document.getElementById("uno-tooltip-container"))
+      try {
+        const i = document.createElement("div");
+        i.id = "uno-tooltip-container", i.setAttribute("x-data", "{}"), i.innerHTML = `
+          <div id="uno-tooltip-content"
+               x-show="$store.tooltip.visible"
+               x-transition:enter="transition ease-out duration-200"
+               x-transition:enter-start="opacity-0 scale-95"
+               x-transition:enter-end="opacity-100 scale-100"
+               x-transition:leave="transition ease-in duration-150"
+               x-transition:leave-start="opacity-100 scale-100"
+               x-transition:leave-end="opacity-0 scale-95"
+               class="fixed px-3 py-2 text-sm font-medium rounded-lg shadow-sm whitespace-nowrap pointer-events-none border bg-white text-gray-900 border-gray-200 dark:bg-slate-800 dark:text-white dark:border-slate-700 z-[20000]"
+              :style="\`top: \${$store.tooltip.top}px; left: \${$store.tooltip.left}px;\`"
+              style="display: none;">
+              <div id="uno-tooltip-body" class="pointer-events-auto"></div>
+          </div>
+        `, document.body ? document.body.appendChild(i) : document.documentElement.appendChild(i);
+      } catch (i) {
+        x.error("Tooltip: Failed to inject container", i);
+      }
+  };
+  document.body ? l() : document.addEventListener("DOMContentLoaded", l), s.directive(
+    "tooltip",
+    (i, { expression: t, modifiers: n }, { evaluateLater: e, effect: r, cleanup: a }) => {
+      const u = e(t);
+      let o = {
+        content: "",
+        placement: n[0] || "top",
+        trigger: n.includes("click") ? "click" : "hover"
+      };
+      n.includes("top") && (o.placement = "top"), n.includes("bottom") && (o.placement = "bottom"), n.includes("left") && (o.placement = "left"), n.includes("right") && (o.placement = "right");
+      const f = (c) => {
+        if (typeof c == "string" ? o.content = c : typeof c == "object" && (o = { ...o, ...c }), o.content && o.content.startsWith("#") && !o.content.includes(" ")) {
+          const h = document.querySelector(o.content);
+          h && (o.content = h.innerHTML);
+        } else if (o.target) {
+          const h = document.querySelector(o.target);
+          h && (o.content = h.innerHTML);
+        }
+      };
+      r(() => {
+        u((c) => {
+          f(c);
+        });
+      });
+      const d = () => s.store("tooltip").show(i, o.content, o), m = () => s.store("tooltip").hide(), y = () => {
+        const c = s.store("tooltip");
+        c.visible && c.triggerEl === i ? c.hide() : d();
+      };
+      if (o.trigger === "click") {
+        i.addEventListener("click", y);
+        const c = (h) => {
+          const p = s.store("tooltip"), g = document.getElementById("uno-tooltip-content");
+          p.visible && p.triggerEl === i && !i.contains(h.target) && (!g || !g.contains(h.target)) && p.hide();
+        };
+        window.addEventListener("click", c), a(() => window.removeEventListener("click", c));
+      } else
+        i.addEventListener("mouseenter", d), i.addEventListener("mouseleave", m), i.addEventListener("focus", d), i.addEventListener("blur", m);
+      a(() => {
+        o.trigger === "click" ? i.removeEventListener("click", y) : (i.removeEventListener("mouseenter", d), i.removeEventListener("mouseleave", m), i.removeEventListener("focus", d), i.removeEventListener("blur", m));
+      });
+    }
+  );
+};
+const Y = (s) => {
+  s.store("notify", {
+    items: [],
+    nextId: 1,
+    activeRequests: 0,
+    activeProgress: 0,
+    // Notification Methods
+    show(t, n = {}) {
+      const {
+        type: e = "info",
+        timeout: r = 3e3,
+        position: a = "top-right",
+        closeIndicator: u = !1,
+        showCloseButton: o = !0
+      } = n, f = this.nextId++, d = {
+        id: f,
+        text: t,
+        type: e,
+        position: a,
+        closeIndicator: u,
+        showCloseButton: o,
+        visible: !0
+        // For transition
+      };
+      this.items.unshift(d), r > 0 && setTimeout(() => {
+        this.close(f);
+      }, r), this.ensureContainer();
+    },
+    close(t) {
+      this.items.find((e) => e.id === t) && (this.items = this.items.filter((e) => e.id !== t));
+    },
+    success(t, n = {}) {
+      const e = typeof n == "number" ? { timeout: n } : n;
+      this.show(t, { type: "success", ...e });
+    },
+    warning(t, n = {}) {
+      const e = typeof n == "number" ? { timeout: n } : n;
+      this.show(t, { type: "warning", ...e });
+    },
+    error(t, n = {}) {
+      const e = typeof n == "number" ? { timeout: n } : n;
+      this.show(t, { type: "error", ...e });
+    },
+    info(t, n = {}) {
+      const e = typeof n == "number" ? { timeout: n } : n;
+      this.show(t, { type: "info", ...e });
+    },
+    // Loading Indicator Methods
+    loading(t) {
+      t ? this.activeRequests++ : this.activeRequests = Math.max(0, this.activeRequests - 1), this.ensureContainer();
+    },
+    // Progress Bar Methods
+    progress(t) {
+      t ? this.activeProgress++ : this.activeProgress = Math.max(0, this.activeProgress - 1), this.ensureContainer();
+    },
+    // Container Injection
+    ensureContainer() {
+      document.getElementById("uno-notify-container") || l();
+    }
+  });
+  const l = () => {
+    try {
+      const t = document.createElement("div");
+      t.id = "uno-notify-container", t.setAttribute("x-data", "{}");
+      const r = `
+        <style>
+          @keyframes uno-progress-indeterminate {
+            0% { left: -35%; width: 35%; }
+            100% { left: 100%; width: 35%; }
+          }
+          .uno-progress-anim {
+            animation: uno-progress-indeterminate 1.5s infinite linear;
+          }
+        </style>
+
+        <!-- Progress Bar (Top Fixed) -->
+        <div id="uno-progress-bar"
+             x-show="$store.notify.activeProgress > 0"
+             class="fixed top-0 left-0 w-full h-1 bg-blue-100 z-[30200]"
+             style="display: none;">
+             <div class="absolute top-0 h-full bg-blue-600 uno-progress-anim"></div>
+        </div>
+
+        <!-- Loading Indicator (Top Right Fixed) -->
+        <div id="uno-loading-indicator" 
+             x-show="$store.notify.activeRequests > 0"
+             class="fixed top-4 right-4 z-[30150] bg-blue-100 border-blue-500 text-blue-700 p-2 rounded-full shadow-md flex items-center dark:bg-blue-900 dark:text-blue-100"
+             style="display: none;">
+             <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-blue-500 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+             <span>Loading</span>
+        </div>
+
+        ${[
+        "top-right",
+        "top-left",
+        "top-center",
+        "center",
+        "bottom-right",
+        "bottom-left",
+        "bottom-center"
+      ].map((a) => {
+        const u = U(a), { flexDir: o, alignItems: f, spaceY: d } = N(a);
+        let m = `i.position === '${a}'`;
+        return a === "top-center" && (m += " || i.position === 'top'"), a === "bottom-center" && (m += " || i.position === 'bottom'"), `
+        <!-- ${a} -->
+        <div class="fixed ${u} z-[30000] p-4 flex ${o} ${d} ${f} pointer-events-none">
+            <template x-for="item in $store.notify.items.filter(i => ${m})" :key="item.id">
+                ${i()}
+            </template>
+        </div>`;
+      }).join(`
+`)}
+      `;
+      t.innerHTML = r, document.body.appendChild(t);
+    } catch (t) {
+      x.error("Notify: Failed to inject container", t);
+    }
+  }, i = () => `
+    <div x-show="true"
+         data-testid="notify-item"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform scale-90 translate-y-2"
+         x-transition:enter-end="opacity-100 transform scale-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-300"
+         x-transition:leave-start="opacity-100 transform scale-100 translate-y-0"
+         x-transition:leave-end="opacity-0 transform scale-90 translate-y-2"
+         class="pointer-events-auto relative w-80 max-w-full border-l-4 pl-3 pr-3 py-4 rounded shadow-sm dark:shadow-md overflow-hidden"
+         :class="{
+            'bg-green-100 dark:bg-green-800 border-green-500 text-green-700 dark:text-green-100': item.type === 'success',
+            'bg-yellow-100 dark:bg-yellow-800 border-yellow-500 text-yellow-700 dark:text-yellow-100': item.type === 'warning',
+            'bg-red-100 dark:bg-red-800 border-red-500 text-red-700 dark:text-red-100': item.type === 'error',
+            'bg-blue-100 dark:bg-blue-800 border-blue-500 text-blue-700 dark:text-blue-100': item.type === 'info'
+         }"
+         role="alert">
+         
+         <div class="flex items-start justify-between">
+            <div x-text="item.text" class="text-sm font-medium"></div>
+            <button x-show="item.showCloseButton" 
+                    @click="$store.notify.close(item.id)" 
+                    class="ml-4 opacity-50 hover:opacity-100 transition-opacity focus:outline-none">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+         </div>
+    </div>
+    `;
+  document.body ? l() : document.addEventListener("DOMContentLoaded", l);
+};
+let k = 0, E = "";
+function F() {
+  k === 0 && (E = document.body.style.overflow || "", document.body.style.overflow = "hidden"), k++;
+}
+function Z() {
+  k = Math.max(0, k - 1), k === 0 && (document.body.style.overflow = E || "", E = "");
+}
+async function V(s) {
+  const l = await fetch(s);
+  return (l.headers.get("content-type") || "").includes("application/json") ? l.json() : l.text();
+}
+const _ = (s) => {
+  s.store("box", {
+    items: [],
+    init() {
+      s.effect(() => {
+        this.items.filter((t) => t.modal).length > 0 ? F() : Z();
+      });
+    },
+    async open(i, t = {}) {
+      let n = "dialog", e = t;
+      typeof i == "object" ? (e = i, n = e.type || "dialog") : n = i;
+      const r = e.boxId || Math.random().toString(36).slice(2, 10), a = {
+        id: r,
+        type: n,
+        title: e.title || "",
+        content: e.content || "",
+        width: e.width !== void 0 ? e.width : e.widthClass ? null : 400,
+        height: e.height,
+        widthClass: e.widthClass,
+        heightClass: e.heightClass,
+        containerClass: e.containerClass,
+        modal: e.modal !== !1,
+        // default true
+        overlayOpacity: e.overlayOpacity ?? 0.5,
+        position: e.position || "center",
+        showCloseButton: !0,
+        // default true?
+        // Buttons
+        okText: e.okButtonText,
+        cancelText: e.cancelButtonText,
+        onOk: e.onOk,
+        onCancel: e.onCancel,
+        onClose: e.onClose,
+        onBeforeClose: e.onBeforeClose,
+        onContentLoad: e.onContentLoad,
+        // Callback after content is loaded (ajax/htmx)
+        showOk: n === "confirm" || n === "message" || n === "dialog" && e.showOkButton,
+        showCancel: n === "confirm" || n === "dialog" && e.showCancelButton,
+        // State
+        loading: !1,
+        visible: !0
+      }, u = s.store("i18n");
+      if (a.okText || (a.okText = u ? u.t("box.ok") : "OK"), a.cancelText || (a.cancelText = u ? u.t("box.cancel") : "Cancel"), e.targetId) {
+        const o = document.getElementById(e.targetId);
+        o ? a.content = o.innerHTML : (x.warn("Box: Target element not found:", e.targetId), a.content = '<div class="p-4 text-red-500">Error: Content target not found</div>');
+      } else {
+        if (e.hxUrl)
+          return a.loading = !0, this.add(a), s.nextTick(() => {
+            const o = "#uno-box-content" + r, f = document.getElementById("uno-box-content" + r);
+            if (window.htmx && f)
+              window.htmx.ajax("GET", e.hxUrl, {
+                target: o,
+                swap: "innerHTML"
+              }).then(() => {
+                const d = this.items.find((m) => m.id === r);
+                d && (d.loading = !1, d.onContentLoad && s.nextTick(() => {
+                  d.onContentLoad(document.getElementById("uno-box-content" + r));
+                }));
+              }).catch((d) => {
+                x.error("Box: HTMX Load Failed", d);
+                const m = this.items.find((y) => y.id === r);
+                m && (m.loading = !1, m.content = '<div class="p-4 text-red-500">Error loading content via HTMX</div>');
+              });
+            else {
+              x.error("Box: HTMX not found or target missing");
+              const d = this.items.find((m) => m.id === r);
+              d && (d.loading = !1);
+            }
+          }), r;
+        if (e.ajaxUrl) {
+          a.loading = !0, this.add(a);
+          try {
+            const o = await V(e.ajaxUrl), f = typeof o == "object" ? `<pre class="bg-gray-100 p-3 rounded overflow-x-auto whitespace-pre-wrap">${JSON.stringify(o, null, 2)}</pre>` : String(o), d = this.items.find((m) => m.id === r);
+            d && (d.content = f, d.loading = !1, s.nextTick(() => {
+              const m = document.getElementById("uno-box-content" + r);
+              m && (s.initTree(m), d.onContentLoad && d.onContentLoad(m));
+            }));
+          } catch (o) {
+            x.error("Box: Ajax failed", o);
+            const f = this.items.find((d) => d.id === r);
+            f && (f.content = '<div class="text-red-500">Error loading content</div>', f.loading = !1);
+          }
+          return r;
+        } else e.iframeUrl && (a.content = `<iframe frameborder="0" class="w-full h-full" src="${e.iframeUrl}"></iframe>`);
+      }
+      return this.add(a), r;
+    },
+    add(i) {
+      this.items.push(i), this.ensureContainer();
+    },
+    close(i) {
+      const t = this.items.find((n) => n.id === i);
+      t && (t.onBeforeClose && t.onBeforeClose(), this.items = this.items.filter((n) => n.id !== i), t.onClose && t.onClose());
+    },
+    closeAll() {
+      this.items = [];
+    },
+    getPositionClass(i) {
+      const t = "fixed inset-0 flex transition-opacity duration-300 p-4 pointer-events-none", n = P(i);
+      return `${t} ${n}`;
+    },
+    ensureContainer() {
+      document.getElementById("uno-box-container") || l();
+    }
+  });
+  const l = () => {
+    try {
+      const i = document.createElement("div");
+      i.id = "uno-box-container", i.setAttribute("x-data", "{}");
+      const t = `
+        <template x-for="(item, index) in $store.box.items" :key="item.id">
+            <div :id="'uno-box-outer-container' + item.id"
+                 :class="$store.box.getPositionClass(item.position)"
+                 :style="\`z-index: \${10000 + index}\`"
+                 role="dialog"
+                 aria-modal="true">
+                 
+                 <!-- Overlay: Covers viewport, blocks interaction, does NOT close modal on click -->
+                 <div :id="'uno-box-overlay' + item.id"
+                      class="absolute inset-0 bg-black transition-opacity duration-300 pointer-events-auto"
+                      :style="\`opacity: \${item.overlayOpacity}\`"
+                      x-show="item.modal"
+                      x-transition:enter="ease-out duration-300"
+                      x-transition:enter-start="opacity-0"
+                      x-transition:enter-end="opacity-100"
+                      x-transition:leave="ease-in duration-200"
+                      x-transition:leave-start="opacity-100"
+                      x-transition:leave-end="opacity-0"></div>
+
+                 <!-- Box Container -->
+                 <div :id="'uno-box-container' + item.id"
+                      class="relative bg-white dark:bg-gray-900 rounded-lg shadow-2xl ring-1 ring-black/5 overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300 transform pointer-events-auto"
+                      :class="[item.widthClass, item.heightClass, item.containerClass]"
+                      :style="\`\${item.width ? 'width: ' + item.width + 'px;' : ''} \${item.height ? 'height:' + item.height + 'px' : ''}\`"
+                      x-show="item.visible"
+                      x-transition:enter="ease-out duration-300"
+                      x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                      x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                      x-transition:leave="ease-in duration-200"
+                      x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                      x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+                      
+                      <!-- Header -->
+                      <div :id="'uno-box-header' + item.id" x-show="item.title" class="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700">
+                          <h3 :id="'uno-box-title' + item.id" class="text-lg font-semibold text-slate-800 dark:text-slate-200" x-text="item.title"></h3>
+                          <button :id="'uno-box-close' + item.id" @click="$store.box.close(item.id)" class="text-slate-400 hover:text-slate-500 focus:outline-none">
+                              <span class="sr-only">Close</span>
+                              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                          </button>
+                      </div>
+                      
+                      <!-- Close button if no title -->
+                      <button x-show="!item.title && item.showCloseButton" 
+                              :id="'uno-box-close' + item.id"
+                              @click="$store.box.close(item.id)" 
+                              class="absolute top-2 right-2 z-10 text-slate-400 hover:text-slate-500 focus:outline-none">
+                          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                      </button>
+
+                      <!-- Content -->
+                      <div :id="'uno-box-wrapper' + item.id" class="p-4 overflow-auto flex-1 text-slate-600 dark:text-slate-300">
+                          <div x-show="item.loading" class="flex justify-center items-center h-full">
+                              <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                          </div>
+                          <div :id="'uno-box-content' + item.id" x-show="!item.loading" x-html="item.content"></div>
+                      </div>
+
+                      <!-- Footer -->
+                      <div :id="'uno-box-footer' + item.id" x-show="item.showOk || item.showCancel" class="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-end space-x-3 bg-slate-50 dark:bg-slate-800">
+                          <button :id="'uno-box-cancel' + item.id"
+                                  x-show="item.showCancel"
+                                  @click="item.onCancel ? (item.onCancel(), $store.box.close(item.id)) : $store.box.close(item.id)"
+                                  x-text="item.cancelText"
+                                  class="px-4 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-md text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                          </button>
+                          <button :id="'uno-box-ok' + item.id"
+                                  x-show="item.showOk"
+                                  @click="() => {
+                                      const shouldClose = item.onOk ? item.onOk() : true;
+                                      if (shouldClose !== false) $store.box.close(item.id);
+                                  }"
+                                  x-text="item.okText"
+                                  class="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                          </button>
+                      </div>
+                 </div>
+            </div>
+        </template>
+      `;
+      i.innerHTML = t, document.body.appendChild(i);
+    } catch (i) {
+      x.error("Box: Failed to inject container", i);
+    }
+  };
+  document.body ? l() : document.addEventListener("DOMContentLoaded", l), document.addEventListener("click", (i) => {
+    const t = i.target.closest("[data-box-type]");
+    if (!t) return;
+    const n = t.getAttribute("data-box-type");
+    if (!["dialog", "confirm", "message"].includes(n)) return;
+    i.preventDefault();
+    const e = t.dataset, r = {
+      title: e.boxTitle,
+      content: e.boxContent,
+      width: e.boxWidth ? parseInt(e.boxWidth) : void 0,
+      height: e.boxHeight ? parseInt(e.boxHeight) : void 0,
+      ajaxUrl: e.boxAjaxUrl,
+      hxUrl: e.boxHxUrl,
+      iframeUrl: e.boxIframeUrl,
+      targetId: e.boxTargetId,
+      position: e.boxPosition,
+      okButtonText: e.boxOkText,
+      cancelButtonText: e.boxCancelText,
+      overlayOpacity: e.boxOverlayOpacity ? parseFloat(e.boxOverlayOpacity) : void 0,
+      showCloseButton: e.boxShowClose !== "false",
+      boxId: e.boxId,
+      cache: e.boxCache === "true"
+    };
+    e.boxModal === "false" && (r.modal = !1), s.store("box").open(n, r);
+  }), typeof window < "u" && document.addEventListener("htmx:afterSwap", (i) => {
+    i.detail.elt && s && s.initTree(i.detail.elt);
+  });
+}, M = {
+  validname: /^[a-zA-Z0-9_-]+$/,
+  en: /^[a-zA-Z]+$/,
+  domain: new RegExp("^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$"),
+  mobile: /^\+?[\d\s-]{7,}$/,
+  int: /^-?\d+$/,
+  email: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
+  date: /^(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}|\d{2}\.\d{2}\.\d{4})$/,
+  url: /^(https?:\/\/)?([\da-z.-]+)\.([a-z.-]{2,6})([/\w .-]*)*\/?$/i,
+  pwd: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
+  strongpwd: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
+};
+function X(s) {
+  const l = s.match(/^\/(.*?)\/([gimsuy]*)$/);
+  return l ? { pattern: l[1], flags: l[2] } : { pattern: s, flags: "" };
+}
+function G(s) {
+  try {
+    return s ? JSON.parse(s) : [];
+  } catch {
+    return [];
+  }
+}
+const J = (s) => {
+  const l = {
+    invalid: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='currentColor' class='w-4 h-4'><circle cx='6' cy='6' r='4.5'/><path stroke-linecap='round' d='M5.8 3.6h.4L6 6.5zM6 8.2a.6.6 0 110-1.2.6.6 0 010 1.2z'/></svg>",
+    valid: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' class='w-4 h-4'><path fill='currentColor' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/></svg>"
+  }, i = (t, n) => {
+    const e = s.store("i18n");
+    if (!e) return t;
+    const r = {
+      required: "Required",
+      pattern: "Invalid format",
+      min: `At least ${n?.n} characters`,
+      max: `Max ${n?.n} characters`,
+      int: "Integer required",
+      email: "Invalid email address",
+      url: "Invalid URL"
+    };
+    return e.t(`valid.${t}`, n) || r[t] || t;
+  };
+  s.store("valid", {
+    callbacks: {},
+    registerCallback(t, n) {
+      typeof n == "function" && (this.callbacks[t] = n);
+    }
+  }), s.data("validForm", () => ({
+    fields: {},
+    // Reactive state: { [name]: { value, error, valid, ... } }
+    init() {
+      this.$el.noValidate = !0;
+    },
+    // Register field (called by x-validate directive)
+    register(t, n, e = []) {
+      if (this.fields[t]) return;
+      const r = [...e];
+      if ((n.hasAttribute("required") || n.dataset.validRequired === "true") && r.push({ type: "required" }), (n.type === "email" || n.dataset.validType === "email") && r.push("email"), (n.type === "url" || n.dataset.validType === "url") && r.push("url"), n.dataset.validType) {
+        const a = n.dataset.validType;
+        a !== "email" && a !== "url" && r.push(a);
+      }
+      n.dataset.validPattern && r.push({ type: "regexp", expression: n.dataset.validPattern }), this.fields[t] = {
+        el: n,
+        rules: r,
+        value: n.value,
+        error: null,
+        valid: !0,
+        dirty: !1,
+        touched: !1,
+        validating: !1
+      };
+    },
+    update(t, n) {
+      this.fields[t] && (this.fields[t].value = n, this.fields[t].dirty = !0, this.validate(t));
+    },
+    touch(t) {
+      this.fields[t] && (this.fields[t].touched = !0, this.validate(t));
+    },
+    async validate(t) {
+      const n = this.fields[t];
+      if (!n) return !0;
+      n.validating = !0, n.error = null;
+      const e = (n.value || "").trim();
+      let r = null;
+      for (const a of n.rules) {
+        const u = a.type || a, o = typeof a == "object" ? a : {};
+        if (!e) {
+          if (u === "required") {
+            r = o.msg || i("required");
+            break;
+          }
+          if (u === "emptyquit") break;
+          continue;
+        }
+        if (M[u])
+          M[u].test(e) || (r = o.msg || i(u) || i("pattern"));
+        else if (u === "regexp" && o.expression) {
+          const { pattern: f, flags: d } = X(o.expression);
+          new RegExp(f, d || "i").test(e) || (r = o.msg || i("pattern"));
+        } else if (u === "limit")
+          o.min && e.length < o.min && (r = o.msg || i("min", { n: o.min })), o.max && e.length > o.max && (r = o.msg || i("max", { n: o.max }));
+        else if (u === "range") {
+          const f = parseFloat(e);
+          o.min !== void 0 && f < o.min && (r = o.msg || `Min ${o.min}`), o.max !== void 0 && f > o.max && (r = o.msg || `Max ${o.max}`);
+        } else if (u === "compareto") {
+          const f = document.getElementById(o.destid);
+          f && e !== f.value && (r = o.msg || "Not match");
+        } else if (u === "tag") {
+          const f = o.mark || ",", d = e.split(f).filter((m) => m.trim());
+          o.max && d.length > o.max && (r = o.msg || `Max ${o.max} items`);
+        }
+        if (r) break;
+        if (u === "callback" && o.fn) {
+          const f = s.store("valid").callbacks[o.fn];
+          if (f)
+            try {
+              const d = await f(n.el.id, e);
+              d === !1 || typeof d == "object" && d.valid === !1 ? r = (typeof d == "object" ? d.message : "") || "Invalid" : typeof d == "string" && (r = d);
+            } catch {
+            }
+        }
+        if (r) break;
+      }
+      return n.error = r, n.valid = !r, n.validating = !1, n.valid;
+    },
+    async validateAll() {
+      const t = Object.keys(this.fields);
+      return (await Promise.all(t.map((e) => this.validate(e)))).every((e) => e);
+    },
+    async submit(t) {
+      if (t && (t.preventDefault(), t.stopPropagation()), Object.keys(this.fields).forEach((e) => {
+        this.fields[e].touched = !0;
+      }), await this.validateAll())
+        this.$el.dispatchEvent(new CustomEvent("valid-submit", { bubbles: !0 })), !this.$el.hasAttribute("hx-post") && !this.$el.hasAttribute("hx-get") && this.$el.submit();
+      else {
+        const e = Object.keys(this.fields).find((r) => !this.fields[r].valid);
+        e && this.fields[e].el && this.fields[e].el.focus();
+      }
+    }
+  })), s.directive("validate", (t, n, { effect: e, cleanup: r }) => {
+    const a = t.getAttribute("name");
+    if (!a) return;
+    const u = () => {
+      let c = t.parentNode;
+      c.classList.contains("uno-input-wrapper") || (c = document.createElement("div"), c.className = "relative w-full uno-input-wrapper", t.parentNode.insertBefore(c, t), c.appendChild(t));
+      let h = c.querySelector(".uno-valid-icon");
+      return h || (h = document.createElement("div"), h.className = "uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200", h.style.opacity = "0", c.appendChild(h)), { wrapper: c, icon: h };
+    }, { icon: o } = u();
+    let f = [];
+    const d = t.getAttribute("valid");
+    d && (f = G(d)), e(() => {
+      const c = s.$data(t);
+      c && typeof c.register == "function" && c.register(a, t, f);
+    });
+    const m = () => {
+      const c = s.$data(t);
+      if (c && c.update && c.update(a, t.value), f.find((h) => (h.type === "limit" || h === "limit") && h.show === !0)) {
+        const h = f.find((p) => p.type === "limit" || p === "limit");
+        h && h.max && t.value.length > h.max && (t.value = t.value.substring(0, h.max), c && c.update && c.update(a, t.value));
+      }
+    }, y = () => {
+      const c = s.$data(t);
+      c && c.touch && c.touch(a);
+    };
+    t.addEventListener("input", m), t.addEventListener("blur", y), e(() => {
+      const c = s.$data(t);
+      if (c && c.fields && c.fields[a]) {
+        const h = c.fields[a], p = !!h.error, g = h.valid && h.dirty && !h.error;
+        t.classList.toggle("is-invalid", p), t.classList.toggle("is-valid", g), t.classList.toggle("validating", h.validating), o.innerHTML = "", o.style.opacity = "0", p ? (t.classList.add("!border-red-500", "pr-10"), t.classList.remove("!border-green-500"), o.innerHTML = l.invalid, o.className = "uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200 text-red-500 dark:text-red-400", o.style.opacity = "1") : g ? (t.classList.add("!border-green-500", "pr-10"), t.classList.remove("!border-red-500"), o.innerHTML = l.valid, o.className = "uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200 text-green-500 dark:text-green-400", o.style.opacity = "1") : t.classList.remove("!border-red-500", "!border-green-500", "pr-10");
+        let v = t.parentNode.nextElementSibling, w = null, C = 0;
+        for (; v && C < 3 && !(v.nodeType === 1 && (v.classList.contains("animate-spin") ? w = v : w = v.querySelector(".animate-spin"), w)); )
+          v = v.nextElementSibling, C++;
+        w && (w.style.display = h.validating ? "block" : "");
+      }
+    }), r(() => {
+      t.removeEventListener("input", m), t.removeEventListener("blur", y);
+    });
+  }), s.directive("valid-error", (t, { expression: n }, { effect: e }) => {
+    const r = n;
+    t.style.display = "none", e(() => {
+      const a = s.$data(t);
+      if (a && a.fields && a.fields[r]) {
+        const o = a.fields[r].error;
+        o ? (t.textContent = o, t.style.display = "block", t.classList.add("text-red-600", "dark:text-red-400", "text-xs"), t.classList.remove("text-gray-400")) : t.style.display = "none";
+      }
+    });
+  }), s.directive("valid-count", (t, { expression: n }, { effect: e }) => {
+    const r = n;
+    e(() => {
+      const a = s.$data(t);
+      if (a && a.fields && a.fields[r]) {
+        const u = a.fields[r], o = u.rules.find((f) => f.type === "limit" || f === "limit");
+        if (o && o.max) {
+          const f = (u.value || "").length, d = o.max - f, m = s.store("i18n");
+          t.textContent = m && m.t("charCount", { count: d }) || `Remaining: ${d}`, t.style.display = "block";
+        } else
+          t.style.display = "none";
+      }
+    });
+  });
+};
+const $ = (s = "", l = {}) => ({
+  active: s,
+  options: {
+    hash: !0,
+    manual: !1,
+    // if true, arrow keys only move focus, don't select
+    ...l
+  },
+  loaded: {},
+  // Track loaded AJAX content
+  init() {
+    this.options && this.options.hash && this.$nextTick(() => {
+      const i = window.location.hash.substring(1);
+      if (i) {
+        const t = this.$el.querySelector(`[data-tab-hash="${i}"]`);
+        if (t) {
+          const n = t.getAttribute("data-tab-target");
+          n && (this.active = n);
+        }
+      }
+    }), this.options.hash && window.addEventListener("hashchange", () => {
+      const i = window.location.hash.substring(1);
+      if (i) {
+        const t = this.$el.querySelector(`[data-tab-hash="${i}"]`);
+        if (t) {
+          const n = t.getAttribute("data-tab-target");
+          n && (this.active = n);
+        }
+      }
+    });
+  },
+  isActive(i) {
+    return this.active === i;
+  },
+  async open(i, t = null, n = null, e = null) {
+    if (this.active = i, this.options.hash && n && window.location.hash.substring(1) !== n && history.pushState(null, null, "#" + n), e) {
+      if (typeof window < "u" && window.htmx) {
+        const r = document.getElementById(i);
+        if (r && !this.loaded[i]) {
+          r.innerHTML = `<div class="animate-pulse p-4 space-y-2">
+               <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+               <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+             </div>`;
+          try {
+            await window.htmx.ajax("GET", e, {
+              target: `#${i}`,
+              swap: "innerHTML"
+            }), r.setAttribute("data-tab-loaded", "true"), this.loaded[i] = !0, r.dispatchEvent(new CustomEvent("tab-loaded", { bubbles: !0 }));
+          } catch {
+            r.innerHTML = '<div class="text-red-500 p-4">Error loading content via HTMX</div>';
+          }
+        }
+      } else {
+        console.warn("Uno Tab: HTMX requested but window.htmx is not defined.");
+        const r = document.getElementById(i);
+        r && (r.innerHTML = `<div class="text-amber-600 bg-amber-50 p-4 rounded border border-amber-200">
+            <strong>Warning:</strong> HTMX library not found. Please include htmx.org script.
+          </div>`);
+      }
+      return;
+    }
+    if (t) {
+      const r = document.getElementById(i);
+      if (r && !this.loaded[i]) {
+        r.innerHTML = `<div class="animate-pulse p-4 space-y-2">
+             <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+             <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+           </div>`;
+        try {
+          const a = await fetch(t);
+          if (!a.ok) throw new Error("Network response was not ok");
+          const u = await a.text();
+          r.innerHTML = u, r.setAttribute("data-tab-loaded", "true"), this.loaded[i] = !0, r.dispatchEvent(new CustomEvent("tab-loaded", { bubbles: !0 }));
+        } catch (a) {
+          r.innerHTML = `<div class="text-red-500 p-4">Error loading content: ${a.message}</div>`;
+        }
+      }
+    }
+  },
+  trigger(i, t = null, n = null, e = null) {
+    return {
+      "@click.prevent": () => this.open(i, t, n, e),
+      ":class": () => this.isActive(i) ? "current" : "",
+      role: "tab",
+      "aria-selected": () => this.isActive(i).toString(),
+      "data-tab-target": i,
+      "data-tab-hash": n || null,
+      "data-tab-url": t || null,
+      "data-tab-hx-url": e || null
+    };
+  },
+  tablist: {
+    role: "tablist",
+    "@keydown.right.prevent": "next()",
+    "@keydown.left.prevent": "prev()",
+    "@keydown.home.prevent": "first()",
+    "@keydown.end.prevent": "last()"
+  },
+  panel(i) {
+    return {
+      "x-show": () => this.isActive(i),
+      role: "tabpanel",
+      id: i
+    };
+  }
+});
+typeof window < "u" && (window.unoTabs = $);
+const K = (s) => {
+  s.data("unoTabs", $);
+};
+window.Alpine = I;
+window.htmx = H;
+typeof window < "u" && (window.unoTabs = $);
+const L = (s) => {
+  if (!s) {
+    x.error("Uno: Alpine is undefined, cannot register plugins");
+    return;
+  }
+  if (s.store && s.store("tooltip")) {
+    x.info("Uno: Plugins already registered");
+    return;
+  }
+  x.info("Uno: Registering plugins"), A(s), W(s), Y(s), _(s), J(s), K(s);
+}, Q = () => {
+  const s = I || window.Alpine;
+  s && (x.info("Uno: Alpine found, registering"), L(s)), typeof window < "u" && (window.deferLoadingAlpine = (l) => {
+    try {
+      L(window.Alpine);
+    } catch {
+    }
+    l();
+  }), document.addEventListener("alpine:init", () => {
+    L(window.Alpine);
+  });
+};
+Q();

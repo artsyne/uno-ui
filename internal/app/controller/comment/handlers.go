@@ -1,8 +1,9 @@
 package comment
 
 import (
-	"strconv"
+	"log/slog"
 
+	"github.com/biuren/hebe/internal/app/middleware"
 	"github.com/biuren/hebe/internal/domain/comment"
 	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/gin-gonic/gin"
@@ -23,13 +24,13 @@ import (
 func (ctrl *CommentController) CreateComment(c *gin.Context) {
 	// 获取当前登录用户信息
 	loginUser := ctrl.auth.MustGetCurrentUser(c)
-
-	// 解析创建评论请求
-	var req CreateCommentRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
+	if loginUser == nil {
+		ctrl.renderService.JSONError(c, errors.Unauthorized)
 		return
 	}
+
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[CreateCommentRequest](c)
 
 	// 校验评论内容不能超过1000字符
 	if len(req.Content) > 1000 {
@@ -49,6 +50,7 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 	// 调用服务层创建评论
 	commentID, err := ctrl.commentService.AddComment(commentData)
 	if err != nil {
+		slog.Error("Failed to add comment", "error", err, "post_id", req.PostID, "user_id", loginUser.UserId)
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
@@ -63,6 +65,14 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 
 	// 不返回用户提交ip
 	latestComment.AddUserIP = ""
+
+	// 检查是否为HTMX请求
+	if c.GetHeader("HX-Request") == "true" {
+		// 返回 200 OK 并触发 commentCreated 事件
+		c.Header("HX-Trigger", "commentCreated")
+		c.Status(200)
+		return
+	}
 
 	// 返回最新评论对象和用户时区，供前端格式化显示
 	ctrl.renderService.JSONSuccess(c, gin.H{
@@ -85,18 +95,25 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 func (ctrl *CommentController) DeleteComment(c *gin.Context) {
 	// 获取当前登录用户信息
 	loginUser := ctrl.auth.MustGetCurrentUser(c)
-
-	// 解析删除评论请求
-	var req DeleteCommentRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
+	if loginUser == nil {
+		ctrl.renderService.JSONError(c, errors.Unauthorized)
 		return
 	}
+
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[DeleteCommentRequest](c)
 
 	// 调用服务层删除评论（服务层会验证删除权限）
 	err := ctrl.commentService.DeleteComment(req.CommentID, loginUser.UserId)
 	if err != nil {
 		ctrl.renderService.JSONError(c, err)
+		return
+	}
+
+	// 检查是否为HTMX请求
+	if c.GetHeader("HX-Request") == "true" {
+		// 返回空内容，配合前端 hx-swap="outerHTML" 实现删除效果
+		c.Status(200)
 		return
 	}
 
@@ -119,12 +136,8 @@ func (ctrl *CommentController) DeleteComment(c *gin.Context) {
 //   - 构建分页响应数据
 //   - 返回评论列表响应
 func (ctrl *CommentController) GetComments(c *gin.Context) {
-	// 解析获取评论列表请求
-	var req GetCommentsRequest
-	if err := c.ShouldBindQuery(&req); err != nil {
-		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(err.Error()))
-		return
-	}
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[GetCommentsRequest](c)
 
 	// 设置默认分页参数
 	if req.PageIndex <= 0 {
@@ -136,6 +149,7 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 	// 调用服务层获取评论列表
 	comments, total, err := ctrl.commentService.ListCommentsByPostID(req.PostID, req.PageIndex, req.PageSize)
 	if err != nil {
+		slog.Error("ListCommentsByPostID failed", "error", err, "post_id", req.PostID)
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
@@ -146,19 +160,49 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 	if req.PageIndex < totalPages {
 		nextPage = req.PageIndex + 1
 	}
-
-	// 获取用户时区（未登录则为UTC）
-	tz := "UTC"
-	if user, ok := ctrl.auth.GetCurrentUser(c); ok && user != nil && user.TimeZone != "" {
-		tz = user.TimeZone
+	prevPage := 0
+	if req.PageIndex > 1 {
+		prevPage = req.PageIndex - 1
 	}
 
-	// 返回成功响应（包含分页和时区）
+	// 获取用户时区（未登录则为UTC）
+	var currentUserID int64
+	tz := "UTC"
+	if user, ok := ctrl.auth.GetCurrentUser(c); ok && user != nil {
+		currentUserID = user.UserId
+		if user.TimeZone != "" {
+			tz = user.TimeZone
+		}
+	}
+
+	// 检查是否为HTMX请求
+	if c.GetHeader("HX-Request") == "true" {
+		data := gin.H{
+			"comments": comments,
+			"pagination": gin.H{
+				"total_pages": totalPages,
+				"prev_page":   prevPage,
+				"next_page":   nextPage,
+			},
+			"time_zone":     tz,
+			"CurrentUserID": currentUserID,
+			"PostID":        req.PostID,
+			"TotalCount":    total,
+		}
+
+		pageData := ctrl.renderService.CreatePageDataWithData(c, "comments.title", data)
+		c.HTML(200, "comment/list", pageData)
+		return
+	}
+
+	// 返回评论列表响应
 	ctrl.renderService.JSONSuccess(c, gin.H{
 		"comments": comments,
 		"pagination": gin.H{
+			"total":       total,
+			"page_index":  req.PageIndex,
+			"page_size":   req.PageSize,
 			"total_pages": totalPages,
-			"next_page":   nextPage,
 		},
 		"time_zone": tz,
 	})
@@ -172,27 +216,21 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 //
 // URL格式: /api/post/:post_id/comments
 func (ctrl *CommentController) GetCommentsByPostIDFromPath(c *gin.Context) {
-	// 从URL路径参数获取日记ID
-	postIDStr := c.Param("post_id")
-	postID, err := strconv.ParseInt(postIDStr, 10, 64)
-	if err != nil || postID <= 0 {
-		ctrl.renderService.JSONError(c, errors.InvalidParams.WithDetails("无效的日记ID"))
-		return
-	}
+	// 获取已验证的请求数据
+	req := middleware.MustGetValidatedRequest[GetCommentsByPathRequest](c)
 
-	// 获取分页参数（仅允许指定页码），页面大小固定为配置项
-	pageIndexStr := c.DefaultQuery("page_index", "1")
-
-	pageIndex, err := strconv.Atoi(pageIndexStr)
-	if err != nil || pageIndex <= 0 {
-		pageIndex = 1
-	}
 	// 固定页面大小为配置中的 PageSize
 	pageSize := ctrl.config.App.PageSize
+	// 设置默认页码
+	pageIndex := req.PageIndex
+	if pageIndex <= 0 {
+		pageIndex = 1
+	}
 
 	// 调用服务层获取评论列表
-	comments, total, err := ctrl.commentService.ListCommentsByPostID(postID, pageIndex, pageSize)
+	comments, total, err := ctrl.commentService.ListCommentsByPostID(req.PostID, pageIndex, pageSize)
 	if err != nil {
+		slog.Error("ListCommentsByPostID failed", "error", err, "post_id", req.PostID)
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
@@ -203,11 +241,38 @@ func (ctrl *CommentController) GetCommentsByPostIDFromPath(c *gin.Context) {
 	if pageIndex < totalPages {
 		nextPage = pageIndex + 1
 	}
+	prevPage := 0
+	if pageIndex > 1 {
+		prevPage = pageIndex - 1
+	}
 
-	// 获取用户时区（未登录则为UTC）
+	// 获取当前用户ID和时区
+	var currentUserID int64
 	tz := "UTC"
-	if user, ok := ctrl.auth.GetCurrentUser(c); ok && user != nil && user.TimeZone != "" {
-		tz = user.TimeZone
+	if user, ok := ctrl.auth.GetCurrentUser(c); ok && user != nil {
+		currentUserID = user.UserId
+		if user.TimeZone != "" {
+			tz = user.TimeZone
+		}
+	}
+
+	// 检查是否为HTMX请求
+	if c.GetHeader("HX-Request") == "true" {
+		data := ctrl.renderService.CreatePageData(c, "")
+		data.Data["comments"] = comments
+		data.Data["pagination"] = gin.H{
+			"total_pages":  totalPages,
+			"next_page":    nextPage,
+			"prev_page":    prevPage,
+			"current_page": pageIndex,
+		}
+		data.Data["time_zone"] = tz
+		data.Data["CurrentUserID"] = currentUserID
+		data.Data["PostID"] = req.PostID
+		data.Data["TotalCount"] = total
+
+		ctrl.renderService.HTML(c, "comment/list", data)
+		return
 	}
 
 	// 返回成功响应（包含分页和时区）

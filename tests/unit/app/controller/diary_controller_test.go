@@ -101,7 +101,6 @@ func TestDiaryController_RequestHandling(t *testing.T) {
 	t.Run("POST请求结构", func(t *testing.T) {
 		// 创建测试请求
 		requestBody := map[string]interface{}{
-			"action":         "create",
 			"title":          "测试日记本",
 			"remark":         "测试描述",
 			"view_setting":   1,

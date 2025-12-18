@@ -4,7 +4,7 @@
     {
       "label": "build:css",
       "type": "shell",
-      "command": "npm run build:css",
+      "command": "npm run build:css:dev",
       "options": {
         "cwd": "${workspaceFolder}/"
       },
@@ -14,7 +14,7 @@
     {
       "label": "build:js",
       "type": "shell",
-      "command": "npm run build:js --dev",
+      "command": "npm run build:frontend:dev",
       "options": {
         "cwd": "${workspaceFolder}/"
       },
@@ -29,16 +29,24 @@
         "cwd": "${workspaceFolder}/"
       },
       "group": "build",
-      "problemMatcher": ["$go"]
+      "problemMatcher": [
+        "$go"
+      ]
     },
     {
       "label": "build:frontend",
-      "dependsOn": ["build:css", "build:js"],
+      "dependsOn": [
+        "build:css",
+        "build:js"
+      ],
       "group": "build"
     },
     {
       "label": "build",
-      "dependsOn": ["build:frontend", "build:go"],
+      "dependsOn": [
+        "build:frontend",
+        "build:go"
+      ],
       "dependsOrder": "sequence",
       "group": {
         "kind": "build",

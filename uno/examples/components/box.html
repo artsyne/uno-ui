@@ -201,10 +201,53 @@
         </div>
       </div>
 
+      <!-- Card 5: Dimensions -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+          <h2 class="font-semibold text-slate-800">5. Dimensions</h2>
+          <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Size Control</span>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button onclick="openDimensionDialog(600, 400)"
+              class="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors text-sm font-medium">
+              600x400 (px props)
+            </button>
+            <button onclick="openClassDialog()"
+              class="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors text-sm font-medium">
+              880x570 (Tailwind Class)
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </main>
 
+  <!-- Force Tailwind to generate these classes for manual testing -->
+  <div class="hidden !w-[880px] !h-[570px] w-[600px] h-[400px]"></div>
+
   <script>
+    function openDimensionDialog(w, h) {
+      const boxStore = (window.Alpine || window.top.Alpine).store('box');
+      boxStore.open({
+        title: `Fixed ${w}x${h}`,
+        content: `Width: ${w}px, Height: ${h}px set via properties.`,
+        width: w,
+        height: h
+      });
+    }
+
+    function openClassDialog() {
+      const boxStore = (window.Alpine || window.top.Alpine).store('box');
+      boxStore.open({
+        title: 'Class Override',
+        content: 'Using !w-[880px] and !h-[570px] classes.',
+        widthClass: '!w-[880px]',
+        heightClass: '!h-[570px]'
+      });
+    }
+
     function openProgrammaticDialog() {
       // Assuming the box store is available via Alpine
       const boxStore = (window.Alpine || window.top.Alpine).store('box');

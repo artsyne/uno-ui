@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Box and Tooltip Z-Index Debug</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
+        @theme {
+            --color-primary: #3b82f6;
+        }
+    </style>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+    <!-- Uno (Local Build) -->
+    <script src="../../dist/uno.umd.js"></script>
+</head>
+
+<body class="bg-gray-100 p-8">
+
+    <div class="max-w-md mx-auto space-y-4">
+        <h1 class="text-2xl font-bold">Box + Tooltip + Notify Debug</h1>
+
+        <button data-box-type="dialog" data-box-title="Box with Tooltip" data-box-content="<div class='p-4 space-y-4'>
+                <p>Hover over the button below to see the tooltip.</p>
+                <button class='px-4 py-2 bg-blue-500 text-white rounded' 
+                        x-tooltip='&quot;I should be ON TOP of the box&quot;'>
+                    Hover Me
+                </button>
+                <div class='pt-4 border-t'>
+                    <button class='px-4 py-2 bg-green-500 text-white rounded'
+                            @click='$store.notify.show(&quot;I am a notification&quot;, { type: &quot;success&quot;, timeout: 0 })'>
+                        Trigger Notify
+                    </button>
+                </div>
+            </div>" class="px-4 py-2 bg-white border rounded shadow hover:bg-gray-50">
+            Open Box
+        </button>
+
+        <button id="trigger-notify" @click="$store.notify.show('I am a notification', { type: 'success', timeout: 0 })"
+            class="px-4 py-2 bg-green-500 text-white rounded shadow">
+            Show Notification
+        </button>
+    </div>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            // Initialize Uno
+            // In UMD build, it might auto-init or require manual init depending on export
+            // The source shows it exports a default function that takes Alpine
+            // Check how uno.umd.js is structured.
+            // Usually UMD sets window.Uno or similar. 
+            // Based on previous files, it seems it might not auto-register if just imported as script?
+            // Let's check uno.umd.js content briefly or assume typical pattern.
+            // Wait, previous file reads showed `export default (Alpine) => { ... }`.
+            // So we probably need to register it.
+
+            // However, the `uno.umd.js` usually bundles the setup.
+            // Let's try to assume it registers itself if it detects Alpine, or we need to call it.
+            // Actually, usually UMD modules attach to window.
+            // If the build uses a wrapper that calls the function with window.Alpine...
+        });
+    </script>
+</body>
+
+</html>

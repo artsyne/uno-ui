@@ -83,4 +83,40 @@ _无_
 | :---------- | :------------- | :------------------------------- |
 | `set(lang)` | `lang: String` | 切换语言，设置 Cookie 并刷新页面 |
 
+## 3. 日记业务组件 (Diary Components)
+
+### 3.1 DiaryList
+
+日记列表组件，负责管理日记列表页的交互，包括统计数据加载、删除日记和点赞。
+
+- **源文件**: `static/src/js/modules/diary.js`
+- **使用方式**: `x-data="diaryList"`
+
+#### 状态 (State)
+
+| 属性名  | 类型     | 描述                                                                 |
+| :------ | :------- | :------------------------------------------------------------------- |
+| `stats` | `Object` | 存储每篇日记的统计信息，Key 为 `postId`，Value 为包含 `view_num`, `like_num`, `liked` 等的对象 |
+
+#### 方法 (Methods)
+
+| 方法名 | 参数 | 描述 |
+| :--- | :--- | :--- |
+| `init()` | 无 | 初始化组件，触发 `loadStats()`，并监听 `htmx:afterSwap` 事件 |
+| `loadStats()` | 无 | 扫描页面上的 `data-post-id` 元素，批量获取统计数据和点赞状态 |
+| `confirmDelete(diaryId, postId)` | `diaryId`, `postId` | 弹出确认框，确认后调用 `deletePost` |
+| `deletePost(diaryId, postId)` | `diaryId`, `postId` | 发送删除请求，成功后从 DOM 中移除对应卡片 |
+| `toggleLike(postId)` | `postId` | 切换点赞状态，更新 `stats` 中的数据 |
+| `openCreatePost(diaryId)` | `diaryId` | 打开写日记对话框 (Uno Box) 并加载表单 |
+| `openEditPost(diaryId, postId)` | `diaryId`, `postId` | 打开编辑日记对话框 (Uno Box) 并加载表单 |
+| `openEditDiary(diaryId)` | `diaryId` | 打开日记本设置对话框 (Uno Box) 并加载表单 |
+| `openPostModal(url)` | `url` | 在模态框中加载指定 URL 的内容 (快速查看) |
+
+### 3.2 LikeButton
+
+(已集成到 `DiaryList` 的 `toggleLike` 逻辑中，作为独立组件定义保留以备后用)
+
+- **源文件**: `static/src/js/modules/diary.js`
+- **使用方式**: `x-data="likeButton(count, liked, postId)"` (目前主要通过 `DiaryList` 直接管理)
+
 ---
