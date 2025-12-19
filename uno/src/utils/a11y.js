@@ -26,8 +26,15 @@ const FOCUSABLE_SELECTOR = [
  */
 export function trapFocus(el, options = {}) {
   void options
-  const focusables = () => Array.from(el.querySelectorAll(FOCUSABLE_SELECTOR))
-    .filter(node => node.offsetParent !== null) // Visible only
+  const isVisible = (node) => {
+    if (!(node instanceof HTMLElement)) return false
+    const style = window.getComputedStyle(node)
+    if (style.display === 'none' || style.visibility === 'hidden') return false
+    return node.getClientRects().length > 0
+  }
+
+  const focusables = () =>
+    Array.from(el.querySelectorAll(FOCUSABLE_SELECTOR)).filter((node) => isVisible(node))
 
   const firstFocusable = () => focusables()[0]
   const lastFocusable = () => {
@@ -54,10 +61,17 @@ export function trapFocus(el, options = {}) {
   }
 
   // Initial focus
-  setTimeout(() => {
+  const focusFirstIfNeeded = () => {
+    if (el.contains(document.activeElement)) return
     const first = firstFocusable()
     if (first) first.focus()
-  }, 50)
+  }
+
+  if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(() => requestAnimationFrame(focusFirstIfNeeded))
+  } else {
+    setTimeout(focusFirstIfNeeded, 0)
+  }
 
   el.addEventListener('keydown', handleKeyDown)
 

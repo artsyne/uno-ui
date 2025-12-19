@@ -8,8 +8,8 @@
 
 import { calculatePosition } from '../utils/position'
 import { log } from '../utils/log'
-import { setHTML } from '../utils/dom'
-import { domManager } from '../core/dom'
+import { setHTML, DomManager as domManager } from '../utils/dom'
+import { Uno } from '../core/uno'
 
 export default (Alpine, options = {}) => {
   const initConfig = options.tooltip || {}
@@ -34,7 +34,7 @@ export default (Alpine, options = {}) => {
     async show(el, content, config = {}) {
       this.triggerEl = el
       this.content = content
-      this.placement = config.placement || 'top'
+      this.placement = config.placement || getConfig().placement || 'top'
       this.onShow = config.onShow
 
       this.visible = true
@@ -81,6 +81,11 @@ export default (Alpine, options = {}) => {
 
   // 2. Inject Global Tooltip Container
   const injectContainer = () => {
+    const rounded = Uno.getStyle('base', 'rounded', 'rounded-lg')
+    // Default content style
+    const contentDefault = `fixed px-3 py-2 text-sm font-medium ${rounded} shadow-sm whitespace-nowrap pointer-events-none border bg-white text-gray-900 border-gray-200 dark:bg-slate-800 dark:text-white dark:border-slate-700 z-[20000]`
+    const contentClass = Uno.getStyle('tooltip', 'content', contentDefault)
+
     const template = `
           <div id="uno-tooltip-content"
                x-show="$store.tooltip.visible"
@@ -91,7 +96,7 @@ export default (Alpine, options = {}) => {
                x-transition:leave="transition ease-in duration-150"
                x-transition:leave-start="opacity-100 scale-100"
                x-transition:leave-end="opacity-0 scale-95"
-               class="fixed px-3 py-2 text-sm font-medium rounded-lg shadow-sm whitespace-nowrap pointer-events-none border bg-white text-gray-900 border-gray-200 dark:bg-slate-800 dark:text-white dark:border-slate-700 z-[20000]"
+               class="${contentClass}"
               :style="\`top: \${$store.tooltip.top}px; left: \${$store.tooltip.left}px;\`"
               style="display: none;">
               <div id="uno-tooltip-body" class="pointer-events-auto"></div>
@@ -114,13 +119,14 @@ export default (Alpine, options = {}) => {
 
       let config = {
         content: '',
-        placement: 'top',
-        trigger: 'hover'
+        placement: null,
+        trigger: null
       }
 
       const resolvePlacement = () => {
         const configData = getConfig()
         let placement = configData.placement || 'top'
+        if (config.placement) placement = config.placement
         if (modifiers.includes('top')) placement = 'top'
         if (modifiers.includes('bottom')) placement = 'bottom'
         if (modifiers.includes('left')) placement = 'left'
@@ -130,7 +136,9 @@ export default (Alpine, options = {}) => {
 
       const resolveTrigger = () => {
         const configData = getConfig()
-        return modifiers.includes('click') ? 'click' : configData.trigger || 'hover'
+        if (modifiers.includes('click')) return 'click'
+        if (config.trigger) return config.trigger
+        return configData.trigger || 'hover'
       }
 
       // Helper to process value
@@ -193,16 +201,6 @@ export default (Alpine, options = {}) => {
         hide()
       }
 
-      const onFocus = () => {
-        if (resolveTrigger() !== 'hover') return
-        show()
-      }
-
-      const onBlur = () => {
-        if (resolveTrigger() !== 'hover') return
-        hide()
-      }
-
       const clickOutside = (e) => {
         if (resolveTrigger() !== 'click') return
         const store = Alpine.store('tooltip')
@@ -217,21 +215,35 @@ export default (Alpine, options = {}) => {
         }
       }
 
+      // Bind events
       el.addEventListener('click', onClick)
       el.addEventListener('mouseenter', onMouseEnter)
       el.addEventListener('mouseleave', onMouseLeave)
-      el.addEventListener('focus', onFocus)
-      el.addEventListener('blur', onBlur)
+      el.addEventListener('focus', onMouseEnter)
+      el.addEventListener('blur', onMouseLeave)
       window.addEventListener('click', clickOutside)
 
+      // Cleanup
       cleanup(() => {
         el.removeEventListener('click', onClick)
         el.removeEventListener('mouseenter', onMouseEnter)
         el.removeEventListener('mouseleave', onMouseLeave)
-        el.removeEventListener('focus', onFocus)
-        el.removeEventListener('blur', onBlur)
+        el.removeEventListener('focus', onMouseEnter)
+        el.removeEventListener('blur', onMouseLeave)
         window.removeEventListener('click', clickOutside)
+        hide()
       })
     }
   )
+
+  // Expose Public API
+  const api = {
+    show: (el, content, config) => Alpine.store('tooltip').show(el, content, config),
+    hide: () => Alpine.store('tooltip').hide(),
+    updatePosition: () => Alpine.store('tooltip').updatePosition()
+  }
+  Uno.tooltip = api
+  if (typeof window !== 'undefined' && window.Uno) {
+    window.Uno.tooltip = api
+  }
 }

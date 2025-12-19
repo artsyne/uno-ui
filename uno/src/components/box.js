@@ -6,12 +6,12 @@
  * @license MIT
  */
 
-import { escapeHTML, once, sanitizeHTML } from '../utils/dom'
+import { escapeHTML, once, sanitizeHTML, DomManager as domManager } from '../utils/dom'
 import { log } from '../utils/log'
 import { getFlexAlignmentClass } from '../utils/position'
 import { requestHTML, requestData } from '../utils/request'
-import { domManager } from '../core/dom'
 import { trapFocus } from '../utils/a11y'
+import { Uno } from '../core/uno'
 
 export default (Alpine, options = {}) => {
   const initConfig = options.box || {}
@@ -123,7 +123,7 @@ export default (Alpine, options = {}) => {
           type === 'confirm' || type === 'message' || (type === 'dialog' && options.showOkButton),
         showCancel: type === 'confirm' || (type === 'dialog' && options.showCancelButton),
 
-        // Cache Option (P1-8)
+        // Cache Option
         cache: options.cache === true,
 
         // State
@@ -288,6 +288,24 @@ export default (Alpine, options = {}) => {
     // Template
     // Removed x-safe-html, using x-html directly as we sanitize in store.
 
+    const { rounded, shadow, primary } = Uno.options.ui.base
+
+    // Overlay
+    const overlayDefault =
+      'absolute inset-0 bg-black transition-opacity duration-300 pointer-events-auto'
+    const overlayClass = Uno.getStyle('box', 'overlay', overlayDefault)
+
+    // Container
+    const containerDefault = `relative bg-white dark:bg-gray-900 ${rounded} ${shadow} ring-1 ring-black/5 overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300 transform pointer-events-auto outline-none`
+    const containerClass = Uno.getStyle('box', 'container', containerDefault)
+
+    // Buttons
+    const cancelDefault = `px-4 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-md text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors`
+    const cancelClass = Uno.getStyle('box', 'cancelBtn', cancelDefault)
+
+    const okDefault = `px-4 py-2 ${primary} border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`
+    const okClass = Uno.getStyle('box', 'okBtn', okDefault)
+
     const template = `
       <template x-for="(item, index) in $store.box.items" :key="item.id">
           <div :id="'uno-box-outer-container' + item.id"
@@ -299,7 +317,7 @@ export default (Alpine, options = {}) => {
                
                <!-- Overlay -->
                <div :id="'uno-box-overlay' + item.id"
-                    class="absolute inset-0 bg-black transition-opacity duration-300 pointer-events-auto"
+                    class="${overlayClass}"
                     :style="\`opacity: \${item.overlayOpacity}\`"
                     x-show="item.modal"
                     x-transition:enter="ease-out duration-300"
@@ -311,7 +329,7 @@ export default (Alpine, options = {}) => {
 
                <!-- Box Container -->
                <div :id="'uno-box-container' + item.id"
-                    class="relative bg-white dark:bg-gray-900 rounded-lg shadow-2xl ring-1 ring-black/5 overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300 transform pointer-events-auto outline-none"
+                    class="${containerClass}"
                     :class="[item.widthClass, item.heightClass, item.containerClass]"
                     :style="\`\${item.width ? 'width: ' + item.width + 'px;' : ''} \${item.height ? 'height:' + item.height + 'px' : ''}\`"
                     x-show="item.visible"
@@ -362,7 +380,7 @@ export default (Alpine, options = {}) => {
                                 x-show="item.showCancel"
                                 @click="item.onCancel ? (item.onCancel(), $store.box.close(item.id)) : $store.box.close(item.id)"
                                 x-text="item.cancelText"
-                                class="px-4 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-md text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                class="${cancelClass}">
                         </button>
                         <button :id="'uno-box-ok' + item.id"
                                 x-show="item.showOk"
@@ -375,7 +393,7 @@ export default (Alpine, options = {}) => {
                                     if (shouldClose !== false) $store.box.close(item.id);
                                 }"
                                 x-text="item.okText"
-                                class="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                class="${okClass}">
                         </button>
                     </div>
                </div>
@@ -438,5 +456,15 @@ export default (Alpine, options = {}) => {
         }
       })
     }
+  }
+
+  // Expose Public API to Uno Global
+  Uno.box = {
+    dialog: (opts) => Alpine.store('box').open('dialog', opts),
+    confirm: (msg, opts) => Alpine.store('box').confirm(msg, opts),
+    alert: (msg, opts) => Alpine.store('box').alert(msg, opts),
+    prompt: (msg, def, opts) => Alpine.store('box').prompt(msg, def, opts),
+    close: (id) => Alpine.store('box').close(id),
+    closeAll: () => Alpine.store('box').closeAll()
   }
 }

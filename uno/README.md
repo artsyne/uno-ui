@@ -68,13 +68,89 @@ Alpine.start()
 
 Uno provides a set of essential components. Detailed documentation is available in the `doc/` directory.
 
-| Component   | Description                                                                       | Documentation                     |
-| ----------- | --------------------------------------------------------------------------------- | --------------------------------- |
-| **Box**     | Modals, dialogs, slide-overs with flexible positioning and lazy loading (AJAX/HTMX). | [Box API](doc/box-api.md)         |
-| **Notify**  | Global notifications and toast alerts, supporting multiple positions and states.     | [Notify API](doc/notify-api.md)   |
+| Component   | Description                                                                            | Documentation                     |
+| ----------- | -------------------------------------------------------------------------------------- | --------------------------------- |
+| **Box**     | Modals, dialogs, slide-overs with flexible positioning and lazy loading (AJAX/HTMX).   | [Box API](doc/box-api.md)         |
+| **Notify**  | Global notifications and toast alerts, supporting multiple positions and states.       | [Notify API](doc/notify-api.md)   |
 | **Tab**     | Tab switching with support for AJAX/HTMX content loading and URL Hash synchronization. | [Tab API](doc/tab-api.md)         |
-| **Tooltip** | Smart positioning tooltips supporting Hover/Click triggers.                       | [Tooltip API](doc/tooltip-api.md) |
-| **Valid**   | Powerful form validation engine with declarative rules and async support.         | [Valid API](doc/valid-api.md)     |
+| **Tooltip** | Smart positioning tooltips supporting Hover/Click triggers.                            | [Tooltip API](doc/tooltip-api.md) |
+| **Valid**   | Powerful form validation engine with declarative rules and async support.              | [Valid API](doc/valid-api.md)     |
+
+## Customization
+
+Uno UI provides a flexible styling system that allows you to customize the look and feel of components globally. You can override default Tailwind CSS classes by setting the `window.UnoConfig.ui` object before initialization.
+
+### Configuration Structure
+
+The `ui` configuration object is structured as follows:
+
+```javascript
+window.UnoConfig = {
+  ui: {
+    // Base styles used across multiple components
+    base: {
+      rounded: 'rounded-lg', // Default: rounded-lg. Set to 'rounded-none' for square look.
+      primary: 'bg-blue-600', // Default: bg-blue-600.
+      shadow: 'shadow-md' // Default: shadow-md.
+    },
+    // Component-specific overrides
+    box: {
+      overlay: '...', // Override overlay style
+      container: '...', // Override container style
+      okBtn: '...', // Override OK button style
+      cancelBtn: '...' // Override Cancel button style
+    },
+    notify: {
+      types: {
+        success: 'bg-green-100 ...',
+        error: 'bg-red-100 ...'
+      }
+    },
+    tooltip: {
+      content: '...' // Override tooltip content style
+    },
+    tab: {
+      triggerActive: 'border-b-2 border-blue-500',
+      triggerInactive: 'text-gray-500'
+    },
+    valid: {
+      inputError: '!border-red-500',
+      inputValid: '!border-green-500',
+      helperText: 'text-red-600 text-xs'
+    }
+  }
+}
+```
+
+### Examples
+
+#### 1. Flat & Square Theme (No Rounded Corners)
+
+```javascript
+window.UnoConfig = {
+  ui: {
+    base: {
+      rounded: 'rounded-none',
+      shadow: 'shadow-none'
+    }
+  }
+}
+```
+
+#### 2. Brand Color Theme
+
+```javascript
+window.UnoConfig = {
+  ui: {
+    base: {
+      primary: 'bg-indigo-600 hover:bg-indigo-700'
+    },
+    tab: {
+      triggerActive: 'text-indigo-600 border-b-2 border-indigo-600 font-bold'
+    }
+  }
+}
+```
 
 ## Internationalization (i18n)
 

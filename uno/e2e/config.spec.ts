@@ -1,10 +1,19 @@
 import { test, expect } from '@playwright/test'
+import { mockCdnAssets } from './helpers/routes'
 
 test.describe('Uno Global Configuration', () => {
   test.beforeEach(async ({ page }) => {
+    await mockCdnAssets(page)
+
     page.on('console', (msg) => console.log('PAGE LOG:', msg.text()))
     page.on('pageerror', (err) => console.log('PAGE ERROR:', err.message))
     await page.goto('/examples/config-demo.html')
+    await page.waitForLoadState('domcontentloaded')
+    await page.waitForFunction(
+      () => (window as any).Alpine && (window as any).Uno?.initialized === true
+    )
+    await page.waitForFunction(() => (window as any).Alpine?.store?.('notify') !== undefined)
+    await page.waitForFunction(() => (window as any).Alpine?.store?.('tooltip') !== undefined)
 
     // Debug: Check loaded config
     const unoOptions = await page.evaluate(() => {
@@ -14,10 +23,15 @@ test.describe('Uno Global Configuration', () => {
   })
 
   test('should respect global notify configuration (bottom-right)', async ({ page }) => {
-    // Click button to show notification
-    await page.getByText('Test Notify').click()
+    await page.evaluate(() => {
+      ;(window as any).Alpine.store('notify').success('This respects global config!', {
+        timeout: 0
+      })
+    })
 
-    const item = page.getByText('This respects global config!')
+    const item = page
+      .locator('[data-testid="notify-item"]')
+      .filter({ hasText: 'This respects global config!' })
     await expect(item).toBeVisible()
 
     const region = item.locator('xpath=ancestor::div[contains(@class,"fixed")][1]')
@@ -34,9 +48,6 @@ test.describe('Uno Global Configuration', () => {
     // Expect modal to be visible
     const modal = page.locator('[role="dialog"]')
     await expect(modal).toBeVisible()
-
-    // Wait for animation
-    await page.waitForTimeout(500)
 
     const panel = page.locator('[id^="uno-box-container"]:not([id="uno-box-container"])').first()
     await expect(panel).toBeVisible()
@@ -72,7 +83,6 @@ test.describe('Uno Global Configuration', () => {
 
     // Hover shouldn't trigger it (since trigger is click)
     await trigger.hover()
-    await page.waitForTimeout(200)
     await expect(page.locator('#uno-tooltip-content')).toBeHidden()
 
     // Click should trigger it

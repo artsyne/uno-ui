@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { mockCdnAssets } from './helpers/routes'
 
 test.describe('Tooltip Component', () => {
   test.beforeEach(async ({ page }) => {
@@ -7,6 +8,8 @@ test.describe('Tooltip Component', () => {
     page.on('requestfailed', (request) =>
       console.log(`REQUEST FAILED: ${request.url()} - ${request.failure()?.errorText}`)
     )
+
+    await mockCdnAssets(page)
 
     await page.goto('/examples/components/tooltip.html')
 

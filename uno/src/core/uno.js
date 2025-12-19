@@ -20,8 +20,37 @@ class UnoInstance {
       csp: {
         nonce: null // For Content Security Policy
       },
-      onError: null // Custom error handler
+      onError: null, // Custom error handler
+      ui: {
+        base: { rounded: 'rounded-lg', primary: 'bg-blue-600', shadow: 'shadow-md' },
+        box: {},
+        notify: {},
+        tooltip: {},
+        tab: {},
+        valid: {}
+      }
     }
+  }
+
+  /**
+   * Get style class from configuration or fallback
+   * Support "+" prefix to append class to default
+   * @param {string} comp - Component name
+   * @param {string} elem - Element name
+   * @param {string} defaultCls - Default class string
+   * @returns {string} Final class string
+   */
+  getStyle(comp, elem, defaultCls) {
+    const config = this.options.ui?.[comp]?.[elem]
+
+    if (config === undefined) return defaultCls
+
+    // Check for append mode ("+class")
+    if (typeof config === 'string' && config.trim().indexOf('+') === 0) {
+      return `${defaultCls} ${config.trim().slice(1)}`.trim()
+    }
+
+    return config
   }
 
   /**
@@ -30,16 +59,21 @@ class UnoInstance {
    */
   setConfig(config) {
     const newOptions = { ...this.options }
-    
+
     // Deep merge (1-level) for component configs to preserve other properties (e.g. duration)
-    Object.keys(config).forEach(key => {
-        if (typeof config[key] === 'object' && config[key] !== null && !Array.isArray(config[key]) && newOptions[key]) {
-            newOptions[key] = { ...newOptions[key], ...config[key] }
-        } else {
-            newOptions[key] = config[key]
-        }
+    Object.keys(config).forEach((key) => {
+      if (
+        typeof config[key] === 'object' &&
+        config[key] !== null &&
+        !Array.isArray(config[key]) &&
+        newOptions[key]
+      ) {
+        newOptions[key] = { ...newOptions[key], ...config[key] }
+      } else {
+        newOptions[key] = config[key]
+      }
     })
-    
+
     this.options = newOptions
 
     if (this.initialized) {
@@ -76,6 +110,11 @@ class UnoInstance {
 
     let alpine = Alpine
     let opts = options
+
+    // Robust fallback: if Alpine import is undefined (e.g. UMD external issue), try window.Alpine
+    if (!alpine && typeof window !== 'undefined' && window.Alpine) {
+      alpine = window.Alpine
+    }
 
     // Detect if first arg is Alpine instance (duck typing)
     if (

@@ -1,11 +1,10 @@
 import { test, expect } from '@playwright/test'
+import { mockCdnAssets } from './helpers/routes'
 
 test.describe('Z-Index Layers Hierarchy', () => {
   test.beforeEach(async ({ page }) => {
     // Mock UMD if needed, or rely on file
-    await page.route('**/dist/uno.umd.js', async (route) => {
-      await route.fulfill({ path: 'dist/uno.umd.js' })
-    })
+    await mockCdnAssets(page)
 
     page.on('console', (msg) => console.log(`[Browser Console] ${msg.text()}`))
     await page.goto('/examples/debug-box-tooltip.html')
@@ -21,7 +20,7 @@ test.describe('Z-Index Layers Hierarchy', () => {
     await page.getByText('Trigger Notify').click()
     const notifyItem = page.locator('[data-testid="notify-item"]')
     await expect(notifyItem).toBeVisible()
-    
+
     // 3. Trigger Tooltip (inside Box)
     const tooltipBtn = page.getByText('Hover Me')
     await tooltipBtn.hover()
@@ -30,7 +29,7 @@ test.describe('Z-Index Layers Hierarchy', () => {
     await expect(page.locator('#uno-tooltip-body')).toHaveText('I should be ON TOP of the box')
 
     // 4. Verify Z-Indices
-    
+
     // Box
     const boxZ = await boxContainer.evaluate((el) => {
       return parseInt(window.getComputedStyle(el).zIndex)

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uno Custom Style Demo</title>
+    <script>
+        // Global Style Configuration (Theming)
+        // This script must run before Uno initializes
+        window.UnoConfig = {
+            ui: {
+                base: {
+                    // "Brutalist" / High-Contrast Theme
+                    rounded: 'rounded-none',
+                    shadow: 'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black dark:border-white dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]',
+                    primary: 'bg-yellow-400 text-black hover:bg-yellow-500 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all font-bold uppercase tracking-wider'
+                },
+                box: {
+                    overlay: 'fixed inset-0 bg-yellow-200/90 dark:bg-blue-900/90 backdrop-blur-sm',
+                    container: 'relative bg-white dark:bg-gray-900 rounded-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-4 border-black dark:border-white ring-1 ring-black/5 overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300 transform pointer-events-auto outline-none',
+                    okBtn: 'px-4 py-2 bg-black text-white font-bold hover:bg-gray-800 border-2 border-black shadow-[2px_2px_0px_0px_rgba(255,255,255,0.5)] uppercase',
+                    cancelBtn: 'px-4 py-2 bg-white text-black font-bold border-2 border-black hover:bg-gray-100 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase'
+                },
+                notify: {
+                    // Customizing notification types with distinct bg/text/border
+                    types: {
+                        success: 'bg-green-400 text-black border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-bold uppercase tracking-wide',
+                        error: 'bg-red-500 text-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-bold uppercase tracking-wide',
+                        info: 'bg-cyan-300 text-black border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-bold uppercase tracking-wide',
+                        warning: 'bg-orange-400 text-black border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-bold uppercase tracking-wide'
+                    }
+                },
+                tab: {
+                    triggerActive: 'bg-black text-white font-bold border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]',
+                    triggerInactive: 'bg-white text-black border-2 border-black hover:bg-gray-100'
+                },
+                tooltip: {
+                    // MUST include 'fixed' and 'z-index' because Uno.getStyle replaces the default classes
+                    content: 'fixed z-[20000] whitespace-nowrap pointer-events-none bg-black text-yellow-400 border-2 border-yellow-400 text-xs px-2 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-mono font-bold'
+                },
+                valid: {
+                    inputError: 'border-2 border-red-500 bg-red-50 text-red-900 focus:ring-0 focus:border-red-500 placeholder-red-300',
+                    inputValid: 'border-2 border-green-500 bg-green-50 text-green-900 focus:ring-0 focus:border-green-500',
+                    errorText: 'text-red-600 font-bold mt-1 text-sm uppercase tracking-wide'
+                }
+            }
+        };
+    </script>
+    <link rel="stylesheet" href="./examples.css">
+    <script src="./examples.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
+    <script src="../dist/uno.umd.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
+</head>
+
+<body
+    class="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen pb-20 transition-colors duration-200 font-mono">
+    <!-- Header -->
+    <header
+        class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-40 border-b-4 border-black dark:border-white transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="index.html"
+                    class="text-black dark:text-white hover:underline decoration-4 decoration-yellow-400 underline-offset-4"
+                    title="Back to Index">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </a>
+                <h1
+                    class="text-2xl font-black uppercase tracking-tighter text-black dark:text-white flex items-center gap-3">
+                    <span class="bg-black text-yellow-400 px-3 py-1 transform -rotate-2">UNO</span>
+                    Style Demo
+                </h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <button type="button" data-theme-toggle
+                    class="p-2 border-2 border-black dark:border-white hover:bg-yellow-400 transition-colors"
+                    aria-label="Toggle Dark Mode">
+                    <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                    <svg class="w-6 h-6 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
+        <!-- Introduction -->
+        <div
+            class="bg-white dark:bg-slate-800 p-8 border-4 border-black dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
+            <h2 class="text-3xl font-black mb-4 uppercase">Theming System</h2>
+            <p class="text-lg leading-relaxed">
+                This page demonstrates the <span class="bg-yellow-400 px-1 font-bold text-black">Brutalist Theme</span>
+                applied via
+                <code>UnoConfig.ui</code>. We've overridden the default rounded corners, shadows, and colors globally.
+            </p>
+            <div
+                class="mt-6 bg-slate-100 dark:bg-slate-900 p-4 border-2 border-dashed border-slate-400 font-mono text-sm overflow-x-auto">
+                <pre>window.UnoConfig = {
+    ui: {
+        base: {
+            rounded: 'rounded-none',
+            shadow: 'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black',
+            primary: 'bg-yellow-400 text-black ...'
+        },
+        tooltip: {
+             // Essential for custom styles: must include 'fixed'
+             content: 'fixed z-[20000] ... bg-black text-yellow-400 ...'
+        }
+        // ... more overrides
+    }
+}</pre>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+
+            <!-- 1. Box Component -->
+            <div class="space-y-6">
+                <h3 class="text-2xl font-bold border-b-4 border-black dark:border-white inline-block pb-1">1. Box
+                    Dialogs</h3>
+                <div
+                    class="p-8 bg-white dark:bg-slate-800 border-4 border-black dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
+                    <p class="mb-6">Dialogs inherit the "brutalist" shadow and sharp corners.</p>
+                    <div class="flex flex-wrap gap-4">
+                        <button
+                            onclick="Uno.box.dialog({title: 'Brutalist Dialog', content: 'Look at those sharp corners and thick borders!'})"
+                            class="px-6 py-3 bg-yellow-400 text-black font-bold border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+                            Open Dialog
+                        </button>
+                        <button onclick="Uno.box.confirm('Are you bold enough?')"
+                            class="px-6 py-3 bg-white text-black font-bold border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+                            Confirm Me
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Notifications -->
+            <div class="space-y-6">
+                <h3 class="text-2xl font-bold border-b-4 border-black dark:border-white inline-block pb-1">2.
+                    Notifications</h3>
+                <div
+                    class="p-8 bg-white dark:bg-slate-800 border-4 border-black dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
+                    <p class="mb-6">Notifications use custom colors and hard shadows.</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="Alpine.store('notify').success('Operation Successful!')"
+                            class="px-4 py-2 bg-green-500 text-black font-bold border-2 border-black hover:bg-green-400">
+                            Success
+                        </button>
+                        <button onclick="Alpine.store('notify').error('Critical Failure!')"
+                            class="px-4 py-2 bg-red-500 text-white font-bold border-2 border-black hover:bg-red-400">
+                            Error
+                        </button>
+                        <button onclick="Alpine.store('notify').info('Just so you know...')"
+                            class="px-4 py-2 bg-blue-400 text-black font-bold border-2 border-black hover:bg-blue-300">
+                            Info
+                        </button>
+                        <button onclick="Alpine.store('notify').warning('Watch out!')"
+                            class="px-4 py-2 bg-orange-400 text-black font-bold border-2 border-black hover:bg-orange-300">
+                            Warning
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Tabs -->
+            <div class="space-y-6">
+                <h3 class="text-2xl font-bold border-b-4 border-black dark:border-white inline-block pb-1">3. Tabs</h3>
+                <div
+                    class="p-8 bg-white dark:bg-slate-800 border-4 border-black dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
+
+                    <div x-data="{ activeTab: 'tab1' }" class="w-full">
+                        <!-- Tab List -->
+                        <div class="flex gap-2 mb-4">
+                            <button @click="activeTab = 'tab1'"
+                                :class="activeTab === 'tab1' ? 'bg-black text-white font-bold border-2 border-black' : 'bg-white text-black border-2 border-black hover:bg-gray-100'"
+                                class="px-4 py-2 transition-colors">
+                                Section A
+                            </button>
+                            <button @click="activeTab = 'tab2'"
+                                :class="activeTab === 'tab2' ? 'bg-black text-white font-bold border-2 border-black' : 'bg-white text-black border-2 border-black hover:bg-gray-100'"
+                                class="px-4 py-2 transition-colors">
+                                Section B
+                            </button>
+                        </div>
+
+                        <!-- Tab Content -->
+                        <div class="border-2 border-black p-4 bg-yellow-50 min-h-[100px]">
+                            <div x-show="activeTab === 'tab1'">
+                                <h4 class="font-bold text-lg mb-2">Content A</h4>
+                                <p>This tab content sits inside a brutalist container.</p>
+                            </div>
+                            <div x-show="activeTab === 'tab2'" style="display: none;">
+                                <h4 class="font-bold text-lg mb-2">Content B</h4>
+                                <p>Different content, same bold style.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mt-4 text-sm text-gray-500">
+                        * Note: This tab demo uses manual Alpine x-data to show the styling.
+                        The real <code>uno-tab</code> component would inherit <code>ui.tab</code> config.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 4. Validation -->
+            <div class="space-y-6">
+                <h3 class="text-2xl font-bold border-b-4 border-black dark:border-white inline-block pb-1">4. Validation
+                </h3>
+                <div
+                    class="p-8 bg-white dark:bg-slate-800 border-4 border-black dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
+                    <p class="mb-6">Form validation with brutalist error states.</p>
+                    <form class="grid grid-cols-1 md:grid-cols-2 gap-6" x-data="{
+                        validate() {
+                            // Manual validation trigger for demo
+                            const username = this.$refs.username;
+                            const email = this.$refs.email;
+                            
+                            // Using Uno.valid.set (Public API) if available, or manual handling
+                            // Since we are implementing Uno.valid.set, this should work.
+                            
+                            if (!username.value) {
+                                Uno.valid.set(username, { valid: false, message: 'USERNAME REQUIRED' });
+                            } else {
+                                Uno.valid.set(username, { valid: true });
+                            }
+
+                            if (!email.value || !email.value.includes('@')) {
+                                Uno.valid.set(email, { valid: false, message: 'INVALID EMAIL FORMAT' });
+                            } else {
+                                Uno.valid.set(email, { valid: true });
+                            }
+                        }
+                    }" @submit.prevent="validate()">
+                        <div class="space-y-2">
+                            <label class="font-bold uppercase">Username</label>
+                            <input x-ref="username" name="username" type="text"
+                                class="w-full bg-white text-black border-2 border-black p-3 focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-shadow"
+                                placeholder="Enter username..." required x-validate>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="font-bold uppercase">Email Address</label>
+                            <input x-ref="email" name="email" type="email"
+                                class="w-full bg-white text-black border-2 border-black p-3 focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-shadow"
+                                placeholder="Enter email..." required x-validate>
+                        </div>
+                        <div class="md:col-span-2">
+                            <button type="submit"
+                                class="w-full px-6 py-3 bg-black text-white font-bold border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] hover:bg-gray-800 hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
+                                VALIDATE FORM
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 5. Tooltip Test -->
+            <div class="space-y-6">
+                <h3 class="text-2xl font-bold border-b-4 border-black dark:border-white inline-block pb-1">5. Tooltip
+                </h3>
+                <div
+                    class="p-8 bg-white dark:bg-slate-800 border-4 border-black dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
+                    <p class="mb-6">Hover the button to see the custom tooltip.</p>
+                    <div class="flex justify-center">
+                        <button x-tooltip="{ content: 'Retro terminal style tooltip!', trustedHTML: true }"
+                            class="px-6 py-3 bg-blue-600 text-white font-bold border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+                            Hover Me
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+</body>
+
+</html>

@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test'
+import { mockCdnAssets } from './helpers/routes'
 
 test.describe('Feature: Accessibility', () => {
   test.beforeEach(async ({ page }) => {
+    await mockCdnAssets(page)
+
     page.on('console', (msg) => console.log('BROWSER LOG:', msg.text()))
     await page.goto('/examples/features.html', { waitUntil: 'domcontentloaded' })
     await page.waitForFunction(() => (window as any).Alpine && (window as any).Uno)
@@ -26,9 +29,6 @@ test.describe('Feature: Accessibility', () => {
     await page.click('text=Open Modal with Focus Trap')
     const dialog = page.locator('[role="dialog"]')
     await expect(dialog).toBeVisible()
-
-    // Wait for animation
-    await page.waitForTimeout(500)
 
     // Focus the first input explicitly
     await page.locator('[placeholder="First input"]').focus()
@@ -73,6 +73,8 @@ test.describe('Feature: Accessibility', () => {
 
 test.describe('Feature: Request Cancellation', () => {
   test.beforeEach(async ({ page }) => {
+    await mockCdnAssets(page)
+
     page.on('console', (msg) => console.log('BROWSER LOG:', msg.text()))
     await page.goto('/examples/features.html', { waitUntil: 'domcontentloaded' })
     await page.waitForFunction(() => (window as any).Alpine && (window as any).Uno)
@@ -126,6 +128,8 @@ test.describe('Feature: Request Cancellation', () => {
 
 test.describe('Feature: Request Caching', () => {
   test.beforeEach(async ({ page }) => {
+    await mockCdnAssets(page)
+
     page.on('console', (msg) => console.log('BROWSER LOG:', msg.text()))
     await page.goto('/examples/features.html', { waitUntil: 'domcontentloaded' })
     await page.waitForFunction(() => (window as any).Alpine && (window as any).Uno)

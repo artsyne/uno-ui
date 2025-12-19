@@ -29,7 +29,17 @@ The container is automatically injected into the DOM when needed.
 
 ## Programmatic Usage
 
-The component exposes methods via `Alpine.store('notify')`.
+The component exposes methods via `Alpine.store('notify')` or the global alias `Uno.notify`.
+
+### Global Alias: `Uno.notify`
+
+The same methods are available globally via `Uno.notify` for convenience:
+
+```javascript
+Uno.notify.success('Saved!');
+Uno.notify.error('Failed!');
+Uno.notify.loading(true);
+```
 
 ### `show(text, options)`
 

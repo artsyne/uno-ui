@@ -4,7 +4,44 @@
  * @module uno.utils.request
  */
 
-const requestCache = new Map()
+class LRUCache {
+  constructor(maxSize = 50) {
+    this.maxSize = maxSize
+    this.cache = new Map()
+  }
+
+  get(key) {
+    if (!this.cache.has(key)) return undefined
+    const value = this.cache.get(key)
+    // Update access order: delete and re-insert
+    this.cache.delete(key)
+    this.cache.set(key, value)
+    return value
+  }
+
+  set(key, value) {
+    if (this.cache.has(key)) {
+      this.cache.delete(key)
+    }
+    this.cache.set(key, value)
+
+    // Delete oldest if capacity exceeded
+    if (this.cache.size > this.maxSize) {
+      const firstKey = this.cache.keys().next().value
+      this.cache.delete(firstKey)
+    }
+  }
+
+  has(key) {
+    return this.cache.has(key)
+  }
+
+  clear() {
+    this.cache.clear()
+  }
+}
+
+const requestCache = new LRUCache(50)
 
 /**
  * Clear request cache
@@ -36,7 +73,7 @@ function dispatchTrigger(target, name, detail) {
   const t = target || document.body || document.documentElement
   if (!t) return
 
-  // 中文说明：优先使用 htmx.trigger（如果存在），保证与 HTMX 生态一致。
+  // Prefer htmx.trigger if available to ensure consistency with HTMX ecosystem.
   if (typeof window !== 'undefined' && window.htmx?.trigger) {
     window.htmx.trigger(t, name, detail)
     return
@@ -93,7 +130,7 @@ export async function requestHTML(url, options = {}) {
 export async function requestData(url, options = {}) {
   const {
     method = 'GET',
-    headers,
+    headers = {},
     body,
     credentials = 'same-origin',
     triggerTarget = typeof document !== 'undefined' ? document.body : null,
@@ -108,7 +145,14 @@ export async function requestData(url, options = {}) {
     return requestCache.get(url)
   }
 
-  const res = await fetch(url, { method, headers, body, credentials, signal })
+  // Unify HTMX-style request headers
+  const requestHeaders = {
+    'HX-Request': 'true',
+    'X-Requested-With': 'XMLHttpRequest',
+    ...headers
+  }
+
+  const res = await fetch(url, { method, headers: requestHeaders, body, credentials, signal })
   applyHXTriggerHeaders(res, triggerTarget)
 
   if (!res.ok) {

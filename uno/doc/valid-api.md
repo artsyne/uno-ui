@@ -181,6 +181,22 @@ Alpine.store('i18n', {
 
 ## Events & API
 
+### Global API (Uno.valid)
+
+#### `Uno.valid.set(element, { valid, message })`
+Manually set the validation state of an input field.
+
+```javascript
+const input = document.querySelector('input[name="username"]');
+Uno.valid.set(input, { 
+  valid: false, 
+  message: 'Username is taken' 
+});
+```
+
+#### `Uno.valid.validate(formElement)`
+Triggers validation for the entire form programmatically.
+
 ### Events
 - **Field Input/Blur**: Validation triggered on input or blur.
 - **Form Submit**: Full validation triggered on form submission.

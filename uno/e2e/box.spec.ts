@@ -1,11 +1,10 @@
 import { test, expect } from '@playwright/test'
+import { mockCdnAssets } from './helpers/routes'
 
 test.describe('Box Component', () => {
   test.beforeEach(async ({ page }) => {
     // Force serve latest build
-    await page.route('**/dist/uno.umd.js', async (route) => {
-      await route.fulfill({ path: 'dist/uno.umd.js' })
-    })
+    await mockCdnAssets(page)
 
     page.on('console', (msg) => console.log(`[Browser Console] ${msg.text()}`))
     page.on('pageerror', (err) => console.log(`[Page Error] ${err.message}`))

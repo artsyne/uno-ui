@@ -1,10 +1,9 @@
 import { test, expect } from '@playwright/test'
+import { mockCdnAssets } from './helpers/routes'
 
 test.describe('Box + Tooltip Z-Index', () => {
   test.beforeEach(async ({ page }) => {
-    await page.route('**/dist/uno.umd.js', async (route) => {
-      await route.fulfill({ path: 'dist/uno.umd.js' })
-    })
+    await mockCdnAssets(page)
 
     await page.goto('/examples/debug-box-tooltip.html')
     await page.waitForLoadState('domcontentloaded')
@@ -27,7 +26,7 @@ test.describe('Box + Tooltip Z-Index', () => {
     // 3. Check Tooltip Visibility
     const tooltip = page.locator('#uno-tooltip-content')
     await expect(tooltip).toBeVisible()
-    
+
     // Check body content specifically
     const tooltipBody = page.locator('#uno-tooltip-body')
     await expect(tooltipBody).toBeVisible()

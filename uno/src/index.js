@@ -12,11 +12,15 @@ import htmx from 'htmx.org'
 import { Uno } from './core/uno'
 import { installAlpine } from './core/i18n'
 import { log } from './utils/log'
+import { DomManager } from './utils/dom'
 import tooltip from './components/tooltip'
 import notify from './components/notify'
 import box from './components/box'
 import valid from './components/valid'
 import tab, { factory as unoTabsFactory } from './components/tab'
+
+// Attach DomManager to Uno instance
+Uno.dom = DomManager
 
 // 1. Expose Dependencies & Uno Instance
 if (typeof window !== 'undefined') {
@@ -30,31 +34,24 @@ if (typeof window !== 'undefined') {
 Uno.use(installAlpine).use(tooltip).use(notify).use(box).use(valid).use(tab)
 
 // 3. Initialization Logic
-const getWindowConfig = () => {
-  if (typeof window === 'undefined') return {}
-  const config = window.UnoConfig
-  return config && typeof config === 'object' ? config : {}
-}
-
-const autoInit = () => {
+function initializeUno() {
   if (Uno.initialized) return
 
-  // Check for configuration on global object
-  const config = getWindowConfig()
+  const config = window.UnoConfig || {}
   log.setDebug(config.debug !== false)
 
-  // Pass window.Alpine if available to ensure plugins use the global instance
-  Uno.init(typeof window !== 'undefined' ? window.Alpine : undefined, config)
+  if (config.debug !== false) {
+    log.info('Uno: Initializing...')
+  }
+
+  Uno.init(window.Alpine, config)
 }
 
 if (typeof window !== 'undefined') {
   // Scenario A: CDN / Script Tag with deferLoadingAlpine
-  // Alpine waits for this callback before starting.
   const previous = window.deferLoadingAlpine
   window.deferLoadingAlpine = (start) => {
-    // Initialize Uno before Alpine starts
-    autoInit()
-
+    initializeUno()
     if (typeof previous === 'function') {
       previous(start)
     } else {
@@ -62,34 +59,23 @@ if (typeof window !== 'undefined') {
     }
   }
 
-  // Scenario B: Module / Bundle or Late Load
-  // If Alpine is already initialized or we missed the hook
+  // Scenario B: Listen for Alpine init
   document.addEventListener('alpine:init', () => {
     if (!Uno.initialized) {
-      const config = getWindowConfig()
-      log.setDebug(config.debug !== false)
-      if (config.debug !== false) {
-        log.info('Uno: alpine:init detected, initializing...')
-      }
-      autoInit()
+      initializeUno()
     }
   })
 
-  // Scenario C: DOMContentLoaded Fallback
-  // If Alpine is not present or something else is managing it
+  // Scenario C: DOMContentLoaded
   document.addEventListener('DOMContentLoaded', () => {
     if (!Uno.initialized && window.Alpine) {
-      autoInit()
+      initializeUno()
     }
   })
 
-  // Scenario D: Immediate (Synchronous) Auto-Init
-  // We prioritize backward compatibility for the bundle.
+  // Scenario D: Sync
   if (!Uno.initialized && window.Alpine) {
-    const config = getWindowConfig()
-    log.setDebug(config.debug !== false)
-    log.info('Uno: Auto-initializing synchronously')
-    autoInit()
+    initializeUno()
   }
 }
 

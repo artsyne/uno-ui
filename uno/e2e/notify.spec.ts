@@ -1,18 +1,33 @@
 import { test, expect } from '@playwright/test'
+import { mockCdnAssets } from './helpers/routes'
 
 test.describe('Notify Component', () => {
   test.beforeEach(async ({ page }) => {
     // Force serve latest build
-    await page.route('**/dist/uno.umd.js', async (route) => {
-      await route.fulfill({ path: 'dist/uno.umd.js' })
-    })
+    await mockCdnAssets(page)
 
     page.on('console', (msg) => console.log(`[Browser Console] ${msg.text()}`))
     page.on('pageerror', (err) => console.log(`[Page Error] ${err.message}`))
     await page.goto('/examples/components/notify.html')
 
-    // Wait for Alpine to be ready
     await page.waitForFunction(() => (window as any).Alpine !== undefined)
+    await page.waitForFunction(() => (window as any).Uno?.initialized === true)
+    await page.evaluate(() => {
+      const w = window as any
+      if (
+        w.Alpine &&
+        typeof w.Alpine.start === 'function' &&
+        !w.__uno_e2e_alpine_started &&
+        !(document.body as any)._x_dataStack
+      ) {
+        try {
+          w.Alpine.start()
+        } catch {}
+        w.__uno_e2e_alpine_started = true
+      }
+    })
+    await page.waitForFunction(() => !!(document.body as any)._x_dataStack)
+    await page.waitForFunction(() => (window as any).Alpine?.store?.('notify') !== undefined)
   })
 
   test('shows info notification (top-right) and auto dismiss', async ({ page }) => {

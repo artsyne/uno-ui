@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test'
+import { mockCdnAssets } from './helpers/routes'
 
 test.describe('Tab Component HTMX', () => {
   test.beforeEach(async ({ page }) => {
+    await mockCdnAssets(page)
+
     // Enable console logging
     page.on('console', (msg) => console.log(`[Browser Console] ${msg.text()}`))
     page.on('pageerror', (err) => console.log(`[Page Error] ${err.message}`))
@@ -9,12 +12,7 @@ test.describe('Tab Component HTMX', () => {
     await page.goto('/examples/components/tab.html')
     await page.waitForLoadState('domcontentloaded')
 
-    // Wait for Alpine to initialize
-    try {
-      await page.waitForFunction(() => (window as any).Alpine, null, { timeout: 5000 })
-    } catch (e) {
-      console.log('Alpine not found on window!')
-    }
+    await page.waitForFunction(() => (window as any).Alpine && (window as any).Uno)
   })
 
   test('htmx content loading', async ({ page }) => {
@@ -38,10 +36,8 @@ test.describe('Tab Component HTMX', () => {
   })
 
   test('htmx error handling', async ({ page }) => {
-    // Mock htmx.ajax to simulate failure
-    await page.evaluate(() => {
-      ;(window as any).htmx.ajax = () => Promise.reject(new Error('Simulated HTMX Error'))
-    })
+    // Force network error for the HTMX content URL
+    await page.route('**/tab-content-htmx.html', (route) => route.abort('failed'))
 
     const htmxTab = page.locator('button[data-tab-hx-url="/examples/data/tab-content-htmx.html"]')
     const htmxContent = page.locator('#side-htmx')

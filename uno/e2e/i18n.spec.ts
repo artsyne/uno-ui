@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test'
+import { mockCdnAssets } from './helpers/routes'
 
 test('language switching updates texts', async ({ page }) => {
+  await mockCdnAssets(page)
+
   await page.goto('/examples/i18n.html')
   const title = page.getByTestId('title')
   const desc = page.getByTestId('desc')
@@ -16,4 +19,3 @@ test('language switching updates texts', async ({ page }) => {
   await page.getByTestId('btn-en').click()
   await expect(title).toHaveText('Uno i18n Demo')
 })
-

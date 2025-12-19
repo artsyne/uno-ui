@@ -1,153 +1,123 @@
-/**
- * Uno - Tab Component
- *
- * @module uno.components.tab
- * @version 0.2.1
- */
+import { Uno } from '../core/uno'
+import { once, setHTML } from '../utils/dom'
 
-import { setHTML } from '../utils/dom'
-import { requestText } from '../utils/request'
+let storedAlpine
 
-export const factory = (defaultTab = '', options = {}) => ({
-  active: defaultTab,
-  options: {
-    hash: true,
-    manual: false, // if true, arrow keys only move focus, don't select
-    ...options
-  },
-  loaded: {}, // Track loaded AJAX content
+const factory = () => ({
+  activeTab: null,
+  _cleanup: [],
 
   init() {
-    if (this.options && this.options.hash) {
-      const applyHash = () => {
-        const hash = window.location.hash.substring(1)
-        if (hash) {
-          const trigger = this.$el.querySelector(`[data-tab-hash="${hash}"]`)
-          if (trigger) {
-            const target = trigger.getAttribute('data-tab-target')
-            if (target) this.active = target
-          }
+    if (!once(this.$el, 'tabs_init')) return
+
+    this.$nextTick(() => {
+      const hash = window.location.hash.slice(1)
+      let found = false
+
+      if (hash) {
+        const tabWithHash = this.$el.querySelector(`[data-tab-hash="${hash}"]`)
+        if (tabWithHash) {
+          this.activeTab = tabWithHash.getAttribute('data-tab-target')
+          found = true
         }
       }
 
-      this.$nextTick(() => applyHash())
+      if (!found && !this.activeTab) {
+        const firstTab = this.$el.querySelector('[role="tab"]')
+        if (firstTab) {
+          this.activeTab = firstTab.getAttribute('data-tab-target')
+        }
+      }
+    })
 
-      this._hashHandler = () => applyHash()
-      window.addEventListener('hashchange', this._hashHandler)
+    const onHashChange = () => {
+      const hash = window.location.hash.slice(1)
+      if (hash) {
+        const tabWithHash = this.$el.querySelector(`[data-tab-hash="${hash}"]`)
+        if (tabWithHash) {
+          this.activeTab = tabWithHash.getAttribute('data-tab-target')
+        }
+      }
     }
+
+    window.addEventListener('hashchange', onHashChange)
+    this._cleanup.push(() => window.removeEventListener('hashchange', onHashChange))
   },
 
   destroy() {
-    if (this._hashHandler) window.removeEventListener('hashchange', this._hashHandler)
+    this._cleanup.forEach((fn) => fn())
+    this._cleanup = []
   },
 
   isActive(tab) {
-    return this.active === tab
+    return this.activeTab === tab
   },
 
   async open(tab, ajaxUrl = null, hash = null, hxUrl = null) {
-    this.active = tab
+    this.activeTab = tab
 
-    // Handle Hash
-    if (this.options.hash && hash) {
-      // Use replaceState to avoid cluttering history if desired, or pushState
-      // The spec test expects URL to contain hash
-      // If we just set window.location.hash, it triggers hashchange event
-      // which might cause loop if not careful, but here we set active first so it's fine.
-      // But typically tab switching updates URL.
-      // The test says "modern tabs switch content and hash".
-      // Let's use history API to be clean.
-      if (window.location.hash.substring(1) !== hash) {
-        history.pushState(null, null, '#' + hash)
+    if (hash) {
+      if (window.location.hash.slice(1) !== hash) {
+        window.history.replaceState(null, null, `#${hash}`)
       }
     }
 
-    // Handle HTMX
-    if (hxUrl) {
-      if (typeof window !== 'undefined' && window.htmx) {
-        const contentEl = document.getElementById(tab)
-        if (contentEl && !this.loaded[tab]) {
-          // Loading state
-          setHTML(
-            contentEl,
-            `<div class="animate-pulse p-4 space-y-2">
-               <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-               <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-             </div>`,
-            { trusted: true, alpine: window.Alpine || window.top?.Alpine }
-          )
-
-          try {
-            await window.htmx.ajax('GET', hxUrl, {
-              target: `#${tab}`,
-              swap: 'innerHTML'
-            })
-            contentEl.setAttribute('data-tab-loaded', 'true')
-            this.loaded[tab] = true
-            contentEl.dispatchEvent(new CustomEvent('tab-loaded', { bubbles: true }))
-          } catch {
-            setHTML(contentEl, `<div class="text-red-500 p-4">Error loading content via HTMX</div>`, {
-              trusted: true
-            })
-          }
-        }
-      } else {
-        console.warn('Uno Tab: HTMX requested but window.htmx is not defined.')
-        const contentEl = document.getElementById(tab)
-        if (contentEl) {
-          setHTML(
-            contentEl,
-            `<div class="text-amber-600 bg-amber-50 p-4 rounded border border-amber-200">
-            <strong>Warning:</strong> HTMX library not found. Please include htmx.org script.
-          </div>`,
-            { trusted: true }
-          )
-        }
-      }
-      return
-    }
-
-    // Handle AJAX
     if (ajaxUrl) {
-      const contentEl = document.getElementById(tab)
-      // Check if already loaded or currently loading?
-      // We use this.loaded[tab] to track success.
-      if (contentEl && !this.loaded[tab]) {
-        // Loading state
-        setHTML(
-          contentEl,
-          `<div class="animate-pulse p-4 space-y-2">
-             <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-             <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-           </div>`,
-          { trusted: true, alpine: window.Alpine || window.top?.Alpine }
-        )
-
+      const panel = document.getElementById(tab)
+      if (panel && panel.getAttribute('data-tab-loaded') !== 'true') {
         try {
-          const html = await requestText(ajaxUrl, { method: 'GET' })
-          setHTML(contentEl, html, { trusted: true, alpine: window.Alpine || window.top?.Alpine })
-          contentEl.setAttribute('data-tab-loaded', 'true')
-          this.loaded[tab] = true
+          panel.innerHTML =
+            Uno.options.ui?.box?.loading ||
+            '<div class="animate-pulse bg-gray-200 h-32 w-full rounded"></div>'
 
-          // Dispatch event for listeners (e.g. HTMX)
-          contentEl.dispatchEvent(new CustomEvent('tab-loaded', { bubbles: true }))
+          const response = await fetch(ajaxUrl)
+          if (!response.ok) throw new Error('Network response was not ok')
+          const content = await response.text()
+
+          setHTML(panel, content, { trusted: false, alpine: storedAlpine || window.Alpine })
+          panel.setAttribute('data-tab-loaded', 'true')
         } catch (err) {
-          setHTML(
-            contentEl,
-            `<div class="text-red-500 p-4">Error loading content: ${err?.message || 'Unknown error'}</div>`,
-            { trusted: true }
-          )
+          panel.innerHTML = `<div class="text-red-500 p-4">Error loading content: ${err?.message || 'Unknown error'}</div>`
+        }
+      }
+    }
+
+    if (hxUrl) {
+      const panel = document.getElementById(tab)
+      if (panel && panel.getAttribute('data-tab-loaded') !== 'true') {
+        try {
+          panel.innerHTML =
+            Uno.options.ui?.box?.loading ||
+            '<div class="animate-pulse bg-gray-200 h-32 w-full rounded"></div>'
+
+          const response = await fetch(hxUrl, { headers: { 'HX-Request': 'true' } })
+          if (!response.ok) throw new Error('Network response was not ok')
+          const content = await response.text()
+
+          setHTML(panel, content, { trusted: false, alpine: storedAlpine || window.Alpine })
+          panel.setAttribute('data-tab-loaded', 'true')
+        } catch {
+          panel.innerHTML = '<div class="text-red-500 p-4">Error loading content via HTMX</div>'
         }
       }
     }
   },
 
   trigger(tab, ajaxUrl = null, hash = null, hxUrl = null) {
+    if (hash && typeof window !== 'undefined' && window.location.hash.slice(1) === hash) {
+      if (!this.activeTab) this.activeTab = tab
+    }
+
+    const baseActiveClass = Uno.getStyle('tab', 'active', 'border-b-2 border-blue-500')
+    const baseInactiveClass = Uno.getStyle('tab', 'inactive', 'text-slate-500 hover:text-slate-700')
+    const activeClass = Uno.getStyle('tab', 'triggerActive', baseActiveClass)
+    const inactiveClass = Uno.getStyle('tab', 'triggerInactive', baseInactiveClass)
+
     return {
-      ['@click.prevent']: () => this.open(tab, ajaxUrl, hash, hxUrl),
-      [':class']: () => (this.isActive(tab) ? 'current' : ''),
+      ['@click.prevent']: `open('${tab}', ${ajaxUrl ? `'${ajaxUrl}'` : 'null'}, ${hash ? `'${hash}'` : 'null'}, ${hxUrl ? `'${hxUrl}'` : 'null'})`,
+      [':class']: `isActive('${tab}') ? '${activeClass}' : '${inactiveClass}'`,
       ['role']: 'tab',
-      ['aria-selected']: () => this.isActive(tab).toString(),
+      [':aria-selected']: `isActive('${tab}') ? 'true' : 'false'`,
       ['data-tab-target']: tab,
       ['data-tab-hash']: hash || null,
       ['data-tab-url']: ajaxUrl || null,
@@ -165,17 +135,32 @@ export const factory = (defaultTab = '', options = {}) => ({
 
   panel(tab) {
     return {
-      ['x-show']: () => this.isActive(tab),
+      ['x-show']: `isActive('${tab}')`,
       ['role']: 'tabpanel',
-      ['id']: tab
+      ['id']: tab,
+      ['tabindex']: '0'
     }
   }
 })
+
+export { factory }
 
 if (typeof window !== 'undefined') {
   window.unoTabs = factory
 }
 
 export default (Alpine) => {
+  storedAlpine = Alpine
   Alpine.data('unoTabs', factory)
+
+  Uno.tab = {
+    open: (id) => {
+      const trigger = document.querySelector(`[data-tab-target="${id}"]`)
+      if (trigger) {
+        trigger.click()
+      } else {
+        window.location.hash = id
+      }
+    }
+  }
 }

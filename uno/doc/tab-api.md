@@ -34,6 +34,17 @@ The component uses `x-data="window.unoTabs(defaultTab)"` to initialize, and `x-b
 
 ## API Reference
 
+### Global API (Uno.tab)
+
+A global helper is provided for external control.
+
+#### `Uno.tab.open(id)`
+Opens the tab with the specified target ID.
+
+```javascript
+Uno.tab.open('tab-profile');
+```
+
 ### Initialization
 
 ```javascript

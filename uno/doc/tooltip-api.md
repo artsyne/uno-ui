@@ -45,6 +45,27 @@ Initialize the component using `x-data="tooltip(...)"` and bind the trigger and 
 
 ## Programmatic Usage
 
+### Global API (Uno.tooltip)
+
+The component exposes a global API for manual control.
+
+#### `Uno.tooltip.show(el, content, config)`
+Manually show a tooltip anchored to an element.
+
+```javascript
+Uno.tooltip.show(
+  document.getElementById('my-btn'), 
+  'Manual Tooltip', 
+  { placement: 'bottom' }
+);
+```
+
+#### `Uno.tooltip.hide()`
+Hides the current tooltip.
+
+#### `Uno.tooltip.updatePosition()`
+Recalculates position (useful if trigger moves).
+
 ### `tooltip(initialContent, options)`
 
 Initializes the Tooltip data object.

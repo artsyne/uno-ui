@@ -1,4 +1,7 @@
 import { VALIDATORS, buildSafeRegExp, safeParseJSON } from '../utils/validation'
+import { Uno } from '../core/uno'
+
+const regexCache = new WeakMap()
 
 /**
  * Uno - Validation Component (Data-Driven Refactor)
@@ -48,9 +51,46 @@ export default (Alpine) => {
           return await validComponent.validateAll()
         }
       }
-      return true
+    },
+    clearForm(form) {
+      if (!form) return
+      if (form._x_dataStack) {
+        const validComponent = form._x_dataStack.find((d) => d.reset)
+        if (validComponent) {
+          validComponent.reset()
+        }
+      }
     }
   })
+
+  // Expose Public API
+  const api = {
+    // Validate all forms or specific form?
+    // Mostly helper to set state manually
+    set: (el, { valid, message }) => {
+      if (el) {
+        el.dispatchEvent(
+          new CustomEvent('valid-set', {
+            detail: { valid, message, name: el.name },
+            bubbles: true
+          })
+        )
+      }
+    },
+    validate: async (target) => {
+      const form = target?.tagName === 'FORM' ? target : target?.closest?.('form')
+      return Alpine.store('valid').validateForm(form)
+    },
+    clear: (target) => {
+      const form = target?.tagName === 'FORM' ? target : target?.closest?.('form')
+      Alpine.store('valid').clearForm(form)
+    }
+  }
+
+  Uno.valid = api
+  if (typeof window !== 'undefined' && window.Uno) {
+    window.Uno.valid = api
+  }
 
   // 4. Main Data Component
   Alpine.data('validForm', () => ({
@@ -59,6 +99,39 @@ export default (Alpine) => {
     init() {
       this.$el.noValidate = true
       // Handle HTMX trigger manually if needed, but we prefer hx-trigger="valid-submit"
+
+      // Listen for manual set events from Uno.valid.set
+      this.$el.addEventListener('valid-set', (e) => {
+        const { name, valid, message } = e.detail
+        if (name && this.fields[name]) {
+          this.fields[name].valid = valid
+          this.fields[name].error = message || null
+          // If setting invalid manually, mark as touched so error shows
+          if (!valid) {
+            this.fields[name].touched = true
+          }
+        } else if (e.target && e.target.name && this.fields[e.target.name]) {
+          // Target based dispatch
+          const fieldName = e.target.name
+          this.fields[fieldName].valid = valid
+          this.fields[fieldName].error = message || null
+          if (!valid) {
+            this.fields[fieldName].touched = true
+          }
+        }
+      })
+    },
+
+    // Reset validation state (API: Uno.valid.clear)
+    reset() {
+      Object.keys(this.fields).forEach((name) => {
+        const f = this.fields[name]
+        f.error = null
+        f.valid = true
+        f.touched = false
+        f.dirty = false
+        f.validating = false
+      })
     },
 
     // Register field (called by x-validate directive)
@@ -144,12 +217,16 @@ export default (Alpine) => {
             error = ruleObj.msg || t(type) || t('pattern')
           }
         } else if (type === 'regexp' && ruleObj.expression) {
-          const cacheKey = String(ruleObj.expression)
-          if (ruleObj.__reSrc !== cacheKey) {
-            ruleObj.__re = buildSafeRegExp(cacheKey, { defaultFlags: 'i' })
-            ruleObj.__reSrc = cacheKey
+          // P2-6: WeakMap Cache for RegExp
+          let re = regexCache.get(ruleObj)
+          if (!re) {
+            const cacheKey = String(ruleObj.expression)
+            re = buildSafeRegExp(cacheKey, { defaultFlags: 'i' })
+            if (re) {
+              regexCache.set(ruleObj, re)
+            }
           }
-          const re = ruleObj.__re
+
           if (!re) error = ruleObj.msg || t('pattern')
           else if (!re.test(val)) error = ruleObj.msg || t('pattern')
         } else if (type === 'limit') {
@@ -336,27 +413,46 @@ export default (Alpine) => {
         icon.innerHTML = ''
         icon.style.opacity = '0'
 
+        const inputError = Uno.getStyle('valid', 'inputError', '!border-red-500')
+        const inputValid = Uno.getStyle('valid', 'inputValid', '!border-green-500')
+        const iconError = Uno.getStyle('valid', 'iconError', 'text-red-500 dark:text-red-400')
+        const iconValid = Uno.getStyle('valid', 'iconValid', 'text-green-500 dark:text-green-400')
+
+        // Helper to manage classes safely
+        const addClasses = (str) =>
+          str
+            .split(' ')
+            .filter(Boolean)
+            .forEach((c) => el.classList.add(c))
+        const removeClasses = (str) =>
+          str
+            .split(' ')
+            .filter(Boolean)
+            .forEach((c) => el.classList.remove(c))
+
         // Tailwind borders
         if (showError) {
-          el.classList.add('!border-red-500', 'pr-10')
-          el.classList.remove('!border-green-500')
+          addClasses(inputError)
+          el.classList.add('pr-10')
+          removeClasses(inputValid)
 
           // Set Icon
           icon.innerHTML = SVG_ICONS.invalid
-          icon.className =
-            'uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200 text-red-500 dark:text-red-400'
+          icon.className = `uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200 ${iconError}`
           icon.style.opacity = '1'
         } else if (showValid) {
-          el.classList.add('!border-green-500', 'pr-10')
-          el.classList.remove('!border-red-500')
+          addClasses(inputValid)
+          el.classList.add('pr-10')
+          removeClasses(inputError)
 
           // Set Icon
           icon.innerHTML = SVG_ICONS.valid
-          icon.className =
-            'uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200 text-green-500 dark:text-green-400'
+          icon.className = `uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200 ${iconValid}`
           icon.style.opacity = '1'
         } else {
-          el.classList.remove('!border-red-500', '!border-green-500', 'pr-10')
+          removeClasses(inputError)
+          removeClasses(inputValid)
+          el.classList.remove('pr-10')
         }
 
         // Spinner
@@ -405,8 +501,12 @@ export default (Alpine) => {
         if (error) {
           el.textContent = error
           el.style.display = 'block'
-          el.classList.add('text-red-600', 'dark:text-red-400', 'text-xs') // Default styling
-          el.classList.remove('text-gray-400')
+          const errorText = Uno.getStyle(
+            'valid',
+            'helperText',
+            'text-red-600 dark:text-red-400 text-xs'
+          )
+          el.className = errorText
         } else {
           el.style.display = 'none'
         }
