@@ -4,6 +4,15 @@
  * @module uno.utils.request
  */
 
+const requestCache = new Map()
+
+/**
+ * Clear request cache
+ */
+export function clearCache() {
+  requestCache.clear()
+}
+
 function parseHXTrigger(value) {
   const raw = String(value ?? '').trim()
   if (!raw) return []
@@ -50,8 +59,14 @@ export async function requestHTML(url, options = {}) {
     method = 'GET',
     htmxTarget,
     swap = 'innerHTML',
-    htmxConfig = {}
+    htmxConfig = {},
+    cache = false
   } = options
+
+  // Cache check for GET
+  if (cache && method === 'GET' && requestCache.has(url)) {
+    return requestCache.get(url)
+  }
 
   if (typeof window !== 'undefined' && window.htmx?.ajax) {
     const temp = htmxTarget || document.createElement('div')
@@ -64,7 +79,9 @@ export async function requestHTML(url, options = {}) {
 
     try {
       await window.htmx.ajax(method, url, { target: temp, swap, ...htmxConfig })
-      return temp.innerHTML
+      const html = temp.innerHTML
+      if (cache && method === 'GET') requestCache.set(url, html)
+      return html
     } finally {
       if (!htmxTarget) temp.remove()
     }
@@ -79,10 +96,19 @@ export async function requestData(url, options = {}) {
     headers,
     body,
     credentials = 'same-origin',
-    triggerTarget = typeof document !== 'undefined' ? document.body : null
+    triggerTarget = typeof document !== 'undefined' ? document.body : null,
+    cache = false,
+    signal // AbortSignal
   } = options
 
-  const res = await fetch(url, { method, headers, body, credentials })
+  // Cache check for GET
+  if (cache && method === 'GET' && requestCache.has(url)) {
+    // Return cached promise/result?
+    // Store result to avoid stale promise issues
+    return requestCache.get(url)
+  }
+
+  const res = await fetch(url, { method, headers, body, credentials, signal })
   applyHXTriggerHeaders(res, triggerTarget)
 
   if (!res.ok) {
@@ -92,8 +118,18 @@ export async function requestData(url, options = {}) {
   }
 
   const ct = res.headers.get('content-type') || ''
-  if (ct.includes('application/json')) return res.json()
-  return res.text()
+  let data
+  if (ct.includes('application/json')) {
+    data = await res.json()
+  } else {
+    data = await res.text()
+  }
+
+  if (cache && method === 'GET') {
+    requestCache.set(url, data)
+  }
+
+  return data
 }
 
 export async function requestText(url, options = {}) {

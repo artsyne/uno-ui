@@ -2,15 +2,20 @@
  * Uno - Tooltip Directive
  *
  * @module uno.components.tooltip
- * @version 0.2.0
+ * @version 0.2.1
  * @license MIT
  */
 
 import { calculatePosition } from '../utils/position'
 import { log } from '../utils/log'
 import { setHTML } from '../utils/dom'
+import { domManager } from '../core/dom'
 
-export default (Alpine) => {
+export default (Alpine, options = {}) => {
+  const initConfig = options.tooltip || {}
+  const getConfig = () =>
+    (typeof window !== 'undefined' && window.Uno?.options?.tooltip) || initConfig
+
   if (!Alpine) {
     log.error('Tooltip: Alpine is undefined. Plugin initialization failed.')
     return
@@ -70,26 +75,16 @@ export default (Alpine) => {
     },
 
     ensureContainer() {
-      if (!document.getElementById('uno-tooltip-container')) {
-        injectContainer()
-      }
+      injectContainer()
     }
   })
 
   // 2. Inject Global Tooltip Container
   const injectContainer = () => {
-    if (document.getElementById('uno-tooltip-container')) return
-
-    try {
-      const container = document.createElement('div')
-      container.id = 'uno-tooltip-container'
-      // Initialize as an Alpine component to ensure reactivity context if needed,
-      // though we rely on $store.
-      container.setAttribute('x-data', '{}')
-
-      container.innerHTML = `
+    const template = `
           <div id="uno-tooltip-content"
                x-show="$store.tooltip.visible"
+               role="tooltip"
                x-transition:enter="transition ease-out duration-200"
                x-transition:enter-start="opacity-0 scale-95"
                x-transition:enter-end="opacity-100 scale-100"
@@ -103,40 +98,40 @@ export default (Alpine) => {
           </div>
         `
 
-      // Prefer appending to body
-      if (document.body) {
-        document.body.appendChild(container)
-      } else {
-        document.documentElement.appendChild(container)
-      }
-    } catch (e) {
-      log.error('Tooltip: Failed to inject container', e)
-    }
+    domManager.ensureContainer('uno-tooltip-container', template, {
+      'x-data': '{}'
+    })
   }
 
-  // Eager injection to ensure container is ready
-  if (document.body) {
-    injectContainer()
-  } else {
-    document.addEventListener('DOMContentLoaded', injectContainer)
-  }
+  // Eager injection removed for P1-10 (On-demand)
+  // Container is injected when show() is called.
 
   // 3. Directive: x-tooltip
   Alpine.directive(
     'tooltip',
     (el, { expression, modifiers }, { evaluateLater, effect, cleanup }) => {
       const getExpression = evaluateLater(expression)
+
       let config = {
         content: '',
-        placement: modifiers[0] || 'top',
-        trigger: modifiers.includes('click') ? 'click' : 'hover'
+        placement: 'top',
+        trigger: 'hover'
       }
 
-      // Handle modifiers
-      if (modifiers.includes('top')) config.placement = 'top'
-      if (modifiers.includes('bottom')) config.placement = 'bottom'
-      if (modifiers.includes('left')) config.placement = 'left'
-      if (modifiers.includes('right')) config.placement = 'right'
+      const resolvePlacement = () => {
+        const configData = getConfig()
+        let placement = configData.placement || 'top'
+        if (modifiers.includes('top')) placement = 'top'
+        if (modifiers.includes('bottom')) placement = 'bottom'
+        if (modifiers.includes('left')) placement = 'left'
+        if (modifiers.includes('right')) placement = 'right'
+        return placement
+      }
+
+      const resolveTrigger = () => {
+        const configData = getConfig()
+        return modifiers.includes('click') ? 'click' : configData.trigger || 'hover'
+      }
 
       // Helper to process value
       const processValue = (val) => {
@@ -164,8 +159,15 @@ export default (Alpine) => {
       })
 
       // Event handlers
-      const show = () => Alpine.store('tooltip').show(el, config.content, config)
-      const hide = () => Alpine.store('tooltip').hide()
+      const show = () => {
+        const store = Alpine.store('tooltip')
+        el.setAttribute('aria-describedby', 'uno-tooltip-content')
+        store.show(el, config.content, { ...config, placement: resolvePlacement() })
+      }
+      const hide = () => {
+        el.removeAttribute('aria-describedby')
+        Alpine.store('tooltip').hide()
+      }
       const toggle = () => {
         const store = Alpine.store('tooltip')
         // If visible and triggered by this element, hide it
@@ -176,40 +178,59 @@ export default (Alpine) => {
         }
       }
 
-      if (config.trigger === 'click') {
-        el.addEventListener('click', toggle)
-
-        // Click outside to close
-        const clickOutside = (e) => {
-          const store = Alpine.store('tooltip')
-          const tooltipContent = document.getElementById('uno-tooltip-content')
-          if (
-            store.visible &&
-            store.triggerEl === el &&
-            !el.contains(e.target) &&
-            (!tooltipContent || !tooltipContent.contains(e.target))
-          ) {
-            store.hide()
-          }
-        }
-        window.addEventListener('click', clickOutside)
-        cleanup(() => window.removeEventListener('click', clickOutside))
-      } else {
-        el.addEventListener('mouseenter', show)
-        el.addEventListener('mouseleave', hide)
-        el.addEventListener('focus', show)
-        el.addEventListener('blur', hide)
+      const onClick = () => {
+        if (resolveTrigger() !== 'click') return
+        toggle()
       }
 
-      cleanup(() => {
-        if (config.trigger === 'click') {
-          el.removeEventListener('click', toggle)
-        } else {
-          el.removeEventListener('mouseenter', show)
-          el.removeEventListener('mouseleave', hide)
-          el.removeEventListener('focus', show)
-          el.removeEventListener('blur', hide)
+      const onMouseEnter = () => {
+        if (resolveTrigger() !== 'hover') return
+        show()
+      }
+
+      const onMouseLeave = () => {
+        if (resolveTrigger() !== 'hover') return
+        hide()
+      }
+
+      const onFocus = () => {
+        if (resolveTrigger() !== 'hover') return
+        show()
+      }
+
+      const onBlur = () => {
+        if (resolveTrigger() !== 'hover') return
+        hide()
+      }
+
+      const clickOutside = (e) => {
+        if (resolveTrigger() !== 'click') return
+        const store = Alpine.store('tooltip')
+        const tooltipContent = document.getElementById('uno-tooltip-content')
+        if (
+          store.visible &&
+          store.triggerEl === el &&
+          !el.contains(e.target) &&
+          (!tooltipContent || !tooltipContent.contains(e.target))
+        ) {
+          store.hide()
         }
+      }
+
+      el.addEventListener('click', onClick)
+      el.addEventListener('mouseenter', onMouseEnter)
+      el.addEventListener('mouseleave', onMouseLeave)
+      el.addEventListener('focus', onFocus)
+      el.addEventListener('blur', onBlur)
+      window.addEventListener('click', clickOutside)
+
+      cleanup(() => {
+        el.removeEventListener('click', onClick)
+        el.removeEventListener('mouseenter', onMouseEnter)
+        el.removeEventListener('mouseleave', onMouseLeave)
+        el.removeEventListener('focus', onFocus)
+        el.removeEventListener('blur', onBlur)
+        window.removeEventListener('click', clickOutside)
       })
     }
   )

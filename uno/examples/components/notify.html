@@ -5,27 +5,57 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Uno Notify Comprehensive Test</title>
+    <link rel="stylesheet" href="../examples.css">
+    <script src="../examples.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
     <script src="../../dist/uno.umd.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
 </head>
 
-<body class="bg-slate-50 min-h-screen pb-20" x-data>
+<body
+    class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen pb-20 transition-colors duration-200"
+    x-data>
     <!-- Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-40">
+    <header class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-40 transition-colors">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">Uno</span>
-                Notify Plugin
-            </h1>
             <div class="flex items-center gap-4">
-                <div class="text-sm text-slate-500">Switch Lang:</div>
-                <div class="flex bg-slate-100 rounded p-1">
+                <a href="../index.html"
+                    class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
+                    title="Back to Index">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </a>
+                <h1 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">Uno</span>
+                    Notify Plugin
+                </h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <button type="button" data-theme-toggle
+                    class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors"
+                    aria-label="Toggle Dark Mode">
+                    <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                    <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                        </path>
+                    </svg>
+                </button>
+                <div class="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+                <div class="text-sm text-slate-500 dark:text-slate-400">Switch Lang:</div>
+                <div class="flex bg-slate-100 dark:bg-slate-700 rounded p-1 transition-colors">
                     <button onclick="(window.Alpine||window.top.Alpine).store('i18n').setLang('en')"
-                        class="px-3 py-1 text-sm rounded hover:bg-white hover:shadow transition-all">EN</button>
+                        class="px-3 py-1 text-sm rounded hover:bg-white dark:hover:bg-slate-600 dark:text-slate-200 hover:shadow transition-all">EN</button>
                     <button onclick="(window.Alpine||window.top.Alpine).store('i18n').setLang('zh-CN')"
-                        class="px-3 py-1 text-sm rounded hover:bg-white hover:shadow transition-all">中文</button>
+                        class="px-3 py-1 text-sm rounded hover:bg-white dark:hover:bg-slate-600 dark:text-slate-200 hover:shadow transition-all">中文</button>
                 </div>
             </div>
         </div>
@@ -34,8 +64,9 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
         <!-- Introduction -->
-        <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-            <p class="text-slate-600">
+        <div
+            class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
+            <p class="text-slate-600 dark:text-slate-300">
                 The <code>notify</code> plugin provides a flexible notification system powered by a global store.
                 Use <code>$store.notify.show()</code> to trigger notifications from anywhere.
             </p>
@@ -44,39 +75,42 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
             <!-- Card 1: Standard Notifications (Top Right) -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-semibold text-slate-800">1. Standard (Top Right)</h2>
-                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Default</span>
+            <div
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+                <div
+                    class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+                    <h2 class="font-semibold text-slate-800 dark:text-white">1. Standard (Top Right)</h2>
+                    <span
+                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Default</span>
                 </div>
                 <div class="p-6 space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                         <button data-testid="btn-info" @click="$store.notify.show('Info message', { type: 'info' })"
-                            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium">
+                            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium shadow-sm">
                             Info
                         </button>
                         <button @click="$store.notify.show('Success message', { type: 'success' })"
-                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium shadow-sm">
                             Success
                         </button>
                         <button @click="$store.notify.show('Warning message', { type: 'warning' })"
-                            class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm font-medium">
+                            class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm font-medium shadow-sm">
                             Warning
                         </button>
                         <button @click="$store.notify.show('Error message', { type: 'error' })"
-                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium shadow-sm">
                             Error
                         </button>
                     </div>
-                    <div class="pt-4 border-t border-slate-100 flex gap-4">
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-700 flex gap-4 transition-colors">
                         <button data-testid="btn-sticky"
                             @click="$store.notify.show('Sticky message (click to close)', { type: 'info', timeout: 0 })"
-                            class="flex-1 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors text-sm font-medium">
+                            class="flex-1 px-4 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors text-sm font-medium shadow-sm">
                             Sticky Notification
                         </button>
                         <button data-testid="btn-progress"
                             @click="$store.notify.progress(true); setTimeout(() => $store.notify.progress(false), 3000)"
-                            class="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium">
+                            class="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium shadow-sm">
                             Test Progress Bar (3s)
                         </button>
                     </div>
@@ -84,59 +118,60 @@
             </div>
 
             <!-- Card 2: Custom Positions -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-semibold text-slate-800">2. Custom Positions</h2>
-                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Position Override</span>
+            <div
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+                <div
+                    class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+                    <h2 class="font-semibold text-slate-800 dark:text-white">2. Custom Positions</h2>
+                    <span
+                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Position
+                        Override</span>
                 </div>
                 <div class="p-6 grid grid-cols-2 gap-4">
                     <button data-testid="btn-bl"
                         @click="$store.notify.show('Bottom Left', { type: 'success', position: 'bottom-left' })"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
                         Bottom Left
                     </button>
-                    <button
-                        @click="$store.notify.show('Bottom Right', { type: 'info', position: 'bottom-right' })"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                    <button @click="$store.notify.show('Bottom Right', { type: 'info', position: 'bottom-right' })"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
                         Bottom Right
                     </button>
-                    <button
-                        @click="$store.notify.show('Top Right', { type: 'info', position: 'top-right' })"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                    <button @click="$store.notify.show('Top Right', { type: 'info', position: 'top-right' })"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
                         Top Right
                     </button>
-                    <button
-                        @click="$store.notify.show('Top Left', { type: 'warning', position: 'top-left' })"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                    <button @click="$store.notify.show('Top Left', { type: 'warning', position: 'top-left' })"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
                         Top Left
                     </button>
-                    <button
-                        @click="$store.notify.show('Top Center', { type: 'error', position: 'top-center' })"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                    <button @click="$store.notify.show('Top Center', { type: 'error', position: 'top-center' })"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
                         Top Center
                     </button>
-                    <button
-                        @click="$store.notify.show('Bottom Center', { type: 'success', position: 'bottom-center' })"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                    <button @click="$store.notify.show('Bottom Center', { type: 'success', position: 'bottom-center' })"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
                         Bottom Center
                     </button>
-                    <button
-                        @click="$store.notify.show('Center (Toast)', { type: 'info', position: 'center' })"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                    <button @click="$store.notify.show('Center (Toast)', { type: 'info', position: 'center' })"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
                         Center
                     </button>
                 </div>
             </div>
 
             <!-- Card 3: Loading Indicator -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-semibold text-slate-800">3. Loading Indicator</h2>
-                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Global</span>
+            <div
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+                <div
+                    class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+                    <h2 class="font-semibold text-slate-800 dark:text-white">3. Loading Indicator</h2>
+                    <span
+                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Global</span>
                 </div>
                 <div class="p-6 flex flex-col gap-4 items-center justify-center h-full">
                     <button @click="$store.notify.loading(true); setTimeout(() => $store.notify.loading(false), 2000)"
-                        class="px-6 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors font-medium shadow-sm">
+                        class="px-6 py-3 bg-slate-600 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-700 dark:hover:bg-slate-600 transition-colors font-medium shadow-sm">
                         Show Loading (2s)
                     </button>
                 </div>

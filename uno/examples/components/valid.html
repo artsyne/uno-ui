@@ -5,27 +5,57 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Uno Valid Data-Driven Test</title>
+    <link rel="stylesheet" href="../examples.css">
+    <script src="../examples.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
     <script src="../../dist/uno.umd.js" defer></script>
     <script src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
 </head>
 
-<body class="bg-slate-50 min-h-screen pb-20" x-data>
+<body
+    class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen pb-20 transition-colors duration-200"
+    x-data>
     <!-- Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-40">
+    <header class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-40 transition-colors">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">Uno</span>
-                Valid Plugin (Data-Driven)
-            </h1>
             <div class="flex items-center gap-4">
-                <div class="text-sm text-slate-500">Switch Lang:</div>
-                <div class="flex bg-slate-100 rounded p-1">
+                <a href="../index.html"
+                    class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
+                    title="Back to Index">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </a>
+                <h1 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">Uno</span>
+                    Valid Plugin (Data-Driven)
+                </h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <button type="button" data-theme-toggle
+                    class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors"
+                    aria-label="Toggle Dark Mode">
+                    <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                    <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                        </path>
+                    </svg>
+                </button>
+                <div class="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+                <div class="text-sm text-slate-500 dark:text-slate-400">Switch Lang:</div>
+                <div class="flex bg-slate-100 dark:bg-slate-700 rounded p-1 transition-colors">
                     <button onclick="(window.Alpine||window.top.Alpine).store('i18n').setLang('en')"
-                        class="px-3 py-1 text-sm rounded hover:bg-white hover:shadow transition-all">EN</button>
+                        class="px-3 py-1 text-sm rounded hover:bg-white dark:hover:bg-slate-600 dark:text-slate-200 hover:shadow transition-all">EN</button>
                     <button onclick="(window.Alpine||window.top.Alpine).store('i18n').setLang('zh-CN')"
-                        class="px-3 py-1 text-sm rounded hover:bg-white hover:shadow transition-all">中文</button>
+                        class="px-3 py-1 text-sm rounded hover:bg-white dark:hover:bg-slate-600 dark:text-slate-200 hover:shadow transition-all">中文</button>
                 </div>
             </div>
         </div>
@@ -34,8 +64,9 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
         <!-- Introduction -->
-        <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-            <p class="text-slate-600">
+        <div
+            class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
+            <p class="text-slate-600 dark:text-slate-300">
                 This page demonstrates the new <strong>Data-Driven</strong> validation plugin.
                 It uses <code>x-data="validForm"</code> and declarative directives like
                 <code>x-valid-error</code> and <code>x-valid-count</code>.
@@ -45,36 +76,42 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
             <!-- Card 1: Built-in Validators -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-semibold text-slate-800">1. Built-in Validators</h2>
-                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Client-side Regex</span>
+            <div
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+                <div
+                    class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+                    <h2 class="font-semibold text-slate-800 dark:text-white">1. Built-in Validators</h2>
+                    <span
+                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Client-side
+                        Regex</span>
                 </div>
                 <form x-data="validForm" @submit.prevent="submit" class="p-6 space-y-5">
                     <!-- Validname -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Username
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Username
                             <code>validname</code></label>
                         <input x-validate name="username" data-valid-type="validname" data-valid-required="true"
-                            class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="Letters, numbers, _ -" />
                         <div x-valid-error="username" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <!-- Email -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Email <code>email</code></label>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Email
+                            <code>email</code></label>
                         <input x-validate name="email" type="email" data-valid-required="true"
-                            class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="user@example.com" />
                         <div x-valid-error="email" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <!-- Mobile -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Mobile <code>mobile</code></label>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Mobile
+                            <code>mobile</code></label>
                         <input x-validate name="mobile" data-valid-type="mobile"
-                            class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="+1234567890" />
                         <div x-valid-error="mobile" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
@@ -82,18 +119,18 @@
                     <!-- URL & Domain -->
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Website
+                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Website
                                 <code>url</code></label>
                             <input x-validate name="url" type="url" data-valid-type="url"
-                                class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                                class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                 placeholder="https://..." />
                             <div x-valid-error="url" class="text-xs mt-1 h-4 transition-all"></div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Domain
+                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Domain
                                 <code>domain</code></label>
                             <input x-validate name="domain" data-valid-type="domain"
-                                class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                                class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                 placeholder="example.com" />
                             <div x-valid-error="domain" class="text-xs mt-1 h-4 transition-all"></div>
                         </div>
@@ -102,127 +139,142 @@
                     <!-- Date & Int -->
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Date <code>date</code></label>
+                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Date
+                                <code>date</code></label>
                             <input x-validate name="date" data-valid-type="date"
-                                class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                                class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                 placeholder="YYYY-MM-DD" />
                             <div x-valid-error="date" class="text-xs mt-1 h-4 transition-all"></div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Integer
+                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Integer
                                 <code>int</code></label>
                             <input x-validate name="int" data-valid-type="int"
-                                class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                                class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                 placeholder="123" />
                             <div x-valid-error="int" class="text-xs mt-1 h-4 transition-all"></div>
                         </div>
                     </div>
 
                     <button type="submit"
-                        class="w-full bg-slate-800 text-white py-2 rounded-lg hover:bg-slate-700 transition-colors">Validate
+                        class="w-full bg-slate-800 dark:bg-blue-600 text-white py-2 rounded-lg hover:bg-slate-700 dark:hover:bg-blue-700 transition-colors">Validate
                         All</button>
                 </form>
             </div>
 
             <!-- Card 2: Logic & Rules -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-semibold text-slate-800">2. Logic Rules</h2>
-                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Complex Logic</span>
+            <div
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+                <div
+                    class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+                    <h2 class="font-semibold text-slate-800 dark:text-white">2. Logic Rules</h2>
+                    <span
+                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Complex
+                        Logic</span>
                 </div>
                 <form x-data="validForm" @submit.prevent="submit" class="p-6 space-y-5">
 
                     <!-- Password & Compare -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Password <code>pwd</code> (min
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Password
+                            <code>pwd</code> (min
                             6)</label>
                         <input x-validate id="logic_pwd" name="password" type="password" data-valid-type="pwd"
                             data-valid-min="6" data-valid-required="true"
-                            class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors" />
+                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors" />
                         <div x-valid-error="password" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Confirm
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Confirm
                             <code>compareto</code></label>
                         <input x-validate name="confirm" type="password"
                             valid='[{"type":"compareto","destid":"logic_pwd","msg":"Must match password"}]'
-                            class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors" />
+                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors" />
                         <div x-valid-error="confirm" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <!-- Range -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Age <code>range</code>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Age
+                            <code>range</code>
                             (18-60)</label>
                         <input x-validate name="age"
                             valid='[{"type":"int"},{"type":"range","min":18,"max":60,"msg":"Only 18-60 allowed"}]'
-                            class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="25" />
                         <div x-valid-error="age" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <!-- Custom Regexp -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">API Key <code>regexp</code>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">API Key
+                            <code>regexp</code>
                             (A-Z0-9, len 8)</label>
                         <input x-validate name="apikey"
                             valid='[{"type":"regexp","expression":"[A-Z0-9]{8}","msg":"Must be 8 uppercase alphanumeric chars"}]'
-                            class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="ABC123XY" />
                         <div x-valid-error="apikey" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Regexp Too Long <code>regexp</code>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Regexp Too Long
+                            <code>regexp</code>
                             (guard)</label>
                         <input data-testid="regexp-too-long" x-validate name="regexp_too_long"
                             valid='[{"type":"regexp","expression":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","msg":"Pattern too long"}]'
-                            class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="Any input triggers fast fallback" />
                         <div x-valid-error="regexp_too_long" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <!-- Empty Quit -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Optional Code
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Optional Code
                             <code>emptyquit</code> + <code>int</code></label>
                         <input x-validate name="opt_code" valid='[{"type":"emptyquit"},{"type":"int"}]'
-                            class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="Empty is ok, but if filled must be int" />
                         <div x-valid-error="opt_code" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <button type="submit"
-                        class="w-full bg-slate-800 text-white py-2 rounded-lg hover:bg-slate-700 transition-colors">Validate
+                        class="w-full bg-slate-800 dark:bg-blue-600 text-white py-2 rounded-lg hover:bg-slate-700 dark:hover:bg-blue-700 transition-colors">Validate
                         Logic</button>
                 </form>
             </div>
 
             <!-- Card 3: Text Limits & Tags -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-semibold text-slate-800">3. Text Processing</h2>
-                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Limits & Tags</span>
+            <div
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+                <div
+                    class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+                    <h2 class="font-semibold text-slate-800 dark:text-white">3. Text Processing</h2>
+                    <span
+                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Limits
+                        & Tags</span>
                 </div>
                 <form x-data="validForm" @submit.prevent="submit" class="p-6 space-y-5">
 
                     <!-- Tags -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Skills <code>tag</code> (max 3,
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Skills
+                            <code>tag</code> (max 3,
                             comma sep)</label>
                         <input x-validate name="tags"
                             valid='[{"type":"tag","max":3,"mark":",","msg":"Max 3 tags allowed"}]'
-                            class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="js,css,html" />
                         <div x-valid-error="tags" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <!-- Limit with Counter (Textarea) -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Bio <code>limit</code> (max
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Bio
+                            <code>limit</code> (max
                             100)</label>
                         <textarea x-validate name="bio" valid='[{"type":"limit","max":100,"show":true}]'
-                            class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors h-24"
+                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors h-24"
                             placeholder="Tell us about yourself..."></textarea>
                         <div x-valid-count="bio"
                             class="valid-count block w-full text-xs text-gray-500 dark:text-gray-400 text-right mt-2">
@@ -231,26 +283,30 @@
 
                     <!-- Limit with Min (Input) -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Nickname <code>limit</code> (min 3,
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Nickname
+                            <code>limit</code> (min 3,
                             max 10)</label>
                         <input x-validate name="nickname"
                             valid='[{"type":"limit","min":3,"max":10,"msg":"Length must be 3-10"}]'
-                            class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="Nick" />
                         <div x-valid-error="nickname" class="text-xs mt-1 h-4 transition-all"></div>
                     </div>
 
                     <button type="submit"
-                        class="w-full bg-slate-800 text-white py-2 rounded-lg hover:bg-slate-700 transition-colors">Check
+                        class="w-full bg-slate-800 dark:bg-blue-600 text-white py-2 rounded-lg hover:bg-slate-700 dark:hover:bg-blue-700 transition-colors">Check
                         Text Rules</button>
                 </form>
             </div>
 
             <!-- Card 4: Async & HTMX -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-semibold text-slate-800">4. Async & Server</h2>
-                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Integration</span>
+            <div
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+                <div
+                    class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+                    <h2 class="font-semibold text-slate-800 dark:text-white">4. Async & Server</h2>
+                    <span
+                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Integration</span>
                 </div>
 
                 <!-- HTMX Form -->
@@ -259,12 +315,13 @@
 
                     <!-- Async Check -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Server User Check
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Server User
+                            Check
                             <code>callback</code></label>
                         <div class="relative">
                             <input x-validate id="async_user" name="username"
                                 valid='[{"type":"required"},{"type":"callback","fn":"checkUserUnique"}]'
-                                class="w-full border-slate-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors pr-10"
+                                class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors pr-10"
                                 placeholder="Try 'admin' (taken) or 'guest' (error)" />
                             <!-- Explicit error container -->
                             <div x-valid-error="username" class="text-xs mt-1 h-4 transition-all"></div>
@@ -280,7 +337,8 @@
                                 </svg>
                             </div>
                         </div>
-                        <p class="text-xs text-slate-500 mt-1">Async validates on input. 'admin' returns error, 'guest'
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Async validates on input. 'admin'
+                            returns error, 'guest'
                             returns server error simulation.</p>
                     </div>
 
@@ -292,7 +350,7 @@
                     </div>
 
                     <div id="htmx-result"
-                        class="bg-slate-50 p-3 rounded text-xs font-mono border text-slate-600 min-h-[3rem] empty:hidden">
+                        class="bg-slate-50 dark:bg-slate-900 p-3 rounded text-xs font-mono border dark:border-slate-700 text-slate-600 dark:text-slate-300 min-h-[3rem] empty:hidden">
                     </div>
                 </form>
             </div>

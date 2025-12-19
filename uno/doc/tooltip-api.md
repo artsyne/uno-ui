@@ -9,6 +9,9 @@ A lightweight, smart positioning Tooltip component built on Alpine.js.
 - **Themes**: Built-in `dark` (default) and `light` themes.
 - **Rich Content**: Supports plain text or HTML content (referenced via DOM element).
 - **High Performance**: Uses `requestAnimationFrame` for rendering optimization to prevent jitter.
+- **Accessibility**: 
+  - Adds `role="tooltip"` to content.
+  - Automatically manages `aria-describedby` on trigger element.
 
 ## Quick Start
 
@@ -111,3 +114,4 @@ By default, all HTML content (whether from `content` prop or `target` DOM) is sa
 
 - **Core Positioning**: Positioning logic reuses `src/core/positioning.js`, consistent with Box/Notify components.
 - **Debugging**: Enable debug mode in `src/core/log.js` to view positioning calculations in the console.
+- **A11y**: Ensure your trigger element is focusable (e.g., `<button>` or `tabindex="0"`) for keyboard users.

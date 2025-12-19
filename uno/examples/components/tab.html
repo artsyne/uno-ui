@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Uno Tab Comprehensive Test</title>
+    <link rel="stylesheet" href="../examples.css">
+    <script src="../examples.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
     <!-- Load Uno before Alpine so it can register on alpine:init -->
@@ -12,36 +14,63 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x"></script>
     <style type="text/tailwindcss">
         .tab-base {
-            @apply text-slate-500 hover:text-slate-700 cursor-pointer transition-colors border-b-2 border-transparent outline-none;
+            @apply text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer transition-colors border-b-2 border-transparent outline-none;
         }
 
         .tab-base[aria-selected="true"],
         .tab-base.current {
-            @apply text-blue-600 border-blue-600;
+            @apply text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400;
         }
 
         .tab-base:focus-visible {
-            @apply ring-2 ring-blue-300 ring-offset-2 rounded-sm;
+            @apply ring-2 ring-blue-300 dark:ring-blue-500 ring-offset-2 dark:ring-offset-slate-800 rounded-sm;
         }
     </style>
 </head>
 
-<body class="bg-slate-50 min-h-screen pb-20">
+<body
+    class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen pb-20 transition-colors duration-200">
 
     <!-- Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-40">
+    <header class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-40 transition-colors">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">Uno</span>
-                Tab Plugin
-            </h1>
             <div class="flex items-center gap-4">
-                <div class="text-sm text-slate-500">Switch Lang:</div>
-                <div class="flex bg-slate-100 rounded p-1">
+                <a href="../index.html"
+                    class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
+                    title="Back to Index">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </a>
+                <h1 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">Uno</span>
+                    Tab Plugin
+                </h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <button type="button" data-theme-toggle
+                    class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors"
+                    aria-label="Toggle Dark Mode">
+                    <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                    <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                        </path>
+                    </svg>
+                </button>
+                <div class="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+                <div class="text-sm text-slate-500 dark:text-slate-400">Switch Lang:</div>
+                <div class="flex bg-slate-100 dark:bg-slate-700 rounded p-1 transition-colors">
                     <button onclick="(window.Alpine||window.top.Alpine).store('i18n').setLang('en')"
-                        class="px-3 py-1 text-sm rounded hover:bg-white hover:shadow transition-all">EN</button>
+                        class="px-3 py-1 text-sm rounded hover:bg-white dark:hover:bg-slate-600 dark:text-slate-200 hover:shadow transition-all">EN</button>
                     <button onclick="(window.Alpine||window.top.Alpine).store('i18n').setLang('zh-CN')"
-                        class="px-3 py-1 text-sm rounded hover:bg-white hover:shadow transition-all">中文</button>
+                        class="px-3 py-1 text-sm rounded hover:bg-white dark:hover:bg-slate-600 dark:text-slate-200 hover:shadow transition-all">中文</button>
                 </div>
             </div>
         </div>
@@ -50,20 +79,22 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
         <!-- Introduction -->
-        <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-            <p class="text-slate-600">
+        <div
+            class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
+            <p class="text-slate-600 dark:text-slate-300">
                 The refactored <code>tab.js</code> uses <code>Alpine.data('tabs')</code>.
                 It supports declarative bindings, hash navigation, and AJAX loading.
             </p>
         </div>
 
         <!-- TEST HARNESS: Match e2e selectors -->
-        <section class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-            <h2 class="font-semibold text-slate-800 mb-4">Test Harness (Minimal)</h2>
+        <section
+            class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
+            <h2 class="font-semibold text-slate-800 dark:text-white mb-4">Test Harness (Minimal)</h2>
 
             <!-- Modern Tabs -->
-            <div class="mb-6" x-data="window.unoTabs('tab1')">
-                <div class="flex border-b mb-4" x-bind="tablist">
+            <div class="mb-6 text-slate-800 dark:text-slate-200" x-data="window.unoTabs('tab1')">
+                <div class="flex border-b dark:border-slate-700 mb-4" x-bind="tablist">
                     <button x-bind="trigger('tab1')" class="tab-base px-4 py-2">Tab 1</button>
                     <button x-bind="trigger('tab2', null, 'settings')" class="tab-base px-4 py-2">Tab 2</button>
                     <button x-bind="trigger('tab3', null, 'billing')" class="tab-base px-4 py-2">Tab 3</button>
@@ -76,8 +107,8 @@
             </div>
 
             <!-- Separated Elements + AJAX -->
-            <div class="mb-2" x-data="window.unoTabs('s-tab1')">
-                <div class="flex border-b mb-4" x-bind="tablist">
+            <div class="mb-2 text-slate-800 dark:text-slate-200" x-data="window.unoTabs('s-tab1')">
+                <div class="flex border-b dark:border-slate-700 mb-4" x-bind="tablist">
                     <button x-bind="trigger('s-tab1')" class="tab-base px-4 py-2">S-Tab 1</button>
                     <button x-bind="trigger('s-tab2')" class="tab-base px-4 py-2">S-Tab 2</button>
                     <button x-bind="trigger('s-tab3', '/examples/data/tab-content.html')"
@@ -94,14 +125,19 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
             <!-- Card 1: Standard Tabs -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-semibold text-slate-800">1. Standard Tabs</h2>
-                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Alpine API</span>
+            <div
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+                <div
+                    class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+                    <h2 class="font-semibold text-slate-800 dark:text-white">1. Standard Tabs</h2>
+                    <span
+                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Alpine
+                        API</span>
                 </div>
                 <div class="p-6" x-data="window.unoTabs('tab-profile')">
                     <!-- Tab Navigation -->
-                    <div class="flex border-b border-slate-200 mb-6" x-bind="tablist">
+                    <div class="flex border-b border-slate-200 dark:border-slate-700 mb-6 transition-colors"
+                        x-bind="tablist">
                         <button x-bind="trigger('tab-profile', null, 'profile')"
                             class="tab-base px-4 py-2 font-medium text-sm">
                             Profile
@@ -119,23 +155,28 @@
                     <!-- Tab Content -->
                     <div class="min-h-[150px]">
                         <div x-bind="panel('tab-profile')" class="space-y-2">
-                            <h3 class="font-bold text-slate-800">User Profile</h3>
-                            <p class="text-slate-600 text-sm">Manage your public profile and bio.</p>
-                            <div class="bg-blue-50 p-4 rounded text-blue-700 text-sm border border-blue-100">
+                            <h3 class="font-bold text-slate-800 dark:text-white">User Profile</h3>
+                            <p class="text-slate-600 dark:text-slate-300 text-sm">Manage your public profile and bio.
+                            </p>
+                            <div
+                                class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded text-blue-700 dark:text-blue-200 text-sm border border-blue-100 dark:border-blue-800 transition-colors">
                                 Active Tab: Profile (Hash: #profile)
                             </div>
                         </div>
                         <div x-bind="panel('tab-settings')" class="space-y-2">
-                            <h3 class="font-bold text-slate-800">Account Settings</h3>
-                            <p class="text-slate-600 text-sm">Update password and security preferences.</p>
-                            <div class="bg-green-50 p-4 rounded text-green-700 text-sm border border-green-100">
+                            <h3 class="font-bold text-slate-800 dark:text-white">Account Settings</h3>
+                            <p class="text-slate-600 dark:text-slate-300 text-sm">Update password and security
+                                preferences.</p>
+                            <div
+                                class="bg-green-50 dark:bg-green-900/30 p-4 rounded text-green-700 dark:text-green-200 text-sm border border-green-100 dark:border-green-800 transition-colors">
                                 Active Tab: Settings (Hash: #settings)
                             </div>
                         </div>
                         <div x-bind="panel('tab-billing')" class="space-y-2">
-                            <h3 class="font-bold text-slate-800">Billing Information</h3>
-                            <p class="text-slate-600 text-sm">View invoices and payment methods.</p>
-                            <div class="bg-purple-50 p-4 rounded text-purple-700 text-sm border border-purple-100">
+                            <h3 class="font-bold text-slate-800 dark:text-white">Billing Information</h3>
+                            <p class="text-slate-600 dark:text-slate-300 text-sm">View invoices and payment methods.</p>
+                            <div
+                                class="bg-purple-50 dark:bg-purple-900/30 p-4 rounded text-purple-700 dark:text-purple-200 text-sm border border-purple-100 dark:border-purple-800 transition-colors">
                                 Active Tab: Billing (Hash: #billing)
                             </div>
                         </div>
@@ -144,60 +185,63 @@
             </div>
 
             <!-- Card 2: Sidebar & AJAX -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-semibold text-slate-800">2. Sidebar & AJAX</h2>
-                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Advanced</span>
+            <div
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+                <div
+                    class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+                    <h2 class="font-semibold text-slate-800 dark:text-white">2. Sidebar & AJAX</h2>
+                    <span
+                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Advanced</span>
                 </div>
                 <div class="p-6 flex flex-col sm:flex-row gap-6"
                     x-data="window.unoTabs('side-dashboard', { manual: false })">
                     <!-- Sidebar Nav -->
                     <div class="flex flex-col space-y-1 w-full sm:w-1/3" x-bind="tablist">
                         <button x-bind="trigger('side-dashboard')"
-                            class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50">
+                            class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                             Dashboard
                         </button>
                         <button x-bind="trigger('side-reports')"
-                            class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50">
+                            class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                             Reports
                         </button>
                         <button x-bind="trigger('side-ajax', '/examples/data/tab-content.html')"
-                            class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50 flex justify-between items-center">
+                            class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50 dark:hover:bg-slate-700 flex justify-between items-center transition-colors">
                             <span>External (AJAX)</span>
                             <span class="text-xs text-slate-400">HTML</span>
                         </button>
                         <button x-bind="trigger('side-htmx', null, null, '/examples/data/tab-content-htmx.html')"
-                            class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50 flex justify-between items-center">
+                            class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50 dark:hover:bg-slate-700 flex justify-between items-center transition-colors">
                             <span>External (HTMX)</span>
                             <span class="text-xs text-orange-400">HTMX</span>
                         </button>
                     </div>
 
                     <!-- Content Area -->
-                    <div class="w-full sm:w-2/3 bg-slate-50 rounded-lg border border-slate-100 p-4 min-h-[200px]">
+                    <div
+                        class="w-full sm:w-2/3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-700 p-4 min-h-[200px] transition-colors">
                         <div x-bind="panel('side-dashboard')">
-                            <h4 class="font-bold text-slate-700 mb-2">Dashboard Overview</h4>
+                            <h4 class="font-bold text-slate-700 dark:text-slate-200 mb-2">Dashboard Overview</h4>
                             <div class="grid grid-cols-2 gap-2">
-                                <div class="bg-white p-3 rounded shadow-sm text-center">
-                                    <div class="text-2xl font-bold text-blue-600">12</div>
-                                    <div class="text-xs text-slate-500">New Tasks</div>
+                                <div
+                                    class="bg-white dark:bg-slate-800 p-3 rounded shadow-sm text-center transition-colors">
+                                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">12</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">New Tasks</div>
                                 </div>
-                                <div class="bg-white p-3 rounded shadow-sm text-center">
-                                    <div class="text-2xl font-bold text-green-600">85%</div>
-                                    <div class="text-xs text-slate-500">Completion</div>
+                                <div
+                                    class="bg-white dark:bg-slate-800 p-3 rounded shadow-sm text-center transition-colors">
+                                    <div class="text-2xl font-bold text-green-600 dark:text-green-400">85%</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Completion</div>
                                 </div>
                             </div>
                         </div>
                         <div x-bind="panel('side-reports')">
-                            <h4 class="font-bold text-slate-700 mb-2">Reports</h4>
-                            <p class="text-sm text-slate-600">Select a report type to view details.</p>
+                            <h4 class="font-bold text-slate-700 dark:text-slate-200 mb-2">Reports</h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-300">Select a report type to view details.
+                            </p>
                         </div>
-                        <div x-bind="panel('side-ajax')">
-                            <!-- Content will be loaded here -->
-                        </div>
-                        <div x-bind="panel('side-htmx')">
-                            <!-- Content will be loaded here via HTMX -->
-                        </div>
+                        <div x-bind="panel('side-ajax')"></div>
+                        <div x-bind="panel('side-htmx')"></div>
                     </div>
                 </div>
             </div>

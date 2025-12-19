@@ -11,6 +11,7 @@ A lightweight notification component built on Alpine.js, supporting multiple pos
 - **Loading State**: Supports global loading indicators (`indicator` or `progressbar`).
 - **Customizable Styles**: Uses standard Tailwind CSS classes, easy to override.
 - **Internationalization**: Supports `Alpine.store('i18n')` for loading text.
+- **Accessibility**: Uses `role="alert"` for screen readers.
 
 ## Quick Start
 

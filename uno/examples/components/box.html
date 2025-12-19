@@ -5,27 +5,54 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Uno Box Comprehensive Test</title>
+  <link rel="stylesheet" href="../examples.css">
+  <script src="../examples.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
   <script src="../../dist/uno.umd.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
 </head>
 
-<body class="bg-slate-50 min-h-screen pb-20">
+<body
+  class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen pb-20 transition-colors duration-200">
   <!-- Header -->
-  <header class="bg-white shadow-sm sticky top-0 z-40">
+  <header
+    class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-40 border-b border-slate-200 dark:border-slate-700 transition-colors duration-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-        <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">Uno</span>
-        Box Plugin
-      </h1>
       <div class="flex items-center gap-4">
-        <div class="text-sm text-slate-500">Switch Lang:</div>
-        <div class="flex bg-slate-100 rounded p-1">
+        <a href="../index.html" class="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+          title="Back to Index">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+        </a>
+        <h1 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+          <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">Uno</span>
+          Box Plugin
+        </h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <!-- Dark Mode Toggle -->
+        <button type="button" data-theme-toggle
+          class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors"
+          aria-label="Toggle Dark Mode">
+          <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+            </path>
+          </svg>
+          <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+          </svg>
+        </button>
+
+        <div class="text-sm text-slate-500 dark:text-slate-400">Switch Lang:</div>
+        <div class="flex bg-slate-100 dark:bg-slate-700 rounded p-1">
           <button onclick="(window.Alpine||window.top.Alpine).store('i18n').setLang('en')"
-            class="px-3 py-1 text-sm rounded hover:bg-white hover:shadow transition-all">EN</button>
+            class="px-3 py-1 text-sm rounded hover:bg-white dark:hover:bg-slate-600 dark:text-slate-200 hover:shadow transition-all">EN</button>
           <button onclick="(window.Alpine||window.top.Alpine).store('i18n').setLang('zh-CN')"
-            class="px-3 py-1 text-sm rounded hover:bg-white hover:shadow transition-all">中文</button>
+            class="px-3 py-1 text-sm rounded hover:bg-white dark:hover:bg-slate-600 dark:text-slate-200 hover:shadow transition-all">中文</button>
         </div>
       </div>
     </div>
@@ -34,8 +61,9 @@
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
     <!-- Introduction -->
-    <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-      <p class="text-slate-600">
+    <div
+      class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
+      <p class="text-slate-600 dark:text-slate-300">
         This page demonstrates the capabilities of the <code>box.js</code> plugin, including dialogs, confirmations,
         notifications, positioning, and content loading strategies (DOM, JSON, HTMX).
       </p>
@@ -44,233 +72,122 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
       <!-- Card 1: Basic Dialog Types -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-          <h2 class="font-semibold text-slate-800">1. Basic Types</h2>
-          <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Standard</span>
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-white">1. Basic Types</h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Standard</span>
         </div>
         <div class="p-6 space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <!-- Test: Open Dialog (center) -->
             <button data-box-type="dialog" data-box-title="Dialog Title"
               data-box-content="This is a standard dialog with some content." data-box-position="center"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm">
               Open Dialog
             </button>
             <!-- Test: Open Confirm -->
             <button data-box-type="confirm" data-box-title="Confirm Action"
               data-box-content="Are you sure you want to proceed?"
-              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium shadow-sm">
               Open Confirm
             </button>
             <button data-box-type="message" data-box-title="Information"
               data-box-content="Operation completed successfully."
-              class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
+              class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium shadow-sm">
               Message Alert
             </button>
           </div>
-          <button
-            data-testid="box-xss-trigger"
-            data-box-type="dialog"
-            data-box-title="XSS Test"
-            data-box-content="<a data-testid='box-xss-link' href='javascript:window.__UNO_BOX_XSS__=true'>Unsafe Link</a><img data-testid='box-xss-img' src='x' onerror='window.__UNO_BOX_XSS_IMG__=true' />"
-            class="w-full px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors text-sm font-medium">
+          <button data-testid="box-xss-trigger" data-box-type="dialog" data-box-title="XSS Test"
+            data-box-content="<a data-testid='box-xss-link' href='javascript:window.__UNO_BOX_XSS__=true' class='text-blue-600 dark:text-blue-400 underline'>Unsafe Link</a><img data-testid='box-xss-img' src='x' onerror='window.__UNO_BOX_XSS_IMG__=true' />"
+            class="w-full px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors text-sm font-medium shadow-sm">
             XSS Test
           </button>
-          <p class="text-xs text-slate-500">
+          <p class="text-xs text-slate-500 dark:text-slate-400">
             Basic dialogs use data attributes for title and content.
           </p>
         </div>
       </div>
 
       <!-- Card 2: Positioning -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-          <h2 class="font-semibold text-slate-800">2. Positioning</h2>
-          <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Layout</span>
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-white">2. Positioning</h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Layout</span>
         </div>
         <div class="p-6 space-y-4">
           <div class="grid grid-cols-3 gap-4 text-center">
-            <!-- Top Row -->
-            <button data-box-type="dialog" data-box-title="Top Left" data-box-content="Top Left Position"
-              data-box-position="top-left"
-              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-sm text-slate-700">Top
-              Left</button>
-            <button data-box-type="dialog" data-box-title="Top Center" data-box-content="Top Center Position"
-              data-box-position="top-center"
-              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-sm text-slate-700">Top
-              Center</button>
-            <button data-box-type="dialog" data-box-title="Top Right" data-box-content="Top Right Position"
-              data-box-position="top-right"
-              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-sm text-slate-700">Top
-              Right</button>
+            <button data-box-type="message" data-box-position="top" data-box-title="Top" data-box-content="Top Position"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Top</button>
+            <button data-box-type="message" data-box-position="top-start" data-box-title="Top Start"
+              data-box-content="Top Start"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Top
+              Start</button>
+            <button data-box-type="message" data-box-position="top-end" data-box-title="Top End"
+              data-box-content="Top End"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Top
+              End</button>
 
-            <!-- Center Row -->
-            <button data-box-type="dialog" data-box-title="Center Left" data-box-content="Center Left Position"
-              data-box-position="center-left"
-              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-sm text-slate-700">Center
-              Left</button>
-            <button data-box-type="dialog" data-box-title="Center" data-box-content="Center Position"
-              data-box-position="center"
-              class="px-3 py-2 bg-slate-800 text-white hover:bg-slate-900 rounded text-sm font-medium">Center</button>
-            <button data-box-type="dialog" data-box-title="Center Right" data-box-content="Center Right Position"
-              data-box-position="center-right"
-              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-sm text-slate-700">Center
-              Right</button>
+            <button data-box-type="message" data-box-position="center" data-box-title="Center"
+              data-box-content="Center Position"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Center</button>
+            <button data-box-type="message" data-box-position="center-start" data-box-title="Center Start"
+              data-box-content="Center Start"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Center
+              Start</button>
+            <button data-box-type="message" data-box-position="center-end" data-box-title="Center End"
+              data-box-content="Center End"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Center
+              End</button>
 
-            <!-- Bottom Row -->
-            <button data-box-type="dialog" data-box-title="Bottom Left" data-box-content="Bottom Left Position"
-              data-box-position="bottom-left"
-              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-sm text-slate-700">Bottom
-              Left</button>
-            <button data-box-type="dialog" data-box-title="Bottom Center" data-box-content="Bottom Center Position"
-              data-box-position="bottom-center"
-              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-sm text-slate-700">Bottom
-              Center</button>
-            <button data-box-type="dialog" data-box-title="Bottom Right" data-box-content="Bottom Right Position"
-              data-box-position="bottom-right"
-              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-sm text-slate-700">Bottom
-              Right</button>
+            <button data-box-type="message" data-box-position="bottom" data-box-title="Bottom"
+              data-box-content="Bottom Position"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Bottom</button>
+            <button data-box-type="message" data-box-position="bottom-start" data-box-title="Bottom Start"
+              data-box-content="Bottom Start"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Bottom
+              Start</button>
+            <button data-box-type="message" data-box-position="bottom-end" data-box-title="Bottom End"
+              data-box-content="Bottom End"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Bottom
+              End</button>
           </div>
-          <p class="text-xs text-slate-500">
-            Control dialog position using <code>data-box-position</code>. Grid layout demonstrates all 9 positions.
-          </p>
         </div>
       </div>
 
       <!-- Card 3: Content Loading -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-          <h2 class="font-semibold text-slate-800">3. Content Sources</h2>
-          <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">DOM & Remote</span>
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-white">3. Content Sources</h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Loaders</span>
         </div>
         <div class="p-6 space-y-4">
-          <div class="space-y-4">
-            <!-- Target DOM -->
-            <div>
-              <div id="box-target" class="hidden">
-                <div class="p-2">
-                  <h4 class="font-bold text-lg mb-2">Custom DOM Content</h4>
-                  <p class="text-slate-600 mb-4">This content exists in the DOM but is hidden until the dialog opens.
-                  </p>
-                  <div class="bg-yellow-50 p-3 rounded border border-yellow-100 text-yellow-800 text-sm">
-                    It supports HTML structure.
-                  </div>
-                </div>
-              </div>
-              <button data-box-type="dialog" data-box-title="DOM Target" data-box-target-id="box-target"
-                class="w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm font-medium">
-                Load from DOM ID (#box-target)
-              </button>
-            </div>
-
-            <!-- AJAX & HTMX -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <!-- Test: Ajax button -->
-              <button data-box-type="dialog" data-box-title="Remote JSON" data-box-ajax-url="/examples/data/sample.json"
-                class="w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium">
-                Fetch (JSON)
-              </button>
-
-              <!-- Test: HTMX button -->
-              <button data-box-type="dialog" data-box-title="Remote HTML (HTMX)"
-                data-box-hx-url="/examples/data/tab-content.html"
-                class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium">
-                HTMX (HTML)
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 4: Advanced Features -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-          <h2 class="font-semibold text-slate-800">4. Advanced Features</h2>
-          <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Cache & Events</span>
-        </div>
-        <div class="p-6 space-y-4">
-          <div class="grid grid-cols-1 gap-4">
-            <button data-box-type="dialog" data-box-title="Cached Dialog"
-              data-box-content="This dialog content is cached. Open network tab to verify only one request/render if using ajax."
-              data-box-cache="true" data-box-id="my-cached-box"
-              class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
-              Cached Dialog (data-box-cache="true")
-            </button>
-
-            <button onclick="openProgrammaticDialog()"
-              class="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors text-sm font-medium">
-              Programmatic Open (JS)
-            </button>
-          </div>
-          <p class="text-xs text-slate-500">
-            Programmatic control allows complex interactions via <code>Alpine.store('box').open(...)</code>.
-          </p>
-        </div>
-      </div>
-
-      <!-- Card 5: Dimensions -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-          <h2 class="font-semibold text-slate-800">5. Dimensions</h2>
-          <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Size Control</span>
-        </div>
-        <div class="p-6 space-y-4">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button onclick="openDimensionDialog(600, 400)"
-              class="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors text-sm font-medium">
-              600x400 (px props)
-            </button>
-            <button onclick="openClassDialog()"
-              class="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors text-sm font-medium">
-              880x570 (Tailwind Class)
-            </button>
-          </div>
+          <button onclick="Uno.box.dialog({title: 'AJAX Content', url: '/examples/data/sample.json'})"
+            class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm transition-colors">Load
+            JSON (AJAX)</button>
+          <button
+            onclick="Uno.box.dialog({title: 'DOM Content', content: document.getElementById('hidden-content').innerHTML})"
+            class="w-full px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 shadow-sm transition-colors">Load
+            from DOM</button>
         </div>
       </div>
 
     </div>
   </main>
 
-  <!-- Force Tailwind to generate these classes for manual testing -->
-  <div class="hidden !w-[880px] !h-[570px] w-[600px] h-[400px]"></div>
-
-  <script>
-    function openDimensionDialog(w, h) {
-      const boxStore = (window.Alpine || window.top.Alpine).store('box');
-      boxStore.open({
-        title: `Fixed ${w}x${h}`,
-        content: `Width: ${w}px, Height: ${h}px set via properties.`,
-        width: w,
-        height: h
-      });
-    }
-
-    function openClassDialog() {
-      const boxStore = (window.Alpine || window.top.Alpine).store('box');
-      boxStore.open({
-        title: 'Class Override',
-        content: 'Using !w-[880px] and !h-[570px] classes.',
-        widthClass: '!w-[880px]',
-        heightClass: '!h-[570px]'
-      });
-    }
-
-    function openProgrammaticDialog() {
-      // Assuming the box store is available via Alpine
-      const boxStore = (window.Alpine || window.top.Alpine).store('box');
-      if (boxStore) {
-        boxStore.open({
-          type: 'dialog',
-          title: 'JS Triggered',
-          content: 'This dialog was opened using JavaScript: <code>Alpine.store("box").open(...)</code>',
-          width: '400px'
-        });
-      } else {
-        alert('Alpine box store not ready yet');
-      }
-    }
-  </script>
+  <div id="hidden-content" style="display:none">
+    <div class="p-4 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded">
+      This content was hidden in the DOM.
+    </div>
+  </div>
 </body>
 
 </html>

@@ -11,6 +11,12 @@ A reusable dialog component based on Alpine.js + TailwindCSS, featuring modal ov
   - Custom classes via `widthClass`/`heightClass`/`containerClass`.
   - `contentOverflow` controls scroll behavior within the content area.
 - **Smart Caching**: Set `cache=true` + `boxId` to reuse DOM elements. Closing only hides the element. Supports manual cache clearing.
+- **Request Caching**: Set `cache=true` for `ajaxUrl` or `hxUrl` to cache responses (GET requests).
+- **Request Cancellation**: Automatically aborts pending AJAX requests when the dialog is closed.
+- **Accessibility (A11y)**:
+  - **Focus Trap**: Traps focus within the modal when open.
+  - **ARIA Roles**: Uses `role="dialog"`, `aria-modal="true"`.
+  - **Keyboard Navigation**: Close on `Escape` key.
 - **Content Loading**:
   - `content`: Static text or HTML.
   - `targetId`: Inject existing DOM elements from the page.
@@ -82,7 +88,7 @@ Alpine.store('box').clearCache()
 | `data-box-target-id`   | Content Source DOM ID     | -                                                                                           |
 | `data-box-ok-text`     | Confirm button text       | -                                                                                           |
 | `data-box-cancel-text` | Cancel button text        | -                                                                                           |
-| `data-box-cache`       | Cache DOM                 | `false` (Requires `data-box-id`)                                                            |
+| `data-box-cache`       | Cache DOM/Request         | `false`                                                                                     |
 | `data-box-id`          | Unique Identifier         | -                                                                                           |
 | `data-box-trusted`     | Trust HTML Content        | `false` (Default: sanitizes content)                                                        |
 
@@ -134,6 +140,13 @@ When using programmatic usage, you can pass these callbacks in the options objec
 
 - **Height Adaptation**: Height is auto-adaptive if not set. Flex layout is used internally to accommodate header/footer when height is fixed.
 - **AJAX Loading**: Uses Fetch API. JSON responses are pretty-printed (for debugging), and HTML responses are injected directly.
+- **Caching**: 
+  - DOM Caching: Reuse dialog instance if `boxId` is provided.
+  - Request Caching: Cache GET responses if `cache: true`.
+- **Accessibility**: 
+  - Focus is trapped within the modal.
+  - `Escape` key closes the modal (if `modal: true`).
+  - Proper ARIA roles are applied.
 
 ## Manual Testing
 

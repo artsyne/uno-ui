@@ -14,6 +14,7 @@ test.describe('Box Component', () => {
     await page.waitForLoadState('domcontentloaded')
     // Wait for Alpine and Uno to initialize
     await page.waitForFunction(() => (window as any).Alpine && (window as any).Alpine.store('i18n'))
+    await page.waitForFunction(() => (window as any).Alpine && (window as any).Alpine.store('box'))
   })
 
   test('opens dialog (center) with overlay and locks body scroll', async ({ page }) => {
@@ -40,8 +41,8 @@ test.describe('Box Component', () => {
     await expect(outer).not.toBeVisible()
   })
 
-  test('position bottom-right', async ({ page }) => {
-    const btn = page.getByText('Bottom Right')
+  test('position bottom-end', async ({ page }) => {
+    const btn = page.getByRole('button', { name: 'Bottom End' })
     await btn.click()
 
     const outer = page.locator('[id^="uno-box-outer-container"]')
@@ -49,8 +50,14 @@ test.describe('Box Component', () => {
   })
 
   test('ajax loads local json and displays content', async ({ page }) => {
-    const btn = page.getByText('Fetch (JSON)')
-    await btn.click()
+    await page.evaluate(() => {
+      const AlpineRef = (window as any).Alpine || (window as any).top?.Alpine
+      const store = AlpineRef.store('box')
+      store.open({
+        title: 'AJAX Content',
+        ajaxUrl: '/examples/data/sample.json'
+      })
+    })
 
     const content = page.locator('[id^="uno-box-content"]')
     await expect(content).toBeVisible()
@@ -58,14 +65,19 @@ test.describe('Box Component', () => {
   })
 
   test('loads content from DOM ID', async ({ page }) => {
-    const btn = page.locator('button[data-box-target-id="box-target"]')
-    await btn.click()
+    await page.evaluate(() => {
+      const AlpineRef = (window as any).Alpine || (window as any).top?.Alpine
+      const store = AlpineRef.store('box')
+      store.open({
+        title: 'DOM Target',
+        targetId: 'hidden-content',
+        trustedHTML: true
+      })
+    })
 
     const content = page.locator('[id^="uno-box-content"]')
     await expect(content).toBeVisible()
-    // Check for content inside the hidden DOM element
-    await expect(content).toContainText('Custom DOM Content')
-    await expect(content).toContainText('This content exists in the DOM')
+    await expect(content).toContainText('This content was hidden in the DOM.')
   })
 
   test('i18n toggles ok/cancel to English', async ({ page }) => {

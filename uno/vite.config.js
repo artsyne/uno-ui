@@ -16,6 +16,7 @@ export default defineConfig({
     rollupOptions: {
       external: ['alpinejs', 'htmx.org'],
       output: {
+        exports: 'named',
         globals: {
           alpinejs: 'Alpine',
           'htmx.org': 'htmx'

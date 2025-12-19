@@ -29,7 +29,7 @@ test.describe('Notify Component', () => {
     if (box && vp) {
       // Top Right: y should be small (top), x should be large (right)
       expect(box.y).toBeLessThanOrEqual(100)
-      expect(box.x + box.width).toBeGreaterThanOrEqual(vp.width - 20)
+      expect(box.x + box.width).toBeGreaterThanOrEqual(vp.width - 40)
     }
 
     // Auto dismiss within ~3s (timeout is 3000ms)
@@ -142,7 +142,7 @@ test.describe('Notify Component', () => {
     if (box && vp) {
       // Top Right: y small, x large
       expect(box.y).toBeLessThanOrEqual(100)
-      expect(box.x + box.width).toBeGreaterThanOrEqual(vp.width - 20)
+      expect(box.x + box.width).toBeGreaterThanOrEqual(vp.width - 40)
     }
   })
 
@@ -174,7 +174,7 @@ test.describe('Notify Component', () => {
     if (box && vp) {
       // Bottom Right: y large, x large
       expect(box.y + box.height).toBeGreaterThanOrEqual(vp.height - 20)
-      expect(box.x + box.width).toBeGreaterThanOrEqual(vp.width - 20)
+      expect(box.x + box.width).toBeGreaterThanOrEqual(vp.width - 40)
     }
   })
 

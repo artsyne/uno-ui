@@ -3,12 +3,13 @@
  * Built on Alpine.js and Tailwind CSS.
  *
  * @module uno
- * @version 0.1.0
+ * @version 0.3.0
  * @license MIT
  */
 
 import Alpine from 'alpinejs'
 import htmx from 'htmx.org'
+import { Uno } from './core/uno'
 import { installAlpine } from './core/i18n'
 import { log } from './utils/log'
 import tooltip from './components/tooltip'
@@ -17,75 +18,79 @@ import box from './components/box'
 import valid from './components/valid'
 import tab, { factory as unoTabsFactory } from './components/tab'
 
+// 1. Expose Dependencies & Uno Instance
 if (typeof window !== 'undefined') {
   window.Alpine = window.Alpine || Alpine
   window.htmx = window.htmx || htmx
   window.unoTabs = window.unoTabs || unoTabsFactory
+  window.Uno = Uno
 }
 
-const register = (alpine) => {
-  if (!alpine) {
-    log.error('Uno: Alpine is undefined, cannot register plugins')
-    return
-  }
-  // Check if already registered to avoid double registration
-  if (alpine.store && alpine.store('tooltip')) {
-    log.info('Uno: Plugins already registered')
-    return
-  }
+// 2. Register Built-in Plugins
+Uno.use(installAlpine).use(tooltip).use(notify).use(box).use(valid).use(tab)
 
-  log.info('Uno: Registering plugins')
-  installAlpine(alpine)
-  tooltip(alpine)
-  notify(alpine)
-  box(alpine)
-  valid(alpine)
-  tab(alpine)
+// 3. Initialization Logic
+const getWindowConfig = () => {
+  if (typeof window === 'undefined') return {}
+  const config = window.UnoConfig
+  return config && typeof config === 'object' ? config : {}
 }
 
-const init = () => {
-  const alpine = Alpine || window.Alpine
-  if (alpine) {
-    log.info('Uno: Alpine found, registering')
-    register(alpine)
-  }
+const autoInit = () => {
+  if (Uno.initialized) return
 
-  // Ensure registration happens before Alpine starts when using CDN
-  if (typeof window !== 'undefined') {
-    const previous = window.deferLoadingAlpine
-    window.deferLoadingAlpine = (start) => {
-      let started = false
-      const safeStart = () => {
-        if (started) return
-        started = true
-        start()
-      }
+  // Check for configuration on global object
+  const config = getWindowConfig()
+  log.setDebug(config.debug !== false)
 
-      try {
-        register(window.Alpine)
-      } catch {
-        /* ignore */
-      }
+  // Pass window.Alpine if available to ensure plugins use the global instance
+  Uno.init(typeof window !== 'undefined' ? window.Alpine : undefined, config)
+}
 
-      if (typeof previous === 'function' && previous !== window.deferLoadingAlpine) {
-        previous(safeStart)
-      } else {
-        safeStart()
-      }
+if (typeof window !== 'undefined') {
+  // Scenario A: CDN / Script Tag with deferLoadingAlpine
+  // Alpine waits for this callback before starting.
+  const previous = window.deferLoadingAlpine
+  window.deferLoadingAlpine = (start) => {
+    // Initialize Uno before Alpine starts
+    autoInit()
+
+    if (typeof previous === 'function') {
+      previous(start)
+    } else {
+      start()
     }
   }
 
-  // Safety: if Alpine is added later and the above hook missed
+  // Scenario B: Module / Bundle or Late Load
+  // If Alpine is already initialized or we missed the hook
   document.addEventListener('alpine:init', () => {
-    register(window.Alpine)
+    if (!Uno.initialized) {
+      const config = getWindowConfig()
+      log.setDebug(config.debug !== false)
+      if (config.debug !== false) {
+        log.info('Uno: alpine:init detected, initializing...')
+      }
+      autoInit()
+    }
   })
+
+  // Scenario C: DOMContentLoaded Fallback
+  // If Alpine is not present or something else is managing it
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!Uno.initialized && window.Alpine) {
+      autoInit()
+    }
+  })
+
+  // Scenario D: Immediate (Synchronous) Auto-Init
+  // We prioritize backward compatibility for the bundle.
+  if (!Uno.initialized && window.Alpine) {
+    const config = getWindowConfig()
+    log.setDebug(config.debug !== false)
+    log.info('Uno: Auto-initializing synchronously')
+    autoInit()
+  }
 }
 
-if (typeof window !== 'undefined' && window.__UNO_INSTALLED__) {
-  log.info('Uno: Already installed, skipping init')
-} else {
-  if (typeof window !== 'undefined') window.__UNO_INSTALLED__ = true
-  init()
-}
-
-// Do not auto-start Alpine here; use CDN to start it
+export default Uno

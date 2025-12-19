@@ -29,7 +29,6 @@ export function once(target, key) {
 }
 
 export function sanitizeHTML(html, options = {}) {
-  console.log('[Sanitize] Input:', html)
   const {
     allowedTags = [
       'b',
@@ -50,7 +49,6 @@ export function sanitizeHTML(html, options = {}) {
     ],
     allowedAttrs = { a: ['href', 'target', 'rel'], '*': ['class'] }
   } = options
-  console.log('[Sanitize] Allowed Tags:', allowedTags)
 
   const template = document.createElement('template')
   template.innerHTML = String(html ?? '')
@@ -89,7 +87,6 @@ export function sanitizeHTML(html, options = {}) {
         href.startsWith('https://') ||
         href.startsWith('http://') ||
         href.startsWith('#')
-      console.log('[Sanitize] a tag:', href, 'Safe:', isSafe)
       if (!isSafe) el.removeAttribute('href')
       if (!el.getAttribute('rel')) el.setAttribute('rel', 'noopener noreferrer')
     }
