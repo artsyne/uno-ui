@@ -10,19 +10,44 @@
 import Alpine from 'alpinejs'
 import { log } from '../utils/log'
 
+function isPlainObject(value) {
+  return Object.prototype.toString.call(value) === '[object Object]'
+}
+
+function mergeDeep(base, patch) {
+  if (!isPlainObject(base)) return isPlainObject(patch) ? { ...patch } : patch
+  if (!isPlainObject(patch)) return patch === undefined ? { ...base } : patch
+
+  const out = { ...base }
+  for (const [key, value] of Object.entries(patch)) {
+    if (isPlainObject(value) && isPlainObject(out[key])) {
+      out[key] = mergeDeep(out[key], value)
+      continue
+    }
+    if (isPlainObject(value)) {
+      out[key] = mergeDeep({}, value)
+      continue
+    }
+    out[key] = value
+  }
+  return out
+}
+
 class UnoInstance {
   constructor() {
     this.version = '0.3.0'
     this.plugins = []
     this.initialized = false
     this.options = {
-      debug: true,
+      debug: false,
       csp: {
         nonce: null // For Content Security Policy
       },
       onError: null, // Custom error handler
+      plugins: {},
       ui: {
         base: { rounded: 'rounded-lg', primary: 'bg-blue-600', shadow: 'shadow-md' },
+        layers: { boxBase: 10000, tooltipBase: 20000, notifyBase: 30000 },
         box: {},
         notify: {},
         tooltip: {},
@@ -30,6 +55,20 @@ class UnoInstance {
         valid: {}
       }
     }
+  }
+
+  _getUiValue(comp, elem) {
+    const root = this.options.ui?.[comp]
+    if (!root) return undefined
+    if (typeof elem !== 'string' || elem.indexOf('.') === -1) return root?.[elem]
+
+    const parts = elem.split('.').filter(Boolean)
+    let cur = root
+    for (const part of parts) {
+      if (cur === null || cur === undefined) return undefined
+      cur = cur[part]
+    }
+    return cur
   }
 
   /**
@@ -41,7 +80,7 @@ class UnoInstance {
    * @returns {string} Final class string
    */
   getStyle(comp, elem, defaultCls) {
-    const config = this.options.ui?.[comp]?.[elem]
+    const config = this._getUiValue(comp, elem)
 
     if (config === undefined) return defaultCls
 
@@ -58,23 +97,7 @@ class UnoInstance {
    * @param {Object} config - Global configuration object
    */
   setConfig(config) {
-    const newOptions = { ...this.options }
-
-    // Deep merge (1-level) for component configs to preserve other properties (e.g. duration)
-    Object.keys(config).forEach((key) => {
-      if (
-        typeof config[key] === 'object' &&
-        config[key] !== null &&
-        !Array.isArray(config[key]) &&
-        newOptions[key]
-      ) {
-        newOptions[key] = { ...newOptions[key], ...config[key] }
-      } else {
-        newOptions[key] = config[key]
-      }
-    })
-
-    this.options = newOptions
+    this.options = mergeDeep(this.options, config)
 
     if (this.initialized) {
       log.info('Uno configuration updated', this.options)
@@ -128,7 +151,7 @@ class UnoInstance {
       opts = alpineOrOptions || options
     }
 
-    this.options = { ...this.options, ...opts }
+    this.options = mergeDeep(this.options, opts)
 
     // Configure Logging
     log.setDebug(this.options.debug !== false)
@@ -142,7 +165,7 @@ class UnoInstance {
     this.plugins.forEach(({ plugin, options: pluginOptions }) => {
       try {
         // Merge global options with plugin-specific options from .use()
-        const mergedOptions = { ...this.options, ...pluginOptions }
+        const mergedOptions = mergeDeep(this.options, pluginOptions)
         plugin(alpine, mergedOptions)
       } catch (e) {
         log.error('Failed to load plugin', e)

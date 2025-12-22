@@ -320,7 +320,7 @@
                             <code>callback</code></label>
                         <div class="relative">
                             <input x-validate id="async_user" name="username"
-                                valid='[{"type":"required"},{"type":"callback","fn":"checkUserUnique"}]'
+                                valid='[{"type":"required"},{"type":"callback","fn":"checkUserUnique","debounce":350}]'
                                 class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors pr-10"
                                 placeholder="Try 'admin' (taken) or 'guest' (error)" />
                             <!-- Explicit error container -->
@@ -360,7 +360,7 @@
 
     <script>
         window.addEventListener('alpine:init', () => {
-            Alpine.store('valid').registerCallback('checkUserUnique', async (id, value) => {
+            const checkUserUnique = async (id, value) => {
                 if (!value) return true;
                 // Simulate network delay
                 await new Promise(r => setTimeout(r, 800));
@@ -370,7 +370,9 @@
                 if (val === 'guest') return { valid: false, message: 'Guest accounts not allowed' };
 
                 return true;
-            });
+            }
+
+            Alpine.store('valid').registerCallback('checkUserUnique', checkUserUnique);
         });
     </script>
 </body>

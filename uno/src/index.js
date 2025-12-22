@@ -11,7 +11,6 @@ import Alpine from 'alpinejs'
 import htmx from 'htmx.org'
 import { Uno } from './core/uno'
 import { installAlpine } from './core/i18n'
-import { log } from './utils/log'
 import { DomManager } from './utils/dom'
 import tooltip from './components/tooltip'
 import notify from './components/notify'
@@ -38,12 +37,6 @@ function initializeUno() {
   if (Uno.initialized) return
 
   const config = window.UnoConfig || {}
-  log.setDebug(config.debug !== false)
-
-  if (config.debug !== false) {
-    log.info('Uno: Initializing...')
-  }
-
   Uno.init(window.Alpine, config)
 }
 

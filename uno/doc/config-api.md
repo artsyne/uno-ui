@@ -43,13 +43,15 @@ Alpine.start();
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `debug` | `boolean` | `true` | Enable/Disable internal logs. Set to `false` for production. |
+| `debug` | `boolean` | `false` | Enable/Disable internal logs. Set to `false` for production. |
 | `onError` | `function` | `null` | Custom error handler callback. Receives the error object. |
-| `csp` | `object` | `undefined` | Content Security Policy settings (e.g., `{ nonce: '...' }`). |
+| `csp` | `object` | `{ nonce: null }` | Content Security Policy settings (e.g., `{ nonce: '...' }`). |
+| `plugins` | `object` | `{}` | Recommended namespace for component behavior options. |
+| `ui` | `object` | `{...}` | Style configuration for `Uno.getStyle(comp, key, fallback)`. |
 
 ## Debug Mode
 
-When `debug` is `true` (default), Uno prints lifecycle events and internal status to the console with `[Uno Info]` or `[Uno Warn]` prefixes.
+When `debug` is `true`, Uno prints lifecycle events and internal status to the console with `[Uno Info]` or `[Uno Warn]` prefixes.
 
 To disable logs in production:
 
@@ -58,3 +60,21 @@ window.UnoConfig = {
     debug: false
 };
 ```
+
+## Component Options Namespace
+
+Component behavior options are recommended to be placed under `plugins.<component>`.
+
+```html
+<script>
+  window.UnoConfig = {
+    plugins: {
+      valid: {
+        callbackDebounce: 350
+      }
+    }
+  }
+</script>
+```
+
+Backward compatibility: top-level `valid`, `tooltip`, `notify`, `box` options are still supported.

@@ -1,11 +1,15 @@
 import { Uno } from '../core/uno'
-import { once, setHTML } from '../utils/dom'
+import { escapeHTML, once, setHTML } from '../utils/dom'
+import { requestData } from '../utils/request'
 
 let storedAlpine
 
-const factory = () => ({
-  activeTab: null,
+const factory = (initialTab = null, initOptions = {}) => ({
+  activeTab: initialTab,
+  options: initOptions,
   _cleanup: [],
+  _pending: new Map(),
+  _seq: 0,
 
   init() {
     if (!once(this.$el, 'tabs_init')) return
@@ -45,6 +49,10 @@ const factory = () => ({
   },
 
   destroy() {
+    for (const pending of this._pending.values()) {
+      pending?.abortController?.abort?.()
+    }
+    this._pending.clear()
     this._cleanup.forEach((fn) => fn())
     this._cleanup = []
   },
@@ -62,44 +70,59 @@ const factory = () => ({
       }
     }
 
-    if (ajaxUrl) {
-      const panel = document.getElementById(tab)
-      if (panel && panel.getAttribute('data-tab-loaded') !== 'true') {
-        try {
-          panel.innerHTML =
-            Uno.options.ui?.box?.loading ||
-            '<div class="animate-pulse bg-gray-200 h-32 w-full rounded"></div>'
+    const url = ajaxUrl || hxUrl
+    if (!url) return
 
-          const response = await fetch(ajaxUrl)
-          if (!response.ok) throw new Error('Network response was not ok')
-          const content = await response.text()
+    const panel = document.getElementById(tab)
+    if (!panel || panel.getAttribute('data-tab-loaded') === 'true') return
 
-          setHTML(panel, content, { trusted: false, alpine: storedAlpine || window.Alpine })
-          panel.setAttribute('data-tab-loaded', 'true')
-        } catch (err) {
-          panel.innerHTML = `<div class="text-red-500 p-4">Error loading content: ${err?.message || 'Unknown error'}</div>`
-        }
-      }
-    }
+    const prev = this._pending.get(tab)
+    if (prev?.abortController) prev.abortController.abort()
 
-    if (hxUrl) {
-      const panel = document.getElementById(tab)
-      if (panel && panel.getAttribute('data-tab-loaded') !== 'true') {
-        try {
-          panel.innerHTML =
-            Uno.options.ui?.box?.loading ||
-            '<div class="animate-pulse bg-gray-200 h-32 w-full rounded"></div>'
+    const abortController = new AbortController()
+    const seq = (this._seq += 1)
+    this._pending.set(tab, { abortController, seq })
 
-          const response = await fetch(hxUrl, { headers: { 'HX-Request': 'true' } })
-          if (!response.ok) throw new Error('Network response was not ok')
-          const content = await response.text()
+    const alpine = storedAlpine || window.Alpine
 
-          setHTML(panel, content, { trusted: false, alpine: storedAlpine || window.Alpine })
-          panel.setAttribute('data-tab-loaded', 'true')
-        } catch {
-          panel.innerHTML = '<div class="text-red-500 p-4">Error loading content via HTMX</div>'
-        }
-      }
+    const rounded = Uno.getStyle('base', 'rounded', 'rounded-lg')
+    const loadingClass = Uno.getStyle(
+      'tab',
+      'loading',
+      `animate-pulse h-32 w-full ${rounded} bg-gray-200 dark:bg-slate-700`
+    )
+    const errorClass = Uno.getStyle('tab', 'error', 'p-4 text-red-600 dark:text-red-400')
+
+    setHTML(panel, `<div class="${loadingClass}"></div>`, { trusted: false, alpine })
+
+    try {
+      const data = await requestData(url, { cache: true, signal: abortController.signal })
+      const current = this._pending.get(tab)
+      if (!current || current.seq !== seq) return
+
+      const content =
+        typeof data === 'string'
+          ? data
+          : `<pre class="whitespace-pre-wrap text-sm">${escapeHTML(
+              JSON.stringify(data, null, 2)
+            )}</pre>`
+
+      setHTML(panel, content, { trusted: false, alpine })
+      panel.setAttribute('data-tab-loaded', 'true')
+    } catch (err) {
+      const current = this._pending.get(tab)
+      if (!current || current.seq !== seq) return
+      if (err?.name === 'AbortError') return
+
+      const msg = err?.message || 'Unknown error'
+      const prefix = hxUrl ? 'Error loading content via HTMX: ' : 'Error loading content: '
+      setHTML(panel, `<div class="${errorClass}">${escapeHTML(prefix)}${escapeHTML(msg)}</div>`, {
+        trusted: false,
+        alpine
+      })
+    } finally {
+      const current = this._pending.get(tab)
+      if (current && current.seq === seq) this._pending.delete(tab)
     }
   },
 

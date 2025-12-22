@@ -21,6 +21,12 @@ test.describe('Uno UI Style Customization', () => {
       })
     })
 
+    const base = await page.evaluate(() => {
+      return (window as any).Uno.options.ui.base
+    })
+    expect(base.primary).toBeTruthy()
+    expect(base.shadow).toBeTruthy()
+
     // 2. Box
     await page.evaluate(() => {
       ;(window as any).Alpine.store('box').alert('Test Box')

@@ -116,6 +116,37 @@ test.describe('Tooltip Component', () => {
     await expect(tooltipContent).not.toBeVisible()
   })
 
+  test('updates position on scroll when visible (click trigger)', async ({ page }) => {
+    const trigger = page.getByTestId('trigger-click')
+    const tooltipContent = page.locator('#uno-tooltip-content')
+
+    await trigger.scrollIntoViewIfNeeded()
+    await trigger.click()
+    await expect(tooltipContent).toBeVisible()
+
+    const before = {
+      trigger: await trigger.boundingBox(),
+      tooltip: await tooltipContent.boundingBox()
+    }
+    if (!before.trigger || !before.tooltip) throw new Error('Missing bounding box before scroll')
+
+    await page.evaluate(() => window.scrollBy(0, 240))
+    await page.evaluate(
+      () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+    )
+
+    const after = {
+      trigger: await trigger.boundingBox(),
+      tooltip: await tooltipContent.boundingBox()
+    }
+    if (!after.trigger || !after.tooltip) throw new Error('Missing bounding box after scroll')
+
+    const beforeOffsetY = before.tooltip.y - before.trigger.y
+    const afterOffsetY = after.tooltip.y - after.trigger.y
+    expect(Math.abs(afterOffsetY - beforeOffsetY)).toBeLessThan(12)
+    expect(after.tooltip.x).toBeGreaterThanOrEqual(after.trigger.x + after.trigger.width - 2)
+  })
+
   test('loads HTML content from DOM target', async ({ page }) => {
     const trigger = page.getByTestId('trigger-target')
     const tooltipContent = page.locator('#uno-tooltip-content')
@@ -129,6 +160,155 @@ test.describe('Tooltip Component', () => {
 
     const list = tooltipContent.locator('ul')
     await expect(list).toBeVisible()
+  })
+
+  test('auto flips near top edge (top -> bottom)', async ({ page }) => {
+    await page.evaluate(() => {
+      const wrap = document.createElement('div')
+      wrap.style.position = 'fixed'
+      wrap.style.left = '16px'
+      wrap.style.top = '16px'
+      wrap.style.zIndex = '999999'
+
+      const btn = document.createElement('button')
+      btn.setAttribute('data-testid', 'trigger-top-edge')
+      btn.setAttribute('x-tooltip.top', "'I flipped to bottom!'")
+      btn.textContent = 'Top Edge'
+      btn.className = 'px-3 py-2 bg-slate-800 text-white rounded'
+
+      wrap.appendChild(btn)
+      document.body.appendChild(wrap)
+
+      // @ts-ignore
+      const AlpineRef = window.Alpine || window.top.Alpine
+      AlpineRef.initTree(wrap)
+    })
+
+    const trigger = page.getByTestId('trigger-top-edge')
+    const tooltipContent = page.locator('#uno-tooltip-content')
+
+    await trigger.hover()
+    await expect(tooltipContent).toBeVisible()
+    await expect(tooltipContent).toHaveText('I flipped to bottom!')
+
+    const triggerBox = await trigger.boundingBox()
+    const tooltipBox = await tooltipContent.boundingBox()
+    if (!triggerBox || !tooltipBox) throw new Error('Missing bounding box')
+
+    expect(tooltipBox.y).toBeGreaterThanOrEqual(triggerBox.y + triggerBox.height - 1)
+  })
+
+  test('auto flips near bottom edge (bottom -> top)', async ({ page }) => {
+    await page.evaluate(() => {
+      const wrap = document.createElement('div')
+      wrap.style.position = 'fixed'
+      wrap.style.left = '16px'
+      wrap.style.bottom = '16px'
+      wrap.style.zIndex = '1'
+
+      const btn = document.createElement('button')
+      btn.setAttribute('data-testid', 'trigger-bottom-edge')
+      btn.setAttribute('x-tooltip.bottom', "'I flipped to top!'")
+      btn.textContent = 'Bottom Edge'
+      btn.className = 'px-3 py-2 bg-slate-800 text-white rounded'
+
+      wrap.appendChild(btn)
+      document.body.appendChild(wrap)
+
+      // @ts-ignore
+      const AlpineRef = window.Alpine || window.top.Alpine
+      AlpineRef.initTree(wrap)
+    })
+
+    const trigger = page.getByTestId('trigger-bottom-edge')
+    const tooltipContent = page.locator('#uno-tooltip-content')
+
+    await trigger.hover()
+    await expect(tooltipContent).toBeVisible()
+    await expect(tooltipContent).toHaveText('I flipped to top!')
+
+    const triggerBox = await trigger.boundingBox()
+    const tooltipBox = await tooltipContent.boundingBox()
+    if (!triggerBox || !tooltipBox) throw new Error('Missing bounding box')
+
+    expect(tooltipBox.y + tooltipBox.height).toBeLessThanOrEqual(triggerBox.y + 1)
+  })
+
+  test('click trigger does not show on hover', async ({ page }) => {
+    await page.evaluate(() => {
+      const btn = document.createElement('button')
+      btn.setAttribute('data-testid', 'trigger-click-only')
+      btn.setAttribute('x-tooltip.click', "'Click Only'")
+      btn.textContent = 'Click Only'
+      btn.className = 'px-3 py-2 bg-slate-800 text-white rounded'
+      document.body.appendChild(btn)
+
+      // @ts-ignore
+      const AlpineRef = window.Alpine || window.top.Alpine
+      AlpineRef.initTree(btn)
+    })
+
+    const trigger = page.getByTestId('trigger-click-only')
+    const tooltipContent = page.locator('#uno-tooltip-content')
+
+    await trigger.hover()
+    await expect(tooltipContent).not.toBeVisible()
+
+    await trigger.click()
+    await expect(tooltipContent).toBeVisible()
+    await expect(tooltipContent).toHaveText('Click Only')
+  })
+
+  test('shows on focus and hides on blur', async ({ page }) => {
+    await page.evaluate(() => {
+      const input = document.createElement('input')
+      input.setAttribute('data-testid', 'trigger-focus')
+      input.setAttribute('x-tooltip.focus', "'Focus Tip'")
+      input.className = 'border px-2 py-1'
+      document.body.appendChild(input)
+
+      // @ts-ignore
+      const AlpineRef = window.Alpine || window.top.Alpine
+      AlpineRef.initTree(input)
+    })
+
+    const trigger = page.getByTestId('trigger-focus')
+    const tooltipContent = page.locator('#uno-tooltip-content')
+
+    await trigger.focus()
+    await expect(tooltipContent).toBeVisible()
+    await expect(tooltipContent).toHaveText('Focus Tip')
+
+    await page.mouse.click(0, 0)
+    await expect(tooltipContent).not.toBeVisible()
+  })
+
+  test('disabled trigger degrades to parent wrapper for hover', async ({ page }) => {
+    await page.evaluate(() => {
+      const wrap = document.createElement('span')
+      wrap.setAttribute('data-testid', 'disabled-wrap')
+      wrap.style.display = 'inline-block'
+
+      const btn = document.createElement('button')
+      btn.disabled = true
+      btn.setAttribute('x-tooltip', "'Disabled Tooltip'")
+      btn.textContent = 'Disabled'
+      btn.className = 'px-4 py-2 bg-gray-300 text-gray-700 rounded'
+
+      wrap.appendChild(btn)
+      document.body.appendChild(wrap)
+
+      // @ts-ignore
+      const AlpineRef = window.Alpine || window.top.Alpine
+      AlpineRef.initTree(wrap)
+    })
+
+    const wrap = page.getByTestId('disabled-wrap')
+    const tooltipContent = page.locator('#uno-tooltip-content')
+
+    await wrap.hover()
+    await expect(tooltipContent).toBeVisible()
+    await expect(tooltipContent).toHaveText('Disabled Tooltip')
   })
 
   test('sanitizes dangerous HTML from DOM target', async ({ page }) => {

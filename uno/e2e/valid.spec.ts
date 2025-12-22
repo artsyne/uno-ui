@@ -140,6 +140,43 @@ test.describe('Valid Plugin (Data-Driven)', () => {
     await expect(result).toContainText('Sample Data')
   })
 
+  test('rapid async validation does not let stale results overwrite latest', async ({ page }) => {
+    const form = page.locator('form').last()
+    const username = form.locator('input[name="username"]')
+    const error = form.locator('[x-valid-error="username"]')
+    const spinner = form.locator('.animate-spin')
+
+    await page.evaluate(() => {
+      ;(window as any).Uno?.setConfig?.({ valid: { callbackDebounce: 300 } })
+      ;(window as any).__validSlowInvoked = 0
+      const store = (window as any).Alpine?.store('valid')
+      store?.registerCallback('checkUserUnique', async (_id: string, value: string) => {
+        const delayMs = value === 'slow' ? 600 : 50
+        if (value === 'slow') {
+          ;(window as any).__validSlowInvoked += 1
+        }
+        await new Promise((r) => setTimeout(r, delayMs))
+        if (value === 'slow') return { valid: false, message: 'SLOW' }
+        return true
+      })
+    })
+
+    await username.fill('slow')
+    await expect(spinner).toBeVisible()
+
+    await username.fill('fast')
+    await username.blur()
+
+    await expect(spinner).toBeHidden()
+    await expect(username).toHaveClass(/is-valid/)
+    await expect(username).not.toHaveClass(/is-invalid/)
+    await expect(error).toBeHidden()
+    await expect(error).not.toContainText('SLOW')
+
+    await page.waitForTimeout(1100)
+    await expect.poll(() => page.evaluate(() => (window as any).__validSlowInvoked)).toBe(0)
+  })
+
   test('handles invalid regex pattern gracefully', async ({ page }) => {
     const form = page.locator('form').first()
     const username = form.locator('input[name="username"]')

@@ -17,8 +17,13 @@ test.describe('Box Component', () => {
   })
 
   test('opens dialog (center) with overlay and locks body scroll', async ({ page }) => {
-    const btn = page.getByText('Open Dialog')
-    await btn.click()
+    await page.evaluate(() => {
+      ;(window as any).Alpine.store('box').open('dialog', {
+        title: 'Dialog Title',
+        content: 'This is a standard dialog with some content.',
+        position: 'center'
+      })
+    })
 
     const overlay = page.locator('[id^="uno-box-overlay"]')
     await expect(overlay).toBeVisible()
@@ -28,8 +33,12 @@ test.describe('Box Component', () => {
   })
 
   test('confirm renders buttons and closes on cancel', async ({ page }) => {
-    const btn = page.getByText('Open Confirm')
-    await btn.click()
+    await page.evaluate(() => {
+      ;(window as any).Alpine.store('box').open('confirm', {
+        title: 'Confirm Action',
+        content: 'Are you sure you want to proceed?'
+      })
+    })
 
     const outer = page.locator('[id^="uno-box-outer-container"]')
     await expect(outer).toBeVisible()
@@ -41,8 +50,13 @@ test.describe('Box Component', () => {
   })
 
   test('position bottom-end', async ({ page }) => {
-    const btn = page.getByRole('button', { name: 'Bottom End' })
-    await btn.click()
+    await page.evaluate(() => {
+      ;(window as any).Alpine.store('box').open('dialog', {
+        title: 'Bottom End',
+        content: 'Positioning test',
+        position: 'bottom-end'
+      })
+    })
 
     const outer = page.locator('[id^="uno-box-outer-container"]')
     await expect(outer).toBeVisible()
@@ -81,8 +95,12 @@ test.describe('Box Component', () => {
 
   test('i18n toggles ok/cancel to English', async ({ page }) => {
     await page.evaluate(() => (window as any).Alpine.store('i18n').setLang('en'))
-    const btn = page.getByText('Open Confirm')
-    await btn.click()
+    await page.evaluate(() => {
+      ;(window as any).Alpine.store('box').open('confirm', {
+        title: 'I18N Confirm',
+        content: 'Testing i18n'
+      })
+    })
     const ok = page.locator('[id^="uno-box-ok"]')
     const cancel = page.locator('[id^="uno-box-cancel"]')
     await expect(ok).toHaveText('OK')

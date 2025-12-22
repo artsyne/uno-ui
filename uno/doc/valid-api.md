@@ -18,20 +18,21 @@ A lightweight form validation plugin based on Alpine.js + HTMX + TailwindCSS, pr
 The simplest way is to use `data-valid-*` attributes directly on the Input element.
 
 ```html
-<form x-data="validForm()">
+<form x-data="validForm" @submit.prevent="submit">
   <div class="mb-4">
     <label class="block mb-2">Username</label>
     <!-- Required, min length 3, use built-in validname rule -->
     <input 
       type="text" 
       name="username" 
+      x-validate
       class="border p-2 w-full"
       data-valid-required="true" 
       data-valid-min="3" 
       data-valid-type="validname" 
     />
     <!-- Error container -->
-    <div class="valid-feedback text-red-500 text-sm mt-1"></div>
+    <div x-valid-error="username" class="text-red-500 text-sm mt-1"></div>
   </div>
 
   <div class="mb-4">
@@ -39,10 +40,11 @@ The simplest way is to use `data-valid-*` attributes directly on the Input eleme
     <input 
       type="email" 
       name="email" 
+      x-validate
       class="border p-2 w-full"
       data-valid-required="true" 
     />
-    <div class="valid-feedback text-red-500 text-sm mt-1"></div>
+    <div x-valid-error="email" class="text-red-500 text-sm mt-1"></div>
   </div>
 
   <button type="submit" class="bg-blue-500 text-white px-4 py-2">Submit</button>
@@ -146,6 +148,13 @@ Supports async validation logic (e.g., checking if username exists).
    ```html
    <input valid='[{"type":"callback", "fn":"checkUser"}]' ... />
    ```
+
+Optional fields:
+
+- `debounce`: Number of milliseconds to debounce async callback execution.
+  ```json
+  {"type":"callback","fn":"checkUser","debounce":300}
+  ```
 
 ## Internationalization (i18n)
 

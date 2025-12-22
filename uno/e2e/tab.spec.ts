@@ -84,6 +84,62 @@ test.describe('Tab Component', () => {
     await expect(ajaxContent).toHaveAttribute('data-tab-loaded', 'true')
   })
 
+  test('caches ajax content across manual reload (LRU)', async ({ page }) => {
+    let requestCount = 0
+    await page.route('**/examples/data/tab-content.html', async (route) => {
+      requestCount += 1
+      await route.fulfill({
+        status: 200,
+        contentType: 'text/html',
+        body: '<div>Cached Tab Content</div>'
+      })
+    })
+
+    const ajaxTab = page.locator('button[data-tab-target="s-tab3"]')
+    const ajaxContent = page.locator('#s-tab3')
+
+    await ajaxTab.click()
+    await expect(ajaxContent).toBeVisible()
+    await expect(ajaxContent).toContainText('Cached Tab Content')
+
+    await page.evaluate(() => {
+      const panel = document.getElementById('s-tab3')
+      if (panel) panel.removeAttribute('data-tab-loaded')
+    })
+
+    await ajaxTab.click()
+    await expect(ajaxContent).toContainText('Cached Tab Content')
+
+    expect(requestCount).toBe(1)
+  })
+
+  test('rapid switching does not let stale responses overwrite latest', async ({ page }) => {
+    let req = 0
+    await page.route('**/examples/data/tab-content.html', async (route) => {
+      req += 1
+      const delayMs = req === 1 ? 800 : 50
+      const body = req === 1 ? '<div>FIRST</div>' : '<div>SECOND</div>'
+      await new Promise((r) => setTimeout(r, delayMs))
+      try {
+        await route.fulfill({ status: 200, contentType: 'text/html', body })
+      } catch {
+        // Ignore fulfill errors if the request is aborted by the browser
+      }
+    })
+
+    const ajaxTab = page.locator('button[data-tab-target="s-tab3"]')
+    const otherTab = page.locator('button[data-tab-target="s-tab2"]')
+    const ajaxContent = page.locator('#s-tab3')
+
+    await ajaxTab.click()
+    await otherTab.click()
+    await ajaxTab.click()
+
+    await expect(ajaxContent).toBeVisible()
+    await expect(ajaxContent).toContainText('SECOND')
+    await expect(ajaxContent).not.toContainText('FIRST')
+  })
+
   test('perf: switch 200 times (same tab group)', async ({ page }) => {
     const durationMs = await page.evaluate(async () => {
       // @ts-ignore

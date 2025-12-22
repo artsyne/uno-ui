@@ -97,12 +97,14 @@ export async function requestHTML(url, options = {}) {
     htmxTarget,
     swap = 'innerHTML',
     htmxConfig = {},
-    cache = false
+    cache = false,
+    cacheKey
   } = options
 
   // Cache check for GET
-  if (cache && method === 'GET' && requestCache.has(url)) {
-    return requestCache.get(url)
+  const key = cacheKey || url
+  if (cache && method === 'GET' && requestCache.has(key)) {
+    return requestCache.get(key)
   }
 
   if (typeof window !== 'undefined' && window.htmx?.ajax) {
@@ -117,7 +119,7 @@ export async function requestHTML(url, options = {}) {
     try {
       await window.htmx.ajax(method, url, { target: temp, swap, ...htmxConfig })
       const html = temp.innerHTML
-      if (cache && method === 'GET') requestCache.set(url, html)
+      if (cache && method === 'GET') requestCache.set(key, html)
       return html
     } finally {
       if (!htmxTarget) temp.remove()
@@ -135,14 +137,14 @@ export async function requestData(url, options = {}) {
     credentials = 'same-origin',
     triggerTarget = typeof document !== 'undefined' ? document.body : null,
     cache = false,
+    cacheKey,
     signal // AbortSignal
   } = options
 
   // Cache check for GET
-  if (cache && method === 'GET' && requestCache.has(url)) {
-    // Return cached promise/result?
-    // Store result to avoid stale promise issues
-    return requestCache.get(url)
+  const key = cacheKey || url
+  if (cache && method === 'GET' && requestCache.has(key)) {
+    return requestCache.get(key)
   }
 
   // Unify HTMX-style request headers
@@ -170,7 +172,7 @@ export async function requestData(url, options = {}) {
   }
 
   if (cache && method === 'GET') {
-    requestCache.set(url, data)
+    requestCache.set(key, data)
   }
 
   return data

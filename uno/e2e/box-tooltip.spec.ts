@@ -12,7 +12,25 @@ test.describe('Box + Tooltip Z-Index', () => {
 
   test('Tooltip shows above Box', async ({ page }) => {
     // 1. Open Box
-    await page.getByText('Open Box').click()
+    await page.evaluate(() => {
+      ;(window as any).Alpine.store('box').open('dialog', {
+        title: 'Box with Tooltip',
+        trustedHTML: true,
+        content: `<div x-data class='p-4 space-y-4'>
+            <p class='text-slate-700 dark:text-slate-300'>Hover over the button below to see the tooltip.</p>
+            <button class='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors'
+                    x-tooltip='&quot;I should be ON TOP of the box&quot;'>
+                Hover Me
+            </button>
+            <div class='pt-4 border-t border-slate-200 dark:border-slate-700'>
+                <button class='px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors'
+                        @click='$store.notify.show(&quot;I am a notification&quot;, { type: &quot;success&quot;, timeout: 0 })'>
+                    Trigger Notify
+                </button>
+            </div>
+        </div>`
+      })
+    })
 
     const boxContainer = page.locator('[id^="uno-box-outer-container"]').first()
     await expect(boxContainer).toBeVisible()

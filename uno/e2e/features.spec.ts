@@ -82,9 +82,11 @@ test.describe('Feature: Request Cancellation', () => {
 
   test('Aborts AJAX request on close', async ({ page }) => {
     let requestState = 'none'
-    let cancelLogSeen = false
-    page.on('console', (msg) => {
-      if (msg.text().includes('Box: Request cancelled')) cancelLogSeen = true
+    let requestFailedSeen = false
+    page.on('requestfailed', (req) => {
+      if (req.url().includes('/delay/5')) {
+        requestFailedSeen = true
+      }
     })
 
     await page.route('**/delay/5', async (route) => {
@@ -122,7 +124,7 @@ test.describe('Feature: Request Cancellation', () => {
 
     await expect(dialog).not.toBeVisible()
 
-    await expect.poll(() => cancelLogSeen, { timeout: 10000 }).toBe(true)
+    await expect.poll(() => requestFailedSeen, { timeout: 10000 }).toBe(true)
   })
 })
 

@@ -14,8 +14,32 @@ import { trapFocus } from '../utils/a11y'
 import { Uno } from '../core/uno'
 
 export default (Alpine, options = {}) => {
-  const initConfig = options.box || {}
-  const getConfig = () => (typeof window !== 'undefined' && window.Uno?.options?.box) || initConfig
+  const initConfig = options.plugins?.box || options.box || {}
+  const getConfig = () => {
+    const opts = typeof window !== 'undefined' ? window.Uno?.options : Uno.options
+    return opts?.plugins?.box || opts?.box || initConfig
+  }
+  const getUi = (key, defaultCls) => Uno.getStyle('box', key, defaultCls)
+  const getErrorHTML = (message) => {
+    const cls = getUi('error', 'p-4 text-red-500')
+    return `<div class="${cls}">${escapeHTML(message)}</div>`
+  }
+
+  let rootEl = null
+  const elementCache = new Map()
+  const getCachedEl = (id, prefix) => {
+    const key = `${prefix}:${id}`
+    const cached = elementCache.get(key)
+    if (cached && typeof document !== 'undefined' && document.contains(cached)) {
+      return cached
+    }
+    const el =
+      typeof document !== 'undefined'
+        ? document.getElementById(prefix + id) || rootEl?.querySelector?.(`#${prefix + id}`)
+        : null
+    if (el) elementCache.set(key, el)
+    return el
+  }
 
   // Register Focus Trap Directive
   Alpine.directive('uno-trap', (el, { expression: _expression }, { cleanup }) => {
@@ -51,17 +75,18 @@ export default (Alpine, options = {}) => {
     },
 
     prompt(message, defaultValue = '', options = {}) {
-      // TODO: Implement prompt UI with input
       return new Promise((resolve) => {
-        // Simple fallback or custom content with input?
-        // For now, let's use a custom content with input
-        const id = 'prompt-' + Math.random().toString(36).substr(2, 9)
+        const id = 'prompt-' + Math.random().toString(36).slice(2, 11)
+        const wrapperClass = getUi('promptWrapper', 'space-y-3')
+        const textClass = getUi('promptText', 'text-slate-700 dark:text-slate-200')
+        const inputClass = getUi(
+          'promptInput',
+          'w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none'
+        )
         const content = `
-          <div class="space-y-3">
-            <p>${escapeHTML(message)}</p>
-            <input id="${id}" type="text" class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value="${escapeHTML(
-              defaultValue
-            )}">
+          <div class="${wrapperClass}">
+            <p class="${textClass}">${escapeHTML(message)}</p>
+            <input id="${id}" type="text" class="${inputClass}" value="${escapeHTML(defaultValue)}">
           </div>
         `
         this.open('confirm', {
@@ -81,6 +106,7 @@ export default (Alpine, options = {}) => {
     async open(typeOrOpts, opts = {}) {
       let type = 'dialog'
       let options = opts
+      const config = getConfig()
 
       if (typeof typeOrOpts === 'object') {
         options = typeOrOpts
@@ -102,7 +128,7 @@ export default (Alpine, options = {}) => {
             ? options.width
             : options.widthClass
               ? undefined
-              : getConfig().defaultWidth || 400,
+              : config.defaultWidth || 400,
         height: options.height,
         widthClass: options.widthClass,
         heightClass: options.heightClass,
@@ -158,7 +184,7 @@ export default (Alpine, options = {}) => {
           item.trustedHTML = true
         } else {
           log.warn('Box: Target element not found:', options.targetId)
-          item.content = '<div class="p-4 text-red-500">Error: Content target not found</div>'
+          item.content = getErrorHTML('Error: Content target not found')
           item.trustedHTML = true
         }
       } else if (options.hxUrl) {
@@ -174,7 +200,7 @@ export default (Alpine, options = {}) => {
             current.loading = false
             if (current.onContentLoad) {
               Alpine.nextTick(() => {
-                current.onContentLoad(document.getElementById('uno-box-content' + id))
+                current.onContentLoad(getCachedEl(id, 'uno-box-content'))
               })
             }
           }
@@ -184,7 +210,7 @@ export default (Alpine, options = {}) => {
           if (current) {
             current.loading = false
             current.trustedHTML = true
-            current.content = '<div class="p-4 text-red-500">Error loading content via HTMX</div>'
+            current.content = getErrorHTML('Error loading content via HTMX')
           }
         }
         return id
@@ -198,9 +224,13 @@ export default (Alpine, options = {}) => {
             cache: item.cache,
             signal: item.abortController.signal
           })
+          const preClass = getUi(
+            'ajaxPre',
+            'bg-gray-100 dark:bg-slate-800 p-3 rounded overflow-x-auto whitespace-pre-wrap'
+          )
           let content =
             typeof data === 'object'
-              ? `<pre class="bg-gray-100 p-3 rounded overflow-x-auto whitespace-pre-wrap">${JSON.stringify(data, null, 2)}</pre>`
+              ? `<pre class="${preClass}">${escapeHTML(JSON.stringify(data, null, 2))}</pre>`
               : String(data)
 
           if (!options.trustedHTML) {
@@ -214,7 +244,7 @@ export default (Alpine, options = {}) => {
             current.loading = false
 
             Alpine.nextTick(() => {
-              const el = document.getElementById('uno-box-content' + id)
+              const el = getCachedEl(id, 'uno-box-content')
               if (el) {
                 if (current.onContentLoad) {
                   current.onContentLoad(el)
@@ -225,19 +255,20 @@ export default (Alpine, options = {}) => {
         } catch (e) {
           if (e.name === 'AbortError') {
             log.info('Box: Request cancelled')
-            return
+            return id
           }
           log.error('Box: Ajax failed', e)
           const current = this.items.find((i) => i.id === id)
           if (current) {
-            current.content = `<div class="text-red-500">Error loading content</div>`
+            current.content = getErrorHTML('Error loading content')
             current.trustedHTML = true
             current.loading = false
           }
         }
         return id
       } else if (options.iframeUrl) {
-        item.content = `<iframe frameborder="0" class="w-full h-full" src="${escapeHTML(options.iframeUrl)}"></iframe>`
+        const iframeClass = getUi('iframe', 'w-full h-full')
+        item.content = `<iframe frameborder="0" class="${iframeClass}" src="${escapeHTML(options.iframeUrl)}"></iframe>`
         item.trustedHTML = true
       }
 
@@ -260,6 +291,7 @@ export default (Alpine, options = {}) => {
 
         if (item.onBeforeClose) item.onBeforeClose()
         this.items = this.items.filter((i) => i.id !== id)
+        elementCache.delete(`uno-box-content:${id}`)
         if (item.onClose) item.onClose()
       }
     },
@@ -270,10 +302,14 @@ export default (Alpine, options = {}) => {
         if (item.abortController) item.abortController.abort()
       })
       this.items = []
+      elementCache.clear()
     },
 
     getPositionClass(position) {
-      const base = 'fixed inset-0 flex transition-opacity duration-300 p-4 pointer-events-none'
+      const base = getUi(
+        'positionBase',
+        'fixed inset-0 flex transition-opacity duration-300 p-4 pointer-events-none'
+      )
       const alignment = getFlexAlignmentClass(position)
       return `${base} ${alignment}`
     },
@@ -285,10 +321,16 @@ export default (Alpine, options = {}) => {
 
   // 2. Container Injection
   const injectContainer = () => {
-    // Template
-    // Removed x-safe-html, using x-html directly as we sanitize in store.
+    if (typeof document !== 'undefined' && document.getElementById('uno-box-container')) return
 
-    const { rounded, shadow, primary } = Uno.options.ui.base
+    const rounded = Uno.getStyle('base', 'rounded', 'rounded-lg')
+    const shadow = Uno.getStyle('base', 'shadow', 'shadow-md')
+    const primary = Uno.getStyle('base', 'primary', 'bg-blue-600')
+
+    let zBase = Number(Uno.options.ui?.layers?.boxBase ?? 10000)
+    if (!Number.isFinite(zBase)) zBase = 10000
+    let zStep = Number(Uno.options.ui?.layers?.boxStep ?? 1)
+    if (!Number.isFinite(zStep) || zStep <= 0) zStep = 1
 
     // Overlay
     const overlayDefault =
@@ -306,11 +348,41 @@ export default (Alpine, options = {}) => {
     const okDefault = `px-4 py-2 ${primary} border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`
     const okClass = Uno.getStyle('box', 'okBtn', okDefault)
 
+    const headerDefault =
+      'flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700'
+    const headerClass = getUi('header', headerDefault)
+
+    const titleDefault = 'text-lg font-semibold text-slate-800 dark:text-slate-200'
+    const titleClass = getUi('title', titleDefault)
+
+    const closeBtnDefault = 'text-slate-400 hover:text-slate-500 focus:outline-none'
+    const closeBtnClass = getUi('closeBtn', closeBtnDefault)
+    const closeBtnFloatingDefault =
+      'absolute top-2 right-2 z-10 text-slate-400 hover:text-slate-500 focus:outline-none'
+    const closeBtnFloatingClass = getUi('closeBtnFloating', closeBtnFloatingDefault)
+
+    const closeIconDefault = 'h-6 w-6'
+    const closeIconClass = getUi('closeIcon', closeIconDefault)
+    const closeIconSmallDefault = 'h-5 w-5'
+    const closeIconSmallClass = getUi('closeIconSmall', closeIconSmallDefault)
+
+    const contentWrapperDefault = 'p-4 overflow-auto flex-1 text-slate-600 dark:text-slate-300'
+    const contentWrapperClass = getUi('content', contentWrapperDefault)
+
+    const loadingWrapDefault = 'flex justify-center items-center h-full'
+    const loadingWrapClass = getUi('loadingWrap', loadingWrapDefault)
+    const spinnerDefault = 'animate-spin h-8 w-8 text-blue-500'
+    const spinnerClass = getUi('spinner', spinnerDefault)
+
+    const footerDefault =
+      'p-4 border-t border-slate-200 dark:border-slate-700 flex justify-end space-x-3 bg-slate-50 dark:bg-slate-800'
+    const footerClass = getUi('footer', footerDefault)
+
     const template = `
       <template x-for="(item, index) in $store.box.items" :key="item.id">
           <div :id="'uno-box-outer-container' + item.id"
                :class="$store.box.getPositionClass(item.position)"
-               :style="\`z-index: \${10000 + index}\`"
+               :style="\`z-index: \${${zBase} + (index * ${zStep})}\`"
                role="dialog"
                aria-modal="true"
                @keydown.escape.window="if(item.modal) $store.box.close(item.id)">
@@ -343,11 +415,14 @@ export default (Alpine, options = {}) => {
                     tabindex="-1">
                     
                     <!-- Header -->
-                    <div :id="'uno-box-header' + item.id" x-show="item.title" class="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700">
-                        <h3 :id="'uno-box-title' + item.id" class="text-lg font-semibold text-slate-800 dark:text-slate-200" x-text="item.title"></h3>
-                        <button :id="'uno-box-close' + item.id" @click="$store.box.close(item.id)" class="text-slate-400 hover:text-slate-500 focus:outline-none">
+                    <div :id="'uno-box-header' + item.id" x-show="item.title" class="${headerClass}">
+                        <h3 :id="'uno-box-title' + item.id" class="${titleClass}" x-text="item.title"></h3>
+                        <button :id="'uno-box-close' + item.id"
+                                x-show="item.showCloseButton"
+                                @click="$store.box.close(item.id)"
+                                class="${closeBtnClass}">
                             <span class="sr-only">Close</span>
-                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="${closeIconClass}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
@@ -357,16 +432,17 @@ export default (Alpine, options = {}) => {
                     <button x-show="!item.title && item.showCloseButton" 
                             :id="'uno-box-close' + item.id"
                             @click="$store.box.close(item.id)" 
-                            class="absolute top-2 right-2 z-10 text-slate-400 hover:text-slate-500 focus:outline-none">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            class="${closeBtnFloatingClass}">
+                        <span class="sr-only">Close</span>
+                        <svg class="${closeIconSmallClass}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
 
                     <!-- Content -->
-                    <div :id="'uno-box-wrapper' + item.id" class="p-4 overflow-auto flex-1 text-slate-600 dark:text-slate-300">
-                        <div x-show="item.loading" class="flex justify-center items-center h-full">
-                            <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <div :id="'uno-box-wrapper' + item.id" class="${contentWrapperClass}">
+                        <div x-show="item.loading" class="${loadingWrapClass}">
+                            <svg class="${spinnerClass}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
@@ -375,7 +451,7 @@ export default (Alpine, options = {}) => {
                     </div>
 
                     <!-- Footer -->
-                    <div :id="'uno-box-footer' + item.id" x-show="item.showOk || item.showCancel" class="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-end space-x-3 bg-slate-50 dark:bg-slate-800">
+                    <div :id="'uno-box-footer' + item.id" x-show="item.showOk || item.showCancel" class="${footerClass}">
                         <button :id="'uno-box-cancel' + item.id"
                                 x-show="item.showCancel"
                                 @click="item.onCancel ? (item.onCancel(), $store.box.close(item.id)) : $store.box.close(item.id)"
@@ -400,51 +476,13 @@ export default (Alpine, options = {}) => {
           </div>
       </template>
     `
-    domManager.ensureContainer('uno-box-container', template, {
+    rootEl = domManager.ensureContainer('uno-box-container', template, {
       'x-data': '{}'
     })
   }
 
   // Eager injection removed for P1-10 (On-demand)
   // Container is injected when open() is called.
-
-  // Global delegator for data-box-type (backward compatibility / ease of use)
-  if (once(document, 'uno:box:delegator')) {
-    document.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-box-type]')
-      if (!t) return
-
-      const type = t.getAttribute('data-box-type')
-      if (!['dialog', 'confirm', 'message'].includes(type)) return
-
-      e.preventDefault()
-
-      // Parse data attributes
-      const d = t.dataset
-      const opts = {
-        title: d.boxTitle,
-        content: d.boxContent,
-        width: d.boxWidth ? parseInt(d.boxWidth) : undefined,
-        height: d.boxHeight ? parseInt(d.boxHeight) : undefined,
-        ajaxUrl: d.boxAjaxUrl,
-        hxUrl: d.boxHxUrl,
-        iframeUrl: d.boxIframeUrl,
-        targetId: d.boxTargetId,
-        position: d.boxPosition,
-        okButtonText: d.boxOkText,
-        cancelButtonText: d.boxCancelText,
-        overlayOpacity: d.boxOverlayOpacity ? parseFloat(d.boxOverlayOpacity) : undefined,
-        showCloseButton: d.boxShowClose !== 'false',
-        boxId: d.boxId,
-        cache: d.boxCache === 'true',
-        trustedHTML: d.boxTrusted === 'true'
-      }
-
-      if (d.boxModal === 'false') opts.modal = false
-
-      Alpine.store('box').open(type, opts)
-    })
-  }
 
   // HTMX Integration: Re-initialize Alpine on swapped content
   // This ensures that if HTMX is used within a box (or anywhere), Alpine components are initialized.

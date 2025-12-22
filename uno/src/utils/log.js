@@ -6,7 +6,7 @@
  * @license MIT
  */
 
-let isDebug = true
+let isDebug = false
 let errorReporter = null
 
 /**
@@ -34,27 +34,37 @@ export const log = {
    * @param {...any} args - Arguments to log
    */
   info(...args) {
-    if (isDebug) console.log('[Uno Info]', ...args)
+    if (!isDebug) return
+    if (typeof console !== 'undefined' && typeof console.log === 'function') {
+      console.log('[Uno Info]', ...args)
+    }
   },
   /**
    * Log warning message
    * @param {...any} args - Arguments to log
    */
   warn(...args) {
-    console.warn('[Uno Warn]', ...args)
+    if (!isDebug) return
+    if (typeof console !== 'undefined' && typeof console.warn === 'function') {
+      console.warn('[Uno Warn]', ...args)
+    }
   },
   /**
    * Log error message
    * @param {...any} args - Arguments to log
    */
   error(...args) {
-    console.error('[Uno Error]', ...args)
     if (errorReporter) {
       try {
         errorReporter(...args)
       } catch (e) {
-        console.error('[Uno Error] Reporter failed:', e)
+        if (isDebug && typeof console !== 'undefined' && typeof console.error === 'function') {
+          console.error('[Uno Error] Reporter failed:', e)
+        }
       }
+    }
+    if (isDebug && typeof console !== 'undefined' && typeof console.error === 'function') {
+      console.error('[Uno Error]', ...args)
     }
   }
 }

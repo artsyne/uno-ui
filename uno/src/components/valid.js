@@ -1,7 +1,55 @@
 import { VALIDATORS, buildSafeRegExp, safeParseJSON } from '../utils/validation'
 import { Uno } from '../core/uno'
+import { log } from '../utils/log'
+import en from '../locales/en'
 
 const regexCache = new WeakMap()
+const DEBOUNCE_CANCELLED = Symbol('uno.valid.debounce.cancelled')
+
+const splitClasses = (cls) =>
+  String(cls || '')
+    .split(/\s+/)
+    .filter(Boolean)
+
+const applyClasses = (el, cls, enabled) => {
+  if (!el) return
+  for (const c of splitClasses(cls)) {
+    if (enabled) el.classList.add(c)
+    else el.classList.remove(c)
+  }
+}
+
+const formatTemplate = (str, vars = {}) =>
+  String(str ?? '').replace(/\{(\w+)\}/g, (_, k) => (k in vars ? String(vars[k]) : `{${k}}`))
+
+const debounceAsyncByKey = (field, key, delayMs, fn) => {
+  if (!field) return fn()
+  if (!field._debounceMap) field._debounceMap = new Map()
+
+  const map = field._debounceMap
+  const prev = map.get(key)
+  if (prev) {
+    clearTimeout(prev.timer)
+    prev.resolve(DEBOUNCE_CANCELLED)
+    map.delete(key)
+  }
+
+  const ms = Math.max(0, Number(delayMs) || 0)
+  if (ms === 0) return fn()
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(async () => {
+      map.delete(key)
+      try {
+        const out = await fn()
+        resolve(out)
+      } catch (e) {
+        reject(e)
+      }
+    }, ms)
+    map.set(key, { timer, resolve })
+  })
+}
 
 /**
  * Uno - Validation Component (Data-Driven Refactor)
@@ -21,18 +69,14 @@ export default (Alpine) => {
   // 2. Helper: I18n
   const t = (key, vars) => {
     const s = Alpine.store('i18n')
-    if (!s) return key
-    // Fallback messages if store translation missing
-    const defaults = {
-      required: 'Required',
-      pattern: 'Invalid format',
-      min: `At least ${vars?.n} characters`,
-      max: `Max ${vars?.n} characters`,
-      int: 'Integer required',
-      email: 'Invalid email address',
-      url: 'Invalid URL'
+    const fullKey = `valid.${key}`
+    if (s && typeof s.t === 'function') {
+      const out = s.t(fullKey, vars)
+      if (out !== fullKey) return out
     }
-    return s.t(`valid.${key}`, vars) || defaults[key] || key
+    const fallback = en?.valid?.[key]
+    if (typeof fallback === 'string') return formatTemplate(fallback, vars)
+    return fullKey
   }
 
   // 3. Global Store for Async Callbacks
@@ -51,6 +95,7 @@ export default (Alpine) => {
           return await validComponent.validateAll()
         }
       }
+      return false
     },
     clearForm(form) {
       if (!form) return
@@ -124,18 +169,56 @@ export default (Alpine) => {
 
     // Reset validation state (API: Uno.valid.clear)
     reset() {
+      const stateInvalid = Uno.getStyle('valid', 'stateInvalid', 'is-invalid')
+      const stateValid = Uno.getStyle('valid', 'stateValid', 'is-valid')
+      const stateValidating = Uno.getStyle('valid', 'stateValidating', 'validating')
+      const inputError = Uno.getStyle('valid', 'inputError', '!border-red-500')
+      const inputValid = Uno.getStyle('valid', 'inputValid', '!border-green-500')
+      const inputPaddingIcon = Uno.getStyle('valid', 'inputPaddingIcon', 'pr-10')
+
       Object.keys(this.fields).forEach((name) => {
         const f = this.fields[name]
+        f._validationSeq += 1
         f.error = null
         f.valid = true
         f.touched = false
         f.dirty = false
         f.validating = false
+
+        if (f._debounceMap) {
+          for (const v of f._debounceMap.values()) {
+            clearTimeout(v.timer)
+            v.resolve(DEBOUNCE_CANCELLED)
+          }
+          f._debounceMap.clear()
+        }
+
+        applyClasses(f.el, stateInvalid, false)
+        applyClasses(f.el, stateValid, false)
+        applyClasses(f.el, stateValidating, false)
+        applyClasses(f.el, inputError, false)
+        applyClasses(f.el, inputValid, false)
+        applyClasses(f.el, inputPaddingIcon, false)
+
+        if (f.icon) {
+          f.icon.innerHTML = ''
+          f.icon.style.opacity = '0'
+        }
+        if (f.spinner) {
+          f.spinner.style.display = ''
+        }
+
+        const wrapper = f.wrapper || f.el?.closest?.('.uno-input-wrapper')
+        if (wrapper) {
+          wrapper.querySelectorAll('[data-valid-error-for]').forEach((n) => {
+            if (n.getAttribute('data-valid-error-for') === name) n.remove()
+          })
+        }
       })
     },
 
     // Register field (called by x-validate directive)
-    register(name, el, rules = []) {
+    register(name, el, rules = [], meta = null) {
       if (this.fields[name]) return
 
       // Initial rules processing
@@ -156,15 +239,32 @@ export default (Alpine) => {
         fieldRules.push({ type: 'regexp', expression: el.dataset.validPattern })
       }
 
+      for (const r of fieldRules) {
+        const ruleObj = typeof r === 'object' && r ? r : null
+        if (
+          ruleObj?.type === 'compareto' &&
+          typeof ruleObj.destid === 'string' &&
+          !ruleObj._destEl
+        ) {
+          const dest = document.getElementById(ruleObj.destid)
+          ruleObj._destEl = dest || null
+          ruleObj._destResolved = true
+        }
+      }
+
       this.fields[name] = {
         el,
+        wrapper: meta?.wrapper || null,
+        icon: meta?.icon || null,
+        spinner: meta?.spinner || null,
         rules: fieldRules,
         value: el.value,
         error: null,
         valid: true,
         dirty: false,
         touched: false,
-        validating: false
+        validating: false,
+        _validationSeq: 0
       }
     },
 
@@ -188,6 +288,7 @@ export default (Alpine) => {
       const field = this.fields[name]
       if (!field) return true
 
+      const seq = (field._validationSeq += 1)
       field.validating = true
       field.error = null
 
@@ -236,18 +337,28 @@ export default (Alpine) => {
             error = ruleObj.msg || t('max', { n: ruleObj.max })
         } else if (type === 'range') {
           const n = parseFloat(val)
-          if (ruleObj.min !== undefined && n < ruleObj.min)
-            error = ruleObj.msg || `Min ${ruleObj.min}`
-          if (ruleObj.max !== undefined && n > ruleObj.max)
-            error = ruleObj.msg || `Max ${ruleObj.max}`
+          if (
+            ruleObj.min !== undefined &&
+            ruleObj.max !== undefined &&
+            (n < ruleObj.min || n > ruleObj.max)
+          )
+            error = ruleObj.msg || t('range', { min: ruleObj.min, max: ruleObj.max })
+          else if (ruleObj.min !== undefined && n < ruleObj.min)
+            error = ruleObj.msg || t('rangeMin', { n: ruleObj.min })
+          else if (ruleObj.max !== undefined && n > ruleObj.max)
+            error = ruleObj.msg || t('rangeMax', { n: ruleObj.max })
         } else if (type === 'compareto') {
-          const dest = document.getElementById(ruleObj.destid)
-          if (dest && val !== dest.value) error = ruleObj.msg || 'Not match'
+          if (!ruleObj._destResolved && typeof ruleObj.destid === 'string') {
+            ruleObj._destEl = document.getElementById(ruleObj.destid) || null
+            ruleObj._destResolved = true
+          }
+          const dest = ruleObj._destEl
+          if (dest && val !== dest.value) error = ruleObj.msg || t('compareto')
         } else if (type === 'tag') {
           const mark = ruleObj.mark || ','
           const parts = val.split(mark).filter((s) => s.trim())
           if (ruleObj.max && parts.length > ruleObj.max)
-            error = ruleObj.msg || `Max ${ruleObj.max} items`
+            error = ruleObj.msg || t('tagMax', { n: ruleObj.max })
         }
 
         if (error) break
@@ -257,14 +368,26 @@ export default (Alpine) => {
           const cb = Alpine.store('valid').callbacks[ruleObj.fn]
           if (cb) {
             try {
-              const res = await cb(field.el.id, val)
+              const delayMs = Number.isFinite(ruleObj.debounce)
+                ? ruleObj.debounce
+                : Number.isFinite(Uno.options?.plugins?.valid?.callbackDebounce)
+                  ? Uno.options.plugins.valid.callbackDebounce
+                  : Number.isFinite(Uno.options?.valid?.callbackDebounce)
+                    ? Uno.options.valid.callbackDebounce
+                    : 300
+              const res = await debounceAsyncByKey(field, `callback:${ruleObj.fn}`, delayMs, () =>
+                cb(field.el.id, val)
+              )
+              if (res === DEBOUNCE_CANCELLED) return field.valid
+              if (field._validationSeq !== seq) return field.valid
               if (res === false || (typeof res === 'object' && res.valid === false)) {
-                error = (typeof res === 'object' ? res.message : '') || 'Invalid'
+                error = (typeof res === 'object' ? res.message : '') || ruleObj.msg || t('callback')
               } else if (typeof res === 'string') {
                 error = res
               }
-            } catch {
-              // console.warn('Async validation failed')
+            } catch (err) {
+              log.warn('[Uno.valid] Async validation failed', err)
+              error = ruleObj.msg || t('callback')
             }
           }
         }
@@ -272,6 +395,7 @@ export default (Alpine) => {
         if (error) break
       }
 
+      if (field._validationSeq !== seq) return field.valid
       field.error = error
       field.valid = !error
       field.validating = false
@@ -321,35 +445,70 @@ export default (Alpine) => {
     const name = el.getAttribute('name')
     if (!name) return
 
+    const wrapperCls = Uno.getStyle('valid', 'wrapper', 'relative w-full')
+    const iconBaseCls = Uno.getStyle(
+      'valid',
+      'iconBase',
+      'absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200'
+    )
+    const inputError = Uno.getStyle('valid', 'inputError', '!border-red-500')
+    const inputValid = Uno.getStyle('valid', 'inputValid', '!border-green-500')
+    const iconError = Uno.getStyle('valid', 'iconError', 'text-red-500 dark:text-red-400')
+    const iconValid = Uno.getStyle('valid', 'iconValid', 'text-green-500 dark:text-green-400')
+    const stateInvalid = Uno.getStyle('valid', 'stateInvalid', 'is-invalid')
+    const stateValid = Uno.getStyle('valid', 'stateValid', 'is-valid')
+    const stateValidating = Uno.getStyle('valid', 'stateValidating', 'validating')
+    const inputPaddingIcon = Uno.getStyle('valid', 'inputPaddingIcon', 'pr-10')
+
     // Ensure DOM Structure (Wrapper + Icon)
     const setupDom = () => {
       // Check if already wrapped
       let wrapper = el.parentNode
       if (!wrapper.classList.contains('uno-input-wrapper')) {
         wrapper = document.createElement('div')
-        wrapper.className = 'relative w-full uno-input-wrapper' // w-full to match typical input width
+        wrapper.className = 'uno-input-wrapper'
+        applyClasses(wrapper, wrapperCls, true)
 
         // Insert wrapper before input
         el.parentNode.insertBefore(wrapper, el)
         // Move input inside wrapper
         wrapper.appendChild(el)
+      } else {
+        applyClasses(wrapper, wrapperCls, true)
       }
 
       // Check if icon exists
       let icon = wrapper.querySelector('.uno-valid-icon')
       if (!icon) {
         icon = document.createElement('div')
-        icon.className =
-          'uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200'
+        icon.className = `uno-valid-icon ${iconBaseCls}`
         icon.style.opacity = '0'
         wrapper.appendChild(icon)
+      } else {
+        icon.className = `uno-valid-icon ${iconBaseCls}`
       }
 
       return { wrapper, icon }
     }
 
     // Initialize DOM structure immediately to prevent layout shifts/focus loss later
-    const { icon } = setupDom()
+    const { wrapper, icon } = setupDom()
+
+    let spinner = null
+    let sibling = wrapper.nextElementSibling
+    let checks = 0
+    while (sibling && checks < 3) {
+      if (sibling.nodeType === 1) {
+        if (sibling.classList.contains('animate-spin')) {
+          spinner = sibling
+        } else {
+          spinner = sibling.querySelector('.animate-spin')
+        }
+        if (spinner) break
+      }
+      sibling = sibling.nextElementSibling
+      checks++
+    }
 
     // Get Data Scope
     // We assume x-validate is used within x-data="validForm"
@@ -358,34 +517,39 @@ export default (Alpine) => {
     // Parse Rules from attribute
     let rules = []
     const validAttr = el.getAttribute('valid')
-    if (validAttr) rules = safeParseJSON(validAttr)
+    if (validAttr) {
+      const parsed = safeParseJSON(validAttr)
+      rules = Array.isArray(parsed) ? parsed : []
+    }
+
+    const limitRule = rules.find(
+      (r) => (r.type === 'limit' || r === 'limit') && typeof r === 'object'
+    )
+    const limitMax = limitRule?.max
+    const limitShowClip = limitRule?.show === true && Number.isFinite(limitMax)
 
     // Register Loop
     // We use effect to ensure we register when data is ready (sometimes init takes a tick)
+    let dataRef = null
     effect(() => {
       const data = Alpine.$data(el)
       if (data && typeof data.register === 'function') {
-        data.register(name, el, rules)
+        dataRef = data
+        data.register(name, el, rules, { wrapper, icon, spinner })
       }
     })
 
     // Events
     const onInput = () => {
-      const data = Alpine.$data(el)
-      if (data && data.update) data.update(name, el.value)
-
-      // Handle Limit/Count Logic (Clipping)
-      if (rules.find((r) => (r.type === 'limit' || r === 'limit') && r.show === true)) {
-        const limitRule = rules.find((r) => r.type === 'limit' || r === 'limit')
-        if (limitRule && limitRule.max && el.value.length > limitRule.max) {
-          el.value = el.value.substring(0, limitRule.max)
-          if (data && data.update) data.update(name, el.value)
-        }
+      const data = dataRef || Alpine.$data(el)
+      if (limitShowClip && limitMax && el.value.length > limitMax) {
+        el.value = el.value.substring(0, limitMax)
       }
+      if (data && data.update) data.update(name, el.value)
     }
 
     const onBlur = () => {
-      const data = Alpine.$data(el)
+      const data = dataRef || Alpine.$data(el)
       if (data && data.touch) data.touch(name)
     }
 
@@ -395,7 +559,7 @@ export default (Alpine) => {
     // UI Effect (Classes & Styles)
     // Keeping this for "Plugin" ease-of-use, so user doesn't need verbose :class bindings
     effect(() => {
-      const data = Alpine.$data(el)
+      const data = dataRef || Alpine.$data(el)
       if (data && data.fields && data.fields[name]) {
         const field = data.fields[name]
         // Usually we show error after touch or dirty+invalid
@@ -405,78 +569,42 @@ export default (Alpine) => {
         const showValid = field.valid && field.dirty && !field.error
 
         // Classes on Input
-        el.classList.toggle('is-invalid', showError)
-        el.classList.toggle('is-valid', showValid)
-        el.classList.toggle('validating', field.validating)
+        applyClasses(el, stateInvalid, showError)
+        applyClasses(el, stateValid, showValid)
+        applyClasses(el, stateValidating, field.validating)
 
         // Reset icon state
         icon.innerHTML = ''
         icon.style.opacity = '0'
 
-        const inputError = Uno.getStyle('valid', 'inputError', '!border-red-500')
-        const inputValid = Uno.getStyle('valid', 'inputValid', '!border-green-500')
-        const iconError = Uno.getStyle('valid', 'iconError', 'text-red-500 dark:text-red-400')
-        const iconValid = Uno.getStyle('valid', 'iconValid', 'text-green-500 dark:text-green-400')
-
-        // Helper to manage classes safely
-        const addClasses = (str) =>
-          str
-            .split(' ')
-            .filter(Boolean)
-            .forEach((c) => el.classList.add(c))
-        const removeClasses = (str) =>
-          str
-            .split(' ')
-            .filter(Boolean)
-            .forEach((c) => el.classList.remove(c))
-
         // Tailwind borders
         if (showError) {
-          addClasses(inputError)
-          el.classList.add('pr-10')
-          removeClasses(inputValid)
+          applyClasses(el, inputError, true)
+          applyClasses(el, inputValid, false)
+          applyClasses(el, inputPaddingIcon, true)
 
           // Set Icon
           icon.innerHTML = SVG_ICONS.invalid
-          icon.className = `uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200 ${iconError}`
+          icon.className = `uno-valid-icon ${iconBaseCls} ${iconError}`
           icon.style.opacity = '1'
         } else if (showValid) {
-          addClasses(inputValid)
-          el.classList.add('pr-10')
-          removeClasses(inputError)
+          applyClasses(el, inputValid, true)
+          applyClasses(el, inputError, false)
+          applyClasses(el, inputPaddingIcon, true)
 
           // Set Icon
           icon.innerHTML = SVG_ICONS.valid
-          icon.className = `uno-valid-icon absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200 ${iconValid}`
+          icon.className = `uno-valid-icon ${iconBaseCls} ${iconValid}`
           icon.style.opacity = '1'
         } else {
-          removeClasses(inputError)
-          removeClasses(inputValid)
-          el.classList.remove('pr-10')
+          applyClasses(el, inputError, false)
+          applyClasses(el, inputValid, false)
+          applyClasses(el, inputPaddingIcon, false)
         }
 
         // Spinner
         // Since we wrapped the input, we need to look outside the wrapper for the spinner.
         // It might be the next sibling, or the one after (e.g. if error container is in between).
-        const wrapper = el.parentNode
-        let sibling = wrapper.nextElementSibling
-        let spinner = null
-        let checks = 0
-
-        while (sibling && checks < 3) {
-          if (sibling.nodeType === 1) {
-            // Element node
-            if (sibling.classList.contains('animate-spin')) {
-              spinner = sibling
-            } else {
-              spinner = sibling.querySelector('.animate-spin')
-            }
-            if (spinner) break
-          }
-          sibling = sibling.nextElementSibling
-          checks++
-        }
-
         if (spinner) spinner.style.display = field.validating ? 'block' : ''
       }
     })
@@ -508,6 +636,7 @@ export default (Alpine) => {
           )
           el.className = errorText
         } else {
+          el.textContent = ''
           el.style.display = 'none'
         }
       }

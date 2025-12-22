@@ -4,13 +4,11 @@ A reusable dialog component based on Alpine.js + TailwindCSS, featuring modal ov
 
 ## Features
 
-- **Modal & Overlay**: Supports `modal` mode, automatically locks body scroll when open, and restores it on close. Stackable modals are supported.
-- **Flexible Positioning**: Supports 9 positions: `center`, `top`, `bottom`, `top-right`, `bottom-right`, `top-left`, `bottom-left`, `top-center`, `bottom-center`.
+- **Modal & Overlay**: Supports `modal` overlay mode. Stackable dialogs are supported (z-index increases by order).
+- **Flexible Positioning**: Supports 9 positions: `center`, `top-left`, `top-center`, `top-right`, `center-left`, `center-right`, `bottom-left`, `bottom-center`, `bottom-right`.
 - **Size & Responsiveness**:
-  - Direct `width`/`height` settings.
+  - `width`/`height` numeric settings (px).
   - Custom classes via `widthClass`/`heightClass`/`containerClass`.
-  - `contentOverflow` controls scroll behavior within the content area.
-- **Smart Caching**: Set `cache=true` + `boxId` to reuse DOM elements. Closing only hides the element. Supports manual cache clearing.
 - **Request Caching**: Set `cache=true` for `ajaxUrl` or `hxUrl` to cache responses (GET requests).
 - **Request Cancellation**: Automatically aborts pending AJAX requests when the dialog is closed.
 - **Accessibility (A11y)**:
@@ -24,85 +22,88 @@ A reusable dialog component based on Alpine.js + TailwindCSS, featuring modal ov
   - `hxUrl`: HTMX content loading (uses `htmx.ajax`).
   - `iframeUrl`: Embed an Iframe.
 - **Buttons & Interaction**:
-  - Three presets: `dialog`, `confirm`, `message`.
-  - Button text supports i18n.
-  - Lifecycle events: `onBeforeOpen`, `onOpen`, `onBeforeClose`, `onClose`, `onContentLoad`.
-  - Button alignment: `buttonAlign` (left/center/right).
-- **Declarative Usage**: Quickly use via `data-box-type` and `data-box-*` attributes without writing JS.
-- **Internationalization**: Supports `Alpine.store('i18n')` for text (`box.ok`, `box.cancel`, `box.loading`, `box.close`).
+  - Presets: `dialog`, `confirm` (internally also supports `message` type via `open()`).
+  - Button text supports i18n fallbacks (`box.ok`, `box.cancel`).
+  - Callbacks: `onOk`, `onCancel`, `onBeforeClose`, `onClose`, `onContentLoad`.
 
 ## Quick Start
 
-### Declarative Configuration (HTML Attributes)
+### Minimal (JS)
 
-The simplest way is to use `data-box-*` attributes directly on a button to trigger the dialog.
+```javascript
+// Confirm
+const ok = await Uno.box.confirm('Are you sure?')
 
-```html
-<button
-  data-box-type="confirm"
-  data-box-title="Confirm Action"
-  data-box-content="Are you sure you want to proceed?"
-  data-box-position="center"
-  data-box-button-align="right"
-  class="btn btn-primary"
->
-  Open Confirm
-</button>
+// Alert
+Uno.box.alert('Saved!')
 ```
 
 ## Programmatic Usage
 
-You can invoke the dialog programmatically via `Alpine.store('box')`.
+You can invoke the dialog programmatically via `Uno.box` or `Alpine.store('box')`.
 
 ```javascript
-// Open Dialog
-Alpine.store('box').dialog({
+// Open dialog via global API
+Uno.box.dialog({
   title: 'System Notice',
   content: 'Operation Successful',
   position: 'top-center',
-  width: '400px',
-  // Callback events
-  onClose: () => console.log('Closed')
+  width: 400,
+  onClose: () => console.log('Closed'),
 })
 
-// Clear Cache
-Alpine.store('box').clearCache()
+// Low-level control via store
+Alpine.store('box').open('confirm', {
+  content: 'Delete this item?',
+  onOk: () => console.log('confirmed'),
+})
 ```
 
 ## Configuration / Options
 
-### Data Attributes (Declarative)
+### Options Object (for `open()` / `Uno.box.dialog()`)
 
-| Attribute              | Description               | Default / Options                                                                           |
-| ---------------------- | ------------------------- | ------------------------------------------------------------------------------------------- |
-| `data-box-type`        | Dialog type               | `dialog`, `confirm`, `message`                                                              |
-| `data-box-title`       | Title text                | -                                                                                           |
-| `data-box-content`     | Content text/HTML         | -                                                                                           |
-| `data-box-modal`       | Show overlay              | `true`                                                                                      |
-| `data-box-position`    | Screen position           | `center` (default), `top`, `bottom`, `top-right`, `bottom-right`, `top-left`, `bottom-left` |
-| `data-box-width`       | Width (px/rem)            | -                                                                                           |
-| `data-box-height`      | Height (px/rem)           | Auto-adaptive                                                                               |
-| `data-box-ajax-url`    | AJAX URL                  | -                                                                                           |
-| `data-box-hx-url`      | HTMX URL (uses htmx.ajax) | -                                                                                           |
-| `data-box-iframe-url`  | Iframe URL                | -                                                                                           |
-| `data-box-target-id`   | Content Source DOM ID     | -                                                                                           |
-| `data-box-ok-text`     | Confirm button text       | -                                                                                           |
-| `data-box-cancel-text` | Cancel button text        | -                                                                                           |
-| `data-box-cache`       | Cache DOM/Request         | `false`                                                                                     |
-| `data-box-id`          | Unique Identifier         | -                                                                                           |
-| `data-box-trusted`     | Trust HTML Content        | `false` (Default: sanitizes content)                                                        |
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `type` | `'dialog' \| 'confirm' \| 'message'` | `'dialog'` | Dialog type (only used when calling `open(opts)`). |
+| `title` | `string` | `''` | Dialog title text. |
+| `content` | `string` | `''` | Dialog content (text/HTML). |
+| `trustedHTML` | `boolean` | `false` | If `false`, `content` is sanitized before render. |
+| `position` | `string` | `'center'` | One of the 9 supported positions. |
+| `width` | `number` | `400` | Width in px (ignored if `widthClass` set). |
+| `height` | `number` | `undefined` | Height in px. |
+| `widthClass` | `string` | `undefined` | Extra width class. |
+| `heightClass` | `string` | `undefined` | Extra height class. |
+| `containerClass` | `string` | `undefined` | Extra container class. |
+| `modal` | `boolean` | `true` | Whether to show overlay. |
+| `overlayOpacity` | `number` | `0.5` | Overlay opacity. |
+| `showCloseButton` | `boolean` | `true` | Whether to show close button. |
+| `showOkButton` | `boolean` | `false` | Show OK button for `dialog` type. |
+| `showCancelButton` | `boolean` | `false` | Show Cancel button for `dialog` type. |
+| `okButtonText` | `string` | i18n/`OK` | OK button text. |
+| `cancelButtonText` | `string` | i18n/`Cancel` | Cancel button text. |
+| `onOk` | `() => (void \| boolean \| Promise<boolean>)` | `undefined` | Return `false` to prevent close. |
+| `onCancel` | `() => void` | `undefined` | Called before close when clicking cancel button. |
+| `onBeforeClose` | `() => void` | `undefined` | Called before closing. |
+| `onClose` | `() => void` | `undefined` | Called after closing. |
+| `onContentLoad` | `(contentEl: HTMLElement \| null) => void` | `undefined` | Called after async content is inserted. |
+| `cache` | `boolean` | `false` | Enable GET response cache for `ajaxUrl` / `hxUrl`. |
+| `boxId` | `string` | random | Identifier of the box instance. |
+| `targetId` | `string` | `undefined` | Use `innerHTML` from an existing DOM element. |
+| `ajaxUrl` | `string` | `undefined` | Load content via request helper (JSON is rendered as `<pre>`). |
+| `hxUrl` | `string` | `undefined` | Load HTML via request helper (prefers `htmx.ajax` if available). |
+| `iframeUrl` | `string` | `undefined` | Embed an iframe (URL is escaped). |
 
 ## Security & HTMX
 
 ### Content Sanitization
-All content loaded via `content`, `ajax-url`, or `hx-url` is sanitized by default.
-- Use `data-box-trusted="true"` (or `trusted: true` in JS) to bypass sanitization for trusted content.
+All content loaded via `content`, `ajaxUrl`, or `hxUrl` is sanitized by default.
+- Use `trustedHTML: true` in JS to bypass sanitization for trusted content.
 - Dangerous tags (`script`, `iframe`, etc.) are stripped unless trusted.
 
 ### HTMX Integration
-- **Unified Request**: `ajax-url` and `hx-url` both use `Uno.request`, which prioritizes `htmx.ajax` if available.
+- **Unified Request**: `ajax-url` and `hx-url` both use internal request helpers (`requestHTML/requestData`), which prefer `htmx.ajax` if available.
 - **HX-Trigger**: Responses can trigger client-side events via the `HX-Trigger` header.
-- **CSRF**: Requests automatically include CSRF tokens if `htmx.config.request` is configured.
 
 ## Internationalization (i18n)
 
@@ -111,8 +112,6 @@ The component relies on `Alpine.store('i18n')` for multi-language support.
 - **Keys**:
   - `box.ok`: Confirm button text.
   - `box.cancel`: Cancel button text.
-  - `box.loading`: Loading text.
-  - `box.close`: Close button aria-label.
 
 ## Events & API
 
@@ -122,8 +121,6 @@ When using programmatic usage, you can pass these callbacks in the options objec
 
 #### Lifecycle
 
-- `onBeforeOpen`: Fired before the dialog opens.
-- `onOpen`: Fired after the dialog is fully open.
 - `onBeforeClose`: Fired before the dialog closes.
 - `onClose`: Fired after the dialog is closed.
 - `onContentLoad`: Fired after AJAX or HTMX content has been loaded and inserted into the DOM. Receives the content element as an argument. Useful for initializing scripts or HTMX on the new content.
@@ -140,9 +137,7 @@ When using programmatic usage, you can pass these callbacks in the options objec
 
 - **Height Adaptation**: Height is auto-adaptive if not set. Flex layout is used internally to accommodate header/footer when height is fixed.
 - **AJAX Loading**: Uses Fetch API. JSON responses are pretty-printed (for debugging), and HTML responses are injected directly.
-- **Caching**: 
-  - DOM Caching: Reuse dialog instance if `boxId` is provided.
-  - Request Caching: Cache GET responses if `cache: true`.
+- **Caching**: Cache GET responses if `cache: true`.
 - **Accessibility**: 
   - Focus is trapped within the modal.
   - `Escape` key closes the modal (if `modal: true`).

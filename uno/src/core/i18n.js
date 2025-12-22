@@ -9,6 +9,7 @@
 import en from '../locales/en'
 import zhCN from '../locales/zh-CN'
 import zhTW from '../locales/zh-TW'
+import { log } from '../utils/log'
 
 const initialMessages = {
   en,
@@ -78,7 +79,7 @@ export function installAlpine(Alpine) {
 
     setLang(lang) {
       if (!this.messages[lang]) {
-        console.warn(`[Uno] Language ${lang} not found`)
+        log.warn(`[Uno] Language ${lang} not found`)
         return
       }
       this.locale = lang

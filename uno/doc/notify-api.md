@@ -4,7 +4,7 @@ A lightweight notification component built on Alpine.js, supporting multiple pos
 
 ## Features
 
-- **Multi-Position**: `top-left`, `top-right`, `bottom-left`, `bottom-right`, `top-center`, `bottom-center`, `center`, `top`, `bottom`.
+- **Multi-Position**: `top-left`, `top-center`, `top-right`, `center-left`, `center`, `center-right`, `bottom-left`, `bottom-center`, `bottom-right`.
 - **Message Types**: `info`, `success`, `warning`, `error`.
 - **Dark Mode**: Perfectly adapted to Tailwind CSS Dark Mode (`dark:` variant).
 - **Auto Close**: Configurable display duration (`timeout`). Set to `0` for manual close.
@@ -36,9 +36,9 @@ The component exposes methods via `Alpine.store('notify')` or the global alias `
 The same methods are available globally via `Uno.notify` for convenience:
 
 ```javascript
-Uno.notify.success('Saved!');
-Uno.notify.error('Failed!');
-Uno.notify.loading(true);
+Uno.notify.success('Saved!')
+Uno.notify.error('Failed!')
+Uno.notify.loading(true)
 ```
 
 ### `show(text, options)`
@@ -52,12 +52,12 @@ Shows a notification.
 
 **Options Object:**
 
-| Option            | Type      | Default       | Description                                                                                                                                    |
-| ----------------- | --------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `type`            | `String`  | `'info'`      | Message type: `info`, `success`, `warning`, `error`.                                                                                           |
-| `timeout`         | `Number`  | `3000`        | Auto-close duration in milliseconds. `0` to disable.                                                                                           |
-| `position`        | `String`  | `'top-right'` | Container position. Options: `top-left`, `top-right`, `bottom-left`, `bottom-right`, `top-center`, `bottom-center`, `center`, `top`, `bottom`. |
-| `showCloseButton` | `Boolean` | `true`        | Whether to show the close (x) button.                                                                                                          |
+| Option            | Type      | Default       | Description                                                                                                                                                  |
+| ----------------- | --------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `type`            | `String`  | `'info'`      | Message type: `info`, `success`, `warning`, `error`.                                                                                                         |
+| `timeout`         | `Number`  | `3000`        | Auto-close duration in milliseconds. `0` to disable.                                                                                                         |
+| `position`        | `String`  | `'top-right'` | Container position. Options: `top-left`, `top-center`, `top-right`, `center-left`, `center`, `center-right`, `bottom-left`, `bottom-center`, `bottom-right`. |
+| `showCloseButton` | `Boolean` | `true`        | Whether to show the close (x) button.                                                                                                                        |
 
 ### Shortcuts
 

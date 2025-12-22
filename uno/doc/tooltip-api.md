@@ -17,31 +17,15 @@ A lightweight, smart positioning Tooltip component built on Alpine.js.
 
 ### Basic Structure
 
-Initialize the component using `x-data="tooltip(...)"` and bind the trigger and content elements.
+Attach the directive `x-tooltip` on any trigger element.
 
 ```html
-<div x-data="tooltip('Hello World')">
-    <!-- Trigger Element -->
-    <button data-trigger @mouseenter="onMouseEnter" @mouseleave="onMouseLeave" class="btn">
-        Hover Me
-    </button>
-
-    <!-- Tooltip Body -->
-    <div 
-        x-ref="tooltipRef" 
-        x-show="open" 
-        x-transition 
-        :class="classes"
-        :style="{ top: top + 'px', left: left + 'px', visibility: positioned ? 'visible' : 'hidden' }"
-        style="display: none;"
-    >
-        <span x-html="content"></span>
-        <div :class="arrowClasses"></div>
-    </div>
-</div>
+<button class="btn" x-tooltip="'Hello World'">
+  Hover Me
+</button>
 ```
 
-> **Note**: `style="display: none;"` prevents Flash of Unstyled Content (FOUC) before Alpine initialization.
+> **Note**: Tooltip uses a global singleton container injected on-demand by `Uno.tooltip.show()`.
 
 ## Programmatic Usage
 
@@ -66,26 +50,17 @@ Hides the current tooltip.
 #### `Uno.tooltip.updatePosition()`
 Recalculates position (useful if trigger moves).
 
-### `tooltip(initialContent, options)`
-
-Initializes the Tooltip data object.
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `initialContent` | `String` | `''` | Tooltip text. Ignored if `target` option is used. |
-| `options` | `Object` | `{}` | Configuration object. |
-
 ## Configuration / Options
 
 ### Options Object
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `position` | `'top' \| 'bottom' \| 'left' \| 'right'` | `'top'` | Preferred position. Flips automatically if space is insufficient. |
-| `trigger` | `'hover' \| 'click'` | `'hover'` | Trigger mode. In `click` mode, clicking outside closes it. |
+| `placement` | `'top' \| 'bottom' \| 'left' \| 'right'` | `'top'` | Preferred placement. Flips automatically if space is insufficient. |
+| `trigger` | `'hover' \| 'click' \| 'focus'` | `'hover'` | Trigger mode. In `click` mode, clicking outside closes it. |
 | `theme` | `'dark' \| 'light'` | `'dark'` | Visual theme. |
 | `timeout` | `Number` | `100` | Delay in ms before closing on mouse leave (hover mode). |
-| `target` | `String` | `null` | ID of the DOM element to use as content source. |
+| `target` | `String` | `null` | CSS selector of the DOM element to use as content source. |
 | `onShow` | `Function` | `null` | Callback function triggered when tooltip is shown. Receives content element. |
 | `trustedHTML` | `Boolean` | `false` | If true, disables HTML sanitization. Use with caution. |
 
@@ -101,18 +76,13 @@ By default, all HTML content (whether from `content` prop or `target` DOM) is sa
 ### 1. Specific Position (Bottom)
 
 ```html
-<div x-data="tooltip('Bottom Tip', { position: 'bottom' })">
-   <!-- ... -->
-</div>
+<button x-tooltip.bottom="'Bottom Tip'">Hover Me</button>
 ```
 
 ### 2. Click Trigger + Light Theme (Popover Style)
 
 ```html
-<div x-data="tooltip('Light Theme Popover', { trigger: 'click', theme: 'light' })">
-    <button data-trigger @click="onClick" @click.outside="onClickOutside">Click Me</button>
-    <!-- ... -->
-</div>
+<button x-tooltip.click="{ content: 'Light Theme Popover', theme: 'light' }">Click Me</button>
 ```
 
 ### 3. HTML Content (Target Mode)
@@ -125,14 +95,11 @@ By default, all HTML content (whether from `content` prop or `target` DOM) is sa
 </div>
 
 <!-- Tooltip Instance -->
-<div x-data="tooltip('', { target: 'tip-content' })">
-    <button data-trigger ...>Hover to see HTML</button>
-    <!-- ... -->
-</div>
+<button x-tooltip="{ target: '#tip-content' }">Hover to see HTML</button>
 ```
 
 ## Developer Notes
 
-- **Core Positioning**: Positioning logic reuses `src/core/positioning.js`, consistent with Box/Notify components.
-- **Debugging**: Enable debug mode in `src/core/log.js` to view positioning calculations in the console.
+- **Core Positioning**: Positioning logic reuses `src/utils/position.js`, consistent with Box/Notify components.
+- **Debugging**: Enable debug mode in `src/utils/log.js` to view internal logs in the console.
 - **A11y**: Ensure your trigger element is focusable (e.g., `<button>` or `tabindex="0"`) for keyboard users.

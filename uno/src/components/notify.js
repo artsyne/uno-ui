@@ -10,11 +10,38 @@ import { POSITIONS, getFixedPositionClass, getStackingConfig } from '../utils/po
 import { Uno } from '../core/uno'
 
 export default (Alpine, options = {}) => {
-  const initConfig = options.notify || {}
-  const getConfig = () =>
-    (typeof window !== 'undefined' && window.Uno?.options?.notify) || initConfig
+  const initConfig = options.plugins?.notify || options.notify || {}
+  const getConfig = () => {
+    const opts = typeof window !== 'undefined' ? window.Uno?.options : Uno.options
+    return opts?.plugins?.notify || opts?.notify || initConfig
+  }
   const getNonce = () =>
     Uno.options?.csp?.nonce || (typeof window !== 'undefined' && window.Uno?.options?.csp?.nonce)
+
+  const DEFAULT_NOTIFY_STYLES = {
+    types: {
+      success: 'bg-green-50 dark:bg-green-950/40',
+      error: 'bg-red-50 dark:bg-red-950/40',
+      warning: 'bg-yellow-50 dark:bg-yellow-950/40',
+      info: 'bg-blue-50 dark:bg-blue-950/40'
+    },
+    icons: {
+      success: 'text-green-500 dark:text-green-300',
+      error: 'text-red-500 dark:text-red-300',
+      warning: 'text-yellow-500 dark:text-yellow-300',
+      info: 'text-blue-500 dark:text-blue-300'
+    }
+  }
+
+  const getNotifyTypeClass = (type) => {
+    const base = DEFAULT_NOTIFY_STYLES.types[type] || 'bg-white dark:bg-slate-900'
+    return Uno.getStyle('notify', `types.${type}`, base)
+  }
+
+  const getNotifyIconClass = (type) => {
+    const base = DEFAULT_NOTIFY_STYLES.icons[type] || 'text-gray-400 dark:text-gray-500'
+    return Uno.getStyle('notify', `icons.${type}`, base)
+  }
 
   const ensureStyles = () => {
     if (document.getElementById('uno-notify-styles')) return
@@ -46,6 +73,8 @@ export default (Alpine, options = {}) => {
   }
 
   // 1. Store
+  let containerEl = null
+
   Alpine.store('notify', {
     items: [],
     nextId: 1,
@@ -138,33 +167,22 @@ export default (Alpine, options = {}) => {
 
     // Style Helpers
     getTypeClass(type) {
-      const defaults = {
-        success: 'bg-green-50',
-        error: 'bg-red-50',
-        warning: 'bg-yellow-50',
-        info: 'bg-blue-50'
-      }
-      return Uno.getStyle('notify', type, defaults[type] || 'bg-white')
+      return getNotifyTypeClass(type)
     },
 
     getIconClass(type) {
-      const defaults = {
-        success: 'text-green-400',
-        error: 'text-red-400',
-        warning: 'text-yellow-400',
-        info: 'text-blue-400'
-      }
-      return Uno.getStyle(
-        'notify',
-        `icon${type.charAt(0).toUpperCase() + type.slice(1)}`,
-        defaults[type] || 'text-gray-400'
-      )
+      return getNotifyIconClass(type)
     },
 
     ensureContainer() {
-      if (document.getElementById('uno-notify-container')) return
+      if (containerEl && document.contains(containerEl)) return
+      containerEl = document.getElementById('uno-notify-container')
+      if (containerEl) return
 
       ensureStyles()
+
+      let zBase = Number(Uno.options?.ui?.layers?.notifyBase ?? 30000)
+      if (!Number.isFinite(zBase)) zBase = 30000
 
       const container = document.createElement('div')
       container.id = 'uno-notify-container'
@@ -181,16 +199,45 @@ export default (Alpine, options = {}) => {
         `pointer-events-auto w-full max-w-sm overflow-hidden ${rounded} shadow-lg ring-1 ring-black ring-opacity-5`
       )
 
+      const contentWrapClass = Uno.getStyle('notify', 'content', 'p-4')
+      const rowClass = Uno.getStyle('notify', 'row', 'flex items-start')
+      const iconWrapClass = Uno.getStyle('notify', 'iconWrap', 'flex-shrink-0')
+      const textWrapClass = Uno.getStyle('notify', 'textWrap', 'ml-3 w-0 flex-1 pt-0.5')
+      const textClass = Uno.getStyle(
+        'notify',
+        'text',
+        'text-sm font-medium text-gray-900 dark:text-slate-100'
+      )
+
+      const closeWrapClass = Uno.getStyle('notify', 'closeWrap', 'ml-4 flex flex-shrink-0')
+      const closeBtnClass = Uno.getStyle(
+        'notify',
+        'closeBtn',
+        'inline-flex rounded-md bg-white dark:bg-slate-900 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+      )
+      const closeIconClass = Uno.getStyle('notify', 'closeIcon', 'h-5 w-5')
+
+      const indicatorTrackClass = Uno.getStyle(
+        'notify',
+        'indicatorTrack',
+        'h-1 bg-gray-200 dark:bg-slate-700 overflow-hidden'
+      )
+      const indicatorBarClass = Uno.getStyle(
+        'notify',
+        'indicatorBar',
+        'h-full bg-blue-500 origin-left'
+      )
+
       const buildRegion = (position) => {
         const positionClass = getFixedPositionClass(position)
         const stack = getStackingConfig(position)
         const regionClass = Uno.getStyle(
           'notify',
           'container',
-          `fixed z-[30000] flex ${stack.flexDir} ${stack.alignItems} gap-2 p-4 pointer-events-none ${positionClass}`
+          `fixed flex ${stack.flexDir} ${stack.alignItems} gap-2 p-4 pointer-events-none ${positionClass}`
         )
         return `
-          <div class="${regionClass}" x-show="$store.notify.itemsFor('${position}').length">
+          <div class="${regionClass}" style="z-index: ${zBase};" x-show="$store.notify.itemsFor('${position}').length">
             <template x-for="item in $store.notify.itemsFor('${position}')" :key="item.id">
               <div
                 data-testid="notify-item"
@@ -204,9 +251,9 @@ export default (Alpine, options = {}) => {
                 class="${itemClass}"
                 :class="$store.notify.getTypeClass(item.type)"
               >
-                <div class="p-4">
-                  <div class="flex items-start">
-                    <div class="flex-shrink-0">
+                <div class="${contentWrapClass}">
+                  <div class="${rowClass}">
+                    <div class="${iconWrapClass}">
                       <template x-if="item.type === 'success'">
                         <svg class="h-6 w-6" :class="$store.notify.getIconClass('success')" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -228,21 +275,21 @@ export default (Alpine, options = {}) => {
                         </svg>
                       </template>
                     </div>
-                    <div class="ml-3 w-0 flex-1 pt-0.5">
-                      <p class="text-sm font-medium text-gray-900" x-text="item.text"></p>
+                    <div class="${textWrapClass}">
+                      <p class="${textClass}" x-text="item.text"></p>
                     </div>
-                    <div class="ml-4 flex flex-shrink-0" x-show="item.showCloseButton">
-                      <button @click="$store.notify.close(item.id)" class="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    <div class="${closeWrapClass}" x-show="item.showCloseButton">
+                      <button @click="$store.notify.close(item.id)" class="${closeBtnClass}">
                         <span class="sr-only">Close</span>
-                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <svg class="${closeIconClass}" viewBox="0 0 20 20" fill="currentColor">
                           <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                         </svg>
                       </button>
                     </div>
                   </div>
                 </div>
-                <div x-show="item.closeIndicator" class="h-1 bg-gray-200 overflow-hidden">
-                   <div class="h-full bg-blue-500 origin-left"
+                <div x-show="item.closeIndicator" class="${indicatorTrackClass}">
+                   <div class="${indicatorBarClass}"
                         :style="\`animation: notify-progress \${item.timeout}ms linear forwards\`"></div>
                 </div>
               </div>
@@ -255,7 +302,8 @@ export default (Alpine, options = {}) => {
         <div
           id="uno-progress-bar"
           x-show="$store.notify.activeProgress > 0"
-          class="fixed top-0 left-0 right-0 h-1 bg-transparent z-[30001]"
+          class="fixed top-0 left-0 right-0 h-1 bg-transparent"
+          style="z-index: ${zBase + 1};"
         >
           <div class="uno-progress-anim h-full bg-blue-500"></div>
         </div>
@@ -263,12 +311,13 @@ export default (Alpine, options = {}) => {
       `
 
       document.body.appendChild(container)
+      containerEl = container
       if (typeof Alpine?.initTree === 'function') {
         Alpine.initTree(container)
       }
     },
     itemsFor(position) {
-      const pos = position || getConfig().position || 'top-right'
+      const pos = position || 'top-right'
       return this.items.filter((i) => (i.position || 'top-right') === pos)
     }
   })

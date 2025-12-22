@@ -208,4 +208,28 @@ test.describe('Notify Component', () => {
     // We wait 3.5s to be safe, increasing to 5s for slower environments
     await expect(progressBar).not.toBeVisible({ timeout: 6000 })
   })
+
+  test('dark mode: avoids low-contrast class pairing (bg-white + text-gray-200)', async ({
+    page
+  }) => {
+    const html = page.locator('html')
+    if (!(await html.evaluate((el) => el.classList.contains('dark')))) {
+      await page.locator('[data-theme-toggle]').click({ force: true })
+    }
+    await expect(html).toHaveClass(/dark/)
+
+    await page.getByTestId('btn-info').click()
+
+    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Info message' })
+    await expect(item).toBeVisible()
+
+    const hasBadPairing = await item.evaluate((root) => {
+      const nodes = [root, ...Array.from(root.querySelectorAll('*'))]
+      return nodes.some(
+        (el) =>
+          el.classList.contains('bg-white') && el.classList.contains('text-gray-200')
+      )
+    })
+    expect(hasBadPairing).toBe(false)
+  })
 })
