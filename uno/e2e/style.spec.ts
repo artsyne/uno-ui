@@ -16,7 +16,7 @@ test.describe('Uno UI Style Customization', () => {
     await page.evaluate(() => {
       ;(window as any).Uno.setConfig({
         ui: {
-          base: { rounded: 'rounded-none' }
+          base: 'rounded-none shadow-md border border-gray-200 dark:border-gray-700'
         }
       })
     })
@@ -24,8 +24,8 @@ test.describe('Uno UI Style Customization', () => {
     const base = await page.evaluate(() => {
       return (window as any).Uno.options.ui.base
     })
-    expect(base.primary).toBeTruthy()
-    expect(base.shadow).toBeTruthy()
+    expect(typeof base).toBe('string')
+    expect(base).toContain('rounded-none')
 
     // 2. Box
     await page.evaluate(() => {
@@ -49,7 +49,6 @@ test.describe('Uno UI Style Customization', () => {
     // Notify container class is constructed using rounded
     await expect(notify).toHaveClass(/rounded-none/)
     await expect(notify).not.toHaveClass(/rounded-lg/) // Default is rounded (which usually implies rounded, or rounded-md/lg?)
-    // In notify.js: `... ${rounded} ...`. Default rounded is 'rounded-lg'.
 
     // 4. Tooltip
     // Trigger tooltip

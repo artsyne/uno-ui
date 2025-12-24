@@ -184,11 +184,8 @@ export default (Alpine, options = {}) => {
   // 2. Inject Global Tooltip Container
   const injectContainer = () => {
     if (typeof document === 'undefined') return
-    const rounded = Uno.getStyle('base', 'rounded', 'rounded-lg')
-    // Default content style
-    const contentDefault = `fixed px-3 py-2 text-sm font-medium ${rounded} shadow-sm whitespace-nowrap pointer-events-none border bg-white text-gray-900 border-gray-200 dark:bg-slate-800 dark:text-white dark:border-slate-700`
-    const contentClass = Uno.getStyle('tooltip', 'content', contentDefault)
-    const bodyClass = Uno.getStyle('tooltip', 'body', 'pointer-events-auto')
+    const contentClass = Uno.getStyle('tooltip', 'content')
+    const bodyClass = Uno.getStyle('tooltip', 'body')
 
     const template = `
           <div id="uno-tooltip-content"
@@ -212,146 +209,153 @@ export default (Alpine, options = {}) => {
     })
   }
 
-  // Eager injection removed for P1-10 (On-demand)
-  // Container is injected when show() is called.
+  // 3. Directive: x-uno-tooltip
+  const directiveHandler = (el, { expression, modifiers }, { evaluateLater, effect, cleanup }) => {
+    const getExpression = evaluateLater(expression)
 
-  // 3. Directive: x-tooltip
-  Alpine.directive(
-    'tooltip',
-    (el, { expression, modifiers }, { evaluateLater, effect, cleanup }) => {
-      const getExpression = evaluateLater(expression)
+    let config = {
+      content: '',
+      placement: null,
+      trigger: null,
+      clickOutside: undefined
+    }
 
-      let config = {
-        content: '',
-        placement: null,
-        trigger: null,
-        clickOutside: undefined
+    const resolvePlacement = () => {
+      const attr = el.getAttribute('data-uno-placement')
+      if (attr) return attr
+
+      if (config.placement) return config.placement
+
+      if (modifiers.includes('top')) return 'top'
+      if (modifiers.includes('bottom')) return 'bottom'
+      if (modifiers.includes('left')) return 'left'
+      if (modifiers.includes('right')) return 'right'
+
+      const configData = getConfig()
+      return configData.placement || 'top'
+    }
+
+    const resolveTrigger = () => {
+      const attr = el.getAttribute('data-uno-trigger')
+      if (attr) return attr
+
+      if (config.trigger) return config.trigger
+
+      if (modifiers.includes('click')) return 'click'
+      if (modifiers.includes('focus')) return 'focus'
+      if (modifiers.includes('hover')) return 'hover'
+
+      const configData = getConfig()
+      return configData.trigger || 'hover'
+    }
+
+    const resolveEventTarget = () => {
+      const isDisabled =
+        (typeof el.disabled === 'boolean' && el.disabled === true) ||
+        el.getAttribute('aria-disabled') === 'true' ||
+        el.getAttribute('disabled') !== null
+      if (!isDisabled) return el
+      return el.parentElement || el
+    }
+
+    // Helper to process value
+    const processValue = (val) => {
+      if (typeof val === 'string') {
+        config.content = val
+      } else if (typeof val === 'object' && val !== null) {
+        config = { ...config, ...val }
       }
 
-      const resolvePlacement = () => {
-        const configData = getConfig()
-        let placement = configData.placement || 'top'
-        if (config.placement) placement = config.placement
-        if (modifiers.includes('top')) placement = 'top'
-        if (modifiers.includes('bottom')) placement = 'bottom'
-        if (modifiers.includes('left')) placement = 'left'
-        if (modifiers.includes('right')) placement = 'right'
-        return placement
+      // Check for ID selector or target
+      if (config.content && config.content.startsWith('#') && !config.content.includes(' ')) {
+        const target = document.querySelector(config.content)
+        if (target) config.content = target.innerHTML
+      } else if (config.target) {
+        const target = document.querySelector(config.target)
+        if (target) config.content = target.innerHTML
       }
+    }
 
-      const resolveTrigger = () => {
-        const configData = getConfig()
-        if (modifiers.includes('click')) return 'click'
-        if (modifiers.includes('focus')) return 'focus'
-        if (modifiers.includes('hover')) return 'hover'
-        if (config.trigger) return config.trigger
-        return configData.trigger || 'hover'
-      }
-
-      const resolveEventTarget = () => {
-        const isDisabled =
-          (typeof el.disabled === 'boolean' && el.disabled === true) ||
-          el.getAttribute('aria-disabled') === 'true' ||
-          el.getAttribute('disabled') !== null
-        if (!isDisabled) return el
-        return el.parentElement || el
-      }
-
-      // Helper to process value
-      const processValue = (val) => {
-        if (typeof val === 'string') {
-          config.content = val
-        } else if (typeof val === 'object') {
-          config = { ...config, ...val }
-        }
-
-        // Check for ID selector or target
-        if (config.content && config.content.startsWith('#') && !config.content.includes(' ')) {
-          const target = document.querySelector(config.content)
-          if (target) config.content = target.innerHTML
-        } else if (config.target) {
-          const target = document.querySelector(config.target)
-          if (target) config.content = target.innerHTML
-        }
-      }
-
-      // Watch for changes
-      effect(() => {
-        getExpression((val) => {
-          processValue(val)
-        })
+    // Watch for changes
+    effect(() => {
+      getExpression((val) => {
+        processValue(val)
       })
+    })
 
-      // Event handlers
-      const show = () => {
-        const store = Alpine.store('tooltip')
-        const mode = resolveTrigger()
-        el.setAttribute('aria-describedby', 'uno-tooltip-content')
-        store.show(el, config.content, {
-          ...config,
-          placement: resolvePlacement(),
-          trigger: mode,
-          eventEl: resolveEventTarget()
-        })
-      }
-      const hide = () => {
-        el.removeAttribute('aria-describedby')
-        Alpine.store('tooltip').hide()
-      }
-      const toggle = () => {
-        const store = Alpine.store('tooltip')
-        // If visible and triggered by this element, hide it
-        if (store.visible && store.triggerEl === el) {
-          store.hide()
-        } else {
-          show()
-        }
-      }
-
-      const onClick = () => {
-        if (resolveTrigger() !== 'click') return
-        toggle()
-      }
-
-      const onMouseEnter = () => {
-        if (resolveTrigger() !== 'hover') return
-        show()
-      }
-
-      const onMouseLeave = () => {
-        if (resolveTrigger() !== 'hover') return
-        hide()
-      }
-
-      const onFocus = () => {
-        if (resolveTrigger() !== 'focus') return
-        show()
-      }
-
-      const onBlur = () => {
-        if (resolveTrigger() !== 'focus') return
-        hide()
-      }
-
-      // Bind events
-      const eventTarget = resolveEventTarget()
-      eventTarget.addEventListener('click', onClick)
-      eventTarget.addEventListener('mouseenter', onMouseEnter)
-      eventTarget.addEventListener('mouseleave', onMouseLeave)
-      eventTarget.addEventListener('focus', onFocus)
-      eventTarget.addEventListener('blur', onBlur)
-
-      // Cleanup
-      cleanup(() => {
-        eventTarget.removeEventListener('click', onClick)
-        eventTarget.removeEventListener('mouseenter', onMouseEnter)
-        eventTarget.removeEventListener('mouseleave', onMouseLeave)
-        eventTarget.removeEventListener('focus', onFocus)
-        eventTarget.removeEventListener('blur', onBlur)
-        hide()
+    // Event handlers
+    const show = () => {
+      const store = Alpine.store('tooltip')
+      const mode = resolveTrigger()
+      el.setAttribute('aria-describedby', 'uno-tooltip-content')
+      store.show(el, config.content, {
+        ...config,
+        placement: resolvePlacement(),
+        trigger: mode,
+        eventEl: resolveEventTarget()
       })
     }
-  )
+    const hide = () => {
+      el.removeAttribute('aria-describedby')
+      Alpine.store('tooltip').hide()
+    }
+    const toggle = () => {
+      const store = Alpine.store('tooltip')
+      // If visible and triggered by this element, hide it
+      if (store.visible && store.triggerEl === el) {
+        store.hide()
+      } else {
+        show()
+      }
+    }
+
+    const onClick = () => {
+      if (resolveTrigger() !== 'click') return
+      toggle()
+    }
+
+    const onMouseEnter = () => {
+      if (resolveTrigger() !== 'hover') return
+      show()
+    }
+
+    const onMouseLeave = () => {
+      if (resolveTrigger() !== 'hover') return
+      hide()
+    }
+
+    const onFocus = () => {
+      if (resolveTrigger() !== 'focus') return
+      show()
+    }
+
+    const onBlur = () => {
+      if (resolveTrigger() !== 'focus') return
+      hide()
+    }
+
+    // Bind events
+    const eventTarget = resolveEventTarget()
+    eventTarget.addEventListener('click', onClick)
+    eventTarget.addEventListener('mouseenter', onMouseEnter)
+    eventTarget.addEventListener('mouseleave', onMouseLeave)
+    eventTarget.addEventListener('focus', onFocus)
+    eventTarget.addEventListener('blur', onBlur)
+
+    // Cleanup
+    cleanup(() => {
+      eventTarget.removeEventListener('click', onClick)
+      eventTarget.removeEventListener('mouseenter', onMouseEnter)
+      eventTarget.removeEventListener('mouseleave', onMouseLeave)
+      eventTarget.removeEventListener('focus', onFocus)
+      eventTarget.removeEventListener('blur', onBlur)
+      hide()
+    })
+  }
+
+  Alpine.directive('uno-tooltip', directiveHandler)
+  // Alias for backward compatibility
+  Alpine.directive('tooltip', directiveHandler)
 
   // Expose Public API
   const api = {

@@ -30,97 +30,22 @@ export function once(target, key) {
   return true
 }
 
-export function sanitizeHTML(html, options = {}) {
-  const {
-    allowedTags = [
-      'b',
-      'i',
-      'strong',
-      'em',
-      'u',
-      'br',
-      'p',
-      'ul',
-      'ol',
-      'li',
-      'code',
-      'pre',
-      'a',
-      'span',
-      'div'
-    ],
-    allowedAttrs = { a: ['href', 'target', 'rel'], '*': ['class'] }
-  } = options
-
-  const raw = String(html ?? '')
-  const preStripped = raw
-    .replace(/<(script|style|iframe|object|embed)\b[\s\S]*?<\/\1\s*>/gi, '')
-    .replace(/<(video|audio|svg|math)\b[\s\S]*?<\/\1\s*>/gi, '')
-    .replace(/<(img|link|meta|base|source|track)\b[^>]*\/?>/gi, '')
-
-  const template = document.createElement('template')
-  template.innerHTML = preStripped
-
-  const walker = document.createTreeWalker(template.content, NodeFilter.SHOW_ELEMENT)
-  const toRemove = []
-  const toStrip = [] // Tags to remove completely including content
-
-  while (walker.nextNode()) {
-    const el = walker.currentNode
-    const tag = el.tagName.toLowerCase()
-
-    // Tags to strip completely (remove element AND content)
-    if (['script', 'style', 'iframe', 'object', 'embed'].includes(tag)) {
-      toStrip.push(el)
-      continue
-    }
-
-    // Default whitelist strategy. Non-whitelisted tags are downgraded to plain text.
-    if (!allowedTags.includes(tag)) {
-      toRemove.push(el)
-      continue
-    }
-
-    for (const attr of [...el.attributes]) {
-      const name = attr.name.toLowerCase()
-      const allow = (allowedAttrs[tag] || []).concat(allowedAttrs['*'] || [])
-      if (!allow.includes(name)) el.removeAttribute(attr.name)
-    }
-
-    // Only allow safe protocols/internal links for href to prevent javascript: injection.
-    if (tag === 'a') {
-      const href = (el.getAttribute('href') || '').trim()
-      const isSafe =
-        href.startsWith('/') ||
-        href.startsWith('https://') ||
-        href.startsWith('http://') ||
-        href.startsWith('#')
-      if (!isSafe) el.removeAttribute('href')
-      if (!el.getAttribute('rel')) el.setAttribute('rel', 'noopener noreferrer')
-    }
-  }
-
-  // Remove unsafe tags completely (replace with empty text)
-  for (const node of toStrip) {
-    node.remove()
-  }
-
-  // Downgrade non-whitelisted tags to text (keep content)
-  for (const node of toRemove) {
-    const text = node.textContent || ''
-    if (text) {
-      node.replaceWith(document.createTextNode(text))
-    } else {
-      node.remove()
-    }
-  }
-
-  return template.innerHTML
+export function sanitizeHTML(html) {
+  if (!html) return ''
+  // Basic XSS protection: strip script tags and on* attributes
+  // This is a minimal implementation. For production with untrusted input, use DOMPurify.
+  return html
+    .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, '')
+    .replace(/<img\b[^>]*>/gim, '')
+    .replace(/\s+on[a-z]+="[^"]*"/gim, '')
+    .replace(/\s+on[a-z]+='[^']*'/gim, '')
+    .replace(/javascript:/gim, '')
 }
 
 export function setHTML(el, html, { trusted = false, alpine } = {}) {
   if (!el) return
-  el.innerHTML = trusted ? String(html ?? '') : sanitizeHTML(html)
+  // Use sanitizeHTML if not trusted
+  el.innerHTML = trusted ? String(html ?? '') : sanitizeHTML(String(html ?? ''))
   alpine?.initTree?.(el)
 }
 
@@ -194,6 +119,6 @@ export const DomManager = {
 
   // Exports
   setHTML: setHTML, // Secure HTML setting
-  sanitize: sanitizeHTML, // HTML sanitization
-  escape: escapeHTML // HTML escaping
+  escape: escapeHTML, // HTML escaping
+  sanitize: sanitizeHTML // HTML sanitization
 }

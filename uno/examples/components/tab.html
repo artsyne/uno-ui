@@ -10,8 +10,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
     <!-- Load Uno before Alpine so it can register on alpine:init -->
-    <script src="../../dist/uno.umd.js?v=0.4.0-fix8" defer></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x"></script>
+    <script src="../../dist/uno.umd.js?v=0.5.0" defer></script>
+    <script defer src="https://unpkg.com/alpinejs@3.15.2"></script>
     <style type="text/tailwindcss">
         .tab-base {
             @apply text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer transition-colors border-b-2 border-transparent outline-none;
@@ -93,31 +93,44 @@
             <h2 class="font-semibold text-slate-800 dark:text-white mb-4">Test Harness (Minimal)</h2>
 
             <!-- Modern Tabs -->
-            <div class="mb-6 text-slate-800 dark:text-slate-200" x-data="window.unoTabs('tab1')">
-                <div class="flex border-b dark:border-slate-700 mb-4" x-bind="tablist">
-                    <button x-bind="trigger('tab1')" class="tab-base px-4 py-2">Tab 1</button>
-                    <button x-bind="trigger('tab2', null, 'settings')" class="tab-base px-4 py-2">Tab 2</button>
-                    <button x-bind="trigger('tab3', null, 'billing')" class="tab-base px-4 py-2">Tab 3</button>
+            <div class="mb-6 text-slate-800 dark:text-slate-200" x-data="unoTabs('tab1')">
+                <div class="flex border-b dark:border-slate-700 mb-4" role="tablist">
+                    <button id="tab-tab1" role="tab" aria-controls="panel-tab1" x-bind="trigger('tab1')"
+                        class="tab-base px-4 py-2">Tab 1</button>
+                    <button id="tab-settings" role="tab" aria-controls="panel-settings" x-bind="trigger('settings')"
+                        class="tab-base px-4 py-2">Settings</button>
+                    <button id="tab-billing" role="tab" aria-controls="panel-billing" x-bind="trigger('billing')"
+                        class="tab-base px-4 py-2">Billing</button>
                 </div>
                 <div>
-                    <div x-bind="panel('tab1')">Content 1</div>
-                    <div x-bind="panel('tab2')">Content 2</div>
-                    <div x-bind="panel('tab3')">Content 3</div>
+                    <div id="panel-tab1" role="tabpanel" aria-labelledby="tab-tab1" x-bind="panel('tab1')">Content 1
+                    </div>
+                    <div id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" x-bind="panel('settings')">
+                        Content 2 (Settings)</div>
+                    <div id="panel-billing" role="tabpanel" aria-labelledby="tab-billing" x-bind="panel('billing')">
+                        Content 3 (Billing)</div>
                 </div>
             </div>
 
             <!-- Separated Elements + AJAX -->
-            <div class="mb-2 text-slate-800 dark:text-slate-200" x-data="window.unoTabs('s-tab1')">
-                <div class="flex border-b dark:border-slate-700 mb-4" x-bind="tablist">
-                    <button x-bind="trigger('s-tab1')" class="tab-base px-4 py-2">S-Tab 1</button>
-                    <button x-bind="trigger('s-tab2')" class="tab-base px-4 py-2">S-Tab 2</button>
-                    <button x-bind="trigger('s-tab3', '/examples/data/tab-content.html')"
+            <div class="mb-2 text-slate-800 dark:text-slate-200" x-data="unoTabs('s-tab1')">
+                <div class="flex border-b dark:border-slate-700 mb-4" role="tablist">
+                    <button id="tab-s-tab1" role="tab" aria-controls="panel-s-tab1" x-bind="trigger('s-tab1')"
+                        class="tab-base px-4 py-2">S-Tab 1</button>
+                    <button id="tab-s-tab2" role="tab" aria-controls="panel-s-tab2" x-bind="trigger('s-tab2')"
+                        class="tab-base px-4 py-2">S-Tab 2</button>
+                    <button id="tab-s-tab3" role="tab" aria-controls="panel-s-tab3"
+                        x-bind="trigger('s-tab3', { url: '/examples/data/tab-content.html' })"
                         class="tab-base px-4 py-2">S-Tab 3 (AJAX)</button>
                 </div>
                 <div>
-                    <div x-bind="panel('s-tab1')">Separated Content 1</div>
-                    <div x-bind="panel('s-tab2')">Separated Content 2</div>
-                    <div x-bind="panel('s-tab3')"><!-- ajax --></div>
+                    <div id="panel-s-tab1" role="tabpanel" aria-labelledby="tab-s-tab1" x-bind="panel('s-tab1')">
+                        Separated Content 1</div>
+                    <div id="panel-s-tab2" role="tabpanel" aria-labelledby="tab-s-tab2" x-bind="panel('s-tab2')">
+                        Separated Content 2</div>
+                    <div id="panel-s-tab3" role="tabpanel" aria-labelledby="tab-s-tab3" x-bind="panel('s-tab3')">
+                        <!-- ajax -->
+                    </div>
                 </div>
             </div>
         </section>
@@ -134,36 +147,42 @@
                         class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Alpine
                         API</span>
                 </div>
-                <div class="p-6" x-data="window.unoTabs('tab-profile')">
-                    <!-- Tab Navigation -->
-                    <div class="flex border-b border-slate-200 dark:border-slate-700 mb-6 transition-colors"
-                        x-bind="tablist">
-                        <button x-bind="trigger('tab-profile', null, 'profile')"
-                            class="tab-base px-4 py-2 font-medium text-sm">
+                <div class="p-6" x-data="unoTabs('profile')">
+                    <!-- Tab List -->
+                    <div class="flex gap-1" role="tablist">
+                        <button id="tab-profile" role="tab" aria-controls="panel-profile" x-bind="trigger('profile')"
+                            class="px-4 py-2 rounded-t-lg text-sm font-medium transition-colors border-t border-l border-r border-transparent"
+                            :class="isActive('profile') ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border-slate-100 dark:border-slate-700' : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">
                             Profile
                         </button>
-                        <button x-bind="trigger('tab-settings', null, 'settings')"
-                            class="tab-base px-4 py-2 font-medium text-sm">
+                        <button id="tab-settings-2" role="tab" aria-controls="panel-settings-2"
+                            x-bind="trigger('settings')"
+                            class="px-4 py-2 rounded-t-lg text-sm font-medium transition-colors border-t border-l border-r border-transparent"
+                            :class="isActive('settings') ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border-slate-100 dark:border-slate-700' : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">
                             Settings
                         </button>
-                        <button x-bind="trigger('tab-billing', null, 'billing')"
-                            class="tab-base px-4 py-2 font-medium text-sm">
+                        <button id="tab-billing-2" role="tab" aria-controls="panel-billing-2"
+                            x-bind="trigger('billing')"
+                            class="px-4 py-2 rounded-t-lg text-sm font-medium transition-colors border-t border-l border-r border-transparent"
+                            :class="isActive('billing') ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border-slate-100 dark:border-slate-700' : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">
                             Billing
                         </button>
                     </div>
 
-                    <!-- Tab Content -->
-                    <div class="min-h-[150px]">
-                        <div x-bind="panel('tab-profile')" class="space-y-2">
+                    <!-- Panels -->
+                    <div
+                        class="bg-white dark:bg-slate-800 rounded-b-lg rounded-tr-lg border border-slate-100 dark:border-slate-700 p-6 min-h-[160px] transition-colors">
+                        <div id="panel-profile" role="tabpanel" aria-labelledby="tab-profile" x-bind="panel('profile')"
+                            class="space-y-2">
                             <h3 class="font-bold text-slate-800 dark:text-white">User Profile</h3>
-                            <p class="text-slate-600 dark:text-slate-300 text-sm">Manage your public profile and bio.
-                            </p>
+                            <p class="text-slate-600 dark:text-slate-300 text-sm">Manage your personal information.</p>
                             <div
                                 class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded text-blue-700 dark:text-blue-200 text-sm border border-blue-100 dark:border-blue-800 transition-colors">
                                 Active Tab: Profile (Hash: #profile)
                             </div>
                         </div>
-                        <div x-bind="panel('tab-settings')" class="space-y-2">
+                        <div id="panel-settings-2" role="tabpanel" aria-labelledby="tab-settings-2"
+                            x-bind="panel('settings')" class="space-y-2">
                             <h3 class="font-bold text-slate-800 dark:text-white">Account Settings</h3>
                             <p class="text-slate-600 dark:text-slate-300 text-sm">Update password and security
                                 preferences.</p>
@@ -172,7 +191,8 @@
                                 Active Tab: Settings (Hash: #settings)
                             </div>
                         </div>
-                        <div x-bind="panel('tab-billing')" class="space-y-2">
+                        <div id="panel-billing-2" role="tabpanel" aria-labelledby="tab-billing-2"
+                            x-bind="panel('billing')" class="space-y-2">
                             <h3 class="font-bold text-slate-800 dark:text-white">Billing Information</h3>
                             <p class="text-slate-600 dark:text-slate-300 text-sm">View invoices and payment methods.</p>
                             <div
@@ -193,55 +213,74 @@
                     <span
                         class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Advanced</span>
                 </div>
-                <div class="p-6 flex flex-col sm:flex-row gap-6"
-                    x-data="window.unoTabs('side-dashboard', { manual: false })">
+                <div class="p-6 flex flex-col sm:flex-row gap-6" x-data="unoTabs('side-dashboard', { manual: false })">
                     <!-- Sidebar Nav -->
-                    <div class="flex flex-col space-y-1 w-full sm:w-1/3" x-bind="tablist">
-                        <button x-bind="trigger('side-dashboard')"
-                            class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                    <div class="flex flex-col space-y-1 w-full sm:w-1/3" role="tablist">
+                        <button id="tab-side-dashboard" role="tab" aria-controls="panel-side-dashboard"
+                            x-bind="trigger('side-dashboard')"
+                            class="px-4 py-2 rounded text-left text-sm font-medium transition-colors"
+                            :class="isActive('side-dashboard') ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
                             Dashboard
                         </button>
-                        <button x-bind="trigger('side-reports')"
-                            class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                            Reports
+                        <button id="tab-side-ajax" role="tab" aria-controls="panel-side-ajax"
+                            x-bind="trigger('side-ajax', { url: '/examples/data/tab-content.html' })"
+                            class="px-4 py-2 rounded text-left text-sm font-medium transition-colors"
+                            :class="isActive('side-ajax') ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
+                            AJAX Content
                         </button>
-                        <button x-bind="trigger('side-ajax', '/examples/data/tab-content.html')"
-                            class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50 dark:hover:bg-slate-700 flex justify-between items-center transition-colors">
-                            <span>External (AJAX)</span>
-                            <span class="text-xs text-slate-400">HTML</span>
-                        </button>
-                        <button x-bind="trigger('side-htmx', null, null, '/examples/data/tab-content-htmx.html')"
-                            class="tab-base text-left px-4 py-2 rounded-lg text-sm font-medium border-0 hover:bg-slate-50 dark:hover:bg-slate-700 flex justify-between items-center transition-colors">
-                            <span>External (HTMX)</span>
-                            <span class="text-xs text-orange-400">HTMX</span>
+                        <button id="tab-side-htmx" role="tab" aria-controls="panel-side-htmx-target"
+                            x-bind="trigger('side-htmx', { url: '/examples/data/tab-content.html', target: '#panel-side-htmx-target' })"
+                            class="px-4 py-2 rounded text-left text-sm font-medium transition-colors"
+                            :class="isActive('side-htmx') ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
+                            HTMX Trigger
                         </button>
                     </div>
 
-                    <!-- Content Area -->
-                    <div
-                        class="w-full sm:w-2/3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-700 p-4 min-h-[200px] transition-colors">
-                        <div x-bind="panel('side-dashboard')">
-                            <h4 class="font-bold text-slate-700 dark:text-slate-200 mb-2">Dashboard Overview</h4>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div
-                                    class="bg-white dark:bg-slate-800 p-3 rounded shadow-sm text-center transition-colors">
-                                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">12</div>
-                                    <div class="text-xs text-slate-500 dark:text-slate-400">New Tasks</div>
+                    <!-- Content -->
+                    <div class="w-full sm:w-2/3 min-h-[200px] border-l dark:border-slate-700 pl-6">
+                        <div id="panel-side-dashboard" role="tabpanel" aria-labelledby="tab-side-dashboard"
+                            x-bind="panel('side-dashboard')" class="animate-fade-in">
+                            <h3 class="text-lg font-medium text-slate-800 dark:text-white mb-2">Dashboard</h3>
+                            <p class="text-slate-600 dark:text-slate-300 mb-4">Welcome to your dashboard overview.</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-slate-100 dark:bg-slate-700 p-3 rounded text-center">
+                                    <div class="text-2xl font-bold text-slate-800 dark:text-white">128</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Views</div>
                                 </div>
-                                <div
-                                    class="bg-white dark:bg-slate-800 p-3 rounded shadow-sm text-center transition-colors">
-                                    <div class="text-2xl font-bold text-green-600 dark:text-green-400">85%</div>
-                                    <div class="text-xs text-slate-500 dark:text-slate-400">Completion</div>
+                                <div class="bg-slate-100 dark:bg-slate-700 p-3 rounded text-center">
+                                    <div class="text-2xl font-bold text-slate-800 dark:text-white">12</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Sales</div>
                                 </div>
                             </div>
                         </div>
-                        <div x-bind="panel('side-reports')">
-                            <h4 class="font-bold text-slate-700 dark:text-slate-200 mb-2">Reports</h4>
-                            <p class="text-sm text-slate-600 dark:text-slate-300">Select a report type to view details.
-                            </p>
+                        <div id="panel-side-ajax" role="tabpanel" aria-labelledby="tab-side-ajax"
+                            x-bind="panel('side-ajax')" class="animate-fade-in">
+                            <!-- Content loaded via HTMX -->
+                            <div class="flex items-center justify-center h-full text-slate-400">
+                                <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                Loading...
+                            </div>
                         </div>
-                        <div x-bind="panel('side-ajax')"></div>
-                        <div x-bind="panel('side-htmx')"></div>
+                        <div id="panel-side-htmx-target" role="tabpanel" aria-labelledby="tab-side-htmx"
+                            x-bind="panel('side-htmx')" class="animate-fade-in">
+                            <!-- Content loaded via HTMX -->
+                            <div class="flex items-center justify-center h-full text-slate-400">
+                                <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                Loading...
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -249,7 +288,6 @@
         </div>
     </main>
 
-    <!-- Uno already loaded above; Alpine CDN starts the app -->
 </body>
 
 </html>

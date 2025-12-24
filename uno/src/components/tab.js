@@ -1,189 +1,168 @@
-import { Uno } from '../core/uno'
-import { escapeHTML, once, setHTML } from '../utils/dom'
-import { requestData } from '../utils/request'
+/**
+ * Uno - Tab Component (Refactored for v0.5.0)
+ *
+ * @module uno.components.tab
+ * @description Lightweight tab switching with HTMX integration and Hash navigation.
+ */
 
-let storedAlpine
-
-const factory = (initialTab = null, initOptions = {}) => ({
-  activeTab: initialTab,
-  options: initOptions,
-  _cleanup: [],
-  _pending: new Map(),
-  _seq: 0,
-
-  init() {
-    if (!once(this.$el, 'tabs_init')) return
-
-    this.$nextTick(() => {
-      const hash = window.location.hash.slice(1)
-      let found = false
-
-      if (hash) {
-        const tabWithHash = this.$el.querySelector(`[data-tab-hash="${hash}"]`)
-        if (tabWithHash) {
-          this.activeTab = tabWithHash.getAttribute('data-tab-target')
-          found = true
-        }
-      }
-
-      if (!found && !this.activeTab) {
-        const firstTab = this.$el.querySelector('[role="tab"]')
-        if (firstTab) {
-          this.activeTab = firstTab.getAttribute('data-tab-target')
-        }
-      }
-    })
-
-    const onHashChange = () => {
-      const hash = window.location.hash.slice(1)
-      if (hash) {
-        const tabWithHash = this.$el.querySelector(`[data-tab-hash="${hash}"]`)
-        if (tabWithHash) {
-          this.activeTab = tabWithHash.getAttribute('data-tab-target')
-        }
-      }
-    }
-
-    window.addEventListener('hashchange', onHashChange)
-    this._cleanup.push(() => window.removeEventListener('hashchange', onHashChange))
-  },
-
-  destroy() {
-    for (const pending of this._pending.values()) {
-      pending?.abortController?.abort?.()
-    }
-    this._pending.clear()
-    this._cleanup.forEach((fn) => fn())
-    this._cleanup = []
-  },
-
-  isActive(tab) {
-    return this.activeTab === tab
-  },
-
-  async open(tab, ajaxUrl = null, hash = null, hxUrl = null) {
-    this.activeTab = tab
-
-    if (hash) {
-      if (window.location.hash.slice(1) !== hash) {
-        window.history.replaceState(null, null, `#${hash}`)
-      }
-    }
-
-    const url = ajaxUrl || hxUrl
-    if (!url) return
-
-    const panel = document.getElementById(tab)
-    if (!panel || panel.getAttribute('data-tab-loaded') === 'true') return
-
-    const prev = this._pending.get(tab)
-    if (prev?.abortController) prev.abortController.abort()
-
-    const abortController = new AbortController()
-    const seq = (this._seq += 1)
-    this._pending.set(tab, { abortController, seq })
-
-    const alpine = storedAlpine || window.Alpine
-
-    const rounded = Uno.getStyle('base', 'rounded', 'rounded-lg')
-    const loadingClass = Uno.getStyle(
-      'tab',
-      'loading',
-      `animate-pulse h-32 w-full ${rounded} bg-gray-200 dark:bg-slate-700`
-    )
-    const errorClass = Uno.getStyle('tab', 'error', 'p-4 text-red-600 dark:text-red-400')
-
-    setHTML(panel, `<div class="${loadingClass}"></div>`, { trusted: false, alpine })
-
-    try {
-      const data = await requestData(url, { cache: true, signal: abortController.signal })
-      const current = this._pending.get(tab)
-      if (!current || current.seq !== seq) return
-
-      const content =
-        typeof data === 'string'
-          ? data
-          : `<pre class="whitespace-pre-wrap text-sm">${escapeHTML(
-              JSON.stringify(data, null, 2)
-            )}</pre>`
-
-      setHTML(panel, content, { trusted: false, alpine })
-      panel.setAttribute('data-tab-loaded', 'true')
-    } catch (err) {
-      const current = this._pending.get(tab)
-      if (!current || current.seq !== seq) return
-      if (err?.name === 'AbortError') return
-
-      const msg = err?.message || 'Unknown error'
-      const prefix = hxUrl ? 'Error loading content via HTMX: ' : 'Error loading content: '
-      setHTML(panel, `<div class="${errorClass}">${escapeHTML(prefix)}${escapeHTML(msg)}</div>`, {
-        trusted: false,
-        alpine
-      })
-    } finally {
-      const current = this._pending.get(tab)
-      if (current && current.seq === seq) this._pending.delete(tab)
-    }
-  },
-
-  trigger(tab, ajaxUrl = null, hash = null, hxUrl = null) {
-    if (hash && typeof window !== 'undefined' && window.location.hash.slice(1) === hash) {
-      if (!this.activeTab) this.activeTab = tab
-    }
-
-    const baseActiveClass = Uno.getStyle('tab', 'active', 'border-b-2 border-blue-500')
-    const baseInactiveClass = Uno.getStyle('tab', 'inactive', 'text-slate-500 hover:text-slate-700')
-    const activeClass = Uno.getStyle('tab', 'triggerActive', baseActiveClass)
-    const inactiveClass = Uno.getStyle('tab', 'triggerInactive', baseInactiveClass)
-
-    return {
-      ['@click.prevent']: `open('${tab}', ${ajaxUrl ? `'${ajaxUrl}'` : 'null'}, ${hash ? `'${hash}'` : 'null'}, ${hxUrl ? `'${hxUrl}'` : 'null'})`,
-      [':class']: `isActive('${tab}') ? '${activeClass}' : '${inactiveClass}'`,
-      ['role']: 'tab',
-      [':aria-selected']: `isActive('${tab}') ? 'true' : 'false'`,
-      ['data-tab-target']: tab,
-      ['data-tab-hash']: hash || null,
-      ['data-tab-url']: ajaxUrl || null,
-      ['data-tab-hx-url']: hxUrl || null
-    }
-  },
-
-  tablist: {
-    ['role']: 'tablist',
-    ['@keydown.right.prevent']: 'next()',
-    ['@keydown.left.prevent']: 'prev()',
-    ['@keydown.home.prevent']: 'first()',
-    ['@keydown.end.prevent']: 'last()'
-  },
-
-  panel(tab) {
-    return {
-      ['x-show']: `isActive('${tab}')`,
-      ['role']: 'tabpanel',
-      ['id']: tab,
-      ['tabindex']: '0'
-    }
-  }
-})
-
-export { factory }
-
-if (typeof window !== 'undefined') {
-  window.unoTabs = factory
-}
+import { sanitizeHTML } from '../utils/dom'
 
 export default (Alpine) => {
-  storedAlpine = Alpine
-  Alpine.data('unoTabs', factory)
+  // Global HTMX interceptor for sanitization
+  if (typeof document !== 'undefined') {
+    document.body.addEventListener('htmx:beforeSwap', (evt) => {
+      // Check if this request is from a tab
+      const trigger = evt.detail.requestConfig.elt
+      if (trigger && trigger.getAttribute('role') === 'tab') {
+        // Sanitize content to prevent XSS
+        evt.detail.serverResponse = sanitizeHTML(evt.detail.serverResponse)
+      }
+    })
+  }
 
-  Uno.tab = {
-    open: (id) => {
-      const trigger = document.querySelector(`[data-tab-target="${id}"]`)
-      if (trigger) {
-        trigger.click()
-      } else {
-        window.location.hash = id
+  Alpine.data('unoTabs', (defaultTab = '', options = {}) => ({
+    activeTab: defaultTab,
+    // Registry to store configuration for each tab (url, target, etc.)
+    tabs: {},
+
+    init() {
+      // Hash synchronization
+      this.$nextTick(() => {
+        if (options.hash !== false) {
+          const checkHash = () => {
+            const hash = window.location.hash.slice(1)
+            if (hash) {
+              this.activeTab = hash
+              this.ensureLoad(hash)
+              return
+            }
+
+            if (this.activeTab) {
+              this.ensureLoad(this.activeTab)
+            }
+          }
+
+          checkHash()
+          window.addEventListener('hashchange', checkHash)
+        } else {
+          // If hash is disabled, load the default tab if needed
+          if (this.activeTab) {
+            this.ensureLoad(this.activeTab)
+          }
+        }
+      })
+    },
+
+    isActive(tab) {
+      return this.activeTab === tab
+    },
+
+    /**
+     * Load tab content if it's an AJAX tab.
+     * Uses htmx.ajax() directly to avoid DOM attribute binding timing issues.
+     */
+    load(tab) {
+      const config = this.tabs[tab]
+      if (!config || !config.url) return
+
+      // Find the tab element to use as source (for hx-indicator etc.)
+      const sourceEl = this.$root.querySelector(`[role="tab"][data-tab="${tab}"]`)
+
+      // Determine target: use config.target or default to #panel-{tab}
+      const targetSelector = config.target || `#panel-${tab}`
+      const targetEl = document.querySelector(targetSelector)
+
+      if (typeof htmx !== 'undefined' && targetEl) {
+        // Use htmx.ajax API directly
+        // https://htmx.org/api/#ajax
+        htmx.ajax('GET', config.url, {
+          target: targetSelector,
+          swap: config.swap || 'innerHTML',
+          source: sourceEl // Allows hx-indicator to work if placed on the tab button
+        })
+      }
+    },
+
+    ensureLoad(tab) {
+      const attemptLoad = (attempt = 0) => {
+        const config = this.tabs[tab]
+
+        if (config) {
+          if (!config.url) return
+          this.load(tab)
+          return
+        }
+
+        if (attempt >= 20) return
+
+        if (typeof requestAnimationFrame !== 'undefined') {
+          requestAnimationFrame(() => attemptLoad(attempt + 1))
+          return
+        }
+
+        setTimeout(() => attemptLoad(attempt + 1), 16)
+      }
+
+      attemptLoad(0)
+      // Start attempt
+      attemptLoad()
+    },
+
+    open(tab, openOptions = {}) {
+      const { updateHash = true } = openOptions
+      this.activeTab = tab
+      this.ensureLoad(tab)
+      // Trigger load for AJAX tabs
+      this.load(tab)
+
+      if (options.hash !== false && updateHash && tab) {
+        // Update URL hash without jumping
+        if (window.location.hash.slice(1) !== tab) {
+          window.history.replaceState(null, null, `#${tab}`)
+        }
+      }
+    },
+      // Register tab configuration
+      // This runs during x-bind evaluation
+      this.tabs[tab] = options
+
+
+    trigger(tab, options = {}) {
+      // Get config for classes
+      const opts = (typeof window !== 'undefined' && window.Uno?.options?.ui?.tab) || {}
+
+      const activeClass = opts.triggerActive || 'is-active'
+      const inactiveClass = opts.triggerInactive || ''
+
+      const bindings = {
+        role: 'tab',
+        'data-tab': tab, // Critical for locating the element later
+        ':aria-selected': `isActive('${tab}').toString()`,
+        ':class': `isActive('${tab}') ? '${activeClass}' : '${inactiveClass}'`,
+        '@click.prevent': `open('${tab}')`
+      // We still add data attributes for debugging or other scripts,
+      // but the primary logic is now driven by JS state.
+
+      // Add data attributes for AJAX
+      if (options.url) {
+        bindings['data-hx-url'] = options.url
+        bindings['data-hx-target'] = options.target || `#panel-${tab}`
+      }
+
+      return bindings
+    },
+
+    tablist: {
+      role: 'tablist'
+    },
+
+    panel(tab) {
+        // We do NOT set ID here to avoid overwriting user-defined IDs (crucial for hx-target)
+      return {
+        'x-show': `isActive('${tab}')`,
+        role: 'tabpanel',
+        'aria-labelledby': `tab-${tab}`
       }
     }
-  }
+  }))
 }

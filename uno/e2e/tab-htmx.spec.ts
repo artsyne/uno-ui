@@ -16,11 +16,16 @@ test.describe('Tab Component HTMX', () => {
   })
 
   test('htmx content loading', async ({ page }) => {
-    const htmxTab = page.locator('button[data-tab-hx-url="/examples/data/tab-content-htmx.html"]')
-    const htmxContent = page.locator('#side-htmx')
+    const htmxTab = page.locator('#tab-side-htmx')
+    const htmxContent = page.locator('#panel-side-htmx-target')
 
     // Initially hidden
     await expect(htmxContent).toBeHidden()
+
+    // 关键点：确保点击后确实触发了对 tab-content.html 的请求
+    const contentResponse = page.waitForResponse((resp) => {
+      return resp.url().includes('/examples/data/tab-content.html') && resp.status() === 200
+    })
 
     // Click to load
     await htmxTab.click()
@@ -28,24 +33,28 @@ test.describe('Tab Component HTMX', () => {
     // Should be visible
     await expect(htmxContent).toBeVisible()
 
-    // Should load content
-    await expect(htmxContent).toContainText('HTMX Loaded Content', { timeout: 5000 })
+    await contentResponse
 
-    // Verify loaded attribute
-    await expect(htmxContent).toHaveAttribute('data-tab-loaded', 'true')
+    // Should load content
+    await expect(htmxContent).toContainText('Ajax Loaded Content', { timeout: 5000 })
   })
 
-  test('htmx error handling', async ({ page }) => {
-    // Force network error for the HTMX content URL
-    await page.route('**/tab-content-htmx.html', (route) => route.abort('failed'))
+  test('AJAX Content: loads content into its own panel', async ({ page }) => {
+    const ajaxTab = page.locator('#tab-side-ajax')
+    const ajaxContent = page.locator('#panel-side-ajax')
 
-    const htmxTab = page.locator('button[data-tab-hx-url="/examples/data/tab-content-htmx.html"]')
-    const htmxContent = page.locator('#side-htmx')
+    await expect(ajaxContent).toBeHidden()
 
-    await htmxTab.click()
+    // 关键点：这个 case 之前经常出现“永远 Loading”，这里直接用网络响应 + 文本双重断言
+    const contentResponse = page.waitForResponse((resp) => {
+      return resp.url().includes('/examples/data/tab-content.html') && resp.status() === 200
+    })
 
-    // Should show error message
-    await expect(htmxContent).toBeVisible()
-    await expect(htmxContent).toContainText('Error loading content via HTMX', { timeout: 5000 })
+    await ajaxTab.click()
+
+    await expect(ajaxContent).toBeVisible()
+    await contentResponse
+    await expect(ajaxContent).toContainText('Ajax Loaded Content', { timeout: 5000 })
+    await expect(ajaxContent).not.toContainText('Loading...', { timeout: 5000 })
   })
 })

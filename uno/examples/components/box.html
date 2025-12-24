@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
   <script src="../../dist/uno.umd.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
 </head>
 
 <body
@@ -122,13 +122,14 @@
         </div>
         <div class="p-6 space-y-4">
           <div class="grid grid-cols-3 gap-4 text-center">
-            <button data-box-type="message" data-box-position="top" data-box-title="Top" data-box-content="Top Position"
+            <button data-box-type="message" data-box-position="top-center" data-box-title="Top"
+              data-box-content="Top Position"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Top</button>
-            <button data-box-type="message" data-box-position="top-start" data-box-title="Top Start"
+            <button data-box-type="message" data-box-position="top-left" data-box-title="Top Start"
               data-box-content="Top Start"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Top
               Start</button>
-            <button data-box-type="message" data-box-position="top-end" data-box-title="Top End"
+            <button data-box-type="message" data-box-position="top-right" data-box-title="Top End"
               data-box-content="Top End"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Top
               End</button>
@@ -136,23 +137,23 @@
             <button data-box-type="message" data-box-position="center" data-box-title="Center"
               data-box-content="Center Position"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Center</button>
-            <button data-box-type="message" data-box-position="center-start" data-box-title="Center Start"
+            <button data-box-type="message" data-box-position="center-left" data-box-title="Center Start"
               data-box-content="Center Start"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Center
               Start</button>
-            <button data-box-type="message" data-box-position="center-end" data-box-title="Center End"
+            <button data-box-type="message" data-box-position="center-right" data-box-title="Center End"
               data-box-content="Center End"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Center
               End</button>
 
-            <button data-box-type="message" data-box-position="bottom" data-box-title="Bottom"
+            <button data-box-type="message" data-box-position="bottom-center" data-box-title="Bottom"
               data-box-content="Bottom Position"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Bottom</button>
-            <button data-box-type="message" data-box-position="bottom-start" data-box-title="Bottom Start"
+            <button data-box-type="message" data-box-position="bottom-left" data-box-title="Bottom Start"
               data-box-content="Bottom Start"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Bottom
               Start</button>
-            <button data-box-type="message" data-box-position="bottom-end" data-box-title="Bottom End"
+            <button data-box-type="message" data-box-position="bottom-right" data-box-title="Bottom End"
               data-box-content="Bottom End"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Bottom
               End</button>
@@ -170,9 +171,9 @@
             class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Loaders</span>
         </div>
         <div class="p-6 space-y-4">
-          <button onclick="Uno.box.dialog({title: 'AJAX Content', ajaxUrl: '/examples/data/sample.json'})"
+          <button onclick="Uno.box.dialog({title: 'HTMX Content', hxUrl: '/examples/data/tab-content.html'})"
             class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm transition-colors">Load
-            JSON (AJAX)</button>
+            HTML (HTMX)</button>
           <button
             onclick="Uno.box.dialog({title: 'DOM Content', content: document.getElementById('hidden-content').innerHTML})"
             class="w-full px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 shadow-sm transition-colors">Load
@@ -188,6 +189,43 @@
       This content was hidden in the DOM.
     </div>
   </div>
+
+  <script>
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-box-type]')
+      if (!btn) return
+
+      const type = btn.dataset.boxType
+      const position = btn.dataset.boxPosition
+      const title = btn.dataset.boxTitle || ''
+      const content = btn.dataset.boxContent || ''
+
+      const opts = {
+        title,
+        content
+      }
+
+      if (position) opts.position = position
+
+      // Special handling for XSS test
+      if (btn.dataset.testid === 'box-xss-trigger') {
+        // For XSS test, we pass content as is, but box component should sanitize it unless trustedHTML is true
+        // The default behavior of box.open (via box.dialog/alert etc) is to treat content as string unless trustedHTML: true
+        // Wait, box.js line 157: if (!item.trustedHTML) item.content = sanitizeHTML(item.content)
+        // So passing content string is safe.
+      }
+
+      if (type === 'dialog') {
+        Uno.box.dialog(opts)
+      } else if (type === 'confirm') {
+        Uno.box.confirm(content, opts).then(res => {
+          if (res) Uno.box.alert('Confirmed!')
+        })
+      } else if (type === 'message') {
+        Uno.box.alert(content, opts)
+      }
+    })
+  </script>
 </body>
 
 </html>

@@ -47,15 +47,35 @@ test.describe('Tooltip Component', () => {
     }
   })
 
-  test('shows on hover (top)', async ({ page }) => {
-    const trigger = page.getByTestId('trigger-top')
+    test('shows on hover (top)', async ({ page }) => {
+    // Note: The example HTML uses x-tooltip.top, which is still supported as alias.
+    // We should also test the new x-uno-tooltip directive in a separate test or modify this one.
+    // Let's modify the test to use data attributes if we can, or add a new test.
+    // Since we are running e2e against existing HTML files in examples/, I should probably not break those files.
+    // Instead, I will inject new elements using the new directive in the test.
+    
+    await page.evaluate(() => {
+        const btn = document.createElement('button')
+        btn.setAttribute('data-testid', 'trigger-uno-top')
+        btn.setAttribute('x-uno-tooltip', "'Hello Uno Top!'")
+        btn.setAttribute('data-uno-placement', 'top')
+        btn.textContent = 'Uno Top'
+        btn.className = 'px-3 py-2 bg-blue-500 text-white rounded'
+        document.body.appendChild(btn)
+        
+        // @ts-ignore
+        const AlpineRef = window.Alpine || window.top.Alpine
+        AlpineRef.initTree(btn)
+    })
+
+    const trigger = page.getByTestId('trigger-uno-top')
     const tooltipContent = page.locator('#uno-tooltip-content')
 
     await expect(tooltipContent).not.toBeVisible()
     await trigger.hover()
 
     await expect(tooltipContent).toBeVisible()
-    await expect(tooltipContent).toHaveText('Hello Top!')
+    await expect(tooltipContent).toHaveText('Hello Uno Top!')
 
     const triggerBox = await trigger.boundingBox()
     const tooltipBox = await tooltipContent.boundingBox()
@@ -65,13 +85,27 @@ test.describe('Tooltip Component', () => {
     }
   })
 
-  test('shows on hover (bottom)', async ({ page }) => {
-    const trigger = page.getByTestId('trigger-bottom')
+  test('shows on hover (bottom) via data attribute', async ({ page }) => {
+    await page.evaluate(() => {
+        const btn = document.createElement('button')
+        btn.setAttribute('data-testid', 'trigger-uno-bottom')
+        btn.setAttribute('x-uno-tooltip', "'Hello Uno Bottom!'")
+        btn.setAttribute('data-uno-placement', 'bottom')
+        btn.textContent = 'Uno Bottom'
+        btn.className = 'px-3 py-2 bg-blue-500 text-white rounded'
+        document.body.appendChild(btn)
+        
+        // @ts-ignore
+        const AlpineRef = window.Alpine || window.top.Alpine
+        AlpineRef.initTree(btn)
+    })
+
+    const trigger = page.getByTestId('trigger-uno-bottom')
     const tooltipContent = page.locator('#uno-tooltip-content')
 
     await trigger.hover()
     await expect(tooltipContent).toBeVisible()
-    await expect(tooltipContent).toHaveText('Hello Bottom!')
+    await expect(tooltipContent).toHaveText('Hello Uno Bottom!')
 
     const triggerBox = await trigger.boundingBox()
     const tooltipBox = await tooltipContent.boundingBox()
@@ -343,6 +377,7 @@ test.describe('Tooltip Component', () => {
   })
 
   test('perf: show/hide 100 tooltips', async ({ page }) => {
+    await page.waitForSelector('[data-testid="trigger-top"]')
     const durationMs = await page.evaluate(async () => {
       // @ts-ignore
       const AlpineRef = window.Alpine || window.top.Alpine

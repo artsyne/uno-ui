@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
     <script src="../../dist/uno.umd.js" defer></script>
-    <script src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
+        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
 </head>
 
 <body
@@ -146,7 +146,7 @@
                     </p>
 
                     <!-- Hidden Source -->
-                    <div id="my-custom-content" style="display: none;">
+                    <template id="my-custom-content">
                         <div class="text-left">
                             <h4 class="font-bold text-indigo-600 dark:text-indigo-400">Rich Content</h4>
                             <p class="text-xs text-slate-500 dark:text-slate-400">You can include HTML tags here.</p>
@@ -163,7 +163,7 @@
                                 <img data-testid="xss-img" src="x" onerror="window.__UNO_XSS_IMG__=true" />
                             </div>
                         </div>
-                    </div>
+                    </template>
 
                     <div class="relative">
                         <button data-testid="trigger-target" x-tooltip.bottom="{ target: '#my-custom-content' }"

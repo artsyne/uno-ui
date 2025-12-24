@@ -4,11 +4,12 @@
  * Manages plugins, initialization, and global configuration.
  *
  * @module uno.core.instance
- * @version 0.3.0
+ * @version 0.5.0
  */
 
 import Alpine from 'alpinejs'
 import { log } from '../utils/log'
+import { once } from '../utils/dom'
 
 function isPlainObject(value) {
   return Object.prototype.toString.call(value) === '[object Object]'
@@ -28,6 +29,15 @@ function mergeDeep(base, patch) {
       out[key] = mergeDeep({}, value)
       continue
     }
+    // Handle string append (e.g. "+class")
+    if (
+      typeof value === 'string' &&
+      value.trim().indexOf('+') === 0 &&
+      typeof out[key] === 'string'
+    ) {
+      out[key] = `${out[key]} ${value.trim().slice(1)}`.trim()
+      continue
+    }
     out[key] = value
   }
   return out
@@ -35,9 +45,94 @@ function mergeDeep(base, patch) {
 
 class UnoInstance {
   constructor() {
-    this.version = '0.3.0'
+    this.version = '0.5.0'
     this.plugins = []
     this.initialized = false
+    this._htmxRequestHandlers = []
+    this._htmxActiveXhrs = typeof WeakSet === 'function' ? new WeakSet() : null
+    this.htmx = {
+      available: () => typeof window !== 'undefined' && typeof window.htmx?.ajax === 'function',
+      ajax: (method, url, ajaxOptions = {}) => {
+        if (typeof window === 'undefined' || typeof window.htmx?.ajax !== 'function') {
+          return Promise.reject(new Error('htmx.ajax is not available'))
+        }
+        return window.htmx.ajax(method, url, ajaxOptions)
+      },
+      fragment: async (method, url, ajaxOptions = {}) => {
+        if (typeof document === 'undefined') throw new Error('document is not available')
+        const target = document.createElement('div')
+        // Detached element to prevent immediate script execution
+        // We intercept beforeSwap to get the content without inserting it
+        let responseText = ''
+        const onBeforeSwap = (evt) => {
+          evt.preventDefault() // Prevent HTMX from inserting content
+          responseText = evt.detail.serverResponse
+          evt.detail.shouldSwap = false
+        }
+        target.addEventListener('htmx:beforeSwap', onBeforeSwap)
+
+        try {
+          // No need to append to document.body for htmx.ajax to work with explicit target
+          const swap = ajaxOptions.swap || 'innerHTML'
+          await this.htmx.ajax(method, url, { ...ajaxOptions, target, swap })
+          return responseText
+        } finally {
+          target.removeEventListener('htmx:beforeSwap', onBeforeSwap)
+          target.remove()
+        }
+      },
+      onRequest: (handlers = {}) => {
+        if (!handlers || typeof handlers !== 'object') return
+        this._htmxRequestHandlers.push(handlers)
+
+        if (typeof window === 'undefined' || typeof document === 'undefined') return
+        if (!window.htmx) return
+
+        if (!once(document, 'uno:htmx:request-hooks')) return
+
+        const getXhr = (event) => event?.detail?.xhr
+        const callEach = (name, event) => {
+          for (const h of this._htmxRequestHandlers) {
+            const fn = h?.[name]
+            if (typeof fn === 'function') {
+              try {
+                fn(event)
+              } catch (e) {
+                log.error('Uno.htmx.onRequest handler failed', e)
+              }
+            }
+          }
+        }
+
+        const begin = (event) => {
+          const xhr = getXhr(event)
+          if (xhr && this._htmxActiveXhrs) {
+            if (this._htmxActiveXhrs.has(xhr)) return
+            this._htmxActiveXhrs.add(xhr)
+          }
+          callEach('start', event)
+        }
+
+        const end = (event) => {
+          const xhr = getXhr(event)
+          if (xhr && this._htmxActiveXhrs) {
+            if (!this._htmxActiveXhrs.has(xhr)) return
+            this._htmxActiveXhrs.delete(xhr)
+          }
+          callEach('end', event)
+        }
+
+        document.addEventListener('htmx:beforeRequest', begin)
+        document.addEventListener('htmx:afterRequest', end)
+        document.addEventListener('htmx:responseError', end)
+        document.addEventListener('htmx:sendError', end)
+        document.addEventListener('htmx:timeout', end)
+
+        document.addEventListener('htmx:xhr:progress', (event) => callEach('progress', event))
+      }
+    }
+    const base = 'rounded-lg shadow-md border border-gray-200 dark:border-gray-700'
+
     this.options = {
       debug: false,
       csp: {
@@ -46,13 +141,97 @@ class UnoInstance {
       onError: null, // Custom error handler
       plugins: {},
       ui: {
-        base: { rounded: 'rounded-lg', primary: 'bg-blue-600', shadow: 'shadow-md' },
+        base,
         layers: { boxBase: 10000, tooltipBase: 20000, notifyBase: 30000 },
-        box: {},
-        notify: {},
-        tooltip: {},
-        tab: {},
-        valid: {}
+        box: {
+          overlay: 'fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity',
+          dialogWrapper: 'fixed inset-0 z-10 w-screen overflow-y-auto',
+          itemWrapper:
+            'flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0',
+          container:
+            'relative transform overflow-hidden {base} bg-white dark:bg-gray-900 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg flex flex-col max-h-[90vh] pointer-events-auto outline-none',
+          cancelBtn:
+            'mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto',
+          okBtn:
+            'inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto',
+          header:
+            'flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700',
+          title: 'text-base font-semibold leading-6 text-gray-900 dark:text-slate-200',
+          closeBtn: 'text-slate-400 hover:text-slate-500 focus:outline-none',
+          closeBtnFloating:
+            'absolute top-2 right-2 z-10 text-slate-400 hover:text-slate-500 focus:outline-none',
+          closeIcon: 'h-6 w-6',
+          closeIconSmall: 'h-5 w-5',
+          content:
+            'px-4 pb-4 pt-5 sm:p-6 sm:pb-4 overflow-auto flex-1 text-slate-600 dark:text-slate-300',
+          loadingWrap: 'flex justify-center items-center h-full',
+          spinner: 'animate-spin h-8 w-8 text-blue-500',
+          footer:
+            'bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-slate-200 dark:border-slate-700 dark:bg-slate-800',
+          error: 'p-4 text-red-500',
+          promptWrapper: 'space-y-3',
+          promptText: 'text-slate-700 dark:text-slate-200',
+          promptInput:
+            'w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none',
+          positionBase: 'fixed inset-0 flex transition-opacity duration-300 p-4 pointer-events-none'
+        },
+        notify: {
+          container: 'fixed flex gap-2 p-4 pointer-events-none',
+          item: 'pointer-events-auto max-w-[calc(100vw-2rem)] overflow-hidden {base}',
+          content: 'p-4',
+          row: 'flex items-start',
+          iconWrap: 'flex-shrink-0',
+          textWrap: 'ml-3 min-w-0 flex-1 pt-0.5',
+          text: 'text-sm font-medium text-gray-900 dark:text-slate-100 break-words',
+          closeWrap: 'ml-4 flex flex-shrink-0',
+          closeBtn:
+            'inline-flex rounded-md bg-white dark:bg-slate-900 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2',
+          closeIcon: 'h-5 w-5',
+          indicatorTrack: 'h-1 bg-gray-200 dark:bg-slate-700 overflow-hidden',
+          indicatorBar: 'h-full bg-blue-500 origin-left',
+          progressWrap: 'fixed top-0 left-0 right-0 h-1 bg-transparent',
+          progressBar: 'uno-progress-anim h-full bg-blue-500 animate-pulse',
+          loadingWrap:
+            'fixed inset-0 flex items-center justify-center bg-white/50 dark:bg-black/50 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto',
+          spinner: 'animate-spin h-10 w-10 text-blue-600 dark:text-blue-400',
+          types: {
+            success: 'bg-green-100 dark:bg-green-950',
+            error: 'bg-red-100 dark:bg-red-950',
+            warning: 'bg-yellow-100 dark:bg-yellow-950',
+            info: 'bg-blue-100 dark:bg-blue-950'
+          },
+          icons: {
+            success: 'text-green-500 dark:text-green-300',
+            error: 'text-red-500 dark:text-red-300',
+            warning: 'text-yellow-500 dark:text-yellow-300',
+            info: 'text-blue-500 dark:text-blue-300'
+          }
+        },
+        tooltip: {
+          content:
+            'fixed px-3 py-2 text-sm font-medium {base} whitespace-nowrap pointer-events-none bg-white text-gray-900 dark:bg-slate-800 dark:text-white',
+          body: 'pointer-events-auto'
+        },
+        tab: {
+          active: 'border-b-2 border-blue-500',
+          inactive: 'text-slate-500 hover:text-slate-700',
+          loading: 'animate-pulse h-32 w-full rounded-lg bg-gray-200 dark:bg-slate-700',
+          error: 'p-4 text-red-600 dark:text-red-400'
+        },
+        valid: {
+          wrapper: 'relative w-full',
+          iconBase:
+            'absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200',
+          inputError: '!border-red-500',
+          inputValid: '!border-green-500',
+          iconError: 'text-red-500 dark:text-red-400',
+          iconValid: 'text-green-500 dark:text-green-400',
+          stateInvalid: 'is-invalid',
+          stateValid: 'is-valid',
+          stateValidating: 'validating',
+          inputPaddingIcon: 'pr-10',
+          helperText: 'text-red-600 dark:text-red-400 text-xs'
+        }
       }
     }
   }
@@ -71,6 +250,15 @@ class UnoInstance {
     return cur
   }
 
+  _resolveUiTokens(value) {
+    if (typeof value !== 'string') return value
+    const base = this.options.ui?.base
+    if (typeof base === 'string' && value.indexOf('{base}') !== -1) {
+      return value.replaceAll('{base}', base)
+    }
+    return value
+  }
+
   /**
    * Get style class from configuration or fallback
    * Support "+" prefix to append class to default
@@ -82,14 +270,14 @@ class UnoInstance {
   getStyle(comp, elem, defaultCls) {
     const config = this._getUiValue(comp, elem)
 
-    if (config === undefined) return defaultCls
+    if (config === undefined) return this._resolveUiTokens(defaultCls)
 
     // Check for append mode ("+class")
     if (typeof config === 'string' && config.trim().indexOf('+') === 0) {
-      return `${defaultCls} ${config.trim().slice(1)}`.trim()
+      return this._resolveUiTokens(`${defaultCls} ${config.trim().slice(1)}`.trim())
     }
 
-    return config
+    return this._resolveUiTokens(config)
   }
 
   /**
@@ -160,6 +348,17 @@ class UnoInstance {
     }
 
     log.info(`Uno v${this.version} initializing...`)
+
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      if (window.htmx && typeof alpine?.initTree === 'function') {
+        if (once(document, 'uno:htmx-afterSwap:initTree')) {
+          document.addEventListener('htmx:afterSwap', (event) => {
+            const elt = event?.detail?.elt
+            if (elt) alpine.initTree(elt)
+          })
+        }
+      }
+    }
 
     // Register plugins
     this.plugins.forEach(({ plugin, options: pluginOptions }) => {

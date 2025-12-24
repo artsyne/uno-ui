@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
     <script src="../../dist/uno.umd.js" defer></script>
-    <script src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
 </head>
 
 <body
@@ -31,7 +31,7 @@
                 </a>
                 <h1 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
                     <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">Uno</span>
-                    Valid Plugin (Data-Driven)
+                    Valid Plugin (Standard HTML5)
                 </h1>
             </div>
             <div class="flex items-center gap-4">
@@ -67,9 +67,11 @@
         <div
             class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
             <p class="text-slate-600 dark:text-slate-300">
-                This page demonstrates the new <strong>Data-Driven</strong> validation plugin.
-                It uses <code>x-data="validForm"</code> and declarative directives like
-                <code>x-valid-error</code> and <code>x-valid-count</code>.
+                This page demonstrates the new <strong>Standard HTML5</strong> validation plugin.
+                It uses <code>data-uno-valid</code> on the form and standard HTML5 attributes like
+                <code>required</code>, <code>pattern</code>, <code>type</code>, <code>min/max</code>.
+                HTMX integration is automatic via <code>hx-post</code> interception.
+                Errors are displayed using <code>x-text="$uno.valid.getMessage('name')"</code>.
             </p>
         </div>
 
@@ -80,59 +82,77 @@
                 class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
                 <div
                     class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
-                    <h2 class="font-semibold text-slate-800 dark:text-white">1. Built-in Validators</h2>
+                    <h2 class="font-semibold text-slate-800 dark:text-white">1. Standard Validators</h2>
                     <span
-                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Client-side
-                        Regex</span>
+                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">HTML5
+                        Native</span>
                 </div>
-                <form x-data="validForm" @submit.prevent="submit" class="p-6 space-y-5">
+                <!-- 
+                    Use data-uno-valid to enable Uno validation interception.
+                    Use hx-post for HTMX submission (intercepted if invalid).
+                -->
+                <form data-uno-valid hx-post="/api/validate" hx-swap="none" class="p-6 space-y-5" novalidate>
                     <!-- Validname -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Username
-                            <code>validname</code></label>
-                        <input x-validate name="username" data-valid-type="validname" data-valid-required="true"
+                            <code>pattern</code></label>
+                        <input name="username" pattern="^[a-zA-Z0-9_\-]+$" required
+                            data-uno-error-pattern="Only letters, numbers, _, - allowed"
                             class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="Letters, numbers, _ -" />
-                        <div x-valid-error="username" class="text-xs mt-1 h-4 transition-all"></div>
+                        <div data-uno-valid-error-for="username" x-text="$uno.valid.getMessage('username')"
+                            x-show="$uno.valid.getMessage('username')"
+                            class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
                     </div>
 
                     <!-- Email -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Email
-                            <code>email</code></label>
-                        <input x-validate name="email" type="email" data-valid-required="true"
+                            <code>type="email"</code></label>
+                        <input name="email" type="email" required
+                            data-uno-error-type="Please enter a valid email address"
                             class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="user@example.com" />
-                        <div x-valid-error="email" class="text-xs mt-1 h-4 transition-all"></div>
+                        <div data-uno-valid-error-for="email" x-text="$uno.valid.getMessage('email')"
+                            x-show="$uno.valid.getMessage('email')"
+                            class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
                     </div>
 
                     <!-- Mobile -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Mobile
-                            <code>mobile</code></label>
-                        <input x-validate name="mobile" data-valid-type="mobile"
+                            <code>type="tel"</code></label>
+                        <input name="mobile" type="tel" pattern="^\+?[0-9]{7,15}$"
+                            data-uno-error-pattern="Invalid phone number format"
                             class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="+1234567890" />
-                        <div x-valid-error="mobile" class="text-xs mt-1 h-4 transition-all"></div>
+                        <div data-uno-valid-error-for="mobile" x-text="$uno.valid.getMessage('mobile')"
+                            x-show="$uno.valid.getMessage('mobile')"
+                            class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
                     </div>
 
                     <!-- URL & Domain -->
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Website
-                                <code>url</code></label>
-                            <input x-validate name="url" type="url" data-valid-type="url"
+                                <code>type="url"</code></label>
+                            <input name="url" type="url" data-uno-error-type="Must be a valid URL (https://...)"
                                 class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                 placeholder="https://..." />
-                            <div x-valid-error="url" class="text-xs mt-1 h-4 transition-all"></div>
+                            <div data-uno-valid-error-for="url" x-text="$uno.valid.getMessage('url')"
+                                x-show="$uno.valid.getMessage('url')"
+                                class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Domain
-                                <code>domain</code></label>
-                            <input x-validate name="domain" data-valid-type="domain"
+                                <code>pattern</code></label>
+                            <input name="domain" pattern="^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$"
+                                data-uno-error-pattern="Invalid domain format"
                                 class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                 placeholder="example.com" />
-                            <div x-valid-error="domain" class="text-xs mt-1 h-4 transition-all"></div>
+                            <div data-uno-valid-error-for="domain" x-text="$uno.valid.getMessage('domain')"
+                                x-show="$uno.valid.getMessage('domain')"
+                                class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
                         </div>
                     </div>
 
@@ -140,19 +160,23 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Date
-                                <code>date</code></label>
-                            <input x-validate name="date" data-valid-type="date"
+                                <code>type="date"</code></label>
+                            <input name="date" type="date"
                                 class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                 placeholder="YYYY-MM-DD" />
-                            <div x-valid-error="date" class="text-xs mt-1 h-4 transition-all"></div>
+                            <div data-uno-valid-error-for="date" x-text="$uno.valid.getMessage('date')"
+                                x-show="$uno.valid.getMessage('date')"
+                                class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Integer
-                                <code>int</code></label>
-                            <input x-validate name="int" data-valid-type="int"
+                                <code>type="number"</code></label>
+                            <input name="int" type="number" step="1"
                                 class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                 placeholder="123" />
-                            <div x-valid-error="int" class="text-xs mt-1 h-4 transition-all"></div>
+                            <div data-uno-valid-error-for="int" x-text="$uno.valid.getMessage('int')"
+                                x-show="$uno.valid.getMessage('int')"
+                                class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
                         </div>
                     </div>
 
@@ -169,73 +193,65 @@
                     class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
                     <h2 class="font-semibold text-slate-800 dark:text-white">2. Logic Rules</h2>
                     <span
-                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Complex
+                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Native
                         Logic</span>
                 </div>
-                <form x-data="validForm" @submit.prevent="submit" class="p-6 space-y-5">
+                <form data-uno-valid hx-post="/api/validate" hx-swap="none" class="p-6 space-y-5" novalidate>
 
                     <!-- Password & Compare -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Password
-                            <code>pwd</code> (min
-                            6)</label>
-                        <input x-validate id="logic_pwd" name="password" type="password" data-valid-type="pwd"
-                            data-valid-min="6" data-valid-required="true"
+                            <code>minlength="6"</code></label>
+                        <input id="logic_pwd" name="password" type="password" minlength="6" required
                             class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors" />
-                        <div x-valid-error="password" class="text-xs mt-1 h-4 transition-all"></div>
+                        <div x-text="$uno.valid.getMessage('password')"
+                            class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Confirm
-                            <code>compareto</code></label>
-                        <input x-validate name="confirm" type="password"
-                            valid='[{"type":"compareto","destid":"logic_pwd","msg":"Must match password"}]'
+                            <code>data-uno-match</code></label>
+                        <input name="confirm" type="password" required data-uno-match="password"
                             class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors" />
-                        <div x-valid-error="confirm" class="text-xs mt-1 h-4 transition-all"></div>
+                        <div x-text="$uno.valid.getMessage('confirm')" x-show="$uno.valid.getMessage('confirm')"
+                            class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
                     </div>
 
-                    <!-- Range -->
+                    <!-- Age Range -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Age
-                            <code>range</code>
-                            (18-60)</label>
-                        <input x-validate name="age"
-                            valid='[{"type":"int"},{"type":"range","min":18,"max":60,"msg":"Only 18-60 allowed"}]'
-                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                            placeholder="25" />
-                        <div x-valid-error="age" class="text-xs mt-1 h-4 transition-all"></div>
+                            <code>min="18" max="60"</code></label>
+                        <input name="age" type="number" min="18" max="60" required
+                            data-uno-error-min="Must be at least 18" data-uno-error-max="Must be at most 60"
+                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors" />
+                        <div x-text="$uno.valid.getMessage('age')" x-show="$uno.valid.getMessage('age')"
+                            class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
                     </div>
 
-                    <!-- Custom Regexp -->
+                    <div class="h-px bg-slate-100 dark:bg-slate-700 my-4"></div>
+
+                    <!-- Multi-Rule JSON -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">API Key
-                            <code>regexp</code>
-                            (A-Z0-9, len 8)</label>
-                        <input x-validate name="apikey"
-                            valid='[{"type":"regexp","expression":"[A-Z0-9]{8}","msg":"Must be 8 uppercase alphanumeric chars"}]'
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Multi-Rule JSON
+                            <code>valid='[...]'</code></label>
+                        <input name="multirule" 
+                            valid='[{"type":"required"}, {"type":"email"}, {"type":"checkemail"}]'
                             class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                            placeholder="ABC123XY" />
-                        <div x-valid-error="apikey" class="text-xs mt-1 h-4 transition-all"></div>
+                            placeholder="Required + Email + CheckEmail" />
+                        <div x-text="$uno.valid.getMessage('multirule')" x-show="$uno.valid.getMessage('multirule')"
+                            class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
+                        <p class="text-xs text-slate-500 mt-1">Combines Required, Email, and Custom CheckEmail.</p>
                     </div>
 
+                    <!-- Custom Function -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Regexp Too Long
-                            <code>regexp</code>
-                            (guard)</label>
-                        <input data-testid="regexp-too-long" x-validate name="regexp_too_long"
-                            valid='[{"type":"regexp","expression":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","msg":"Pattern too long"}]'
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Custom Function
+                            <code>data-valid-type="checkname"</code></label>
+                        <input name="custom" data-valid-type="checkname" required
                             class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                            placeholder="Any input triggers fast fallback" />
-                        <div x-valid-error="regexp_too_long" class="text-xs mt-1 h-4 transition-all"></div>
-                    </div>
-
-                    <!-- Empty Quit -->
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Optional Code
-                            <code>emptyquit</code> + <code>int</code></label>
-                        <input x-validate name="opt_code" valid='[{"type":"emptyquit"},{"type":"int"}]'
-                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                            placeholder="Empty is ok, but if filled must be int" />
-                        <div x-valid-error="opt_code" class="text-xs mt-1 h-4 transition-all"></div>
+                            placeholder="Type 'admin' to fail" />
+                        <div x-text="$uno.valid.getMessage('custom')" x-show="$uno.valid.getMessage('custom')"
+                            class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
+                        <p class="text-xs text-slate-500 mt-1">Simulates async check. 'admin' is taken.</p>
                     </div>
 
                     <button type="submit"
@@ -244,114 +260,56 @@
                 </form>
             </div>
 
-            <!-- Card 3: Text Limits & Tags -->
+            <!-- Card 3: Advanced & Count -->
             <div
                 class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
                 <div
                     class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
-                    <h2 class="font-semibold text-slate-800 dark:text-white">3. Text Processing</h2>
+                    <h2 class="font-semibold text-slate-800 dark:text-white">3. Advanced & Count</h2>
                     <span
-                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Limits
-                        & Tags</span>
+                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Extras</span>
                 </div>
-                <form x-data="validForm" @submit.prevent="submit" class="p-6 space-y-5">
+                <form data-uno-valid hx-post="/api/validate" hx-swap="none" class="p-6 space-y-5" novalidate>
 
-                    <!-- Tags -->
+                    <!-- Character Count -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Skills
-                            <code>tag</code> (max 3,
-                            comma sep)</label>
-                        <input x-validate name="tags"
-                            valid='[{"type":"tag","max":3,"mark":",","msg":"Max 3 tags allowed"}]'
-                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                            placeholder="js,css,html" />
-                        <div x-valid-error="tags" class="text-xs mt-1 h-4 transition-all"></div>
-                    </div>
-
-                    <!-- Limit with Counter (Textarea) -->
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Bio
-                            <code>limit</code> (max
-                            100)</label>
-                        <textarea x-validate name="bio" valid='[{"type":"limit","max":100,"show":true}]'
-                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors h-24"
-                            placeholder="Tell us about yourself..."></textarea>
-                        <div x-valid-count="bio"
-                            class="valid-count block w-full text-xs text-gray-500 dark:text-gray-400 text-right mt-2">
+                        <div class="flex justify-between">
+                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Bio
+                                <code>maxlength="100"</code></label>
+                            <span class="text-xs text-slate-400 valid-count"><span>0</span>/100</span>
                         </div>
+                        <textarea name="bio" maxlength="100" rows="3"
+                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                            placeholder="Tell us about yourself..."></textarea>
+                        <div x-text="$uno.valid.getMessage('bio')" x-show="$uno.valid.getMessage('bio')"
+                            class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
                     </div>
 
-                    <!-- Limit with Min (Input) -->
+                    <!-- Optional Email (EmptyQuit) -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Nickname
-                            <code>limit</code> (min 3,
-                            max 10)</label>
-                        <input x-validate name="nickname"
-                            valid='[{"type":"limit","min":3,"max":10,"msg":"Length must be 3-10"}]'
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Optional Email
+                            <code>emptyquit + email</code></label>
+                        <input name="opt_email" valid='[{"type":"emptyquit"},{"type":"email"}]'
                             class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                            placeholder="Nick" />
-                        <div x-valid-error="nickname" class="text-xs mt-1 h-4 transition-all"></div>
+                            placeholder="Optional, but valid email if filled" />
+                        <div x-text="$uno.valid.getMessage('opt_email')" x-show="$uno.valid.getMessage('opt_email')"
+                            class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
+                    </div>
+
+                    <!-- Custom Email Check -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Check Email
+                            <code>checkemail</code></label>
+                        <input name="checkemail" data-valid-type="checkemail" required
+                            class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                            placeholder="Type 'test@exist.com' to fail" />
+                        <div x-text="$uno.valid.getMessage('checkemail')" x-show="$uno.valid.getMessage('checkemail')"
+                            class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
                     </div>
 
                     <button type="submit"
-                        class="w-full bg-slate-800 dark:bg-blue-600 text-white py-2 rounded-lg hover:bg-slate-700 dark:hover:bg-blue-700 transition-colors">Check
-                        Text Rules</button>
-                </form>
-            </div>
-
-            <!-- Card 4: Async & HTMX -->
-            <div
-                class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
-                <div
-                    class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
-                    <h2 class="font-semibold text-slate-800 dark:text-white">4. Async & Server</h2>
-                    <span
-                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Integration</span>
-                </div>
-
-                <!-- HTMX Form -->
-                <form x-data="validForm" @submit.prevent="submit" hx-post="/examples/data/sample.json"
-                    hx-target="#htmx-result" hx-trigger="valid-submit" class="p-6 space-y-5">
-
-                    <!-- Async Check -->
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Server User
-                            Check
-                            <code>callback</code></label>
-                        <div class="relative">
-                            <input x-validate id="async_user" name="username"
-                                valid='[{"type":"required"},{"type":"callback","fn":"checkUserUnique","debounce":350}]'
-                                class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors pr-10"
-                                placeholder="Try 'admin' (taken) or 'guest' (error)" />
-                            <!-- Explicit error container -->
-                            <div x-valid-error="username" class="text-xs mt-1 h-4 transition-all"></div>
-
-                            <div class="absolute right-3 top-2.5 text-slate-400 pointer-events-none">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="h-5 w-5 animate-spin hidden validating:block" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2">
-                                    <path
-                                        d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2 22 6.477 22 12c0 5.523-4.477 10-10 10z"
-                                        stroke-opacity="0.3" />
-                                    <path d="M12 2a10 10 0 0 1 10 10" />
-                                </svg>
-                            </div>
-                        </div>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Async validates on input. 'admin'
-                            returns error, 'guest'
-                            returns server error simulation.</p>
-                    </div>
-
-                    <div class="pt-2">
-                        <button type="submit"
-                            class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex justify-center items-center gap-2">
-                            <span>Submit via HTMX</span>
-                        </button>
-                    </div>
-
-                    <div id="htmx-result"
-                        class="bg-slate-50 dark:bg-slate-900 p-3 rounded text-xs font-mono border dark:border-slate-700 text-slate-600 dark:text-slate-300 min-h-[3rem] empty:hidden">
-                    </div>
+                        class="w-full bg-slate-800 dark:bg-blue-600 text-white py-2 rounded-lg hover:bg-slate-700 dark:hover:bg-blue-700 transition-colors">Validate
+                        Extras</button>
                 </form>
             </div>
 
@@ -359,22 +317,19 @@
     </main>
 
     <script>
-        window.addEventListener('alpine:init', () => {
-            const checkUserUnique = async (id, value) => {
-                if (!value) return true;
-                // Simulate network delay
-                await new Promise(r => setTimeout(r, 800));
-
-                const val = value.toLowerCase();
-                if (val === 'admin') return { valid: false, message: 'Username "admin" is taken' };
-                if (val === 'guest') return { valid: false, message: 'Guest accounts not allowed' };
-
-                return true;
+        // Define custom validator for testing
+        window.UnoValidators = {
+            checkname: function (value) {
+                if (value === 'admin') return "Username 'admin' is already taken."
+                return true
+            },
+            checkemail: function (value) {
+                if (value === 'test@exist.com') return "Email 'test@exist.com' is already registered."
+                return true
             }
-
-            Alpine.store('valid').registerCallback('checkUserUnique', checkUserUnique);
-        });
+        }
     </script>
+
 </body>
 
 </html>

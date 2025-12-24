@@ -49,41 +49,66 @@ test.describe('Box Component', () => {
     await expect(outer).not.toBeVisible()
   })
 
-  test('position bottom-end', async ({ page }) => {
-    await page.evaluate(() => {
-      ;(window as any).Alpine.store('box').open('dialog', {
-        title: 'Bottom End',
-        content: 'Positioning test',
-        position: 'bottom-end'
-      })
-    })
+  test('positioning supports 9-grid positions', async ({ page }) => {
+    const cases: Array<[string, string, string]> = [
+      ['top-center', 'items-start', 'justify-center'],
+      ['top-left', 'items-start', 'justify-start'],
+      ['top-right', 'items-start', 'justify-end'],
+      ['center', 'items-center', 'justify-center'],
+      ['center-left', 'items-center', 'justify-start'],
+      ['center-right', 'items-center', 'justify-end'],
+      ['bottom-center', 'items-end', 'justify-center'],
+      ['bottom-left', 'items-end', 'justify-start'],
+      ['bottom-right', 'items-end', 'justify-end']
+    ]
 
-    const outer = page.locator('[id^="uno-box-outer-container"]')
-    await expect(outer).toBeVisible()
+    for (const [position, itemsCls, justifyCls] of cases) {
+      const boxId = `pos-${position}`
+
+      await page.evaluate(
+        ({ position, boxId }) => {
+          ;(window as any).Alpine.store('box').open('dialog', {
+            boxId,
+            title: position,
+            content: 'Positioning test',
+            position
+          })
+        },
+        { position, boxId }
+      )
+
+      const outer = page.locator(`#uno-box-outer-container${boxId}`)
+      await expect(outer).toBeVisible()
+      await expect(outer).toHaveClass(new RegExp(itemsCls))
+      await expect(outer).toHaveClass(new RegExp(justifyCls))
+
+      await page.getByRole('button', { name: 'Close' }).click()
+      await expect(outer).not.toBeVisible()
+    }
   })
 
-  test('ajax loads local json and displays content', async ({ page }) => {
+  test('hxUrl loads local html and displays content', async ({ page }) => {
     await page.evaluate(() => {
       const AlpineRef = (window as any).Alpine || (window as any).top?.Alpine
       const store = AlpineRef.store('box')
       store.open({
-        title: 'AJAX Content',
-        ajaxUrl: '/examples/data/sample.json'
+        title: 'HTMX Content',
+        hxUrl: '/examples/data/tab-content.html'
       })
     })
 
     const content = page.locator('[id^="uno-box-content"]')
     await expect(content).toBeVisible()
-    await expect(content).toContainText('Sample Data')
+    await expect(content).toContainText('Ajax Loaded Content')
   })
 
-  test('loads content from DOM ID', async ({ page }) => {
+  test('loads content from DOM innerHTML', async ({ page }) => {
     await page.evaluate(() => {
       const AlpineRef = (window as any).Alpine || (window as any).top?.Alpine
       const store = AlpineRef.store('box')
       store.open({
         title: 'DOM Target',
-        targetId: 'hidden-content',
+        content: document.getElementById('hidden-content')?.innerHTML || '',
         trustedHTML: true
       })
     })
@@ -245,14 +270,14 @@ test.describe('Box Component', () => {
     expect(logs).toEqual(['onCancel', 'onClose'])
   })
 
-  test('executes onContentLoad callback after ajax loading', async ({ page }) => {
+  test('executes onContentLoad callback after hxUrl loading', async ({ page }) => {
     await page.evaluate(() => {
       ;(window as any)._callbackLogs = []
       // @ts-ignore
       const store = (window.Alpine || window.top.Alpine).store('box')
       store.open({
-        title: 'AJAX Callback Test',
-        ajaxUrl: '/examples/data/sample.json',
+        title: 'HTMX Callback Test',
+        hxUrl: '/examples/data/tab-content.html',
         onContentLoad: (el: any) => {
           ;(window as any)._callbackLogs.push('onContentLoad')
           // Verify element is passed
@@ -265,7 +290,7 @@ test.describe('Box Component', () => {
 
     // Wait for content to load
     const content = page.locator('[id^="uno-box-content"]')
-    await expect(content).toContainText('Sample Data')
+    await expect(content).toContainText('Ajax Loaded Content')
 
     // Check logs
     const logs = await page.evaluate(() => (window as any)._callbackLogs)

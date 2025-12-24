@@ -5,48 +5,19 @@
  */
 
 export const VALIDATORS = {
-  validname: /^[a-zA-Z0-9_-]+$/,
-  en: /^[a-zA-Z]+$/,
-  domain: /^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,6}$/,
-  mobile: /^\+?[\d\s-]{7,}$/,
-  int: /^-?\d+$/,
-  email: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
-  date: /^(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}|\d{2}\.\d{2}\.\d{4})$/,
-  url: /^(https?:\/\/)?([\da-z.-]+)\.([a-z.-]{2,6})([/\w .-]*)*\/?$/i,
-  pwd: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
-  strongpwd: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
+  // Common Regex Patterns
+  email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+  url: /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/,
+  username: /^[a-zA-Z0-9_-]{3,16}$/,
+  number: /^\d+$/,
+  integer: /^-?\d+$/,
+  date: /^\d{4}-\d{2}-\d{2}$/,
+  time: /^\d{2}:\d{2}$/,
+  phone: /^\+?[\d\s-]{10,}$/,
+  alphanumeric: /^[a-zA-Z0-9]+$/,
 }
 
-export function sanitizeRegexString(str) {
-  const match = str.match(/^\/(.*?)\/([gimsuy]*)$/)
-  if (match) {
-    return { pattern: match[1], flags: match[2] }
-  }
-  return { pattern: str, flags: '' }
-}
-
-export function buildSafeRegExp(expression, options = {}) {
-  const { defaultFlags = 'i', maxPatternLength = 200 } = options
-  const { pattern, flags } = sanitizeRegexString(String(expression ?? ''))
-
-  if (!pattern) return null
-  if (pattern.length > maxPatternLength) return null
-
-  const f = String(flags || defaultFlags || '')
-  if (!/^[gimsuy]*$/.test(f)) return null
-
-  try {
-    return new RegExp(pattern, f)
-  } catch {
-    return null
-  }
-}
-
-export function safeParseJSON(str) {
-  try {
-    if (!str) return []
-    return JSON.parse(str)
-  } catch {
-    return []
-  }
+export function validate(value, type) {
+  if (!type || !VALIDATORS[type]) return true
+  return VALIDATORS[type].test(value)
 }

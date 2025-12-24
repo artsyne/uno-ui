@@ -7,6 +7,7 @@
  */
 
 import { POSITIONS, getFixedPositionClass, getStackingConfig } from '../utils/position'
+import { once } from '../utils/dom'
 import { Uno } from '../core/uno'
 
 export default (Alpine, options = {}) => {
@@ -18,62 +19,39 @@ export default (Alpine, options = {}) => {
   const getNonce = () =>
     Uno.options?.csp?.nonce || (typeof window !== 'undefined' && window.Uno?.options?.csp?.nonce)
 
-  const DEFAULT_NOTIFY_STYLES = {
-    types: {
-      success: 'bg-green-50 dark:bg-green-950/40',
-      error: 'bg-red-50 dark:bg-red-950/40',
-      warning: 'bg-yellow-50 dark:bg-yellow-950/40',
-      info: 'bg-blue-50 dark:bg-blue-950/40'
-    },
-    icons: {
-      success: 'text-green-500 dark:text-green-300',
-      error: 'text-red-500 dark:text-red-300',
-      warning: 'text-yellow-500 dark:text-yellow-300',
-      info: 'text-blue-500 dark:text-blue-300'
-    }
-  }
-
   const getNotifyTypeClass = (type) => {
-    const base = DEFAULT_NOTIFY_STYLES.types[type] || 'bg-white dark:bg-slate-900'
-    return Uno.getStyle('notify', `types.${type}`, base)
+    return Uno.getStyle('notify', `types.${type}`, '')
   }
 
   const getNotifyIconClass = (type) => {
-    const base = DEFAULT_NOTIFY_STYLES.icons[type] || 'text-gray-400 dark:text-gray-500'
-    return Uno.getStyle('notify', `icons.${type}`, base)
-  }
-
-  const ensureStyles = () => {
-    if (document.getElementById('uno-notify-styles')) return
-
-    const style = document.createElement('style')
-    style.id = 'uno-notify-styles'
-
-    const nonce = getNonce()
-    if (nonce) style.setAttribute('nonce', nonce)
-
-    style.textContent = `
-      @keyframes notify-progress {
-        from { width: 100%; }
-        to { width: 0%; }
-      }
-
-      @keyframes uno-progress-indeterminate {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(250%); }
-      }
-
-      #uno-progress-bar .uno-progress-anim {
-        animation: uno-progress-indeterminate 1.2s ease-in-out infinite;
-        width: 40%;
-      }
-    `
-
-    document.head.appendChild(style)
+    return Uno.getStyle('notify', `icons.${type}`, '')
   }
 
   // 1. Store
   let containerEl = null
+  const getProtocolEl = () => {
+    if (typeof document === 'undefined') return null
+    if (containerEl && document.contains(containerEl)) return containerEl
+    const el =
+      document.getElementById('uno-notify-container') || document.querySelector('[data-uno-notify]')
+    if (el) containerEl = el
+    return el
+  }
+  const getProtocolDefaults = () => {
+    const el = getProtocolEl()
+    if (!el) return {}
+
+    const position = el.getAttribute('data-uno-position') || undefined
+    const rawTimeout = el.getAttribute('data-uno-timeout')
+    const timeout = rawTimeout !== null && rawTimeout !== '' ? Number(rawTimeout) : undefined
+    const type = el.getAttribute('data-uno-type') || undefined
+
+    return {
+      position,
+      timeout: Number.isFinite(timeout) ? timeout : undefined,
+      type
+    }
+  }
 
   Alpine.store('notify', {
     items: [],
@@ -84,10 +62,15 @@ export default (Alpine, options = {}) => {
     // Notification Methods
     show(text, callOptions = {}) {
       const config = getConfig()
+      const protocolDefaults = getProtocolDefaults()
       const {
-        type = 'info',
-        timeout = config.duration !== undefined ? config.duration : 3000,
-        position = callOptions.position || config.position || 'top-right',
+        type = callOptions.type || config.type || protocolDefaults.type || 'info',
+        timeout = callOptions.timeout ??
+          (config.duration !== undefined ? config.duration : (protocolDefaults.timeout ?? 3000)),
+        position = callOptions.position ||
+          config.position ||
+          protocolDefaults.position ||
+          'top-right',
         closeIndicator = false,
         showCloseButton = true
       } = callOptions
@@ -102,7 +85,8 @@ export default (Alpine, options = {}) => {
         timeout,
         closeIndicator,
         showCloseButton,
-        visible: true // For transition
+        visible: true,
+        indicatorWidth: 100
       }
 
       // Add to start of array (newest first)
@@ -178,64 +162,48 @@ export default (Alpine, options = {}) => {
       if (containerEl && document.contains(containerEl)) return
       containerEl = document.getElementById('uno-notify-container')
       if (containerEl) return
-
-      ensureStyles()
+      containerEl = document.querySelector('[data-uno-notify]')
+      if (containerEl) return
 
       let zBase = Number(Uno.options?.ui?.layers?.notifyBase ?? 30000)
       if (!Number.isFinite(zBase)) zBase = 30000
 
       const container = document.createElement('div')
       container.id = 'uno-notify-container'
+      container.setAttribute('data-uno-notify', '')
 
       const nonce = getNonce()
       if (nonce) container.setAttribute('nonce', nonce)
 
       container.setAttribute('x-data', '{}')
 
-      const rounded = Uno.getStyle('base', 'rounded', 'rounded-lg')
-      const itemClass = Uno.getStyle(
-        'notify',
-        'item',
-        `pointer-events-auto w-full max-w-sm overflow-hidden ${rounded} shadow-lg ring-1 ring-black ring-opacity-5`
-      )
+      const itemClass = Uno.getStyle('notify', 'item')
+      const contentWrapClass = Uno.getStyle('notify', 'content')
+      const rowClass = Uno.getStyle('notify', 'row')
+      const iconWrapClass = Uno.getStyle('notify', 'iconWrap')
+      const textWrapClass = Uno.getStyle('notify', 'textWrap')
+      const textClass = Uno.getStyle('notify', 'text')
 
-      const contentWrapClass = Uno.getStyle('notify', 'content', 'p-4')
-      const rowClass = Uno.getStyle('notify', 'row', 'flex items-start')
-      const iconWrapClass = Uno.getStyle('notify', 'iconWrap', 'flex-shrink-0')
-      const textWrapClass = Uno.getStyle('notify', 'textWrap', 'ml-3 w-0 flex-1 pt-0.5')
-      const textClass = Uno.getStyle(
-        'notify',
-        'text',
-        'text-sm font-medium text-gray-900 dark:text-slate-100'
-      )
+      const closeWrapClass = Uno.getStyle('notify', 'closeWrap')
+      const closeBtnClass = Uno.getStyle('notify', 'closeBtn')
+      const closeIconClass = Uno.getStyle('notify', 'closeIcon')
 
-      const closeWrapClass = Uno.getStyle('notify', 'closeWrap', 'ml-4 flex flex-shrink-0')
-      const closeBtnClass = Uno.getStyle(
-        'notify',
-        'closeBtn',
-        'inline-flex rounded-md bg-white dark:bg-slate-900 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
-      )
-      const closeIconClass = Uno.getStyle('notify', 'closeIcon', 'h-5 w-5')
-
-      const indicatorTrackClass = Uno.getStyle(
-        'notify',
-        'indicatorTrack',
-        'h-1 bg-gray-200 dark:bg-slate-700 overflow-hidden'
-      )
-      const indicatorBarClass = Uno.getStyle(
-        'notify',
-        'indicatorBar',
-        'h-full bg-blue-500 origin-left'
-      )
+      const indicatorTrackClass = Uno.getStyle('notify', 'indicatorTrack')
+      const indicatorBarClass = Uno.getStyle('notify', 'indicatorBar')
+      const progressWrapClass = Uno.getStyle('notify', 'progressWrap')
+      const progressBarClass = Uno.getStyle('notify', 'progressBar')
+      const loadingWrapClass = Uno.getStyle('notify', 'loadingWrap')
+      const spinnerClass = Uno.getStyle('notify', 'spinner')
 
       const buildRegion = (position) => {
         const positionClass = getFixedPositionClass(position)
         const stack = getStackingConfig(position)
-        const regionClass = Uno.getStyle(
-          'notify',
-          'container',
-          `fixed flex ${stack.flexDir} ${stack.alignItems} gap-2 p-4 pointer-events-none ${positionClass}`
-        )
+        const widthClass =
+          position === 'top-center' || position === 'bottom-center' || position === 'center'
+            ? 'w-full'
+            : ''
+        const containerBase = Uno.getStyle('notify', 'container')
+        const regionClass = `${containerBase} ${stack.flexDir} ${stack.alignItems} ${widthClass} ${positionClass}`
         return `
           <div class="${regionClass}" style="z-index: ${zBase};" x-show="$store.notify.itemsFor('${position}').length">
             <template x-for="item in $store.notify.itemsFor('${position}')" :key="item.id">
@@ -289,8 +257,11 @@ export default (Alpine, options = {}) => {
                   </div>
                 </div>
                 <div x-show="item.closeIndicator" class="${indicatorTrackClass}">
-                   <div class="${indicatorBarClass}"
-                        :style="\`animation: notify-progress \${item.timeout}ms linear forwards\`"></div>
+                   <div
+                        class="${indicatorBarClass}"
+                        x-init="if(item.timeout > 0) { item.indicatorWidth = 100; $nextTick(() => (item.indicatorWidth = 0)) }"
+                        :style="\`width: \${item.indicatorWidth}%; \${item.timeout > 0 ? 'transition: width ' + item.timeout + 'ms linear;' : ''}\`"
+                    ></div>
                 </div>
               </div>
             </template>
@@ -302,10 +273,21 @@ export default (Alpine, options = {}) => {
         <div
           id="uno-progress-bar"
           x-show="$store.notify.activeProgress > 0"
-          class="fixed top-0 left-0 right-0 h-1 bg-transparent"
+          class="${progressWrapClass}"
           style="z-index: ${zBase + 1};"
         >
-          <div class="uno-progress-anim h-full bg-blue-500"></div>
+          <div class="${progressBarClass}"></div>
+        </div>
+        <div
+          id="uno-loading-indicator"
+          x-show="$store.notify.activeRequests > 0"
+          class="${loadingWrapClass}"
+          style="z-index: ${zBase + 2};"
+        >
+            <svg class="${spinnerClass}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
         </div>
         ${POSITIONS.map(buildRegion).join('')}
       `
@@ -321,6 +303,34 @@ export default (Alpine, options = {}) => {
       return this.items.filter((i) => (i.position || 'top-right') === pos)
     }
   })
+
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    if (typeof Uno.htmx?.onRequest === 'function' && Uno.htmx.available()) {
+      Uno.htmx.onRequest({
+        start: () => {
+          const store = Alpine.store('notify')
+          store.loading(true)
+          store.progress(true)
+        },
+        end: () => {
+          const store = Alpine.store('notify')
+          store.loading(false)
+          store.progress(false)
+        }
+      })
+    }
+  }
+
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    if (once(document, 'uno:notify:event')) {
+      document.addEventListener('uno:notify', (event) => {
+        const detail = event?.detail || {}
+        const text = detail.text || detail.message || detail.title || ''
+        if (!text) return
+        Alpine.store('notify').show(text, detail)
+      })
+    }
+  }
 
   // Expose Public API
   const api = {

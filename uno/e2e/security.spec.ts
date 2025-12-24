@@ -33,15 +33,17 @@ test.describe('Uno UI Security & Features', () => {
             <div x-data="unoTabs('tab1')">
                 <div role="tablist">
                     <button x-bind="trigger('tab1')">Tab 1</button>
-                    <button id="malicious-tab" x-bind="trigger('tab2', null, null, '/mock/malicious')">Tab 2</button>
+                    <button id="malicious-tab" x-bind="trigger('tab2', { url: '/mock/malicious' })">Tab 2</button>
                 </div>
                 <div x-bind="panel('tab1')">Content 1</div>
-                <div id="tab2" x-bind="panel('tab2')"></div>
+                <div id="panel-tab2" x-bind="panel('tab2')"></div>
             </div>
         `
       document.body.appendChild(div)
       // Re-init Alpine tree
       ;(window as any).Alpine.initTree(div)
+      // Process HTMX for the new content
+      if ((window as any).htmx) (window as any).htmx.process(div)
     })
 
     // Intercept network request to return malicious content
@@ -60,14 +62,14 @@ test.describe('Uno UI Security & Features', () => {
     await page.click('#malicious-tab')
 
     // Wait for content to load
-    await expect(page.locator('#tab2')).toContainText('Safe')
+    await expect(page.locator('#panel-tab2')).toContainText('Safe')
 
     // Check if img tag with onerror is sanitized (removed or stripped)
     const xssImg = await page.evaluate(() => (window as any).xssImg)
     expect(xssImg).toBeUndefined()
 
     // Check if tags are removed
-    const imgCount = await page.locator('#tab2 img').count()
+    const imgCount = await page.locator('#panel-tab2 img').count()
     expect(imgCount).toBe(0)
   })
 
@@ -104,7 +106,7 @@ test.describe('Uno UI Security & Features', () => {
     await page.evaluate(async () => {
       // Use relative path which resolves to page origin
       await (window as any).Alpine.store('box').open('dialog', {
-        ajaxUrl: 'api/test-headers'
+        hxUrl: '/api/test-headers'
       })
     })
 
@@ -114,7 +116,7 @@ test.describe('Uno UI Security & Features', () => {
     console.log('Captured Headers:', headers)
 
     expect(headers['hx-request']).toBe('true')
-    expect(headers['x-requested-with']).toBe('XMLHttpRequest')
+    expect(headers['hx-current-url']).toBeTruthy()
   })
 
   test('CSP Nonce should be injected', async ({ page }) => {
@@ -126,9 +128,5 @@ test.describe('Uno UI Security & Features', () => {
 
     const notifyContainer = page.locator('#uno-notify-container')
     await expect(notifyContainer).toHaveAttribute('nonce', 'test-nonce-123')
-
-    // Also check styles
-    const style = page.locator('style#uno-notify-styles')
-    await expect(style).toHaveAttribute('nonce', 'test-nonce-123')
   })
 })

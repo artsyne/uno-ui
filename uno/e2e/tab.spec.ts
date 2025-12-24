@@ -16,14 +16,14 @@ test.describe('Tab Component', () => {
   })
 
   test('modern tabs switch content and hash', async ({ page }) => {
-    const tab2 = page.locator('button[data-tab-target="tab2"]')
-    const content1 = page.locator('#tab1')
-    const content2 = page.locator('#tab2')
+    // Selectors based on x-bind: trigger('settings') -> id="tab-settings"
+    const tab2 = page.locator('#tab-settings')
+    const content1 = page.locator('#panel-tab1')
+    const content2 = page.locator('#panel-settings')
 
     // Initial state
     await expect(content1).toBeVisible()
     await expect(content2).toBeHidden()
-    // await expect(tab2).not.toHaveClass(/current/);
 
     // Click tab 2
     await tab2.click()
@@ -31,19 +31,15 @@ test.describe('Tab Component', () => {
     // Verify switch
     await expect(content1).toBeHidden()
     await expect(content2).toBeVisible()
-    // await expect(tab2).toHaveClass(/current/);
 
     // Verify Hash
     expect(page.url()).toContain('#settings')
   })
 
-  // Legacy test removed as legacy attributes are no longer supported in the new Alpine component
-  // test('legacy attributes work correctly', ...);
-
   test('separated dom elements work', async ({ page }) => {
-    const sTab2 = page.locator('button[data-tab-target="s-tab2"]')
-    const sContent1 = page.locator('#s-tab1')
-    const sContent2 = page.locator('#s-tab2')
+    const sTab2 = page.locator('#tab-s-tab2')
+    const sContent1 = page.locator('#panel-s-tab1')
+    const sContent2 = page.locator('#panel-s-tab2')
 
     await sTab2.click()
     await expect(sContent1).toBeHidden()
@@ -56,115 +52,48 @@ test.describe('Tab Component', () => {
     await page.waitForLoadState('domcontentloaded')
     await page.waitForFunction(() => (window as any).Alpine)
 
-    const content3 = page.locator('#tab3')
-    const tab3 = page.locator('button[data-tab-target="tab3"]')
+    const content3 = page.locator('#panel-billing')
+    const tab3 = page.locator('#tab-billing')
 
     await expect(content3).toBeVisible()
     await expect(tab3).toHaveAttribute('aria-selected', 'true')
   })
 
-  test('ajax content loading', async ({ page }) => {
-    const ajaxTab = page.locator('button[data-tab-target="s-tab3"]')
-    const ajaxContent = page.locator('#s-tab3')
+  test('htmx content loading (tab panel)', async ({ page }) => {
+    const tab = page.locator('#tab-s-tab3')
+    const panel = page.locator('#panel-s-tab3')
 
-    // Initially hidden
-    await expect(ajaxContent).toBeHidden()
-    await expect(ajaxContent).not.toContainText('Ajax Loaded Content')
+    // Initially hidden (it is a tab panel, activeTab is s-tab1 initially)
+    await expect(panel).toBeHidden()
 
     // Click to load
-    await ajaxTab.click()
+    await tab.click()
 
     // Should be visible
-    await expect(ajaxContent).toBeVisible()
+    await expect(panel).toBeVisible()
 
-    // Should load content
-    await expect(ajaxContent).toContainText('Ajax Loaded Content')
-
-    // Verify loaded attribute
-    await expect(ajaxContent).toHaveAttribute('data-tab-loaded', 'true')
+    // Should load content via HTMX
+    // Note: tab.html uses /examples/data/tab-content.html which contains "Ajax Loaded Content"
+    await expect(panel).toContainText('Ajax Loaded Content')
   })
 
-  test('caches ajax content across manual reload (LRU)', async ({ page }) => {
-    let requestCount = 0
-    await page.route('**/examples/data/tab-content.html', async (route) => {
-      requestCount += 1
-      await route.fulfill({
-        status: 200,
-        contentType: 'text/html',
-        body: '<div>Cached Tab Content</div>'
-      })
+  test('S-Tab 3: refresh with hash loads content and clears loading', async ({ page }) => {
+    // 关键点：模拟用户直接刷新到带 hash 的 URL（历史上这里容易出现一直 Loading）
+    const contentResponse = page.waitForResponse((resp) => {
+      return resp.url().includes('/examples/data/tab-content.html') && resp.status() === 200
     })
 
-    const ajaxTab = page.locator('button[data-tab-target="s-tab3"]')
-    const ajaxContent = page.locator('#s-tab3')
+    await page.goto('/examples/components/tab.html#s-tab3')
+    await page.waitForLoadState('domcontentloaded')
+    await page.waitForFunction(() => (window as any).Alpine && (window as any).Uno)
 
-    await ajaxTab.click()
-    await expect(ajaxContent).toBeVisible()
-    await expect(ajaxContent).toContainText('Cached Tab Content')
+    const panel = page.locator('#panel-s-tab3')
+    await expect(panel).toBeVisible()
 
-    await page.evaluate(() => {
-      const panel = document.getElementById('s-tab3')
-      if (panel) panel.removeAttribute('data-tab-loaded')
-    })
+    // 等待 HTMX 请求确实发起并成功返回，避免只靠文本断言造成的偶发误判
+    await contentResponse
 
-    await ajaxTab.click()
-    await expect(ajaxContent).toContainText('Cached Tab Content')
-
-    expect(requestCount).toBe(1)
-  })
-
-  test('rapid switching does not let stale responses overwrite latest', async ({ page }) => {
-    let req = 0
-    await page.route('**/examples/data/tab-content.html', async (route) => {
-      req += 1
-      const delayMs = req === 1 ? 800 : 50
-      const body = req === 1 ? '<div>FIRST</div>' : '<div>SECOND</div>'
-      await new Promise((r) => setTimeout(r, delayMs))
-      try {
-        await route.fulfill({ status: 200, contentType: 'text/html', body })
-      } catch {
-        // Ignore fulfill errors if the request is aborted by the browser
-      }
-    })
-
-    const ajaxTab = page.locator('button[data-tab-target="s-tab3"]')
-    const otherTab = page.locator('button[data-tab-target="s-tab2"]')
-    const ajaxContent = page.locator('#s-tab3')
-
-    await ajaxTab.click()
-    await otherTab.click()
-    await ajaxTab.click()
-
-    await expect(ajaxContent).toBeVisible()
-    await expect(ajaxContent).toContainText('SECOND')
-    await expect(ajaxContent).not.toContainText('FIRST')
-  })
-
-  test('perf: switch 200 times (same tab group)', async ({ page }) => {
-    const durationMs = await page.evaluate(async () => {
-      // @ts-ignore
-      const AlpineRef = window.Alpine || window.top.Alpine
-      const btn1 = document.querySelector('button[data-tab-target="tab1"]')
-      const btn2 = document.querySelector('button[data-tab-target="tab2"]')
-      if (!btn1 || !btn2) return -1
-
-      const root = btn1.closest('[x-data]')
-      if (!root) return -1
-
-      // @ts-ignore
-      const data = AlpineRef.$data(root)
-      if (!data || typeof data.open !== 'function') return -1
-
-      const start = performance.now()
-      for (let i = 0; i < 100; i++) {
-        await data.open('tab2', null, 'settings')
-        await data.open('tab1')
-      }
-      await AlpineRef.nextTick()
-      return performance.now() - start
-    })
-
-    console.log(`[Perf] tab switch 200 times: ${durationMs.toFixed(2)}ms`)
-    expect(durationMs).toBeGreaterThan(0)
+    await expect(panel).toContainText('Ajax Loaded Content', { timeout: 5000 })
+    await expect(panel).not.toContainText('Loading...', { timeout: 5000 })
   })
 })
