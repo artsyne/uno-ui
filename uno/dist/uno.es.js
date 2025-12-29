@@ -555,7 +555,7 @@ const ft = (o) => {
   let a = "flex-col", i = "items-end", e = "space-y-2";
   return s.includes("bottom") && (a = "flex-col-reverse", e = "space-y-reverse space-y-2"), s.includes("left") ? i = "items-start" : s.includes("center") ? s === "center" ? i = "items-center justify-center" : i = "items-center" : i = "items-end", { flexDir: a, alignItems: i, spaceY: e };
 };
-function pt(o, s, a) {
+function mt(o, s, a) {
   const i = o.getBoundingClientRect(), e = s.getBoundingClientRect(), t = e.width, n = e.height, r = i.width, d = i.height, l = { top: i.top, left: i.left }, g = window.innerWidth, c = window.innerHeight, f = 0, y = 0, C = c, h = g, u = (k, v) => {
     if (v) {
       if (k + t > h)
@@ -570,25 +570,25 @@ function pt(o, s, a) {
     }
     return k;
   };
-  let m, p, T = a;
+  let p, m, T = a;
   switch (a) {
     case "left":
-      p = l.left - t - 5, p < y && (p = l.left + r + 5, T = "right"), m = u(l.top + d / 2 - n / 2, !1);
+      m = l.left - t - 5, m < y && (m = l.left + r + 5, T = "right"), p = u(l.top + d / 2 - n / 2, !1);
       break;
     case "top":
-      m = l.top - n - 8, m < f && (m = l.top + d + 8, T = "bottom"), p = l.left + (r - t) / 2, p = u(p, !0);
+      p = l.top - n - 8, p < f && (p = l.top + d + 8, T = "bottom"), m = l.left + (r - t) / 2, m = u(m, !0);
       break;
     case "right":
-      p = l.left + r + 5, p + t > h && (p = l.left - t - 5, T = "left"), m = u(l.top + d / 2 - n / 2, !1);
+      m = l.left + r + 5, m + t > h && (m = l.left - t - 5, T = "left"), p = u(l.top + d / 2 - n / 2, !1);
       break;
     case "bottom":
     default:
-      m = l.top + d + 8, m + n > C && (m = l.top - n - 8, T = "top"), p = l.left + (r - t) / 2, p = u(p, !0);
+      p = l.top + d + 8, p + n > C && (p = l.top - n - 8, T = "top"), m = l.left + (r - t) / 2, m = u(m, !0);
       break;
   }
-  return { top: m, left: p, position: T };
+  return { top: p, left: m, position: T };
 }
-const mt = (o, s = {}) => {
+const pt = (o, s = {}) => {
   const a = s.plugins?.tooltip || s.tooltip || {}, i = () => {
     const u = typeof window < "u" ? window.Uno?.options : x.options;
     return u?.plugins?.tooltip || u?.tooltip || a;
@@ -607,7 +607,7 @@ const mt = (o, s = {}) => {
     }));
   }, f = () => {
     if (d || typeof window > "u" || typeof document > "u") return;
-    const u = () => c(), m = () => c(), p = (k) => {
+    const u = () => c(), p = () => c(), m = (k) => {
       if (k.key !== "Escape") return;
       const v = o.store("tooltip");
       v?.visible && v.hide();
@@ -617,8 +617,8 @@ const mt = (o, s = {}) => {
       const U = k.target, b = v.eventEl && typeof v.eventEl.contains == "function" && v.eventEl.contains(U), B = t && t.contains(U);
       !b && !B && v.hide();
     };
-    window.addEventListener("scroll", u, !0), window.addEventListener("resize", m), window.addEventListener("keydown", p), window.addEventListener("click", T), d = () => {
-      window.removeEventListener("scroll", u, !0), window.removeEventListener("resize", m), window.removeEventListener("keydown", p), window.removeEventListener("click", T), d = null;
+    window.addEventListener("scroll", u, !0), window.addEventListener("resize", p), window.addEventListener("keydown", m), window.addEventListener("click", T), d = () => {
+      window.removeEventListener("scroll", u, !0), window.removeEventListener("resize", p), window.removeEventListener("keydown", m), window.removeEventListener("click", T), d = null;
     };
   };
   o.store("tooltip", {
@@ -634,15 +634,15 @@ const mt = (o, s = {}) => {
     triggerMode: "hover",
     clickOutside: !0,
     onShow: null,
-    async show(u, m, p = {}) {
-      this.triggerEl = u, this.eventEl = p.eventEl || u, this.content = m, this.placement = p.placement || i().placement || "top", this.onShow = p.onShow, this.triggerMode = p.trigger || "hover", this.clickOutside = p.clickOutside !== void 0 ? p.clickOutside : this.triggerMode === "click", this.zIndex = l(), this.visible = !0, this.ensureContainer(), f(), g() && J(n, this.content, { trusted: p.trustedHTML === !0, alpine: o }), await o.nextTick(), this.updatePosition(), this.onShow && this.onShow(n);
+    async show(u, p, m = {}) {
+      this.triggerEl = u, this.eventEl = m.eventEl || u, this.content = p, this.placement = m.placement || i().placement || "top", this.onShow = m.onShow, this.triggerMode = m.trigger || "hover", this.clickOutside = m.clickOutside !== void 0 ? m.clickOutside : this.triggerMode === "click", this.zIndex = l(), this.visible = !0, this.ensureContainer(), f(), g() && J(n, this.content, { trusted: m.trustedHTML === !0, alpine: o }), await o.nextTick(), this.updatePosition(), this.onShow && this.onShow(n);
     },
     hide() {
       this.visible = !1, this.triggerEl = null, this.eventEl = null, d && d(), r && (cancelAnimationFrame(r), r = 0);
     },
     updatePosition() {
       if (!this.triggerEl || !g()) return;
-      const u = pt(this.triggerEl, t, this.placement);
+      const u = mt(this.triggerEl, t, this.placement);
       this.top = u.top, this.left = u.left;
     },
     ensureContainer() {
@@ -654,7 +654,7 @@ const mt = (o, s = {}) => {
   });
   const y = () => {
     if (typeof document > "u") return;
-    const u = x.getStyle("tooltip", "content"), m = x.getStyle("tooltip", "body"), p = `
+    const u = x.getStyle("tooltip", "content"), p = x.getStyle("tooltip", "body"), m = `
           <div id="uno-tooltip-content"
                x-show="$store.tooltip.visible"
                role="tooltip"
@@ -667,14 +667,14 @@ const mt = (o, s = {}) => {
                class="${u}"
               :style="\`top: \${$store.tooltip.top}px; left: \${$store.tooltip.left}px; z-index: \${$store.tooltip.zIndex};\`"
               style="display: none;">
-              <div id="uno-tooltip-body" class="${m}"></div>
+              <div id="uno-tooltip-body" class="${p}"></div>
           </div>
         `;
-    q.ensureContainer("uno-tooltip-container", p, {
+    q.ensureContainer("uno-tooltip-container", m, {
       "x-data": "{}"
     });
-  }, C = (u, { expression: m, modifiers: p }, { evaluateLater: T, effect: k, cleanup: v }) => {
-    const U = T(m);
+  }, C = (u, { expression: p, modifiers: m }, { evaluateLater: T, effect: k, cleanup: v }) => {
+    const U = T(p);
     let b = {
       content: "",
       placement: null,
@@ -683,10 +683,10 @@ const mt = (o, s = {}) => {
     };
     const B = () => {
       const w = u.getAttribute("data-uno-placement");
-      return w || (b.placement ? b.placement : p.includes("top") ? "top" : p.includes("bottom") ? "bottom" : p.includes("left") ? "left" : p.includes("right") ? "right" : i().placement || "top");
+      return w || (b.placement ? b.placement : m.includes("top") ? "top" : m.includes("bottom") ? "bottom" : m.includes("left") ? "left" : m.includes("right") ? "right" : i().placement || "top");
     }, A = () => {
       const w = u.getAttribute("data-uno-trigger");
-      return w || (b.trigger ? b.trigger : p.includes("click") ? "click" : p.includes("focus") ? "focus" : p.includes("hover") ? "hover" : i().trigger || "hover");
+      return w || (b.trigger ? b.trigger : m.includes("click") ? "click" : m.includes("focus") ? "focus" : m.includes("hover") ? "hover" : i().trigger || "hover");
     }, R = () => (typeof u.disabled == "boolean" && u.disabled === !0 || u.getAttribute("aria-disabled") === "true" || u.getAttribute("disabled") !== null) && u.parentElement || u, nt = (w) => {
       if (typeof w == "string" ? b.content = w : typeof w == "object" && w !== null && (b = { ...b, ...w }), b.content && b.content.startsWith("#") && !b.content.includes(" ")) {
         const L = document.querySelector(b.content);
@@ -701,7 +701,7 @@ const mt = (o, s = {}) => {
         nt(w);
       });
     });
-    const P = () => {
+    const j = () => {
       const w = o.store("tooltip"), L = A();
       u.setAttribute("aria-describedby", "uno-tooltip-content"), w.show(u, b.content, {
         ...b,
@@ -709,29 +709,29 @@ const mt = (o, s = {}) => {
         trigger: L,
         eventEl: R()
       });
-    }, j = () => {
+    }, P = () => {
       u.removeAttribute("aria-describedby"), o.store("tooltip").hide();
     }, ot = () => {
       const w = o.store("tooltip");
-      w.visible && w.triggerEl === u ? w.hide() : P();
+      w.visible && w.triggerEl === u ? w.hide() : j();
     }, D = () => {
       A() === "click" && ot();
     }, V = () => {
-      A() === "hover" && P();
-    }, W = () => {
       A() === "hover" && j();
+    }, W = () => {
+      A() === "hover" && P();
     }, F = () => {
-      A() === "focus" && P();
-    }, N = () => {
       A() === "focus" && j();
+    }, N = () => {
+      A() === "focus" && P();
     }, S = R();
     S.addEventListener("click", D), S.addEventListener("mouseenter", V), S.addEventListener("mouseleave", W), S.addEventListener("focus", F), S.addEventListener("blur", N), v(() => {
-      S.removeEventListener("click", D), S.removeEventListener("mouseenter", V), S.removeEventListener("mouseleave", W), S.removeEventListener("focus", F), S.removeEventListener("blur", N), j();
+      S.removeEventListener("click", D), S.removeEventListener("mouseenter", V), S.removeEventListener("mouseleave", W), S.removeEventListener("focus", F), S.removeEventListener("blur", N), P();
     });
   };
   o.directive("uno-tooltip", C), o.directive("tooltip", C);
   const h = {
-    show: (u, m, p) => o.store("tooltip").show(u, m, p),
+    show: (u, p, m) => o.store("tooltip").show(u, p, m),
     hide: () => o.store("tooltip").hide(),
     updatePosition: () => o.store("tooltip").updatePosition(),
     destroy: () => o.store("tooltip").destroy()
@@ -981,15 +981,7 @@ const ht = (o, s = {}) => {
   et(o, "notify", i), i.init(), o.directive("uno-notify", (e, { expression: t }, { evaluate: n }) => {
     const r = () => {
       const d = o.store("uno")?.notify;
-      if (!d) {
-        console.warn("[Uno] Notify store not found");
-        return;
-      }
-      console.log("[Uno] Notify directive triggered", {
-        expression: t,
-        dataUnoType: e.getAttribute("data-uno-type"),
-        dataUnoPosition: e.getAttribute("data-uno-position")
-      });
+      if (!d) return;
       const l = {
         type: e.getAttribute("data-uno-type") || "info",
         position: e.getAttribute("data-uno-position"),
@@ -1077,12 +1069,12 @@ const bt = (o, s = {}) => {
       const u = Number(h);
       return Number.isFinite(u) ? u : void 0;
     }, y = () => {
-      const h = t.getAttribute("data-uno-box") || t.getAttribute("data-uno-box-type") || "dialog", u = t.getAttribute("data-uno-title") || "", m = t.getAttribute("data-uno-content") || "", p = t.getAttribute("data-uno-hx-url") || void 0, T = t.getAttribute("data-uno-position") || void 0, k = c(t.getAttribute("data-uno-modal")), v = c(t.getAttribute("data-uno-close-on-esc")), U = f(t.getAttribute("data-uno-width")), b = f(t.getAttribute("data-uno-height")), B = t.getAttribute("data-uno-width-class") || void 0, A = t.getAttribute("data-uno-height-class") || void 0;
+      const h = t.getAttribute("data-uno-box") || t.getAttribute("data-uno-box-type") || "dialog", u = t.getAttribute("data-uno-title") || "", p = t.getAttribute("data-uno-content") || "", m = t.getAttribute("data-uno-hx-url") || void 0, T = t.getAttribute("data-uno-position") || void 0, k = c(t.getAttribute("data-uno-modal")), v = c(t.getAttribute("data-uno-close-on-esc")), U = f(t.getAttribute("data-uno-width")), b = f(t.getAttribute("data-uno-height")), B = t.getAttribute("data-uno-width-class") || void 0, A = t.getAttribute("data-uno-height-class") || void 0;
       return {
         type: h,
         title: u,
-        content: m,
-        hxUrl: p,
+        content: p,
+        hxUrl: m,
         position: T,
         modal: k,
         closeOnEsc: v,
@@ -1099,12 +1091,12 @@ const bt = (o, s = {}) => {
         return;
       }
       if (g) {
-        g((m) => {
-          if (m && typeof m == "object")
-            u.open(m);
-          else if (!m) {
-            const p = y();
-            (p.title || p.content || p.hxUrl) && u.open(p);
+        g((p) => {
+          if (p && typeof p == "object")
+            u.open(p);
+          else if (!p) {
+            const m = y();
+            (m.title || m.content || m.hxUrl) && u.open(m);
           }
         });
         return;
@@ -1662,7 +1654,7 @@ const bt = (o, s = {}) => {
 };
 x.dom = q;
 typeof window < "u" && (window.Uno = x);
-x.use(ut).use(mt).use(ht).use(bt).use(wt).use(vt);
+x.use(ut).use(pt).use(ht).use(bt).use(wt).use(vt);
 if (typeof window < "u" && typeof document < "u") {
   const o = () => {
     if (x.initialized) return;

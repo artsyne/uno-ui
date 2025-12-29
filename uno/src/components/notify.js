@@ -373,16 +373,7 @@ export default (Alpine, options = {}) => {
 
     const handler = () => {
       const store = Alpine.store('uno')?.notify
-      if (!store) {
-        console.warn('[Uno] Notify store not found')
-        return
-      }
-
-      console.log('[Uno] Notify directive triggered', {
-        expression,
-        dataUnoType: el.getAttribute('data-uno-type'),
-        dataUnoPosition: el.getAttribute('data-uno-position')
-      })
+      if (!store) return
 
       // Parse attributes
       const attrConfig = {
