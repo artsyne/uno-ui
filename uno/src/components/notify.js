@@ -11,6 +11,7 @@ import { log } from '../utils/log'
 import { getZIndex } from '../core/layer'
 import { DomManager } from '../utils/dom'
 import { getFixedPositionClass, getStackingConfig } from '../utils/position'
+import { registerPlugin } from '../core/plugin-registry'
 
 export default (Alpine, options = {}) => {
   // 1. Config Helpers
@@ -278,6 +279,7 @@ export default (Alpine, options = {}) => {
     },
 
     show(message, opts = {}) {
+      this.ensureContainer()
       const config = getConfig(opts)
       const id = this.nextId++
 
@@ -358,13 +360,8 @@ export default (Alpine, options = {}) => {
     // Loading indicator functionality has been removed to reduce complexity
   }
 
-  // Register to Alpine.store('uno') namespace
-  if (!Alpine.store('uno')) {
-    Alpine.store('uno', { notify: notifyStore })
-  } else {
-    // If uno store already exists, attach notify
-    Alpine.store('uno').notify = notifyStore
-  }
+  // Register to Alpine.store('uno') namespace using unified registry
+  registerPlugin(Alpine, 'notify', notifyStore)
 
   // Ensure initialization (container creation)
   notifyStore.init()
@@ -376,7 +373,16 @@ export default (Alpine, options = {}) => {
 
     const handler = () => {
       const store = Alpine.store('uno')?.notify
-      if (!store) return
+      if (!store) {
+        console.warn('[Uno] Notify store not found')
+        return
+      }
+
+      console.log('[Uno] Notify directive triggered', {
+        expression,
+        dataUnoType: el.getAttribute('data-uno-type'),
+        dataUnoPosition: el.getAttribute('data-uno-position')
+      })
 
       // Parse attributes
       const attrConfig = {

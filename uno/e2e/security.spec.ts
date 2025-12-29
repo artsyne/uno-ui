@@ -83,12 +83,12 @@ test.describe('Uno UI Security & Features', () => {
       })
     })
 
-    await expect(page.locator('#uno-box-contenttest-box')).toContainText('SafeBox')
+    await expect(page.locator('#uno-box-content-test-box')).toContainText('SafeBox')
 
     const xss = await page.evaluate(() => (window as any).boxXss)
     expect(xss).toBeUndefined()
 
-    const imgCount = await page.locator('#uno-box-contenttest-box img').count()
+    const imgCount = await page.locator('#uno-box-content-test-box img').count()
     expect(imgCount).toBe(0)
   })
 
@@ -122,7 +122,11 @@ test.describe('Uno UI Security & Features', () => {
   test('CSP Nonce should be injected', async ({ page }) => {
     await page.evaluate(() => {
       ;(window as any).Uno.options.csp = { nonce: 'test-nonce-123' }
-      // Trigger a container injection
+      // Remove existing container to force recreation
+      const existing = document.getElementById('uno-notify-container')
+      if (existing)
+        existing.remove()
+        // Trigger a container injection
       ;(window as any).Alpine.store('notify').show('Test')
     })
 

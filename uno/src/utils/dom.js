@@ -39,6 +39,8 @@ export function sanitizeHTML(html) {
     .replace(/<img\b[^>]*>/gim, '')
     .replace(/\s+on[a-z]+="[^"]*"/gim, '')
     .replace(/\s+on[a-z]+='[^']*'/gim, '')
+    .replace(/\s+href="javascript:[^"]*"/gim, '')
+    .replace(/\s+href='javascript:[^']*'/gim, '')
     .replace(/javascript:/gim, '')
 }
 
@@ -59,7 +61,9 @@ export const DomManager = {
    * @param {HTMLElement} parent - Parent element (default: document.body)
    */
   ensureContainer(id, html = '', attributes = {}, parent = document.body) {
-    if (document.getElementById(id)) return
+    // Return existing container if found
+    const existing = document.getElementById(id)
+    if (existing) return existing
 
     try {
       const container = document.createElement('div')
@@ -90,6 +94,7 @@ export const DomManager = {
       return container
     } catch (e) {
       log.error(`DomManager: Failed to inject container #${id}`, e)
+      return null
     }
   },
 

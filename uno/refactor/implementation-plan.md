@@ -314,12 +314,12 @@ npm run test:e2e -- --grep "notify.*"
 ```markdown
 ## 任务 3.1: Box 组件重构 (最重要)
 
-- [ ] 按照 `box.md` 重构 `src/components/box.js`
-- [ ] 实现 Store-First 架构
-- [ ] 集成 HTMX 原生支持
-- [ ] 移除 trustedHTML，增强安全性
-- [ ] 优化定位系统 (9点网格)
-- [ ] 完善回调机制
+- [x] 按照 `box.md` 重构 `src/components/box.js`
+- [x] 实现 Store-First 架构
+- [x] 集成 HTMX 原生支持
+- [x] 移除 trustedHTML，增强安全性
+- [x] 优化定位系统 (9点网格)
+- [x] 完善回调机制
 
 ## 任务 3.2: Tooltip 组件重构
 

@@ -1,165 +1,267 @@
 # Box Component (Dialog)
 
-A reusable dialog component based on Alpine.js + TailwindCSS, featuring modal overlays, flexible positioning, size control, and lazy content loading.
+A lightweight, declarative, HTMX-native modal component based on Alpine.js + TailwindCSS. Follows the "Store-First, Directive-Driven" architecture pattern.
+
+## Architecture
+
+**Store-First, Directive-Driven Pattern:**
+
+- **Store**: All logic and state managed via `Alpine.store('uno').box`
+- **Directive**: Declarative interface via `x-uno-box` directive
+- **Namespace**: Registered under `uno` namespace to avoid conflicts
 
 ## Features
 
-- **Modal & Overlay**: Supports `modal` overlay mode. Stackable dialogs are supported (z-index increases by order).
-- **Flexible Positioning**: Supports 9 positions: `center`, `top-left`, `top-center`, `top-right`, `center-left`, `center-right`, `bottom-left`, `bottom-center`, `bottom-right`.
-- **Size & Responsiveness**:
-  - `width`/`height` numeric settings (px).
-  - Custom classes via `widthClass`/`heightClass`/`containerClass`.
-- **Request Caching**: Set `cache=true` for `ajaxUrl` or `hxUrl` to cache responses (GET requests).
-- **Request Cancellation**: Automatically aborts pending AJAX requests when the dialog is closed.
+- **Modal & Overlay**: Supports `modal` overlay mode with click-to-close and ESC key support
+- **9-Point Positioning**: `center`, `top-left`, `top-center`, `top-right`, `center-left`, `center-right`, `bottom-left`, `bottom-center`, `bottom-right`
+- **Size Control**: Numeric width/height (px) or CSS classes via `widthClass`/`heightClass`
+- **XSS Protection**: All content is automatically sanitized (trustedHTML removed for security)
+- **HTMX Integration**: Native HTMX content loading via `hxUrl`
 - **Accessibility (A11y)**:
-  - **Focus Trap**: Traps focus within the modal when open.
-  - **ARIA Roles**: Uses `role="dialog"`, `aria-modal="true"`.
-  - **Keyboard Navigation**: Close on `Escape` key.
-- **Content Loading**:
-  - `content`: Static text or HTML.
-  - `targetId`: Inject existing DOM elements from the page.
-  - `ajaxUrl`: Async content loading (with built-in Loading state).
-  - `hxUrl`: HTMX content loading (uses `htmx.ajax`).
-  - `iframeUrl`: Embed an Iframe.
-- **Buttons & Interaction**:
-  - Presets: `dialog`, `confirm` (internally also supports `message` type via `open()`).
-  - Button text supports i18n fallbacks (`box.ok`, `box.cancel`).
-  - Callbacks: `onOk`, `onCancel`, `onBeforeClose`, `onClose`, `onContentLoad`.
+  - Focus trap within modal
+  - ARIA roles (`role="dialog"`, `aria-modal`, `aria-labelledby`)
+  - Keyboard navigation (Escape to close)
+- **Callbacks**: `onOk`, `onCancel`, `onBeforeClose`, `onClose`, `onContentLoad`
+- **i18n Support**: Button text via Alpine i18n store
 
 ## Quick Start
 
-### Minimal (JS)
+### Programmatic API
 
 ```javascript
-// Confirm
+// Alert dialog
+Uno.box.alert('Operation completed!')
+
+// Confirm dialog (returns Promise)
 const ok = await Uno.box.confirm('Are you sure?')
 
-// Alert
-Uno.box.alert('Saved!')
+// Prompt dialog (returns Promise)
+const name = await Uno.box.prompt('Enter your name:', 'John')
+
+// Custom dialog
+Uno.box.dialog({
+  title: 'Notice',
+  content: 'Hello World',
+  position: 'top-center'
+})
 ```
 
-## Programmatic Usage
-
-You can invoke the dialog programmatically via `Uno.box` or `Alpine.store('box')`.
+### Alpine Store API
 
 ```javascript
-// Open dialog via global API
-Uno.box.dialog({
+// Access via Alpine store
+Alpine.store('uno').box.open({
   title: 'System Notice',
   content: 'Operation Successful',
   position: 'top-center',
-  width: 400,
-  onClose: () => console.log('Closed'),
+  onClose: () => console.log('Closed')
 })
 
-// Low-level control via store
-Alpine.store('box').open('confirm', {
-  content: 'Delete this item?',
-  onOk: () => console.log('confirmed'),
+// Confirm with promise
+Alpine.store('uno')
+  .box.confirm('Delete this item?', {
+    title: 'Confirm Delete'
+  })
+  .then((result) => {
+    if (result) console.log('Confirmed')
+  })
+```
+
+### Directive Usage (x-uno-box)
+
+```html
+<!-- Simple dialog -->
+<button x-uno-box='{"title": "Hello", "content": "World"}'>Open Dialog</button>
+
+<!-- With HTMX content -->
+<button x-uno-box='{"title": "Dynamic", "hxUrl": "/api/content"}'>Load Content</button>
+```
+
+## Configuration Options
+
+### Options Object (for `open()`, `dialog()`, etc.)
+
+| Option             | Type                    | Default     | Description                               |
+| ------------------ | ----------------------- | ----------- | ----------------------------------------- |
+| `type`             | `'dialog' \| 'confirm'` | `'dialog'`  | Dialog type                               |
+| `title`            | `string`                | `''`        | Dialog title                              |
+| `content`          | `string`                | `''`        | Dialog content (auto-sanitized)           |
+| `position`         | `string`                | `'center'`  | One of 9 positions                        |
+| `width`            | `number`                | `400`       | Width in px (ignored if `widthClass` set) |
+| `height`           | `number`                | `undefined` | Height in px                              |
+| `widthClass`       | `string`                | `undefined` | CSS class for width                       |
+| `heightClass`      | `string`                | `undefined` | CSS class for height                      |
+| `containerClass`   | `string`                | `undefined` | Additional container class                |
+| `modal`            | `boolean`               | `true`      | Show overlay, enable ESC close            |
+| `showCloseButton`  | `boolean`               | `true`      | Show close button                         |
+| `showOkButton`     | `boolean`               | `false`     | Show OK button                            |
+| `showCancelButton` | `boolean`               | `false`     | Show Cancel button                        |
+| `okText`           | `string`                | `'OK'`      | OK button text                            |
+| `cancelText`       | `string`                | `'Cancel'`  | Cancel button text                        |
+| `boxId`            | `string`                | random      | Custom box instance ID                    |
+| `hxUrl`            | `string`                | `undefined` | HTMX content URL                          |
+| `hxMethod`         | `string`                | `'GET'`     | HTMX request method                       |
+| `hxHeaders`        | `object`                | `undefined` | HTMX request headers                      |
+| `hxTrigger`        | `string`                | `'load'`    | HTMX trigger condition                    |
+
+### Callback Options
+
+| Callback        | Signature                   | Description                                         |
+| --------------- | --------------------------- | --------------------------------------------------- |
+| `onOk`          | `() => void \| false`       | Called on OK click. Return `false` to prevent close |
+| `onCancel`      | `() => void`                | Called on Cancel click                              |
+| `onBeforeClose` | `() => void`                | Called before dialog closes                         |
+| `onClose`       | `() => void`                | Called after dialog closes                          |
+| `onContentLoad` | `(el: HTMLElement) => void` | Called after HTMX content loads                     |
+
+## HTMX Integration
+
+### Loading Content
+
+```javascript
+Uno.box.dialog({
+  title: 'User Profile',
+  hxUrl: '/api/user/profile',
+  hxMethod: 'GET',
+  hxHeaders: { 'X-CSRF-Token': 'token123' },
+  onContentLoad: (el) => {
+    console.log('Content loaded into:', el)
+  }
 })
 ```
 
-## Configuration / Options
+### Server Response Format
 
-### Options Object (for `open()` / `Uno.box.dialog()`)
+Return plain HTML fragments:
 
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `type` | `'dialog' \| 'confirm' \| 'message'` | `'dialog'` | Dialog type (only used when calling `open(opts)`). |
-| `title` | `string` | `''` | Dialog title text. |
-| `content` | `string` | `''` | Dialog content (text/HTML). |
-| `trustedHTML` | `boolean` | `false` | If `false`, `content` is sanitized before render. |
-| `position` | `string` | `'center'` | One of the 9 supported positions. |
-| `width` | `number` | `400` | Width in px (ignored if `widthClass` set). |
-| `height` | `number` | `undefined` | Height in px. |
-| `widthClass` | `string` | `undefined` | Extra width class. |
-| `heightClass` | `string` | `undefined` | Extra height class. |
-| `containerClass` | `string` | `undefined` | Extra container class. |
-| `modal` | `boolean` | `true` | Whether to show overlay. |
-| `overlayOpacity` | `number` | `0.5` | Overlay opacity. |
-| `showCloseButton` | `boolean` | `true` | Whether to show close button. |
-| `showOkButton` | `boolean` | `false` | Show OK button for `dialog` type. |
-| `showCancelButton` | `boolean` | `false` | Show Cancel button for `dialog` type. |
-| `okButtonText` | `string` | i18n/`OK` | OK button text. |
-| `cancelButtonText` | `string` | i18n/`Cancel` | Cancel button text. |
-| `onOk` | `() => (void \| boolean \| Promise<boolean>)` | `undefined` | Return `false` to prevent close. |
-| `onCancel` | `() => void` | `undefined` | Called before close when clicking cancel button. |
-| `onBeforeClose` | `() => void` | `undefined` | Called before closing. |
-| `onClose` | `() => void` | `undefined` | Called after closing. |
-| `onContentLoad` | `(contentEl: HTMLElement \| null) => void` | `undefined` | Called after async content is inserted. |
-| `cache` | `boolean` | `false` | Enable GET response cache for `ajaxUrl` / `hxUrl`. |
-| `boxId` | `string` | random | Identifier of the box instance. |
-| `targetId` | `string` | `undefined` | Use `innerHTML` from an existing DOM element. |
-| `ajaxUrl` | `string` | `undefined` | Load content via request helper (JSON is rendered as `<pre>`). |
-| `hxUrl` | `string` | `undefined` | Load HTML via request helper (prefers `htmx.ajax` if available). |
-| `iframeUrl` | `string` | `undefined` | Embed an iframe (URL is escaped). |
+```html
+<div class="p-4">
+  <h2>User Info</h2>
+  <p>Name: John Doe</p>
+  <!-- Nested HTMX is supported -->
+  <button hx-post="/api/update" hx-target="#result">Update</button>
+  <div id="result"></div>
+</div>
+```
 
-## Security & HTMX
+## Security
 
-### Content Sanitization
-All content loaded via `content`, `ajaxUrl`, or `hxUrl` is sanitized by default.
-- Use `trustedHTML: true` in JS to bypass sanitization for trusted content.
-- Dangerous tags (`script`, `iframe`, etc.) are stripped unless trusted.
+### Automatic XSS Protection
 
-### HTMX Integration
-- **Unified Request**: `ajax-url` and `hx-url` both use internal request helpers (`requestHTML/requestData`), which prefer `htmx.ajax` if available.
-- **HX-Trigger**: Responses can trigger client-side events via the `HX-Trigger` header.
+All content passed via `content` option is automatically sanitized:
+
+- Script tags removed
+- Event handlers (`onclick`, `onerror`, etc.) removed
+- `javascript:` URLs removed
+- Image tags removed (to prevent `onerror` XSS)
+
+**Note:** `trustedHTML` option has been removed for security. Use HTMX for dynamic content.
 
 ## Internationalization (i18n)
 
-The component relies on `Alpine.store('i18n')` for multi-language support.
-
-- **Keys**:
-  - `box.ok`: Confirm button text.
-  - `box.cancel`: Cancel button text.
-
-## Events & API
-
-### Lifecycle & Button Callbacks
-
-When using programmatic usage, you can pass these callbacks in the options object:
-
-#### Lifecycle
-
-- `onBeforeClose`: Fired before the dialog closes.
-- `onClose`: Fired after the dialog is closed.
-- `onContentLoad`: Fired after AJAX or HTMX content has been loaded and inserted into the DOM. Receives the content element as an argument. Useful for initializing scripts or HTMX on the new content.
-
-#### Buttons
-
-- `onOk`: Fired when the "OK" / "Confirm" button is clicked.
-  - Return `false` to prevent the dialog from closing.
-  - Useful for validation or async operations.
-- `onCancel`: Fired when the "Cancel" button is clicked.
-  - The dialog will always close after this callback (unless you manually intervene, but generally cancel means close).
-
-### Notes
-
-- **Height Adaptation**: Height is auto-adaptive if not set. Flex layout is used internally to accommodate header/footer when height is fixed.
-- **AJAX Loading**: Uses Fetch API. JSON responses are pretty-printed (for debugging), and HTML responses are injected directly.
-- **Caching**: Cache GET responses if `cache: true`.
-- **Accessibility**: 
-  - Focus is trapped within the modal.
-  - `Escape` key closes the modal (if `modal: true`).
-  - Proper ARIA roles are applied.
-
-## Manual Testing
-
-### 1. Callback Verification
-
-Open the browser console and execute:
+Button text is resolved from Alpine i18n store:
 
 ```javascript
-Alpine.store('box').open({
-  title: 'Callback Test',
-  content: 'Close this box to check console logs',
-  onBeforeClose: () => console.log('onBeforeClose triggered'),
-  onClose: () => console.log('onClose triggered')
-})
+// Set up translations
+Alpine.store('i18n').setLang('zh-CN')
+
+// Button text uses i18n keys:
+// - box.ok -> "确定"
+// - box.cancel -> "取消"
 ```
 
-Expected:
+## Global Configuration
 
-1. Dialog opens.
-2. Click Close button or Overlay.
-3. Console shows "onBeforeClose triggered" then "onClose triggered".
+Configure defaults via `Uno.init()` or `window.UnoConfig`:
+
+```javascript
+// Via Uno.init
+Uno.init({
+  plugins: {
+    box: {
+      defaultWidth: 500,
+      defaultPosition: 'top-center',
+      okText: 'Confirm',
+      cancelText: 'Dismiss'
+    }
+  }
+})
+
+// Or via UnoConfig
+window.UnoConfig = {
+  ui: {
+    box: {
+      container: 'bg-white dark:bg-gray-900 rounded-xl shadow-2xl',
+      okBtn: 'bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded'
+    }
+  }
+}
+```
+
+## Store Methods
+
+| Method                              | Description                           |
+| ----------------------------------- | ------------------------------------- |
+| `open(type, options)`               | Open a dialog                         |
+| `dialog(options)`                   | Alias for `open('dialog', options)`   |
+| `alert(message, options)`           | Show alert dialog                     |
+| `confirm(message, options)`         | Show confirm dialog (returns Promise) |
+| `prompt(message, default, options)` | Show prompt dialog (returns Promise)  |
+| `close(id)`                         | Close specific dialog by ID           |
+| `closeAll()`                        | Close all dialogs                     |
+
+## Migration from v0.5.x
+
+### Breaking Changes
+
+1. **Namespace Change**: Store moved from `Alpine.store('box')` to `Alpine.store('uno').box`
+
+```javascript
+// Old
+Alpine.store('box').open({...})
+
+// New
+Alpine.store('uno').box.open({...})
+// Or use global API
+Uno.box.dialog({...})
+```
+
+2. **trustedHTML Removed**: For security, all content is auto-sanitized. Use HTMX for dynamic content:
+
+```javascript
+// Old (no longer supported)
+store.open({ content: htmlString, trustedHTML: true })
+
+// New - use HTMX
+store.open({ hxUrl: '/api/content' })
+```
+
+3. **Global API**: Use `Uno.box` instead of accessing store directly for convenience
+
+## Example
+
+```javascript
+// Full example with all features
+Uno.box.dialog({
+  title: 'Edit Profile',
+  hxUrl: '/api/profile/edit',
+  position: 'center',
+  width: 600,
+  showOkButton: true,
+  showCancelButton: true,
+  okText: 'Save',
+  cancelText: 'Discard',
+  onOk: () => {
+    // Validate before close
+    const form = document.querySelector('#profile-form')
+    if (!form.checkValidity()) return false
+    form.submit()
+  },
+  onBeforeClose: () => console.log('About to close'),
+  onClose: () => console.log('Closed'),
+  onContentLoad: (el) => {
+    // Initialize form validation
+    Alpine.initTree(el)
+  }
+})
+```

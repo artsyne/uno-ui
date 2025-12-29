@@ -176,23 +176,18 @@ export class UnoInstance {
         base,
         layers: { boxBase: 10000, tooltipBase: 20000, notifyBase: 30000 },
         box: {
-          overlay: 'fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity',
+          overlay: 'fixed inset-0 bg-gray-500/75 transition-opacity',
           dialogWrapper: 'fixed inset-0 z-10 w-screen overflow-y-auto',
-          itemWrapper:
-            'flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0',
+          itemWrapper: 'flex min-h-full p-4 text-center sm:p-0 pointer-events-none',
           container:
             'relative transform overflow-hidden {base} bg-white dark:bg-gray-900 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg flex flex-col max-h-[90vh] pointer-events-auto outline-none',
           cancelBtn:
             'mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto',
           okBtn:
             'inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto',
-          header:
-            'flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700',
           title: 'text-base font-semibold leading-6 text-gray-900 dark:text-slate-200',
-          closeBtn: 'text-slate-400 hover:text-slate-500 focus:outline-none',
           closeBtnFloating:
             'absolute top-2 right-2 z-10 text-slate-400 hover:text-slate-500 focus:outline-none',
-          closeIcon: 'h-6 w-6',
           closeIconSmall: 'h-5 w-5',
           content:
             'px-4 pb-4 pt-5 sm:p-6 sm:pb-4 overflow-auto flex-1 text-slate-600 dark:text-slate-300',
@@ -200,12 +195,10 @@ export class UnoInstance {
           spinner: 'animate-spin h-8 w-8 text-blue-500',
           footer:
             'bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-slate-200 dark:border-slate-700 dark:bg-slate-800',
-          error: 'p-4 text-red-500',
           promptWrapper: 'space-y-3',
           promptText: 'text-slate-700 dark:text-slate-200',
           promptInput:
-            'w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none',
-          positionBase: 'fixed inset-0 flex transition-opacity duration-300 p-4 pointer-events-none'
+            'w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none'
         },
         notify: {
           container: 'fixed flex gap-2 p-4 pointer-events-none',
@@ -219,15 +212,10 @@ export class UnoInstance {
           closeBtn:
             'inline-flex rounded-md bg-white dark:bg-slate-900 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2',
           closeIcon: 'h-5 w-5',
-          indicatorTrack: 'h-1 bg-gray-200 dark:bg-slate-700 overflow-hidden',
-          indicatorBar: 'h-full bg-blue-500 origin-left',
           progressWrap:
             'fixed top-0 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700 pointer-events-none',
           progressBar:
             'h-full bg-gradient-to-r from-blue-500 to-indigo-600 shadow-sm shadow-blue-500/50',
-          loadingWrap:
-            'fixed inset-0 flex items-center justify-center bg-white/50 dark:bg-black/50 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto',
-          spinner: 'animate-spin h-10 w-10 text-blue-600 dark:text-blue-400',
           types: {
             success: 'bg-green-100 dark:bg-green-950',
             error: 'bg-red-100 dark:bg-red-950',

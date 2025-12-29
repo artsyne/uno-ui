@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
+  <script src="./dist/uno.umd.js" defer></script>
+</head>
+<body>
+  <button onclick="console.log('Window.Uno:', window.Uno); console.log('Alpine:', window.Alpine); console.log('Store uno:', window.Alpine.store('uno')); console.log('Box:', window.Uno.box)">Check Debug</button>
+  <button onclick="window.Uno.box.alert('Test')">Test Alert</button>
+  <script>
+    setTimeout(() => {
+      console.log('=== After 2 seconds ===');
+      console.log('Window.Uno:', window.Uno);
+      console.log('Alpine:', window.Alpine);
+      console.log('Store uno:', window.Alpine?.store('uno'));
+      console.log('Box:', window.Uno?.box);
+    }, 2000);
+  </script>
+</body>
+</html>

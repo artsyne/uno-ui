@@ -390,27 +390,15 @@ test.describe('Notify Component', () => {
   })
 
   test('htmx integration (hx-get)', async ({ page }) => {
-    // We can't easily mock HTMX ajax here without intercepting the request.
-    // We can intercept the request to httpbin.org/html
-    await page.route('https://httpbin.org/html', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'text/html',
-        body: '<div id="htmx-content">Loaded via HTMX</div>'
-      })
-    })
-
+    // We rely on the real file /examples/partials/test-content.html being served
     const btn = page.getByRole('button', { name: 'Load External HTML' })
     await btn.click()
 
     // Wait for HTMX to process.
-    // The item is added immediately with loading spinner.
-    // Then content is swapped.
     const item = page.locator('[data-testid="notify-item"]').last()
     await expect(item).toBeVisible()
 
-    // It should load the content
-    // HTMX swap might take a moment
-    await expect(item.locator('#htmx-content')).toHaveText('Loaded via HTMX', { timeout: 5000 })
+    // It should load the content from the file
+    await expect(item).toContainText('Content loaded via HTMX successfully!', { timeout: 10000 })
   })
 })

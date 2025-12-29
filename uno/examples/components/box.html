@@ -58,14 +58,13 @@
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+  <main x-data class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
     <!-- Introduction -->
     <div
       class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
-      <p class="text-slate-600 dark:text-slate-300">
-        This page demonstrates the capabilities of the <code>box.js</code> plugin, including dialogs, confirmations,
-        notifications, positioning, and content loading strategies (DOM, JSON, HTMX).
+      <p class="mt-4 text-slate-600 dark:text-slate-300 max-w-3xl">
+        Store-First Architecture: Access via <code>Alpine.store('uno').box</code> or <code>x-uno-box</code> directive.
       </p>
     </div>
 
@@ -76,37 +75,37 @@
         class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
         <div
           class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
-          <h2 class="font-semibold text-slate-800 dark:text-white">1. Basic Types</h2>
+          <h2 class="font-semibold text-slate-800 dark:text-white">1. Basic Types (Directive)</h2>
           <span
-            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Standard</span>
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Recommended</span>
         </div>
         <div class="p-6 space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <!-- Test: Open Dialog (center) -->
-            <button data-box-type="dialog" data-box-title="Dialog Title"
-              data-box-content="This is a standard dialog with some content." data-box-position="center"
+            <button
+              x-uno-box="{title: 'Dialog Title', content: 'This is a standard dialog with some content.', position: 'center'}"
               class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm">
               Open Dialog
             </button>
             <!-- Test: Open Confirm -->
-            <button data-box-type="confirm" data-box-title="Confirm Action"
-              data-box-content="Are you sure you want to proceed?"
+            <button
+              x-uno-box="{type: 'confirm', title: 'Confirm Action', content: 'Are you sure you want to proceed?', onOk: () => Alpine.store('uno').box.alert('Confirmed!')}"
               class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium shadow-sm">
               Open Confirm
             </button>
-            <button data-box-type="message" data-box-title="Information"
-              data-box-content="Operation completed successfully."
+            <button
+              x-uno-box="{type: 'dialog', title: 'Information', content: 'Operation completed successfully.', showOkButton: true}"
               class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium shadow-sm">
               Message Alert
             </button>
           </div>
-          <button data-testid="box-xss-trigger" data-box-type="dialog" data-box-title="XSS Test"
-            data-box-content="<a data-testid='box-xss-link' href='javascript:window.__UNO_BOX_XSS__=true' class='text-blue-600 dark:text-blue-400 underline'>Unsafe Link</a><img data-testid='box-xss-img' src='x' onerror='window.__UNO_BOX_XSS_IMG__=true' />"
+          <button data-testid="box-xss-trigger"
+            x-uno-box="{title: 'XSS Test', content: '<a data-testid=box-xss-link href=javascript:window.__UNO_BOX_XSS__=true>Unsafe Link</a><img data-testid=box-xss-img src=x onerror=window.__UNO_BOX_XSS_IMG__=true /><script>window.__XSS__=1</script>Safe text'}"
             class="w-full px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors text-sm font-medium shadow-sm">
-            XSS Test
+            XSS Test (Content Sanitized)
           </button>
           <p class="text-xs text-slate-500 dark:text-slate-400">
-            Basic dialogs use data attributes for title and content.
+            Content is automatically sanitized for XSS protection.
           </p>
         </div>
       </div>
@@ -116,47 +115,43 @@
         class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
         <div
           class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
-          <h2 class="font-semibold text-slate-800 dark:text-white">2. Positioning</h2>
+          <h2 class="font-semibold text-slate-800 dark:text-white">2. Positioning (9-Point Grid)</h2>
           <span
             class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Layout</span>
         </div>
         <div class="p-6 space-y-4">
           <div class="grid grid-cols-3 gap-4 text-center">
-            <button data-box-type="message" data-box-position="top-center" data-box-title="Top"
-              data-box-content="Top Position"
-              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Top</button>
-            <button data-box-type="message" data-box-position="top-left" data-box-title="Top Start"
-              data-box-content="Top Start"
+            <button x-uno-box="{title: 'Position', content: 'Top Left', position: 'top-left', showOkButton: true}"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Top
-              Start</button>
-            <button data-box-type="message" data-box-position="top-right" data-box-title="Top End"
-              data-box-content="Top End"
+              Left</button>
+            <button x-uno-box="{title: 'Position', content: 'Top Center', position: 'top-center', showOkButton: true}"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Top
-              End</button>
+              Center</button>
+            <button x-uno-box="{title: 'Position', content: 'Top Right', position: 'top-right', showOkButton: true}"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Top
+              Right</button>
 
-            <button data-box-type="message" data-box-position="center" data-box-title="Center"
-              data-box-content="Center Position"
-              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Center</button>
-            <button data-box-type="message" data-box-position="center-left" data-box-title="Center Start"
-              data-box-content="Center Start"
+            <button x-uno-box="{title: 'Position', content: 'Center Left', position: 'center-left', showOkButton: true}"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Center
-              Start</button>
-            <button data-box-type="message" data-box-position="center-right" data-box-title="Center End"
-              data-box-content="Center End"
+              Left</button>
+            <button x-uno-box="{title: 'Position', content: 'Center', position: 'center', showOkButton: true}"
+              class="p-2 bg-blue-100 dark:bg-blue-900 rounded hover:bg-blue-200 dark:hover:bg-blue-800 dark:text-white transition-colors font-medium">Center</button>
+            <button
+              x-uno-box="{title: 'Position', content: 'Center Right', position: 'center-right', showOkButton: true}"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Center
-              End</button>
+              Right</button>
 
-            <button data-box-type="message" data-box-position="bottom-center" data-box-title="Bottom"
-              data-box-content="Bottom Position"
-              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Bottom</button>
-            <button data-box-type="message" data-box-position="bottom-left" data-box-title="Bottom Start"
-              data-box-content="Bottom Start"
+            <button x-uno-box="{title: 'Position', content: 'Bottom Left', position: 'bottom-left', showOkButton: true}"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Bottom
-              Start</button>
-            <button data-box-type="message" data-box-position="bottom-right" data-box-title="Bottom End"
-              data-box-content="Bottom End"
+              Left</button>
+            <button
+              x-uno-box="{title: 'Position', content: 'Bottom Center', position: 'bottom-center', showOkButton: true}"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Bottom
-              End</button>
+              Center</button>
+            <button
+              x-uno-box="{title: 'Position', content: 'Bottom Right', position: 'bottom-right', showOkButton: true}"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Bottom
+              Right</button>
           </div>
         </div>
       </div>
@@ -171,13 +166,87 @@
             class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Loaders</span>
         </div>
         <div class="p-6 space-y-4">
-          <button onclick="Uno.box.dialog({title: 'HTMX Content', hxUrl: '/examples/data/tab-content.html'})"
+          <button
+            x-uno-box="{title: 'HTMX Content', hxUrl: '/examples/data/tab-content.html', onContentLoad: (el) => console.log('Content loaded:', el)}"
             class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm transition-colors">Load
             HTML (HTMX)</button>
           <button
-            onclick="Uno.box.dialog({title: 'DOM Content', content: document.getElementById('hidden-content').innerHTML})"
+            @click="Alpine.store('uno').box.open({title: 'DOM Content', content: document.getElementById('hidden-content').innerHTML})"
             class="w-full px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 shadow-sm transition-colors">Load
-            from DOM</button>
+            from DOM (Sanitized)</button>
+          <p class="text-xs text-slate-500 dark:text-slate-400">
+            HTMX content triggers <code>onContentLoad</code> callback. DOM content is sanitized.
+          </p>
+        </div>
+      </div>
+
+      <!-- Card 4: Callbacks & Custom Sizes -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-white">4. Callbacks & Sizes</h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Advanced</span>
+        </div>
+        <div class="p-6 space-y-4">
+          <button
+            x-uno-box="{title: 'Callback Test', content: 'Close this to see callbacks in console', onBeforeClose: () => console.log('onBeforeClose'), onClose: () => console.log('onClose')}"
+            class="w-full px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 shadow-sm transition-colors">Test
+            Callbacks (Check Console)</button>
+          <button
+            x-uno-box="{title: 'Custom Size', content: 'This dialog has custom width and height.', width: 600, height: 300}"
+            class="w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 shadow-sm transition-colors">Custom
+            Size (600x300)</button>
+          <button
+            x-uno-box="{title: 'CSS Class Size', content: 'Using Tailwind classes for sizing.', widthClass: '!w-[80vw]', heightClass: '!h-[60vh]'}"
+            class="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 shadow-sm transition-colors">Class-based
+            Size</button>
+        </div>
+      </div>
+
+      <!-- Card 5: Keyboard & Modal Behavior -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-white">5. Keyboard & Modal</h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">A11y</span>
+        </div>
+        <div class="p-6 space-y-4">
+          <button
+            x-uno-box="{title: 'Escape to Close', content: 'Press Escape key to close this dialog.', modal: true, closeOnEsc: true}"
+            class="w-full px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 shadow-sm transition-colors">Modal
+            (Escape to Close)</button>
+          <button
+            x-uno-box="{title: 'Click Overlay to Close', content: 'Click the dark overlay to close.', modal: true}"
+            class="w-full px-4 py-2 bg-fuchsia-600 text-white rounded-lg hover:bg-fuchsia-700 shadow-sm transition-colors">Modal
+            (Overlay Click)</button>
+          <button
+            x-uno-box="{title: 'No Close Button', content: 'This dialog has no close button.', showCloseButton: false, showOkButton: true}"
+            class="w-full px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 shadow-sm transition-colors">No
+            Close Button</button>
+        </div>
+      </div>
+
+      <!-- Card 6: Prompt -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-white">6. Prompt Dialog</h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Input</span>
+        </div>
+        <div class="p-6 space-y-4">
+          <button
+            @click="Alpine.store('uno').box.prompt('Enter your name:', 'John Doe', {title: 'User Input'}).then(v => v && Alpine.store('uno').box.alert('Hello, ' + v + '!'))"
+            class="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 shadow-sm transition-colors">Prompt
+            Dialog</button>
+          <p class="text-xs text-slate-500 dark:text-slate-400">
+            Returns a Promise resolving to the input value or null if cancelled.
+          </p>
         </div>
       </div>
 
@@ -190,42 +259,6 @@
     </div>
   </div>
 
-  <script>
-    document.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-box-type]')
-      if (!btn) return
-
-      const type = btn.dataset.boxType
-      const position = btn.dataset.boxPosition
-      const title = btn.dataset.boxTitle || ''
-      const content = btn.dataset.boxContent || ''
-
-      const opts = {
-        title,
-        content
-      }
-
-      if (position) opts.position = position
-
-      // Special handling for XSS test
-      if (btn.dataset.testid === 'box-xss-trigger') {
-        // For XSS test, we pass content as is, but box component should sanitize it unless trustedHTML is true
-        // The default behavior of box.open (via box.dialog/alert etc) is to treat content as string unless trustedHTML: true
-        // Wait, box.js line 157: if (!item.trustedHTML) item.content = sanitizeHTML(item.content)
-        // So passing content string is safe.
-      }
-
-      if (type === 'dialog') {
-        Uno.box.dialog(opts)
-      } else if (type === 'confirm') {
-        Uno.box.confirm(content, opts).then(res => {
-          if (res) Uno.box.alert('Confirmed!')
-        })
-      } else if (type === 'message') {
-        Uno.box.alert(content, opts)
-      }
-    })
-  </script>
 </body>
 
 </html>
