@@ -43,9 +43,11 @@ function mergeDeep(base, patch) {
   return out
 }
 
-class UnoInstance {
-  constructor() {
-    this.version = '0.5.0'
+export class UnoInstance {
+  constructor(options = {}) {
+    this.version = '0.6.0'
+    this.options = options
+    this.pluginDefaults = {} // New: Plugin default configuration storage
     this.plugins = []
     this.initialized = false
     this._htmxRequestHandlers = []
@@ -129,11 +131,41 @@ class UnoInstance {
         document.addEventListener('htmx:timeout', end)
 
         document.addEventListener('htmx:xhr:progress', (event) => callEach('progress', event))
+      },
+      // Global HTMX event binding for notify functionality - progress bar only
+      bindNotifyToHtmx: () => {
+        if (typeof window === 'undefined' || typeof document === 'undefined') return
+        if (!window.htmx || !window.Alpine) return
+
+        if (!once(document, 'uno:htmx:bind-notify')) return
+
+        document.addEventListener('htmx:beforeRequest', () => {
+          window.Alpine.store('uno').notify.startProgress()
+        })
+
+        document.addEventListener('htmx:afterRequest', () => {
+          window.Alpine.store('uno').notify.stopProgress()
+        })
+
+        document.addEventListener('htmx:responseError', () => {
+          window.Alpine.store('uno').notify.stopProgress()
+          window.Alpine.store('uno').notify.error('Request failed')
+        })
+
+        document.addEventListener('htmx:sendError', () => {
+          window.Alpine.store('uno').notify.stopProgress()
+          window.Alpine.store('uno').notify.error('Request failed')
+        })
+
+        document.addEventListener('htmx:timeout', () => {
+          window.Alpine.store('uno').notify.stopProgress()
+          window.Alpine.store('uno').notify.warning('Request timed out')
+        })
       }
     }
     const base = 'rounded-lg shadow-md border border-gray-200 dark:border-gray-700'
 
-    this.options = {
+    const defaultOptions = {
       debug: false,
       csp: {
         nonce: null // For Content Security Policy
@@ -189,8 +221,10 @@ class UnoInstance {
           closeIcon: 'h-5 w-5',
           indicatorTrack: 'h-1 bg-gray-200 dark:bg-slate-700 overflow-hidden',
           indicatorBar: 'h-full bg-blue-500 origin-left',
-          progressWrap: 'fixed top-0 left-0 right-0 h-1 bg-transparent',
-          progressBar: 'uno-progress-anim h-full bg-blue-500 animate-pulse',
+          progressWrap:
+            'fixed top-0 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700 pointer-events-none',
+          progressBar:
+            'h-full bg-gradient-to-r from-blue-500 to-indigo-600 shadow-sm shadow-blue-500/50',
           loadingWrap:
             'fixed inset-0 flex items-center justify-center bg-white/50 dark:bg-black/50 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto',
           spinner: 'animate-spin h-10 w-10 text-blue-600 dark:text-blue-400',
@@ -234,6 +268,49 @@ class UnoInstance {
         }
       }
     }
+
+    this.options = mergeDeep(defaultOptions, options)
+  }
+
+  /**
+   * ✅ Unified configuration retrieval method
+   * Supports 4-level merge: Plugin Defaults -> Global User Config -> Global Plugin Config -> Direct Global Config -> Instance Config
+   * Note: We use mergeDeep to ensure deep merging of options.
+   *
+   * Level 1: Plugin Defaults (this.pluginDefaults[componentName])
+   * Level 2: Global Plugin Config (this.options.plugins[componentName])
+   * Level 3: Direct Global Config (this.options[componentName]) - Legacy/Shorthand
+   * Level 4: Instance Config (instanceOpts)
+   */
+  getConfig(componentName, instanceOpts = {}) {
+    const globalOpts = this.options || {}
+
+    // Level 1: Plugin Defaults
+    let config = this.pluginDefaults[componentName] ? { ...this.pluginDefaults[componentName] } : {}
+
+    // Level 2: Global User Config (plugins)
+    if (globalOpts.plugins && globalOpts.plugins[componentName]) {
+      config = mergeDeep(config, globalOpts.plugins[componentName])
+    }
+
+    // Level 3: Direct Global Config
+    if (globalOpts[componentName]) {
+      config = mergeDeep(config, globalOpts[componentName])
+    }
+
+    // Level 4: Instance Config
+    if (instanceOpts) {
+      config = mergeDeep(config, instanceOpts)
+    }
+
+    return config
+  }
+
+  /**
+   * ✅ Register plugin defaults
+   */
+  registerPluginDefaults(name, defaults) {
+    this.pluginDefaults[name] = defaults
   }
 
   _getUiValue(comp, elem) {

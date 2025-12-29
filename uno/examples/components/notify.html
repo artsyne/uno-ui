@@ -11,6 +11,38 @@
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
     <script src="../../dist/uno.umd.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
+    <script>
+        // Initialize Uno and bind HTMX events globally to show progress bar
+        document.addEventListener('alpine:init', () => {
+            // Wait for Uno to be available
+            if (window.Uno) {
+                // Bind notify functionality to all HTMX requests
+                window.Uno.htmx.bindNotifyToHtmx();
+            } else {
+                // If Uno is not immediately available, try again after a short delay
+                setTimeout(() => {
+                    if (window.Uno) {
+                        window.Uno.htmx.bindNotifyToHtmx();
+                    }
+                }, 100);
+            }
+        });
+    </script>
+    <script>
+        // Add HTMX response handler to display the result
+        document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('htmx:afterOnLoad', function (evt) {
+                const target = evt.detail.elt.getAttribute('hx-target');
+                if (target === '#htmx-result') {
+                    const resultDiv = document.querySelector('#htmx-result');
+                    resultDiv.innerHTML = '<span class="text-green-600 dark:text-green-400">HTMX request completed successfully!</span>';
+                    setTimeout(() => {
+                        resultDiv.innerHTML = '';
+                    }, 3000);
+                }
+            });
+        });
+    </script>
 </head>
 
 <body
@@ -68,7 +100,7 @@
             class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
             <p class="text-slate-600 dark:text-slate-300">
                 The <code>notify</code> plugin provides a flexible notification system powered by a global store.
-                Use <code>$store.notify.show()</code> to trigger notifications from anywhere.
+                Use <code>$store.uno.notify.show()</code> or the <code>x-uno-notify</code> directive.
             </p>
         </div>
 
@@ -85,33 +117,41 @@
                 </div>
                 <div class="p-6 space-y-4">
                     <div class="grid grid-cols-2 gap-4">
-                        <button data-testid="btn-info" @click="$store.notify.show('Info message', { type: 'info' })"
+                        <button data-testid="btn-info" @click="$store.uno.notify.show('Info message', { type: 'info' })"
                             class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium shadow-sm">
                             Info
                         </button>
-                        <button @click="$store.notify.show('Success message', { type: 'success' })"
+                        <button data-testid="btn-success" @click="$store.uno.notify.success('Success message')"
                             class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium shadow-sm">
                             Success
                         </button>
-                        <button @click="$store.notify.show('Warning message', { type: 'warning' })"
+                        <button data-testid="btn-warning" @click="$store.uno.notify.warning('Warning message')"
                             class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm font-medium shadow-sm">
                             Warning
                         </button>
-                        <button @click="$store.notify.show('Error message', { type: 'error' })"
+                        <button @click="$store.uno.notify.error('Error message')"
                             class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium shadow-sm">
                             Error
                         </button>
                     </div>
-                    <div class="pt-4 border-t border-slate-100 dark:border-slate-700 flex gap-4 transition-colors">
+                    <div
+                        class="pt-4 border-t border-slate-100 dark:border-slate-700 flex flex-wrap gap-4 transition-colors">
                         <button data-testid="btn-sticky"
-                            @click="$store.notify.show('Sticky message (click to close)', { type: 'info', timeout: 0 })"
+                            @click="$store.uno.notify.show('Sticky message (click to close)', { type: 'info', duration: 0 })"
                             class="flex-1 px-4 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors text-sm font-medium shadow-sm">
                             Sticky Notification
                         </button>
-                        <button data-testid="btn-progress"
-                            @click="$store.notify.progress(true); setTimeout(() => $store.notify.progress(false), 3000)"
-                            class="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium shadow-sm">
-                            Test Progress Bar (3s)
+
+                    </div>
+                    <div
+                        class="pt-4 border-t border-slate-100 dark:border-slate-700 flex flex-wrap gap-4 transition-colors">
+                        <button data-testid="btn-start-progress" @click="$store.uno.notify.startProgress()"
+                            class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
+                            Start Progress
+                        </button>
+                        <button data-testid="btn-stop-progress" @click="$store.uno.notify.stopProgress()"
+                            class="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors text-sm font-medium shadow-sm">
+                            Stop Progress
                         </button>
                     </div>
                 </div>
@@ -127,56 +167,100 @@
                         class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Position
                         Override</span>
                 </div>
-                <div class="p-6 grid grid-cols-2 gap-4">
-                    <button data-testid="btn-bl"
-                        @click="$store.notify.show('Bottom Left', { type: 'success', position: 'bottom-left' })"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
-                        Bottom Left
-                    </button>
-                    <button @click="$store.notify.show('Bottom Right', { type: 'info', position: 'bottom-right' })"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
-                        Bottom Right
-                    </button>
-                    <button @click="$store.notify.show('Top Right', { type: 'info', position: 'top-right' })"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
-                        Top Right
-                    </button>
-                    <button @click="$store.notify.show('Top Left', { type: 'warning', position: 'top-left' })"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
+                <div class="p-6 grid grid-cols-3 gap-2">
+                    <!-- Top Row -->
+                    <button @click="$store.uno.notify.show('Top Left', { position: 'top-left' })"
+                        class="px-2 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors text-xs font-medium shadow-sm">
                         Top Left
                     </button>
-                    <button @click="$store.notify.show('Top Center', { type: 'error', position: 'top-center' })"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
+                    <button @click="$store.uno.notify.show('Top Center', { position: 'top-center' })"
+                        class="px-2 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors text-xs font-medium shadow-sm">
                         Top Center
                     </button>
-                    <button @click="$store.notify.show('Bottom Center', { type: 'success', position: 'bottom-center' })"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
+                    <button @click="$store.uno.notify.show('Top Right', { position: 'top-right' })"
+                        class="px-2 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors text-xs font-medium shadow-sm">
+                        Top Right
+                    </button>
+
+                    <!-- Center Row -->
+                    <button @click="$store.uno.notify.show('Center Left', { position: 'center-left' })"
+                        class="px-2 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors text-xs font-medium shadow-sm">
+                        Center Left
+                    </button>
+                    <button @click="$store.uno.notify.show('Center', { position: 'center' })"
+                        class="px-2 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors text-xs font-medium shadow-sm">
+                        Center
+                    </button>
+                    <button @click="$store.uno.notify.show('Center Right', { position: 'center-right' })"
+                        class="px-2 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors text-xs font-medium shadow-sm">
+                        Center Right
+                    </button>
+
+                    <!-- Bottom Row -->
+                    <button @click="$store.uno.notify.show('Bottom Left', { position: 'bottom-left' })"
+                        class="px-2 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors text-xs font-medium shadow-sm">
+                        Bottom Left
+                    </button>
+                    <button @click="$store.uno.notify.show('Bottom Center', { position: 'bottom-center' })"
+                        class="px-2 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors text-xs font-medium shadow-sm">
                         Bottom Center
                     </button>
-                    <button @click="$store.notify.show('Center (Toast)', { type: 'info', position: 'center' })"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
-                        Center
+                    <button @click="$store.uno.notify.show('Bottom Right', { position: 'bottom-right' })"
+                        class="px-2 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors text-xs font-medium shadow-sm">
+                        Bottom Right
                     </button>
                 </div>
             </div>
 
-            <!-- Card 3: Loading Indicator -->
+            <!-- Card 3: Directive Usage -->
             <div
                 class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
                 <div
                     class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
-                    <h2 class="font-semibold text-slate-800 dark:text-white">3. Loading Indicator</h2>
+                    <h2 class="font-semibold text-slate-800 dark:text-white">3. Directive Usage</h2>
                     <span
-                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Global</span>
+                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">x-uno-notify</span>
                 </div>
-                <div class="p-6 flex flex-col gap-4 items-center justify-center h-full">
-                    <button @click="$store.notify.loading(true); setTimeout(() => $store.notify.loading(false), 2000)"
-                        class="px-6 py-3 bg-slate-600 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-700 dark:hover:bg-slate-600 transition-colors font-medium shadow-sm">
-                        Show Loading (2s)
+                <div class="p-6 grid grid-cols-2 gap-4">
+                    <button x-uno-notify="'Hello via Directive!'" data-uno-type="success"
+                        class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium shadow-sm">
+                        Directive Success
+                    </button>
+                    <button x-uno-notify="'Error via Directive!'" data-uno-type="error"
+                        class="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors text-sm font-medium shadow-sm">
+                        Directive Error
+                    </button>
+                    <button x-uno-notify="['Mixed Config', { type: 'warning', duration: 5000 }]"
+                        class="col-span-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium shadow-sm">
+                        Directive Array Syntax (['Msg', {conf}])
                     </button>
                 </div>
             </div>
 
+
+
+        </div>
+
+        <!-- Card 4: Global HTMX Progress Test -->
+        <div
+            class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+            <div
+                class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+                <h2 class="font-semibold text-slate-800 dark:text-white">4. Global HTMX Progress Test</h2>
+                <span
+                    class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">htmx</span>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-sm text-slate-600 dark:text-slate-400">
+                    Test global HTMX progress bar (requires network/server). Click the button to make an HTMX request
+                    and see the progress bar appear at the top of the page.
+                </p>
+                <button hx-get="/examples/data/sample.json" hx-target="#htmx-result"
+                    class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium shadow-sm">
+                    Test Global HTMX Progress
+                </button>
+                <div id="htmx-result" class="mt-2 p-2 bg-slate-100 dark:bg-slate-700 rounded text-sm"></div>
+            </div>
         </div>
 
     </main>

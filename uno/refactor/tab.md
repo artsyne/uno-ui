@@ -8,6 +8,21 @@ Tab 组件重构目标是实现轻量、声明式、HTMX 原生的标签页组�
 
 所有组件必须遵循 **"Store-First, Directive-Driven"**（Store 优先，指令驱动）模式。
 
+## 2. 命名空间规范
+所有组件必须注册到 `uno` 命名空间，避免多插件使用冲突：
+- 注册方式：`Alpine.store('uno').tab = tabStore`
+- 外部调用：`Alpine.store('uno').tab.activate()`
+- 内部调用：`$store.uno.tab.xxx`
+
+## 3. Uno 基础设施使用
+所有组件重构必须使用 uno 基础设施：
+- **core/uno.js**：使用 `Uno.getConfig()` 进行配置合并
+- **utils/dom.js**：使用 `DomManager` 进行 DOM 操作
+- **utils/log.js**：使用 `log` 进行日志记录
+- **utils/position.js**：使用位置计算工具
+- **core/layer.js**：使用 Z-Index 层级管理
+- **locales/**：使用国际化支持
+
 ### 🚫 严禁做法 (Anti-Patterns)
 
 * **❌ 禁止在 JS 中拼接 Alpine 指令字符串**：
@@ -27,7 +42,7 @@ Tab 组件重构目标是实现轻量、声明式、HTMX 原生的标签页组�
 每个组件由三个核心部分组成：
 
 1. **Directive (`x-uno-tab`)**: 负责解析 HTML 属性，将参数传递给 Store。
-2. **Store (`Alpine.store('tab')`)**: 负责所有逻辑、状态管理、配置合并。
+2. **Store (`Alpine.store('uno').tab`)**: 负责所有逻辑、状态管理、配置合并。
 3. **Template (HTML)**: 负责渲染，完全由 Store 数据驱动，样式通过 `Uno.getStyle` 绑定。
 
 ## 2. 统一配置合并协议 (Configuration Protocol)
@@ -183,7 +198,7 @@ Alpine.store('tab', {
     const errorContent = `
       <div class="uno-tab-error">
         <p>内容加载失败</p>
-        <button onclick="$store.tab.retry('${tab.id}')">重试</button>
+        <button onclick="$store.uno.tab.retry('${tab.id}')">重试</button>
       </div>
     `
     
@@ -262,9 +277,9 @@ Alpine.store('tab', {
 
 | 方式 | 场景 | 示例 |
 | --- | --- | --- |
-| **Directive (Hybrid)** | 推荐，最灵活 | `<button x-uno-tab="{ name: 'profile' }" data-uno-url="/profile">` |
-| **API (Programmatic)** | 复杂业务逻辑 | `Alpine.store('tab').activate('profile')` |
-| **Store (Internal)** | Alpine 内部调用 | `$store.tab.activate(...)` |
+| **Directive (Hybrid)** | 推荐，最灵活 | `<button x-uno-tab="{ 'name': 'profile', 'url': '/profile' }">` |
+| **API (Programmatic)** | 复杂业务逻辑 | `Alpine.store('uno').tab.activate('profile')` |
+| **Store (Internal)** | Alpine 内部调用 | `$store.uno.tab.activate(...)` |
 
 **Directive 解析规范：**
 指令必须能同时读取 `expression` (对象) 和 `data-uno-*` (属性)，并合并它们。
@@ -273,12 +288,12 @@ Alpine.store('tab', {
 // 规范的 Directive 处理器
 const handler = (values = {}) => {
   const attrConfig = {
-    name: el.getAttribute('data-uno-name'),
+    name: el.getAttribute('data-uno-name'), // 注意：保留 data-uno-* 属性解析以兼容旧代码
     url: el.getAttribute('data-uno-url'),
     // ...使用 parseBool/parseNumber 辅助函数
   }
   // 属性作为底色，JS 对象作为覆盖
-  Alpine.store('tab').activate({ ...attrConfig, ...values })
+  Alpine.store('uno').tab.activate({ ...attrConfig, ...values })
 }
 ```
 
@@ -345,8 +360,7 @@ export default (Alpine, options = {}) => {
 
     const onClick = (e) => {
       e.preventDefault()
-      const store = Alpine.store('tab')
-      if (!store) return
+const store = Alpine.store('uno').tab
 
       if (getExpression) {
         let evaluated
@@ -373,14 +387,14 @@ export default (Alpine, options = {}) => {
 
 ```html
 <!-- 1. Directive (推荐) -->
-<button x-uno-tab='{"name":"profile","url":"/user/profile"}' data-uno-target="#tab-content">Profile</button>
+<button x-uno-tab='{"name":"profile","url":"/user/profile","target":"#tab-content"}'>Profile</button>
 
 <!-- 2. 属性方式（已移除） -->
 <!-- 不再支持 data-uno-* 属性，统一使用 x-uno-* 指令 -->
 
 <!-- 3. API 调用 -->
 <script>
-Alpine.store('tab').activate({
+Alpine.store('uno').tab.activate({
   name: 'dashboard',
   url: '/api/dashboard',
   target: '#main-content'
@@ -411,7 +425,7 @@ ensureContainer() {
     <div x-data="{ tabGroup: 'default' }">
       <!-- Tab Triggers - 样式通过 Uno.getStyle 获取 -->
       <div :class="Uno.getStyle('tab', 'triggerList')">
-        <template x-for="tab in $store.tab.groups[tabGroup]?.tabs || []" :key="tab.name">
+        <template x-for="tab in $store.uno.tab.groups[tabGroup]?.tabs || []" :key="tab.name">
           <button :id="'tab-trigger-' + tab.name"
                   :class="[
                     Uno.getStyle('tab', 'trigger'),
@@ -420,7 +434,7 @@ ensureContainer() {
                   :aria-selected="tab.isActive"
                   :aria-controls="'tab-panel-' + tab.name"
                   role="tab"
-                  @click="$store.tab.activate({ name: tab.name, group: tabGroup })">
+                  @click="$store.uno.tab.activate({ name: tab.name, group: tabGroup })">
             <span x-text="tab.title"></span>
           </button>
         </template>
@@ -428,7 +442,7 @@ ensureContainer() {
 
       <!-- Tab Panels - 完全由 Store 数据驱动 -->
       <div :class="Uno.getStyle('tab', 'panelList')">
-        <template x-for="tab in $store.tab.groups[tabGroup]?.tabs || []" :key="tab.name">
+        <template x-for="tab in $store.uno.tab.groups[tabGroup]?.tabs || []" :key="tab.name">
           <div :id="'tab-panel-' + tab.name"
                :class="Uno.getStyle('tab', 'panel')"
                :aria-labelledby="'tab-trigger-' + tab.name"
@@ -528,7 +542,7 @@ Alpine.store('tab', {
 Alpine.directive('uno-tab', (el, { expression }, { evaluateLater }) => {
   const onClick = (e) => {
     e.preventDefault()
-    const store = Alpine.store('tab')
+    const store = Alpine.store('uno').tab
     
     // 支持 expression 和 data-uno-* 属性合并
     store.activate({ ...buildFromAttrs(), ...evaluated })
@@ -572,7 +586,7 @@ Alpine.directive('uno-tab', (el, { expression }, { evaluateLater }) => {
 // ✅ HTMX 错误处理
 document.addEventListener('htmx:responseError', function(evt) {
   console.error('Tab content load failed:', evt.detail)
-  Alpine.store('notify').error('标签内容加载失败')
+  Alpine.store('uno').notify.error('标签内容加载失败')
 })
 ```
 
@@ -623,7 +637,7 @@ window.UnoConfig = {
    Alpine.data('unoTabs', () => ({ activeTab: 'home' }))
    
    // ✅ 新版本
-   Alpine.store('tab').activate({ name: 'home' })
+   Alpine.store('uno').tab.activate({ name: 'home' })
    ```
 
 2. **使用 HTMX 替代内容加载**
@@ -642,7 +656,7 @@ window.UnoConfig = {
    const tabConfig = { defaultTab: 'home', hash: true, animate: true }
    
    // ✅ 新版本（声明式）
-   <div x-data="{ tabGroup: 'main' }" data-uno-default-tab="home" data-uno-hash="true">
+   <div x-data="{ tabGroup: 'main' }" x-init="$store.uno.tab.activate({'defaultTab': 'home', 'hash': true})">
    ```
 
 ## 总结

@@ -61,6 +61,7 @@ export function installAlpine(Alpine) {
   Alpine.store('i18n', {
     locale: detect(),
     messages: initialMessages,
+    loading: false,
 
     init() {
       if (typeof document !== 'undefined') {
@@ -77,14 +78,37 @@ export function installAlpine(Alpine) {
       return str.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? String(vars[k]) : `{${k}}`))
     },
 
-    setLang(lang) {
+    setLocale(lang) {
       if (!this.messages[lang]) {
-        log.warn(`[Uno] Language ${lang} not found`)
+        log.warn(`[Uno] Language ${lang} not found. Please load it first using loadLocale().`)
         return
       }
       this.locale = lang
       if (typeof localStorage !== 'undefined') localStorage.setItem('uno.lang', lang)
       if (typeof document !== 'undefined') document.documentElement.lang = lang
+    },
+    
+    // Alias for backward compatibility
+    setLang(lang) {
+      this.setLocale(lang)
+    },
+
+    async loadLocale(lang, url) {
+      if (this.messages[lang]) return // Already loaded
+
+      this.loading = true
+      try {
+        const res = await fetch(url)
+        if (!res.ok) throw new Error(`Failed to load locale: ${res.statusText}`)
+        const data = await res.json()
+        this.extend({ [lang]: data })
+        return true
+      } catch (e) {
+        log.error(`[Uno] Failed to load locale ${lang}`, e)
+        throw e
+      } finally {
+        this.loading = false
+      }
     },
 
     extend(locales) {
@@ -96,5 +120,26 @@ export function installAlpine(Alpine) {
         }
       }
     }
+  })
+
+  // Directive: x-t="key" or x-t.placeholder="key"
+  Alpine.directive('t', (el, { expression, modifiers }, { effect, evaluateLater }) => {
+    const getI18n = () => Alpine.store('i18n')
+    
+    effect(() => {
+        const store = getI18n()
+        // Access locale to trigger reactivity
+        const locale = store.locale 
+        const key = expression
+        const text = store.t(key)
+        
+        if (modifiers.length > 0) {
+            modifiers.forEach(attr => {
+                el.setAttribute(attr, text)
+            })
+        } else {
+            el.textContent = text
+        }
+    })
   })
 }

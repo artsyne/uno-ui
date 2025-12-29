@@ -27,8 +27,24 @@ Valid 组件重构目标是实现轻量、声明式、HTMX 原生的表单验证
 每个组件由三个核心部分组成：
 
 1. **Directive (`x-uno-valid`)**: 负责解析 HTML 属性，将参数传递给 Store。
-2. **Store (`Alpine.store('valid')`)**: 负责所有逻辑、状态管理、配置合并。
+2. **Store (`Alpine.store('uno').valid`)**: 负责所有逻辑、状态管理、配置合并。
 3. **HTMX 拦截器**：负责表单验证拦截，完全依赖 HTMX 生态。
+
+### 2.1 命名空间规范
+所有组件必须注册到 `uno` 命名空间，避免多插件使用冲突：
+- 注册方式：`Alpine.store('uno').valid = validStore`
+- 外部调用：`Alpine.store('uno').valid.validate()`
+- 内部调用：`$store.uno.valid.xxx`
+
+### 2.2 Uno 基础设施使用
+所有组件重构必须使用 uno 基础设施：
+- **core/uno.js**：使用 `Uno.getConfig()` 进行配置合并
+- **utils/dom.js**：使用 `DomManager` 进行 DOM 操作
+- **utils/log.js**：使用 `log` 进行日志记录
+- **utils/validation.js**：使用验证规则工具
+- **utils/position.js**：使用位置计算工具（错误显示）
+- **core/layer.js**：使用 Z-Index 层级管理
+- **locales/**：使用国际化支持
 
 ## 2. 统一配置合并协议 (Configuration Protocol)
 
@@ -116,7 +132,7 @@ document.body.addEventListener('htmx:confirm', (evt) => {
       evt.stopPropagation()
       
       // 触发验证显示错误
-      Alpine.store('valid').validate(form)
+      Alpine.store('uno').valid.validate(form)
       
       // 触发自定义事件
       form.dispatchEvent(new CustomEvent('uno:validation-failed', { bubbles: true }))
@@ -159,7 +175,7 @@ form.addEventListener('submit', (e) => {
 #### 标准事件处理
 ```javascript
 // 在 Store 中处理 HTMX 验证事件
-Alpine.store('valid', {
+Alpine.store('uno').valid = {
   errors: {},
   
   // ✅ 表单验证
@@ -240,7 +256,7 @@ document.body.addEventListener('htmx:afterRequest', (evt) => {
   // 检查是否是验证错误
   if (xhr.status === 422 && response.errors) {
     // 显示服务端验证错误
-    Alpine.store('valid').showErrors(response.errors)
+    Alpine.store('uno').valid.showErrors(response.errors)
     
     // 触发验证失败事件
     document.dispatchEvent(new CustomEvent('uno:server-validation-failed', {
@@ -258,8 +274,8 @@ document.body.addEventListener('htmx:afterRequest', (evt) => {
 2. **状态管理**：通过 Store 管理错误状态，避免直接 DOM 操作。
 
 ```html
-<input :class="Uno.getStyle('valid', 'inputError')" x-show="$store.valid.errors['fieldName']">
-<div :class="Uno.getStyle('valid', 'errorText')" x-text="$store.valid.errors['fieldName']"></div>
+<input :class="Uno.getStyle('valid', 'inputError')" x-show="$store.uno.valid.errors['fieldName']">
+<div :class="Uno.getStyle('valid', 'errorText')" x-text="$store.uno.valid.errors['fieldName']"></div>
 ```
 
 ## 4. 触发机制标准 (Triggering)
@@ -269,7 +285,7 @@ document.body.addEventListener('htmx:afterRequest', (evt) => {
 | 方式 | 场景 | 示例 |
 | --- | --- | --- |
 | **Directive (Hybrid)** | 推荐，最灵活 | `<input x-uno-valid="{ required: true, email: true }" name="email">` |
-| **API (Programmatic)** | 复杂业务逻辑 | `Alpine.store('valid').validate('email', 'test@example.com')` |
+| **API (Programmatic)** | 复杂业务逻辑 | `Alpine.store('uno').valid.validate('email', 'test@example.com')` |
 | **HTMX 拦截** | 表单提交验证 | `<form data-uno-valid="true">` |
 
 **Directive 解析规范：**
@@ -285,7 +301,7 @@ const handler = (rules = {}) => {
   }
   
   // 属性作为底色，JS 对象作为覆盖
-  Alpine.store('valid').addRules(el.name || el.id, { ...attrConfig, ...rules })
+  Alpine.store('uno').valid.addRules(el.name || el.id, { ...attrConfig, ...rules })
 }
 ```
 
@@ -306,7 +322,7 @@ document.body.addEventListener('htmx:confirm', (evt) => {
   
   // 只拦截 opt-in 的表单
   if (form && form.hasAttribute('data-uno-valid')) {
-    if (!Alpine.store('valid').validateForm(form)) {
+    if (!Alpine.store('uno').valid.validateForm(form)) {
       evt.preventDefault()
       form.dispatchEvent(new CustomEvent('uno:validation-failed', { bubbles: true }))
     }
@@ -328,7 +344,7 @@ export default (Alpine, options = {}) => {
   }
 
   // 2. Alpine Store（唯一的逻辑入口）
-  Alpine.store('valid', {
+  Alpine.store('uno').valid = {
     errors: {},
     rules: {},
     
@@ -396,12 +412,12 @@ export default (Alpine, options = {}) => {
     const rules = expression ? (typeof expression === 'object' ? expression : {}) : {}
     const attrConfig = buildFromAttrs()
     
-    Alpine.store('valid').addRules(el.name || el.id, { ...attrConfig, ...rules })
+    Alpine.store('uno').valid.addRules(el.name || el.id, { ...attrConfig, ...rules })
     
     // 实时验证
-    if (Alpine.store('valid').rules[el.name || el.id]?.realtime) {
+    if (Alpine.store('uno').valid.rules[el.name || el.id]?.realtime) {
       el.addEventListener('input', () => {
-        Alpine.store('valid').validate(el.name || el.id, el.value)
+        Alpine.store('uno').valid.validate(el.name || el.id, el.value)
       })
     }
   })
@@ -412,7 +428,7 @@ export default (Alpine, options = {}) => {
       const form = evt.detail.elt.tagName === 'FORM' ? evt.detail.elt : evt.detail.elt.closest('form')
       
       if (form && form.hasAttribute('data-uno-valid')) {
-        if (!Alpine.store('valid').validateForm(form)) {
+        if (!Alpine.store('uno').valid.validateForm(form)) {
           evt.preventDefault()
           evt.stopPropagation()
         }
@@ -464,13 +480,13 @@ export default (Alpine, options = {}) => {
          x-uno-valid="{ required: true, email: true }"
          :class="[
            Uno.getStyle('valid', 'input'),
-           $store.valid.errors[fieldName] ? Uno.getStyle('valid', 'inputError') : ''
+           $store.uno.valid.errors[fieldName] ? Uno.getStyle('valid', 'inputError') : ''
          ]">
   
   <!-- 错误信息 - 完全由 Store 数据驱动 -->
-  <div x-show="$store.valid.errors[fieldName]"
+  <div x-show="$store.uno.valid.errors[fieldName]"
        :class="Uno.getStyle('valid', 'errorText')"
-       x-text="$store.valid.errors[fieldName]">
+       x-text="$store.uno.valid.errors[fieldName]">
   </div>
 </div>
 
@@ -485,11 +501,11 @@ export default (Alpine, options = {}) => {
              x-uno-valid="{ required: true, minLength: 3 }"
              :class="[
                Uno.getStyle('valid', 'input'),
-               $store.valid.errors['username'] ? Uno.getStyle('valid', 'inputError') : ''
+               $store.uno.valid.errors['username'] ? Uno.getStyle('valid', 'inputError') : ''
              ]">
-      <div x-show="$store.valid.errors['username']"
+      <div x-show="$store.uno.valid.errors['username']"
            :class="Uno.getStyle('valid', 'errorText')"
-           x-text="$store.valid.errors['username']">
+           x-text="$store.uno.valid.errors['username']">
       </div>
     </div>
     
@@ -500,11 +516,11 @@ export default (Alpine, options = {}) => {
              x-uno-valid="{ required: true, email: true }"
              :class="[
                Uno.getStyle('valid', 'input'),
-               $store.valid.errors['email'] ? Uno.getStyle('valid', 'inputError') : ''
+               $store.uno.valid.errors['email'] ? Uno.getStyle('valid', 'inputError') : ''
              ]">
-      <div x-show="$store.valid.errors['email']"
+      <div x-show="$store.uno.valid.errors['email']"
            :class="Uno.getStyle('valid', 'errorText')"
-           x-text="$store.valid.errors['email']">
+           x-text="$store.uno.valid.errors['email']">
       </div>
     </div>
   </div>
@@ -548,7 +564,7 @@ const opts = window.Uno?.options?.ui?.valid
 
 ```javascript
 // ✅ Store-First：所有逻辑在 Store 中内聚
-Alpine.store('valid', {
+Alpine.store('uno').valid = {
   errors: {},
   rules: {},
   
@@ -564,24 +580,24 @@ Alpine.store('valid', {
 // ✅ Directive-Driven：声明式接口
 Alpine.directive('uno-valid', (el, { expression }) => {
   const rules = expression || {}
-  Alpine.store('valid').addRules(el.name || el.id, rules)
+  Alpine.store('uno').valid.addRules(el.name || el.id, rules)
   
   // 实时验证
   el.addEventListener('input', () => {
-    Alpine.store('valid').validate(el.name || el.id, el.value)
+    Alpine.store('uno').valid.validate(el.name || el.id, el.value)
   })
 })
 
 // ✅ 样式与模板分离：通过 Uno.getStyle 获取样式
 :class="[
   Uno.getStyle('valid', 'input'),
-  $store.valid.errors[fieldName] ? Uno.getStyle('valid', 'inputError') : ''
+  $store.uno.valid.errors[fieldName] ? Uno.getStyle('valid', 'inputError') : ''
 ]"
 
 // ✅ HTMX 原生集成：通过拦截器实现表单验证
 document.body.addEventListener('htmx:confirm', (evt) => {
   if (form.hasAttribute('data-uno-valid')) {
-    if (!Alpine.store('valid').validateForm(form)) {
+    if (!Alpine.store('uno').valid.validateForm(form)) {
       evt.preventDefault()
     }
   }
@@ -598,7 +614,7 @@ document.body.addEventListener('htmx:confirm', (evt) => {
   const form = evt.detail.elt.tagName === 'FORM' ? evt.detail.elt : evt.detail.elt.closest('form')
   
   if (form && form.hasAttribute('data-uno-valid')) {
-    const isValid = Alpine.store('valid').validateForm(form)
+    const isValid = Alpine.store('uno').valid.validateForm(form)
     
     if (!isValid) {
       evt.preventDefault()
@@ -607,7 +623,7 @@ document.body.addEventListener('htmx:confirm', (evt) => {
       // 触发验证失败事件
       form.dispatchEvent(new CustomEvent('uno:validation-failed', { 
         bubbles: true,
-        detail: { errors: Alpine.store('valid').errors }
+        detail: { errors: Alpine.store('uno').valid.errors }
       }))
     }
   }
@@ -625,7 +641,7 @@ document.body.addEventListener('htmx:afterRequest', (evt) => {
     const data = JSON.parse(response)
     if (data.errors) {
       // 将服务端错误合并到 Store
-      Object.assign(Alpine.store('valid').errors, data.errors)
+      Object.assign(Alpine.store('uno').valid.errors, data.errors)
     }
   } catch (e) {
     // 忽略非 JSON 响应
@@ -679,8 +695,7 @@ window.UnoConfig = {
    errorDiv.textContent = message
    
    // ✅ 新版本
-   Alpine.store('valid').errors[fieldName] = message
-   ```
+     Alpine.store('uno').valid.errors[fieldName] = message   ```
 
 2. **使用声明式接口**
    ```javascript

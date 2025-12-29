@@ -41,7 +41,7 @@ Uno UI v2.0 所有代码注释必须采用 JSDoc 标准，统一使用英文注�
  * 
  * @example
  * // Open a simple dialog
- * const dialogId = Alpine.store('box').open({
+ * const dialogId = Alpine.store('uno').box.open({
  *   type: 'dialog',
  *   title: 'Information',
  *   content: 'Operation completed successfully'
@@ -109,7 +109,7 @@ async function loadContent(url, options = {}) {
  * 
  * @example
  * // Access the box store
- * const boxStore = Alpine.store('box');
+ * const boxStore = Alpine.store('uno').box;
  * 
  * // Open a dialog
  * const dialogId = boxStore.open({
@@ -274,11 +274,11 @@ function animateElement(element, fromStyles, toStyles, duration = 300) {
  * 
  * @example
  * // Create a success notification
- * const id = Alpine.store('notify').success('Operation completed!');
+ * const id = Alpine.store('uno').notify.success('Operation completed!');
  * 
  * @example
  * // Create a persistent error notification
- * const id = Alpine.store('notify').error('Failed to save data', {
+ * const id = Alpine.store('uno').notify.error('Failed to save data', {
  *   duration: 0 // Don't auto-dismiss
  * });
  * 

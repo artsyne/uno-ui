@@ -95,7 +95,7 @@
                         Clicking below should show a notification at <strong>bottom-right</strong> (configured globally)
                         and disappear in <strong>1 second</strong>.
                     </p>
-                    <button onclick="Alpine.store('notify').success('This respects global config!')"
+                    <button onclick="Alpine.store('uno').notify.success('This respects global config!')"
                         class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">
                         Test Notify
                     </button>
@@ -114,7 +114,7 @@
                     <p class="text-slate-500 dark:text-slate-400 mb-4 text-sm">
                         Opening this box should default to <strong>600px</strong> width (configured globally).
                     </p>
-                    <button onclick="Alpine.store('box').alert('I am 600px wide by default!')"
+                    <button onclick="Alpine.store('uno').box.alert('I am 600px wide by default!')"
                         class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors">
                         Test Box
                     </button>
@@ -150,7 +150,7 @@
                         Change notify position to <strong>top-center</strong> at runtime.
                     </p>
                     <button
-                        onclick="Uno.setConfig({ notify: { position: 'top-center' } }); Alpine.store('notify').info('I am now top-center!')"
+                        onclick="Uno.setConfig({ notify: { position: 'top-center' } }); Alpine.store('uno').notify.info('I am now top-center!')"
                         class="px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors">
                         Update & Test
                     </button>

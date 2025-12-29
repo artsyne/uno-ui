@@ -180,7 +180,7 @@ Step 4: 反模式最终检查
 
 Step 2: 架构预演 (思维链)
 在编写代码前，请先在思维链中构建 NotifyStore 的接口定义：
-1. **Store-First**：如何通过 `Alpine.store('notify')` 管理 items 数组？
+1. **Store-First**：如何通过 `Alpine.store('uno').notify` 管理 items 数组？
 2. **触发机制**：如何统一 Directive, Global API, Event 三种触发方式？
 3. **动画管理**：如何利用 Alpine 的 `x-transition` 配合 CSS 实现平滑进出？
 
@@ -188,7 +188,7 @@ Step 3: 增量式 TDD 执行
 任务拆解如下，请逐一执行 Red-Green-Refactor 循环：
 1. [Core] 实现 NotifyStore：仅包含 items 数组和 add/remove 基础方法。
 2. [UI] 实现 `x-uno-notify` 指令：负责渲染 UI 列表，绑定 A11y 属性 (role='alert')。
-3. [API] 实现 `Alpine.store('notify').success/error` 等代理方法。
+3. [API] 实现 `Alpine.store('uno').notify.success/error` 等代理方法。
 4. [Feat] 集成多语言 (i18n) 和 Z-Index 管理。
 5. [Anim] 实现进入/退出动画。
 

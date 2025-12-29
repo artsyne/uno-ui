@@ -115,7 +115,13 @@ export class BasePlugin {
    * ✅ 统一 Store 创建模式
    */
   initStore() {
-    this.store = this.Alpine.store(this.name, this.createStore())
+    // Register to uno namespace
+    if (!this.Alpine.store('uno')) {
+      this.Alpine.store('uno', { [this.name]: this.createStore() })
+    } else {
+      this.Alpine.store('uno')[this.name] = this.createStore()
+    }
+    this.store = this.Alpine.store('uno')[this.name]
   }
 
   /**
@@ -833,7 +839,7 @@ src/
  * 
  * @example
  * // Open a simple dialog
- * const dialogId = Alpine.store('box').open({
+ * const dialogId = Alpine.store('uno').box.open({
  *   type: 'dialog',
  *   title: 'Information',
  *   content: 'Operation completed successfully'
@@ -883,7 +889,7 @@ async function loadContent(url, options = {}) {
  * 
  * @example
  * // Access the box store
- * const boxStore = Alpine.store('box');
+ * const boxStore = Alpine.store('uno').box;
  * 
  * // Open a dialog
  * const dialogId = boxStore.open({
@@ -892,7 +898,9 @@ async function loadContent(url, options = {}) {
  *   content: 'This is a dialog'
  * });
  */
-Alpine.store('box', {
+})
+} else {
+  Alpine.store('uno').box = {
   // Store implementation...
 });
 ```

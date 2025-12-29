@@ -31,7 +31,7 @@ Uno.use(installAlpine).use(tooltip).use(notify).use(box).use(valid).use(tab)
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   const initUno = () => {
     if (Uno.initialized) return
-    const config = window.UnoConfig || {}
+    const config = {}
     Uno.init(window.Alpine, config)
   }
 

@@ -156,19 +156,19 @@
                     class="p-8 bg-white dark:bg-slate-800 border-4 border-black dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
                     <p class="mb-6">Notifications use custom colors and hard shadows.</p>
                     <div class="grid grid-cols-2 gap-4">
-                        <button onclick="Alpine.store('notify').success('Operation Successful!')"
+                        <button onclick="Alpine.store('uno').notify.success('Operation Successful!')"
                             class="px-4 py-2 bg-green-500 text-black font-bold border-2 border-black hover:bg-green-400">
                             Success
                         </button>
-                        <button onclick="Alpine.store('notify').error('Critical Failure!')"
+                        <button onclick="Alpine.store('uno').notify.error('Critical Failure!')"
                             class="px-4 py-2 bg-red-500 text-white font-bold border-2 border-black hover:bg-red-400">
                             Error
                         </button>
-                        <button onclick="Alpine.store('notify').info('Just so you know...')"
+                        <button onclick="Alpine.store('uno').notify.info('Just so you know...')"
                             class="px-4 py-2 bg-blue-400 text-black font-bold border-2 border-black hover:bg-blue-300">
                             Info
                         </button>
-                        <button onclick="Alpine.store('notify').warning('Watch out!')"
+                        <button onclick="Alpine.store('uno').notify.warning('Watch out!')"
                             class="px-4 py-2 bg-orange-400 text-black font-bold border-2 border-black hover:bg-orange-300">
                             Warning
                         </button>

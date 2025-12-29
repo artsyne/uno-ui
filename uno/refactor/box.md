@@ -8,6 +8,21 @@ Box 组件重构目标是实现轻量、声明式、HTMX 原生的模态框组�
 
 所有组件必须遵循 **"Store-First, Directive-Driven"**（Store 优先，指令驱动）模式。
 
+### 2. 命名空间规范
+所有组件必须注册到 `uno` 命名空间，避免多插件使用冲突：
+- 注册方式：`Alpine.store('uno').box = boxStore`
+- 外部调用：`Alpine.store('uno').box.open()`
+- 内部调用：`$store.uno.box.xxx`
+
+### 3. Uno 基础设施使用
+所有组件重构必须使用 uno 基础设施：
+- **core/uno.js**：使用 `Uno.getConfig()` 进行配置合并
+- **utils/dom.js**：使用 `DomManager` 进行 DOM 操作
+- **utils/log.js**：使用 `log` 进行日志记录
+- **utils/position.js**：使用位置计算工具
+- **core/layer.js**：使用 Z-Index 层级管理
+- **locales/**：使用国际化支持
+
 ### 🚫 严禁做法 (Anti-Patterns)
 
 * **❌ 禁止在 JS 中拼接 Alpine 指令字符串**：
@@ -27,7 +42,7 @@ Box 组件重构目标是实现轻量、声明式、HTMX 原生的模态框组�
 每个组件由三个核心部分组成：
 
 1. **Directive (`x-uno-box`)**: 负责解析 HTML 属性，将参数传递给 Store。
-2. **Store (`Alpine.store('box')`)**: 负责所有逻辑、状态管理、配置合并。
+2. **Store (`Alpine.store('uno').box`)**: 负责所有逻辑、状态管理、配置合并。
 3. **Template (HTML)**: 负责渲染，完全由 Store 数据驱动，样式通过 `Uno.getStyle` 绑定。
 
 ## 2. 统一配置合并协议 (Configuration Protocol)
@@ -62,20 +77,21 @@ open(instanceOpts = {}) {
 
 #### 对话框类组件（Box）
 ```javascript
-Alpine.store('box', {
+// 注意：需挂载到 Alpine.store('uno').box
+const boxStore = {
   // ✅ 标准方法命名
-  open(config = {}) {},      // 打开对话框
-  close(id) {},              // 关闭指定对话框
-  closeAll() {},             // 关闭所有对话框
+  open(config = {}) {}, // 打开对话框
+  close(id) {}, // 关闭指定对话框
+  closeAll() {}, // 关闭所有对话框
   
   // ✅ 便捷方法
-  alert(message, options = {}) {},    // 警告对话框
-  confirm(message, options = {}) {},  // 确认对话框
+  alert(message, options = {}) {}, // 警告对话框
+  confirm(message, options = {}) {}, // 确认对话框
   prompt(message, defaultValue, options = {}) {}, // 输入对话框
   
   // ❌ 禁止使用的方法名
-  show() {},   // 应使用 open()
-  hide() {},   // 应使用 close()
+  show() {}, // 应使用 open()
+  hide() {}, // 应使用 close()
   display() {} // 不符合规范
 })
 ```
@@ -231,11 +247,11 @@ app.get('/api/content', (req, res) => {
 
 组件必须同时支持三种触发方式，且逻辑入口统一流向 Store。
 
-| 方式 | 场景 | 示例 |
-| --- | --- | --- |
-| **Directive (Hybrid)** | 推荐，最灵活 | `<button x-uno-box="{ type: 'confirm' }" data-uno-title="删除?">` |
-| **API (Programmatic)** | 复杂业务逻辑 | `Alpine.store('box').confirm('Are you sure?')` |
-| **Store (Internal)** | Alpine 内部调用 | `$store.box.open(...)` |
+| 方式                   | 场景            | 示例                                                              |
+| ---------------------- | --------------- | ----------------------------------------------------------------- |
+| **Directive (Hybrid)** | 推荐，最灵活    | `<button x-uno-box="{ type: 'confirm', title: '删除?' }">` |
+| **API (Programmatic)** | 复杂业务逻辑 | `Alpine.store('uno').box.confirm('Are you sure?')` |
+| **Store (Internal)** | Alpine 内部调用 | `$store.uno.box.open(...)` |
 
 **Directive 解析规范：**
 指令必须能同时读取 `expression` (对象) 和 `data-uno-*` (属性)，并合并它们。
@@ -244,11 +260,11 @@ app.get('/api/content', (req, res) => {
 // 规范的 Directive 处理器
 const handler = (values = {}) => {
   const attrConfig = {
-    title: el.getAttribute('data-uno-title'),
+    title: el.getAttribute('data-uno-title'), // 注意：保留 data-uno-* 属性解析以兼容旧代码
     // ...使用 parseBool/parseNumber 辅助函数
   }
   // 属性作为底色，JS 对象作为覆盖
-  Alpine.store('box').open({ ...attrConfig, ...values })
+  Alpine.store('uno').box.open({ ...attrConfig, ...values })
 }
 ```
 
@@ -280,7 +296,8 @@ export default (Alpine, options = {}) => {
   }
 
   // 2. Alpine Store（唯一的逻辑入口）
-  Alpine.store('box', {
+  // ✅ 注册到 uno 命名空间
+  const boxStore = {
     items: [],
     
     // 四级配置合并的标准实现
@@ -299,7 +316,13 @@ export default (Alpine, options = {}) => {
       
       // 业务逻辑...
     }
-  })
+  }
+
+  if (!Alpine.store('uno')) {
+    Alpine.store('uno', { box: boxStore })
+  } else {
+    Alpine.store('uno').box = boxStore
+  }
 
   // 3. 指令注册（声明式接口）
   Alpine.directive('uno-box', (el, { expression }, { evaluateLater }) => {
@@ -334,7 +357,7 @@ export default (Alpine, options = {}) => {
 
     const onClick = (e) => {
       e.preventDefault()
-      const store = Alpine.store('box')
+      const store = Alpine.store('uno').box
       if (!store) return
 
       if (getExpression) {
@@ -362,14 +385,14 @@ export default (Alpine, options = {}) => {
 
 ```html
 <!-- 1. Directive (推荐) -->
-<button x-uno-box='{"type":"confirm","title":"确认删除"}' data-uno-hx-url="/api/delete">删除</button>
+<button x-uno-box='{"type":"confirm","title":"确认删除","hxUrl":"/api/delete"}'>删除</button>
 
 <!-- 2. 属性方式（已移除） -->
 <!-- 不再支持 data-uno-* 属性，统一使用 x-uno-* 指令 -->
 
 <!-- 3. API 调用 -->
 <script>
-Alpine.store('box').open({
+Alpine.store('uno').box.open({
   type: 'confirm',
   title: '确认删除',
   hxUrl: '/api/delete-confirm',
@@ -381,20 +404,20 @@ Alpine.store('box').open({
 
 #### 2.2 协议字段规范
 
-| 字段 | 类型 | 默认值 | 说明 |
+| 字段        | 类型    | 默认值    | 说明                                                                                                       |
 |------|------|--------|------|
-| `type` | string | "dialog" | box类型：dialog/confirm/alert |
-| `title` | string | "" | 标题 |
-| `content` | string | "" | 静态内容 |
-| `hxUrl` | string | undefined | HTMX 内容加载地址 |
-| `hxMethod` | string | "GET" | HTMX 请求方法 |
-| `hxHeaders` | object | undefined | HTMX 请求头 |
-| `hxTrigger` | string | "load" | HTMX 触发条件 |
-| `position` | string | "center" | 位置：center/top/bottom等 |
-| `width` | number | undefined | 宽度(px) |
-| `height` | number | undefined | 高度(px) |
-| `modal` | boolean | true | 是否模态 |
-| `closable` | boolean | true | 是否可关闭 |
+| `type`      | string  | "dialog"  | box类型：dialog/confirm/alert                                                                              |
+| `title`     | string  | ""        | 标题                                                                                                       |
+| `content`   | string  | ""        | 静态内容                                                                                                   |
+| `hxUrl`     | string  | undefined | HTMX 内容加载地址                                                                                          |
+| `hxMethod`  | string  | "GET"     | HTMX 请求方法                                                                                              |
+| `hxHeaders` | object  | undefined | HTMX 请求头                                                                                                |
+| `hxTrigger` | string  | "load"    | HTMX 触发条件                                                                                              |
+| `position`  | string  | "center"  | 位置：top-left/top-center/top-right/center-left/center/center-right/bottom-left/bottom-center/bottom-right |
+| `width`     | number  | undefined | 宽度(px)                                                                                                   |
+| `height`    | number  | undefined | 高度(px)                                                                                                   |
+| `modal`     | boolean | true      | 是否模态                                                                                                   |
+| `closable`  | boolean | true      | 是否可关闭                                                                                                 |
 
 ### 2. 状态管理规范
 
@@ -449,13 +472,13 @@ ensureContainer() {
   const template = `
     <!-- Backdrop - 样式通过 Uno.getStyle 获取 -->
     <div :class="Uno.getStyle('box', 'overlay')"
-         x-show="$store.box.items.length > 0"
+         x-show="$store.uno.box.items.length > 0"
          x-transition:enter="ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"></div>
 
     <div :class="Uno.getStyle('box', 'dialogWrapper')">
-      <template x-for="item in $store.box.items" :key="item.id">
+      <template x-for="item in $store.uno.box.items" :key="item.id">
         <div :id="'uno-box-outer-container' + item.id"
              :class="Uno.getStyle('box', 'itemWrapper')"
              x-show="item.isOpen">
@@ -470,7 +493,7 @@ ensureContainer() {
                :aria-modal="item.modal !== false"
                :aria-labelledby="item.title ? `uno-box-title-${item.id}` : undefined"
                :aria-describedby="`uno-box-content-${item.id}`"
-               x-init="$el.focusTrap = $store.box.trapFocus($el)"
+               x-init="$el.focusTrap = $store.uno.box.trapFocus($el)"
                x-un-trap>
 
             <!-- Content - 完全由 Store 数据驱动 -->
@@ -505,14 +528,14 @@ ensureContainer() {
                       :class="Uno.getStyle('box', 'okBtn')"
                       x-show="item.showOkButton"
                       x-text="item.okText"
-                      @click="item.onOk ? (item.onOk() !== false && item.close()) : item.close()"></button>
+                      @click="item.onOk ? (item.onOk() !== false && $store.uno.box.close(item.id)) : $store.uno.box.close(item.id)"></button>
 
               <button type="button"
                       :id="'uno-box-cancel' + item.id"
                       :class="Uno.getStyle('box', 'cancelBtn')"
                       x-show="item.showCancelButton"
                       x-text="item.cancelText"
-                      @click="item.onCancel ? (item.onCancel() !== false && item.close()) : item.close()"></button>
+                      @click="item.onCancel ? (item.onCancel() !== false && $store.uno.box.close(item.id)) : $store.uno.box.close(item.id)"></button>
             </div>
           </div>
         </div>
@@ -522,7 +545,7 @@ ensureContainer() {
 
   const container = Uno.dom.ensureContainer(id, template, {
     'x-data': '',
-    'x-show': '$store.box.items.length > 0',
+    'x-show': '$store.uno.box.items.length > 0',
     'role': 'dialog',
     'aria-modal': 'true'
   })
@@ -580,7 +603,6 @@ window.UnoConfig = {
 ```
 
 ## 重构实现
-
 ### 1. 移除的反模式 (Anti-Patterns)
 
 ```javascript
@@ -629,7 +651,7 @@ Alpine.directive('uno-box', (el, { expression }, { evaluateLater }) => {
   
   const onClick = (e) => {
     e.preventDefault()
-    const store = Alpine.store('box')
+    const store = Alpine.store('uno').box
     
     try {
       // 支持 expression 和 data-uno-* 属性合并
@@ -685,7 +707,7 @@ const safeBoxOperation = (operation, ...args) => {
 
 ```html
 <!-- 推荐：声明式 HTMX 集成 -->
-<button data-uno-box='{"hxUrl":"/api/content"}'>
+<button x-uno-box='{"hxUrl":"/api/content"}'>
   打开动态内容
 </button>
 
@@ -792,13 +814,13 @@ document.addEventListener('htmx:responseError', function(evt) {
   console.error('HTMX request failed:', evt.detail)
   
   // 可以在这里显示错误提示
-  Alpine.store('notify').error('内容加载失败')
+  Alpine.store('uno').notify.error('内容加载失败')
 })
 
 // ✅ 超时处理
 document.addEventListener('htmx:timeout', function(evt) {
   console.warn('HTMX request timeout:', evt.detail)
-  Alpine.store('notify').warning('请求超时，请重试')
+  Alpine.store('uno').notify.warning('请求超时，请重试')
 })
 ```
 
@@ -876,10 +898,10 @@ document.addEventListener('htmx:timeout', function(evt) {
 
 ```html
 <!-- 简单对话框 -->
-<button data-uno-box='{"title":"提示","content":"操作成功"}'>提示</button>
+<button x-uno-box='{"title":"提示","content":"操作成功"}'>提示</button>
 
 <!-- 确认对话框 -->
-<button data-uno-box='{"type":"confirm","title":"确认","hxUrl":"/confirm-content"}'>
+<button x-uno-box='{"type":"confirm","title":"确认","hxUrl":"/confirm-content"}'>
   确认操作
 </button>
 ```
@@ -908,7 +930,7 @@ document.addEventListener('htmx:timeout', function(evt) {
 
 ```javascript
 // 保留简单的编程式 API
-Alpine.store('box').open({
+Alpine.store('uno').box.open({
   type: 'dialog',
   title: '编程式调用',
   hxUrl: '/dynamic-content'
@@ -925,7 +947,7 @@ Alpine.store('box').open({
    Uno.box.open({ content: '<strong>HTML</strong>', trustedHTML: true })
    
    // ✅ 新版本（推荐）
-   <button data-uno-box='{"hxUrl":"/content-endpoint"}'>加载内容</button>
+   <button x-uno-box='{"hxUrl":"/content-endpoint"}'>加载内容</button>
    
    // ✅ 新版本
    Uno.box.open({ 
@@ -939,10 +961,10 @@ Alpine.store('box').open({
    Uno.box.open({ ajaxUrl: '/api/data' })
    
    // ✅ 新版本
-   <button data-uno-box='{"hxUrl":"/api/data"}'>加载数据</button>
+   <button x-uno-box='{"hxUrl":"/api/data"}'>加载数据</button>
    
    // ✅ 编程式（兼容）
-   Alpine.store('box').open({
+   Alpine.store('uno').box.open({
      title: '动态内容',
      hxUrl: '/api/data'
    })
@@ -960,10 +982,10 @@ Alpine.store('box').open({
    })
    
    // ✅ 新版本（声明式）
-   <button data-uno-box='{"title":"标题","type":"confirm"}'>确认</button>
+   <button x-uno-box='{"title":"标题","type":"confirm"}'>确认</button>
    
    // ✅ 新版本（编程式）
-   Alpine.store('box').confirm('确认操作？', {
+   Alpine.store('uno').box.confirm('确认操作？', {
      title: '标题'
    })
    ```
@@ -983,7 +1005,7 @@ Uno.box.dialog({
 })
 
 // 新版本（完全兼容）
-Alpine.store('box').open({
+Alpine.store('uno').box.open({
   title: 'Dialog Title',
   content: 'This is a standard dialog with some content.',
   position: 'center'
@@ -1007,7 +1029,7 @@ Uno.box.dialog({
 })
 
 // 新版本（完全兼容）
-Alpine.store('box').open({
+Alpine.store('uno').box.open({
   title: 'HTMX Content',
   hxUrl: '/examples/data/tab-content.html'
 })
@@ -1030,7 +1052,7 @@ Uno.box.confirm('Are you sure?', {
 })
 
 // 新版本（完全兼容）
-Alpine.store('box').confirm('Are you sure?', {
+Alpine.store('uno').box.confirm('Are you sure?', {
   title: 'Confirm Action'
 }).then(result => {
   if (result) console.log('Confirmed')
@@ -1041,7 +1063,7 @@ Alpine.store('box').confirm('Are you sure?', {
   "type": "confirm",
   "title": "Confirm Action",
   "content": "Are you sure?"
-}' data-uno-on-ok="console.log('Confirmed')">确认</button>
+}' @click="$store.uno.box.onOk && $store.uno.box.onOk()">确认</button>
 ```
 
 ### 🚫 不兼容变更

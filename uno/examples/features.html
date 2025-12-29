@@ -68,7 +68,7 @@
                     <p class="mb-4 text-slate-600 dark:text-slate-300 text-sm">
                         Demonstrates proper focus management and ARIA roles. Focus should be trapped within the modal when open.
                     </p>
-                    <button @click="$store.box.open({
+                    <button @click="$store.uno.box.open({
                             title: 'Focus Trap Demo',
                             content: `<div class='space-y-4'>
                                 <p class='text-slate-600 dark:text-slate-300'>Try tabbing around. Focus should be trapped within this modal.</p>
@@ -100,7 +100,7 @@
                     <p class="mb-4 text-slate-600 dark:text-slate-300 text-sm">
                         Click "Load Slow Content". Then quickly close the modal. The request should be cancelled (check console).
                     </p>
-                    <button @click="$store.box.open({
+                    <button @click="$store.uno.box.open({
                             title: 'Slow Content',
                             ajaxUrl: 'https://httpbin.org/delay/5', 
                             showCloseButton: true
@@ -120,7 +120,7 @@
                     <p class="mb-4 text-slate-600 dark:text-slate-300 text-sm">
                         First click takes time. Second click is instant (cached).
                     </p>
-                    <button @click="$store.box.open({
+                    <button @click="$store.uno.box.open({
                             title: 'Cached Content',
                             ajaxUrl: 'https://httpbin.org/delay/2',
                             cache: true

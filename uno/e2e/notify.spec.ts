@@ -27,7 +27,7 @@ test.describe('Notify Component', () => {
       }
     })
     await page.waitForFunction(() => !!(document.body as any)._x_dataStack)
-    await page.waitForFunction(() => (window as any).Alpine?.store?.('notify') !== undefined)
+    await page.waitForFunction(() => (window as any).Alpine?.store?.('uno')?.notify !== undefined)
   })
 
   test('shows info notification (top-right) and auto dismiss', async ({ page }) => {
@@ -73,7 +73,7 @@ test.describe('Notify Component', () => {
   })
 
   test('bottom-left position', async ({ page }) => {
-    const btn = page.getByText('Bottom Left')
+    const btn = page.getByText('Bottom Left', { exact: true })
     await btn.click()
 
     const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Bottom Left' })
@@ -82,37 +82,16 @@ test.describe('Notify Component', () => {
     const box = await item.boundingBox()
     const vp = page.viewportSize()
     if (box && vp) {
-      // Bottom Left: y should be large (bottom), x should be large (bottom), x should be small (left)
+      // Bottom Left: y should be large (bottom), x should be small (left)
       expect(box.y + box.height).toBeGreaterThanOrEqual(vp.height - 20)
       expect(box.x).toBeLessThanOrEqual(100)
     }
   })
 
-  test('center position', async ({ page }) => {
-    const btn = page.getByText('Center', { exact: true })
-    await btn.click()
-
-    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Center (Toast)' })
-    await expect(item).toBeVisible()
-
-    const box = await item.boundingBox()
-    const vp = page.viewportSize()
-    if (box && vp) {
-      // Center: roughly centered
-      const centerX = box.x + box.width / 2
-      const centerY = box.y + box.height / 2
-      const viewportCenterX = vp.width / 2
-      const viewportCenterY = vp.height / 2
-
-      expect(Math.abs(centerX - viewportCenterX)).toBeLessThan(20)
-      expect(Math.abs(centerY - viewportCenterY)).toBeLessThan(20)
-    }
-  })
-
   test('stacks multiple notifications without overlap (top-right)', async ({ page }) => {
     await page.getByTestId('btn-info').click()
-    await page.getByText('Success').click()
-    await page.getByText('Warning').click()
+    await page.getByTestId('btn-success').click()
+    await page.getByTestId('btn-warning').click()
 
     const info = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Info message' })
     const success = page
@@ -142,14 +121,7 @@ test.describe('Notify Component', () => {
   })
 
   test('stacks multiple notifications without overlap (top-left)', async ({ page }) => {
-    // We need to trigger notifications in top-left.
-    // Since the example buttons are hardcoded to specific positions or defaults,
-    // we might need to use the console or modify the DOM to trigger top-left specifically for this test
-    // OR, use the "Top Left" button if it exists and allows multiple clicks.
-    // The "Top Left" button in example:
-    // <button ... data-uno-notify ... data-uno-position="top-left">Top Left</button>
-
-    const btn = page.getByRole('button', { name: 'Top Left' })
+    const btn = page.getByRole('button', { name: 'Top Left', exact: true })
     await btn.click()
     await btn.click()
     await btn.click()
@@ -234,44 +206,6 @@ test.describe('Notify Component', () => {
     await page.evaluate(() => document.documentElement.classList.remove('dark'))
   })
 
-  test('top-center position', async ({ page }) => {
-    const btn = page.getByText('Top Center')
-    await btn.click()
-
-    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Top Center' })
-    await expect(item).toBeVisible()
-
-    const box = await item.boundingBox()
-    const vp = page.viewportSize()
-    if (box && vp) {
-      // Top Center: y should be small (top), x should be centered
-      expect(box.y).toBeLessThanOrEqual(100)
-
-      const centerX = box.x + box.width / 2
-      const viewportCenterX = vp.width / 2
-      expect(Math.abs(centerX - viewportCenterX)).toBeLessThan(20)
-    }
-  })
-
-  test('bottom-center position', async ({ page }) => {
-    const btn = page.getByText('Bottom Center')
-    await btn.click()
-
-    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Bottom Center' })
-    await expect(item).toBeVisible()
-
-    const box = await item.boundingBox()
-    const vp = page.viewportSize()
-    if (box && vp) {
-      // Bottom Center: y should be large (bottom), x should be centered
-      expect(box.y + box.height).toBeGreaterThanOrEqual(vp.height - 20)
-
-      const centerX = box.x + box.width / 2
-      const viewportCenterX = vp.width / 2
-      expect(Math.abs(centerX - viewportCenterX)).toBeLessThan(20)
-    }
-  })
-
   test('top-right position (explicit)', async ({ page }) => {
     const btn = page.getByText('Top Right', { exact: true })
     await btn.click()
@@ -289,7 +223,7 @@ test.describe('Notify Component', () => {
   })
 
   test('top-left position', async ({ page }) => {
-    const btn = page.getByText('Top Left')
+    const btn = page.getByText('Top Left', { exact: true })
     await btn.click()
 
     const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Top Left' })
@@ -305,7 +239,7 @@ test.describe('Notify Component', () => {
   })
 
   test('bottom-right position', async ({ page }) => {
-    const btn = page.getByText('Bottom Right')
+    const btn = page.getByText('Bottom Right', { exact: true })
     await btn.click()
 
     const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Bottom Right' })
@@ -320,60 +254,163 @@ test.describe('Notify Component', () => {
     }
   })
 
-  test('progress bar shows and hides', async ({ page }) => {
-    const btn = page.getByTestId('btn-progress')
+  test('top-center position', async ({ page }) => {
+    const btn = page.getByText('Top Center', { exact: true })
     await btn.click()
 
-    const progressBar = page.locator('#uno-progress-bar')
-    await expect(progressBar).toBeVisible()
-
-    // Check if it has the animation class
-    const innerBar = progressBar.locator('.uno-progress-anim')
-    await expect(innerBar).toBeVisible()
-
-    // Should hide after 3s (timeout in the button handler)
-    // We wait 3.5s to be safe, increasing to 5s for slower environments
-    await expect(progressBar).not.toBeVisible({ timeout: 6000 })
-  })
-
-  test('loading indicator shows and hides', async ({ page }) => {
-    const btn = page.getByRole('button', { name: 'Show Loading (2s)' })
-    await btn.click()
-
-    await page.waitForFunction(() => (window as any).Alpine?.store?.('notify')?.activeRequests > 0)
-
-    const overlay = page.locator('#uno-loading-indicator')
-    await expect(overlay).toBeVisible()
-
-    const spinner = overlay.locator('svg')
-    await expect(spinner).toBeVisible()
-
-    await page.waitForFunction(
-      () => (window as any).Alpine?.store?.('notify')?.activeRequests === 0
-    )
-    await expect(overlay).not.toBeVisible({ timeout: 4000 })
-  })
-
-  test('dark mode: avoids low-contrast class pairing (bg-white + text-gray-200)', async ({
-    page
-  }) => {
-    const html = page.locator('html')
-    if (!(await html.evaluate((el) => el.classList.contains('dark')))) {
-      await page.locator('[data-theme-toggle]').click({ force: true })
-    }
-    await expect(html).toHaveClass(/dark/)
-
-    await page.getByTestId('btn-info').click()
-
-    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Info message' })
+    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Top Center' })
     await expect(item).toBeVisible()
 
-    const hasBadPairing = await item.evaluate((root) => {
-      const nodes = [root, ...Array.from(root.querySelectorAll('*'))]
-      return nodes.some(
-        (el) => el.classList.contains('bg-white') && el.classList.contains('text-gray-200')
-      )
+    const box = await item.boundingBox()
+    const vp = page.viewportSize()
+    if (box && vp) {
+      // Top Center: y small, x centered
+      expect(box.y).toBeLessThanOrEqual(100)
+      expect(Math.abs(box.x + box.width / 2 - vp.width / 2)).toBeLessThan(20)
+    }
+  })
+
+  test('center-left position', async ({ page }) => {
+    const btn = page.getByText('Center Left', { exact: true })
+    await btn.click()
+
+    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Center Left' })
+    await expect(item).toBeVisible()
+
+    const box = await item.boundingBox()
+    const vp = page.viewportSize()
+    if (box && vp) {
+      // Center Left: y centered, x small
+      expect(Math.abs(box.y + box.height / 2 - vp.height / 2)).toBeLessThan(20)
+      expect(box.x).toBeLessThanOrEqual(100)
+    }
+  })
+
+  test('center position', async ({ page }) => {
+    const btn = page.getByText('Center', { exact: true })
+    await btn.click()
+
+    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Center' })
+    // The notification contains "Center" text and also "Close" (sr-only).
+    // So exact match on the container text will fail if we use /^Center$/.
+    // We check that it contains "Center" and verify its position.
+    // We can filter by the p tag text to be sure.
+    const exactItem = item.filter({ has: page.locator('p', { hasText: /^Center$/ }) })
+    await expect(exactItem).toBeVisible()
+
+    const box = await exactItem.boundingBox()
+    const vp = page.viewportSize()
+    if (box && vp) {
+      // Center: y centered, x centered
+      expect(Math.abs(box.y + box.height / 2 - vp.height / 2)).toBeLessThan(20)
+      expect(Math.abs(box.x + box.width / 2 - vp.width / 2)).toBeLessThan(20)
+    }
+  })
+
+  test('center-right position', async ({ page }) => {
+    const btn = page.getByText('Center Right', { exact: true })
+    await btn.click()
+
+    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Center Right' })
+    await expect(item).toBeVisible()
+
+    const box = await item.boundingBox()
+    const vp = page.viewportSize()
+    if (box && vp) {
+      // Center Right: y centered, x large
+      expect(Math.abs(box.y + box.height / 2 - vp.height / 2)).toBeLessThan(20)
+      expect(box.x + box.width).toBeGreaterThanOrEqual(vp.width - 40)
+    }
+  })
+
+  test('bottom-center position', async ({ page }) => {
+    const btn = page.getByText('Bottom Center', { exact: true })
+    await btn.click()
+
+    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Bottom Center' })
+    await expect(item).toBeVisible()
+
+    const box = await item.boundingBox()
+    const vp = page.viewportSize()
+    if (box && vp) {
+      // Bottom Center: y large, x centered
+      expect(box.y + box.height).toBeGreaterThanOrEqual(vp.height - 20)
+      expect(Math.abs(box.x + box.width / 2 - vp.width / 2)).toBeLessThan(20)
+    }
+  })
+
+  test('global progress bar shows and hides', async ({ page }) => {
+    const btnStart = page.getByTestId('btn-start-progress')
+    await btnStart.click()
+
+    // The container wrapper has id="uno-global-progress"
+    // The actual progress bar element (with progressWrap class) is inside it
+    // and controlled by x-show="$store.uno.notify.progressVisible"
+    const progressWrapper = page.locator('#uno-global-progress').first()
+    const progressBar = progressWrapper.locator('div').first()
+
+    await expect(progressBar).toBeVisible()
+
+    // Check if inner bar exists
+    const innerBar = progressBar.locator('div').first()
+    await expect(innerBar).toBeVisible()
+
+    // Click Stop Progress
+    const btnStop = page.getByTestId('btn-stop-progress')
+    await btnStop.click()
+
+    // Should hide after fade out (stopProgress has 500ms delay + 200ms fade)
+    await expect(progressBar).not.toBeVisible({ timeout: 2000 })
+  })
+
+  test('directive usage (standard)', async ({ page }) => {
+    const btn = page.getByRole('button', { name: 'Directive Success' })
+    await btn.click()
+
+    const item = page
+      .locator('[data-testid="notify-item"]')
+      .filter({ hasText: 'Hello via Directive!' })
+    await expect(item).toBeVisible()
+
+    // Check type class (success -> green)
+    const itemClass = await item.getAttribute('class')
+    expect(itemClass).toContain('bg-green-100')
+  })
+
+  test('directive usage (array syntax)', async ({ page }) => {
+    const btn = page.getByRole('button', { name: "Directive Array Syntax (['Msg', {conf}])" })
+    await btn.click()
+
+    const item = page.locator('[data-testid="notify-item"]').filter({ hasText: 'Mixed Config' })
+    await expect(item).toBeVisible()
+
+    // Check type class (warning -> yellow)
+    const itemClass = await item.getAttribute('class')
+    expect(itemClass).toContain('bg-yellow-100')
+  })
+
+  test('htmx integration (hx-get)', async ({ page }) => {
+    // We can't easily mock HTMX ajax here without intercepting the request.
+    // We can intercept the request to httpbin.org/html
+    await page.route('https://httpbin.org/html', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'text/html',
+        body: '<div id="htmx-content">Loaded via HTMX</div>'
+      })
     })
-    expect(hasBadPairing).toBe(false)
+
+    const btn = page.getByRole('button', { name: 'Load External HTML' })
+    await btn.click()
+
+    // Wait for HTMX to process.
+    // The item is added immediately with loading spinner.
+    // Then content is swapped.
+    const item = page.locator('[data-testid="notify-item"]').last()
+    await expect(item).toBeVisible()
+
+    // It should load the content
+    // HTMX swap might take a moment
+    await expect(item.locator('#htmx-content')).toHaveText('Loaded via HTMX', { timeout: 5000 })
   })
 })

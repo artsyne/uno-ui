@@ -1,355 +1,421 @@
 /**
- * Uno - Notify Component (Store-Driven Refactor)
+ * Uno - Notify Component
+ *
+ * Store-First, Directive-Driven notification system.
  *
  * @module uno.components.notify
- * @version 0.2.1
- * @license MIT
  */
 
-import { POSITIONS, getFixedPositionClass, getStackingConfig } from '../utils/position'
-import { once } from '../utils/dom'
 import { Uno } from '../core/uno'
+import { log } from '../utils/log'
+import { getZIndex } from '../core/layer'
+import { DomManager } from '../utils/dom'
+import { getFixedPositionClass, getStackingConfig } from '../utils/position'
 
 export default (Alpine, options = {}) => {
-  const initConfig = options.plugins?.notify || options.notify || {}
-  const getConfig = () => {
-    const opts = typeof window !== 'undefined' ? window.Uno?.options : Uno.options
-    return opts?.plugins?.notify || opts?.notify || initConfig
-  }
-  const getNonce = () =>
-    Uno.options?.csp?.nonce || (typeof window !== 'undefined' && window.Uno?.options?.csp?.nonce)
+  // 1. Config Helpers
+  const getConfig = (instanceOpts = {}) => {
+    // Level 1: Plugin Defaults (handled by Uno.registerPluginDefaults if used, or local default)
+    // Level 2: Global User Config (plugins.notify)
+    // Level 3: Direct Global Config (notify)
+    // Level 4: Instance Config (instanceOpts)
 
-  const getNotifyTypeClass = (type) => {
-    return Uno.getStyle('notify', `types.${type}`, '')
-  }
-
-  const getNotifyIconClass = (type) => {
-    return Uno.getStyle('notify', `icons.${type}`, '')
+    // We use Uno.getConfig helper if available, or manual merge
+    return Uno.getConfig('notify', instanceOpts)
   }
 
-  // 1. Store
-  let containerEl = null
-  const getProtocolEl = () => {
-    if (typeof document === 'undefined') return null
-    if (containerEl && document.contains(containerEl)) return containerEl
-    const el =
-      document.getElementById('uno-notify-container') || document.querySelector('[data-uno-notify]')
-    if (el) containerEl = el
-    return el
-  }
-  const getProtocolDefaults = () => {
-    const el = getProtocolEl()
-    if (!el) return {}
-
-    const position = el.getAttribute('data-uno-position') || undefined
-    const rawTimeout = el.getAttribute('data-uno-timeout')
-    const timeout = rawTimeout !== null && rawTimeout !== '' ? Number(rawTimeout) : undefined
-    const type = el.getAttribute('data-uno-type') || undefined
-
-    return {
-      position,
-      timeout: Number.isFinite(timeout) ? timeout : undefined,
-      type
-    }
-  }
-
-  Alpine.store('notify', {
-    items: [],
+  // 2. Alpine Store
+  const notifyStore = {
+    groups: {
+      'top-left': [],
+      'top-center': [],
+      'top-right': [],
+      'center-left': [],
+      center: [],
+      'center-right': [],
+      'bottom-left': [],
+      'bottom-center': [],
+      'bottom-right': []
+    },
     nextId: 1,
-    activeRequests: 0,
-    activeProgress: 0,
+    progressRequests: 0,
+    progressVisible: false,
+    progressPercent: 0,
+    _progressInterval: null,
 
-    // Notification Methods
-    show(text, callOptions = {}) {
-      const config = getConfig()
-      const protocolDefaults = getProtocolDefaults()
-      const {
-        type = callOptions.type || config.type || protocolDefaults.type || 'info',
-        timeout = callOptions.timeout ??
-          (config.duration !== undefined ? config.duration : (protocolDefaults.timeout ?? 3000)),
-        position = callOptions.position ||
-          config.position ||
-          protocolDefaults.position ||
-          'top-right',
-        closeIndicator = false,
-        showCloseButton = true
-      } = callOptions
+    init() {
+      // Ensure container exists when store is initialized
+      this.ensureContainer()
+    },
 
-      const id = this.nextId++
+    // HTMX Event Handlers
+    onContentLoaded(el, item) {
+      this._onHtmxEnd(item)
 
-      const item = {
-        id,
-        text,
-        type,
-        position,
-        timeout,
-        closeIndicator,
-        showCloseButton,
-        visible: true,
-        indicatorWidth: 100
+      // Update the content of the notification item with the loaded HTML
+      const loadedContent = el.innerHTML || el.textContent || ''
+      const notification = this._findNotificationById(item.id)
+      if (notification) {
+        // Update content property which is used in x-html binding
+        notification.content = loadedContent
       }
 
-      // Add to start of array (newest first)
-      this.items.unshift(item)
+      if (item.onContentLoad) {
+        item.onContentLoad(el)
+      }
+      if (window.Alpine && window.Alpine.initTree) {
+        window.Alpine.initTree(el)
+      }
+    },
 
-      // Auto dismiss
-      if (timeout > 0) {
+    // Helper method to find notification by ID
+    _findNotificationById(id) {
+      for (const position of Object.keys(this.groups)) {
+        const group = this.groups[position]
+        const notification = group.find((item) => item.id === id)
+        if (notification) return notification
+      }
+      return null
+    },
+
+    onHtmxError(error, item) {
+      this._onHtmxEnd(item)
+      console.error('HTMX Error:', error)
+      this.error('Content load failed') // Could be localized if needed
+      if (item.onError) {
+        item.onError(error)
+      }
+    },
+
+    _onHtmxBegin(item) {
+      if (!item || item.__unoHtmxActive) return
+
+      item.__unoHtmxActive = true
+      this.progressRequests++
+      if (this.progressRequests === 1) this.startProgress()
+    },
+
+    _onHtmxEnd(item) {
+      if (!item || !item.__unoHtmxActive) return
+
+      item.__unoHtmxActive = false
+      if (this.progressRequests > 0) this.progressRequests--
+      if (this.progressRequests === 0) this.stopProgress()
+    },
+
+    startProgress() {
+      if (this._progressInterval) clearInterval(this._progressInterval)
+      this.progressVisible = true
+      this.progressPercent = 0
+
+      // Fast loop from 0% to 100% then reset to 0% for continuous effect
+      this._progressInterval = setInterval(() => {
+        if (this.progressPercent >= 100) {
+          // When it reaches 100%, instantly reset to 0% for next cycle
+          this.progressPercent = 0
+        } else {
+          this.progressPercent += 10 // Increase by 10% for faster animation
+        }
+      }, 100) // Update every 100ms for smooth animation
+    },
+
+    stopProgress() {
+      if (this._progressInterval) clearInterval(this._progressInterval)
+      // Complete the progress smoothly
+      this.progressPercent = 100
+      setTimeout(() => {
+        this.progressVisible = false
         setTimeout(() => {
-          this.close(id)
-        }, timeout)
-      }
-
-      this.ensureContainer()
+          this.progressPercent = 0
+        }, 200) // Reset after fade out
+      }, 300)
     },
 
-    close(id) {
-      const item = this.items.find((i) => i.id === id)
-      if (item) {
-        // Trigger leave transition if handled by x-transition (removed from DOM after)
-        // But since we use x-for, removing from array triggers leave transition.
-        this.items = this.items.filter((i) => i.id !== id)
+    getContainerStyle(position) {
+      // Use Layer Manager for Z-Index (TOAST layer)
+      // If user provided a custom base in options, use that, otherwise use core layer
+      const zBase = Uno.options?.ui?.layers?.notifyBase || getZIndex('TOAST')
+      return {
+        zIndex: zBase
       }
     },
 
-    success(message, options = {}) {
-      const opts = typeof options === 'number' ? { timeout: options } : options
-      this.show(message, { type: 'success', ...opts })
-    },
+    getContainerClass(position) {
+      const base = Uno.getStyle('notify', 'container')
+      const posClass = getFixedPositionClass(position)
+      const stack = getStackingConfig(position)
 
-    warning(message, options = {}) {
-      const opts = typeof options === 'number' ? { timeout: options } : options
-      this.show(message, { type: 'warning', ...opts })
-    },
+      // We combine:
+      // 1. Base Uno styles (fixed flex gap-2 p-4 pointer-events-none)
+      // 2. Fixed positioning (top-0 right-0 etc)
+      // 3. Flex direction (flex-col etc)
+      // 4. Alignment (items-end etc)
 
-    error(message, options = {}) {
-      const opts = typeof options === 'number' ? { timeout: options } : options
-      this.show(message, { type: 'error', ...opts })
-    },
-
-    info(message, options = {}) {
-      const opts = typeof options === 'number' ? { timeout: options } : options
-      this.show(message, { type: 'info', ...opts })
-    },
-
-    loading(show) {
-      if (show) {
-        this.activeRequests++
-      } else {
-        this.activeRequests = Math.max(0, this.activeRequests - 1)
-      }
-      this.ensureContainer()
-    },
-
-    progress(show) {
-      if (show) {
-        this.activeProgress++
-      } else {
-        this.activeProgress = Math.max(0, this.activeProgress - 1)
-      }
-      this.ensureContainer()
-    },
-
-    // Style Helpers
-    getTypeClass(type) {
-      return getNotifyTypeClass(type)
-    },
-
-    getIconClass(type) {
-      return getNotifyIconClass(type)
+      return [base, posClass, stack.flexDir, stack.alignItems].join(' ')
     },
 
     ensureContainer() {
-      if (containerEl && document.contains(containerEl)) return
-      containerEl = document.getElementById('uno-notify-container')
-      if (containerEl) return
-      containerEl = document.querySelector('[data-uno-notify]')
-      if (containerEl) return
+      const id = 'uno-notify-container'
 
-      let zBase = Number(Uno.options?.ui?.layers?.notifyBase ?? 30000)
-      if (!Number.isFinite(zBase)) zBase = 30000
+      // 1. Notify Container
+      // We use a template string for the Alpine component
+      const template = `
+          <template x-for="(items, position) in $store.uno.notify.groups" :key="position">
+            <div :class="$store.uno.notify.getContainerClass(position)"
+                 :style="$store.uno.notify.getContainerStyle(position)">
+              
+              <template x-for="item in items" :key="item.id">
+                <div :class="[
+                    Uno.getStyle('notify', 'item'),
+                    Uno.getStyle('notify', 'types.' + item.type)
+                  ]"
+                  role="alert"
+                  aria-live="assertive"
+                  x-show="item.isVisible"
+                  x-transition:enter="transition ease-out duration-300"
+                  x-transition:enter-start="opacity-0 transform scale-90"
+                  x-transition:enter-end="opacity-100 transform scale-100"
+                  x-transition:leave="transition ease-in duration-200"
+                  x-transition:leave-start="opacity-100 transform scale-100"
+                  x-transition:leave-end="opacity-0 transform scale-90"
+                  :data-id="item.id"
+                  data-testid="notify-item"
+                 >
+                  
+                  <div :class="Uno.getStyle('notify', 'content')">
+                    <!-- Standard Content -->
+                    <template x-if="!item.hxUrl">
+                      <div :class="Uno.getStyle('notify', 'row')">
+                         <!-- Icon -->
+                         <div x-show="item.icon" :class="Uno.getStyle('notify', 'iconWrap')">
+                            <i :class="[item.icon, Uno.getStyle('notify', 'icons.' + item.type)]"></i>
+                         </div>
+                         
+                         <!-- Content -->
+                         <div :class="Uno.getStyle('notify', 'textWrap')">
+                            <p :class="Uno.getStyle('notify', 'text')" x-text="item.message"></p>
+                         </div>
+                         
+                         <!-- Close Button -->
+                         <div x-show="item.closable" :class="Uno.getStyle('notify', 'closeWrap')">
+                            <button type="button" 
+                                    @click="$store.uno.notify.remove(item.id)"
+                                    :class="Uno.getStyle('notify', 'closeBtn')">
+                              <span class="sr-only">Close</span>
+                              <svg :class="Uno.getStyle('notify', 'closeIcon')" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                         </div>
+                      </div>
+                    </template>
 
-      const container = document.createElement('div')
-      container.id = 'uno-notify-container'
-      container.setAttribute('data-uno-notify', '')
-
-      const nonce = getNonce()
-      if (nonce) container.setAttribute('nonce', nonce)
-
-      container.setAttribute('x-data', '{}')
-
-      const itemClass = Uno.getStyle('notify', 'item')
-      const contentWrapClass = Uno.getStyle('notify', 'content')
-      const rowClass = Uno.getStyle('notify', 'row')
-      const iconWrapClass = Uno.getStyle('notify', 'iconWrap')
-      const textWrapClass = Uno.getStyle('notify', 'textWrap')
-      const textClass = Uno.getStyle('notify', 'text')
-
-      const closeWrapClass = Uno.getStyle('notify', 'closeWrap')
-      const closeBtnClass = Uno.getStyle('notify', 'closeBtn')
-      const closeIconClass = Uno.getStyle('notify', 'closeIcon')
-
-      const indicatorTrackClass = Uno.getStyle('notify', 'indicatorTrack')
-      const indicatorBarClass = Uno.getStyle('notify', 'indicatorBar')
-      const progressWrapClass = Uno.getStyle('notify', 'progressWrap')
-      const progressBarClass = Uno.getStyle('notify', 'progressBar')
-      const loadingWrapClass = Uno.getStyle('notify', 'loadingWrap')
-      const spinnerClass = Uno.getStyle('notify', 'spinner')
-
-      const buildRegion = (position) => {
-        const positionClass = getFixedPositionClass(position)
-        const stack = getStackingConfig(position)
-        const widthClass =
-          position === 'top-center' || position === 'bottom-center' || position === 'center'
-            ? 'w-full'
-            : ''
-        const containerBase = Uno.getStyle('notify', 'container')
-        const regionClass = `${containerBase} ${stack.flexDir} ${stack.alignItems} ${widthClass} ${positionClass}`
-        return `
-          <div class="${regionClass}" style="z-index: ${zBase};" x-show="$store.notify.itemsFor('${position}').length">
-            <template x-for="item in $store.notify.itemsFor('${position}')" :key="item.id">
-              <div
-                data-testid="notify-item"
-                x-show="item.visible"
-                x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0 transform translate-y-2 scale-95"
-                x-transition:enter-end="opacity-100 transform translate-y-0 scale-100"
-                x-transition:leave="transition ease-in duration-200"
-                x-transition:leave-start="opacity-100 transform translate-y-0 scale-100"
-                x-transition:leave-end="opacity-0 transform translate-y-2 scale-95"
-                class="${itemClass}"
-                :class="$store.notify.getTypeClass(item.type)"
-              >
-                <div class="${contentWrapClass}">
-                  <div class="${rowClass}">
-                    <div class="${iconWrapClass}">
-                      <template x-if="item.type === 'success'">
-                        <svg class="h-6 w-6" :class="$store.notify.getIconClass('success')" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </template>
-                      <template x-if="item.type === 'error'">
-                        <svg class="h-6 w-6" :class="$store.notify.getIconClass('error')" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </template>
-                      <template x-if="item.type === 'warning'">
-                        <svg class="h-6 w-6" :class="$store.notify.getIconClass('warning')" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                      </template>
-                      <template x-if="item.type === 'info'">
-                        <svg class="h-6 w-6" :class="$store.notify.getIconClass('info')" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </template>
-                    </div>
-                    <div class="${textWrapClass}">
-                      <p class="${textClass}" x-text="item.text"></p>
-                    </div>
-                    <div class="${closeWrapClass}" x-show="item.showCloseButton">
-                      <button @click="$store.notify.close(item.id)" class="${closeBtnClass}">
-                        <span class="sr-only">Close</span>
-                        <svg class="${closeIconClass}" viewBox="0 0 20 20" fill="currentColor">
-                          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                      </button>
-                    </div>
+                    <!-- HTMX Content -->
+                    <template x-if="item.hxUrl">
+                       <div class="w-full"
+                            x-init="
+                              $el.setAttribute('hx-get', item.hxUrl);
+                              $el.setAttribute('hx-trigger', item.hxTrigger || 'load');
+                              $el.setAttribute('hx-swap', item.hxSwap || 'innerHTML');
+                              if (item.hxHeaders) $el.setAttribute('hx-headers', JSON.stringify(item.hxHeaders));
+                              htmx.process($el);
+                            "
+                            @htmx:beforeRequest.stop="$store.uno.notify._onHtmxBegin(item)"
+                            @htmx:afterRequest.stop="$store.uno.notify._onHtmxEnd(item)"
+                            @htmx:afterSwap.stop="$store.uno.notify.onContentLoaded($el, item)"
+                            @htmx:responseError.stop="$store.uno.notify.onHtmxError($event.detail, item)"
+                            @htmx:sendError.stop="$store.uno.notify.onHtmxError($event.detail, item)"
+                            @htmx:timeout.stop="$store.uno.notify.onHtmxError($event.detail, item)"
+                       >
+                          <div x-html="item.content || ''"></div>
+                       </div>
+                    </template>
                   </div>
+
                 </div>
-                <div x-show="item.closeIndicator" class="${indicatorTrackClass}">
-                   <div
-                        class="${indicatorBarClass}"
-                        x-init="if(item.timeout > 0) { item.indicatorWidth = 100; $nextTick(() => (item.indicatorWidth = 0)) }"
-                        :style="\`width: \${item.indicatorWidth}%; \${item.timeout > 0 ? 'transition: width ' + item.timeout + 'ms linear;' : ''}\`"
-                    ></div>
-                </div>
-              </div>
-            </template>
-          </div>
+              </template>
+            </div>
+          </template>
         `
-      }
 
-      container.innerHTML = `
-        <div
-          id="uno-progress-bar"
-          x-show="$store.notify.activeProgress > 0"
-          class="${progressWrapClass}"
-          style="z-index: ${zBase + 1};"
-        >
-          <div class="${progressBarClass}"></div>
-        </div>
-        <div
-          id="uno-loading-indicator"
-          x-show="$store.notify.activeRequests > 0"
-          class="${loadingWrapClass}"
-          style="z-index: ${zBase + 2};"
-        >
-            <svg class="${spinnerClass}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-        </div>
-        ${POSITIONS.map(buildRegion).join('')}
-      `
+      const container = DomManager.ensureContainer(id, template, {
+        'x-data': '{}' // Independent Alpine component
+      })
 
-      document.body.appendChild(container)
-      containerEl = container
-      if (typeof Alpine?.initTree === 'function') {
+      // Manually init Alpine on the new element if it was just created
+      if (container && Alpine.initTree) {
         Alpine.initTree(container)
       }
-    },
-    itemsFor(position) {
-      const pos = position || 'top-right'
-      return this.items.filter((i) => (i.position || 'top-right') === pos)
-    }
-  })
 
-  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-    if (typeof Uno.htmx?.onRequest === 'function' && Uno.htmx.available()) {
-      Uno.htmx.onRequest({
-        start: () => {
-          const store = Alpine.store('notify')
-          store.loading(true)
-          store.progress(true)
-        },
-        end: () => {
-          const store = Alpine.store('notify')
-          store.loading(false)
-          store.progress(false)
+      // 3. Global Progress Bar
+      const progressId = 'uno-global-progress'
+      // Use a high z-index (e.g. same as loading or slightly below/above)
+      const progressZ = getZIndex('MODAL') + 2100
+
+      const progressTemplate = `
+          <div :class="Uno.getStyle('notify', 'progressWrap')"
+               style="z-index: ${progressZ}"
+               x-show="$store.uno.notify.progressVisible"
+               x-transition:enter="transition-opacity duration-200"
+               x-transition:enter-start="opacity-0"
+               x-transition:enter-end="opacity-100"
+               x-transition:leave="transition-opacity duration-200"
+               x-transition:leave-start="opacity-100"
+               x-transition:leave-end="opacity-0">
+              <div :class="Uno.getStyle('notify', 'progressBar')"
+                   :style="{ width: $store.uno.notify.progressPercent + '%' }">
+              </div>
+          </div>
+      `
+
+      const progressEl = DomManager.ensureContainer(progressId, progressTemplate, {
+        'x-data': '{}'
+      })
+
+      if (progressEl && Alpine.initTree) {
+        Alpine.initTree(progressEl)
+      }
+    },
+
+    show(message, opts = {}) {
+      const config = getConfig(opts)
+      const id = this.nextId++
+
+      // i18n support: if message is a key, try to translate it
+      let text = message
+      if (Alpine.store('i18n') && typeof Alpine.store('i18n').t === 'function') {
+        text = Alpine.store('i18n').t(message)
+      }
+
+      // Default duration 3000ms, unless explicitly set to 0 or another value
+      const duration = config.duration !== undefined ? config.duration : 3000
+
+      log.info('[Notify] Show:', { id, message: text, duration, config })
+
+      const notification = {
+        id,
+        message: text,
+        isVisible: true, // For x-show
+        closable: true,
+        duration,
+        content: config.hxUrl ? '' : undefined, // Initialize content for HTMX-loaded content
+        ...config
+      }
+
+      const position = config.position || 'top-right'
+      if (!this.groups[position]) {
+        // Fallback or create
+        if (!this.groups['top-right']) this.groups['top-right'] = []
+        this.groups['top-right'].push(notification)
+      } else {
+        this.groups[position].push(notification)
+      }
+
+      // Auto dismiss
+      if (duration > 0) {
+        setTimeout(() => {
+          this.remove(id)
+        }, duration)
+      }
+
+      return id
+    },
+
+    remove(id) {
+      Object.keys(this.groups).forEach((position) => {
+        // We find the item and set visible to false to trigger leave transition
+        // Then remove it after transition
+        const idx = this.groups[position].findIndex((item) => item.id === id)
+        if (idx !== -1) {
+          this.groups[position][idx].visible = false
+          // Wait for transition (default 200ms in template)
+          setTimeout(() => {
+            // Re-fetch index in case it shifted
+            const currentIdx = this.groups[position].findIndex((item) => item.id === id)
+            if (currentIdx !== -1) {
+              this.groups[position].splice(currentIdx, 1)
+            }
+          }, 300)
         }
       })
+    },
+
+    // 3. Proxy Methods
+    success(message, opts = {}) {
+      return this.show(message, { type: 'success', ...opts })
+    },
+    error(message, opts = {}) {
+      return this.show(message, { type: 'error', ...opts })
+    },
+    warning(message, opts = {}) {
+      return this.show(message, { type: 'warning', ...opts })
+    },
+    info(message, opts = {}) {
+      return this.show(message, { type: 'info', ...opts })
     }
+
+    // 4. Loading Helpers - Removed to simplify the component
+    // Loading indicator functionality has been removed to reduce complexity
   }
 
-  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-    if (once(document, 'uno:notify:event')) {
-      document.addEventListener('uno:notify', (event) => {
-        const detail = event?.detail || {}
-        const text = detail.text || detail.message || detail.title || ''
-        if (!text) return
-        Alpine.store('notify').show(text, detail)
-      })
-    }
+  // Register to Alpine.store('uno') namespace
+  if (!Alpine.store('uno')) {
+    Alpine.store('uno', { notify: notifyStore })
+  } else {
+    // If uno store already exists, attach notify
+    Alpine.store('uno').notify = notifyStore
   }
 
-  // Expose Public API
-  const api = {
-    show: (text, options) => Alpine.store('notify').show(text, options),
-    success: (msg, options) => Alpine.store('notify').success(msg, options),
-    error: (msg, options) => Alpine.store('notify').error(msg, options),
-    warning: (msg, options) => Alpine.store('notify').warning(msg, options),
-    info: (msg, options) => Alpine.store('notify').info(msg, options),
-    loading: (show) => Alpine.store('notify').loading(show),
-    progress: (show) => Alpine.store('notify').progress(show),
-    close: (id) => Alpine.store('notify').close(id),
-    closeAll: () => {
-      Alpine.store('notify').items = []
-    }
-  }
+  // Ensure initialization (container creation)
+  notifyStore.init()
 
-  Uno.notify = api
-  // Fallback for UMD/Global usage
-  if (typeof window !== 'undefined' && window.Uno) {
-    window.Uno.notify = api
-  }
+  // 3. Directive Registration
+  Alpine.directive('uno-notify', (el, { expression }, { evaluate }) => {
+    // Usage: <button x-uno-notify="'Message'" data-uno-type="success">
+    // Usage: <button x-uno-notify="['Message', { type: 'success' }]">
+
+    const handler = () => {
+      const store = Alpine.store('uno')?.notify
+      if (!store) return
+
+      // Parse attributes
+      const attrConfig = {
+        type: el.getAttribute('data-uno-type') || 'info',
+        position: el.getAttribute('data-uno-position'),
+        duration: el.getAttribute('data-uno-duration')
+          ? Number(el.getAttribute('data-uno-duration'))
+          : undefined,
+        closable: el.getAttribute('data-uno-closable') !== 'false'
+      }
+
+      // Clean undefined
+      Object.keys(attrConfig).forEach(
+        (key) => attrConfig[key] === undefined && delete attrConfig[key]
+      )
+
+      // Message can come from expression or attribute
+      let message = ''
+      let exprConfig = {}
+
+      if (expression) {
+        const result = evaluate(expression)
+        if (Array.isArray(result)) {
+          message = result[0]
+          exprConfig = result[1] || {}
+        } else if (typeof result === 'object' && result !== null) {
+          // Fallback if user passed object (maybe just config?)
+          // Or if they used comma operator (unlikely to get message)
+          exprConfig = result
+        } else {
+          message = String(result)
+        }
+      } else {
+        message = el.getAttribute('data-uno-message') || ''
+      }
+
+      store.show(message, { ...attrConfig, ...exprConfig })
+    }
+
+    el.addEventListener('click', handler)
+  })
 }

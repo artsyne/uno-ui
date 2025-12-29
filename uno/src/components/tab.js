@@ -122,12 +122,11 @@ export default (Alpine) => {
         }
       }
     },
+    trigger(tab, options = {}) {
       // Register tab configuration
       // This runs during x-bind evaluation
       this.tabs[tab] = options
 
-
-    trigger(tab, options = {}) {
       // Get config for classes
       const opts = (typeof window !== 'undefined' && window.Uno?.options?.ui?.tab) || {}
 
@@ -140,6 +139,8 @@ export default (Alpine) => {
         ':aria-selected': `isActive('${tab}').toString()`,
         ':class': `isActive('${tab}') ? '${activeClass}' : '${inactiveClass}'`,
         '@click.prevent': `open('${tab}')`
+      }
+
       // We still add data attributes for debugging or other scripts,
       // but the primary logic is now driven by JS state.
 
@@ -157,7 +158,7 @@ export default (Alpine) => {
     },
 
     panel(tab) {
-        // We do NOT set ID here to avoid overwriting user-defined IDs (crucial for hx-target)
+      // We do NOT set ID here to avoid overwriting user-defined IDs (crucial for hx-target)
       return {
         'x-show': `isActive('${tab}')`,
         role: 'tabpanel',

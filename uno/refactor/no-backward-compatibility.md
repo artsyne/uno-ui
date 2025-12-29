@@ -29,11 +29,11 @@ window.UnoConfig = {
 #### ✅ 新版本 API
 ```javascript
 // ✅ 新版本 API
-Alpine.store('box').open({ type: 'dialog', title: '标题' })
-Alpine.store('notify').success('消息')
-Alpine.store('tab').switch('tab1', { hash: true })
-Alpine.store('tooltip').show('提示内容')
-Alpine.store('valid').validate(form)
+Alpine.store('uno').box.open({ type: 'dialog', title: '标题' })
+Alpine.store('uno').notify.success('消息')
+Alpine.store('uno').tab.switch('tab1', { hash: true })
+Alpine.store('uno').tooltip.show('提示内容')
+Alpine.store('uno').valid.validate(form)
 
 // ✅ 新版本配置
 window.UnoConfig = {
