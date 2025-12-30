@@ -367,11 +367,11 @@ test.describe('Box Component', () => {
     await expect(outer).toBeVisible()
   })
 
-  test('closes on overlay click when modal', async ({ page }) => {
+  test('does not close on overlay click by default', async ({ page }) => {
     await page.evaluate(() => {
       ;(window as any).Alpine.store('uno').box.open({
         title: 'Overlay Click Test',
-        content: 'Click overlay to close',
+        content: 'Click overlay not close',
         modal: true
       })
     })
@@ -380,11 +380,31 @@ test.describe('Box Component', () => {
     await expect(outer).toBeVisible()
 
     // Click on the overlay (dialogWrapper covers the screen)
-    // We target the wrapper element which handles the click
-    // Note: The actual #uno-box-overlay is covered by the dialogWrapper, so we click the wrapper
     const wrapper = page.locator('[class*="fixed inset-0 z-10 w-screen"]')
     await wrapper.click({ position: { x: 10, y: 10 } })
 
+    // Should still be visible
+    await expect(outer).toBeVisible()
+  })
+
+  test('closes on overlay click when configured', async ({ page }) => {
+    await page.evaluate(() => {
+      ;(window as any).Alpine.store('uno').box.open({
+        title: 'Overlay Click Test',
+        content: 'Click overlay to close',
+        modal: true,
+        closeOnOverlayClick: true
+      })
+    })
+
+    const outer = page.locator('[id^="uno-box-outer-container"]')
+    await expect(outer).toBeVisible()
+
+    // Click on the overlay (dialogWrapper covers the screen)
+    const wrapper = page.locator('[class*="fixed inset-0 z-10 w-screen"]')
+    await wrapper.click({ position: { x: 10, y: 10 } })
+
+    // Should be hidden
     await expect(outer).not.toBeVisible()
   })
 

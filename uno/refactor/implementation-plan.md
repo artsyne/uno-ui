@@ -320,14 +320,16 @@ npm run test:e2e -- --grep "notify.*"
 - [x] 移除 trustedHTML，增强安全性
 - [x] 优化定位系统 (9点网格)
 - [x] 完善回调机制
+- [x] **交付物**: [Task 3.1 Reflection Report](./reports/task-3.1-box-reflection.md)
 
 ## 任务 3.2: Tooltip 组件重构
 
-- [ ] 按照 `tooltip.md` 重构 `src/components/tooltip.js`
-- [ ] 实现全局容器管理
-- [ ] RAF 优化位置计算
-- [ ] 增强性能和内存管理
-- [ ] 优化箭头定位逻辑
+- [x] 按照 `tooltip.md` 重构 `src/components/tooltip.js`
+- [x] 实现全局容器管理
+- [x] RAF 优化位置计算
+- [x] 增强性能和内存管理
+- [x] 优化箭头定位逻辑
+- [x] **交付物**: [Task 3.2 Execution Report](./reports/task-3.2-tooltip-execution.md)
 
 ## 任务 3.3: Tab 组件重构
 

@@ -148,17 +148,18 @@ export default (Alpine) => {
     let rules = []
 
     // 1. JSON rules
-    if (input.hasAttribute('valid')) {
+    const rulesAttr = input.getAttribute('data-uno-rules') || input.getAttribute('valid')
+    if (rulesAttr) {
       try {
-        const jsonRules = JSON.parse(input.getAttribute('valid'))
+        const jsonRules = JSON.parse(rulesAttr)
         if (Array.isArray(jsonRules)) rules = jsonRules
       } catch (e) {
         console.warn('Uno Valid: Invalid JSON rules', e)
       }
     }
 
-    // 2. data-valid-type
-    const type = input.getAttribute('data-valid-type')
+    // 2. Custom validator type
+    const type = input.getAttribute('data-uno-validator') || input.getAttribute('data-valid-type')
     if (type) rules.push({ type })
 
     // 3. Native required

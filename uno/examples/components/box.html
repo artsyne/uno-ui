@@ -82,25 +82,25 @@
         <div class="p-6 space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <!-- Test: Open Dialog (center) -->
-            <button
-              x-uno-box="{title: 'Dialog Title', content: 'This is a standard dialog with some content.', position: 'center'}"
+            <button x-uno-box data-uno-title="Dialog Title"
+              data-uno-content="This is a standard dialog with some content." data-uno-position="center"
               class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm">
               Open Dialog
             </button>
             <!-- Test: Open Confirm -->
             <button
-              x-uno-box="{type: 'confirm', title: 'Confirm Action', content: 'Are you sure you want to proceed?', onOk: () => Alpine.store('uno').box.alert('Confirmed!')}"
+              @click="Alpine.store('uno').box.confirm('Confirm Action', 'Are you sure you want to proceed?', {onOk: () => Alpine.store('uno').box.alert('Confirmed!')})"
               class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium shadow-sm">
               Open Confirm
             </button>
-            <button
-              x-uno-box="{type: 'dialog', title: 'Information', content: 'Operation completed successfully.', showOkButton: true}"
+            <button x-uno-box data-uno-type="dialog" data-uno-title="Information"
+              data-uno-content="Operation completed successfully." data-uno-show-ok-button="true"
               class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium shadow-sm">
               Message Alert
             </button>
           </div>
-          <button data-testid="box-xss-trigger"
-            x-uno-box="{title: 'XSS Test', content: '<a data-testid=box-xss-link href=javascript:window.__UNO_BOX_XSS__=true>Unsafe Link</a><img data-testid=box-xss-img src=x onerror=window.__UNO_BOX_XSS_IMG__=true /><script>window.__XSS__=1</script>Safe text'}"
+          <button data-testid="box-xss-trigger" x-uno-box data-uno-title="XSS Test"
+            data-uno-content='<a data-testid=box-xss-link href=javascript:window.__UNO_BOX_XSS__=true>Unsafe Link</a><img data-testid=box-xss-img src=x onerror=window.__UNO_BOX_XSS_IMG__=true /><script>window.__XSS__=1</script>Safe text'
             class="w-full px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors text-sm font-medium shadow-sm">
             XSS Test (Content Sanitized)
           </button>
@@ -121,35 +121,41 @@
         </div>
         <div class="p-6 space-y-4">
           <div class="grid grid-cols-3 gap-4 text-center">
-            <button x-uno-box="{title: 'Position', content: 'Top Left', position: 'top-left', showOkButton: true}"
+            <button x-uno-box data-uno-title="Position" data-uno-content="Top Left" data-uno-position="top-left"
+              data-uno-show-ok-button="true"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Top
               Left</button>
-            <button x-uno-box="{title: 'Position', content: 'Top Center', position: 'top-center', showOkButton: true}"
+            <button x-uno-box data-uno-title="Position" data-uno-content="Top Center" data-uno-position="top-center"
+              data-uno-show-ok-button="true"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Top
               Center</button>
-            <button x-uno-box="{title: 'Position', content: 'Top Right', position: 'top-right', showOkButton: true}"
+            <button x-uno-box data-uno-title="Position" data-uno-content="Top Right" data-uno-position="top-right"
+              data-uno-show-ok-button="true"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Top
               Right</button>
 
-            <button x-uno-box="{title: 'Position', content: 'Center Left', position: 'center-left', showOkButton: true}"
+            <button x-uno-box data-uno-title="Position" data-uno-content="Center Left" data-uno-position="center-left"
+              data-uno-show-ok-button="true"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Center
               Left</button>
-            <button x-uno-box="{title: 'Position', content: 'Center', position: 'center', showOkButton: true}"
+            <button x-uno-box data-uno-title="Position" data-uno-content="Center" data-uno-position="center"
+              data-uno-show-ok-button="true"
               class="p-2 bg-blue-100 dark:bg-blue-900 rounded hover:bg-blue-200 dark:hover:bg-blue-800 dark:text-white transition-colors font-medium">Center</button>
-            <button
-              x-uno-box="{title: 'Position', content: 'Center Right', position: 'center-right', showOkButton: true}"
+            <button x-uno-box data-uno-title="Position" data-uno-content="Center Right" data-uno-position="center-right"
+              data-uno-show-ok-button="true"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Center
               Right</button>
 
-            <button x-uno-box="{title: 'Position', content: 'Bottom Left', position: 'bottom-left', showOkButton: true}"
+            <button x-uno-box data-uno-title="Position" data-uno-content="Bottom Left" data-uno-position="bottom-left"
+              data-uno-show-ok-button="true"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Bottom
               Left</button>
-            <button
-              x-uno-box="{title: 'Position', content: 'Bottom Center', position: 'bottom-center', showOkButton: true}"
+            <button x-uno-box data-uno-title="Position" data-uno-content="Bottom Center"
+              data-uno-position="bottom-center" data-uno-show-ok-button="true"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Bottom
               Center</button>
-            <button
-              x-uno-box="{title: 'Position', content: 'Bottom Right', position: 'bottom-right', showOkButton: true}"
+            <button x-uno-box data-uno-title="Position" data-uno-content="Bottom Right" data-uno-position="bottom-right"
+              data-uno-show-ok-button="true"
               class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">Bottom
               Right</button>
           </div>
@@ -166,8 +172,8 @@
             class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Loaders</span>
         </div>
         <div class="p-6 space-y-4">
-          <button
-            x-uno-box="{title: 'HTMX Content', hxUrl: '/examples/data/tab-content.html', onContentLoad: (el) => console.log('Content loaded:', el)}"
+          <button x-uno-box data-uno-title="HTMX Content" data-uno-hx-url="/examples/data/tab-content.html"
+            @content-loaded="console.log('Content loaded:', $event.detail)"
             class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm transition-colors">Load
             HTML (HTMX)</button>
           <button
@@ -175,7 +181,7 @@
             class="w-full px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 shadow-sm transition-colors">Load
             from DOM (Sanitized)</button>
           <p class="text-xs text-slate-500 dark:text-slate-400">
-            HTMX content triggers <code>onContentLoad</code> callback. DOM content is sanitized.
+            HTMX content triggers <code>content-loaded</code> event. DOM content is sanitized.
           </p>
         </div>
       </div>
@@ -191,15 +197,15 @@
         </div>
         <div class="p-6 space-y-4">
           <button
-            x-uno-box="{title: 'Callback Test', content: 'Close this to see callbacks in console', onBeforeClose: () => console.log('onBeforeClose'), onClose: () => console.log('onClose')}"
+            @click="Alpine.store('uno').box.open({title: 'Callback Test', content: 'Close this to see callbacks in console', onBeforeClose: () => console.log('onBeforeClose'), onClose: () => console.log('onClose')})"
             class="w-full px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 shadow-sm transition-colors">Test
             Callbacks (Check Console)</button>
-          <button
-            x-uno-box="{title: 'Custom Size', content: 'This dialog has custom width and height.', width: 600, height: 300}"
+          <button x-uno-box data-uno-title="Custom Size" data-uno-content="This dialog has custom width and height."
+            data-uno-width="600" data-uno-height="300"
             class="w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 shadow-sm transition-colors">Custom
             Size (600x300)</button>
-          <button
-            x-uno-box="{title: 'CSS Class Size', content: 'Using Tailwind classes for sizing.', widthClass: '!w-[80vw]', heightClass: '!h-[60vh]'}"
+          <button x-uno-box data-uno-title="CSS Class Size" data-uno-content="Using Tailwind classes for sizing."
+            data-uno-width-class="!w-[80vw]" data-uno-height-class="!h-[60vh]"
             class="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 shadow-sm transition-colors">Class-based
             Size</button>
         </div>
@@ -216,15 +222,15 @@
         </div>
         <div class="p-6 space-y-4">
           <button
-            x-uno-box="{title: 'Escape to Close', content: 'Press Escape key to close this dialog.', modal: true, closeOnEsc: true}"
+            x-uno-box data-uno-title="Escape to Close" data-uno-content="Press Escape key to close this dialog." data-uno-modal="true" data-uno-close-on-esc="true"
             class="w-full px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 shadow-sm transition-colors">Modal
             (Escape to Close)</button>
           <button
-            x-uno-box="{title: 'Click Overlay to Close', content: 'Click the dark overlay to close.', modal: true}"
+            x-uno-box data-uno-title="Click Overlay to Close" data-uno-content="Click the dark overlay to close." data-uno-modal="true" data-uno-close-on-overlay-click="true"
             class="w-full px-4 py-2 bg-fuchsia-600 text-white rounded-lg hover:bg-fuchsia-700 shadow-sm transition-colors">Modal
             (Overlay Click)</button>
           <button
-            x-uno-box="{title: 'No Close Button', content: 'This dialog has no close button.', showCloseButton: false, showOkButton: true}"
+            x-uno-box data-uno-title="No Close Button" data-uno-content="This dialog has no close button." data-uno-show-close-button="false" data-uno-show-ok-button="true"
             class="w-full px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 shadow-sm transition-colors">No
             Close Button</button>
         </div>

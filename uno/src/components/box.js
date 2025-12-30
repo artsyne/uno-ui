@@ -20,6 +20,7 @@
 import { trapFocus } from '../utils/a11y'
 import { Uno } from '../core/uno'
 import { registerPlugin } from '../core/plugin-registry'
+import { getFlexAlignmentClass } from '../utils/position'
 
 /**
  * Box Plugin Factory
@@ -33,7 +34,8 @@ export default (Alpine, options = {}) => {
     defaultPosition: 'center',
     okText: 'OK',
     cancelText: 'Cancel',
-    closeOnEsc: false
+    closeOnEsc: false,
+    closeOnOverlayClick: false
   }
   Uno.registerPluginDefaults('box', { ...pluginDefaults, ...options.plugins?.box, ...options.box })
 
@@ -98,6 +100,7 @@ export default (Alpine, options = {}) => {
       const position = el.getAttribute('data-uno-position') || undefined
       const modal = parseBool(el.getAttribute('data-uno-modal'))
       const closeOnEsc = parseBool(el.getAttribute('data-uno-close-on-esc'))
+      const closeOnOverlayClick = parseBool(el.getAttribute('data-uno-close-on-overlay-click'))
       const width = parseNumber(el.getAttribute('data-uno-width'))
       const height = parseNumber(el.getAttribute('data-uno-height'))
       const widthClass = el.getAttribute('data-uno-width-class') || undefined
@@ -111,6 +114,7 @@ export default (Alpine, options = {}) => {
         position,
         modal,
         closeOnEsc,
+        closeOnOverlayClick,
         width,
         height,
         widthClass,
@@ -323,6 +327,8 @@ export default (Alpine, options = {}) => {
         position: config.position || config.defaultPosition || 'center',
         modal: config.modal !== undefined ? config.modal : true,
         closeOnEsc: config.closeOnEsc !== undefined ? config.closeOnEsc : false,
+        closeOnOverlayClick:
+          config.closeOnOverlayClick !== undefined ? config.closeOnOverlayClick : false,
         showCloseButton: config.showCloseButton !== undefined ? config.showCloseButton : true,
         showOkButton,
         showCancelButton,
@@ -351,13 +357,37 @@ export default (Alpine, options = {}) => {
           }
 
           this.isOpen = false
-          setTimeout(() => {
+
+          // Use transitionend for precise timing instead of hardcoded timeout
+          const el =
+            typeof document !== 'undefined' ? document.getElementById('uno-box-' + this.id) : null
+
+          const cleanup = () => {
             const store = Alpine.store('uno')?.box
             if (store) {
               store.remove(this.id)
             }
             if (this.onClose) this.onClose()
-          }, 300) // Animation duration
+          }
+
+          if (!el) {
+            cleanup()
+            return
+          }
+
+          let resolved = false
+          const onEnd = (e) => {
+            // Ignore bubbling events from children
+            if (e && e.target !== el) return
+            if (resolved) return
+            resolved = true
+            el.removeEventListener('transitionend', onEnd)
+            cleanup()
+          }
+
+          el.addEventListener('transitionend', onEnd)
+          // Safety fallback in case transition doesn't fire (e.g. hidden/detached)
+          setTimeout(onEnd, 350)
         }
       }
 
@@ -421,18 +451,7 @@ export default (Alpine, options = {}) => {
      * @returns {string} CSS classes
      */
     getPositionClasses(position) {
-      const positionMap = {
-        center: 'items-center justify-center',
-        'top-center': 'items-start justify-center',
-        'top-left': 'items-start justify-start',
-        'top-right': 'items-start justify-end',
-        'center-left': 'items-center justify-start',
-        'center-right': 'items-center justify-end',
-        'bottom-center': 'items-end justify-center',
-        'bottom-left': 'items-end justify-start',
-        'bottom-right': 'items-end justify-end'
-      }
-      return positionMap[position] || positionMap.center
+      return getFlexAlignmentClass(position)
     },
 
     /**
@@ -486,10 +505,10 @@ export default (Alpine, options = {}) => {
              x-transition:leave="ease-in duration-200"
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
-             @click="$store.uno.box.items.length && $store.uno.box.items[$store.uno.box.items.length - 1].modal && $store.uno.box.items[$store.uno.box.items.length - 1].close()"></div>
+             @click="$store.uno.box.items.length && $store.uno.box.items[$store.uno.box.items.length - 1].closeOnOverlayClick && $store.uno.box.items[$store.uno.box.items.length - 1].close()"></div>
 
         <div :class="Uno.getStyle('box', 'dialogWrapper')"
-             @click.self="$store.uno.box.items.length && $store.uno.box.items[$store.uno.box.items.length - 1].modal && $store.uno.box.items[$store.uno.box.items.length - 1].close()">
+             @click.self="$store.uno.box.items.length && $store.uno.box.items[$store.uno.box.items.length - 1].closeOnOverlayClick && $store.uno.box.items[$store.uno.box.items.length - 1].close()">
           <template x-for="item in $store.uno.box.items" :key="item.id">
             <div :id="'uno-box-outer-container' + item.id"
                  :class="[Uno.getStyle('box', 'itemWrapper'), $store.uno.box.getPositionClasses(item.position)]"

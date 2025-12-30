@@ -232,9 +232,9 @@
                     <!-- Multi-Rule JSON -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Multi-Rule JSON
-                            <code>valid='[...]'</code></label>
-                        <input name="multirule" 
-                            valid='[{"type":"required"}, {"type":"email"}, {"type":"checkemail"}]'
+                            <code>data-uno-rules='[...]'</code></label>
+                        <input name="multirule"
+                            data-uno-rules='[{"type":"required"}, {"type":"email"}, {"type":"checkemail"}]'
                             class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="Required + Email + CheckEmail" />
                         <div x-text="$uno.valid.getMessage('multirule')" x-show="$uno.valid.getMessage('multirule')"
@@ -245,8 +245,8 @@
                     <!-- Custom Function -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Custom Function
-                            <code>data-valid-type="checkname"</code></label>
-                        <input name="custom" data-valid-type="checkname" required
+                            <code>data-uno-validator="checkname"</code></label>
+                        <input name="custom" data-uno-validator="checkname" required
                             class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="Type 'admin' to fail" />
                         <div x-text="$uno.valid.getMessage('custom')" x-show="$uno.valid.getMessage('custom')"
@@ -276,9 +276,9 @@
                         <div class="flex justify-between">
                             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Bio
                                 <code>maxlength="100"</code></label>
-                            <span class="text-xs text-slate-400 valid-count"><span>0</span>/100</span>
+                            <span class="text-xs text-slate-400"><span id="bio-count">0</span>/100</span>
                         </div>
-                        <textarea name="bio" maxlength="100" rows="3"
+                        <textarea name="bio" maxlength="100" rows="3" data-uno-count="#bio-count"
                             class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             placeholder="Tell us about yourself..."></textarea>
                         <div x-text="$uno.valid.getMessage('bio')" x-show="$uno.valid.getMessage('bio')"

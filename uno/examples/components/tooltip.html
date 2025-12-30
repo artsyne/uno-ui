@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
     <script src="../../dist/uno.umd.js" defer></script>
-        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
 </head>
 
 <body
@@ -90,7 +90,7 @@
 
                     <!-- Top (Default) -->
                     <div class="relative">
-                        <button data-testid="trigger-top" x-tooltip="'Hello Top!'"
+                        <button data-testid="trigger-top" x-uno-tooltip data-uno-content="Hello Top!"
                             class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm">
                             Hover Top
                         </button>
@@ -98,7 +98,7 @@
 
                     <!-- Bottom -->
                     <div class="relative">
-                        <button data-testid="trigger-bottom" x-tooltip.bottom="'Hello Bottom!'"
+                        <button data-testid="trigger-bottom" x-uno-tooltip.bottom data-uno-content="Hello Bottom!"
                             class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
                             Hover Bottom
                         </button>
@@ -120,8 +120,8 @@
                 <div class="p-6 h-64 flex items-center justify-center">
 
                     <div class="relative">
-                        <button data-testid="trigger-click"
-                            x-tooltip.click.right="{ content: 'Clicked (Light)!', theme: 'light' }"
+                        <button data-testid="trigger-click" x-uno-tooltip.click.right
+                            data-uno-content="Clicked (Light)!" data-uno-theme="light"
                             class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium shadow-sm">
                             Click Me (Right)
                         </button>
@@ -166,7 +166,7 @@
                     </template>
 
                     <div class="relative">
-                        <button data-testid="trigger-target" x-tooltip.bottom="{ target: '#my-custom-content' }"
+                        <button data-testid="trigger-target" x-uno-tooltip.bottom data-uno-target="#my-custom-content"
                             class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium shadow-sm">
                             Hover for HTML
                         </button>
@@ -191,14 +191,14 @@
                     </p>
 
                     <div class="absolute top-0 left-0 p-4">
-                        <button data-testid="trigger-edge" x-tooltip.top="'I flipped to bottom!'"
+                        <button data-testid="trigger-edge" x-uno-tooltip.top data-uno-content="I flipped to bottom!"
                             class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium shadow-sm whitespace-nowrap">
                             Top Edge (Force Flip)
                         </button>
                     </div>
 
                     <div class="absolute bottom-0 right-0 p-4">
-                        <button x-tooltip.bottom.right="'I flipped to top-left!'"
+                        <button x-uno-tooltip.bottom.right data-uno-content="I flipped to top-left!"
                             class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium shadow-sm whitespace-nowrap">
                             Bottom Right Edge
                         </button>

@@ -78,6 +78,12 @@ test.describe('Tab Component', () => {
   })
 
   test('S-Tab 3: refresh with hash loads content and clears loading', async ({ page }) => {
+    // Enable debug logging
+    await page.addInitScript(() => {
+      // @ts-ignore
+      window.UnoConfig = { debug: true }
+    })
+
     // 关键点：模拟用户直接刷新到带 hash 的 URL（历史上这里容易出现一直 Loading）
     const contentResponse = page.waitForResponse((resp) => {
       return resp.url().includes('/examples/data/tab-content.html') && resp.status() === 200
@@ -85,6 +91,11 @@ test.describe('Tab Component', () => {
 
     await page.goto('/examples/components/tab.html#s-tab3')
     await page.waitForLoadState('domcontentloaded')
+    
+    // Log current hash for debugging
+    const hash = await page.evaluate(() => window.location.hash)
+    console.log('Test Page Hash:', hash)
+
     await page.waitForFunction(() => (window as any).Alpine && (window as any).Uno)
 
     const panel = page.locator('#panel-s-tab3')

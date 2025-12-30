@@ -1,64 +1,59 @@
 /**
- * Uno - Tooltip Directive
+ * Uno - Tooltip Component (Store-First, Directive-Driven Architecture)
+ *
+ * A lightweight, declarative, performance-optimized tooltip component.
+ * Follows the "Store-First, Directive-Driven" pattern.
+ *
+ * Features:
+ * - RAF-based positioning with auto-flip
+ * - Global singleton container (performance)
+ * - Declarative directive interface (x-uno-tooltip)
+ * - HTMX native integration
+ * - 4-level configuration merge
+ * - Styles decoupled via Uno.getStyle
  *
  * @module uno.components.tooltip
- * @version 0.2.1
+ * @version 0.3.0
  * @license MIT
  */
 
 import { calculatePosition } from '../utils/position'
-import { log } from '../utils/log'
-import { setHTML, DomManager as domManager } from '../utils/dom'
+import { DomManager as domManager } from '../utils/dom'
 import { Uno } from '../core/uno'
+import { mergeDeep } from '../utils/object'
+import { registerPlugin } from '../core/plugin-registry'
+import { log } from '../utils/log'
+import { sanitizeHTML } from '../utils/dom'
 
-export default (Alpine, options = {}) => {
-  const initConfig = options.plugins?.tooltip || options.tooltip || {}
-  const getConfig = () => {
-    const opts = typeof window !== 'undefined' ? window.Uno?.options : Uno.options
-    return opts?.plugins?.tooltip || opts?.tooltip || initConfig
+const tooltipPlugin = (Alpine, options = {}) => {
+  // Register plugin defaults
+  const pluginDefaults = {
+    placement: 'top',
+    trigger: 'hover',
+    delay: 300,
+    offset: 8,
+    arrow: true,
+    clickOutside: true
   }
+  Uno.registerPluginDefaults('tooltip', {
+    ...pluginDefaults,
+    ...options.plugins?.tooltip,
+    ...options.tooltip
+  })
 
-  if (!Alpine) {
-    log.error('Tooltip: Alpine is undefined. Plugin initialization failed.')
-    return
-  }
-
-  let containerEl = null
-  let tooltipEl = null
-  let bodyEl = null
+  // ============================================================
+  // Shared Logic
+  // ============================================================
   let rafId = 0
   let globalListenersCleanup = null
-
-  const getTooltipZIndex = () => {
-    let zBase = Number(Uno.options?.ui?.layers?.tooltipBase ?? 20000)
-    if (!Number.isFinite(zBase)) zBase = 20000
-    return zBase
-  }
-
-  const ensureEls = () => {
-    if (
-      containerEl &&
-      tooltipEl &&
-      bodyEl &&
-      typeof document !== 'undefined' &&
-      document.contains(containerEl)
-    ) {
-      return true
-    }
-    containerEl =
-      typeof document !== 'undefined' ? document.getElementById('uno-tooltip-container') : null
-    tooltipEl =
-      typeof document !== 'undefined' ? document.getElementById('uno-tooltip-content') : null
-    bodyEl = typeof document !== 'undefined' ? document.getElementById('uno-tooltip-body') : null
-    return !!(containerEl && tooltipEl && bodyEl)
-  }
 
   const scheduleUpdatePosition = () => {
     if (rafId) return
     if (typeof requestAnimationFrame !== 'function') return
     rafId = requestAnimationFrame(() => {
       rafId = 0
-      Alpine.store('tooltip')?.updatePosition?.()
+      const store = Alpine.store('uno')?.tooltip
+      if (store) store.updatePosition()
     })
   }
 
@@ -70,21 +65,21 @@ export default (Alpine, options = {}) => {
     const onResize = () => scheduleUpdatePosition()
     const onKeydown = (e) => {
       if (e.key !== 'Escape') return
-      const store = Alpine.store('tooltip')
+      const store = Alpine.store('uno')?.tooltip
       if (!store?.visible) return
       store.hide()
     }
     const onWindowClick = (e) => {
-      const store = Alpine.store('tooltip')
+      const store = Alpine.store('uno')?.tooltip
       if (!store?.visible) return
       if (store.triggerMode !== 'click' || store.clickOutside !== true) return
 
-      if (!ensureEls()) return
-
       const t = e.target
-      const insideTrigger =
-        store.eventEl && typeof store.eventEl.contains === 'function' && store.eventEl.contains(t)
-      const insideTooltip = tooltipEl && tooltipEl.contains(t)
+      const container = document.getElementById('uno-tooltip-content')
+
+      const insideTrigger = store.triggerEl && store.triggerEl.contains(t)
+      const insideTooltip = container && container.contains(t)
+
       if (!insideTrigger && !insideTooltip) {
         store.hide()
       }
@@ -104,268 +99,318 @@ export default (Alpine, options = {}) => {
     }
   }
 
-  // 1. Global Store for Singleton Tooltip
-  Alpine.store('tooltip', {
+  // ============================================================
+  // Store (Alpine.store('uno').tooltip)
+  // ============================================================
+  const tooltipStore = {
     visible: false,
     content: '',
     placement: 'top',
-    top: -9999, // Start off-screen
+    top: -9999,
     left: -9999,
-    zIndex: getTooltipZIndex(),
+    zIndex: 20000,
     triggerEl: null,
-    eventEl: null,
     triggerMode: 'hover',
     clickOutside: true,
-    onShow: null,
+    arrow: true,
+    arrowPosition: { top: 0, left: 0 },
 
-    async show(el, content, config = {}) {
-      this.triggerEl = el
-      this.eventEl = config.eventEl || el
-      this.content = content
-      this.placement = config.placement || getConfig().placement || 'top'
-      this.onShow = config.onShow
-      this.triggerMode = config.trigger || 'hover'
-      this.clickOutside =
-        config.clickOutside !== undefined ? config.clickOutside : this.triggerMode === 'click'
-      this.zIndex = getTooltipZIndex()
+    // HTMX support
+    hxUrl: null,
+    hxHeaders: null,
+    hxTrigger: 'load',
+
+    init() {
+      this.ensureContainer()
+    },
+
+    show(instanceOpts = {}) {
+      log.info('Tooltip show called', instanceOpts)
+      // 4-level merge via Uno.getConfig
+      const config = Uno.getConfig('tooltip', instanceOpts)
+      log.info('Tooltip resolved config', config)
+
+      this.triggerEl = config.element || this.triggerEl
+
+      // Handle target (selector) for content
+      if (config.target) {
+        const targetEl = document.querySelector(config.target)
+        if (targetEl) {
+          this.content = sanitizeHTML(targetEl.innerHTML)
+        } else {
+          log.warn(`Tooltip target element not found: ${config.target}`)
+          this.content = config.content || ''
+        }
+      } else {
+        this.content = config.content || ''
+      }
+
+      this.placement = config.placement
+      this.triggerMode = config.trigger
+      this.clickOutside = config.clickOutside
+      this.offset = config.offset
+      this.arrow = config.arrow !== false
+      this.zIndex = Uno.options?.ui?.layers?.tooltip || 20000
+
+      // HTMX
+      this.hxUrl = config.hxUrl
+      this.hxHeaders = config.hxHeaders
+      this.hxTrigger = config.hxTrigger || 'load'
 
       this.visible = true
-
-      // Ensure container exists (defensive)
       this.ensureContainer()
       ensureGlobalListeners()
 
-      // Inject content and init Alpine for interactivity
-      if (ensureEls()) {
-        setHTML(bodyEl, this.content, { trusted: config.trustedHTML === true, alpine: Alpine })
-      }
-
-      // Wait for DOM update to measure tooltip size
-      await Alpine.nextTick()
-
-      this.updatePosition()
-
-      if (this.onShow) {
-        this.onShow(bodyEl)
-      }
+      // Calculate position next tick to allow rendering
+      Alpine.nextTick(() => {
+        this.updatePosition()
+      })
     },
 
     hide() {
       this.visible = false
       this.triggerEl = null
-      this.eventEl = null
-      if (globalListenersCleanup) globalListenersCleanup()
+
+      if (globalListenersCleanup) {
+        globalListenersCleanup()
+        globalListenersCleanup = null
+      }
+
       if (rafId) {
         cancelAnimationFrame(rafId)
         rafId = 0
       }
     },
 
-    updatePosition() {
-      if (!this.triggerEl) return
-      if (!ensureEls()) return
+    cancelHide() {
+      if (this.hideTimeout) {
+        clearTimeout(this.hideTimeout)
+        this.hideTimeout = null
+      }
+    },
 
-      // Calculate
-      const pos = calculatePosition(this.triggerEl, tooltipEl, this.placement)
+    scheduleHide(delay = 300) {
+      this.cancelHide()
+      this.hideTimeout = setTimeout(() => {
+        this.hide()
+      }, delay)
+    },
+
+    updatePosition() {
+      if (!this.visible || !this.triggerEl) return
+
+      const tooltipEl = document.getElementById('uno-tooltip-content')
+      if (!tooltipEl) return
+
+      const pos = calculatePosition(this.triggerEl, tooltipEl, this.placement, {
+        offset: this.offset,
+        arrow: this.arrow
+      })
+
       this.top = pos.top
       this.left = pos.left
+      this.placement = pos.placement // Update placement if flipped
+
+      if (pos.arrow) {
+        this.arrowPosition = pos.arrow
+      }
     },
 
     ensureContainer() {
-      injectContainer()
-      ensureEls()
-    },
+      const id = 'uno-tooltip-manager'
+      if (document.getElementById(id)) return
 
-    destroy() {
-      this.hide()
+      const zBase = Uno.options?.ui?.layers?.tooltip || 20000
+
+      const template = `
+        <div id="uno-tooltip-content"
+             x-show="$store.uno.tooltip.visible"
+             role="tooltip"
+             x-on:mouseenter="$store.uno.tooltip.cancelHide()"
+             x-on:mouseleave="$store.uno.tooltip.scheduleHide()"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             :class="Uno.getStyle('tooltip', 'content')"
+             :style="{ top: $store.uno.tooltip.top + 'px', left: $store.uno.tooltip.left + 'px', zIndex: $store.uno.tooltip.zIndex }">
+             
+             <!-- Arrow -->
+             <div x-show="$store.uno.tooltip.arrow"
+                  :style="{ top: $store.uno.tooltip.arrowPosition.top + 'px', left: $store.uno.tooltip.arrowPosition.left + 'px' }">
+             </div>
+
+             <!-- Content -->
+             <div id="uno-tooltip-body" :class="Uno.getStyle('tooltip', 'body')">
+                <template x-if="!$store.uno.tooltip.hxUrl">
+                  <div x-html="$store.uno.tooltip.content"></div>
+                </template>
+                <template x-if="$store.uno.tooltip.hxUrl">
+                   <div x-init="htmx.process($el)"
+                        :hx-get="$store.uno.tooltip.hxUrl"
+                        :hx-trigger="$store.uno.tooltip.hxTrigger"
+                        hx-swap="innerHTML"
+                        :hx-headers="$store.uno.tooltip.hxHeaders ? JSON.stringify($store.uno.tooltip.hxHeaders) : null">
+                        <!-- Loading State -->
+                        <div class="uno-tooltip-loading">Loading...</div>
+                   </div>
+                </template>
+             </div>
+        </div>
+      `
+
+      domManager.ensureContainer(id, template, {
+        'x-data': '{}',
+        style: `position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: ${zBase};`
+      })
+
+      // Init tree if needed (ensureContainer usually handles it if domManager supports it,
+      // but let's be safe as per box.js pattern)
+      const el = document.getElementById(id)
+      if (el && Alpine && !el._x_dataStack) {
+        Alpine.initTree(el)
+      }
     }
-  })
-
-  // 2. Inject Global Tooltip Container
-  const injectContainer = () => {
-    if (typeof document === 'undefined') return
-    const contentClass = Uno.getStyle('tooltip', 'content')
-    const bodyClass = Uno.getStyle('tooltip', 'body')
-
-    const template = `
-          <div id="uno-tooltip-content"
-               x-show="$store.tooltip.visible"
-               role="tooltip"
-               x-transition:enter="transition ease-out duration-200"
-               x-transition:enter-start="opacity-0 scale-95"
-               x-transition:enter-end="opacity-100 scale-100"
-               x-transition:leave="transition ease-in duration-150"
-               x-transition:leave-start="opacity-100 scale-100"
-               x-transition:leave-end="opacity-0 scale-95"
-               class="${contentClass}"
-              :style="\`top: \${$store.tooltip.top}px; left: \${$store.tooltip.left}px; z-index: \${$store.tooltip.zIndex};\`"
-              style="display: none;">
-              <div id="uno-tooltip-body" class="${bodyClass}"></div>
-          </div>
-        `
-
-    domManager.ensureContainer('uno-tooltip-container', template, {
-      'x-data': '{}'
-    })
   }
 
-  // 3. Directive: x-uno-tooltip
+  // Register Store using the registry
+  registerPlugin(Alpine, 'tooltip', tooltipStore)
+
+  // ============================================================
+  // Directive Handler
+  // ============================================================
   const directiveHandler = (el, { expression, modifiers }, { evaluateLater, effect, cleanup }) => {
-    const getExpression = evaluateLater(expression)
+    const getExpression = expression ? evaluateLater(expression) : null
 
-    let config = {
-      content: '',
-      placement: null,
-      trigger: null,
-      clickOutside: undefined
+    // Helper to resolve config from attributes and expression
+    const resolveConfig = (val) => {
+      const exprConfig = typeof val === 'object' && val !== null ? val : val ? { content: val } : {}
+
+      const attrConfig = {}
+      if (el.dataset.unoContent) attrConfig.content = el.dataset.unoContent
+      if (el.dataset.unoTarget) attrConfig.target = el.dataset.unoTarget
+      if (el.dataset.unoTheme) attrConfig.theme = el.dataset.unoTheme
+      if (el.dataset.unoPlacement) attrConfig.placement = el.dataset.unoPlacement
+      if (el.dataset.unoTrigger) attrConfig.trigger = el.dataset.unoTrigger
+      if (el.dataset.unoOffset) attrConfig.offset = parseInt(el.dataset.unoOffset)
+      if (el.dataset.unoArrow) attrConfig.arrow = el.dataset.unoArrow === 'true'
+      if (el.dataset.unoClickOutside)
+        attrConfig.clickOutside = el.dataset.unoClickOutside === 'true'
+
+      // HTMX attributes
+      if (el.hasAttribute('hx-get')) attrConfig.hxUrl = el.getAttribute('hx-get')
+      if (el.hasAttribute('hx-headers')) attrConfig.hxHeaders = el.getAttribute('hx-headers')
+      if (el.hasAttribute('hx-trigger')) attrConfig.hxTrigger = el.getAttribute('hx-trigger')
+
+      // Handle modifiers
+      if (modifiers.includes('top')) attrConfig.placement = 'top'
+      if (modifiers.includes('bottom')) attrConfig.placement = 'bottom'
+      if (modifiers.includes('left')) attrConfig.placement = 'left'
+      if (modifiers.includes('right')) attrConfig.placement = 'right'
+      if (modifiers.includes('click')) attrConfig.trigger = 'click'
+      if (modifiers.includes('hover')) attrConfig.trigger = 'hover'
+      if (modifiers.includes('focus')) attrConfig.trigger = 'focus'
+
+      return { ...mergeDeep(exprConfig, attrConfig), element: el }
     }
 
-    const resolvePlacement = () => {
-      const attr = el.getAttribute('data-uno-placement')
-      if (attr) return attr
-
-      if (config.placement) return config.placement
-
-      if (modifiers.includes('top')) return 'top'
-      if (modifiers.includes('bottom')) return 'bottom'
-      if (modifiers.includes('left')) return 'left'
-      if (modifiers.includes('right')) return 'right'
-
-      const configData = getConfig()
-      return configData.placement || 'top'
+    const show = (val) => {
+      const store = Alpine.store('uno')?.tooltip
+      if (!store) return
+      store.show(resolveConfig(val))
     }
 
-    const resolveTrigger = () => {
-      const attr = el.getAttribute('data-uno-trigger')
-      if (attr) return attr
-
-      if (config.trigger) return config.trigger
-
-      if (modifiers.includes('click')) return 'click'
-      if (modifiers.includes('focus')) return 'focus'
-      if (modifiers.includes('hover')) return 'hover'
-
-      const configData = getConfig()
-      return configData.trigger || 'hover'
-    }
-
-    const resolveEventTarget = () => {
-      const isDisabled =
-        (typeof el.disabled === 'boolean' && el.disabled === true) ||
-        el.getAttribute('aria-disabled') === 'true' ||
-        el.getAttribute('disabled') !== null
-      if (!isDisabled) return el
-      return el.parentElement || el
-    }
-
-    // Helper to process value
-    const processValue = (val) => {
-      if (typeof val === 'string') {
-        config.content = val
-      } else if (typeof val === 'object' && val !== null) {
-        config = { ...config, ...val }
-      }
-
-      // Check for ID selector or target
-      if (config.content && config.content.startsWith('#') && !config.content.includes(' ')) {
-        const target = document.querySelector(config.content)
-        if (target) config.content = target.innerHTML
-      } else if (config.target) {
-        const target = document.querySelector(config.target)
-        if (target) config.content = target.innerHTML
-      }
-    }
-
-    // Watch for changes
-    effect(() => {
-      getExpression((val) => {
-        processValue(val)
-      })
-    })
-
-    // Event handlers
-    const show = () => {
-      const store = Alpine.store('tooltip')
-      const mode = resolveTrigger()
-      el.setAttribute('aria-describedby', 'uno-tooltip-content')
-      store.show(el, config.content, {
-        ...config,
-        placement: resolvePlacement(),
-        trigger: mode,
-        eventEl: resolveEventTarget()
-      })
-    }
     const hide = () => {
-      el.removeAttribute('aria-describedby')
-      Alpine.store('tooltip').hide()
+      const store = Alpine.store('uno')?.tooltip
+      if (store) store.hide()
     }
-    const toggle = () => {
-      const store = Alpine.store('tooltip')
-      // If visible and triggered by this element, hide it
+
+    const toggle = (val) => {
+      const store = Alpine.store('uno')?.tooltip
+      if (!store) return
       if (store.visible && store.triggerEl === el) {
         store.hide()
       } else {
-        show()
+        show(val)
       }
     }
 
-    const onClick = () => {
-      if (resolveTrigger() !== 'click') return
-      toggle()
+    let currentVal = null
+
+    // Reactively update config
+    if (getExpression) {
+      effect(() => {
+        getExpression((val) => {
+          currentVal = val
+        })
+      })
     }
 
+    // Event Handlers
     const onMouseEnter = () => {
-      if (resolveTrigger() !== 'hover') return
-      show()
+      const config = resolveConfig(currentVal)
+      const finalConfig = Uno.getConfig('tooltip', config)
+      if (finalConfig.trigger === 'hover') {
+        show(currentVal)
+      }
     }
 
     const onMouseLeave = () => {
-      if (resolveTrigger() !== 'hover') return
-      hide()
+      const store = Alpine.store('uno')?.tooltip
+      if (!store) return
+      if (store.triggerMode === 'hover' && store.triggerEl === el) {
+        store.scheduleHide()
+      }
+    }
+
+    const onClick = (e) => {
+      const config = resolveConfig(currentVal)
+      const finalConfig = Uno.getConfig('tooltip', config)
+      if (finalConfig.trigger === 'click') {
+        e.preventDefault()
+        toggle(currentVal)
+      }
     }
 
     const onFocus = () => {
-      if (resolveTrigger() !== 'focus') return
-      show()
+      const config = resolveConfig(currentVal)
+      const finalConfig = Uno.getConfig('tooltip', config)
+      if (finalConfig.trigger === 'focus') {
+        show(currentVal)
+      }
     }
 
     const onBlur = () => {
-      if (resolveTrigger() !== 'focus') return
-      hide()
+      const store = Alpine.store('uno')?.tooltip
+      if (store && store.triggerMode === 'focus' && store.triggerEl === el) {
+        store.hide()
+      }
     }
 
-    // Bind events
-    const eventTarget = resolveEventTarget()
-    eventTarget.addEventListener('click', onClick)
-    eventTarget.addEventListener('mouseenter', onMouseEnter)
-    eventTarget.addEventListener('mouseleave', onMouseLeave)
-    eventTarget.addEventListener('focus', onFocus)
-    eventTarget.addEventListener('blur', onBlur)
+    el.addEventListener('mouseenter', onMouseEnter)
+    el.addEventListener('mouseleave', onMouseLeave)
+    el.addEventListener('click', onClick)
+    el.addEventListener('focus', onFocus)
+    el.addEventListener('blur', onBlur)
 
-    // Cleanup
     cleanup(() => {
-      eventTarget.removeEventListener('click', onClick)
-      eventTarget.removeEventListener('mouseenter', onMouseEnter)
-      eventTarget.removeEventListener('mouseleave', onMouseLeave)
-      eventTarget.removeEventListener('focus', onFocus)
-      eventTarget.removeEventListener('blur', onBlur)
-      hide()
+      el.removeEventListener('mouseenter', onMouseEnter)
+      el.removeEventListener('mouseleave', onMouseLeave)
+      el.removeEventListener('click', onClick)
+      el.removeEventListener('focus', onFocus)
+      el.removeEventListener('blur', onBlur)
+      const store = Alpine.store('uno')?.tooltip
+      if (store && store.triggerEl === el) {
+        store.hide()
+      }
     })
   }
 
   Alpine.directive('uno-tooltip', directiveHandler)
-  // Alias for backward compatibility
+  // Backward compatibility alias
   Alpine.directive('tooltip', directiveHandler)
-
-  // Expose Public API
-  const api = {
-    show: (el, content, config) => Alpine.store('tooltip').show(el, content, config),
-    hide: () => Alpine.store('tooltip').hide(),
-    updatePosition: () => Alpine.store('tooltip').updatePosition(),
-    destroy: () => Alpine.store('tooltip').destroy()
-  }
-  Uno.tooltip = api
-  if (typeof window !== 'undefined' && window.Uno) {
-    window.Uno.tooltip = api
-  }
 }
+
+export default tooltipPlugin

@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
     <!-- Load Uno before Alpine so it can register on alpine:init -->
-    <script src="../../dist/uno.umd.js?v=0.5.0" defer></script>
+    <script src="../../dist/uno.umd.js?v=0.6.0" defer></script>
     <script defer src="https://unpkg.com/alpinejs@3.15.2"></script>
     <style type="text/tailwindcss">
         .tab-base {
@@ -82,8 +82,9 @@
         <div
             class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
             <p class="text-slate-600 dark:text-slate-300">
-                The refactored <code>tab.js</code> uses <code>Alpine.data('tabs')</code>.
-                It supports declarative bindings, hash navigation, and AJAX loading.
+                The refactored <code>tab.js</code> uses <code>Alpine.store('uno').tab</code> and <code>x-uno-tab</code>
+                directive.
+                It supports declarative bindings, hash navigation, and HTMX integration.
             </p>
         </div>
 
@@ -93,42 +94,58 @@
             <h2 class="font-semibold text-slate-800 dark:text-white mb-4">Test Harness (Minimal)</h2>
 
             <!-- Modern Tabs -->
-            <div class="mb-6 text-slate-800 dark:text-slate-200" x-data="unoTabs('tab1')">
+            <div class="mb-6 text-slate-800 dark:text-slate-200" x-data>
                 <div class="flex border-b dark:border-slate-700 mb-4" role="tablist">
-                    <button id="tab-tab1" role="tab" aria-controls="panel-tab1" x-bind="trigger('tab1')"
-                        class="tab-base px-4 py-2">Tab 1</button>
-                    <button id="tab-settings" role="tab" aria-controls="panel-settings" x-bind="trigger('settings')"
+                    <button id="tab-tab1" role="tab" aria-controls="panel-tab1" x-uno-tab data-uno-name="tab1"
+                        data-uno-group="harness" :aria-selected="$store.uno.tab.isActive('tab1', 'harness')"
+                        class="tab-base px-4 py-2">Tab
+                        1</button>
+                    <button id="tab-settings" role="tab" aria-controls="panel-settings" x-uno-tab
+                        data-uno-name="settings" data-uno-group="harness"
+                        :aria-selected="$store.uno.tab.isActive('settings', 'harness')"
                         class="tab-base px-4 py-2">Settings</button>
-                    <button id="tab-billing" role="tab" aria-controls="panel-billing" x-bind="trigger('billing')"
+                    <button id="tab-billing" role="tab" aria-controls="panel-billing" x-uno-tab data-uno-name="billing"
+                        data-uno-group="harness" :aria-selected="$store.uno.tab.isActive('billing', 'harness')"
                         class="tab-base px-4 py-2">Billing</button>
                 </div>
                 <div>
-                    <div id="panel-tab1" role="tabpanel" aria-labelledby="tab-tab1" x-bind="panel('tab1')">Content 1
+                    <div id="panel-tab1" role="tabpanel" aria-labelledby="tab-tab1"
+                        x-show="$store.uno.tab.isActive('tab1', 'harness')">Content 1
                     </div>
-                    <div id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" x-bind="panel('settings')">
+                    <div id="panel-settings" role="tabpanel" aria-labelledby="tab-settings"
+                        x-show="$store.uno.tab.isActive('settings', 'harness')">
                         Content 2 (Settings)</div>
-                    <div id="panel-billing" role="tabpanel" aria-labelledby="tab-billing" x-bind="panel('billing')">
+                    <div id="panel-billing" role="tabpanel" aria-labelledby="tab-billing"
+                        x-show="$store.uno.tab.isActive('billing', 'harness')">
                         Content 3 (Billing)</div>
                 </div>
             </div>
 
             <!-- Separated Elements + AJAX -->
-            <div class="mb-2 text-slate-800 dark:text-slate-200" x-data="unoTabs('s-tab1')">
+            <div class="mb-2 text-slate-800 dark:text-slate-200" x-data>
                 <div class="flex border-b dark:border-slate-700 mb-4" role="tablist">
-                    <button id="tab-s-tab1" role="tab" aria-controls="panel-s-tab1" x-bind="trigger('s-tab1')"
-                        class="tab-base px-4 py-2">S-Tab 1</button>
-                    <button id="tab-s-tab2" role="tab" aria-controls="panel-s-tab2" x-bind="trigger('s-tab2')"
-                        class="tab-base px-4 py-2">S-Tab 2</button>
-                    <button id="tab-s-tab3" role="tab" aria-controls="panel-s-tab3"
-                        x-bind="trigger('s-tab3', { url: '/examples/data/tab-content.html' })"
+                    <button id="tab-s-tab1" role="tab" aria-controls="panel-s-tab1" x-uno-tab data-uno-name="s-tab1"
+                        data-uno-group="separated" :aria-selected="$store.uno.tab.isActive('s-tab1', 'separated')"
+                        class="tab-base px-4 py-2">S-Tab
+                        1</button>
+                    <button id="tab-s-tab2" role="tab" aria-controls="panel-s-tab2" x-uno-tab data-uno-name="s-tab2"
+                        data-uno-group="separated" :aria-selected="$store.uno.tab.isActive('s-tab2', 'separated')"
+                        class="tab-base px-4 py-2">S-Tab
+                        2</button>
+                    <button id="tab-s-tab3" role="tab" aria-controls="panel-s-tab3" x-uno-tab data-uno-name="s-tab3"
+                        data-uno-group="separated" :aria-selected="$store.uno.tab.isActive('s-tab3', 'separated')"
+                        hx-get="/examples/data/tab-content.html" hx-target="#panel-s-tab3"
                         class="tab-base px-4 py-2">S-Tab 3 (AJAX)</button>
                 </div>
                 <div>
-                    <div id="panel-s-tab1" role="tabpanel" aria-labelledby="tab-s-tab1" x-bind="panel('s-tab1')">
+                    <div id="panel-s-tab1" role="tabpanel" aria-labelledby="tab-s-tab1"
+                        x-show="$store.uno.tab.isActive('s-tab1', 'separated')">
                         Separated Content 1</div>
-                    <div id="panel-s-tab2" role="tabpanel" aria-labelledby="tab-s-tab2" x-bind="panel('s-tab2')">
+                    <div id="panel-s-tab2" role="tabpanel" aria-labelledby="tab-s-tab2"
+                        x-show="$store.uno.tab.isActive('s-tab2', 'separated')">
                         Separated Content 2</div>
-                    <div id="panel-s-tab3" role="tabpanel" aria-labelledby="tab-s-tab3" x-bind="panel('s-tab3')">
+                    <div id="panel-s-tab3" role="tabpanel" aria-labelledby="tab-s-tab3"
+                        x-show="$store.uno.tab.isActive('s-tab3', 'separated')">
                         <!-- ajax -->
                     </div>
                 </div>
@@ -145,35 +162,39 @@
                     <h2 class="font-semibold text-slate-800 dark:text-white">1. Standard Tabs</h2>
                     <span
                         class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Alpine
-                        API</span>
+                        Store</span>
                 </div>
-                <div class="p-6" x-data="unoTabs('profile')">
+                <div class="p-6">
                     <!-- Tab List -->
-                    <div class="flex gap-1" role="tablist">
-                        <button id="tab-profile" role="tab" aria-controls="panel-profile" x-bind="trigger('profile')"
+                    <div class="flex gap-1" role="tablist" x-data>
+                        <button id="tab-profile" role="tab" aria-controls="panel-profile" x-uno-tab
+                            data-uno-name="profile" data-uno-group="card1"
+                            :aria-selected="$store.uno.tab.isActive('profile', 'card1')"
                             class="px-4 py-2 rounded-t-lg text-sm font-medium transition-colors border-t border-l border-r border-transparent"
-                            :class="isActive('profile') ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border-slate-100 dark:border-slate-700' : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">
+                            :class="$store.uno.tab.isActive('profile', 'card1') ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border-slate-100 dark:border-slate-700' : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">
                             Profile
                         </button>
-                        <button id="tab-settings-2" role="tab" aria-controls="panel-settings-2"
-                            x-bind="trigger('settings')"
+                        <button id="tab-settings-2" role="tab" aria-controls="panel-settings-2" x-uno-tab
+                            data-uno-name="settings" data-uno-group="card1"
+                            :aria-selected="$store.uno.tab.isActive('settings', 'card1')"
                             class="px-4 py-2 rounded-t-lg text-sm font-medium transition-colors border-t border-l border-r border-transparent"
-                            :class="isActive('settings') ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border-slate-100 dark:border-slate-700' : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">
+                            :class="$store.uno.tab.isActive('settings', 'card1') ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border-slate-100 dark:border-slate-700' : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">
                             Settings
                         </button>
-                        <button id="tab-billing-2" role="tab" aria-controls="panel-billing-2"
-                            x-bind="trigger('billing')"
+                        <button id="tab-billing-2" role="tab" aria-controls="panel-billing-2" x-uno-tab
+                            data-uno-name="billing" data-uno-group="card1"
+                            :aria-selected="$store.uno.tab.isActive('billing', 'card1')"
                             class="px-4 py-2 rounded-t-lg text-sm font-medium transition-colors border-t border-l border-r border-transparent"
-                            :class="isActive('billing') ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border-slate-100 dark:border-slate-700' : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">
+                            :class="$store.uno.tab.isActive('billing', 'card1') ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border-slate-100 dark:border-slate-700' : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">
                             Billing
                         </button>
                     </div>
 
                     <!-- Panels -->
-                    <div
-                        class="bg-white dark:bg-slate-800 rounded-b-lg rounded-tr-lg border border-slate-100 dark:border-slate-700 p-6 min-h-[160px] transition-colors">
-                        <div id="panel-profile" role="tabpanel" aria-labelledby="tab-profile" x-bind="panel('profile')"
-                            class="space-y-2">
+                    <div class="bg-white dark:bg-slate-800 rounded-b-lg rounded-tr-lg border border-slate-100 dark:border-slate-700 p-6 min-h-[160px] transition-colors"
+                        x-data>
+                        <div id="panel-profile" role="tabpanel" aria-labelledby="tab-profile"
+                            x-show="$store.uno.tab.isActive('profile', 'card1')" class="space-y-2">
                             <h3 class="font-bold text-slate-800 dark:text-white">User Profile</h3>
                             <p class="text-slate-600 dark:text-slate-300 text-sm">Manage your personal information.</p>
                             <div
@@ -182,7 +203,7 @@
                             </div>
                         </div>
                         <div id="panel-settings-2" role="tabpanel" aria-labelledby="tab-settings-2"
-                            x-bind="panel('settings')" class="space-y-2">
+                            x-show="$store.uno.tab.isActive('settings', 'card1')" class="space-y-2">
                             <h3 class="font-bold text-slate-800 dark:text-white">Account Settings</h3>
                             <p class="text-slate-600 dark:text-slate-300 text-sm">Update password and security
                                 preferences.</p>
@@ -192,7 +213,7 @@
                             </div>
                         </div>
                         <div id="panel-billing-2" role="tabpanel" aria-labelledby="tab-billing-2"
-                            x-bind="panel('billing')" class="space-y-2">
+                            x-show="$store.uno.tab.isActive('billing', 'card1')" class="space-y-2">
                             <h3 class="font-bold text-slate-800 dark:text-white">Billing Information</h3>
                             <p class="text-slate-600 dark:text-slate-300 text-sm">View invoices and payment methods.</p>
                             <div
@@ -213,25 +234,32 @@
                     <span
                         class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Advanced</span>
                 </div>
-                <div class="p-6 flex flex-col sm:flex-row gap-6" x-data="unoTabs('side-dashboard', { manual: false })">
+                <div class="p-6 flex flex-col sm:flex-row gap-6" x-data>
                     <!-- Sidebar Nav -->
                     <div class="flex flex-col space-y-1 w-full sm:w-1/3" role="tablist">
-                        <button id="tab-side-dashboard" role="tab" aria-controls="panel-side-dashboard"
-                            x-bind="trigger('side-dashboard')"
+                        <button id="tab-side-dashboard" role="tab" aria-controls="panel-side-dashboard" x-uno-tab
+                            data-uno-name="side-dashboard" data-uno-group="sidebar"
+                            :aria-selected="$store.uno.tab.isActive('side-dashboard', 'sidebar')"
                             class="px-4 py-2 rounded text-left text-sm font-medium transition-colors"
-                            :class="isActive('side-dashboard') ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
+                            :class="$store.uno.tab.isActive('side-dashboard', 'sidebar') ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
                             Dashboard
                         </button>
-                        <button id="tab-side-ajax" role="tab" aria-controls="panel-side-ajax"
-                            x-bind="trigger('side-ajax', { url: '/examples/data/tab-content.html' })"
+                        <button id="tab-side-ajax" role="tab" aria-controls="panel-side-ajax" x-uno-tab
+                            data-uno-name="side-ajax" data-uno-group="sidebar"
+                            data-uno-url="/examples/data/tab-content.html" data-uno-target="#panel-side-ajax"
+                            :aria-selected="$store.uno.tab.isActive('side-ajax', 'sidebar')"
+                            hx-get="/examples/data/tab-content.html" hx-target="#panel-side-ajax"
                             class="px-4 py-2 rounded text-left text-sm font-medium transition-colors"
-                            :class="isActive('side-ajax') ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
+                            :class="$store.uno.tab.isActive('side-ajax', 'sidebar') ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
                             AJAX Content
                         </button>
-                        <button id="tab-side-htmx" role="tab" aria-controls="panel-side-htmx-target"
-                            x-bind="trigger('side-htmx', { url: '/examples/data/tab-content.html', target: '#panel-side-htmx-target' })"
+                        <button id="tab-side-htmx" role="tab" aria-controls="panel-side-htmx-target" x-uno-tab
+                            data-uno-name="side-htmx" data-uno-group="sidebar"
+                            data-uno-url="/examples/data/tab-content.html" data-uno-target="#panel-side-htmx-target"
+                            :aria-selected="$store.uno.tab.isActive('side-htmx', 'sidebar')"
+                            hx-get="/examples/data/tab-content.html" hx-target="#panel-side-htmx-target"
                             class="px-4 py-2 rounded text-left text-sm font-medium transition-colors"
-                            :class="isActive('side-htmx') ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
+                            :class="$store.uno.tab.isActive('side-htmx', 'sidebar') ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
                             HTMX Trigger
                         </button>
                     </div>
@@ -239,7 +267,7 @@
                     <!-- Content -->
                     <div class="w-full sm:w-2/3 min-h-[200px] border-l dark:border-slate-700 pl-6">
                         <div id="panel-side-dashboard" role="tabpanel" aria-labelledby="tab-side-dashboard"
-                            x-bind="panel('side-dashboard')" class="animate-fade-in">
+                            x-show="$store.uno.tab.isActive('side-dashboard', 'sidebar')" class="animate-fade-in">
                             <h3 class="text-lg font-medium text-slate-800 dark:text-white mb-2">Dashboard</h3>
                             <p class="text-slate-600 dark:text-slate-300 mb-4">Welcome to your dashboard overview.</p>
                             <div class="grid grid-cols-2 gap-4">
@@ -254,7 +282,7 @@
                             </div>
                         </div>
                         <div id="panel-side-ajax" role="tabpanel" aria-labelledby="tab-side-ajax"
-                            x-bind="panel('side-ajax')" class="animate-fade-in">
+                            x-show="$store.uno.tab.isActive('side-ajax', 'sidebar')" class="animate-fade-in">
                             <!-- Content loaded via HTMX -->
                             <div class="flex items-center justify-center h-full text-slate-400">
                                 <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
@@ -268,7 +296,7 @@
                             </div>
                         </div>
                         <div id="panel-side-htmx-target" role="tabpanel" aria-labelledby="tab-side-htmx"
-                            x-bind="panel('side-htmx')" class="animate-fade-in">
+                            x-show="$store.uno.tab.isActive('side-htmx', 'sidebar')" class="animate-fade-in">
                             <!-- Content loaded via HTMX -->
                             <div class="flex items-center justify-center h-full text-slate-400">
                                 <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
