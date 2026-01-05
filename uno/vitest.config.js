@@ -6,5 +6,5 @@ export default defineConfig({
     include: ['tests/**/*.test.js'],
     exclude: ['e2e/**/*', 'node_modules/**/*'],
     globals: true
-  },
+  }
 })

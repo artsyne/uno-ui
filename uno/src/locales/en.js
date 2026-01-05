@@ -4,8 +4,8 @@ export default {
     cancel: 'Cancel',
     loading: 'Loading',
     close: 'Close'
-  }
-  ,valid: {
+  },
+  valid: {
     required: 'Required',
     pattern: 'Invalid format',
     min: 'At least {n} characters',
@@ -13,6 +13,7 @@ export default {
     range: 'Must be between {min} and {max}',
     rangeMin: 'Min {n}',
     rangeMax: 'Max {n}',
+    match: 'Fields do not match',
     compareto: 'Not match',
     tagMax: 'Max {n} items',
     callback: 'Invalid',
@@ -26,6 +27,6 @@ export default {
     url: 'Invalid URL',
     pwd: 'At least 8 chars, 1 letter, 1 number',
     strongpwd: 'At least 8 chars, 1 letter, 1 number, 1 special char'
-  }
-  ,charCount: 'Remaining: {count}'
+  },
+  charCount: 'Remaining: {count}'
 }

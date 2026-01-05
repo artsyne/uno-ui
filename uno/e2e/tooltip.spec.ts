@@ -29,7 +29,8 @@ test.describe('Tooltip Component', () => {
       await page.waitForFunction(
         () => {
           const win = window as any
-          return win.Alpine && win.Alpine.store && win.Alpine.store('tooltip')
+          const uno = win.Alpine && win.Alpine.store && win.Alpine.store('uno')
+          return uno && uno.tooltip
         },
         undefined,
         { timeout: 5000 }
@@ -47,18 +48,11 @@ test.describe('Tooltip Component', () => {
     }
   })
 
-  test('shows on hover (top)', async ({ page }) => {
-    // Note: The example HTML uses x-uno-tooltip.top
-    // We should also test the new x-uno-tooltip directive in a separate test or modify this one.
-    // Let's modify the test to use data attributes if we can, or add a new test.
-    // Since we are running e2e against existing HTML files in examples/, I should probably not break those files.
-    // Instead, I will inject new elements using the new directive in the test.
-
+  test('shows on hover (top) via config object', async ({ page }) => {
     await page.evaluate(() => {
       const btn = document.createElement('button')
       btn.setAttribute('data-testid', 'trigger-uno-top')
-      btn.setAttribute('x-uno-tooltip', "'Hello Uno Top!'")
-      btn.setAttribute('data-uno-placement', 'top')
+      btn.setAttribute('x-uno-tooltip', "{ content: 'Hello Uno Top!', placement: 'top' }")
       btn.textContent = 'Uno Top'
       btn.className = 'px-3 py-2 bg-blue-500 text-white rounded'
       // Use fixed positioning to ensure space for top tooltip
@@ -89,12 +83,11 @@ test.describe('Tooltip Component', () => {
     }
   })
 
-  test('shows on hover (bottom) via data attribute', async ({ page }) => {
+  test('shows on hover (bottom) via config object', async ({ page }) => {
     await page.evaluate(() => {
       const btn = document.createElement('button')
       btn.setAttribute('data-testid', 'trigger-uno-bottom')
-      btn.setAttribute('x-uno-tooltip', "'Hello Uno Bottom!'")
-      btn.setAttribute('data-uno-placement', 'bottom')
+      btn.setAttribute('x-uno-tooltip', "{ content: 'Hello Uno Bottom!', placement: 'bottom' }")
       btn.textContent = 'Uno Bottom'
       btn.className = 'px-3 py-2 bg-blue-500 text-white rounded'
       document.body.appendChild(btn)
@@ -256,7 +249,7 @@ test.describe('Tooltip Component', () => {
 
       const btn = document.createElement('button')
       btn.setAttribute('data-testid', 'trigger-top-edge')
-      btn.setAttribute('x-uno-tooltip.top', "'I flipped to bottom!'")
+      btn.setAttribute('x-uno-tooltip', "{ content: 'I flipped to bottom!', placement: 'top' }")
       btn.textContent = 'Top Edge'
       btn.className = 'px-3 py-2 bg-slate-800 text-white rounded'
 
@@ -292,7 +285,7 @@ test.describe('Tooltip Component', () => {
 
       const btn = document.createElement('button')
       btn.setAttribute('data-testid', 'trigger-bottom-edge')
-      btn.setAttribute('x-uno-tooltip.bottom', "'I flipped to top!'")
+      btn.setAttribute('x-uno-tooltip', "{ content: 'I flipped to top!', placement: 'bottom' }")
       btn.textContent = 'Bottom Edge'
       btn.className = 'px-3 py-2 bg-slate-800 text-white rounded'
 
@@ -322,7 +315,7 @@ test.describe('Tooltip Component', () => {
     await page.evaluate(() => {
       const btn = document.createElement('button')
       btn.setAttribute('data-testid', 'trigger-click-only')
-      btn.setAttribute('x-uno-tooltip.click', "'Click Only'")
+      btn.setAttribute('x-uno-tooltip', "{ content: 'Click Only', trigger: 'click' }")
       btn.textContent = 'Click Only'
       btn.className = 'px-3 py-2 bg-slate-800 text-white rounded'
       document.body.appendChild(btn)
@@ -347,7 +340,7 @@ test.describe('Tooltip Component', () => {
     await page.evaluate(() => {
       const input = document.createElement('input')
       input.setAttribute('data-testid', 'trigger-focus')
-      input.setAttribute('x-uno-tooltip.focus', "'Focus Tip'")
+      input.setAttribute('x-uno-tooltip', "{ content: 'Focus Tip', trigger: 'focus' }")
       input.className = 'border px-2 py-1'
       document.body.appendChild(input)
 
@@ -431,7 +424,7 @@ test.describe('Tooltip Component', () => {
     const durationMs = await page.evaluate(async () => {
       // @ts-ignore
       const AlpineRef = window.Alpine || window.top.Alpine
-      const store = AlpineRef.store('tooltip')
+      const store = AlpineRef.store('uno').tooltip
       const trigger = document.querySelector('[data-testid="trigger-top"]')
       if (!trigger) return -1
 

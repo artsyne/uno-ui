@@ -21,6 +21,7 @@ import { trapFocus } from '../utils/a11y'
 import { Uno } from '../core/uno'
 import { registerPlugin } from '../core/plugin-registry'
 import { getFlexAlignmentClass } from '../utils/position'
+import { getZIndex } from '../core/layer'
 
 /**
  * Box Plugin Factory
@@ -60,67 +61,12 @@ export default (Alpine, options = {}) => {
   // Declarative interface for triggering box dialogs
   // ============================================================
   Alpine.directive('uno-box', (el, { expression }, { evaluateLater, cleanup }) => {
-    const hasExpression = expression && expression.trim().length > 0
-    const getExpression = hasExpression ? evaluateLater(expression) : null
-
-    /**
-     * Parse boolean from attribute value
-     * @param {string|null} value - Attribute value
-     * @returns {boolean|undefined} Parsed boolean
-     */
-    const parseBool = (value) => {
-      if (value === null || value === undefined) return undefined
-      const v = String(value).trim().toLowerCase()
-      if (v === 'true' || v === '1') return true
-      if (v === 'false' || v === '0') return false
-      return undefined
+    if (!expression) {
+      console.warn('[Uno] x-uno-box directive requires a configuration object.')
+      return
     }
 
-    /**
-     * Parse number from attribute value
-     * @param {string|null} value - Attribute value
-     * @returns {number|undefined} Parsed number
-     */
-    const parseNumber = (value) => {
-      if (value === null || value === undefined || value === '') return undefined
-      const n = Number(value)
-      return Number.isFinite(n) ? n : undefined
-    }
-
-    /**
-     * Build configuration from data attributes
-     * @returns {object} Configuration object
-     */
-    const buildFromAttrs = () => {
-      const type =
-        el.getAttribute('data-uno-box') || el.getAttribute('data-uno-box-type') || 'dialog'
-      const title = el.getAttribute('data-uno-title') || ''
-      const content = el.getAttribute('data-uno-content') || ''
-      const hxUrl = el.getAttribute('data-uno-hx-url') || undefined
-      const position = el.getAttribute('data-uno-position') || undefined
-      const modal = parseBool(el.getAttribute('data-uno-modal'))
-      const closeOnEsc = parseBool(el.getAttribute('data-uno-close-on-esc'))
-      const closeOnOverlayClick = parseBool(el.getAttribute('data-uno-close-on-overlay-click'))
-      const width = parseNumber(el.getAttribute('data-uno-width'))
-      const height = parseNumber(el.getAttribute('data-uno-height'))
-      const widthClass = el.getAttribute('data-uno-width-class') || undefined
-      const heightClass = el.getAttribute('data-uno-height-class') || undefined
-
-      return {
-        type,
-        title,
-        content,
-        hxUrl,
-        position,
-        modal,
-        closeOnEsc,
-        closeOnOverlayClick,
-        width,
-        height,
-        widthClass,
-        heightClass
-      }
-    }
+    const getExpression = evaluateLater(expression)
 
     /**
      * Click handler for directive
@@ -135,31 +81,13 @@ export default (Alpine, options = {}) => {
         return
       }
 
-      if (getExpression) {
-        getExpression((evaluated) => {
-          if (evaluated && typeof evaluated === 'object') {
-            store.open(evaluated)
-          } else {
-            // Fallback: If expression evaluates to falsy (or we want to support conditional opening),
-            // we might want to do nothing.
-            // But if it's just empty/undefined, we check attributes.
-            // Since we checked hasExpression before creating getExpression,
-            // we are here because expression string was not empty.
-            // If the user passed a variable that is null, we probably shouldn't open.
-            // BUT, strictly following the logic "attribute fallback":
-            if (!evaluated) {
-              const attrs = buildFromAttrs()
-              // Only open if we have at least a type or content from attributes to justify it
-              if (attrs.title || attrs.content || attrs.hxUrl) {
-                store.open(attrs)
-              }
-            }
-          }
-        })
-        return
-      }
-
-      store.open(buildFromAttrs())
+      getExpression((evaluated) => {
+        if (evaluated && typeof evaluated === 'object') {
+          store.open(evaluated)
+        } else {
+          console.warn('[Uno] x-uno-box directive value must be an object', evaluated)
+        }
+      })
     }
 
     el.addEventListener('click', onClick)
@@ -483,7 +411,7 @@ export default (Alpine, options = {}) => {
         return existing
       }
 
-      const zBase = Uno.options?.ui?.layers?.boxBase || 10000
+      const zBase = Uno.options?.ui?.layers?.box || getZIndex('BOX')
 
       const attributes = {
         'x-data': '{}',
@@ -512,7 +440,7 @@ export default (Alpine, options = {}) => {
           <template x-for="item in $store.uno.box.items" :key="item.id">
             <div :id="'uno-box-outer-container' + item.id"
                  :class="[Uno.getStyle('box', 'itemWrapper'), $store.uno.box.getPositionClasses(item.position)]"
-                 :style="'z-index:' + (Uno.options?.ui?.layers?.boxBase || 10000)"
+                 :style="'z-index:' + (Uno.options?.ui?.layers?.box || getZIndex('BOX'))"
                  x-show="item.isOpen"
                  x-transition:enter="ease-out duration-300"
                  x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"

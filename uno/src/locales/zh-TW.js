@@ -4,8 +4,8 @@ export default {
     cancel: '取消',
     loading: '加載中',
     close: '關閉'
-  }
-  ,valid: {
+  },
+  valid: {
     required: '必填',
     pattern: '格式無效',
     min: '至少 {n} 個字符',
@@ -13,6 +13,7 @@ export default {
     range: '必須在 {min} 到 {max} 之間',
     rangeMin: '最小 {n}',
     rangeMax: '最大 {n}',
+    match: '輸入不一致',
     compareto: '不一致',
     tagMax: '最多 {n} 項',
     callback: '校驗失敗',
@@ -26,6 +27,6 @@ export default {
     url: '無效的 URL',
     pwd: '至少 8 位，包含 1 個字母和 1 個數字',
     strongpwd: '至少 8 位，包含字母、數字和特殊字符'
-  }
-  ,charCount: '剩餘: {count}'
+  },
+  charCount: '剩餘: {count}'
 }

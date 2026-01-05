@@ -34,7 +34,7 @@ describe('UnoInstance Configuration', () => {
         color: 'red' // Level 3
       }
     }
-    
+
     // Level 4: Instance Config
     const instanceOpts = {
       width: 300
@@ -53,7 +53,7 @@ describe('UnoInstance Configuration', () => {
     uno.registerPluginDefaults('test', {
       nested: { a: 1, b: 2 }
     })
-    
+
     uno.options = {
       plugins: {
         test: {
@@ -61,7 +61,7 @@ describe('UnoInstance Configuration', () => {
         }
       }
     }
-    
+
     const instanceOpts = {
       nested: { c: 4 }
     }
@@ -74,32 +74,32 @@ describe('UnoInstance Configuration', () => {
       c: 4
     })
   })
-  
+
   it('should resolve nested styles', () => {
-      const config = {
-          types: {
-              success: 'bg-green-500',
-              error: 'bg-red-500'
-          },
-          base: 'p-4'
-      }
-      
-      // Mock _getUiValue which is used internally by getStyle
-      // But getStyle is what we test.
-      // We need to inject config first.
-      // getStyle(comp, elem, defaultCls)
-      
-      // In the new implementation, we need to know how getStyle retrieves config.
-      // It calls this._getUiValue(comp, elem)
-      
-      // Let's just test the logic if we can mock _getUiValue or if we set up the config correctly.
-      // Since _getUiValue likely uses getConfig, let's see.
-      // Actually infrastructure.md says:
-      // getStyle(comp, elem, defaultCls) {
-      //   const config = this._getUiValue(comp, elem)
-      //   ...
-      // }
-      
-      // We need to implement _getUiValue or make sure it works.
+    const config = {
+      types: {
+        success: 'bg-green-500',
+        error: 'bg-red-500'
+      },
+      base: 'p-4'
+    }
+
+    // Mock _getUiValue which is used internally by getStyle
+    // But getStyle is what we test.
+    // We need to inject config first.
+    // getStyle(comp, elem, defaultCls)
+
+    // In the new implementation, we need to know how getStyle retrieves config.
+    // It calls this._getUiValue(comp, elem)
+
+    // Let's just test the logic if we can mock _getUiValue or if we set up the config correctly.
+    // Since _getUiValue likely uses getConfig, let's see.
+    // Actually infrastructure.md says:
+    // getStyle(comp, elem, defaultCls) {
+    //   const config = this._getUiValue(comp, elem)
+    //   ...
+    // }
+
+    // We need to implement _getUiValue or make sure it works.
   })
 })

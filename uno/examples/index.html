@@ -1,165 +1,177 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="scroll-smooth">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Uno Framework - Manual Tests</title>
-    <link rel="stylesheet" href="./examples.css">
+    <link rel="stylesheet" href="./examples.css" />
     <script src="./examples.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-</head>
+  </head>
 
-<body
-    class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
+  <body
+    class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200"
+  >
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <header class="mb-10 border-b border-slate-200 dark:border-slate-700 pb-6 flex justify-between items-end">
-            <div>
-                <h1 class="text-4xl font-bold tracking-tight text-slate-900 dark:text-white">Uno Framework</h1>
-                <p class="text-slate-500 dark:text-slate-400 mt-2 text-lg">Manual Test Suite (Running compiled assets)
-                </p>
-            </div>
-            <button type="button" data-theme-toggle
-                class="p-2 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-                aria-label="Toggle Dark Mode">
-                <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
-                    </path>
-                </svg>
-                <svg class="w-6 h-6 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
-                    </path>
-                </svg>
-            </button>
-        </header>
+      <header
+        class="mb-10 border-b border-slate-200 dark:border-slate-700 pb-6 flex justify-between items-end"
+      >
+        <div>
+          <h1 class="text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Uno Framework
+          </h1>
+          <p class="text-slate-500 dark:text-slate-400 mt-2 text-lg">
+            Manual Test Suite (Running compiled assets)
+          </p>
+        </div>
+        <button
+          type="button"
+          data-theme-toggle
+          class="p-2 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Toggle Dark Mode"
+        >
+          <svg
+            class="w-6 h-6 hidden dark:block"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+            ></path>
+          </svg>
+          <svg
+            class="w-6 h-6 block dark:hidden"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+            ></path>
+          </svg>
+        </button>
+      </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Components List -->
-            <div
-                class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                <h2 class="text-xl font-semibold mb-4 text-slate-800 dark:text-slate-200">Components</h2>
-                <ul class="space-y-3">
-                    <li>
-                        <a href="components/box.html"
-                            class="block p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex justify-between items-center group">
-                            <span class="font-medium">Box</span>
-                            <span
-                                class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400">→</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="components/notify.html"
-                            class="block p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex justify-between items-center group">
-                            <span class="font-medium">Notify</span>
-                            <span
-                                class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400">→</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="components/tab.html"
-                            class="block p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex justify-between items-center group">
-                            <span class="font-medium">Tab</span>
-                            <span
-                                class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400">→</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="components/valid.html"
-                            class="block p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex justify-between items-center group">
-                            <span class="font-medium">Valid</span>
-                            <span
-                                class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400">→</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="components/tooltip.html"
-                            class="block p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex justify-between items-center group">
-                            <span class="font-medium">Tooltip</span>
-                            <span
-                                class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400">→</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Feature Demos -->
-            <div
-                class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                <h2 class="text-xl font-semibold mb-4 text-slate-800 dark:text-slate-200">Feature Demos</h2>
-                <ul class="space-y-3">
-                    <li>
-                        <a href="features.html"
-                            class="block p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex justify-between items-center group">
-                            <span class="font-medium">Features (E2E Testbed)</span>
-                            <span
-                                class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400">→</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="i18n.html"
-                            class="block p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex justify-between items-center group">
-                            <span class="font-medium">Internationalization (i18n)</span>
-                            <span
-                                class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400">→</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="debug-box-tooltip.html"
-                            class="block p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex justify-between items-center group">
-                            <span class="font-medium">Debug: Box & Tooltip</span>
-                            <span
-                                class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400">→</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="config-demo.html"
-                            class="block p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex justify-between items-center group">
-                            <span class="font-medium">Configuration Demo (Phase 3)</span>
-                            <span
-                                class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400">→</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="style-demo.html"
-                            class="block p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex justify-between items-center group">
-                            <span class="font-medium">Style Customization (Brutalist Theme)</span>
-                            <span
-                                class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400">→</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- System Status -->
-            <div
-                class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 md:col-span-2">
-                <h2 class="text-xl font-semibold mb-4 text-slate-800 dark:text-slate-200">System Status</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg flex justify-between items-center">
-                        <span class="font-medium text-slate-700 dark:text-slate-300">Alpine.js</span>
-                        <span
-                            class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded uppercase">Active</span>
-                    </div>
-                    <div class="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg flex justify-between items-center">
-                        <span class="font-medium text-slate-700 dark:text-slate-300">Tailwind CSS (v4)</span>
-                        <span
-                            class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded uppercase">Compiled</span>
-                    </div>
-                    <div class="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg flex justify-between items-center">
-                        <span class="font-medium text-slate-700 dark:text-slate-300">HTMX</span>
-                        <span
-                            class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded uppercase">Active</span>
-                    </div>
-                </div>
-            </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Components List -->
+        <div
+          class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700"
+        >
+          <h2 class="text-xl font-semibold mb-4 text-slate-800 dark:text-slate-200">Components</h2>
+          <ul class="space-y-3">
+            <li>
+              <a
+                href="components/box.html"
+                class="block p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex justify-between items-center group"
+              >
+                <span class="font-medium">Box</span>
+                <span
+                  class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400"
+                  >→</span
+                >
+              </a>
+            </li>
+            <li>
+              <a
+                href="components/notify.html"
+                class="block p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex justify-between items-center group"
+              >
+                <span class="font-medium">Notify</span>
+                <span
+                  class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400"
+                  >→</span
+                >
+              </a>
+            </li>
+            <li>
+              <a
+                href="components/tab.html"
+                class="block p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex justify-between items-center group"
+              >
+                <span class="font-medium">Tab</span>
+                <span
+                  class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400"
+                  >→</span
+                >
+              </a>
+            </li>
+            <li>
+              <a
+                href="components/valid.html"
+                class="block p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex justify-between items-center group"
+              >
+                <span class="font-medium">Valid</span>
+                <span
+                  class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400"
+                  >→</span
+                >
+              </a>
+            </li>
+            <li>
+              <a
+                href="components/tooltip.html"
+                class="block p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex justify-between items-center group"
+              >
+                <span class="font-medium">Tooltip</span>
+                <span
+                  class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400"
+                  >→</span
+                >
+              </a>
+            </li>
+          </ul>
         </div>
 
-        <footer class="mt-12 text-center text-slate-400 dark:text-slate-600 text-sm">
-            <p>&copy; 2025 iDiary.ai Hebe Project. All rights reserved.</p>
-        </footer>
-    </div>
-</body>
 
+        <!-- System Status -->
+        <div
+          class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 md:col-span-2"
+        >
+          <h2 class="text-xl font-semibold mb-4 text-slate-800 dark:text-slate-200">
+            System Status
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div
+              class="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg flex justify-between items-center"
+            >
+              <span class="font-medium text-slate-700 dark:text-slate-300">Alpine.js</span>
+              <span
+                class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded uppercase"
+                >Active</span
+              >
+            </div>
+            <div
+              class="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg flex justify-between items-center"
+            >
+              <span class="font-medium text-slate-700 dark:text-slate-300">Tailwind CSS (v4)</span>
+              <span
+                class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded uppercase"
+                >Compiled</span
+              >
+            </div>
+            <div
+              class="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg flex justify-between items-center"
+            >
+              <span class="font-medium text-slate-700 dark:text-slate-300">HTMX</span>
+              <span
+                class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded uppercase"
+                >Active</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="mt-12 text-center text-slate-400 dark:text-slate-600 text-sm">
+        <p>&copy; 2025 iDiary.ai Hebe Project. All rights reserved.</p>
+      </footer>
+    </div>
+  </body>
 </html>

@@ -1,214 +1,213 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uno Tooltip Comprehensive Test</title>
-    <link rel="stylesheet" href="../examples.css">
-    <script src="../examples.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
-    <script src="../../dist/uno.umd.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Uno Tooltip Comprehensive Test</title>
+  <link rel="stylesheet" href="../examples.css" />
+  <script src="../examples.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
+  <script src="../../dist/uno.umd.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
 </head>
 
 <body
-    class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen pb-20 transition-colors duration-200"
-    x-data>
-
-    <!-- Header -->
-    <header class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-40 transition-colors">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <a href="../index.html"
-                    class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
-                    title="Back to Index">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                </a>
-                <h1 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                    <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">Uno</span>
-                    Tooltip Plugin
-                </h1>
-            </div>
-            <div class="flex items-center gap-4">
-                <button type="button" data-theme-toggle
-                    class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors"
-                    aria-label="Toggle Dark Mode">
-                    <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
-                        </path>
-                    </svg>
-                    <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
-                        </path>
-                    </svg>
-                </button>
-                <div class="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
-                <div class="text-sm text-slate-500 dark:text-slate-400">Switch Lang:</div>
-                <div class="flex bg-slate-100 dark:bg-slate-700 rounded p-1 transition-colors">
-                    <button onclick="(window.Alpine||window.top.Alpine).store('i18n').setLang('en')"
-                        class="px-3 py-1 text-sm rounded hover:bg-white dark:hover:bg-slate-600 dark:text-slate-200 hover:shadow transition-all">EN</button>
-                    <button onclick="(window.Alpine||window.top.Alpine).store('i18n').setLang('zh-CN')"
-                        class="px-3 py-1 text-sm rounded hover:bg-white dark:hover:bg-slate-600 dark:text-slate-200 hover:shadow transition-all">中文</button>
-                </div>
-            </div>
+  class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen pb-20 transition-colors duration-200"
+  x-data>
+  <!-- Header -->
+  <header class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-40 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a href="../index.html"
+          class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
+          title="Back to Index">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+        </a>
+        <h1 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+          <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">Uno</span>
+          Tooltip Plugin
+        </h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <button type="button" data-theme-toggle
+          class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors"
+          aria-label="Toggle Dark Mode">
+          <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+            </path>
+          </svg>
+          <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+          </svg>
+        </button>
+        <div class="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+        <div class="text-sm text-slate-500 dark:text-slate-400">Switch Lang:</div>
+        <div class="flex bg-slate-100 dark:bg-slate-700 rounded p-1 transition-colors">
+          <button onclick="(window.Alpine || window.top.Alpine).store('i18n').setLang('en')"
+            class="px-3 py-1 text-sm rounded hover:bg-white dark:hover:bg-slate-600 dark:text-slate-200 hover:shadow transition-all">
+            EN
+          </button>
+          <button onclick="(window.Alpine || window.top.Alpine).store('i18n').setLang('zh-CN')"
+            class="px-3 py-1 text-sm rounded hover:bg-white dark:hover:bg-slate-600 dark:text-slate-200 hover:shadow transition-all">
+            中文
+          </button>
         </div>
-    </header>
+      </div>
+    </div>
+  </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <!-- Introduction -->
+    <div
+      class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
+      <p class="text-slate-600 dark:text-slate-300">
+        The <code>tooltip</code> plugin offers smart positioning (flipping) and multiple trigger
+        modes (hover, click). It uses the <code>x-uno-tooltip</code> directive for a clean,
+        data-driven API.
+      </p>
+    </div>
 
-        <!-- Introduction -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Card 1: Hover Positions -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
         <div
-            class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
-            <p class="text-slate-600 dark:text-slate-300">
-                The <code>tooltip</code> plugin offers smart positioning (flipping) and multiple trigger modes (hover,
-                click).
-                It uses the <code>x-tooltip</code> directive for a clean, data-driven API.
-            </p>
+          class="bg-slate-50 dark:bg-slate-900 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-slate-200">1. Hover Positions</h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800 px-2 py-1 rounded border dark:border-slate-600">Default:
+            Top</span>
         </div>
+        <div class="p-6 h-64 flex items-center justify-center gap-8">
+          <!-- Top (Default) -->
+          <div class="relative">
+            <button data-testid="trigger-top" x-uno-tooltip="'Hello Top!'"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm">
+              Hover Top
+            </button>
+          </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-            <!-- Card 1: Hover Positions -->
-            <div
-                class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
-                <div
-                    class="bg-slate-50 dark:bg-slate-900 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
-                    <h2 class="font-semibold text-slate-800 dark:text-slate-200">1. Hover Positions</h2>
-                    <span
-                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800 px-2 py-1 rounded border dark:border-slate-600">Default:
-                        Top</span>
-                </div>
-                <div class="p-6 h-64 flex items-center justify-center gap-8">
-
-                    <!-- Top (Default) -->
-                    <div class="relative">
-                        <button data-testid="trigger-top" x-uno-tooltip data-uno-content="Hello Top!"
-                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm">
-                            Hover Top
-                        </button>
-                    </div>
-
-                    <!-- Bottom -->
-                    <div class="relative">
-                        <button data-testid="trigger-bottom" x-uno-tooltip.bottom data-uno-content="Hello Bottom!"
-                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
-                            Hover Bottom
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Card 2: Click & Right -->
-            <div
-                class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
-                <div
-                    class="bg-slate-50 dark:bg-slate-900 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
-                    <h2 class="font-semibold text-slate-800 dark:text-slate-200">2. Click Trigger (Right)</h2>
-                    <span
-                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800 px-2 py-1 rounded border dark:border-slate-600">Event:
-                        Click</span>
-                </div>
-                <div class="p-6 h-64 flex items-center justify-center">
-
-                    <div class="relative">
-                        <button data-testid="trigger-click" x-uno-tooltip.click.right
-                            data-uno-content="Clicked (Light)!" data-uno-theme="light"
-                            class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium shadow-sm">
-                            Click Me (Right)
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Card 3: HTML Content from Target -->
-            <div
-                class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
-                <div
-                    class="bg-slate-50 dark:bg-slate-900 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
-                    <h2 class="font-semibold text-slate-800 dark:text-slate-200">3. Rich HTML Content</h2>
-                    <span
-                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800 px-2 py-1 rounded border dark:border-slate-600">DOM
-                        Target</span>
-                </div>
-                <div class="p-6 h-64 flex flex-col items-center justify-center gap-4">
-                    <p class="text-sm text-slate-500 dark:text-slate-400 text-center mb-2">
-                        This tooltip pulls content from a hidden DOM element.
-                    </p>
-
-                    <!-- Hidden Source -->
-                    <template id="my-custom-content">
-                        <div class="text-left">
-                            <h4 class="font-bold text-indigo-600 dark:text-indigo-400">Rich Content</h4>
-                            <p class="text-xs text-slate-500 dark:text-slate-400">You can include HTML tags here.</p>
-                            <strong class="text-slate-900 dark:text-slate-200">Bold Title</strong>
-                            <em class="text-slate-700 dark:text-slate-300">Italic description</em>
-                            <ul class="list-disc pl-4 text-xs mt-1 text-slate-600 dark:text-slate-400">
-                                <li>Bold text</li>
-                                <li>Lists</li>
-                                <li>Icons</li>
-                            </ul>
-                            <div class="mt-2 text-xs">
-                                <a data-testid="xss-link" href="javascript:window.__UNO_XSS_LINK__=true"
-                                    class="text-blue-600 dark:text-blue-400 hover:underline">Unsafe Link</a>
-                                <img data-testid="xss-img" src="x" onerror="window.__UNO_XSS_IMG__=true" />
-                            </div>
-                        </div>
-                    </template>
-
-                    <div class="relative">
-                        <button data-testid="trigger-target" x-uno-tooltip.bottom data-uno-target="#my-custom-content"
-                            class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium shadow-sm">
-                            Hover for HTML
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Card 4: Edge Detection -->
-            <div
-                class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
-                <div
-                    class="bg-slate-50 dark:bg-slate-900 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
-                    <h2 class="font-semibold text-slate-800 dark:text-slate-200">4. Smart Positioning</h2>
-                    <span
-                        class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800 px-2 py-1 rounded border dark:border-slate-600">Auto
-                        Flip</span>
-                </div>
-                <div class="p-6 h-64 relative bg-slate-100 dark:bg-slate-900/50 overflow-hidden transition-colors">
-                    <p class="text-xs text-slate-500 dark:text-slate-400 absolute top-2 left-2">
-                        Try scrolling or resizing. The button below is stuck to the top-left corner.
-                    </p>
-
-                    <div class="absolute top-0 left-0 p-4">
-                        <button data-testid="trigger-edge" x-uno-tooltip.top data-uno-content="I flipped to bottom!"
-                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium shadow-sm whitespace-nowrap">
-                            Top Edge (Force Flip)
-                        </button>
-                    </div>
-
-                    <div class="absolute bottom-0 right-0 p-4">
-                        <button x-uno-tooltip.bottom.right data-uno-content="I flipped to top-left!"
-                            class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium shadow-sm whitespace-nowrap">
-                            Bottom Right Edge
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-
+          <!-- Bottom -->
+          <div class="relative">
+            <button data-testid="trigger-bottom" x-uno-tooltip="{ content: 'Hello Bottom!', placement: 'bottom' }"
+              class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
+              Hover Bottom
+            </button>
+          </div>
         </div>
-    </main>
+      </div>
+
+      <!-- Card 2: Click & Right -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-900 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-slate-200">
+            2. Click Trigger (Right)
+          </h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800 px-2 py-1 rounded border dark:border-slate-600">Event:
+            Click</span>
+        </div>
+        <div class="p-6 h-64 flex items-center justify-center">
+          <div class="relative">
+            <button data-testid="trigger-click" x-uno-tooltip="{
+                  content: 'Clicked (Light)!',
+                  theme: 'light',
+                  trigger: 'click',
+                  placement: 'right'
+                }"
+              class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium shadow-sm">
+              Click Me (Right)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: HTML Content from Target -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-900 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-slate-200">3. Rich HTML Content</h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800 px-2 py-1 rounded border dark:border-slate-600">DOM
+            Target</span>
+        </div>
+        <div class="p-6 h-64 flex flex-col items-center justify-center gap-4">
+          <p class="text-sm text-slate-500 dark:text-slate-400 text-center mb-2">
+            This tooltip pulls content from a hidden DOM element.
+          </p>
+
+          <!-- Hidden Source -->
+          <template id="my-custom-content">
+            <div class="text-left">
+              <h4 class="font-bold text-indigo-600 dark:text-indigo-400">Rich Content</h4>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                You can include HTML tags here.
+              </p>
+              <strong class="text-slate-900 dark:text-slate-200">Bold Title</strong>
+              <em class="text-slate-700 dark:text-slate-300">Italic description</em>
+              <ul class="list-disc pl-4 text-xs mt-1 text-slate-600 dark:text-slate-400">
+                <li>Bold text</li>
+                <li>Lists</li>
+                <li>Icons</li>
+              </ul>
+              <div class="mt-2 text-xs">
+                <a data-testid="xss-link" href="javascript:window.__UNO_XSS_LINK__=true"
+                  class="text-blue-600 dark:text-blue-400 hover:underline">Unsafe Link</a>
+                <img data-testid="xss-img" src="x" onerror="window.__UNO_XSS_IMG__ = true" />
+              </div>
+            </div>
+          </template>
+
+          <div class="relative">
+            <button data-testid="trigger-target" x-uno-tooltip="{ target: '#my-custom-content', placement: 'bottom' }"
+              class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium shadow-sm">
+              Hover for HTML
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Edge Detection -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-900 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-slate-200">4. Smart Positioning</h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800 px-2 py-1 rounded border dark:border-slate-600">Auto
+            Flip</span>
+        </div>
+        <div class="p-6 h-64 relative bg-slate-100 dark:bg-slate-900/50 overflow-hidden transition-colors">
+          <p class="text-xs text-slate-500 dark:text-slate-400 absolute top-2 left-2">
+            Try scrolling or resizing. The button below is stuck to the top-left corner.
+          </p>
+
+          <div class="absolute top-0 left-0 p-4">
+            <button data-testid="trigger-edge" x-uno-tooltip.top="'I flipped to bottom!'"
+              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium shadow-sm whitespace-nowrap">
+              Top Edge (Force Flip)
+            </button>
+          </div>
+
+          <div class="absolute bottom-0 right-0 p-4">
+            <button x-uno-tooltip="{ content: 'I flipped to top-left!', placement: 'right' }"
+              class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium shadow-sm whitespace-nowrap">
+              Bottom Right Edge
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 </body>
 
 </html>

@@ -33,7 +33,7 @@ Use the `x-t` directive for declarative translations.
 <span x-t="welcome.message"></span>
 
 <!-- With Attribute Modifier -->
-<input x-t.placeholder="forms.email_placeholder" type="email">
+<input x-t.placeholder="forms.email_placeholder" type="email" />
 
 <!-- Dynamic Language Switching -->
 <button @click="$store.i18n.setLang('zh-CN')">中文</button>

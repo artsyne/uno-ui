@@ -14,16 +14,23 @@ import { getFixedPositionClass, getStackingConfig } from '../utils/position'
 import { registerPlugin } from '../core/plugin-registry'
 
 export default (Alpine, options = {}) => {
-  // 1. Config Helpers
-  const getConfig = (instanceOpts = {}) => {
-    // Level 1: Plugin Defaults (handled by Uno.registerPluginDefaults if used, or local default)
-    // Level 2: Global User Config (plugins.notify)
-    // Level 3: Direct Global Config (notify)
-    // Level 4: Instance Config (instanceOpts)
-
-    // We use Uno.getConfig helper if available, or manual merge
-    return Uno.getConfig('notify', instanceOpts)
+  // Register plugin defaults
+  const pluginDefaults = {
+    duration: 3000,
+    position: 'top-right'
   }
+
+  Uno.registerPluginDefaults('notify', {
+    ...pluginDefaults,
+    ...options.plugins?.notify,
+    ...options.notify
+  })
+
+  // 1. Config Helpers
+  // Level 1: Plugin Defaults (handled by Uno.registerPluginDefaults)
+  // Level 2: Global User Config (plugins.notify)
+  // Level 3: Direct Global Config (notify)
+  // Level 4: Instance Config (instanceOpts)
 
   // 2. Alpine Store
   const notifyStore = {
@@ -132,10 +139,10 @@ export default (Alpine, options = {}) => {
       }, 300)
     },
 
-    getContainerStyle(position) {
-      // Use Layer Manager for Z-Index (TOAST layer)
+    getContainerStyle() {
+      // Use Layer Manager for Z-Index (NOTIFY layer)
       // If user provided a custom base in options, use that, otherwise use core layer
-      const zBase = Uno.options?.ui?.layers?.notifyBase || getZIndex('TOAST')
+      const zBase = Uno.options?.ui?.layers?.notify || getZIndex('NOTIFY')
       return {
         zIndex: zBase
       }
@@ -250,8 +257,8 @@ export default (Alpine, options = {}) => {
 
       // 3. Global Progress Bar
       const progressId = 'uno-global-progress'
-      // Use a high z-index (e.g. same as loading or slightly below/above)
-      const progressZ = getZIndex('MODAL') + 2100
+      // Use MAX z-index for global progress bar
+      const progressZ = getZIndex('MAX')
 
       const progressTemplate = `
           <div :class="Uno.getStyle('notify', 'progressWrap')"
@@ -280,7 +287,7 @@ export default (Alpine, options = {}) => {
 
     show(message, opts = {}) {
       this.ensureContainer()
-      const config = getConfig(opts)
+      const config = Uno.getConfig('notify', opts)
       const id = this.nextId++
 
       // i18n support: if message is a key, try to translate it
@@ -367,50 +374,39 @@ export default (Alpine, options = {}) => {
   notifyStore.init()
 
   // 3. Directive Registration
-  Alpine.directive('uno-notify', (el, { expression }, { evaluate }) => {
-    // Usage: <button x-uno-notify="'Message'" data-uno-type="success">
-    // Usage: <button x-uno-notify="['Message', { type: 'success' }]">
+  Alpine.directive('uno-notify', (el, { expression }, { evaluateLater }) => {
+    // Usage: <button x-uno-notify="{ message: 'Message', type: 'success' }">
+    // Usage: <button x-uno-notify="'Message'">
+
+    if (!expression) {
+      console.warn(
+        '[Uno] x-uno-notify directive requires a configuration object or message string.'
+      )
+      return
+    }
+
+    const getExpression = evaluateLater(expression)
 
     const handler = () => {
       const store = Alpine.store('uno')?.notify
       if (!store) return
 
-      // Parse attributes
-      const attrConfig = {
-        type: el.getAttribute('data-uno-type') || 'info',
-        position: el.getAttribute('data-uno-position'),
-        duration: el.getAttribute('data-uno-duration')
-          ? Number(el.getAttribute('data-uno-duration'))
-          : undefined,
-        closable: el.getAttribute('data-uno-closable') !== 'false'
-      }
+      getExpression((result) => {
+        let message = ''
+        let config = {}
 
-      // Clean undefined
-      Object.keys(attrConfig).forEach(
-        (key) => attrConfig[key] === undefined && delete attrConfig[key]
-      )
-
-      // Message can come from expression or attribute
-      let message = ''
-      let exprConfig = {}
-
-      if (expression) {
-        const result = evaluate(expression)
-        if (Array.isArray(result)) {
-          message = result[0]
-          exprConfig = result[1] || {}
+        if (typeof result === 'string') {
+          message = result
         } else if (typeof result === 'object' && result !== null) {
-          // Fallback if user passed object (maybe just config?)
-          // Or if they used comma operator (unlikely to get message)
-          exprConfig = result
+          message = result.message || ''
+          config = result
         } else {
-          message = String(result)
+          console.warn('[Uno] x-uno-notify directive value must be a string or object', result)
+          return
         }
-      } else {
-        message = el.getAttribute('data-uno-message') || ''
-      }
 
-      store.show(message, { ...attrConfig, ...exprConfig })
+        store.show(message, config)
+      })
     }
 
     el.addEventListener('click', handler)

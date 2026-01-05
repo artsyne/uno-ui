@@ -25,10 +25,15 @@ if (typeof window !== 'undefined') {
 }
 
 // 2. Register Built-in Plugins
+// Order matters: i18n should be first
 Uno.use(installAlpine).use(tooltip).use(notify).use(box).use(valid).use(tab)
 
 // 3. Initialization Logic
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+  /**
+   * Initialize Uno when Alpine is ready.
+   * Supports global configuration via window.UnoConfig.
+   */
   const initUno = () => {
     if (Uno.initialized) return
     // Support global configuration via window.UnoConfig
@@ -42,5 +47,13 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     document.addEventListener('alpine:init', initUno)
   }
 }
+
+export { Uno }
+export { DomManager }
+export { default as tooltip } from './components/tooltip'
+export { default as notify } from './components/notify'
+export { default as box } from './components/box'
+export { default as valid } from './components/valid'
+export { default as tab } from './components/tab'
 
 export default Uno

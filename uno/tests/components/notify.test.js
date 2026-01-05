@@ -8,6 +8,7 @@ import { DomManager } from '../../src/utils/dom'
 vi.mock('../../src/core/uno', () => ({
   Uno: {
     getConfig: vi.fn(),
+    registerPluginDefaults: vi.fn(),
     getStyle: vi.fn((comp, key) => `${comp}-${key}`), // Mock style class
     options: {
       ui: {

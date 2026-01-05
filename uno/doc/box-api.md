@@ -30,16 +30,16 @@ A lightweight, declarative, HTMX-native modal component based on Alpine.js + Tai
 
 ```javascript
 // Alert dialog
-Uno.box.alert('Operation completed!')
+Alpine.store('uno').box.alert('Operation completed!')
 
 // Confirm dialog (returns Promise)
-const ok = await Uno.box.confirm('Are you sure?')
+const ok = await Alpine.store('uno').box.confirm('Are you sure?')
 
 // Prompt dialog (returns Promise)
-const name = await Uno.box.prompt('Enter your name:', 'John')
+const name = await Alpine.store('uno').box.prompt('Enter your name:', 'John')
 
 // Custom dialog
-Uno.box.dialog({
+Alpine.store('uno').box.dialog({
   title: 'Notice',
   content: 'Hello World',
   position: 'top-center'
@@ -119,7 +119,7 @@ Alpine.store('uno')
 ### Loading Content
 
 ```javascript
-Uno.box.dialog({
+Alpine.store('uno').box.dialog({
   title: 'User Profile',
   hxUrl: '/api/user/profile',
   hxMethod: 'GET',
@@ -223,7 +223,7 @@ Alpine.store('box').open({...})
 // New
 Alpine.store('uno').box.open({...})
 // Or use global API
-Uno.box.dialog({...})
+// Alpine.store('uno').box.dialog({...})
 ```
 
 2. **trustedHTML Removed**: For security, all content is auto-sanitized. Use HTMX for dynamic content:
@@ -236,13 +236,13 @@ store.open({ content: htmlString, trustedHTML: true })
 store.open({ hxUrl: '/api/content' })
 ```
 
-3. **Global API**: Use `Uno.box` instead of accessing store directly for convenience
+3. **Global API**: Use `Alpine.store('uno').box` instead of accessing store directly for convenience
 
 ## Example
 
 ```javascript
 // Full example with all features
-Uno.box.dialog({
+Alpine.store('uno').box.dialog({
   title: 'Edit Profile',
   hxUrl: '/api/profile/edit',
   position: 'center',

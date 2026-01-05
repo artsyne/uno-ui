@@ -74,23 +74,12 @@ export default (Alpine, options = {}) => {
      * @param {object} instanceOpts - Options { name, group, ... }
      */
     activate(instanceOpts = {}) {
-      // Level 1: Global Uno Config
-      const globalOpts = (typeof window !== 'undefined' ? window.Uno?.options : Uno.options) || {}
-
-      // Level 2: Plugin Defaults
-      // Note: We use the defaults registered in Uno.registerPluginDefaults ideally,
-      // but here we can access what was passed to the factory or fallback.
-      const defaults = pluginDefaults
-
-      // Level 3: Merged Config
-      const currentGlobal = globalOpts.plugins?.tab || globalOpts.tab || defaults
-
-      const config = {
+      // 4-level merge via Uno.getConfig
+      const config = Uno.getConfig('tab', {
         group: 'default',
         hash: true,
-        ...currentGlobal,
         ...instanceOpts
-      }
+      })
 
       if (!config.name) return
 
@@ -119,9 +108,7 @@ export default (Alpine, options = {}) => {
         // Typically means activated from hash or init
         // Use setTimeout to allow DOM to be ready if called during init
         setTimeout(() => {
-          const tabEl =
-            document.querySelector(`[data-uno-name="${config.name}"]`) ||
-            document.getElementById(`tab-${config.name}`)
+          const tabEl = document.getElementById(`tab-${config.name}`)
           if (tabEl && tabEl.hasAttribute('hx-get')) {
             log.info(`[Tab] Triggering HTMX for ${config.name}`)
             if (window.htmx) {
@@ -182,50 +169,49 @@ export default (Alpine, options = {}) => {
   // Tab Directive (x-uno-tab)  // Usage: <button x-uno-tab="{ name: 'tab1' }">
   // ============================================================
   Alpine.directive('uno-tab', (el, { expression }, { evaluateLater, cleanup }) => {
-    const getExpression = expression ? evaluateLater(expression) : () => {}
-
-    // Helper to build config from attributes (backward compatibility / hybrid mode)
-    const buildFromAttrs = () => ({
-      name:
-        el.getAttribute('data-uno-name') ||
-        el.getAttribute('data-tab') ||
-        el.id?.replace('tab-', ''),
-      group: el.getAttribute('data-uno-group') || 'default',
-      url: el.getAttribute('data-uno-url'), // For HTMX reference if needed
-      target: el.getAttribute('data-uno-target')
-    })
-
-    const initialAttrs = buildFromAttrs()
-    let config = { ...initialAttrs }
-
-    if (expression) {
-      getExpression((value) => {
-        if (typeof value === 'object') {
-          config = { ...config, ...value }
-        } else if (typeof value === 'string') {
-          // Support x-uno-tab="'tabName'" shorthand
-          config.name = value
-        }
-
-        // Register on init
-        Alpine.store('uno').tab.register(config.name, config.group)
-      })
-    } else {
-      // Register on init
-      Alpine.store('uno').tab.register(config.name, config.group)
+    if (!expression) {
+      console.warn('[Uno] x-uno-tab directive requires a configuration object.')
+      return
     }
+
+    const getExpression = evaluateLater(expression)
+
+    // Initial Registration
+    getExpression((value) => {
+      let config = {}
+      if (typeof value === 'object' && value !== null) {
+        config = value
+      } else if (typeof value === 'string') {
+        config = { name: value }
+      } else {
+        console.warn('[Uno] x-uno-tab directive value must be a string or object', value)
+        return
+      }
+
+      // Default group if not specified
+      if (!config.group) config.group = 'default'
+
+      // Register on init
+      if (config.name) {
+        Alpine.store('uno').tab.register(config.name, config.group)
+      }
+    })
 
     const onClick = (e) => {
       e.preventDefault()
-      // Re-evaluate expression to get dynamic values if any
-      if (expression) {
-        getExpression((value) => {
-          const dynConfig = typeof value === 'object' ? value : { name: value }
-          Alpine.store('uno').tab.activate({ ...buildFromAttrs(), ...dynConfig })
-        })
-      } else {
-        Alpine.store('uno').tab.activate(buildFromAttrs())
-      }
+
+      getExpression((value) => {
+        let config = {}
+        if (typeof value === 'object' && value !== null) {
+          config = value
+        } else if (typeof value === 'string') {
+          config = { name: value }
+        }
+
+        if (config.name) {
+          Alpine.store('uno').tab.activate(config)
+        }
+      })
     }
 
     el.addEventListener('click', onClick)

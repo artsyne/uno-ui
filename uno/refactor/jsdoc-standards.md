@@ -9,11 +9,13 @@ Uno UI v2.0 所有代码注释必须采用 JSDoc 标准，统一使用英文注�
 ## 🎯 核心原则
 
 ### 1. **语言要求**
+
 - **必须使用英文注释**：所有注释、文档、说明都必须使用英文
 - **遵循 JSDoc 3.x 标准**：使用最新的 JSDoc 语法
 - **保持简洁明了**：注释应该解释"为什么"而不是"做什么"
 
 ### 2. **注释原则**
+
 - **注释解释意图**：解释代码的目的和设计决策
 - **避免显而易见**：不要注释明显的代码
 - **保持更新**：代码变更时必须同步更新注释
@@ -25,10 +27,11 @@ Uno UI v2.0 所有代码注释必须采用 JSDoc 标准，统一使用英文注�
 ### 1. 函数注释
 
 #### 基本函数注释
+
 ```javascript
 /**
  * Opens a dialog box with the specified configuration.
- * 
+ *
  * @param {Object} config - The dialog configuration object
  * @param {string} [config.type='dialog'] - The type of dialog ('dialog', 'confirm', 'alert')
  * @param {string} [config.title=''] - The dialog title
@@ -38,7 +41,7 @@ Uno UI v2.0 所有代码注释必须采用 JSDoc 标准，统一使用英文注�
  * @param {Function} [config.onCancel] - Callback function when Cancel button is clicked
  * @param {Function} [config.onClose] - Callback function when dialog is closed
  * @returns {string} The unique ID of the created dialog
- * 
+ *
  * @example
  * // Open a simple dialog
  * const dialogId = Alpine.store('uno').box.open({
@@ -46,7 +49,7 @@ Uno UI v2.0 所有代码注释必须采用 JSDoc 标准，统一使用英文注�
  *   title: 'Information',
  *   content: 'Operation completed successfully'
  * });
- * 
+ *
  * @example
  * // Open a confirm dialog with callbacks
  * const dialogId = Alpine.store('box').open({
@@ -56,7 +59,7 @@ Uno UI v2.0 所有代码注释必须采用 JSDoc 标准，统一使用英文注�
  *   onOk: () => deleteItem(),
  *   onCancel: () => console.log('Cancelled')
  * });
- * 
+ *
  * @since 2.0.0
  */
 open(config = {}) {
@@ -65,19 +68,20 @@ open(config = {}) {
 ```
 
 #### 异步函数注释
+
 ```javascript
 /**
  * Loads content from the specified URL using HTMX.
- * 
+ *
  * @param {string} url - The URL to load content from
  * @param {Object} [options] - Additional options for the request
  * @param {string} [options.method='GET'] - HTTP method to use
  * @param {Object} [options.headers={}] - Additional headers to send
  * @param {number} [options.timeout=5000] - Request timeout in milliseconds
  * @returns {Promise<string>} The loaded HTML content
- * 
+ *
  * @throws {Error} When the request fails or times out
- * 
+ *
  * @example
  * try {
  *   const content = await loadContent('/api/user-info');
@@ -85,7 +89,7 @@ open(config = {}) {
  * } catch (error) {
  *   console.error('Failed to load content:', error.message);
  * }
- * 
+ *
  * @since 2.0.0
  */
 async function loadContent(url, options = {}) {
@@ -96,21 +100,22 @@ async function loadContent(url, options = {}) {
 ### 2. 类注释
 
 #### 类定义注释
+
 ```javascript
 /**
  * Box component store for managing modal dialogs.
- * 
+ *
  * This store manages the lifecycle of modal dialogs, including creation,
  * positioning, and destruction. It supports multiple dialog types and
  * provides a unified API for all dialog operations.
- * 
+ *
  * @class BoxStore
  * @since 2.0.0
- * 
+ *
  * @example
  * // Access the box store
  * const boxStore = Alpine.store('uno').box;
- * 
+ *
  * // Open a dialog
  * const dialogId = boxStore.open({
  *   type: 'dialog',
@@ -120,26 +125,27 @@ async function loadContent(url, options = {}) {
  */
 Alpine.store('box', {
   // Store implementation...
-});
+})
 ```
 
 #### 类方法注释
+
 ```javascript
 /**
  * Validates a form field using the specified validation rules.
- * 
+ *
  * @memberof BoxStore
  * @param {HTMLInputElement} field - The input element to validate
  * @param {string} rule - The validation rule to apply
  * @param {*} [value] - The value to validate (defaults to field value)
  * @returns {boolean} True if the field is valid, false otherwise
- * 
+ *
  * @example
  * const isValid = this.validateField(emailInput, 'email');
  * if (!isValid) {
  *   this.showError(emailInput, 'Please enter a valid email');
  * }
- * 
+ *
  * @since 2.0.0
  */
 validateField(field, rule, value = field.value) {
@@ -150,10 +156,11 @@ validateField(field, rule, value = field.value) {
 ### 3. 常量注释
 
 #### 常量定义注释
+
 ```javascript
 /**
  * Default z-index values for different UI layers.
- * 
+ *
  * @readonly
  * @enum {number}
  * @since 2.0.0
@@ -167,35 +174,37 @@ const Z_INDEX = {
   TOOLTIP: 20000,
   /** Notifications and alerts */
   NOTIFY: 30000
-};
+}
 ```
 
 ### 4. 事件注释
 
 #### 事件处理器注释
+
 ```javascript
 /**
  * Handles the click event on dialog triggers.
- * 
+ *
  * @param {MouseEvent} event - The click event object
  * @param {HTMLElement} target - The clicked element
  * @returns {void}
- * 
+ *
  * @listens click
  * @since 2.0.0
  */
 const handleDialogClick = (event, target) => {
   // Implementation...
-};
+}
 ```
 
 ### 5. 配置对象注释
 
 #### 配置接口注释
+
 ```javascript
 /**
  * Configuration object for dialog boxes.
- * 
+ *
  * @typedef {Object} DialogConfig
  * @property {string} [type='dialog'] - The type of dialog
  * @property {string} [title=''] - The dialog title
@@ -220,14 +229,15 @@ const handleDialogClick = (event, target) => {
 ### ✅ 推荐的注释
 
 #### 1. 解释复杂逻辑
+
 ```javascript
 /**
  * Calculates the optimal position for a tooltip relative to its target element.
- * 
+ *
  * This algorithm considers viewport boundaries, element dimensions, and
  * available space to determine the best placement. It prioritizes keeping
  * the tooltip visible within the viewport.
- * 
+ *
  * @param {HTMLElement} target - The element the tooltip is attached to
  * @param {string} preferredPlacement - The preferred placement ('top', 'bottom', 'left', 'right')
  * @returns {Object} The calculated position with coordinates
@@ -238,14 +248,15 @@ function calculateTooltipPosition(target, preferredPlacement) {
 ```
 
 #### 2. 记录设计决策
+
 ```javascript
 /**
  * Uses requestAnimationFrame for smooth animations instead of CSS transitions.
- * 
+ *
  * This approach provides better performance for frequently updating animations
  * and allows for more precise timing control. It also avoids layout thrashing
  * that can occur with CSS transitions during rapid updates.
- * 
+ *
  * @param {HTMLElement} element - The element to animate
  * @param {Object} fromStyles - Starting styles
  * @param {Object} toStyles - Ending styles
@@ -257,31 +268,32 @@ function animateElement(element, fromStyles, toStyles, duration = 300) {
 ```
 
 #### 3. API 文档
+
 ```javascript
 /**
  * Creates a new notification with the specified type and message.
- * 
+ *
  * This method supports all notification types (success, error, warning, info)
  * and automatically handles positioning and auto-dismissal based on the
  * global configuration.
- * 
+ *
  * @param {string} message - The message to display
  * @param {Object} [options={}] - Additional options for the notification
  * @param {string} [options.type='info'] - The notification type
  * @param {number} [options.duration] - Auto-dismiss duration in milliseconds
  * @param {string} [options.position] - Notification position
  * @returns {string} The unique ID of the created notification
- * 
+ *
  * @example
  * // Create a success notification
  * const id = Alpine.store('uno').notify.success('Operation completed!');
- * 
+ *
  * @example
  * // Create a persistent error notification
  * const id = Alpine.store('uno').notify.error('Failed to save data', {
  *   duration: 0 // Don't auto-dismiss
  * });
- * 
+ *
  * @since 2.0.0
  */
 ```
@@ -289,41 +301,44 @@ function animateElement(element, fromStyles, toStyles, duration = 300) {
 ### ❌ 避免的注释
 
 #### 1. 注释显而易见的代码
+
 ```javascript
 // ❌ 避免这样的注释
-const x = 5; // Set x to 5
+const x = 5 // Set x to 5
 
 // ✅ 更好的做法（如果需要注释）
-const x = 5; // Initial counter value
+const x = 5 // Initial counter value
 ```
 
 #### 2. 过度注释
+
 ```javascript
 // ❌ 避免这样的注释
 // Function to open a dialog
 function openDialog(config) {
   // Create a new dialog
-  const dialog = createDialogElement();
-  
+  const dialog = createDialogElement()
+
   // Set the title
-  dialog.title = config.title;
-  
+  dialog.title = config.title
+
   // Set the content
-  dialog.content = config.content;
-  
+  dialog.content = config.content
+
   // Show the dialog
-  showDialog(dialog);
+  showDialog(dialog)
 }
 
 // ✅ 更好的做法
 function openDialog(config) {
-  const dialog = createDialogElement();
-  Object.assign(dialog, config);
-  showDialog(dialog);
+  const dialog = createDialogElement()
+  Object.assign(dialog, config)
+  showDialog(dialog)
 }
 ```
 
 #### 3. 过时的注释
+
 ```javascript
 // ❌ 避免这样的注释
 // TODO: Remove this legacy code in v2.1
@@ -347,6 +362,7 @@ function legacyFunction() {
 ## 🔧 工具和验证
 
 ### JSDoc 验证工具
+
 ```bash
 # 安装 JSDoc 验证工具
 npm install -D jsdoc
@@ -359,6 +375,7 @@ jsdoc -c jsdoc.conf.json src/
 ```
 
 ### 推荐的 VS Code 扩展
+
 - **JSDoc Comments** - 提供 JSDoc 语法高亮和自动补全
 - **Document This** - 自动生成 JSDoc 注释模板
 - **Better Comments** - 改善注释的可读性
@@ -380,4 +397,4 @@ jsdoc -c jsdoc.conf.json src/
 
 ---
 
-*遵循这些标准将确保 Uno UI 代码库的文档质量和可维护性。*
+_遵循这些标准将确保 Uno UI 代码库的文档质量和可维护性。_

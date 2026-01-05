@@ -30,7 +30,7 @@
 
 ### 基础使用
 
-使用全局 store `$store.uno.notify.show()` 触发通知。
+使用全局 store `Alpine.store('uno').notify.show()` 触发通知。
 
 ```html
 <!-- 触发按钮 -->

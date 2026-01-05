@@ -87,7 +87,7 @@ export function installAlpine(Alpine) {
       if (typeof localStorage !== 'undefined') localStorage.setItem('uno.lang', lang)
       if (typeof document !== 'undefined') document.documentElement.lang = lang
     },
-    
+
     // Alias for backward compatibility
     setLang(lang) {
       this.setLocale(lang)
@@ -123,23 +123,24 @@ export function installAlpine(Alpine) {
   })
 
   // Directive: x-t="key" or x-t.placeholder="key"
-  Alpine.directive('t', (el, { expression, modifiers }, { effect, evaluateLater }) => {
+  Alpine.directive('t', (el, { expression, modifiers }, { effect }) => {
     const getI18n = () => Alpine.store('i18n')
-    
+
     effect(() => {
-        const store = getI18n()
-        // Access locale to trigger reactivity
-        const locale = store.locale 
-        const key = expression
-        const text = store.t(key)
-        
-        if (modifiers.length > 0) {
-            modifiers.forEach(attr => {
-                el.setAttribute(attr, text)
-            })
-        } else {
-            el.textContent = text
-        }
+      const store = getI18n()
+      // Access locale to trigger reactivity
+      // eslint-disable-next-line no-unused-vars
+      const locale = store.locale
+      const key = expression
+      const text = store.t(key)
+
+      if (modifiers.length > 0) {
+        modifiers.forEach((attr) => {
+          el.setAttribute(attr, text)
+        })
+      } else {
+        el.textContent = text
+      }
     })
   })
 }

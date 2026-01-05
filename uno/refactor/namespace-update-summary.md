@@ -11,6 +11,7 @@
 ### 1. 命名空间标准化
 
 #### 更新前
+
 ```javascript
 // 分散的命名空间
 Alpine.store('notify').success('消息')
@@ -28,6 +29,7 @@ Alpine.store('valid').validate(form)
 ```
 
 #### 更新后
+
 ```javascript
 // 统一的 uno 命名空间
 Alpine.store('uno').notify.success('消息')
@@ -47,6 +49,7 @@ Alpine.store('uno').valid.validate(form)
 ### 2. Store 注册方式标准化
 
 #### 更新前
+
 ```javascript
 // 直接注册到 Alpine
 Alpine.store('notify', notifyStore)
@@ -54,6 +57,7 @@ Alpine.store('box', boxStore)
 ```
 
 #### 更新后
+
 ```javascript
 // 注册到 uno 命名空间
 if (!Alpine.store('uno')) {
@@ -66,6 +70,7 @@ if (!Alpine.store('uno')) {
 ## 更新的文件列表
 
 ### 重构文档 (refactor/)
+
 - ✅ `notify.md` - 完整更新命名空间和基础设施要求
 - ✅ `box.md` - 完整更新命名空间和基础设施要求
 - ✅ `tooltip.md` - 完整更新命名空间和基础设施要求
@@ -78,6 +83,7 @@ if (!Alpine.store('uno')) {
 - ✅ `README.md` - 更新架构说明
 
 ### 示例代码 (examples/)
+
 - ✅ `components/notify.html` - 已正确使用 uno 命名空间
 - ✅ `features.html` - 更新 box 调用
 - ✅ `style-demo.html` - 更新 notify 调用
@@ -86,6 +92,7 @@ if (!Alpine.store('uno')) {
 ## 基础设施使用强化
 
 ### 新增要求
+
 所有组件重构必须使用 uno 基础设施：
 
 1. **core/uno.js**：使用 `Uno.getConfig()` 进行配置合并
@@ -97,6 +104,7 @@ if (!Alpine.store('uno')) {
 7. **locales/**：使用国际化支持
 
 ### 命名空间规范
+
 - **注册方式**：`Alpine.store('uno').{pluginName} = {pluginStore}`
 - **外部调用**：`Alpine.store('uno').{pluginName}.method()`
 - **内部调用**：`$store.uno.{pluginName}.xxx`
@@ -104,6 +112,7 @@ if (!Alpine.store('uno')) {
 ## 一致性检查结果
 
 ### ✅ 已修复的不一致问题
+
 1. **配置合并术语**：统一为"四级配置合并"
 2. **Store 调用方式**：全部更新为 uno 命名空间
 3. **内部调用方式**：全部更新为 `$store.uno.xxx`
@@ -111,6 +120,7 @@ if (!Alpine.store('uno')) {
 5. **文档引用**：跨文档引用已统一
 
 ### ✅ 质量保证
+
 - 所有文档术语保持一致
 - 所有示例代码可正常运行
 - 所有命名空间调用符合新规范
@@ -119,11 +129,13 @@ if (!Alpine.store('uno')) {
 ## 实施影响
 
 ### 对现有代码的影响
+
 1. **向后兼容性**：需要迁移现有调用方式
 2. **学习成本**：开发者需要适应新的命名空间
 3. **代码一致性**：长期来看有利于代码维护
 
 ### 迁移指南
+
 ```javascript
 // 旧版本 -> 新版本
 Alpine.store('notify').success() -> Alpine.store('uno').notify.success()

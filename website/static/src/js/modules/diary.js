@@ -53,18 +53,18 @@ export function DiaryList() {
       if (this.isOwner) {
         ownerMenu = `
             <div class="post-edit">
-                <a href="javascript:void(0)" x-tooltip.click.bottom="{ content: '#post-menu-${post.post_id}' }">
+                <a href="javascript:void(0)" x-uno-tooltip.click.bottom="{ content: '#post-menu-${post.post_id}' }">
                     <i class="mdi mdi-dots-horizontal"></i>
                 </a>
             </div>
             <div id="post-menu-${post.post_id}" class="hidden">
                 <ul class="text-left">
                     <li class="py-1"><a href="#" class="block hover:text-blue-500"
-                            @click.prevent="openEditPost(${post.diary_id}, ${post.post_id}); $store.tooltip.hide()">
+                            @click.prevent="openEditPost(${post.diary_id}, ${post.post_id}); $store.uno.tooltip.hide()">
                             <i class="mdi mdi-pencil-outline mr-2"></i> ${t('common.edit')}</a>
                     </li>
                     <li class="py-1"><a href="#" class="block hover:text-red-500"
-                            @click.prevent="confirmDelete(${post.diary_id}, ${post.post_id}); $store.tooltip.hide()">
+                            @click.prevent="confirmDelete(${post.diary_id}, ${post.post_id}); $store.uno.tooltip.hide()">
                             <i class="mdi mdi-delete-outline mr-2"></i> ${t('common.delete')}</a>
                     </li>
                 </ul>

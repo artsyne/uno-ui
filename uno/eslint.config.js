@@ -10,6 +10,7 @@ export default [
     languageOptions: {
       globals: {
         ...globals.browser,
+        ...globals.node,
         Alpine: 'readonly',
         htmx: 'readonly'
       },

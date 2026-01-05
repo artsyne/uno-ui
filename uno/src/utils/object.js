@@ -1,7 +1,29 @@
+/**
+ * Uno - Object Utils
+ *
+ * Utility functions for object manipulation.
+ *
+ * @module uno.utils.object
+ */
+
+/**
+ * Check if a value is a plain object.
+ *
+ * @param {*} value - The value to check
+ * @returns {boolean} True if the value is a plain object
+ */
 export function isPlainObject(value) {
   return Object.prototype.toString.call(value) === '[object Object]'
 }
 
+/**
+ * Deep merge two objects.
+ * Supports special syntax for string concatenation (e.g. "+class").
+ *
+ * @param {Object} base - The base object
+ * @param {Object} patch - The patch object to merge into base
+ * @returns {Object} The merged object
+ */
 export function mergeDeep(base, patch) {
   if (!isPlainObject(base)) return isPlainObject(patch) ? { ...patch } : patch
   if (!isPlainObject(patch)) return patch === undefined ? { ...base } : patch

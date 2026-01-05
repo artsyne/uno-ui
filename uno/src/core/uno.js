@@ -11,8 +11,19 @@ import Alpine from 'alpinejs'
 import { log } from '../utils/log'
 import { once } from '../utils/dom'
 import { mergeDeep } from '../utils/object'
+import { Z_INDEX } from './layer'
+import box from '../components/box'
 
+/**
+ * UnoInstance class.
+ * Central hub for Uno UI, managing plugins, configuration, and HTMX integration.
+ */
 export class UnoInstance {
+  /**
+   * Create an UnoInstance.
+   *
+   * @param {Object} [options={}] - Global configuration options
+   */
   constructor(options = {}) {
     this.version = '0.6.0'
     this.options = options
@@ -22,13 +33,36 @@ export class UnoInstance {
     this._htmxRequestHandlers = []
     this._htmxActiveXhrs = typeof WeakSet === 'function' ? new WeakSet() : null
     this.htmx = {
+      /**
+       * Check if HTMX is available.
+       * @returns {boolean} True if HTMX is loaded and available
+       */
       available: () => typeof window !== 'undefined' && typeof window.htmx?.ajax === 'function',
+
+      /**
+       * Wrapper for htmx.ajax.
+       *
+       * @param {string} method - HTTP method (GET, POST, etc.)
+       * @param {string} url - The URL to request
+       * @param {Object} [ajaxOptions={}] - HTMX ajax options
+       * @returns {Promise} Promise resolving to the result
+       */
       ajax: (method, url, ajaxOptions = {}) => {
         if (typeof window === 'undefined' || typeof window.htmx?.ajax !== 'function') {
           return Promise.reject(new Error('htmx.ajax is not available'))
         }
         return window.htmx.ajax(method, url, ajaxOptions)
       },
+
+      /**
+       * Fetch an HTML fragment without inserting it into the DOM.
+       * Useful for getting content to display in a modal or tooltip.
+       *
+       * @param {string} method - HTTP method
+       * @param {string} url - The URL to request
+       * @param {Object} [ajaxOptions={}] - HTMX ajax options
+       * @returns {Promise<string>} The HTML fragment string
+       */
       fragment: async (method, url, ajaxOptions = {}) => {
         if (typeof document === 'undefined') throw new Error('document is not available')
         const target = document.createElement('div')
@@ -52,6 +86,14 @@ export class UnoInstance {
           target.remove()
         }
       },
+
+      /**
+       * Register handlers for HTMX request lifecycle events.
+       *
+       * @param {Object} handlers - The handlers object
+       * @param {Function} [handlers.start] - Called when a request starts
+       * @param {Function} [handlers.end] - Called when a request ends (success, error, or timeout)
+       */
       onRequest: (handlers = {}) => {
         if (!handlers || typeof handlers !== 'object') return
         this._htmxRequestHandlers.push(handlers)
@@ -143,7 +185,7 @@ export class UnoInstance {
       plugins: {},
       ui: {
         base,
-        layers: { boxBase: 10000, tooltipBase: 20000, notifyBase: 30000 },
+        layers: { box: Z_INDEX.BOX, tooltip: Z_INDEX.TOOLTIP, notify: Z_INDEX.NOTIFY },
         box: {
           overlay: 'fixed inset-0 bg-gray-500/75 transition-opacity',
           dialogWrapper: 'fixed inset-0 z-10 w-screen overflow-y-auto',
@@ -235,9 +277,13 @@ export class UnoInstance {
    * Note: We use mergeDeep to ensure deep merging of options.
    *
    * Level 1: Plugin Defaults (this.pluginDefaults[componentName])
-   * Level 2: Global Plugin Config (this.options.plugins[componentName])
+   * Level 2: Global User Config (this.options.plugins[componentName])
    * Level 3: Direct Global Config (this.options[componentName]) - Legacy/Shorthand
    * Level 4: Instance Config (instanceOpts)
+   *
+   * @param {string} componentName - Name of the component
+   * @param {Object} [instanceOpts={}] - Instance-specific options
+   * @returns {Object} The merged configuration object
    */
   getConfig(componentName, instanceOpts = {}) {
     const globalOpts = this.options || {}
@@ -265,6 +311,9 @@ export class UnoInstance {
 
   /**
    * ✅ Register plugin defaults
+   *
+   * @param {string} name - Component name
+   * @param {Object} defaults - Default configuration object
    */
   registerPluginDefaults(name, defaults) {
     this.pluginDefaults[name] = defaults

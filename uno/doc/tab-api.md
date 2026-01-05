@@ -34,34 +34,35 @@ The component uses `x-data="window.unoTabs(defaultTab)"` to initialize, and `x-b
 
 ## API Reference
 
-### Global API (Uno.tab)
+### Global API (Store Access)
 
-A global helper is provided for external control.
+The component exposes its internal store via `Alpine.store('uno').tab`.
 
-#### `Uno.tab.open(id)`
-Opens the tab with the specified target ID.
+#### `Alpine.store('uno').tab.activate(config)`
+
+Activates a specific tab.
 
 ```javascript
-Uno.tab.open('tab-profile');
+Alpine.store('uno').tab.activate({ name: 'tab-profile', group: 'default' })
 ```
 
 ### Initialization
 
 ```javascript
 // x-data="window.unoTabs(defaultTab, options)"
-window.unoTabs('tab1', { 
-  hash: true,      // Enable hash navigation (default: true)
-  manual: false    // Manual activation via arrow keys (default: false)
+window.unoTabs('tab1', {
+  hash: true, // Enable hash navigation (default: true)
+  manual: false // Manual activation via arrow keys (default: false)
 })
 ```
 
 ### Bindings
 
-| Binding | Description | Arguments |
-|---------|-------------|-----------|
-| `tablist` | Binds accessibility roles and keyboard navigation (Left/Right/Home/End) to the container. | - |
-| `trigger(tab, ajaxUrl, hash, hxUrl)` | Binds click handlers, classes, and accessibility attributes to a tab button. | `tab`: Tab ID (string)<br>`ajaxUrl`: Optional URL for fetch<br>`hash`: Optional URL hash<br>`hxUrl`: Optional URL for HTMX |
-| `panel(tab)` | Binds visibility (`x-show`) and accessibility roles to a content panel. | `tab`: Tab ID (string) |
+| Binding                              | Description                                                                               | Arguments                                                                                                                  |
+| ------------------------------------ | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `tablist`                            | Binds accessibility roles and keyboard navigation (Left/Right/Home/End) to the container. | -                                                                                                                          |
+| `trigger(tab, ajaxUrl, hash, hxUrl)` | Binds click handlers, classes, and accessibility attributes to a tab button.              | `tab`: Tab ID (string)<br>`ajaxUrl`: Optional URL for fetch<br>`hash`: Optional URL hash<br>`hxUrl`: Optional URL for HTMX |
+| `panel(tab)`                         | Binds visibility (`x-show`) and accessibility roles to a content panel.                   | `tab`: Tab ID (string)                                                                                                     |
 
 ## Advanced Usage
 
@@ -98,11 +99,14 @@ Pass a hash string as the third argument to `trigger()`.
 ## Security & Optimization
 
 ### Content Sanitization
+
 AJAX and HTMX loaded content is sanitized via `Uno.dom.sanitizeHTML` before injection.
+
 - Dangerous tags are removed.
 - Use secure endpoints for `ajaxUrl` and `hxUrl`.
 
 ### Memory Management
+
 - **Event Cleanup**: Hash change listeners are automatically managed and cleaned up when tabs are destroyed or re-initialized.
 - **Idempotency**: Initialization is safe to call multiple times (via `Uno.utils.once`).
 

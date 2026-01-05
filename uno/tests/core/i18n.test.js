@@ -10,20 +10,20 @@ describe('i18n Store', () => {
     Alpine = {
       store: vi.fn((name, definition) => {
         if (definition) {
-            store = definition
-            store.init()
+          store = definition
+          store.init()
         }
         return store
       }),
       directive: vi.fn()
     }
-    
+
     // Mock localStorage
     global.localStorage = {
       getItem: vi.fn(),
       setItem: vi.fn()
     }
-    
+
     // Mock document
     global.document = {
       documentElement: { lang: 'en' }
@@ -44,9 +44,9 @@ describe('i18n Store', () => {
       en: { hello: 'Hello' },
       'zh-CN': { hello: '你好' }
     })
-    
+
     expect(store.t('hello')).toBe('Hello')
-    
+
     store.setLang('zh-CN')
     expect(store.t('hello')).toBe('你好')
   })
@@ -56,7 +56,7 @@ describe('i18n Store', () => {
     store.extend({
       en: { welcome: 'Welcome, {name}!' }
     })
-    
+
     expect(store.t('welcome', { name: 'Alice' })).toBe('Welcome, Alice!')
   })
 
@@ -67,26 +67,26 @@ describe('i18n Store', () => {
 
   it('should support async loading (loadLocale)', async () => {
     installAlpine(Alpine)
-    
+
     // Mock fetch
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ loaded: 'Loaded Message' })
     })
-    
+
     // We expect a loadLocale method to exist (TDD - Red)
     // Currently it doesn't exist.
     if (store.loadLocale) {
-        await store.loadLocale('fr', '/locales/fr.json')
-        
-        expect(global.fetch).toHaveBeenCalledWith('/locales/fr.json')
-        expect(store.messages['fr']).toEqual({ loaded: 'Loaded Message' })
-        
-        store.setLang('fr')
-        expect(store.t('loaded')).toBe('Loaded Message')
+      await store.loadLocale('fr', '/locales/fr.json')
+
+      expect(global.fetch).toHaveBeenCalledWith('/locales/fr.json')
+      expect(store.messages['fr']).toEqual({ loaded: 'Loaded Message' })
+
+      store.setLang('fr')
+      expect(store.t('loaded')).toBe('Loaded Message')
     } else {
-        // Fail if not implemented (which is expected now)
-        throw new Error('loadLocale not implemented')
+      // Fail if not implemented (which is expected now)
+      throw new Error('loadLocale not implemented')
     }
   })
 })

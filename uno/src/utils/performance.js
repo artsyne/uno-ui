@@ -48,17 +48,16 @@ export function throttle(func, limit) {
 
 /**
  * Simple performance measure wrapper
- * @param {string} name 
- * @param {Function} fn 
+ * @param {string} name
+ * @param {Function} fn
  */
 export function measure(name, fn) {
-    if (typeof performance === 'undefined') return fn()
-    const start = performance.now()
-    try {
-        return fn()
-    } finally {
-        const end = performance.now()
-        // eslint-disable-next-line no-console
-        console.debug(`[Uno Perf] ${name}: ${(end - start).toFixed(2)}ms`)
-    }
+  if (typeof performance === 'undefined') return fn()
+  const start = performance.now()
+  try {
+    return fn()
+  } finally {
+    const end = performance.now()
+    console.debug(`[Uno Perf] ${name}: ${(end - start).toFixed(2)}ms`)
+  }
 }

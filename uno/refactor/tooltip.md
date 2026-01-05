@@ -64,19 +64,20 @@ show(instanceOpts = {}) {
 
 Alpine.store('tooltip', {
 const tooltipStore = {
-  // ✅ 标准方法命名
-  show(content, options = {}) {}, // 显示提示
-  hide() {}, // 隐藏提示
-  update(content, options = {}) {}, // 更新提示内容
+// ✅ 标准方法命名
+show(content, options = {}) {}, // 显示提示
+hide() {}, // 隐藏提示
+update(content, options = {}) {}, // 更新提示内容
 
-  // ✅ 位置控制方法
-  position(element, placement) {}, // 定位到指定元素
-  reposition() {}, // 重新定位
+// ✅ 位置控制方法
+position(element, placement) {}, // 定位到指定元素
+reposition() {}, // 重新定位
 
-  // ❌ 禁止使用的方法名
-  open() {}, // 应使用 show()
-  close() {}, // 应使用 hide()
-  display() {} // 不符合规范
+// ❌ 禁止使用的方法名
+open() {}, // 应使用 show()
+close() {}, // 应使用 hide()
+display() {} // 不符合规范
+
 ```
 4. **分类明确**：按照组件类型使用对应的动词组
 
@@ -136,7 +137,7 @@ const tooltipStore = {
 
 #### ✅ 推荐方式：声明式 HTMX 集成
 
-<div x-show="$store.uno.tooltip.current?.hxUrl" 
+<div x-show="$store.uno.tooltip.current?.hxUrl"
 <!-- Tooltip 组件 HTMX 集成 -->
      :hx-get="$store.uno.tooltip.current?.hxUrl"
   x-show="$store.uno.tooltip.current?.hxUrl"
@@ -163,7 +164,7 @@ window.htmx.process(element)
 
 #### 标准配置模板
 
-```javascript
+````javascript
 // Store 中的 HTMX 配置
 const tooltip = {
   content: '提示内容',
@@ -225,7 +226,7 @@ const tooltipStore = {
       tooltip.onError(error)
     }
 Alpine.store('tooltip', {
-```
+````
 
 ### 5.5 HTMX 与动态内容
 
@@ -271,10 +272,12 @@ const tooltipStore = {
 ```
 
 ## 6. 样式与模板分离 (Style Decoupling)
-  <span x-text="tooltip.content"></span>
+
+<span x-text="tooltip.content"></span>
 为了解决"JS 里写样式"的问题，同时保留全局配置能力，必须遵循以下标准：
 
 1. **HTML 模板**：必须存在于 JS 中（针对注入型组件）
+
 ## 4. 触发机制标准 (Triggering)
 
 ```html
@@ -282,6 +285,7 @@ const tooltipStore = {
   <span x-text="$store.uno.tooltip.current?.content"></span>
 </div>
 ```
+
 | **API (Programmatic)** | 复杂业务逻辑 | `Alpine.store('uno').tooltip.show('Help text', { placement: 'right' })` |
 | **Store (Internal)** | Alpine 内部调用 | `$store.uno.tooltip.show(...)` |
 
@@ -289,7 +293,7 @@ const tooltipStore = {
 
 | 方式                   | 场景            | 示例                                                                    |
 | ---------------------- | --------------- | ----------------------------------------------------------------------- |
-| **Directive (Hybrid)** | 推荐，最灵活    | `<span x-uno-tooltip="'Help text', {'placement': 'top'}">?</span>`   |
+| **Directive (Hybrid)** | 推荐，最灵活    | `<span x-uno-tooltip="'Help text', {'placement': 'top'}">?</span>`      |
 | **API (Programmatic)** | 复杂业务逻辑    | `Alpine.store('uno').tooltip.show('Help text', { placement: 'right' })` |
 | **Store (Internal)**   | Alpine 内部调用 | `$store.uno.tooltip.show(...)`                                          |
 
@@ -582,7 +586,9 @@ const updatePosition = () => {
 ```
 
 ## 性能优化最佳实践
+
     const tooltip = Alpine.store('uno').tooltip.current
+
 ### 1. 位置计算优化
 
 ```javascript
@@ -668,7 +674,7 @@ window.UnoConfig = {
 
 ## 迁移指南
 
-   Alpine.store('uno').tooltip.show('content', { element: trigger })
+Alpine.store('uno').tooltip.show('content', { element: trigger })
 
 1. **移除直接 DOM 操作**
 
@@ -707,9 +713,9 @@ window.UnoConfig = {
 ### 核心优势
 
 1. **更轻量**：移除冗余代码，体积减少 40%+
-3. **更标准**：统一协议解析，符合 Alpine 生态
-4. **更高性能**：RAF 优化，避免频繁 DOM 操作
-5. **更易维护**：职责清晰，代码结构简单
+2. **更标准**：统一协议解析，符合 Alpine 生态
+3. **更高性能**：RAF 优化，避免频繁 DOM 操作
+4. **更易维护**：职责清晰，代码结构简单
 
 ### 最佳实践
 

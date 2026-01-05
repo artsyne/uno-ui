@@ -14,6 +14,7 @@ Notify 组件重构目标是实现轻量、声明式、高性能的通知组件�
 
 - 注册方式：必须包含 `init` 钩子以确保容器初始化。
 - 外部调用：`Alpine.store('uno').notify.success()`
+
 ```
 
 ### 3. Uno 基础设施使用
@@ -180,29 +181,31 @@ const item = {
 ### 3.4 HTMX 事件处理
 
 #### 标准事件处理
+
 ## 4. 高级特性 (Advanced Features)
 
 // 在 Store 中处理 HTMX 事件
 // 注意：需挂载到 Alpine.store('uno').notify
 const notifyStore = {
-  items: [],
+items: [],
 
-  // ✅ 标准事件处理
-  onContentLoaded(el, item) {
-    // 内容加载完成后的处理
-    if (item.onContentLoad) {
-      item.onContentLoad(el)
-    }
+// ✅ 标准事件处理
+onContentLoaded(el, item) {
+// 内容加载完成后的处理
+if (item.onContentLoad) {
+item.onContentLoad(el)
+}
 
     // 重新初始化 Alpine 组件
     if (window.Alpine && window.Alpine.initTree) {
       window.Alpine.initTree(el)
     }
-  },
 
-  // ✅ 错误处理
-  onHtmxError(error, item) {
-    console.error('HTMX Error:', error)
+},
+
+// ✅ 错误处理
+onHtmxError(error, item) {
+console.error('HTMX Error:', error)
 
     // 显示错误通知
     this.error('内容加载失败')
@@ -211,7 +214,9 @@ const notifyStore = {
     if (item.onError) {
       item.onError(error)
     }
-  }
+
+}
+
 ```javascript
 $store.uno.notify.show('', {
   hxUrl: '/api/notification', // HTMX URL
@@ -234,16 +239,16 @@ $store.uno.notify.show('', {
 
 组件必须同时支持三种触发方式，且逻辑入口统一流向 Store。
 
-| 方式                   | 场景            | 示例                                                                      |
-| ---------------------- | --------------- | ------------------------------------------------------------------------- |
+| 方式                   | 场景            | 示例                                                                   |
+| ---------------------- | --------------- | ---------------------------------------------------------------------- |
 | **Directive (Hybrid)** | 推荐，最灵活    | `<button x-uno-notify="'Success!', {'type': 'success'}">Save</button>` |
-| **API (Programmatic)** | 复杂业务逻辑    | `Alpine.store('uno').notify.success('Operation completed')`               |
-| **Store (Internal)**   | Alpine 内部调用 | `$store.uno.notify.show(...)`                                             |
+| **API (Programmatic)** | 复杂业务逻辑    | `Alpine.store('uno').notify.success('Operation completed')`            |
+| **Store (Internal)**   | Alpine 内部调用 | `$store.uno.notify.show(...)`                                          |
 
 **Directive 解析规范：**
 指令必须能同时读取 `expression` (字符串) 和 `data-uno-*` (属性)，并合并它们。
 
-```javascript
+````javascript
 // 规范的 Directive 处理器
 const handler = (message = '') => {
   const attrConfig = {
@@ -291,7 +296,7 @@ const notifyStore = {
   }
 }
 // Note: Register to Alpine.store('uno').notify
-```
+````
 
 ## Notify 组件重构规范
 
@@ -412,6 +417,7 @@ export default (Alpine, options = {}) => {
 ### 2. 协议定义
 
 #### 2.1 触发器协议（三种方式）
+
 </template>
 ```
 <!-- 1. Directive (推荐) -->
@@ -427,7 +433,8 @@ export default (Alpine, options = {}) => {
     closable: false
   })
 </script>
-```
+
+````
 
 #### 2.2 协议字段规范
 
@@ -520,7 +527,7 @@ const getPositionClasses = (position) => {
   }
   return positions[position] || positions['top-right']
 }
-```
+````
 
 **关键原则**：
 

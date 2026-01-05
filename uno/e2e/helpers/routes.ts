@@ -17,4 +17,3 @@ export async function mockCdnAssets(page: Page) {
     await route.fulfill({ path: 'node_modules/htmx.org/dist/htmx.min.js' })
   })
 }
-

@@ -24,6 +24,7 @@ import { mergeDeep } from '../utils/object'
 import { registerPlugin } from '../core/plugin-registry'
 import { log } from '../utils/log'
 import { sanitizeHTML } from '../utils/dom'
+import { getZIndex } from '../core/layer'
 
 const tooltipPlugin = (Alpine, options = {}) => {
   // Register plugin defaults
@@ -108,7 +109,7 @@ const tooltipPlugin = (Alpine, options = {}) => {
     placement: 'top',
     top: -9999,
     left: -9999,
-    zIndex: 20000,
+    zIndex: getZIndex('TOOLTIP'),
     triggerEl: null,
     triggerMode: 'hover',
     clickOutside: true,
@@ -150,7 +151,7 @@ const tooltipPlugin = (Alpine, options = {}) => {
       this.clickOutside = config.clickOutside
       this.offset = config.offset
       this.arrow = config.arrow !== false
-      this.zIndex = Uno.options?.ui?.layers?.tooltip || 20000
+      this.zIndex = Uno.options?.ui?.layers?.tooltip || getZIndex('TOOLTIP')
 
       // HTMX
       this.hxUrl = config.hxUrl
@@ -219,8 +220,7 @@ const tooltipPlugin = (Alpine, options = {}) => {
     ensureContainer() {
       const id = 'uno-tooltip-manager'
       if (document.getElementById(id)) return
-
-      const zBase = Uno.options?.ui?.layers?.tooltip || 20000
+      const zBase = Uno.options?.ui?.layers?.tooltip || getZIndex('TOOLTIP')
 
       const template = `
         <div id="uno-tooltip-content"
@@ -286,45 +286,22 @@ const tooltipPlugin = (Alpine, options = {}) => {
 
     // Helper to resolve config from attributes and expression
     const resolveConfig = (val) => {
+      // Strict Mode: Value must be an object or string (content)
+      // Modifiers are NOT supported for configuration to enforce explicit config objects.
+      if (modifiers.length > 0) {
+        console.warn(
+          '[Uno] x-uno-tooltip modifiers are deprecated in v2.0. Use configuration object instead.'
+        )
+      }
+
       const exprConfig = typeof val === 'object' && val !== null ? val : val ? { content: val } : {}
-
-      const attrConfig = {}
-      if (el.dataset.unoContent) attrConfig.content = el.dataset.unoContent
-      if (el.dataset.unoTarget) attrConfig.target = el.dataset.unoTarget
-      if (el.dataset.unoTheme) attrConfig.theme = el.dataset.unoTheme
-      if (el.dataset.unoPlacement) attrConfig.placement = el.dataset.unoPlacement
-      if (el.dataset.unoTrigger) attrConfig.trigger = el.dataset.unoTrigger
-      if (el.dataset.unoOffset) attrConfig.offset = parseInt(el.dataset.unoOffset)
-      if (el.dataset.unoArrow) attrConfig.arrow = el.dataset.unoArrow === 'true'
-      if (el.dataset.unoClickOutside)
-        attrConfig.clickOutside = el.dataset.unoClickOutside === 'true'
-
-      // HTMX attributes
-      if (el.hasAttribute('hx-get')) attrConfig.hxUrl = el.getAttribute('hx-get')
-      if (el.hasAttribute('hx-headers')) attrConfig.hxHeaders = el.getAttribute('hx-headers')
-      if (el.hasAttribute('hx-trigger')) attrConfig.hxTrigger = el.getAttribute('hx-trigger')
-
-      // Handle modifiers
-      if (modifiers.includes('top')) attrConfig.placement = 'top'
-      if (modifiers.includes('bottom')) attrConfig.placement = 'bottom'
-      if (modifiers.includes('left')) attrConfig.placement = 'left'
-      if (modifiers.includes('right')) attrConfig.placement = 'right'
-      if (modifiers.includes('click')) attrConfig.trigger = 'click'
-      if (modifiers.includes('hover')) attrConfig.trigger = 'hover'
-      if (modifiers.includes('focus')) attrConfig.trigger = 'focus'
-
-      return { ...mergeDeep(exprConfig, attrConfig), element: el }
+      return { ...exprConfig, element: el }
     }
 
     const show = (val) => {
       const store = Alpine.store('uno')?.tooltip
       if (!store) return
       store.show(resolveConfig(val))
-    }
-
-    const hide = () => {
-      const store = Alpine.store('uno')?.tooltip
-      if (store) store.hide()
     }
 
     const toggle = (val) => {
@@ -350,6 +327,10 @@ const tooltipPlugin = (Alpine, options = {}) => {
 
     // Event Handlers
     const onMouseEnter = () => {
+      // Safety check: if expression exists but hasn't evaluated, skip
+      // This prevents default 'hover' trigger from firing before config is loaded
+      if (expression && currentVal === null) return
+
       const config = resolveConfig(currentVal)
       const finalConfig = Uno.getConfig('tooltip', config)
       if (finalConfig.trigger === 'hover') {
@@ -409,8 +390,6 @@ const tooltipPlugin = (Alpine, options = {}) => {
   }
 
   Alpine.directive('uno-tooltip', directiveHandler)
-  // Backward compatibility alias
-  Alpine.directive('tooltip', directiveHandler)
 }
 
 export default tooltipPlugin

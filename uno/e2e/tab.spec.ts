@@ -17,9 +17,9 @@ test.describe('Tab Component', () => {
 
   test('modern tabs switch content and hash', async ({ page }) => {
     // Selectors based on x-bind: trigger('settings') -> id="tab-settings"
-    const tab2 = page.locator('#tab-settings')
-    const content1 = page.locator('#panel-tab1')
-    const content2 = page.locator('#panel-settings')
+    const tab2 = page.locator('#tab-test-settings')
+    const content1 = page.locator('#panel-test-tab1')
+    const content2 = page.locator('#panel-test-settings')
 
     // Initial state
     await expect(content1).toBeVisible()
@@ -33,7 +33,7 @@ test.describe('Tab Component', () => {
     await expect(content2).toBeVisible()
 
     // Verify Hash
-    expect(page.url()).toContain('#settings')
+    expect(page.url()).toContain('#test-settings')
   })
 
   test('separated dom elements work', async ({ page }) => {
@@ -48,12 +48,12 @@ test.describe('Tab Component', () => {
 
   test('deep linking loads correct tab', async ({ page }) => {
     // Navigate directly with hash
-    await page.goto('/examples/components/tab.html#billing')
+    await page.goto('/examples/components/tab.html#test-billing')
     await page.waitForLoadState('domcontentloaded')
     await page.waitForFunction(() => (window as any).Alpine)
 
-    const content3 = page.locator('#panel-billing')
-    const tab3 = page.locator('#tab-billing')
+    const content3 = page.locator('#panel-test-billing')
+    const tab3 = page.locator('#tab-test-billing')
 
     await expect(content3).toBeVisible()
     await expect(tab3).toHaveAttribute('aria-selected', 'true')
@@ -91,7 +91,7 @@ test.describe('Tab Component', () => {
 
     await page.goto('/examples/components/tab.html#s-tab3')
     await page.waitForLoadState('domcontentloaded')
-    
+
     // Log current hash for debugging
     const hash = await page.evaluate(() => window.location.hash)
     console.log('Test Page Hash:', hash)

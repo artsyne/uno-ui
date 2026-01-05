@@ -12,9 +12,9 @@ describe('Performance Utils', () => {
     debounced()
 
     expect(fn).not.toHaveBeenCalled()
-    
+
     vi.runAllTimers()
-    
+
     expect(fn).toHaveBeenCalledTimes(1)
   })
 
@@ -28,7 +28,7 @@ describe('Performance Utils', () => {
     throttled()
 
     expect(fn).toHaveBeenCalledTimes(1)
-    
+
     vi.advanceTimersByTime(100)
     throttled()
     expect(fn).toHaveBeenCalledTimes(2)

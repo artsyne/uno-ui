@@ -6,6 +6,12 @@
 
 import { log } from './log'
 
+/**
+ * Escape HTML special characters.
+ *
+ * @param {string} input - The string to escape
+ * @returns {string} The escaped string
+ */
 export function escapeHTML(input) {
   return String(input ?? '')
     .replace(/&/g, '&amp;')
@@ -17,6 +23,13 @@ export function escapeHTML(input) {
 
 const onceMarks = new WeakMap()
 
+/**
+ * Ensure a function/action is only performed once per element.
+ *
+ * @param {HTMLElement} target - The target element
+ * @param {string} key - A unique key for the action
+ * @returns {boolean} True if the action has not been performed yet
+ */
 export function once(target, key) {
   if (!target) return false
   const k = String(key)
@@ -30,6 +43,13 @@ export function once(target, key) {
   return true
 }
 
+/**
+ * Sanitize HTML content.
+ * Basic XSS protection: strip script tags and on* attributes.
+ *
+ * @param {string} html - The HTML string to sanitize
+ * @returns {string} The sanitized HTML string
+ */
 export function sanitizeHTML(html) {
   if (!html) return ''
   // Basic XSS protection: strip script tags and on* attributes
@@ -44,6 +64,15 @@ export function sanitizeHTML(html) {
     .replace(/javascript:/gim, '')
 }
 
+/**
+ * Set HTML content of an element safely.
+ *
+ * @param {HTMLElement} el - The target element
+ * @param {string} html - The HTML content
+ * @param {Object} [options] - Options
+ * @param {boolean} [options.trusted=false] - Whether the content is trusted (skips sanitization)
+ * @param {Object} [options.alpine] - Alpine instance for initializing the tree
+ */
 export function setHTML(el, html, { trusted = false, alpine } = {}) {
   if (!el) return
   // Use sanitizeHTML if not trusted
