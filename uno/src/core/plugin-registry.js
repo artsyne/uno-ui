@@ -41,8 +41,9 @@ export function registerPlugin(Alpine, pluginName, pluginStore) {
     })
   }
 
-  // 兼容层：保留 Alpine.store('<pluginName>') 的旧用法。
-  // 注意：这里保存的是已注册到 Alpine 的响应式对象（Proxy），避免后续失去响应性。
+  // Compatibility layer: Preserve old usage of Alpine.store('<pluginName>')
+  // Note: We are saving the reactive object (Proxy) registered with Alpine here
+  // to avoid losing reactivity later.
   if (!Alpine.store(pluginName)) {
     Alpine.store(pluginName, Alpine.store('uno')?.[pluginName])
   }

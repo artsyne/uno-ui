@@ -322,9 +322,10 @@ export default (Alpine, options = {}) => {
       this.items.push(item)
       this.ensureContainer()
 
-      // 注意：Alpine(v3) 的响应式基于 Proxy。
-      // 这里必须通过 this.items 取到“响应式代理对象”再改字段，
-      // 否则对原始对象 item 的赋值不会触发视图更新（会导致 box 无法打开/动画不生效）。
+      // Note: Alpine(v3) reactivity is based on Proxy.
+      // We must access the "reactive proxy object" via this.items to modify fields,
+      // otherwise assigning to the original item object won't trigger view updates
+      // (causing box fail to open or animation not working).
       const reactiveItem = this.items[this.items.length - 1]
 
       const openNow = () => {
