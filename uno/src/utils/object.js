@@ -12,7 +12,7 @@
  * @param {*} value - The value to check
  * @returns {boolean} True if the value is a plain object
  */
-export function isPlainObject(value) {
+function isPlainObject(value) {
   return Object.prototype.toString.call(value) === '[object Object]'
 }
 

@@ -99,7 +99,8 @@
               pattern="^[a-zA-Z0-9_\-]+$" required
               class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
               :class="$store.uno.valid.errors['username'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'"
-              placeholder="Letters, numbers, _ -" />
+              placeholder="Letters, numbers, _ -">
+            <!-- Error Message -->
             <div x-text="$store.uno.valid.errors['username']" x-show="$store.uno.valid.errors['username']"
               class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
           </div>
@@ -111,7 +112,7 @@
             <input x-uno-valid="{ msgType: 'Please enter a valid email address' }" name="email" type="email" required
               class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
               :class="$store.uno.valid.errors['email'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'"
-              placeholder="user@example.com" />
+              placeholder="user@example.com">
             <div x-text="$store.uno.valid.errors['email']" x-show="$store.uno.valid.errors['email']"
               class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
           </div>

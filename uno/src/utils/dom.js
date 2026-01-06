@@ -6,21 +6,6 @@
 
 import { log } from './log'
 
-/**
- * Escape HTML special characters.
- *
- * @param {string} input - The string to escape
- * @returns {string} The escaped string
- */
-export function escapeHTML(input) {
-  return String(input ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
-
 const onceMarks = new WeakMap()
 
 /**
@@ -153,6 +138,5 @@ export const DomManager = {
 
   // Exports
   setHTML: setHTML, // Secure HTML setting
-  escape: escapeHTML, // HTML escaping
   sanitize: sanitizeHTML // HTML sanitization
 }

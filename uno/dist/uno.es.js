@@ -42,11 +42,7 @@ const h = {
       }
     I && typeof console < "u" && typeof console.error == "function" && console.error("[Uno Error]", ...o);
   }
-};
-function V(o) {
-  return String(o ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
-const z = /* @__PURE__ */ new WeakMap();
+}, z = /* @__PURE__ */ new WeakMap();
 function B(o, t) {
   if (!o) return !1;
   const n = String(t);
@@ -56,7 +52,7 @@ function B(o, t) {
 function P(o) {
   return o ? o.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "").replace(/<img\b[^>]*>/gim, "").replace(/\s+on[a-z]+="[^"]*"/gim, "").replace(/\s+on[a-z]+='[^']*'/gim, "").replace(/\s+href="javascript:[^"]*"/gim, "").replace(/\s+href='javascript:[^']*'/gim, "").replace(/javascript:/gim, "") : "";
 }
-function A(o, t, { trusted: n = !1, alpine: e } = {}) {
+function V(o, t, { trusted: n = !1, alpine: e } = {}) {
   o && (o.innerHTML = n ? String(t ?? "") : P(String(t ?? "")), e?.initTree?.(o));
 }
 const M = {
@@ -94,10 +90,8 @@ const M = {
       }
   },
   // Exports
-  setHTML: A,
+  setHTML: V,
   // Secure HTML setting
-  escape: V,
-  // HTML escaping
   sanitize: P
   // HTML sanitization
 };
@@ -152,7 +146,7 @@ function U(o, t, n) {
     [t]: n
   }) : o.store("uno", { [t]: n }), o.store(t) || o.store(t, o.store("uno")?.[t]);
 }
-const F = (o) => {
+const A = (o) => {
   const t = o || "center", n = {
     center: "items-center justify-center",
     "top-center": "items-start justify-center",
@@ -165,7 +159,7 @@ const F = (o) => {
     "center-right": "items-center justify-end"
   };
   return n[t] || n.center;
-}, W = (o) => {
+}, F = (o) => {
   const t = o || "top-right", n = {
     "top-right": "top-0 right-0",
     "top-left": "top-0 left-0",
@@ -180,12 +174,12 @@ const F = (o) => {
     "bottom-center": "bottom-0 left-0 right-0"
   };
   return n[t] || n["top-right"];
-}, X = (o) => {
+}, W = (o) => {
   const t = o || "top-right";
   let n = "flex-col", e = "items-end", i = "space-y-2";
   return t.includes("bottom") && (n = "flex-col-reverse", i = "space-y-reverse space-y-2"), t.includes("left") ? e = "items-start" : t.includes("center") ? t === "center" ? e = "items-center justify-center" : e = "items-center" : e = "items-end", { flexDir: n, alignItems: e, spaceY: i };
 };
-function Y(o, t, n) {
+function X(o, t, n) {
   const e = o.getBoundingClientRect(), i = t.getBoundingClientRect(), s = i.width, a = i.height, c = e.width, r = e.height, l = { top: e.top, left: e.left }, f = window.innerWidth, p = window.innerHeight, u = 0, y = 0, b = p, w = f, x = (T, q) => {
     if (q) {
       if (T + s > w)
@@ -218,7 +212,7 @@ function Y(o, t, n) {
   }
   return { top: v, left: d, position: m };
 }
-const Z = () => `
+const Y = () => `
   <!-- Backdrop / Overlay -->
   <div id="uno-box-overlay"
        :class="Uno.getStyle('box', 'overlay')"
@@ -314,7 +308,7 @@ const Z = () => `
       </div>
     </template>
   </div>
-`, N = (o) => ({
+`, Z = (o) => ({
   items: [],
   /**
    * Initialize the box component
@@ -367,7 +361,7 @@ const Z = () => `
    */
   prompt(t, n = "", e = {}) {
     return new Promise((i) => {
-      const s = "prompt-" + Math.random().toString(36).slice(2, 11), a = g.getStyle("box", "promptWrapper"), c = g.getStyle("box", "promptText"), r = g.getStyle("box", "promptInput"), l = g.dom.escape(t), f = g.dom.escape(n), p = `
+      const s = "prompt-" + Math.random().toString(36).slice(2, 11), a = g.getStyle("box", "promptWrapper"), c = g.getStyle("box", "promptText"), r = g.getStyle("box", "promptInput"), l = g.dom.sanitize(t), f = g.dom.sanitize(n), p = `
         <div class="${a}">
           <p class="${c}">${l}</p>
           <input id="${s}" type="text" class="${r}" value="${f}">
@@ -500,7 +494,7 @@ const Z = () => `
    * @returns {string} CSS classes
    */
   getPositionClasses(t) {
-    return F(t);
+    return A(t);
   },
   /**
    * Handle HTMX content load completion
@@ -524,10 +518,10 @@ const Z = () => `
       "x-show": "$store.uno.box.items.length > 0",
       "x-cloak": ""
       // Hide until Alpine is ready
-    }, s = Z(), a = g.dom.ensureContainer(t, s, i);
+    }, s = Y(), a = g.dom.ensureContainer(t, s, i);
     return a && o && typeof o.initTree == "function" && o.initTree(a), a;
   }
-}), K = [
+}), N = [
   "a[href]",
   "area[href]",
   "input:not([disabled])",
@@ -540,12 +534,12 @@ const Z = () => `
   "[contenteditable]",
   '[tabindex]:not([tabindex^="-"])'
 ].join(",");
-function J(o, t = {}) {
+function K(o, t = {}) {
   const n = (r) => {
     if (!(r instanceof HTMLElement)) return !1;
     const l = window.getComputedStyle(r);
     return l.display === "none" || l.visibility === "hidden" ? !1 : r.getClientRects().length > 0;
-  }, e = () => Array.from(o.querySelectorAll(K)).filter((r) => n(r)), i = () => e()[0], s = () => {
+  }, e = () => Array.from(o.querySelectorAll(N)).filter((r) => n(r)), i = () => e()[0], s = () => {
     const r = e();
     return r[r.length - 1];
   }, a = (r) => {
@@ -571,9 +565,9 @@ function J(o, t = {}) {
     o.removeEventListener("keydown", a);
   };
 }
-const G = (o) => {
+const J = (o) => {
   o.directive("uno-trap", (t, { expression: n }, { cleanup: e }) => {
-    const i = J(t);
+    const i = K(t);
     e(i);
   }), o.directive("uno-box", (t, { expression: n }, { evaluateLater: e, cleanup: i }) => {
     if (!n) {
@@ -594,7 +588,7 @@ const G = (o) => {
     t.addEventListener("click", a), i(() => t.removeEventListener("click", a));
   });
 };
-const Q = (o, t = {}) => {
+const G = (o, t = {}) => {
   const n = {
     defaultWidth: 400,
     defaultPosition: "center",
@@ -604,10 +598,10 @@ const Q = (o, t = {}) => {
     closeOnOverlayClick: !1
   };
   g.registerPluginDefaults("box", { ...n, ...t.plugins?.box, ...t.box });
-  const e = N(o);
-  U(o, "box", e), G(o);
+  const e = Z(o);
+  U(o, "box", e), J(o);
 };
-class tt {
+class Q {
   /**
    * Create an UnoInstance.
    *
@@ -883,7 +877,7 @@ class tt {
     }), this.initialized = !0, h.info("Uno initialized"), e;
   }
 }
-const g = new tt(), et = {
+const g = new Q(), tt = {
   box: {
     ok: "OK",
     cancel: "Cancel",
@@ -914,7 +908,7 @@ const g = new tt(), et = {
     strongpwd: "At least 8 chars, 1 letter, 1 number, 1 special char"
   },
   charCount: "Remaining: {count}"
-}, nt = {
+}, et = {
   box: {
     ok: "确认",
     cancel: "取消",
@@ -945,7 +939,7 @@ const g = new tt(), et = {
     strongpwd: "至少 8 位，包含字母、数字和特殊字符"
   },
   charCount: "剩余: {count}"
-}, ot = {
+}, nt = {
   box: {
     ok: "確認",
     cancel: "取消",
@@ -978,11 +972,11 @@ const g = new tt(), et = {
   charCount: "剩餘: {count}"
 };
 const R = {
-  en: et,
-  "zh-CN": nt,
-  "zh-TW": ot
+  en: tt,
+  "zh-CN": et,
+  "zh-TW": nt
 }, _ = Object.keys(R);
-function it() {
+function ot() {
   if (typeof localStorage < "u") {
     const o = localStorage.getItem("uno.lang");
     if (o && _.includes(o)) return o;
@@ -993,7 +987,7 @@ function it() {
   }
   return "en";
 }
-function st(o, t) {
+function it(o, t) {
   const n = t.split(".");
   let e = o;
   for (const i of n) {
@@ -1006,16 +1000,16 @@ function D(o, t) {
   for (const n in t)
     t[n] && typeof t[n] == "object" ? (o[n] || Object.assign(o, { [n]: {} }), D(o[n], t[n])) : Object.assign(o, { [n]: t[n] });
 }
-function rt(o) {
+function st(o) {
   o.store("i18n", {
-    locale: it(),
+    locale: ot(),
     messages: R,
     loading: !1,
     init() {
       typeof document < "u" && (document.documentElement.lang = this.locale);
     },
     t(t, n = {}) {
-      const e = this.locale, i = this.messages[e] || this.messages.en, s = st(i, t);
+      const e = this.locale, i = this.messages[e] || this.messages.en, s = it(i, t);
       return (typeof s == "string" ? s : t).replace(/\{(\w+)\}/g, (c, r) => r in n ? String(n[r]) : `{${r}}`);
     },
     setLocale(t) {
@@ -1060,7 +1054,7 @@ function rt(o) {
     });
   });
 }
-const at = () => (g.options?.ui?.layers?.tooltip || k("TOOLTIP"), `
+const rt = () => (g.options?.ui?.layers?.tooltip || k("TOOLTIP"), `
     <div id="uno-tooltip-content"
          x-show="$store.uno.tooltip.visible"
          role="tooltip"
@@ -1099,7 +1093,7 @@ const at = () => (g.options?.ui?.layers?.tooltip || k("TOOLTIP"), `
     </div>
   `);
 let $ = 0, S = null;
-const lt = (o) => {
+const at = (o) => {
   const t = () => {
     $ || typeof requestAnimationFrame == "function" && ($ = requestAnimationFrame(() => {
       $ = 0;
@@ -1168,7 +1162,7 @@ const lt = (o) => {
       if (!this.visible || !this.triggerEl) return;
       const e = document.getElementById("uno-tooltip-content");
       if (!e) return;
-      const i = Y(this.triggerEl, e, this.placement, {
+      const i = X(this.triggerEl, e, this.placement, {
         offset: this.offset,
         arrow: this.arrow
       });
@@ -1177,7 +1171,7 @@ const lt = (o) => {
     ensureContainer() {
       const e = "uno-tooltip-manager";
       if (document.getElementById(e)) return;
-      const i = g.options?.ui?.layers?.tooltip || k("TOOLTIP"), s = at();
+      const i = g.options?.ui?.layers?.tooltip || k("TOOLTIP"), s = rt();
       M.ensureContainer(e, s, {
         "x-data": "{}",
         style: `position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: ${i};`
@@ -1186,7 +1180,7 @@ const lt = (o) => {
       a && o && !a._x_dataStack && o.initTree(a);
     }
   };
-}, ct = (o) => {
+}, lt = (o) => {
   const t = (n, { expression: e, modifiers: i }, { evaluateLater: s, effect: a, cleanup: c }) => {
     const r = e ? s(e) : null, l = (d) => (i.length > 0 && console.warn(
       "[Uno] x-uno-tooltip modifiers are deprecated in v2.0. Use configuration object instead."
@@ -1228,7 +1222,7 @@ const lt = (o) => {
   };
   o.directive("uno-tooltip", t);
 };
-const dt = (o, t = {}) => {
+const ct = (o, t = {}) => {
   const n = {
     placement: "top",
     trigger: "hover",
@@ -1242,9 +1236,9 @@ const dt = (o, t = {}) => {
     ...t.plugins?.tooltip,
     ...t.tooltip
   });
-  const e = lt(o);
-  U(o, "tooltip", e), ct(o);
-}, ut = () => `
+  const e = at(o);
+  U(o, "tooltip", e), lt(o);
+}, dt = () => `
   <template x-for="(items, position) in $store.uno.notify.groups" :key="position">
     <div :class="$store.uno.notify.getContainerClass(position)"
          :style="$store.uno.notify.getContainerStyle(position)">
@@ -1321,7 +1315,7 @@ const dt = (o, t = {}) => {
       </template>
     </div>
   </template>
-`, ft = () => `
+`, ut = () => `
     <div :class="Uno.getStyle('notify', 'progressWrap')"
          style="z-index: ${k("MAX")}"
          x-show="$store.uno.notify.progressVisible"
@@ -1335,7 +1329,7 @@ const dt = (o, t = {}) => {
              :style="{ width: $store.uno.notify.progressPercent + '%' }">
         </div>
     </div>
-  `, gt = (o) => ({
+  `, ft = (o) => ({
   groups: {
     "top-left": [],
     "top-center": [],
@@ -1396,16 +1390,16 @@ const dt = (o, t = {}) => {
     };
   },
   getContainerClass(t) {
-    const n = g.getStyle("notify", "container"), e = W(t), i = X(t);
+    const n = g.getStyle("notify", "container"), e = F(t), i = W(t);
     return [n, e, i.flexDir, i.alignItems].join(" ");
   },
   ensureContainer() {
-    const t = "uno-notify-container", n = ut(), e = M.ensureContainer(t, n, {
+    const t = "uno-notify-container", n = dt(), e = M.ensureContainer(t, n, {
       "x-data": "{}"
       // Independent Alpine component
     });
     e && o.initTree && o.initTree(e);
-    const i = "uno-global-progress", s = ft(), a = M.ensureContainer(i, s, {
+    const i = "uno-global-progress", s = ut(), a = M.ensureContainer(i, s, {
       "x-data": "{}"
     });
     a && o.initTree && o.initTree(a);
@@ -1454,7 +1448,7 @@ const dt = (o, t = {}) => {
   info(t, n = {}) {
     return this.show(t, { type: "info", ...n });
   }
-}), ht = (o) => {
+}), gt = (o) => {
   o.directive("uno-notify", (t, { expression: n }, { evaluateLater: e }) => {
     if (!n) {
       console.warn(
@@ -1479,7 +1473,8 @@ const dt = (o, t = {}) => {
     };
     t.addEventListener("click", s);
   });
-}, mt = (o, t = {}) => {
+};
+const ht = (o, t = {}) => {
   const n = {
     duration: 3e3,
     position: "top-right"
@@ -1489,8 +1484,8 @@ const dt = (o, t = {}) => {
     ...t.plugins?.notify,
     ...t.notify
   });
-  const e = gt(o);
-  U(o, "notify", e), e.init(), ht(o);
+  const e = ft(o);
+  U(o, "notify", e), e.init(), gt(o);
 }, H = {
   // --- Standard Types ---
   email: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
@@ -1510,7 +1505,7 @@ const dt = (o, t = {}) => {
   // Letters + Numbers, 8+
   strongpwd: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
   // + Special Char
-}, pt = (o) => ({
+}, mt = (o) => ({
   /**
    * Validation error messages keyed by field name.
    * @type {Object.<string, string>}
@@ -1620,7 +1615,7 @@ const dt = (o, t = {}) => {
     const e = o.store("i18n");
     return e && typeof e.t == "function" ? e.t(t, n) : null;
   }
-}), xt = (o) => {
+}), pt = (o) => {
   o.directive("uno-valid", (t, { expression: n }, { evaluateLater: e, cleanup: i }) => {
     if (t.tagName === "FORM") return;
     const s = t.name || t.id;
@@ -1670,7 +1665,8 @@ const dt = (o, t = {}) => {
       } catch {
       }
   }));
-}, yt = (o, t = {}) => {
+};
+const xt = (o, t = {}) => {
   const n = {
     realtime: !0,
     showError: !0,
@@ -1681,9 +1677,9 @@ const dt = (o, t = {}) => {
     ...t.plugins?.valid,
     ...t.valid
   });
-  const e = pt(o);
-  U(o, "valid", e), xt(o);
-}, vt = (o) => ({
+  const e = mt(o);
+  U(o, "valid", e), pt(o);
+}, yt = (o) => ({
   // State: { [group]: activeTabName }
   groups: {},
   // Registry: { [tabName]: { group, name, ... } }
@@ -1734,7 +1730,7 @@ const dt = (o, t = {}) => {
     let e = window.location.hash.slice(1);
     !e && window.location.href.includes("#") && (e = window.location.href.split("#")[1]), e === t && (h.info(`[Tab] Hash match for ${t}. Activating.`), this.activate({ group: n, name: t, updateHash: !1 }));
   }
-}), wt = (o) => {
+}), vt = (o) => {
   o.directive("uno-tab", (t, { expression: n }, { evaluateLater: e, cleanup: i }) => {
     if (!n) {
       console.warn("[Uno] x-uno-tab directive requires a configuration object.");
@@ -1762,7 +1758,7 @@ const dt = (o, t = {}) => {
     t.addEventListener("click", a), i(() => t.removeEventListener("click", a));
   });
 };
-const bt = (o, t = {}) => {
+const wt = (o, t = {}) => {
   const n = {
     defaultTab: "",
     hash: !0,
@@ -1770,12 +1766,12 @@ const bt = (o, t = {}) => {
     inactiveClass: ""
   };
   g.registerPluginDefaults("tab", { ...n, ...t.plugins?.tab, ...t.tab });
-  const e = vt();
-  U(o, "tab", e), o.store("uno").tab.init(), wt(o);
+  const e = yt();
+  U(o, "tab", e), o.store("uno").tab.init(), vt(o);
 };
 g.dom = M;
 typeof window < "u" && (window.Uno = g);
-g.use(rt).use(dt).use(mt).use(Q).use(yt).use(bt);
+g.use(st).use(ct).use(ht).use(G).use(xt).use(wt);
 if (typeof window < "u" && typeof document < "u") {
   const o = () => {
     if (g.initialized) return;
@@ -1787,10 +1783,10 @@ if (typeof window < "u" && typeof document < "u") {
 export {
   M as DomManager,
   g as Uno,
-  Q as box,
+  G as box,
   g as default,
-  mt as notify,
-  bt as tab,
-  dt as tooltip,
-  yt as valid
+  ht as notify,
+  wt as tab,
+  ct as tooltip,
+  xt as valid
 };

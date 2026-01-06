@@ -66,8 +66,8 @@ export const createBoxStore = (Alpine) => ({
       const inputClass = Uno.getStyle('box', 'promptInput')
 
       // Escape HTML in message and defaultValue for security
-      const escapedMessage = Uno.dom.escape(message)
-      const escapedDefaultValue = Uno.dom.escape(defaultValue)
+      const escapedMessage = Uno.dom.sanitize(message)
+      const escapedDefaultValue = Uno.dom.sanitize(defaultValue)
 
       const content = `
         <div class="${wrapperClass}">
