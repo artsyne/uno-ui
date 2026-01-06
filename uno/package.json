@@ -33,10 +33,33 @@
     "lint": "eslint .",
     "format": "prettier --write ."
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "alpine",
+    "alpinejs",
+    "tailwind",
+    "ui",
+    "components",
+    "modal",
+    "dialog",
+    "notification",
+    "tooltip",
+    "validation",
+    "htmx",
+    "ssr",
+    "lightweight",
+    "typescript"
+  ],
+  "author": "Uno UI Team",
   "license": "MIT",
-  "description": "",
+  "description": "Lightweight, modern UI component library built on Alpine.js and Tailwind CSS. Store-First, Directive-Driven architecture with TypeScript support, HTMX integration, and zero dependencies.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/idiary-ai/uno-ui.git"
+  },
+  "homepage": "https://github.com/idiary-ai/uno-ui#readme",
+  "bugs": {
+    "url": "https://github.com/idiary-ai/uno-ui/issues"
+  },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
     "@types/node": "^24.10.1",

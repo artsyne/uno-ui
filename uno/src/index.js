@@ -3,7 +3,7 @@
  * Built on Alpine.js and Tailwind CSS.
  *
  * @module uno
- * @version 0.5.0
+ * @version 0.6.0
  * @license MIT
  */
 

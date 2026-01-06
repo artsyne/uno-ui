@@ -1,5 +1,12 @@
 # Uno UI
 
+[![npm version](https://img.shields.io/npm/v/uno-ui.svg?style=flat-square)](https://www.npmjs.com/package/uno-ui)
+[![npm downloads](https://img.shields.io/npm/dm/uno-ui.svg?style=flat-square)](https://www.npmjs.com/package/uno-ui)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/uno-ui?style=flat-square)](https://bundlephobia.com/package/uno-ui)
+[![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg?style=flat-square)](#)
+
 Uno is a lightweight, modern UI component library built on **Alpine.js** and **Tailwind CSS**, designed for simplicity, performance, and ease of integration.
 
 It provides a curated set of essential UI components that require no complex build steps to use, while also supporting modern ESM-based development workflows.
@@ -305,22 +312,21 @@ open examples/index.html
 
 ```
 uno/
-├── dist/               # Build artifacts (uno.umd.js)
-├── doc/                # API Documentation
-├── examples/           # Manual test cases
-│   ├── components/     # Individual component examples
-│   └── index.html      # Test dashboard
+├── dist/                  # Build Output (ESM & UMD bundles)
+├── types/                 # TypeScript Definitions
 ├── src/
-│   ├── components/     # Component source code
-│   │   ├── box/        # Box component (store, directive, template)
-│   │   ├── notify/     # Notify component
-│   │   ├── tab/        # Tab component
-│   │   ├── tooltip/    # Tooltip component
-│   │   └── valid/      # Valid component
-│   ├── core/           # Core utilities (i18n, positioning, etc.)
-│   └── index.js        # Entry point
-├── package.json
-└── vite.config.js
+│   ├── components/       # UI Components (box, notify, tooltip, tab, valid)
+│   ├── core/             # Core System (uno, i18n, layer, plugin-registry)
+│   ├── utils/            # Utilities (dom, position, validation, a11y, log)
+│   ├── locales/          # I18n Language Files (en, zh-cn, zh-tw)
+│   └── index.js          # Entry point
+├── tests/                # Unit Tests (230 tests across 11 files)
+├── e2e/                  # E2E Tests (195 tests, Playwright)
+├── doc/                  # API Documentation (7 markdown files)
+├── examples/             # Usage Examples & Interactive Demo
+├── CONTRIBUTING.md       # Contribution Guidelines
+├── CODE_OF_CONDUCT.md    # Community Code of Conduct
+└── package.json          # Package Configuration
 ```
 
 ## License

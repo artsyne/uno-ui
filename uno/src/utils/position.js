@@ -101,11 +101,41 @@ export const getStackingConfig = (position) => {
 }
 
 /**
- * Calculate tooltip position relative to trigger
- * @param {HTMLElement} triggerEl - Trigger element
- * @param {HTMLElement} tooltipEl - Tooltip element
- * @param {string} preferredPosition - Preferred position (top/bottom/left/right)
- * @returns {Object} { top, left, position }
+ * Calculate tooltip position relative to trigger element with automatic flipping.
+ *
+ * This function implements an intelligent positioning algorithm that:
+ * 1. Calculates the ideal position based on the preferred placement
+ * 2. Checks if the tooltip fits within the viewport boundaries
+ * 3. Automatically flips to the opposite side if there's not enough space
+ * 4. Constrains the position to prevent overflow from the viewport
+ *
+ * Algorithm Details:
+ * - For 'top' placement: Position above the trigger, flip to 'bottom' if no space
+ * - For 'bottom' placement: Position below the trigger, flip to 'top' if no space
+ * - For 'left' placement: Position to the left, flip to 'right' if no space
+ * - For 'right' placement: Position to the right, flip to 'left' if no space
+ * - Always centers the tooltip relative to the trigger when possible
+ * - Adds padding (5px horizontal, 8px vertical) to prevent edge touching
+ *
+ * Edge Cases Handled:
+ * - Tooltip wider than trigger: Centers tooltip over trigger
+ * - Near viewport edge: Shifts tooltip away from edge (10px minimum padding)
+ * - Insufficient space on preferred side: Flips to opposite side
+ * - Insufficient space on both sides: Shows on preferred side with viewport constraint
+ *
+ * @param {HTMLElement} triggerEl - The trigger element that activates the tooltip
+ * @param {HTMLElement} tooltipEl - The tooltip element to be positioned
+ * @param {string} preferredPosition - Desired placement ('top'|'bottom'|'left'|'right')
+ * @returns {Object} Position object with properties:
+ *   - {number} top - Top coordinate in pixels (viewport-relative)
+ *   - {number} left - Left coordinate in pixels (viewport-relative)
+ *   - {string} position - Actual position used (may differ from preferred if flipped)
+ *
+ * @example
+ * const result = calculatePosition(button, tooltip, 'top')
+ * tooltip.style.top = `${result.top}px`
+ * tooltip.style.left = `${result.left}px`
+ * console.log(result.position) // 'top' or 'bottom' if flipped
  */
 export function calculatePosition(triggerEl, tooltipEl, preferredPosition) {
   const triggerRect = triggerEl.getBoundingClientRect()
@@ -126,6 +156,20 @@ export function calculatePosition(triggerEl, tooltipEl, preferredPosition) {
   const viewportBottom = viewportHeight
   const viewportRight = viewportWidth
 
+  /**
+   * Constrain a position coordinate to stay within viewport boundaries.
+   *
+   * This helper function prevents tooltips from overflowing the visible area by:
+   * - Checking if the tooltip would extend beyond the viewport edge
+   * - Pulling it back within bounds if needed
+   * - Adding a 10px safety margin from viewport edges
+   *
+   * @param {number} position - The proposed coordinate value
+   * @param {boolean} isHorizontal - True for left/right (horizontal), false for top/bottom (vertical)
+   * @returns {number} Constrained coordinate value
+   *
+   * @private
+   */
   const constrainToViewport = (position, isHorizontal) => {
     if (isHorizontal) {
       if (position + containerWidth > viewportRight) {

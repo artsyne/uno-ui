@@ -13,7 +13,7 @@
  * - i18n support for error messages
  *
  * @module uno.components.valid
- * @version 0.5.0
+ * @version 0.6.0
  * @license MIT
  */
 

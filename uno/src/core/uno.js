@@ -4,7 +4,7 @@
  * Manages plugins, initialization, and global configuration.
  *
  * @module uno.core.instance
- * @version 0.5.0
+ * @version 0.6.0
  */
 
 import Alpine from 'alpinejs'
@@ -81,6 +81,10 @@ export class UnoInstance {
           const swap = ajaxOptions.swap || 'innerHTML'
           await this.htmx.ajax(method, url, { ...ajaxOptions, target, swap })
           return responseText
+        } catch (error) {
+          // Ensure errors are properly logged and reported
+          log.error('HTMX fragment fetch failed:', { method, url, error })
+          throw error // Re-throw to allow caller to handle
         } finally {
           target.removeEventListener('htmx:beforeSwap', onBeforeSwap)
           target.remove()
@@ -454,9 +458,82 @@ export class UnoInstance {
       }
     })
 
+    // Setup global error boundaries
+    this._setupGlobalErrorHandlers()
+
     this.initialized = true
     log.info('Uno initialized')
     return alpine
+  }
+
+  /**
+   * Setup global error boundaries for unhandled errors and promise rejections.
+   * This ensures that all errors are properly logged and reported through the
+   * configured error handler.
+   *
+   * Error Handling Strategy:
+   * 1. Catches unhandled Promise rejections
+   * 2. Catches uncaught JavaScript errors
+   * 3. Reports errors through log.error() which triggers onError callback
+   * 4. Prevents duplicate error handling using WeakSet
+   *
+   * @private
+   */
+  _setupGlobalErrorHandlers() {
+    if (typeof window === 'undefined') return
+    if (once(window, 'uno:global-error-handlers')) {
+      // Track reported errors to avoid duplicates
+      const reportedErrors = typeof WeakSet === 'function' ? new WeakSet() : null
+
+      /**
+       * Handle unhandled promise rejections.
+       * Common causes:
+       * - Async/await without try-catch
+       * - Promise chain without .catch()
+       * - HTMX ajax errors
+       */
+      window.addEventListener('unhandledrejection', (event) => {
+        const reason = event.reason
+
+        // Avoid duplicate reporting
+        if (reportedErrors && reason instanceof Error) {
+          if (reportedErrors.has(reason)) return
+          reportedErrors.add(reason)
+        }
+
+        log.error('Unhandled Promise Rejection:', reason)
+
+        // Optionally prevent default browser behavior (console error)
+        // event.preventDefault()
+      })
+
+      /**
+       * Handle uncaught JavaScript errors.
+       * This catches errors that escape try-catch blocks.
+       */
+      window.addEventListener('error', (event) => {
+        const error = event.error
+
+        // Avoid duplicate reporting
+        if (reportedErrors && error instanceof Error) {
+          if (reportedErrors.has(error)) return
+          reportedErrors.add(error)
+        }
+
+        // Log with context
+        log.error('Uncaught Error:', {
+          message: event.message,
+          filename: event.filename,
+          lineno: event.lineno,
+          colno: event.colno,
+          error: error
+        })
+
+        // Don't prevent default - let browser handle it too
+      })
+
+      log.debug('Global error handlers installed')
+    }
   }
 }
 

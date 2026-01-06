@@ -12,7 +12,7 @@
  * - i18n support for messages
  *
  * @module uno.components.notify
- * @version 0.5.0
+ * @version 0.6.0
  * @license MIT
  */
 
