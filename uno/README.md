@@ -250,6 +250,11 @@ uno/
 │   └── index.html      # Test dashboard
 ├── src/
 │   ├── components/     # Component source code
+│   │   ├── box/        # Box component (store, directive, template)
+│   │   ├── notify/     # Notify component
+│   │   ├── tab/        # Tab component
+│   │   ├── tooltip/    # Tooltip component
+│   │   └── valid/      # Valid component
 │   ├── core/           # Core utilities (i18n, positioning, etc.)
 │   └── index.js        # Entry point
 ├── package.json
