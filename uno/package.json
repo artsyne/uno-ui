@@ -1,17 +1,20 @@
 {
   "name": "uno-ui",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "type": "module",
   "main": "./dist/uno.umd.js",
   "module": "./dist/uno.es.js",
+  "types": "./types/index.d.ts",
   "exports": {
     ".": {
+      "types": "./types/index.d.ts",
       "import": "./dist/uno.es.js",
       "require": "./dist/uno.umd.js"
     }
   },
   "files": [
     "dist",
+    "types",
     "src"
   ],
   "sideEffects": [

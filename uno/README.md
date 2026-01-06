@@ -12,6 +12,7 @@ It provides a curated set of essential UI components that require no complex bui
 - 🔌 **HTMX Ready**: Natively supports HTMX's server-driven UI patterns, with components designed for seamless AJAX interactions.
 - 🌍 **I18n Support**: Built-in internationalization mechanism for easy multi-language switching.
 - ♿ **Accessible**: Follows WAI-ARIA best practices to ensure good accessibility.
+- 📘 **TypeScript Support**: Full TypeScript type definitions included for enhanced developer experience.
 
 ## Getting Started
 
@@ -64,6 +65,42 @@ window.Alpine = Alpine
 Alpine.start()
 ```
 
+### 3. TypeScript Support
+
+Uno UI includes full TypeScript type definitions. No additional setup required!
+
+```typescript
+import { Uno, type BoxOptions, type NotifyOptions } from 'uno-ui'
+import Alpine from 'alpinejs'
+
+// Full type checking and IntelliSense
+const options: BoxOptions = {
+  title: 'Hello',
+  content: 'World',
+  position: 'center'
+}
+
+Alpine.store('uno').box.open(options)
+```
+
+**Type-safe configuration:**
+
+```typescript
+import type { UnoOptions } from 'uno-ui'
+
+const config: UnoOptions = {
+  debug: true,
+  plugins: {
+    box: {
+      defaultWidth: 500,
+      closeOnEsc: true
+    }
+  }
+}
+
+Uno.init(config)
+```
+
 ## Components
 
 Uno provides a set of essential components. Detailed documentation is available in the `doc/` directory.
@@ -75,6 +112,31 @@ Uno provides a set of essential components. Detailed documentation is available 
 | **Tab**     | Tab switching with support for AJAX/HTMX content loading and URL Hash synchronization. | [Tab API](doc/tab-api.md)         |
 | **Tooltip** | Smart positioning tooltips supporting Hover/Click triggers.                            | [Tooltip API](doc/tooltip-api.md) |
 | **Valid**   | Powerful form validation engine with declarative rules and async support.              | [Valid API](doc/valid-api.md)     |
+
+## TypeScript Support
+
+Uno UI v0.6.0+ includes full TypeScript type definitions. See the [TypeScript Usage Guide](doc/typescript-usage.md) for detailed information.
+
+**Key Features:**
+
+- ✅ Full type definitions for all components
+- ✅ IntelliSense and autocomplete in your IDE
+- ✅ Compile-time type checking
+- ✅ No additional setup required
+
+**Quick Example:**
+
+```typescript
+import type { BoxOptions } from 'uno-ui'
+
+const options: BoxOptions = {
+  title: 'Hello',
+  position: 'center' // ✅ Type-safe
+  // position: 'invalid' // ❌ Type error
+}
+
+Alpine.store('uno').box.open(options)
+```
 
 ## Customization
 
