@@ -1,7 +1,8 @@
 import { Uno } from '../../core/uno'
 import { getZIndex } from '../../core/layer'
 
-export const getNotifyTemplate = () => `
+export const getNotifyTemplate = () => {
+  return `
   <template x-for="(items, position) in $store.uno.notify.groups" :key="position">
     <div :class="$store.uno.notify.getContainerClass(position)"
          :style="$store.uno.notify.getContainerStyle(position)">
@@ -79,6 +80,7 @@ export const getNotifyTemplate = () => `
     </div>
   </template>
 `
+}
 
 export const getProgressTemplate = () => {
   const progressZ = getZIndex('MAX')

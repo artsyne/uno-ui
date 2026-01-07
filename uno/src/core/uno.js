@@ -435,7 +435,6 @@ export class UnoInstance {
     }
 
     log.info(`Uno v${this.version} initializing...`)
-
     if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       if (window.htmx && typeof alpine?.initTree === 'function') {
         if (once(document, 'uno:htmx-afterSwap:initTree')) {

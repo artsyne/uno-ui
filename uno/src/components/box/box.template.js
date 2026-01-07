@@ -5,7 +5,9 @@ import { getZIndex } from '../../core/layer'
  * Get the Box component template
  * @returns {string} HTML template string
  */
-export const getBoxTemplate = () => `
+export const getBoxTemplate = () => {
+  const zBase = Uno.options?.ui?.layers?.box || getZIndex('BOX')
+  return `
   <!-- Backdrop / Overlay -->
   <div id="uno-box-overlay"
        :class="Uno.getStyle('box', 'overlay')"
@@ -23,7 +25,7 @@ export const getBoxTemplate = () => `
     <template x-for="item in $store.uno.box.items" :key="item.id">
       <div :id="'uno-box-outer-container' + item.id"
            :class="[Uno.getStyle('box', 'itemWrapper'), $store.uno.box.getPositionClasses(item.position)]"
-           :style="'z-index:' + (Uno.options?.ui?.layers?.box || getZIndex('BOX'))"
+           :style="'z-index:' + ${zBase}"
            x-show="item.isOpen"
            x-transition:enter="ease-out duration-300"
            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -102,3 +104,4 @@ export const getBoxTemplate = () => `
     </template>
   </div>
 `
+}

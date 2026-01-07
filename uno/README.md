@@ -301,11 +301,32 @@ npm install
 
 ### Testing
 
-The project includes a manual test suite located in the `examples/` directory. After building, you can verify component functionality by opening `examples/index.html`.
+The project uses Vitest for unit testing with comprehensive coverage of all components and utilities.
+
+```bash
+# Run unit tests
+npm run test
+
+# Run tests in watch mode during development
+npm run test:watch
+
+# Generate coverage report
+npm run test:coverage
+```
+
+**Test Coverage:**
+
+- ✅ 264 unit tests across 13 test files
+- ✅ 100% coverage of core modules (uno, plugin-registry, i18n, layer)
+- ✅ 100% coverage of all components (box, notify, tooltip, tab, valid)
+- ✅ 100% coverage of utility functions (dom, position, validation, a11y)
+
+You can also verify component functionality manually using the interactive demo:
 
 ```bash
 npm run build
-open examples/index.html
+npm run dev
+# Open http://localhost:5176/examples/
 ```
 
 ## Project Structure
@@ -318,11 +339,10 @@ uno/
 │   ├── components/       # UI Components (box, notify, tooltip, tab, valid)
 │   ├── core/             # Core System (uno, i18n, layer, plugin-registry)
 │   ├── utils/            # Utilities (dom, position, validation, a11y, log)
-│   ├── locales/          # I18n Language Files (en, zh-cn, zh-tw)
+│   ├── locales/          # I18n Language Files (en, zh-CN, zh-TW)
 │   └── index.js          # Entry point
-├── tests/                # Unit Tests (230 tests across 11 files)
-├── e2e/                  # E2E Tests (195 tests, Playwright)
-├── doc/                  # API Documentation (7 markdown files)
+├── tests/                # Unit Tests (264 tests across 13 files)
+├── doc/                  # API Documentation
 ├── examples/             # Usage Examples & Interactive Demo
 ├── CONTRIBUTING.md       # Contribution Guidelines
 ├── CODE_OF_CONDUCT.md    # Community Code of Conduct

@@ -30,13 +30,13 @@ export const getFlexAlignmentClass = (position) => {
   const map = {
     center: 'items-center justify-center',
     'top-center': 'items-start justify-center',
-    'top-left': 'items-start justify-start',
-    'top-right': 'items-start justify-end',
+    'top-left': 'items-start justify-start sm:px-8',
+    'top-right': 'items-start justify-end sm:px-8',
     'bottom-center': 'items-end justify-center',
-    'bottom-left': 'items-end justify-start',
-    'bottom-right': 'items-end justify-end',
-    'center-left': 'items-center justify-start',
-    'center-right': 'items-center justify-end'
+    'bottom-left': 'items-end justify-start sm:px-8',
+    'bottom-right': 'items-end justify-end sm:px-8',
+    'center-left': 'items-center justify-start sm:px-8',
+    'center-right': 'items-center justify-end sm:px-8'
   }
   return map[pos] || map['center']
 }

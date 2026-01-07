@@ -30,20 +30,20 @@ describe('Position Utils - getFlexAlignmentClass()', () => {
   })
 
   it('should return correct classes for top positions', () => {
-    expect(getFlexAlignmentClass('top-left')).toBe('items-start justify-start')
+    expect(getFlexAlignmentClass('top-left')).toBe('items-start justify-start sm:px-8')
     expect(getFlexAlignmentClass('top-center')).toBe('items-start justify-center')
-    expect(getFlexAlignmentClass('top-right')).toBe('items-start justify-end')
+    expect(getFlexAlignmentClass('top-right')).toBe('items-start justify-end sm:px-8')
   })
 
   it('should return correct classes for center-left/right', () => {
-    expect(getFlexAlignmentClass('center-left')).toBe('items-center justify-start')
-    expect(getFlexAlignmentClass('center-right')).toBe('items-center justify-end')
+    expect(getFlexAlignmentClass('center-left')).toBe('items-center justify-start sm:px-8')
+    expect(getFlexAlignmentClass('center-right')).toBe('items-center justify-end sm:px-8')
   })
 
   it('should return correct classes for bottom positions', () => {
-    expect(getFlexAlignmentClass('bottom-left')).toBe('items-end justify-start')
+    expect(getFlexAlignmentClass('bottom-left')).toBe('items-end justify-start sm:px-8')
     expect(getFlexAlignmentClass('bottom-center')).toBe('items-end justify-center')
-    expect(getFlexAlignmentClass('bottom-right')).toBe('items-end justify-end')
+    expect(getFlexAlignmentClass('bottom-right')).toBe('items-end justify-end sm:px-8')
   })
 
   it('should default to center for undefined position', () => {

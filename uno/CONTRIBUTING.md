@@ -56,8 +56,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 4. **Run tests**:
 
    ```bash
-   npm run test:unit    # Unit tests
-   npm run test         # E2E tests
+   npm run test         # Run all unit tests
    npm run lint         # Linting
    ```
 
@@ -160,42 +159,48 @@ Uno UI follows a **Store-First, Directive-Driven** architecture:
 
 - Use **Vitest** for unit tests
 - Test files: `tests/**/*.test.js`
-- Coverage goal: >85% for core functionality
+- Coverage goal: 100% for core functionality
+- All components and utilities must have comprehensive unit tests
 
 Example:
 
 ```javascript
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-describe('Component', () => {
+describe('Component Store', () => {
+  let store
+  let Alpine
+
   beforeEach(() => {
-    // Setup
+    // Setup mocks
+    Alpine = {
+      store: vi.fn(),
+      nextTick: vi.fn((fn) => setTimeout(fn, 0))
+    }
+
+    // Create store instance
+    store = createComponentStore(Alpine)
   })
 
-  it('should do something', () => {
-    // Test logic
-    expect(result).toBe(expected)
+  it('should initialize with default state', () => {
+    expect(store.items).toEqual([])
+    expect(store.visible).toBe(false)
+  })
+
+  it('should update state correctly', () => {
+    store.show({ content: 'Test' })
+    expect(store.visible).toBe(true)
   })
 })
 ```
 
-### E2E Tests
+**Test Coverage Requirements:**
 
-- Use **Playwright** for E2E tests
-- Test files: `e2e/**/*.spec.ts`
-- Test real browser interactions
-
-Example:
-
-```typescript
-import { test, expect } from '@playwright/test'
-
-test('should show notification', async ({ page }) => {
-  await page.goto('/examples')
-  await page.click('[data-test="show-notify"]')
-  await expect(page.locator('.uno-notify')).toBeVisible()
-})
-```
+- ✅ All public methods must be tested
+- ✅ Edge cases and error handling must be covered
+- ✅ Configuration merge logic must be verified
+- ✅ Callbacks and event handlers must be tested
+- ✅ Integration with Uno.getConfig() must be validated
 
 ## Documentation
 
@@ -277,7 +282,8 @@ Update `README.md` if your changes:
 
 4. **Add tests**:
    - Unit tests: `tests/components/mycomponent.test.js`
-   - E2E tests: `e2e/mycomponent.spec.ts`
+   - Test all public methods, edge cases, and configuration merge
+   - Ensure 100% coverage of core functionality
 
 5. **Create documentation**:
    - API docs: `doc/mycomponent-api.md`
@@ -305,7 +311,7 @@ Update `README.md` if your changes:
 
 1. **Update version** in `package.json`
 2. **Update CHANGELOG.md** with all changes
-3. **Run all tests**: `npm run test:unit && npm run test`
+3. **Run all tests**: `npm run test`
 4. **Build**: `npm run build`
 5. **Create release commit**: `git commit -m "chore: release v0.x.0"`
 6. **Tag release**: `git tag v0.x.0`
