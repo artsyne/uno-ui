@@ -1,103 +1,140 @@
-# Tooltip Component
+# Uno Tooltip API Documentation
 
-A lightweight, smart positioning Tooltip component built on Alpine.js.
+The Tooltip component provides smart, positioning-aware tooltips. It supports auto-flipping, different trigger modes (hover, click, focus), and can load content dynamically via HTMX.
 
-## Features
+## Overview
 
-- **Smart Positioning**: Automatically detects viewport edges and adjusts position (Top/Bottom/Left/Right).
-- **Interaction Modes**: Supports `hover` (mouse hover, default) and `click` (click trigger).
-- **Themes**: Built-in `dark` (default) and `light` themes.
-- **Rich Content**: Supports plain text or HTML content (referenced via DOM element).
-- **High Performance**: Uses `requestAnimationFrame` for rendering optimization to prevent jitter.
-- **Accessibility**:
-  - Adds `role="tooltip"` to content.
-  - Automatically manages `aria-describedby` on trigger element.
+- **Core Function**: Display contextual information attached to an element.
+- **Architecture**: Directive (`x-uno-tooltip`) registers triggers; Store (`Alpine.store('uno').tooltip`) manages visibility and position.
+- **Positioning**: Uses `requestAnimationFrame` for high-performance, collision-aware positioning.
+- **Interaction**: Supports Hover (default), Click (Popover), and Focus triggers.
 
-## Quick Start
+## Basic Usage
 
-### Basic Structure
-
-Attach the directive `x-tooltip` on any trigger element.
+### 1. Simple Text Tooltip
 
 ```html
-<button class="btn" x-tooltip="'Hello World'">Hover Me</button>
+<button x-uno-tooltip="'Save changes'">Save</button>
 ```
 
-> **Note**: Tooltip uses a global singleton container injected on-demand by `Alpine.store('uno').tooltip.show()`.
+### 2. Configuration Object
 
-## Programmatic Usage
-
-### Store API
-
-The component exposes a global API for manual control.
-
-#### `Alpine.store('uno').tooltip.show(el, content, config)`
-
-Manually show a tooltip anchored to an element.
-
-```javascript
-Alpine.store('uno').tooltip.show(document.getElementById('my-btn'), 'Manual Tooltip', { placement: 'bottom' })
+```html
+<button
+  x-uno-tooltip="{ 
+  content: '<strong>Bold</strong> info', 
+  placement: 'right',
+  theme: 'light' 
+}"
+>
+  Info
+</button>
 ```
 
-#### `Alpine.store('uno').tooltip.hide()`
+### 3. DOM Element as Content
 
-Hides the current tooltip.
+```html
+<div id="my-tip" class="hidden">Detailed info...</div>
+<button x-uno-tooltip="{ target: '#my-tip', trigger: 'click' }">Show Details</button>
+```
 
-#### `Alpine.store('uno').tooltip.updatePosition()`
+## API Parameters
 
-Recalculates position (useful if trigger moves).
+These options are passed in the configuration object to `x-uno-tooltip`.
 
-## Configuration / Options
+| Name           | Type      | Default   | Required | Description                                                                  |
+| :------------- | :-------- | :-------- | :------- | :--------------------------------------------------------------------------- |
+| `content`      | `String`  | `''`      | No\*     | Text/HTML content. If starting with `#` (e.g., `'#id'`), it acts as `target`.|
+| `target`       | `String`  | -         | No\*     | CSS Selector to an element whose `innerHTML` will be used as content.        |
+| `placement`    | `String`  | `'top'`   | No       | Preferred position. Values: `'top'`, `'bottom'`, `'left'`, `'right'`.        |
+| `trigger`      | `String`  | `'hover'` | No       | Trigger mode. Values: `'hover'`, `'click'`, `'focus'`.                       |
+| `arrow`        | `Boolean` | `true`    | No       | Whether to show the directional arrow.                                       |
+| `offset`       | `Number`  | `8`       | No       | Distance in pixels between trigger and tooltip.                              |
+| `clickOutside` | `Boolean` | `true`    | No       | If `true`, clicking outside closes the tooltip (for `click` mode).           |
+| `hxUrl`        | `String`  | -         | No       | URL to fetch content from via HTMX.                                          |
+| `hxTrigger`    | `String`  | `'load'`  | No       | When to trigger HTMX fetch. Default `'load'` means fetch when tooltip shows. |
 
-### Options Object
+## Events
 
-| Option        | Type                                     | Default   | Description                                                                  |
-| ------------- | ---------------------------------------- | --------- | ---------------------------------------------------------------------------- |
-| `placement`   | `'top' \| 'bottom' \| 'left' \| 'right'` | `'top'`   | Preferred placement. Flips automatically if space is insufficient.           |
-| `trigger`     | `'hover' \| 'click' \| 'focus'`          | `'hover'` | Trigger mode. In `click` mode, clicking outside closes it.                   |
-| `theme`       | `'dark' \| 'light'`                      | `'dark'`  | Visual theme.                                                                |
-| `timeout`     | `Number`                                 | `100`     | Delay in ms before closing on mouse leave (hover mode).                      |
-| `target`      | `String`                                 | `null`    | CSS selector of the DOM element to use as content source.                    |
-| `onShow`      | `Function`                               | `null`    | Callback function triggered when tooltip is shown. Receives content element. |
-| `trustedHTML` | `Boolean`                                | `false`   | If true, disables HTML sanitization. Use with caution.                       |
+The directive handles native DOM events on the trigger element based on the `trigger` mode.
 
-## Security & Sanitization
+| Mode    | Events Listened            | Behavior                                     |
+| :------ | :------------------------- | :------------------------------------------- |
+| `hover` | `mouseenter`, `mouseleave` | Shows on enter, hides on leave (with delay). |
+| `click` | `click`                    | Toggles visibility.                          |
+| `focus` | `focus`, `blur`            | Shows on focus, hides on blur.               |
 
-By default, all HTML content (whether from `content` prop or `target` DOM) is sanitized using `Uno.dom.sanitizeHTML`.
+## Methods
 
-- **Dangerous Tags**: `<script>`, `<style>`, `<iframe>`, `<object>`, `<embed>` are completely stripped.
-- **Attributes**: Only safe attributes (e.g. `class`, `id`) are allowed. `href` in `<a>` tags is validated (no `javascript:`).
-- **Trusted Mode**: Set `trustedHTML: true` to bypass sanitization if you trust the content source.
+Accessed via `Alpine.store('uno').tooltip`.
+
+### `show(options)`
+
+Manually shows a tooltip.
+
+- **Parameters**: `options` (Object)
+  - `element` (HTMLElement, Required): The anchor element.
+  - `content` (String): Content to show.
+  - `placement` (String): Position preference.
+- **Returns**: `void`
+
+### `hide()`
+
+Hides the currently visible tooltip.
+
+- **Parameters**: None.
+- **Returns**: `void`
+
+### `updatePosition()`
+
+Force recalculates the tooltip position. Useful if the anchor element moves or resizes.
+
+- **Parameters**: None.
+- **Returns**: `void`
 
 ## Examples
 
-### 1. Specific Position (Bottom)
+### HTMX Loaded Tooltip
+
+Fetch user details when hovering over a username.
 
 ```html
-<button x-tooltip.bottom="'Bottom Tip'">Hover Me</button>
+<span
+  x-uno-tooltip="{ 
+  hxUrl: '/api/user/123/card', 
+  hxTrigger: 'mouseenter',
+  placement: 'bottom'
+}"
+>
+  @username
+</span>
 ```
 
-### 2. Click Trigger + Light Theme (Popover Style)
+### Click-Triggered Popover (Menu)
 
 ```html
-<button x-tooltip.click="{ content: 'Light Theme Popover', theme: 'light' }">Click Me</button>
-```
+<button
+  x-uno-tooltip="{ 
+  target: '#menu-content', 
+  trigger: 'click', 
+  placement: 'bottom-start',
+  arrow: false,
+  offset: 4
+}"
+>
+  Options
+</button>
 
-### 3. HTML Content (Target Mode)
-
-```html
-<!-- Hidden Content Source -->
-<div id="tip-content" style="display: none;">
-  <strong>Bold Title</strong><br />
-  <span class="text-blue-500">Supports HTML styles</span>
+<div id="menu-content" class="hidden">
+  <ul class="menu">
+    <li>Edit</li>
+    <li>Delete</li>
+  </ul>
 </div>
-
-<!-- Tooltip Instance -->
-<button x-tooltip="{ target: '#tip-content' }">Hover to see HTML</button>
 ```
 
-## Developer Notes
+## Version History
 
-- **Core Positioning**: Positioning logic reuses `src/utils/position.js`, consistent with Box/Notify components.
-- **Debugging**: Enable debug mode in `src/utils/log.js` to view internal logs in the console.
-- **A11y**: Ensure your trigger element is focusable (e.g., `<button>` or `tabindex="0"`) for keyboard users.
+| Version | Date       | Changes                                                  |
+| :------ | :--------- | :------------------------------------------------------- |
+| v1.0.0  | 2025-01-09 | Initial release with Smart Positioning and HTMX support. |

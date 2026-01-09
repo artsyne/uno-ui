@@ -1,4 +1,3 @@
-import { Box, Notify, Valid } from '../utils/uno-shim.js';
 import { SocialMixin } from './social.js';
 
 export function DiaryList() {
@@ -117,7 +116,9 @@ export function DiaryList() {
     },
 
     confirmDelete(diaryId, postId) {
-      Box.confirm({
+      const uno = window.getUno();
+      if (!uno) return;
+      uno.box.confirm({
         content: this.$store.i18n.t('diary.delete.confirm'),
         okButtonClass: 'btn',
         onOk: () => {
@@ -126,6 +127,9 @@ export function DiaryList() {
       });
     },
     async deletePost(diaryId, postId) {
+      const notify = window.getUno()?.notify;
+      if (!notify) return;
+
       try {
         const response = await fetch(`/post/${postId}?diary_id=${diaryId}`, {
           method: 'DELETE',
@@ -134,30 +138,33 @@ export function DiaryList() {
         if (result.success) {
           const el = document.querySelector(`.card[data-post-id="${postId}"]`);
           if (el) el.remove();
-          Notify.success(this.$store.i18n.t('diary.delete.success'));
+          notify.success(this.$store.i18n.t('diary.delete.success'));
         } else {
-          Notify.error(
+          notify.error(
             result.message || this.$store.i18n.t('diary.delete.fail'),
           );
         }
       } catch (error) {
         console.error('Delete error:', error);
-        Notify.error(this.$store.i18n.t('diary.delete.net_error'));
+        notify.error(this.$store.i18n.t('diary.delete.net_error'));
       }
     },
 
     // Modal Actions
     openPostModal(url) {
+      const uno = window.getUno();
+      if (!uno) return;
+
       const originalUrl = window.location.href;
 
       // Update URL to the post URL immediately
       history.pushState(null, '', url);
 
-      Box.dialog({
-        ajaxUrl: url + '?isajax=true',
+      uno.box.dialog({
+        hxUrl: url + '?isajax=true',
         containerClass: '!border',
         widthClass: 'w-full lg:w-[90%]',
-        heightClass: 'h-full',
+        heightClass: 'h-[90vh]',
         onContentLoad: (el) => {
           if (window.htmx) {
             htmx.process(el);
@@ -179,12 +186,15 @@ export function DiaryList() {
     },
 
     _openPostForm(action, diaryId, postId = null) {
+      const uno = window.getUno();
+      if (!uno) return;
+
       const isEdit = action === 'post.edit';
       const title = isEdit
         ? this.$store.i18n.t('diary.edit.title')
         : this.$store.i18n.t('diary.create.title');
 
-      const boxId = Box.dialog({
+      const boxId = uno.box.dialog({
         title: title,
         content: `<div class="modal-body" id="post-form-container">${this.$store.i18n.t('common.loading')}</div>`,
         widthClass: '!w-[800px]',
@@ -209,6 +219,9 @@ export function DiaryList() {
           const container = document.getElementById('post-form-container');
           if (container) {
             container.innerHTML = html;
+            if (window.Alpine) {
+              window.Alpine.initTree(container);
+            }
           }
         })
         .catch((err) => {
@@ -220,12 +233,20 @@ export function DiaryList() {
     },
 
     async _handlePostSubmit(boxId, action) {
+      const uno = window.getUno();
+      if (!uno) return false;
+
       const form = document.querySelector('#post-form-container form');
       if (!form) return false;
 
       // Uno Validation
-      if (!(await Valid.validateForm(form))) {
-        return false;
+      if (uno.valid) {
+        // Ensure validation rules are registered (in case of dynamic form)
+        // If x-uno-valid is missing or rules not registered, validateForm returns true but does nothing
+        const isValid = uno.valid.validateForm(form);
+        if (!isValid) {
+          return false;
+        }
       }
 
       const formData = new FormData(form);
@@ -258,8 +279,8 @@ export function DiaryList() {
         const result = await response.json();
 
         if (result.success) {
-          Notify.success(this.$store.i18n.t('common.save_success'));
-          Box.close(boxId);
+          uno.notify.success(this.$store.i18n.t('common.save_success'));
+          uno.box.close(boxId);
 
           const post = result.data;
           this._updatePostStats(post);
@@ -340,20 +361,23 @@ export function DiaryList() {
           // Return nothing (undefined) to allow Uno to close the dialog if it was waiting
           return;
         } else {
-          Notify.error(
+          uno.notify.error(
             result.message || this.$store.i18n.t('common.save_fail'),
           );
           return false;
         }
       } catch (e) {
         console.error('Submit error:', e);
-        Notify.error(this.$store.i18n.t('common.net_error'));
+        uno.notify.error(this.$store.i18n.t('common.net_error'));
         return false;
       }
     },
 
     openEditDiary(diaryId) {
-      const boxId = Box.dialog({
+      const uno = window.getUno();
+      if (!uno) return;
+
+      const boxId = uno.box.dialog({
         title: this.$store.i18n.t('diary.settings.title'), // Should use i18n
         content: `<div class="modal-body" id="diary-form-container">${this.$store.i18n.t('common.loading')}</div>`,
         widthClass: '!w-[880px]',
@@ -385,11 +409,14 @@ export function DiaryList() {
     },
 
     async _handleDiarySubmit(boxId) {
+      const uno = window.getUno();
+      if (!uno) return false;
+
       const form = document.querySelector('#diary-form-container form');
       if (!form) return false;
 
       // Uno Validation
-      if (!(await Valid.validateForm(form))) {
+      if (!(await uno.valid.validateForm(form))) {
         return false;
       }
 
@@ -411,8 +438,8 @@ export function DiaryList() {
         const result = await response.json();
 
         if (result.success) {
-          Notify.success(this.$store.i18n.t('common.save_success'));
-          Box.close(boxId);
+          uno.notify.success(this.$store.i18n.t('common.save_success'));
+          uno.box.close(boxId);
 
           const diary = result.data;
           const titleEl = document.getElementById('diary_title');
@@ -484,13 +511,13 @@ export function DiaryList() {
 
           return;
         } else {
-          Notify.error(
+          uno.notify.error(
             result.message || this.$store.i18n.t('common.save_fail'),
           );
           return false;
         }
       } catch (e) {
-        Notify.error(this.$store.i18n.t('common.net_error'));
+        uno.notify.error(this.$store.i18n.t('common.net_error'));
         return false;
       }
     },

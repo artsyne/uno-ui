@@ -1,7 +1,6 @@
 export function Navbar() {
   return {
     init() {
-      console.log('[Navbar] Initialized');
     },
   };
 }
@@ -9,7 +8,6 @@ export function Navbar() {
 export function Footer() {
   return {
     init() {
-      console.log('[Footer] Initialized');
     },
   };
 }

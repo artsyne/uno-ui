@@ -1,5 +1,3 @@
-import { Box, Notify, Valid } from '../utils/uno-shim.js';
-
 export const Member = {
   init() {
     if (this._initialized) return;
@@ -89,8 +87,11 @@ export const Member = {
   },
 
   openAddDiary() {
+    const uno = window.getUno();
+    if (!uno) return;
+
     const title = this.$store.i18n.t('diary.create.title');
-    const boxId = Box.dialog({
+    const boxId = uno.box.dialog({
       title: title,
       ajaxUrl: '/form/diary?action=diary.add',
       width: 800,
@@ -104,10 +105,13 @@ export const Member = {
   },
 
   async submitDiaryForm(boxId) {
+    const uno = window.getUno();
+    if (!uno) return;
+
     const form = document.querySelector('#daybook_editor_form');
     if (!form) return;
 
-    if (!(await Valid.validateForm(form))) {
+    if (!(await uno.valid.validateForm(form))) {
       return;
     }
 
@@ -127,18 +131,22 @@ export const Member = {
       const result = await response.json();
 
       if (result.success) {
-        Notify.success(this.$store.i18n.t('operation.success'));
-        Box.close(boxId);
+        uno.notify.success(this.$store.i18n.t('operation.success'));
+        uno.box.close(boxId);
 
         // Dispatch event to update diary list if listener exists
         document.dispatchEvent(
           new CustomEvent('diary:added', { detail: result.data }),
         );
       } else {
-        Notify.error(result.message || this.$store.i18n.t('operation.fail'));
+        uno.notify.error(
+          result.message || this.$store.i18n.t('operation.fail'),
+        );
       }
     } catch (e) {
-      Notify.error(this.$store.i18n.t('common.net_error') || 'Network error');
+      uno.notify.error(
+        this.$store.i18n.t('common.net_error') || 'Network error',
+      );
     }
   },
 };

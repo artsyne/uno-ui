@@ -58,7 +58,8 @@ function deepMerge(target, source) {
 }
 
 export function installAlpine(Alpine) {
-  Alpine.store('i18n', {
+  const existingStore = Alpine.store('i18n')
+  const newStore = {
     locale: detect(),
     messages: initialMessages,
     loading: false,
@@ -93,34 +94,49 @@ export function installAlpine(Alpine) {
       this.setLocale(lang)
     },
 
+    extend(newMessages) {
+      deepMerge(this.messages, newMessages)
+    },
+
     async loadLocale(lang, url) {
       if (this.messages[lang]) return // Already loaded
 
       this.loading = true
       try {
-        const res = await fetch(url)
-        if (!res.ok) throw new Error(`Failed to load locale: ${res.statusText}`)
-        const data = await res.json()
-        this.extend({ [lang]: data })
-        return true
+        const response = await fetch(url)
+        if (!response.ok) throw new Error(`Failed to load ${lang}`)
+        const data = await response.json()
+        this.messages[lang] = data
+        this.setLocale(lang)
       } catch (e) {
-        log.error(`[Uno] Failed to load locale ${lang}`, e)
-        throw e
+        log.error(`[Uno] Failed to load locale ${lang}:`, e)
       } finally {
         this.loading = false
       }
-    },
-
-    extend(locales) {
-      for (const lang in locales) {
-        if (!this.messages[lang]) {
-          this.messages[lang] = locales[lang]
-        } else {
-          deepMerge(this.messages[lang], locales[lang])
-        }
-      }
     }
-  })
+  }
+
+  if (existingStore) {
+    log.info('[Uno] Merging into existing i18n store')
+    // Merge messages and methods into existing store
+    // We don't overwrite locale if it's already set
+    if (!existingStore.messages) existingStore.messages = {}
+    deepMerge(existingStore.messages, initialMessages)
+
+    // Add methods if missing
+    if (!existingStore.t) existingStore.t = newStore.t
+    if (!existingStore.setLocale) existingStore.setLocale = newStore.setLocale
+    if (!existingStore.setLang) existingStore.setLang = newStore.setLang
+    if (!existingStore.loadLocale) existingStore.loadLocale = newStore.loadLocale
+
+    // Ensure init is called or merged
+    // Alpine stores don't support multiple init functions easily if we just attach methods
+    // But if we are in the setup phase, we can wrap it?
+    // Usually existingStore is the reactive proxy.
+    // We just assume the user handles init if they created the store.
+  } else {
+    Alpine.store('i18n', newStore)
+  }
 
   // Directive: x-t="key" or x-t.placeholder="key"
   Alpine.directive('t', (el, { expression, modifiers }, { effect }) => {

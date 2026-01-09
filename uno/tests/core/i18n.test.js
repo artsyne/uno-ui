@@ -56,6 +56,9 @@ describe('i18n Store', () => {
     store.extend({
       en: { welcome: 'Welcome, {name}!' }
     })
+    
+    // Explicitly set locale to ensure we are using the updated messages
+    store.setLang('en')
 
     expect(store.t('welcome', { name: 'Alice' })).toBe('Welcome, Alice!')
   })

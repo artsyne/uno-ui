@@ -1,42 +1,28 @@
 ;(function () {
-  // Inject Tailwind v4 config for class-based dark mode
-  const style = document.createElement('style')
-  style.type = 'text/tailwindcss'
-  style.textContent = `
-    @variant dark (&:where(.dark, .dark *));
-  `
-  document.head.appendChild(style)
+  // Uno Configuration
+  // Theme logic has been moved to theme.js to prevent FOUC (Flash of Wrong Theme)
 
-  window.tailwind = window.tailwind || {}
-  window.tailwind.config = { darkMode: 'class' }
-
-  const applyTheme = (isDark) => {
-    document.documentElement.classList.toggle('dark', isDark)
+  // Configure Uno using setConfig()
+  // Note: We use a defensive pattern here to ensure Uno is loaded
+  // because examples.js is loaded synchronously while Uno is deferred.
+  const initExamples = () => {
+    if (window.Uno) {
+      console.log('[Examples] Configuring Uno...')
+      window.Uno.setConfig({
+        debug: true
+      })
+    } else {
+      console.warn('[Examples] Uno not found during initialization')
+    }
   }
 
-  const getPreferredThemeIsDark = () => {
-    try {
-      if (localStorage.theme === 'dark') return true
-      if (localStorage.theme === 'light') return false
-    } catch (err) {
-      void err
-    }
-
-    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  // If Uno is already available (unlikely if deferred), run immediately
+  if (window.Uno) {
+    initExamples()
+  } else {
+    // Wait for DOMContentLoaded which fires after defer scripts execute
+    document.addEventListener('DOMContentLoaded', initExamples)
   }
 
-  applyTheme(getPreferredThemeIsDark())
-
-  document.addEventListener('click', (event) => {
-    const toggleButton = event.target.closest('[data-theme-toggle]')
-    if (!toggleButton) return
-
-    const nextIsDark = !document.documentElement.classList.contains('dark')
-    applyTheme(nextIsDark)
-    try {
-      localStorage.theme = nextIsDark ? 'dark' : 'light'
-    } catch (err) {
-      void err
-    }
-  })
+  // Uno will auto-register with Alpine when it loads
 })()

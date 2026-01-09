@@ -1,5 +1,3 @@
-import { Notify } from '../utils/uno-shim.js';
-
 const isJsonResponse = (response) => {
   const contentType = response.headers.get('content-type') || '';
   return contentType.includes('application/json');
@@ -88,6 +86,12 @@ export function SocialMixin() {
       if (this.diaryLike.loading) return;
       this.diaryLike.loading = true;
 
+      const notify = window.getUnoNotify();
+      if (!notify) {
+        this.diaryLike.loading = false;
+        return;
+      }
+
       try {
         const response = await fetch('/api/diary/like', {
           method: 'POST',
@@ -99,17 +103,17 @@ export function SocialMixin() {
         if (result.success && result.data) {
           this.diaryLike.liked = result.data.is_liked;
           this.diaryLike.count = result.data.like_count;
-          Notify.success(
+          notify.success(
             result.data.is_liked
               ? this.$store.i18n.t('social.like.success')
               : this.$store.i18n.t('social.like.cancel'),
           );
         } else {
-          Notify.error(result.message || this.$store.i18n.t('common.op_fail'));
+          notify.error(result.message || this.$store.i18n.t('common.op_fail'));
         }
       } catch (e) {
         console.error('Diary like error:', e);
-        Notify.error(this.$store.i18n.t('common.op_fail'));
+        notify.error(this.$store.i18n.t('common.op_fail'));
       } finally {
         this.diaryLike.loading = false;
       }
@@ -179,6 +183,9 @@ export function SocialMixin() {
       const id = parseInt(postId);
       if (!this.stats[id]) return;
 
+      const notify = window.getUnoNotify();
+      if (!notify) return;
+
       const isLiked = this.stats[id].liked;
 
       try {
@@ -196,17 +203,17 @@ export function SocialMixin() {
             stats.like_count = result.data.like_count;
             stats.like_num = result.data.like_count; // sync both
           }
-          Notify.success(
+          notify.success(
             result.data.is_liked
               ? this.$store.i18n.t('social.like.success')
               : this.$store.i18n.t('social.like.cancel'),
           );
         } else {
-          Notify.error(result.message || this.$store.i18n.t('common.op_fail'));
+          notify.error(result.message || this.$store.i18n.t('common.op_fail'));
         }
       } catch (e) {
         console.error('Like error:', e);
-        Notify.error(this.$store.i18n.t('common.op_fail'));
+        notify.error(this.$store.i18n.t('common.op_fail'));
       }
     },
   };
@@ -223,6 +230,12 @@ export function LikeButton(initialCount, initialLiked, postId) {
       if (this.loading) return;
       this.loading = true;
 
+      const notify = window.getUnoNotify();
+      if (!notify) {
+        this.loading = false;
+        return;
+      }
+
       try {
         const response = await fetch('/api/post/like', {
           method: 'POST',
@@ -236,17 +249,17 @@ export function LikeButton(initialCount, initialLiked, postId) {
         if (result.success && result.data) {
           this.liked = result.data.is_liked;
           this.count = result.data.like_count;
-          Notify.success(
+          notify.success(
             this.liked
               ? this.$store.i18n.t('social.like.success')
               : this.$store.i18n.t('social.like.cancel'),
           );
         } else {
-          Notify.error(result.message || this.$store.i18n.t('common.op_fail'));
+          notify.error(result.message || this.$store.i18n.t('common.op_fail'));
         }
       } catch (e) {
         console.error('Like error:', e);
-        Notify.error(this.$store.i18n.t('common.op_fail'));
+        notify.error(this.$store.i18n.t('common.op_fail'));
       } finally {
         this.loading = false;
       }
@@ -260,8 +273,17 @@ export function CommentsMixin(postId) {
     submitting: false,
 
     async submit() {
-      if (!this.content.trim()) {
-        Notify.warning(this.$store.i18n.t('comments.placeholder'));
+      const notify = window.getUnoNotify();
+      const valid = window.getUnoValid();
+      
+      if (!notify || !valid) return;
+
+      const form = document.getElementById('comment_editor_form');
+      if (!form) return;
+
+      // Use Uno Validation engine
+      // This handles showing errors on the field automatically
+      if (!valid.validateForm(form)) {
         return;
       }
 
@@ -284,7 +306,7 @@ export function CommentsMixin(postId) {
         const result = await response.json();
 
         if (result.success) {
-          Notify.success(this.$store.i18n.t('comments.submit_success'));
+          notify.success(this.$store.i18n.t('comments.submit_success'));
           this.content = '';
           // Trigger HTMX reload of the comments list
           const listWrapper = document.getElementById('comments-list-wrapper');
@@ -292,20 +314,26 @@ export function CommentsMixin(postId) {
             htmx.trigger(listWrapper, 'reload-comments');
           }
         } else {
-          Notify.error(result.message || this.$store.i18n.t('common.op_fail'));
+          notify.error(result.message || this.$store.i18n.t('common.op_fail'));
         }
       } catch (e) {
         console.error('Submit comment error:', e);
-        Notify.error(this.$store.i18n.t('common.op_fail'));
+        notify.error(this.$store.i18n.t('common.op_fail'));
       } finally {
         this.submitting = false;
       }
     },
 
     async deleteComment(commentId) {
-      if (!confirm(this.$store.i18n.t('comments.delete_confirm'))) {
+      const uno = window.getUno();
+      if (!uno) return;
+
+      if (!(await uno.box.confirm(this.$store.i18n.t('comments.delete_confirm')))) {
         return;
       }
+
+      const notify = window.getUnoNotify();
+      if (!notify) return;
 
       try {
         const response = await fetch('/api/comment/delete', {
@@ -319,18 +347,18 @@ export function CommentsMixin(postId) {
         const result = await response.json();
 
         if (result.success) {
-          Notify.success(this.$store.i18n.t('comments.delete_success'));
+          notify.success(this.$store.i18n.t('comments.delete_success'));
           // Trigger HTMX reload of the comments list
           const listWrapper = document.getElementById('comments-list-wrapper');
           if (listWrapper) {
             htmx.trigger(listWrapper, 'reload-comments');
           }
         } else {
-          Notify.error(result.message || this.$store.i18n.t('common.op_fail'));
+          notify.error(result.message || this.$store.i18n.t('common.op_fail'));
         }
       } catch (e) {
         console.error('Delete comment error:', e);
-        Notify.error(this.$store.i18n.t('common.op_fail'));
+        notify.error(this.$store.i18n.t('common.op_fail'));
       }
     },
   };

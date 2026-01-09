@@ -10,19 +10,13 @@
         </div>
 
         <div class="text-base/loose flex items-center">
-            {{if not (isLogin .)}}
-            <a class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200 mr-4"
-                href="/register" role="button"><i class="mdi mdi-account-plus-outline text-lg"></i>
-                {{getMessage "auth.button.register_free" .Context.Lang}}</a>
-            <a class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
-                href="/login" role="button"><i class="mdi mdi-login text-lg"></i> {{getMessage "auth.button.login"
-                .Context.Lang}}</a>
-            {{else}}
             <div class="flex items-center space-x-3">
                 <!-- 语言切换按钮 -->
-                <button id="lang_switch" class="mr-6 cursor-pointer" x-tooltip.click.bottom="{
+                <button id="lang_switch" class="mr-6 cursor-pointer" x-uno-tooltip="{
                         content: '#lang_menu_content',
-                        theme: $store.theme.on ? 'dark' : 'light'
+                        theme: $store.theme.on ? 'dark' : 'light',
+                        trigger: 'click',
+                        placement: 'bottom'
                     }">
                     <i class="mdi mdi-translate text-gray-700 dark:text-gray-300 text-sm"></i>
                 </button>
@@ -57,9 +51,21 @@
                         :class="$store.theme.on ? 'mdi-weather-night text-gray-300' : 'mdi-weather-sunny text-gray-700'"></i>
                 </button>
 
-                <a id="user_drop" href="#" class="text-gray-500 dark:text-gray-400 p-0" x-uno-tooltip.click.bottom="{
+                {{if not (isLogin .)}}
+                
+                <a class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200 mr-4"
+                    href="/register" role="button"><i class="mdi mdi-account-plus-outline text-lg"></i>
+                    {{getMessage "auth.button.register_free" .Context.Lang}}</a>
+                <a class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                    href="/login" role="button"><i class="mdi mdi-login text-lg"></i> {{getMessage "auth.button.login"
+                    .Context.Lang}}</a>
+
+                {{else}}
+                <a id="user_drop" href="#" class="text-gray-500 dark:text-gray-400 p-0" x-uno-tooltip="{
                         content: '#user_menu_content',
-                        theme: $store.theme.on ? 'dark' : 'light'
+                        theme: $store.theme.on ? 'dark' : 'light',
+                        trigger: 'click',
+                        placement: 'bottom'
                     }">
                     <div class="avatar">
                         {{getFirstCharOfName .}}
@@ -76,8 +82,9 @@
                                 "auth.button.logout" .Context.Lang}}</a></li>
                     </ul>
                 </template>
+                {{end}}
             </div>
-            {{end}}
+
         </div>
     </nav>
 </header>

@@ -1,5 +1,3 @@
-import { Notify } from '../utils/uno-shim.js';
-
 export function initAuth() {
   // Configure HTMX to allow swapping on error status codes (4xx, 5xx)
   document.body.addEventListener('htmx:beforeSwap', function (evt) {
@@ -13,16 +11,22 @@ export function initAuth() {
 
       try {
         const result = JSON.parse(xhr.responseText);
+        const notify = window.getUnoNotify();
+        if (!notify) {
+          console.error('[Auth] Uno notify not available');
+          return;
+        }
+
         if (!result.success) {
           let msg = result.message || 'Operation failed';
           // Append details if it's a string
           if (result.details && typeof result.details === 'string') {
             msg += ': ' + result.details;
           }
-          Notify.error(msg);
+          notify.error(msg);
         } else {
           // Success JSON
-          Notify.success(result.message || 'Success');
+          notify.success(result.message || 'Success');
         }
       } catch (e) {
         console.error('Failed to parse JSON response', e);
@@ -40,32 +44,7 @@ export function initAuth() {
   // But we might want to do something custom if needed.
 }
 
-/**
- * ValidForm Alpine component
- * Wrapper for form validation with HTMX integration
- */
-export const ValidForm = () => ({
-  async submit(e) {
-    const form = e.target;
-    // Use Uno's validateForm via store
-    // We can't assume 'this.$store' works inside async callback immediately if context lost,
-    // but Alpine proxies usually handle it.
-    // However, safer to use global store access if needed, or assume this.$store.valid exists.
-    
-    let isValid = false;
-    if (this.$store.valid && this.$store.valid.validateForm) {
-      isValid = await this.$store.valid.validateForm(form);
-    } else {
-      console.warn('[ValidForm] Uno valid store not found, skipping validation');
-      isValid = true;
-    }
-
-    if (isValid) {
-      // Dispatch custom event for HTMX to trigger
-      form.dispatchEvent(new CustomEvent('valid-submit', { bubbles: true }));
-    }
-  }
-});
+// Removed ValidForm: Obsolete. Uno now handles form interception via x-uno-valid and htmx:confirm.
 
 /**
  * Validation callbacks module
@@ -79,98 +58,99 @@ export function initValidationCallbacks() {
     return;
   }
 
-  const register = (retryCount = 0) => {
-    // Check if store exists
-    // Alpine.store(name) returns the store object if it exists
-    // However, if it was just initialized, it might be available.
-    // Note: Alpine.store('valid') returns the reactive proxy.
+  // Get Uno valid store
+  // Access via main 'uno' store is the canonical way
+  const unoStore = Alpine.store('uno');
+  const validStore = unoStore?.valid || Alpine.store('valid');
 
-    let validStore;
+  if (!validStore || !validStore.registerValidator) {
+    console.error(
+      '[Validation] Uno valid store not found. Ensure Uno is initialized before this callback.',
+    );
+    return;
+  }
+
+  // Register checkUsername callback
+  // Pattern: Sync Return + Async Side Effect
+  // Uno's validator expects a synchronous boolean return.
+  // For async checks (server-side uniqueness), we return 'true' immediately to pass the sync check,
+  // then perform the async fetch. If it fails, we manually set the error using validStore.showError().
+  validStore.registerValidator('checkUsername', async (value, name) => {
+    if (!value) return true;
+
     try {
-      validStore = Alpine.store('valid');
-    } catch (e) {
-      // ignore
+      const formData = new FormData();
+      formData.append('username', value);
+
+      const response = await fetch('/check-username', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      // If success is true, it means available
+      if (result.success) {
+        return true;
+      }
+
+      // Otherwise show error manually because validation is sync
+      const msg = result.message || 'Username already taken';
+      validStore.showError(name, msg);
+      return true; // Return true to prevent sync validation failure, error is shown manually
+    } catch (error) {
+      console.error('Validation error:', error);
+      return true;
+    }
+  });
+
+  // Register checkEmail callback
+  validStore.registerValidator('checkEmail', async (value, name) => {
+    if (!value) return true;
+
+    // Check for original value (for edit forms)
+    // Try to find element by name (as name is passed) or fallback to id if name matches id
+    const element =
+      document.querySelector(`[name="${name}"]`) ||
+      document.getElementById(name);
+    if (element) {
+      const originalValue = element.getAttribute('data-original-value');
+      if (originalValue && value === originalValue) {
+        return true;
+      }
     }
 
-    if (!validStore || !validStore.registerCallback) {
-      if (retryCount < 10) {
-        // console.log(`[Validation] Store not ready, retrying... (${retryCount + 1})`);
-        setTimeout(() => register(retryCount + 1), 100);
-      } else {
-        console.error(
-          '[Validation] Failed to register callbacks: Uno valid store not found',
-        );
+    try {
+      const formData = new FormData();
+      formData.append('email', value);
+
+      const response = await fetch('/check-email', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      // If success is true, it means available
+      if (result.success) {
+        return true;
       }
-      return;
+
+      // Otherwise show error manually
+      const msg = result.message || 'Email already taken';
+      validStore.showError(name, msg);
+      return true;
+    } catch (error) {
+      console.error('Validation error:', error);
+      return true;
     }
+  });
 
-    // Register checkUsername callback
-    validStore.registerCallback('checkUsername', async (id, value) => {
-      if (!value) return true;
-
-      try {
-        const formData = new FormData();
-        formData.append('username', value);
-
-        const response = await fetch('/check-username', {
-          method: 'POST',
-          body: formData,
-        });
-
-        const result = await response.json();
-
-        // If success is true, it means available
-        if (result.success) {
-          return true;
-        }
-
-        // Otherwise return error message
-        return result.message || 'Username already taken';
-      } catch (error) {
-        console.error('Validation error:', error);
-        return 'Validation failed';
-      }
-    });
-
-    // Register checkEmail callback
-    validStore.registerCallback('checkEmail', async (id, value) => {
-      if (!value) return true;
-
-      // Check for original value (for edit forms)
-      const element = document.getElementById(id);
-      if (element) {
-        const originalValue = element.getAttribute('data-original-value');
-        if (originalValue && value === originalValue) {
-          return true;
-        }
-      }
-
-      try {
-        const formData = new FormData();
-        formData.append('email', value);
-
-        const response = await fetch('/check-email', {
-          method: 'POST',
-          body: formData,
-        });
-
-        const result = await response.json();
-
-        // If success is true, it means available
-        if (result.success) {
-          return true;
-        }
-
-        // Otherwise return error message
-        return result.message || 'Email already taken';
-      } catch (error) {
-        console.error('Validation error:', error);
-        return 'Validation failed';
-      }
-    });
-
-    console.log('[Validation] Callbacks registered successfully');
-  };
-
-  register();
+  // Register matchPwd callback
+  validStore.registerValidator('matchPwd', (value, name) => {
+    if (!value) return true;
+    const newPwd = document.getElementById('new_pwd');
+    if (!newPwd) return true;
+    return value === newPwd.value;
+  });
 }

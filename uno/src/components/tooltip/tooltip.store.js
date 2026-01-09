@@ -91,6 +91,18 @@ export const createTooltipStore = (Alpine) => {
       const config = Uno.getConfig('tooltip', instanceOpts)
       log.info('Tooltip resolved config', config)
 
+      // Smart Content Detection: If content is a selector and target is missing, use it as target
+      if (!config.target && typeof config.content === 'string' && config.content.startsWith('#')) {
+        // Check if element exists to avoid treating "#1" as a selector if it's just text
+        // We only support simple ID selectors for this auto-detection
+        if (!config.content.includes(' ')) {
+           const targetEl = document.querySelector(config.content)
+           if (targetEl) {
+             config.target = config.content
+           }
+        }
+      }
+
       this.triggerEl = config.element || this.triggerEl
 
       // Handle target (selector) for content

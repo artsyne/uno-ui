@@ -1,70 +1,82 @@
 {{define "form/post"}}
 
 <div class="px-4">
-    <form id="post_editor_form" x-data="validForm" onsubmit="return false;" @submit.prevent hx-trigger="valid-submit">
+    <form id="post_editor_form" x-uno-valid onsubmit="return false;" @submit.prevent>
         <div class="flex flex-col mx-auto">
             <div class="form-group">
                 <div class="block">
                     <label class="form-title" for="info_title">{{getMessage "post.form.title_optional"
                         .Context.Lang}}</label>
-                    <input type="text" class="form-control" id="info_title" name="info_title" x-validate
-                        valid='["emptyquit",{"type":"limit","max":250}]'
-                        placeholder='{{getMessage "form.placeholder.diary_title" .Context.Lang}}'
+                    <input type="text" class="form-control" id="info_title" name="info_title" x-uno-valid
+                        maxlength="250" placeholder='{{getMessage "form.placeholder.diary_title" .Context.Lang}}'
                         value="{{if .Data.Post}}{{.Data.Post.Title}}{{end}}">
-                    <div x-valid-error="info_title"></div>
+                    <div x-text="$store.uno.valid.errors['info_title']" x-show="$store.uno.valid.errors['info_title']"
+                        class="text-xs text-red-500 mt-1"></div>
                 </div>
                 <div class="block">
-                    <div class="flex justify-between relative" x-data="{ showTooltip: false }">
+                    <div class="flex justify-between relative">
                         <label class="form-title" for="info_body">{{getMessage "post.form.content_required"
                             .Context.Lang}}</label>
 
-                        <a href="#" @click.prevent="showTooltip = !showTooltip"
-                            class="form-title text-sm hover:text-blue-600">FORMATTING</a>
+                        <a href="#" class="form-title text-sm hover:text-blue-600"
+                            x-uno-tooltip="{ content: '#markdown-help', trigger: 'click', placement: 'bottom-end', offset: 10 }">FORMATTING</a>
 
-                        <div x-show="showTooltip" x-transition:enter="transition ease-out duration-200"
-                            x-transition:enter-start="opacity-0 translate-y-1"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            x-transition:leave="transition ease-in duration-150"
-                            x-transition:leave-start="opacity-100 translate-y-0"
-                            x-transition:leave-end="opacity-0 translate-y-1" @click.outside="showTooltip = false"
-                            class="absolute z-50 p-4 text-xs text-white bg-gray-800 rounded-lg shadow-xl w-72 right-0 top-8 border border-gray-700"
-                            style="display: none;">
-                            <ul class="space-y-2">
-                                <li class="flex justify-between border-b border-gray-700 pb-1">
-                                    <span class="text-gray-400">{{getMessage "markdown.syntax.italic"
-                                        .Context.Lang}}</span><span class="font-mono text-gray-200">*italic*</span>
+                        <div id="markdown-help" class="hidden">
+                            <ul class="space-y-2 text-xs text-left">
+                                <li
+                                    class="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1 gap-4">
+                                    <span class="text-gray-600 dark:text-gray-400">{{getMessage "markdown.syntax.italic"
+                                        .Context.Lang}}</span><span
+                                        class="font-mono text-gray-900 dark:text-gray-200">*italic*</span>
                                 </li>
-                                <li class="flex justify-between border-b border-gray-700 pb-1">
-                                    <span class="text-gray-400">{{getMessage "markdown.syntax.bold"
-                                        .Context.Lang}}</span><span class="font-mono text-gray-200">**bold**</span>
+                                <li
+                                    class="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1 gap-4">
+                                    <span class="text-gray-600 dark:text-gray-400">{{getMessage "markdown.syntax.bold"
+                                        .Context.Lang}}</span><span
+                                        class="font-mono text-gray-900 dark:text-gray-200">**bold**</span>
                                 </li>
-                                <li class="flex justify-between border-b border-gray-700 pb-1">
-                                    <span class="text-gray-400">{{getMessage "markdown.syntax.horizontal_rule"
-                                        .Context.Lang}}</span><span class="font-mono text-gray-200">---</span>
+                                <li
+                                    class="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1 gap-4">
+                                    <span class="text-gray-600 dark:text-gray-400">{{getMessage
+                                        "markdown.syntax.horizontal_rule"
+                                        .Context.Lang}}</span><span
+                                        class="font-mono text-gray-900 dark:text-gray-200">---</span>
                                 </li>
-                                <li class="flex justify-between border-b border-gray-700 pb-1">
-                                    <span class="text-gray-400">{{getMessage "markdown.syntax.ordered_list"
-                                        .Context.Lang}}</span><span class="font-mono text-gray-200">1. Item</span>
+                                <li
+                                    class="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1 gap-4">
+                                    <span class="text-gray-600 dark:text-gray-400">{{getMessage
+                                        "markdown.syntax.ordered_list"
+                                        .Context.Lang}}</span><span
+                                        class="font-mono text-gray-900 dark:text-gray-200">1. Item</span>
                                 </li>
-                                <li class="flex justify-between border-b border-gray-700 pb-1">
-                                    <span class="text-gray-400">{{getMessage "markdown.syntax.unordered_list"
-                                        .Context.Lang}}</span><span class="font-mono text-gray-200">- Item</span>
+                                <li
+                                    class="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1 gap-4">
+                                    <span class="text-gray-600 dark:text-gray-400">{{getMessage
+                                        "markdown.syntax.unordered_list"
+                                        .Context.Lang}}</span><span class="font-mono text-gray-900 dark:text-gray-200">-
+                                        Item</span>
                                 </li>
-                                <li class="flex justify-between border-b border-gray-700 pb-1">
-                                    <span class="text-gray-400">{{getMessage "markdown.syntax.links"
-                                        .Context.Lang}}</span><span class="font-mono text-gray-200">[text](url)</span>
+                                <li
+                                    class="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1 gap-4">
+                                    <span class="text-gray-600 dark:text-gray-400">{{getMessage "markdown.syntax.links"
+                                        .Context.Lang}}</span><span
+                                        class="font-mono text-gray-900 dark:text-gray-200">[text](url)</span>
                                 </li>
-                                <li class="flex justify-between border-b border-gray-700 pb-1">
-                                    <span class="text-gray-400">{{getMessage "markdown.syntax.headers"
-                                        .Context.Lang}}</span><span class="font-mono text-gray-200"># Header</span>
+                                <li
+                                    class="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1 gap-4">
+                                    <span class="text-gray-600 dark:text-gray-400">{{getMessage
+                                        "markdown.syntax.headers"
+                                        .Context.Lang}}</span><span class="font-mono text-gray-900 dark:text-gray-200">#
+                                        Header</span>
                                 </li>
                             </ul>
                         </div>
                     </div>
-                    <textarea class="form-control h-96" id="info_body" name="info_body" rows="8" x-validate
-                        valid='["required",{"type":"limit","max":10000,"show":true}]'
+                    <textarea class="form-control h-96" id="info_body" name="info_body" rows="8" x-uno-valid
+                        maxlength="10000" required
                         placeholder='{{getMessage "post.form.content_placeholder" .Context.Lang}}'>{{if .Data.Post}}{{.Data.Post.Body}}{{end}}</textarea>
-                    <div x-valid-error="info_body"></div>
+                    <div x-text="$store.uno.valid.errors['info_body']" x-show="$store.uno.valid.errors['info_body']"
+                        class="text-xs text-red-500 mt-1"></div>
                 </div>
                 <input type="hidden" name="post_id" id="post_id" value="{{if .Data.Post}}{{.Data.Post.PostID}}{{end}}">
                 <input type="hidden" name="action" id="action"

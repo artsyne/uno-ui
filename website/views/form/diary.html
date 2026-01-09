@@ -3,21 +3,20 @@
 <div class="px-4" x-data="{ 
     theme: {{if .Data.Diary}}{{.Data.Diary.ThemeID}}{{else}}16{{end}} 
 }">
-    <form id="daybook_editor_form" x-data="validForm" onsubmit="return false;" @submit.prevent>
+    <form id="daybook_editor_form" x-uno-valid onsubmit="return false;" @submit.prevent>
         <div class="block mb-4">
             <label class="form-title">{{getMessage "diary.form.name_required" .Context.Lang}} </label>
-            <input type="text" class="form-control" id="title" name="title" x-validate
-                valid='[{"type":"required"},{"type":"limit","min":1,"max":100}]'
+            <input type="text" class="form-control" id="title" name="title" x-uno-valid maxlength="100" required
                 placeholder='{{getMessage "diary.form.name_required" .Context.Lang}}' {{if
                 .Data.Diary}}value="{{.Data.Diary.Title}}" {{end}}>
-            <div x-valid-error="title"></div>
+            <div x-text="$store.uno.valid.errors['title']" x-show="$store.uno.valid.errors['title']" class="text-xs text-red-500 mt-1"></div>
         </div>
         <div class="block mb-4">
             <label class="form-title">{{getMessage "diary.form.description" .Context.Lang}}</label>
-            <textarea class="form-control" x-validate valid='[{"type":"limit","max":250,"show":true}]' id="remark"
+            <textarea class="form-control" x-uno-valid maxlength="250" id="remark"
                 name="remark" placeholder='{{getMessage "diary.form.description" .Context.Lang}}'
                 style="height: 80px">{{if .Data.Diary}}{{.Data.Diary.Remark}}{{end}}</textarea>
-            <div x-valid-error="remark"></div>
+            <div x-text="$store.uno.valid.errors['remark']" x-show="$store.uno.valid.errors['remark']" class="text-xs text-red-500 mt-1"></div>
         </div>
         <div class="block mb-4">
             <div class="flex items-center space-x-4 mb-2">

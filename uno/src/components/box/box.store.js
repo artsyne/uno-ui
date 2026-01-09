@@ -153,7 +153,8 @@ export const createBoxStore = (Alpine) => ({
           : config.widthClass
             ? undefined
             : config.defaultWidth || 400,
-      height: config.height,
+      height:
+        config.height !== undefined ? config.height : config.heightClass ? undefined : undefined,
       widthClass: config.widthClass,
       heightClass: config.heightClass,
       containerClass: config.containerClass,
@@ -244,6 +245,35 @@ export const createBoxStore = (Alpine) => ({
     }
 
     return reactiveItem
+  },
+
+  /**
+   * Handle OK button click
+   * Supports synchronous and asynchronous onOk callbacks
+   * @param {object} item - Box item
+   */
+  async handleOk(item) {
+    if (!item) return
+
+    if (item.onOk) {
+      // Handle both sync and async return values
+      const result = item.onOk()
+
+      // If promise, wait for it
+      if (result instanceof Promise) {
+        const value = await result
+        if (value !== false) {
+          item.close()
+        }
+      }
+      // If sync value
+      else if (result !== false) {
+        item.close()
+      }
+    } else {
+      // No onOk handler, just close
+      item.close()
+    }
   },
 
   /**

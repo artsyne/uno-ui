@@ -29,6 +29,8 @@ Simply include the compiled CSS and JS files in your HTML.
 
 **Dependencies**: Alpine.js (Required), HTMX (Optional, Recommended).
 
+**Best Practice**: Use `defer` for all scripts to ensure non-blocking loading and correct execution order.
+
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -42,18 +44,87 @@ Simply include the compiled CSS and JS files in your HTML.
     <!-- 2. HTMX (Optional) -->
     <script src="https://unpkg.com/htmx.org@2.0.8"></script>
 
-    <!-- 3. Alpine.js (Required) -->
-    <script src="https://unpkg.com/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
+    <!-- 3. Uno Framework (Must load before your app code if you use global Uno) -->
+    <script defer src="https://unpkg.com/uno-ui@0.6.0/dist/uno.umd.js"></script>
 
-    <!-- 4. Uno Framework -->
-    <script src="https://unpkg.com/uno-ui@0.1.0/dist/uno.umd.js"></script>
+    <!-- 4. Your App Code (Defensive Initialization) -->
+    <script defer src="/js/app.js"></script>
+
+    <!-- 5. Alpine.js (Base Framework) -->
+    <script defer src="https://unpkg.com/alpinejs@3.15.2/dist/cdn.min.js"></script>
   </head>
   <body>
     <!-- Component Usage -->
-    <button data-box-type="confirm" data-box-title="Hello World">Click Me</button>
+    <button x-data @click="$store.uno.box.alert('Hello World')">Click Me</button>
   </body>
 </html>
 ```
+
+#### Defensive Initialization (Recommended)
+
+When using `defer` scripts, the exact execution timing can vary. To ensure your configuration is applied correctly, use this defensive pattern in your `app.js`:
+
+```javascript
+// app.js
+
+const initApp = () => {
+  // 1. Configure Uno
+  if (window.Uno) {
+    window.Uno.setConfig({
+      debug: true,
+      ui: { base: 'rounded-lg shadow-md' }
+    })
+  }
+
+  // 2. Register Alpine Components
+  Alpine.data('myComponent', () => ({
+    init() { console.log('Initialized') }
+  }))
+}
+
+// Defensive Start: Run immediately if Alpine is ready, otherwise wait
+if (window.Alpine) {
+  initApp()
+} else {
+  document.addEventListener('alpine:init', initApp)
+}
+```
+
+#### Optional: Custom Configuration (Module)
+
+For NPM users, configure Uno using `setConfig()` BEFORE Alpine loads:
+
+````html
+<head>
+  <!-- 1. Configure Uno (before Alpine loads) -->
+  <script type="module">
+    import Uno from 'https://unpkg.com/uno-ui@0.6.0/dist/uno.es.js'
+
+    Uno.setConfig({
+      debug: true,
+      ui: {
+        base: 'rounded-lg shadow-md',
+        box: {
+          container: 'custom-box-styles'
+          // ... other customizations
+        }
+      }
+    })
+  </script>
+
+  <!-- 2. Load Alpine (Uno auto-initializes) -->
+  <script defer src="https://unpkg.com/alpinejs@3.15.2/dist/cdn.min.js"></script>
+</head>
+
+#### Optional: Register Components To register custom Alpine components: ```html
+<script defer>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('myComponent', () => ({
+      message: 'Hello World'
+    }))
+  })
+</script>
+````
 
 ### 2. Using NPM (Module)
 
@@ -65,9 +136,23 @@ Import into your project's entry file:
 
 ```javascript
 import Alpine from 'alpinejs'
-import 'uno-ui' // Registers Uno plugins automatically
+import Uno from 'uno-ui'
 
-// Initialize Alpine
+// Configure Uno BEFORE Alpine loads
+Uno.setConfig({
+  debug: true,
+  ui: {
+    base: 'rounded-lg shadow-md'
+    // Your custom styles
+  }
+})
+
+// Register your Alpine components
+Alpine.data('myComponent', () => ({
+  // ...
+}))
+
+// Start Alpine (Uno auto-initializes)
 window.Alpine = Alpine
 Alpine.start()
 ```
@@ -94,6 +179,7 @@ Alpine.store('uno').box.open(options)
 
 ```typescript
 import type { UnoOptions } from 'uno-ui'
+import Uno from 'uno-ui'
 
 const config: UnoOptions = {
   debug: true,
@@ -105,7 +191,7 @@ const config: UnoOptions = {
   }
 }
 
-Uno.init(config)
+Uno.setConfig(config)
 ```
 
 ## Components

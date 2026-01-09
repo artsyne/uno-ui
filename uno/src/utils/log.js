@@ -39,6 +39,18 @@ export const log = {
       console.log('[Uno Info]', ...args)
     }
   },
+
+  /**
+   * Log debug message
+   * @param {...any} args - Arguments to log
+   */
+  debug(...args) {
+    if (!isDebug) return
+    if (typeof console !== 'undefined' && typeof console.log === 'function') {
+      console.log('[Uno Debug]', ...args)
+    }
+  },
+
   /**
    * Log warning message
    * @param {...any} args - Arguments to log

@@ -41,7 +41,7 @@ export const getBoxTemplate = () => {
 
         <div :id="'uno-box-container' + item.id"
              :class="[Uno.getStyle('box', 'container'), item.widthClass, item.heightClass, item.containerClass]"
-             :style="(item.width ? 'width:' + item.width + 'px; max-width:' + item.width + 'px;' : '') + (item.height ? ' height:' + item.height + 'px;' : '')"
+             :style="(item.width ? 'width:' + item.width + 'px; max-width:' + item.width + 'px;' : (item.widthClass ? 'max-width:none;' : '')) + (item.height ? ' height:' + item.height + 'px;' : '')"
              x-uno-trap>
 
           <!-- Close Button -->
@@ -91,7 +91,7 @@ export const getBoxTemplate = () => {
                     :class="Uno.getStyle('box', 'okBtn')"
                     x-show="item.showOkButton"
                     x-text="item.okText"
-                    @click="item.onOk ? (item.onOk() !== false && item.close()) : item.close()"></button>
+                    @click="$store.uno.box.handleOk(item)"></button>
             <button type="button"
                     :id="'uno-box-cancel' + item.id"
                     :class="Uno.getStyle('box', 'cancelBtn')"

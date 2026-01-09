@@ -28,25 +28,41 @@ if (typeof window !== 'undefined') {
 // Order matters: i18n should be first
 Uno.use(installAlpine).use(tooltip).use(notify).use(box).use(valid).use(tab)
 
-// 3. Initialization Logic
-if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-  /**
-   * Initialize Uno when Alpine is ready.
-   * Supports global configuration via window.UnoConfig.
-   */
-  const initUno = () => {
-    if (Uno.initialized) return
-    // Support global configuration via window.UnoConfig
-    const config = window.UnoConfig || {}
-    Uno.init(window.Alpine, config)
+// 3. Auto-Registration with Alpine
+// Uno automatically registers with Alpine when available.
+// Configuration: Use Uno.setConfig() BEFORE Alpine loads.
+
+if (typeof window !== 'undefined') {
+  // Auto-register with Alpine when available
+  const autoRegister = () => {
+    if (window.Alpine && !Uno.initialized) {
+      console.log('[Uno] Auto-registering with Alpine')
+      Uno.init(window.Alpine)
+    }
   }
 
+  // Try immediate registration (if Alpine already loaded)
   if (window.Alpine) {
-    initUno()
+    autoRegister()
   } else {
-    document.addEventListener('alpine:init', initUno)
+    // Wait for alpine:init event (defer scripts)
+    document.addEventListener(
+      'alpine:init',
+      () => {
+        autoRegister()
+      },
+      { once: true }
+    )
   }
 }
+
+// Usage:
+// <script type="module">
+//   import Uno from './uno.es.js'
+//   Uno.setConfig({ debug: true, ui: { /* ... */ } })
+// </script>
+// <script defer src="alpine.js"></script>
+// <script defer src="uno.js"></script>
 
 export { Uno }
 export { DomManager }

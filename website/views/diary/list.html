@@ -20,7 +20,8 @@
         <div class="card mb-6 break-inside-avoid" data-post-id="{{.PostID}}">
             {{if $.Data.IsOwner}}
             <div class="post-edit">
-                <a href="javascript:void(0)" x-uno-tooltip.click.bottom="{ content: '#post-menu-{{.PostID}}' }">
+                <a href="javascript:void(0)"
+                    x-uno-tooltip="{ content: '#post-menu-{{.PostID}}', trigger: 'click', placement: 'bottom' }">
                     <i class="mdi mdi-dots-horizontal"></i>
                 </a>
             </div>
@@ -28,11 +29,11 @@
             <div id="post-menu-{{.PostID}}" class="hidden">
                 <ul class="text-left">
                     <li class="py-1"><a href="#" class="block hover:text-blue-500"
-                            @click.prevent="openEditPost({{$.Data.Diary.DiaryID}}, {{.PostID}}); $store.uno.tooltip.hide()">
+                            @click.prevent="openEditPost({{$.Data.Diary.DiaryID}}, {{.PostID}}); $store.uno?.tooltip?.hide()">
                             <i class="mdi mdi-pencil-outline mr-2"></i> {{getMessage "common.edit" $lang}}</a>
                     </li>
                     <li class="py-1"><a href="#" class="block hover:text-red-500"
-                            @click.prevent="confirmDelete({{$.Data.Diary.DiaryID}}, {{.PostID}}); $store.uno.tooltip.hide()">
+                            @click.prevent="confirmDelete({{$.Data.Diary.DiaryID}}, {{.PostID}}); $store.uno?.tooltip?.hide()">
                             <i class="mdi mdi-delete-outline mr-2"></i> {{getMessage "common.delete" $lang}}</a>
                     </li>
                 </ul>
@@ -79,8 +80,7 @@
     </div>
 
     {{if gt .Data.PostNum .Data.PageSize}}
-    <div class="flex justify-center mt-10" hx-boost="true" hx-target="#diary-content"
-        hx-swap="outerHTML">
+    <div class="flex justify-center mt-10" hx-boost="true" hx-target="#diary-content" hx-swap="outerHTML">
         {{template "pagination" .}}
     </div>
     {{end}}

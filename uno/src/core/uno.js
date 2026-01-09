@@ -12,7 +12,6 @@ import { log } from '../utils/log'
 import { once } from '../utils/dom'
 import { mergeDeep } from '../utils/object'
 import { Z_INDEX } from './layer'
-import box from '../components/box'
 
 /**
  * UnoInstance class.
@@ -30,6 +29,7 @@ export class UnoInstance {
     this.pluginDefaults = {} // New: Plugin default configuration storage
     this.plugins = []
     this.initialized = false
+    this._preInitConfig = {} // Store config set before initialization
     this._htmxRequestHandlers = []
     this._htmxActiveXhrs = typeof WeakSet === 'function' ? new WeakSet() : null
     this.htmx = {
@@ -368,16 +368,49 @@ export class UnoInstance {
   }
 
   /**
-   * Set global configuration (before or after init)
-   * @param {Object} config - Global configuration object
+   * Set configuration before or after initialization
+   *
+   * This is the primary way to configure Uno. Can be called:
+   * 1. Before Uno auto-initializes (recommended)
+   * 2. After initialization (for runtime config updates)
+   *
+   * @param {Object} config - Configuration object
+   * @returns {UnoInstance} this (for chaining)
+   *
+   * @example
+   * // Before initialization
+   * Uno.setConfig({
+   *   debug: true,
+   *   ui: { base: 'rounded-lg shadow-md' }
+   * })
+   *
+   * // Chaining
+   * Uno.setConfig({ debug: true }).setConfig({ ui: { base: 'shadow' } })
    */
   setConfig(config) {
-    this.options = mergeDeep(this.options, config)
+    if (!config || typeof config !== 'object') {
+      log.warn('setConfig called with invalid argument, expected object')
+      return this
+    }
 
     if (this.initialized) {
-      log.info('Uno configuration updated', this.options)
+      // Runtime update
+      log.info('Uno configuration updated after initialization')
+      this.options = mergeDeep(this.options, config)
+    } else {
+      // Pre-init config storage
+      this._preInitConfig = mergeDeep(this._preInitConfig, config)
     }
+
     return this
+  }
+
+  /**
+   * Get current global configuration
+   * @returns {Object} Current global configuration object
+   */
+  getGlobalConfig() {
+    return this.initialized ? this.options : this._preInitConfig
   }
 
   /**
@@ -395,15 +428,25 @@ export class UnoInstance {
   }
 
   /**
-   * Initialize Uno
+   * Initialize Uno - Automatically waits for Alpine if needed
+   *
+   * This method intelligently handles Alpine initialization:
+   * 1. If Alpine is already initialized → Initialize Uno immediately
+   * 2. If Alpine is not ready → Wait for alpine:init event
+   *
+   * Usage:
+   *   Uno.init()                    // Uses window.Alpine automatically
+   *   Uno.init(config)              // Pass configuration
+   *   Uno.init(Alpine, config)      // Explicit Alpine instance (legacy)
+   *
    * @param {Object|Function} alpineOrOptions - Alpine instance or Configuration options
    * @param {Object} options - Configuration options (if first arg is Alpine)
-   * @returns {Object} Alpine instance
+   * @returns {Promise<Object>} Promise resolving to Alpine instance
    */
-  init(alpineOrOptions = {}, options = {}) {
+  async init(alpineOrOptions = {}, options = {}) {
     if (this.initialized) {
       log.warn('Uno has already been initialized.')
-      return Alpine
+      return Alpine || (typeof window !== 'undefined' ? window.Alpine : null)
     }
 
     let alpine = Alpine
@@ -426,7 +469,8 @@ export class UnoInstance {
       opts = alpineOrOptions || options
     }
 
-    this.options = mergeDeep(this.options, opts)
+    // Merge configurations: default -> preInitConfig -> init options
+    this.options = mergeDeep(this.options, this._preInitConfig, opts)
 
     // Configure Logging
     log.setDebug(this.options.debug !== false)
@@ -434,7 +478,55 @@ export class UnoInstance {
       log.setReporter(this.options.onError)
     }
 
+    // Check if Alpine is ready
+    const isAlpineReady = () => {
+      return alpine && typeof alpine.store === 'function'
+    }
+
+    // If Alpine is not ready, wait for alpine:init event
+    if (!isAlpineReady()) {
+      if (typeof document === 'undefined') {
+        log.error('Alpine not found and document is unavailable. Cannot initialize Uno.')
+        return null
+      }
+
+      log.debug('Alpine not ready, waiting for alpine:init event...')
+
+      return new Promise((resolve) => {
+        document.addEventListener(
+          'alpine:init',
+          () => {
+            // Get Alpine from window after init event
+            alpine = window.Alpine || Alpine
+
+            if (!alpine) {
+              log.error('Alpine still not found after alpine:init event')
+              resolve(null)
+              return
+            }
+
+            log.debug('Alpine ready, continuing Uno initialization')
+            this._doInit(alpine)
+            resolve(alpine)
+          },
+          { once: true }
+        )
+      })
+    }
+
+    // Alpine is ready, initialize immediately
+    this._doInit(alpine)
+    return alpine
+  }
+
+  /**
+   * Internal initialization logic
+   * @private
+   * @param {Object} alpine - Alpine instance
+   */
+  _doInit(alpine) {
     log.info(`Uno v${this.version} initializing...`)
+
     if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       if (window.htmx && typeof alpine?.initTree === 'function') {
         if (once(document, 'uno:htmx-afterSwap:initTree')) {
@@ -462,7 +554,6 @@ export class UnoInstance {
 
     this.initialized = true
     log.info('Uno initialized')
-    return alpine
   }
 
   /**

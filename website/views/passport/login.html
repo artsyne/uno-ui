@@ -4,8 +4,7 @@
 
 <main class="main">
     <section>
-        <form hx-post="/login" hx-target="#login-error" hx-swap="innerHTML" x-data="validForm" @submit.prevent="submit"
-            hx-trigger="valid-submit">
+        <form hx-post="/login" hx-target="#login-error" hx-swap="innerHTML" x-uno-valid novalidate>
             <div class="flex flex-col my-20 mx-auto lg:w-2/5">
                 <div class="form-group">
                     <h1 class="form-header">{{getMessage "auth.title.login" .Context.Lang}}</h1>
@@ -13,14 +12,16 @@
                     <div class="block">
                         <label for="login_name" class="form-title">{{getMessage "auth.label.username_or_email"
                             .Context.Lang}}</label>
-                        <input type="text" class="form-control" id="login_name" name="login_name" x-validate
-                            valid='["required"]' />
-                        <div x-valid-error="login_name"></div>
+                        <input type="text" class="form-control" id="login_name" name="login_name" x-uno-valid
+                            required />
+                        <div x-text="$store.uno.valid.errors['login_name']"
+                            x-show="$store.uno.valid.errors['login_name']" class="text-xs text-red-500 mt-1"></div>
                     </div>
                     <div class="block">
                         <label for="pwd" class="form-title">{{getMessage "auth.label.password" .Context.Lang}}</label>
-                        <input type="password" class="form-control" id="pwd" name="pwd" x-validate valid='["required"]' />
-                        <div x-valid-error="pwd"></div>
+                        <input type="password" class="form-control" id="pwd" name="pwd" x-uno-valid required />
+                        <div x-text="$store.uno.valid.errors['pwd']" x-show="$store.uno.valid.errors['pwd']"
+                            class="text-xs text-red-500 mt-1"></div>
                     </div>
                     <div class="block text-center">
                         <button class="w-full btn" type="submit">{{getMessage "auth.button.login" .Context.Lang}}

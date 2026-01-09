@@ -1,127 +1,136 @@
-# Tab Component
+# Uno Tab API Documentation
 
-A tab component built on Alpine.js, supporting multiple tab groups, AJAX content loading, HTMX integration, and Hash routing synchronization.
+The Tab component offers a flexible tab interface with support for deep linking, hash synchronization, and lazy loading of content via HTMX.
 
-## Features
+## Overview
 
-- **Declarative API**: Use `x-data` and `x-bind` to set up tabs easily.
-- **Hash Navigation**: Deep linking support via URL Hash.
-- **AJAX Loading**: Asynchronous content loading.
-- **HTMX Support**: Native support for HTMX content loading (`hxUrl`).
-- **Programmatic Control**: Extensible factory pattern.
+- **Core Function**: Manages tab switching logic and visibility states.
+- **Architecture**: Directive-based binding (`x-bind`) connected to a central store (`Alpine.store('uno').tab`).
+- **Deep Linking**: Automatically syncs active tab with URL hash.
+- **HTMX Support**: Handles "simulated clicks" to ensure remote content loads when landing directly on a tab URL.
 
-## Quick Start
+## Basic Usage
 
-### HTML Structure
+### 1. Window Helper Usage (Recommended)
 
-The component uses `x-data="window.unoTabs(defaultTab)"` to initialize, and `x-bind="trigger(tabName)"` and `x-bind="panel(tabName)"` to bind elements.
+Use `window.unoTabs()` to initialize the component scope.
 
 ```html
-<div x-data="window.unoTabs('tab1')">
+<div x-data="window.unoTabs('profile')">
   <!-- Tab List -->
-  <div x-bind="tablist" class="flex border-b mb-4">
-    <button x-bind="trigger('tab1')" class="tab-base px-4 py-2">Tab 1</button>
-    <button x-bind="trigger('tab2')" class="tab-base px-4 py-2">Tab 2</button>
+  <div x-bind="tablist" role="tablist" class="flex">
+    <button x-bind="trigger('profile')" class="btn">Profile</button>
+    <button x-bind="trigger('settings')" class="btn">Settings</button>
   </div>
 
-  <!-- Tab Panels -->
-  <div>
-    <div x-bind="panel('tab1')">Content 1</div>
-    <div x-bind="panel('tab2')">Content 2</div>
+  <!-- Panels -->
+  <div class="content">
+    <div x-bind="panel('profile')">Profile Content</div>
+    <div x-bind="panel('settings')">Settings Content</div>
   </div>
 </div>
 ```
 
-## API Reference
+### 2. Directive Usage
 
-### Global API (Store Access)
+For simpler, standalone tab triggers.
 
-The component exposes its internal store via `Alpine.store('uno').tab`.
+```html
+<button x-uno-tab="'profile'">Go to Profile</button>
+```
 
-#### `Alpine.store('uno').tab.activate(config)`
+## API Parameters
+
+### `window.unoTabs(defaultTab, options)`
+
+| Name            | Type      | Default     | Required | Description                                                     |
+| :-------------- | :-------- | :---------- | :------- | :-------------------------------------------------------------- |
+| `defaultTab`    | `String`  | -           | Yes      | The name of the tab to activate initially (if no hash matches). |
+| `options`       | `Object`  | `{}`        | No       | Configuration object.                                           |
+| `options.hash`  | `Boolean` | `true`      | No       | Whether to enable URL hash synchronization.                     |
+| `options.group` | `String`  | `'default'` | No       | The group namespace for these tabs.                             |
+
+### `trigger(name, ajaxUrl, hash, hxUrl)` (Binding)
+
+| Name      | Type     | Default | Required | Description                                                        |
+| :-------- | :------- | :------ | :------- | :----------------------------------------------------------------- |
+| `name`    | `String` | -       | Yes      | Unique identifier for the tab.                                     |
+| `ajaxUrl` | `String` | -       | No       | Simple URL to fetch content from (replaces panel content).         |
+| `hash`    | `String` | -       | No       | Override the hash value (default uses `name`).                     |
+| `hxUrl`   | `String` | -       | No       | **Legacy**. Use standard `hx-get` attribute on the button instead. |
+
+## Events
+
+| Event        | Trigger Timing                       | Callback Parameters                            |
+| :----------- | :----------------------------------- | :--------------------------------------------- |
+| `hashchange` | When URL hash changes (browser nav). | None (Store updates active tab automatically). |
+
+## Methods
+
+Accessed via `Alpine.store('uno').tab`.
+
+### `activate(options)`
 
 Activates a specific tab.
 
-```javascript
-Alpine.store('uno').tab.activate({ name: 'tab-profile', group: 'default' })
-```
+- **Parameters**: `options` (Object)
+  - `name` (String, Required): Tab ID.
+  - `group` (String, Optional): Tab group name.
+  - `updateHash` (Boolean, Optional): Whether to update URL hash (default `true`).
+- **Returns**: `void`
+- **Example**:
+  ```javascript
+  Alpine.store('uno').tab.activate({ name: 'settings' })
+  ```
 
-### Initialization
+### `isActive(name, group)`
 
-```javascript
-// x-data="window.unoTabs(defaultTab, options)"
-window.unoTabs('tab1', {
-  hash: true, // Enable hash navigation (default: true)
-  manual: false // Manual activation via arrow keys (default: false)
-})
-```
+Checks if a tab is currently active.
 
-### Bindings
+- **Parameters**:
+  - `name` (String): Tab ID.
+  - `group` (String): Group name (default `'default'`).
+- **Returns**: `Boolean`
+- **Example**:
+  ```javascript
+  if (Alpine.store('uno').tab.isActive('profile')) { ... }
+  ```
 
-| Binding                              | Description                                                                               | Arguments                                                                                                                  |
-| ------------------------------------ | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `tablist`                            | Binds accessibility roles and keyboard navigation (Left/Right/Home/End) to the container. | -                                                                                                                          |
-| `trigger(tab, ajaxUrl, hash, hxUrl)` | Binds click handlers, classes, and accessibility attributes to a tab button.              | `tab`: Tab ID (string)<br>`ajaxUrl`: Optional URL for fetch<br>`hash`: Optional URL hash<br>`hxUrl`: Optional URL for HTMX |
-| `panel(tab)`                         | Binds visibility (`x-show`) and accessibility roles to a content panel.                   | `tab`: Tab ID (string)                                                                                                     |
+### `register(name, group)`
 
-## Advanced Usage
+Registers a tab in the store. Automatically called by `trigger` binding.
 
-### AJAX Content Loading
+- **Parameters**:
+  - `name` (String): Tab ID.
+  - `group` (String): Group name.
+- **Returns**: `void`
 
-Pass a URL as the second argument to `trigger()`. The content will be fetched via `fetch()` and injected into the panel.
+## Examples
 
-```html
-<button x-bind="trigger('tab-ajax', '/api/content.html')">Load Ajax</button>
-<div x-bind="panel('tab-ajax')">Loading...</div>
-```
+### HTMX Deep Linking
 
-### HTMX Content Loading
-
-Pass a URL as the fourth argument to `trigger()` (or use named arguments if supported, but here strictly positional). The content will be fetched via `htmx.ajax()`.
-
-```html
-<!-- trigger(tabId, ajaxUrl, hash, hxUrl) -->
-<button x-bind="trigger('tab-htmx', null, null, '/api/content.html')">Load HTMX</button>
-<div x-bind="panel('tab-htmx')">Loading...</div>
-```
-
-### Hash Navigation (Deep Linking)
-
-Pass a hash string as the third argument to `trigger()`.
+This setup ensures that if a user visits `page#users`, the "Users" tab activates AND the HTMX request fires to load the content.
 
 ```html
-<button x-bind="trigger('tab-profile', null, 'profile')">Profile</button>
+<div x-data="window.unoTabs('dashboard')">
+  <div x-bind="tablist">
+    <!-- Standard Tab -->
+    <button x-bind="trigger('dashboard')">Dashboard</button>
+
+    <!-- HTMX Tab -->
+    <!-- hx-get will be triggered automatically if landing on #users -->
+    <button x-bind="trigger('users')" hx-get="/api/users" hx-target="#panel-users">Users</button>
+  </div>
+
+  <div>
+    <div x-bind="panel('dashboard')">...</div>
+    <div id="panel-users" x-bind="panel('users')"></div>
+  </div>
+</div>
 ```
 
-- Clicking updates URL to `...#profile`.
-- Loading URL with `#profile` activates this tab.
+## Version History
 
-## Security & Optimization
-
-### Content Sanitization
-
-AJAX and HTMX loaded content is sanitized via `Uno.dom.sanitizeHTML` before injection.
-
-- Dangerous tags are removed.
-- Use secure endpoints for `ajaxUrl` and `hxUrl`.
-
-### Memory Management
-
-- **Event Cleanup**: Hash change listeners are automatically managed and cleaned up when tabs are destroyed or re-initialized.
-- **Idempotency**: Initialization is safe to call multiple times (via `Uno.utils.once`).
-
-## Styling
-
-The component manages state classes but leaves visual styling to you.
-It applies the `current` class to the active tab trigger.
-
-```css
-.tab-base {
-  /* Base styles */
-}
-.tab-base.current {
-  /* Active styles */
-  color: blue;
-  border-bottom: 2px solid blue;
-}
-```
+| Version | Date       | Changes                                              |
+| :------ | :--------- | :--------------------------------------------------- |
+| v1.0.0  | 2025-01-09 | Initial release with Hash Sync and HTMX integration. |
