@@ -66,7 +66,7 @@ export function SocialMixin() {
 
       try {
         const response = await fetch(
-          `/api/diary/like/status?diaryid=${diaryId}`,
+          `/api/diary/like/status?diary_id=${diaryId}`,
           {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },

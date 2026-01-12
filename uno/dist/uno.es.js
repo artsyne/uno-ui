@@ -49,18 +49,18 @@ const f = {
       }
     L && typeof console < "u" && typeof console.error == "function" && console.error("[Uno Error]", ...i);
   }
-}, z = /* @__PURE__ */ new WeakMap();
+}, R = /* @__PURE__ */ new WeakMap();
 function M(i, t) {
   if (!i) return !1;
   const n = String(t);
-  let e = z.get(i);
-  return e || (e = /* @__PURE__ */ new Set(), z.set(i, e)), e.has(n) ? !1 : (e.add(n), !0);
+  let e = R.get(i);
+  return e || (e = /* @__PURE__ */ new Set(), R.set(i, e)), e.has(n) ? !1 : (e.add(n), !0);
 }
-function _(i) {
+function z(i) {
   return i ? i.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "").replace(/<img\b[^>]*>/gim, "").replace(/\s+on[a-z]+="[^"]*"/gim, "").replace(/\s+on[a-z]+='[^']*'/gim, "").replace(/\s+href="javascript:[^"]*"/gim, "").replace(/\s+href='javascript:[^']*'/gim, "").replace(/javascript:/gim, "") : "";
 }
 function q(i, t, { trusted: n = !1, alpine: e } = {}) {
-  i && (i.innerHTML = n ? String(t ?? "") : _(String(t ?? "")), e?.initTree?.(i));
+  i && (i.innerHTML = n ? String(t ?? "") : z(String(t ?? "")), e?.initTree?.(i));
 }
 const O = {
   /**
@@ -202,7 +202,7 @@ const O = {
   // Exports
   setHTML: q,
   // Secure HTML setting
-  sanitize: _
+  sanitize: z
   // HTML sanitization
 };
 function $(i) {
@@ -713,15 +713,15 @@ const j = {
   en: F,
   "zh-CN": W,
   "zh-TW": X
-}, R = Object.keys(j);
+}, D = Object.keys(j);
 function Y() {
   if (typeof localStorage < "u") {
     const i = localStorage.getItem("uno.lang");
-    if (i && R.includes(i)) return i;
+    if (i && D.includes(i)) return i;
   }
   if (typeof navigator < "u") {
     const i = navigator.language, t = i.startsWith("zh") ? i.includes("TW") || i.includes("Hant") ? "zh-TW" : "zh-CN" : "en";
-    return R.includes(t) ? t : "en";
+    return D.includes(t) ? t : "en";
   }
   return "en";
 }
@@ -734,9 +734,9 @@ function Z(i, t) {
   }
   return e;
 }
-function D(i, t) {
+function _(i, t) {
   for (const n in t)
-    t[n] && typeof t[n] == "object" ? (i[n] || Object.assign(i, { [n]: {} }), D(i[n], t[n])) : Object.assign(i, { [n]: t[n] });
+    t[n] && typeof t[n] == "object" ? (i[n] || Object.assign(i, { [n]: {} }), _(i[n], t[n])) : Object.assign(i, { [n]: t[n] });
 }
 function N(i) {
   const t = i.store("i18n"), n = {
@@ -761,6 +761,9 @@ function N(i) {
     setLang(e) {
       this.setLocale(e);
     },
+    extend(e) {
+      _(this.messages, e);
+    },
     async loadLocale(e, o) {
       if (!this.messages[e]) {
         this.loading = !0;
@@ -777,7 +780,7 @@ function N(i) {
       }
     }
   };
-  t ? (f.info("[Uno] Merging into existing i18n store"), t.messages || (t.messages = {}), D(t.messages, j), t.t || (t.t = n.t), t.setLocale || (t.setLocale = n.setLocale), t.setLang || (t.setLang = n.setLang), t.loadLocale || (t.loadLocale = n.loadLocale)) : i.store("i18n", n), i.directive("t", (e, { expression: o, modifiers: s }, { effect: a }) => {
+  t ? (f.info("[Uno] Merging into existing i18n store"), t.messages || (t.messages = {}), _(t.messages, j), t.t || (t.t = n.t), t.setLocale || (t.setLocale = n.setLocale), t.setLang || (t.setLang = n.setLang), t.loadLocale || (t.loadLocale = n.loadLocale)) : i.store("i18n", n), i.directive("t", (e, { expression: o, modifiers: s }, { effect: a }) => {
     const c = () => i.store("i18n");
     a(() => {
       const r = c();
@@ -952,7 +955,7 @@ const et = (i) => {
       const o = h.getConfig("tooltip", e);
       if (f.info("Tooltip resolved config", o), !o.target && typeof o.content == "string" && o.content.startsWith("#") && (o.content.includes(" ") || document.querySelector(o.content) && (o.target = o.content)), this.triggerEl = o.element || this.triggerEl, o.target) {
         const s = document.querySelector(o.target);
-        s ? this.content = _(s.innerHTML) : (f.warn(`Tooltip target element not found: ${o.target}`), this.content = o.content || "");
+        s ? this.content = z(s.innerHTML) : (f.warn(`Tooltip target element not found: ${o.target}`), this.content = o.content || "");
       } else
         this.content = o.content || "";
       this.placement = o.placement, this.triggerMode = o.trigger, this.clickOutside = o.clickOutside, this.offset = o.offset, this.arrow = o.arrow !== !1, this.zIndex = h.options?.ui?.layers?.tooltip || C("TOOLTIP"), this.hxUrl = o.hxUrl, this.hxHeaders = o.hxHeaders, this.hxTrigger = o.hxTrigger || "load", this.visible = !0, this.ensureContainer(), n(), i.nextTick(() => {
