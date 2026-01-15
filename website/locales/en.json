@@ -1,66 +1,27 @@
 {
   "common": {
-    "home": "Home",
     "theme_switch": "Switch theme",
-    "lang_switch": "Switch language",
-    "settings": "Settings",
-    "profile": "Profile",
-    "logout": "Logout",
     "save": "Save",
     "edit": "Edit",
     "delete": "Delete",
-    "confirm_delete": "Are you sure you want to delete this item?",
-    "default_page_desc": "iDiary - Record life, share beauty",
-    "welcome_back": "Welcome back!",
-    "please_login": "Please login",
     "loading": "Loading...",
     "submit": "Submit",
     "cancel": "Cancel",
-    "like": "Like",
-    "view": "View",
-    "back": "Back",
     "menu": "Menu",
-    "introduction": "Introduction",
     "authors": "Authors",
-    "members": "Members",
-    "list": "List",
-    "private": "Private",
-    "public": "Public",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
     "next": "Next",
     "previous": "Previous",
     "is_last_page": "Is Last Post",
     "is_first_page": "Is First Post",
-    "confirm": "Confirm",
-    "search": "Search",
-    "filter": "Filter",
-    "sort": "Sort",
-    "refresh": "Refresh",
-    "close": "Close",
-    "open": "Open",
-    "download": "Download",
-    "upload": "Upload",
-    "copy": "Copy",
-    "share": "Share",
-    "print": "Print",
-    "export": "Export",
-    "import": "Import",
-    "pub_time":"Added",
-    "modified_time":"Modified",
-    "time_zone":"Time Zone",
-    "lang":"Language"
+    "pub_time": "Added",
+    "time_zone": "Time Zone",
+    "lang": "Language",
+    "default_page_desc": "iDiary - Record life, share beauty"
   },
   "error": {
-    "title":"Error Occurred",
+    "title": "Error Occurred",
     "message": "An unexpected error has occurred. Please try again later.",
     "contact_admin": "Contact administrator for more information."
-  },
-  "nav": {
-    "home": "Home",
-    "diary": "Diary",
-    "settings": "Settings",
-    "profile": "Profile"
   },
   "page": {
     "title": {
@@ -121,14 +82,12 @@
     }
   },
   "user": {
-    "settings": "User Settings",
-    "settings_desc": "Manage personal account and preference settings",
-    "profile": {
-      "title": "Profile",
-      "desc": "Edit personal profile information"
-    },
     "settings": {
-      "title": "User Settings"
+      "title": "User Settings",
+      "description_limit_exceeded": "Description exceeds limit",
+      "profile_updated": "Profile updated successfully",
+      "email_updated": "Email updated successfully",
+      "password_changed": "Password changed successfully"
     },
     "label": {
       "my_home": "My Home",
@@ -165,7 +124,8 @@
       "activation_failed": "Activation failed. The activation code may have expired. Please get a new verification code!",
       "activation_success": "Thank you for activating your account. You can now use all features of China Diary Network.",
       "username_taken": "This username has been registered",
-      "email_taken": "This email has been registered"
+      "email_taken": "This email has been registered",
+      "username_invalid": "Invalid username format"
     },
     "title": {
       "login": "Login",
@@ -177,17 +137,6 @@
     "message": "Hello, {{username}}! Welcome to iDiary."
   },
   "member": {
-    "profile": {
-      "introduction": "Introduction",
-      "menu": "Menu",
-      "latest_public_diary": "Latest Public Diary",
-      "joined_diaries": "Joined Diaries",
-      "my_apps": "My Apps",
-      "app_list": "App List",
-      "diary_notebook": "Diary Notebook",
-      "add_notebook": "Add Notebook",
-      "posts_count": "Posts"
-    },
     "settings": {
       "title": "Settings",
       "profile_card_title": "Profile",
@@ -211,7 +160,7 @@
       "confirm_password_placeholder": "Please enter new password again",
       "change_password_button": "Change Password",
       "timezone_note": "Timezone setting will affect the display style of time",
-      "email_note":"Email address modification will not take effect immediately. A verification email will be sent to the new email address. Please click the link in the email to complete the verification and modification"
+      "email_note": "Email address modification will not take effect immediately. A verification email will be sent to the new email address. Please click the link in the email to complete the verification and modification"
     }
   },
   "form": {
@@ -225,21 +174,10 @@
   "comments": {
     "title": "Comments",
     "submit": "Comment",
-    "follow": "Follow",
     "placeholder": "Write your comment here...",
     "login_to_comment": "Login to comment",
-    "load_more": "Load more comments",
     "no_comments": "No comments yet",
-    "delete_confirm": "Are you sure you want to delete this comment?",
-    "reply": "Reply",
-    "edit": "Edit",
-    "delete": "Delete",
-    "just_now": "Just now",
-    "minutes_ago": "minutes ago",
-    "hours_ago": "hours ago",
-    "days_ago": "days ago",
-    "submit_success": "Comment submitted successfully",
-    "delete_success": "Comment deleted successfully"
+    "delete": "Delete"
   },
   "markdown": {
     "syntax": {
@@ -257,5 +195,31 @@
       "blockquote": "Blockquote",
       "headers": "Headers"
     }
+  },
+  "index": {
+    "hero": {
+      "title": "Record Life, Walk With You",
+      "subtitle": "iDiary.ai Hebe - Intelligent Diary Platform",
+      "start": "Start Recording",
+      "login": "Login Now"
+    },
+    "featured_diaries": "Featured Diaries",
+    "more_diaries": "View More Diaries",
+    "popular_categories": "Popular Categories",
+    "featured_spaces": "Featured Spaces"
+  },
+  "category": {
+    "personal_space": "Personal Space",
+    "emotional_life": "Emotional Life",
+    "work_life": "Work Life",
+    "baby_diary": "Baby Diary",
+    "couple_diary": "Couple Diary",
+    "entertainment": "Entertainment",
+    "travel_diary": "Travel Diary",
+    "study_notes": "Study Notes",
+    "food_culture": "Food Culture",
+    "mood_diary": "Mood Diary",
+    "campus_life": "Campus Life",
+    "programmer_life": "Programmer Life"
   }
 }

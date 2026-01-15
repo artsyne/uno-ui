@@ -90,8 +90,11 @@ func loadGlobalConfig() *config.Config {
 			SummaryMax:      getEnvInt("IDIARY_SUMMARY_MAX", 555),
 			Suffix:          getEnvString("IDIARY_SUFFIX", "..."),
 			PageSize:        getEnvInt("IDIARY_PAGE_SIZE", 20),
-			MaxDaybookLimit: getEnvInt("IDIARY_MAX_DAYBOOK_LIMIT", 500),
-			StaticDir:       getEnvString("IDIARY_STATIC_DIR", filepath.Join(GetProjectRoot(), "website/static")),
+			MaxDaybookLimit:      getEnvInt("IDIARY_MAX_DAYBOOK_LIMIT", 500),
+			MaxPostLength:        getEnvInt("IDIARY_MAX_POST_LENGTH", 20000),
+			MaxCommentLength:     getEnvInt("IDIARY_MAX_COMMENT_LENGTH", 1000),
+			MaxDescriptionLength: getEnvInt("IDIARY_MAX_DESCRIPTION_LENGTH", 500),
+			StaticDir:            getEnvString("IDIARY_STATIC_DIR", filepath.Join(GetProjectRoot(), "website/static")),
 			LocalesDir:      getEnvString("IDIARY_LOCALES_DIR", filepath.Join(GetProjectRoot(), "website/locales")),
 			DefaultLang:     getEnvString("IDIARY_DEFAULT_LANG", "zh-cn"),
 		},
@@ -229,6 +232,9 @@ func setupTestEnvironment() {
 	setEnvIfNotExists("IDIARY_SUFFIX", "...")
 	setEnvIfNotExists("IDIARY_PAGE_SIZE", "20")
 	setEnvIfNotExists("IDIARY_MAX_DAYBOOK_LIMIT", "500")
+	setEnvIfNotExists("IDIARY_MAX_POST_LENGTH", "20000")
+	setEnvIfNotExists("IDIARY_MAX_COMMENT_LENGTH", "1000")
+	setEnvIfNotExists("IDIARY_MAX_DESCRIPTION_LENGTH", "500")
 	setEnvIfNotExists("IDIARY_STATIC_DIR", filepath.Join(GetProjectRoot(), "website", "static"))
 	setEnvIfNotExists("IDIARY_LOCALES_DIR", filepath.Join(GetProjectRoot(), "website", "locales"))
 	setEnvIfNotExists("IDIARY_DEFAULT_LANG", "zh-cn")

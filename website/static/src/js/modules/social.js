@@ -104,16 +104,14 @@ export function SocialMixin() {
           this.diaryLike.liked = result.data.is_liked;
           this.diaryLike.count = result.data.like_count;
           notify.success(
-            result.data.is_liked
-              ? this.$store.i18n.t('social.like.success')
-              : this.$store.i18n.t('social.like.cancel'),
+            result.data.is_liked ? 'social.like.success' : 'social.like.cancel',
           );
         } else {
-          notify.error(result.message || this.$store.i18n.t('common.op_fail'));
+          notify.error(result.message || 'common.op_fail');
         }
       } catch (e) {
         console.error('Diary like error:', e);
-        notify.error(this.$store.i18n.t('common.op_fail'));
+        notify.error('common.op_fail');
       } finally {
         this.diaryLike.loading = false;
       }
@@ -204,16 +202,14 @@ export function SocialMixin() {
             stats.like_num = result.data.like_count; // sync both
           }
           notify.success(
-            result.data.is_liked
-              ? this.$store.i18n.t('social.like.success')
-              : this.$store.i18n.t('social.like.cancel'),
+            result.data.is_liked ? 'social.like.success' : 'social.like.cancel',
           );
         } else {
-          notify.error(result.message || this.$store.i18n.t('common.op_fail'));
+          notify.error(result.message || 'common.op_fail');
         }
       } catch (e) {
         console.error('Like error:', e);
-        notify.error(this.$store.i18n.t('common.op_fail'));
+        notify.error('common.op_fail');
       }
     },
   };
@@ -250,16 +246,14 @@ export function LikeButton(initialCount, initialLiked, postId) {
           this.liked = result.data.is_liked;
           this.count = result.data.like_count;
           notify.success(
-            this.liked
-              ? this.$store.i18n.t('social.like.success')
-              : this.$store.i18n.t('social.like.cancel'),
+            this.liked ? 'social.like.success' : 'social.like.cancel',
           );
         } else {
-          notify.error(result.message || this.$store.i18n.t('common.op_fail'));
+          notify.error(result.message || 'common.op_fail');
         }
       } catch (e) {
         console.error('Like error:', e);
-        notify.error(this.$store.i18n.t('common.op_fail'));
+        notify.error('common.op_fail');
       } finally {
         this.loading = false;
       }
@@ -386,15 +380,15 @@ export function CommentsMixin(postId) {
         const result = await response.json();
 
         if (result.success) {
-          notify.success(this.$store.i18n.t('comments.submit_success'));
+          notify.success('comments.submit_success');
           this.content = '';
           await this.loadComments(1);
         } else {
-          notify.error(result.message || this.$store.i18n.t('common.op_fail'));
+          notify.error(result.message || 'common.op_fail');
         }
       } catch (e) {
         console.error('Submit comment error:', e);
-        notify.error(this.$store.i18n.t('common.op_fail'));
+        notify.error('common.op_fail');
       } finally {
         this.submitting = false;
       }
@@ -425,14 +419,14 @@ export function CommentsMixin(postId) {
         const result = await response.json();
 
         if (result.success) {
-          notify.success(this.$store.i18n.t('comments.delete_success'));
+          notify.success('comments.delete_success');
           await this.loadComments(this.currentPage);
         } else {
-          notify.error(result.message || this.$store.i18n.t('common.op_fail'));
+          notify.error(result.message || 'common.op_fail');
         }
       } catch (e) {
         console.error('Delete comment error:', e);
-        notify.error(this.$store.i18n.t('common.op_fail'));
+        notify.error('common.op_fail');
       }
     },
   };

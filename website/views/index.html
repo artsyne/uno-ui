@@ -7,13 +7,13 @@
     <div class="absolute inset-0 bg-black bg-opacity-30"></div>
     <div class="relative z-10 flex items-center justify-center h-full text-center text-white">
         <div class="max-w-4xl mx-auto px-4">
-            <h1 class="text-5xl font-bold mb-4 animate-fade-in">记录人生，伴你前行</h1>
-            <h2 class="text-xl mb-8 opacity-90">iDiary.ai Hebe - 智能日记平台</h2>
+            <h1 class="text-5xl font-bold mb-4 animate-fade-in">{{getMessage "index.hero.title" .Context.Lang}}</h1>
+            <h2 class="text-xl mb-8 opacity-90">{{getMessage "index.hero.subtitle" .Context.Lang}}</h2>
             <div class="space-x-4">
                 <a href="/zh-cn/passport/register"
-                    class="btn text-white px-8 py-3 rounded-lg font-semibold transition-colors duration-300">开始记录</a>
+                    class="btn text-white px-8 py-3 rounded-lg font-semibold transition-colors duration-300">{{getMessage "index.hero.start" .Context.Lang}}</a>
                 <a href="/zh-cn/passport/login"
-                    class="border-2 border-white text-white hover:bg-white hover:text-gray-800 px-8 py-3 rounded-lg font-semibold transition-colors duration-300">立即登录</a>
+                    class="border-2 border-white text-white hover:bg-white hover:text-gray-800 px-8 py-3 rounded-lg font-semibold transition-colors duration-300">{{getMessage "index.hero.login" .Context.Lang}}</a>
             </div>
         </div>
     </div>
@@ -134,7 +134,7 @@
             <!-- Load More Button -->
             <div class="text-center">
                 <button class="btn px-8 py-3 rounded-lg font-semibold transition-colors duration-300">
-                    查看更多日记
+                    {{getMessage "index.more_diaries" .Context.Lang}}
                 </button>
             </div>
         </div>

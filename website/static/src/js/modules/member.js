@@ -131,7 +131,7 @@ export const Member = {
       const result = await response.json();
 
       if (result.success) {
-        uno.notify.success(this.$store.i18n.t('operation.success'));
+        uno.notify.success('operation.success');
         uno.box.close(boxId);
 
         // Dispatch event to update diary list if listener exists
@@ -140,13 +140,11 @@ export const Member = {
         );
       } else {
         uno.notify.error(
-          result.message || this.$store.i18n.t('operation.fail'),
+          result.message || 'common.op_fail',
         );
       }
     } catch (e) {
-      uno.notify.error(
-        this.$store.i18n.t('common.net_error') || 'Network error',
-      );
+      uno.notify.error('common.net_error');
     }
   },
 };

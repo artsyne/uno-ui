@@ -1,66 +1,27 @@
 {
   "common": {
-    "home": "首页",
     "theme_switch": "切换主题",
-    "lang_switch": "切换语言",
-    "settings": "设置",
-    "profile": "个人资料",
-    "logout": "退出登录",
     "save": "保存",
     "edit": "编辑",
     "delete": "删除",
-    "confirm_delete": "您确定要删除这个项目吗？",
-    "default_page_desc": "iDiary - 记录生活，分享美好",
-    "welcome_back": "欢迎回来！",
-    "please_login": "请登录",
     "loading": "加载中...",
     "submit": "提交",
     "cancel": "取消",
-    "like": "点赞",
-    "view": "查看",
-    "back": "返回",
     "menu": "目录",
-    "introduction": "介绍",
     "authors": "作者",
-    "members": "成员",
-    "list": "列表",
-    "private": "私人",
-    "public": "公开",
-    "enabled": "启用",
-    "disabled": "禁用",
     "next": "下一页",
     "previous": "上一页",
     "is_last_page": "已是最后一篇",
     "is_first_page": "已是第一篇",
-    "confirm": "确认",
-    "search": "搜索",
-    "filter": "筛选",
-    "sort": "排序",
-    "refresh": "刷新",
-    "close": "关闭",
-    "open": "打开",
-    "download": "下载",
-    "upload": "上传",
-    "copy": "复制",
-    "share": "分享",
-    "print": "打印",
-    "export": "导出",
-    "import": "导入",
-    "pub_time":"添加时间",
-    "modified_time":"修改时间",
-    "time_zone":"时区",
-    "lang":"语言"
+    "pub_time": "添加时间",
+    "time_zone": "时区",
+    "lang": "语言",
+    "default_page_desc": "iDiary - 记录生活，分享美好"
   },
   "error": {
-    "title":"错误发生",
+    "title": "错误发生",
     "message": "发生未知错误，请稍后重试。",
     "contact_admin": "联系管理员获取更多信息。"
-  },
-  "nav": {
-    "home": "首页",
-    "diary": "日记",
-    "settings": "设置",
-    "profile": "个人资料"
   },
   "page": {
     "title": {
@@ -121,14 +82,12 @@
     }
   },
   "user": {
-    "settings": "用户设置",
-    "settings_desc": "管理个人账户和偏好设置",
-    "profile": {
-      "title": "个人资料",
-      "desc": "编辑个人资料信息"
-    },
     "settings": {
-      "title": "用户设置"
+      "title": "用户设置",
+      "description_limit_exceeded": "简介超过限制",
+      "profile_updated": "资料更新成功",
+      "email_updated": "邮箱更新成功",
+      "password_changed": "密码修改成功"
     },
     "label": {
       "my_home": "我的主页",
@@ -165,7 +124,8 @@
       "activation_failed": "激活失败，可能是激活码过期，请重新获取验证码！",
       "activation_success": "感谢你激活账户，你可以正常使用中国日记网所有功能",
       "username_taken": "该用户名已被注册",
-      "email_taken": "该邮箱已被注册"
+      "email_taken": "该邮箱已被注册",
+      "username_invalid": "用户名格式无效"
     },
     "title": {
       "login": "登录",
@@ -177,17 +137,6 @@
     "message": "你好，{{username}}！欢迎使用 iDiary。"
   },
   "member": {
-    "profile": {
-      "introduction": "个人介绍",
-      "menu": "目录",
-      "latest_public_diary": "最新公开日记",
-      "joined_diaries": "加入日记本",
-      "my_apps": "我的应用",
-      "app_list": "应用列表",
-      "diary_notebook": "日记本",
-      "add_notebook": "新增日记本",
-      "posts_count": "篇"
-    },
     "settings": {
       "title": "设置",
       "profile_card_title": "个人资料",
@@ -211,7 +160,7 @@
       "confirm_password_placeholder": "请再次输入新密码",
       "change_password_button": "修改密码",
       "timezone_note": "时区设置会影响时间显示风格",
-      "email_note":"邮箱修保存改后，不会立刻修改邮箱。系统会往新邮箱发送一封邮件，点击邮件中的链接完成邮箱验证和修改"
+      "email_note": "邮箱修保存改后，不会立刻修改邮箱。系统会往新邮箱发送一封邮件，点击邮件中的链接完成邮箱验证和修改"
     }
   },
   "form": {
@@ -225,21 +174,10 @@
   "comments": {
     "title": "留言",
     "submit": "留言",
-    "follow": "关注",
     "placeholder": "在这里写下你的留言...",
     "login_to_comment": "登录后留言",
-    "load_more": "加载更多留言",
     "no_comments": "暂无留言",
-    "delete_confirm": "确定要删除这条留言吗？",
-    "reply": "回复",
-    "edit": "编辑",
-    "delete": "删除",
-    "just_now": "刚刚",
-    "minutes_ago": "分钟前",
-    "hours_ago": "小时前",
-    "days_ago": "天前",
-    "submit_success": "留言提交成功",
-    "delete_success": "留言删除成功"
+    "delete": "删除"
   },
   "markdown": {
     "syntax": {
@@ -257,5 +195,31 @@
       "blockquote": "引用",
       "headers": "标题"
     }
+  },
+  "index": {
+    "hero": {
+      "title": "记录人生，伴你前行",
+      "subtitle": "iDiary.ai Hebe - 智能日记平台",
+      "start": "开始记录",
+      "login": "立即登录"
+    },
+    "featured_diaries": "精选日记",
+    "more_diaries": "查看更多日记",
+    "popular_categories": "热门分类",
+    "featured_spaces": "精选空间"
+  },
+  "category": {
+    "personal_space": "个人空间",
+    "emotional_life": "情感生活",
+    "work_life": "职场生活",
+    "baby_diary": "宝宝日记",
+    "couple_diary": "情侣日记",
+    "entertainment": "娱乐休闲",
+    "travel_diary": "旅行日记",
+    "study_notes": "学习笔记",
+    "food_culture": "美食文化",
+    "mood_diary": "心情日记",
+    "campus_life": "校园生活",
+    "programmer_life": "程序员生活"
   }
 }

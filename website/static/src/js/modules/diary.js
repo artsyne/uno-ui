@@ -138,15 +138,13 @@ export function DiaryList() {
         if (result.success) {
           const el = document.querySelector(`.card[data-post-id="${postId}"]`);
           if (el) el.remove();
-          notify.success(this.$store.i18n.t('diary.delete.success'));
+          notify.success('diary.delete.success');
         } else {
-          notify.error(
-            result.message || this.$store.i18n.t('diary.delete.fail'),
-          );
+          notify.error(result.message || 'diary.delete.fail');
         }
       } catch (error) {
         console.error('Delete error:', error);
-        notify.error(this.$store.i18n.t('diary.delete.net_error'));
+        notify.error('diary.delete.net_error');
       }
     },
 
@@ -279,7 +277,7 @@ export function DiaryList() {
         const result = await response.json();
 
         if (result.success) {
-          uno.notify.success(this.$store.i18n.t('common.save_success'));
+          uno.notify.success('common.save_success');
           uno.box.close(boxId);
 
           const post = result.data;
@@ -361,14 +359,12 @@ export function DiaryList() {
           // Return nothing (undefined) to allow Uno to close the dialog if it was waiting
           return;
         } else {
-          uno.notify.error(
-            result.message || this.$store.i18n.t('common.save_fail'),
-          );
+          uno.notify.error(result.message || 'common.save_fail');
           return false;
         }
       } catch (e) {
         console.error('Submit error:', e);
-        uno.notify.error(this.$store.i18n.t('common.net_error'));
+        uno.notify.error('common.net_error');
         return false;
       }
     },
@@ -438,7 +434,7 @@ export function DiaryList() {
         const result = await response.json();
 
         if (result.success) {
-          uno.notify.success(this.$store.i18n.t('common.save_success'));
+          uno.notify.success('common.save_success');
           uno.box.close(boxId);
 
           const diary = result.data;
@@ -511,13 +507,11 @@ export function DiaryList() {
 
           return;
         } else {
-          uno.notify.error(
-            result.message || this.$store.i18n.t('common.save_fail'),
-          );
+          uno.notify.error(result.message || 'common.save_fail');
           return false;
         }
       } catch (e) {
-        uno.notify.error(this.$store.i18n.t('common.net_error'));
+        uno.notify.error('common.net_error');
         return false;
       }
     },

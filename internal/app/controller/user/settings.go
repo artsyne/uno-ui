@@ -17,7 +17,8 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	// 校验描述长度
 	if len(req.Remark) > ctrl.config.App.MaxDescriptionLength {
 		if ctrl.isHtmxRequest(c) {
-			ctrl.htmxToast(c, "error", "Description exceeds limit")
+			msg := ctrl.renderService.GetMessage("user.settings.description_limit_exceeded", ctrl.renderService.GetLocaleFromContext(c))
+			ctrl.htmxToast(c, "error", msg)
 			return
 		}
 		ctrl.renderService.JSONError(c, errors.ValidationError)
@@ -98,10 +99,12 @@ func (ctrl *UserController) UpdatePassword(c *gin.Context) {
 	ctrl.auth.SetLoginCookie(c, authUser)
 
 	if ctrl.isHtmxRequest(c) {
-		ctrl.htmxToast(c, "success", "Password changed successfully")
+		msg := ctrl.renderService.GetMessage("user.settings.password_changed", ctrl.renderService.GetLocaleFromContext(c))
+		ctrl.htmxToast(c, "success", msg)
 		return
 	}
 
-	ctrl.renderService.JSONSuccess(c, gin.H{"message": "密码修改成功"})
+	msg := ctrl.renderService.GetMessage("user.settings.password_changed", ctrl.renderService.GetLocaleFromContext(c))
+	ctrl.renderService.JSONSuccess(c, gin.H{"message": msg})
 }
 

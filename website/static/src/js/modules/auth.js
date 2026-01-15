@@ -18,7 +18,7 @@ export function initAuth() {
         }
 
         if (!result.success) {
-          let msg = result.message || 'Operation failed';
+          let msg = result.message || 'common.op_fail';
           // Append details if it's a string
           if (result.details && typeof result.details === 'string') {
             msg += ': ' + result.details;
@@ -26,7 +26,7 @@ export function initAuth() {
           notify.error(msg);
         } else {
           // Success JSON
-          notify.success(result.message || 'Success');
+          notify.success(result.message || 'auth.success');
         }
       } catch (e) {
         console.error('Failed to parse JSON response', e);
@@ -95,7 +95,8 @@ export function initValidationCallbacks() {
       }
 
       // Otherwise show error manually because validation is sync
-      const msg = result.message || 'Username already taken';
+      const t = (key) => Alpine.store('i18n').t(key);
+      const msg = result.message || t('auth.username_taken');
       validStore.showError(name, msg);
       return true; // Return true to prevent sync validation failure, error is shown manually
     } catch (error) {
@@ -137,7 +138,8 @@ export function initValidationCallbacks() {
       }
 
       // Otherwise show error manually
-      const msg = result.message || 'Email already taken';
+      const t = (key) => Alpine.store('i18n').t(key);
+      const msg = result.message || t('auth.email_taken');
       validStore.showError(name, msg);
       return true;
     } catch (error) {
