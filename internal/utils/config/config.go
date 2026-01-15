@@ -71,18 +71,20 @@ func InitConfig() error {
 		globalConfig.Env = env
 	}
 
-	// App配置
 	globalConfig.App = AppConfig{
-		GinMode:         requireString(v, "GIN_MODE"),
-		Domain:          requireString(v, "DOMAIN"),
-		Port:            requireString(v, "PORT"),
-		SummaryMax:      requireInt(v, "SUMMARY_MAX"),
-		Suffix:          requireString(v, "SUFFIX"),
-		PageSize:        requireInt(v, "PAGE_SIZE"),
-		MaxDaybookLimit: requireInt(v, "MAX_DAYBOOK_LIMIT"),
-		StaticDir:       requireString(v, "STATIC_DIR"),
-		LocalesDir:      requireString(v, "LOCALES_DIR"),
-		DefaultLang:     requireString(v, "DEFAULT_LANG"),
+		GinMode:              requireString(v, "GIN_MODE"),
+		Domain:               requireString(v, "DOMAIN"),
+		Port:                 requireString(v, "PORT"),
+		SummaryMax:           requireInt(v, "SUMMARY_MAX"),
+		Suffix:               requireString(v, "SUFFIX"),
+		PageSize:             requireInt(v, "PAGE_SIZE"),
+		MaxDaybookLimit:      requireInt(v, "MAX_DAYBOOK_LIMIT"),
+		MaxPostLength:        requireInt(v, "MAX_POST_LENGTH"),
+		MaxCommentLength:     requireInt(v, "MAX_COMMENT_LENGTH"),
+		MaxDescriptionLength: requireInt(v, "MAX_DESCRIPTION_LENGTH"),
+		StaticDir:            requireString(v, "STATIC_DIR"),
+		LocalesDir:           requireString(v, "LOCALES_DIR"),
+		DefaultLang:          requireString(v, "DEFAULT_LANG"),
 	}
 
 	// 用户配置

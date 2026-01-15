@@ -23,6 +23,12 @@ func (ctrl *PostController) CreatePost(c *gin.Context) {
 	// 获取已验证的请求数据
 	req := middleware.MustGetValidatedRequest[CreatePostRequest](c)
 
+	// 校验日记内容长度
+	if len(req.Body) > ctrl.config.App.MaxPostLength {
+		ctrl.renderService.JSONError(c, errors.ValidationError)
+		return
+	}
+
 	nowTime := pkg.GetNowTimeUnixMilli()
 
 	// 构建新日记对象，设置所有必要字段
@@ -73,6 +79,12 @@ func (ctrl *PostController) UpdatePost(c *gin.Context) {
 
 	// 获取已验证的请求数据
 	req := middleware.MustGetValidatedRequest[UpdatePostRequest](c)
+
+	// 校验日记内容长度
+	if len(req.Body) > ctrl.config.App.MaxPostLength {
+		ctrl.renderService.JSONError(c, errors.ValidationError)
+		return
+	}
 
 	postId := req.PostID
 

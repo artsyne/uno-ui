@@ -1363,6 +1363,9 @@
   .mt-6 {
     margin-top: calc(var(--spacing) * 6);
   }
+  .mt-8 {
+    margin-top: calc(var(--spacing) * 8);
+  }
   .mt-10 {
     margin-top: calc(var(--spacing) * 10);
   }
@@ -2498,6 +2501,13 @@
   .ring-inset {
     --tw-ring-inset: inset;
   }
+  .group-hover\:visible {
+    &:is(:where(.group):hover *) {
+      @media (hover: hover) {
+        visibility: visible;
+      }
+    }
+  }
   .group-hover\:text-blue-500 {
     &:is(:where(.group):hover *) {
       @media (hover: hover) {
@@ -2642,13 +2652,6 @@
     &:hover {
       @media (hover: hover) {
         background-color: var(--color-purple-700);
-      }
-    }
-  }
-  .hover\:bg-red-600 {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--color-red-600);
       }
     }
   }
@@ -3450,15 +3453,6 @@
           @supports (color: color-mix(in lab, red, red)) {
             background-color: color-mix(in oklab, var(--color-blue-900) 20%, transparent);
           }
-        }
-      }
-    }
-  }
-  .dark\:hover\:bg-gray-600 {
-    html.dark & {
-      &:hover {
-        @media (hover: hover) {
-          background-color: var(--color-gray-600);
         }
       }
     }

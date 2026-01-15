@@ -2,7 +2,7 @@
 <div id="comments-list-container">
     {{if .Data.comments}}
     {{range .Data.comments}}
-    <div class="comment-item p-3 mb-4 bg-gray-50 dark:bg-gray-800 rounded-lg" id="comment-{{.CommentID}}">
+    <div class="comment-item p-3 mb-4 bg-gray-50 dark:bg-gray-800 group" id="comment-{{.CommentID}}">
         <div class="flex items-center justify-between mb-2">
             <div class="flex items-center">
                 <a href="/u/{{.AddUserID}}"
@@ -13,12 +13,12 @@
                     {{formatLocalTime .AddUtcTime $.Data.time_zone}}
                 </span>
             </div>
-            {{if eq $.Data.CurrentUserID .AddUserID}}
-            <button
-                class="btn btn-sm btn-danger text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                @click="deleteComment('{{.CommentID}}')">
+            {{if or (eq $.Data.CurrentUserID .AddUserID) (eq $.Data.CurrentUserID $.Data.PostOwnerID)}}
+            <a href="javascript:void(0)"
+                class="text-xs hover:underline  ml-4 text-red-500 invisible group-hover:visible"
+                @click.prevent="deleteComment('{{.CommentID}}')">
                 {{getMessage "comments.delete" $.Context.Lang}}
-            </button>
+            </a>
             {{end}}
         </div>
         <p class="text-gray-800 dark:text-gray-300 break-words">{{.Content}}</p>
@@ -29,21 +29,15 @@
     {{if gt .Data.pagination.total_pages 1}}
     <div id="comments-pagination" class="text-center mt-6 flex justify-center gap-4">
         {{if .Data.pagination.prev_page}}
-        <a href="javascript:void(0)"
-            class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-            hx-get="/api/comment/list?post_id={{.Data.PostID}}&page_index={{.Data.pagination.prev_page}}"
-            hx-target="#comments-list-wrapper" hx-swap="innerHTML">
+        <button type="button" class="btn" @click="loadComments({{.Data.pagination.prev_page}})">
             {{getMessage "common.previous" $.Context.Lang}}
-        </a>
+        </button>
         {{end}}
 
         {{if .Data.pagination.next_page}}
-        <a href="javascript:void(0)"
-            class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-            hx-get="/api/comment/list?post_id={{.Data.PostID}}&page_index={{.Data.pagination.next_page}}"
-            hx-target="#comments-list-wrapper" hx-swap="innerHTML">
+        <button type="button" class="btn" @click="loadComments({{.Data.pagination.next_page}})">
             {{getMessage "common.next" $.Context.Lang}}
-        </a>
+        </button>
         {{end}}
     </div>
     {{end}}
@@ -51,8 +45,4 @@
     <p class="text-center text-gray-500 py-8">{{getMessage "comments.no_comments" $.Context.Lang}}</p>
     {{end}}
 </div>
-
-<span id="post-comment-count" hx-swap-oob="true" class="mr-6 flex items-center" title="Comments">
-    <i class="mdi mdi-comment-text-outline mr-1 text-lg"></i> {{.Data.TotalCount}}
-</span>
 {{end}}

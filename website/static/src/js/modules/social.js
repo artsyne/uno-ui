@@ -271,11 +271,91 @@ export function CommentsMixin(postId) {
     postId: postId,
     content: '',
     submitting: false,
+    loadingComments: false,
+    currentPage: 1,
+
+    init() {
+      this.loadComments(1);
+    },
+
+    async loadComments(pageIndex = 1) {
+      const root = this.$root || document;
+      const wrapper = root.querySelector('#comments-list-wrapper');
+      if (!wrapper) return;
+
+      const countEl = document.getElementById('post-comment-count');
+
+      if (!this.postId) {
+        console.warn('[CommentsMixin] No postId provided');
+        wrapper.innerHTML =
+          '<div class="text-center text-gray-400 py-8">Comments disabled</div>';
+        return;
+      }
+
+      this.loadingComments = true;
+      this.currentPage = pageIndex;
+
+      try {
+        const response = await fetch(
+          `/api/comment/list?post_id=${encodeURIComponent(
+            this.postId,
+          )}&page_index=${encodeURIComponent(pageIndex)}&_t=${new Date().getTime()}`,
+          {
+            method: 'GET',
+            headers: {
+              'HX-Request': 'true',
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+          },
+        );
+
+        const result = await response.text();
+
+        // Check if response is JSON (error or unexpected)
+        if (
+          response.headers.get('content-type')?.includes('application/json') ||
+          (result.trim().startsWith('{') && result.trim().endsWith('}'))
+        ) {
+          try {
+            const json = JSON.parse(result);
+            wrapper.innerHTML = `<div class="text-center text-red-500 py-8">${json.message || 'Failed to load comments'}</div>`;
+          } catch (e) {
+            wrapper.innerHTML = `<div class="text-center text-red-500 py-8">Failed to load comments</div>`;
+          }
+          return;
+        }
+
+        if (!response.ok) {
+          wrapper.innerHTML = `<div class="text-center text-red-500 py-8">Failed to load comments (Status ${response.status})</div>`;
+          return;
+        }
+
+        wrapper.innerHTML = result;
+
+        const totalCountHeader = response.headers.get('X-Total-Count');
+        if (countEl && totalCountHeader) {
+          const icon = countEl.querySelector('i');
+          countEl.innerHTML = '';
+          if (icon) countEl.appendChild(icon);
+          countEl.append(` ${totalCountHeader}`);
+        }
+
+        if (window.Alpine?.initTree) {
+          window.Alpine.initTree(wrapper);
+        }
+      } catch (e) {
+        console.error('Load comments error:', e);
+        wrapper.innerHTML =
+          '<div class="text-center text-red-500 py-8">Failed to load comments</div>';
+      } finally {
+        this.loadingComments = false;
+      }
+    },
 
     async submit() {
       const notify = window.getUnoNotify();
       const valid = window.getUnoValid();
-      
+
       if (!notify || !valid) return;
 
       const form = document.getElementById('comment_editor_form');
@@ -308,11 +388,7 @@ export function CommentsMixin(postId) {
         if (result.success) {
           notify.success(this.$store.i18n.t('comments.submit_success'));
           this.content = '';
-          // Trigger HTMX reload of the comments list
-          const listWrapper = document.getElementById('comments-list-wrapper');
-          if (listWrapper) {
-            htmx.trigger(listWrapper, 'reload-comments');
-          }
+          await this.loadComments(1);
         } else {
           notify.error(result.message || this.$store.i18n.t('common.op_fail'));
         }
@@ -328,7 +404,9 @@ export function CommentsMixin(postId) {
       const uno = window.getUno();
       if (!uno) return;
 
-      if (!(await uno.box.confirm(this.$store.i18n.t('comments.delete_confirm')))) {
+      if (
+        !(await uno.box.confirm(this.$store.i18n.t('comments.delete_confirm')))
+      ) {
         return;
       }
 
@@ -348,11 +426,7 @@ export function CommentsMixin(postId) {
 
         if (result.success) {
           notify.success(this.$store.i18n.t('comments.delete_success'));
-          // Trigger HTMX reload of the comments list
-          const listWrapper = document.getElementById('comments-list-wrapper');
-          if (listWrapper) {
-            htmx.trigger(listWrapper, 'reload-comments');
-          }
+          await this.loadComments(this.currentPage);
         } else {
           notify.error(result.message || this.$store.i18n.t('common.op_fail'));
         }

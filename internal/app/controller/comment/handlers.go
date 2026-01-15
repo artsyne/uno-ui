@@ -2,6 +2,7 @@ package comment
 
 import (
 	"log/slog"
+	"strconv"
 
 	"github.com/biuren/hebe/internal/app/middleware"
 	"github.com/biuren/hebe/internal/domain/comment"
@@ -150,6 +151,10 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 	comments, total, err := ctrl.commentService.ListCommentsByPostID(req.PostID, req.PageIndex, req.PageSize)
 	if err != nil {
 		slog.Error("ListCommentsByPostID failed", "error", err, "post_id", req.PostID)
+		if c.GetHeader("HX-Request") == "true" || c.GetHeader("X-Requested-With") == "XMLHttpRequest" {
+			c.String(200, `<div class="text-center text-red-500 py-8">Failed to load comments</div>`)
+			return
+		}
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
@@ -175,6 +180,9 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 		}
 	}
 
+	// 获取日记作者ID，用于前端判断删除权限
+	postOwnerID, _ := ctrl.commentService.GetPostOwnerID(req.PostID)
+
 	// 检查是否为HTMX请求
 	if c.GetHeader("HX-Request") == "true" {
 		data := gin.H{
@@ -187,8 +195,12 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 			"time_zone":     tz,
 			"CurrentUserID": currentUserID,
 			"PostID":        req.PostID,
+			"PostOwnerID":   postOwnerID,
 			"TotalCount":    total,
 		}
+
+		// 设置总数 Header，供前端 JS 更新 UI
+		c.Header("X-Total-Count", strconv.Itoa(total))
 
 		pageData := ctrl.renderService.CreatePageDataWithData(c, "comments.title", data)
 		c.HTML(200, "comment/list", pageData)

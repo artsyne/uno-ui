@@ -88,18 +88,25 @@
                 <h3 class="text-lg font-bold mb-4 text-gray-800 dark:text-gray-200">{{getMessage "comments.title"
                     .Context.Lang}}</h3>
 
-                {{if .Context.User}}
-                <div class="mb-6">
+                <div id="comments-list-wrapper">
+                    <div class="text-center py-8 text-gray-400">
+                        <i class="mdi mdi-loading mdi-spin text-2xl mb-2"></i>
+                        <p>Loading comments...</p>
+                    </div>
+                </div>
+
+                {{if .Context.AuthUser}}
+                <div class="mt-8 mb-6">
                     <form id="comment_editor_form" @submit.prevent="submit" x-uno-valid>
                         <textarea x-model="content" name="comment_content" id="comment_content" x-uno-valid
-                            class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white transition-all outline-none"
+                            class="form-control"
                             rows="3" placeholder='{{getMessage "comments.placeholder" .Context.Lang}}' required
                             maxlength="1000"></textarea>
-                        <div x-text="$store.uno.valid.errors['comment_content']" x-show="$store.uno.valid.errors['comment_content']"
-                            class="text-xs text-red-500 mt-1"></div>
+                        <div x-text="$store.uno.valid.errors['comment_content']"
+                            x-show="$store.uno.valid.errors['comment_content']" class="text-xs text-red-500 mt-1"></div>
                         <div class="text-right mt-2">
                             <button type="submit"
-                                class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors shadow-sm"
+                                class="btn"
                                 :disabled="submitting || !content.trim()">
                                 <span x-show="!submitting">{{getMessage "comments.submit" .Context.Lang}}</span>
                                 <span x-show="submitting" class="mdi mdi-loading mdi-spin"></span>
@@ -109,19 +116,11 @@
                 </div>
                 {{else}}
                 <div
-                    class="text-center p-6 border border-gray-200 dark:border-gray-700 rounded-lg mb-6 bg-gray-50 dark:bg-gray-800">
+                    class="text-center p-6 border border-gray-200 dark:border-gray-700 mt-8 mb-6 bg-gray-50 dark:bg-gray-800">
                     <p class="text-gray-600 dark:text-gray-400">{{getMessage "comments.login_to_comment" .Context.Lang}}
                     </p>
                 </div>
                 {{end}}
-
-                <div id="comments-list-wrapper" hx-get="/api/comment/list?post_id={{.Data.Post.PostID}}"
-                    hx-trigger="load, revealed, reload-comments from:body" hx-swap="innerHTML">
-                    <div class="text-center py-8 text-gray-400">
-                        <i class="mdi mdi-loading mdi-spin text-2xl mb-2"></i>
-                        <p>Loading comments...</p>
-                    </div>
-                </div>
             </div>
             {{end}}
         </div>

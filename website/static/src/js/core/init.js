@@ -65,6 +65,13 @@ document.body.addEventListener('showToast', (evt) => {
   }
 });
 
+document.body.addEventListener('htmx:afterSwap', (evt) => {
+  const target = evt?.detail?.target;
+  if (target && window.Alpine?.initTree) {
+    window.Alpine.initTree(target);
+  }
+});
+
 // 5. Alpine Initialization
 document.addEventListener('alpine:init', () => {
   // Register Components

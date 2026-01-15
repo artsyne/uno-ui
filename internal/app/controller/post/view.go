@@ -2,6 +2,7 @@ package post
 
 import (
 	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 
@@ -190,6 +191,9 @@ func (ctrl *PostController) ShowPost(c *gin.Context) {
 		status, err := ctrl.likeService.GetLikeStatus(loginUser.UserId, postInfo.PostID, like.LikeTypePost)
 		if err == nil {
 			isLiked = status.IsLiked
+		} else {
+			// 记录错误但不中断页面渲染，默认为未点赞
+			slog.Error("获取点赞状态失败", "error", err, "user_id", loginUser.UserId, "post_id", postInfo.PostID)
 		}
 	}
 

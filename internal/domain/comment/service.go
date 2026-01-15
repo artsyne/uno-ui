@@ -148,6 +148,21 @@ func (s *Service) GetCommentByID(commentID int64) (*Comment, error) {
 	return s.repo.GetByID(commentID)
 }
 
+// GetPostOwnerID 获取日记作者ID
+// 参数:
+//   - postID: 日记ID
+//
+// 返回:
+//   - int64: 作者ID
+//   - error: 获取失败时返回错误
+func (s *Service) GetPostOwnerID(postID int64) (int64, error) {
+	postData, err := s.postService.GetPostByID(postID)
+	if err != nil {
+		return 0, err
+	}
+	return postData.AddUserID, nil
+}
+
 // ListCommentsByPostID 根据日记ID分页查询评论列表
 // 参数:
 //   - postID: 日记ID

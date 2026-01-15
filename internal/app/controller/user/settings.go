@@ -14,6 +14,16 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	// 获取已验证的请求数据
 	req := middleware.MustGetValidatedRequest[UpdateProfileRequest](c)
 
+	// 校验描述长度
+	if len(req.Remark) > ctrl.config.App.MaxDescriptionLength {
+		if ctrl.isHtmxRequest(c) {
+			ctrl.htmxToast(c, "error", "Description exceeds limit")
+			return
+		}
+		ctrl.renderService.JSONError(c, errors.ValidationError)
+		return
+	}
+
 	// 调用service更新资料（包括时区和语言）
 	if err := ctrl.service.UpdateUserProfile(authUser.UserId, req.FullName, req.Remark, req.TimeZone, req.Lang); err != nil {
 		if ctrl.isHtmxRequest(c) {

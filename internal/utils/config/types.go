@@ -34,9 +34,12 @@ type AppConfig struct {
 	Port            string `json:"port" mapstructure:"PORT" validate:"required,numeric"`
 	SummaryMax      int    `json:"summary_max" mapstructure:"SUMMARY_MAX" validate:"required,min=10,max=1000"`
 	Suffix          string `json:"suffix" mapstructure:"SUFFIX" validate:"required"`
-	PageSize        int    `json:"page_size" mapstructure:"PAGE_SIZE" validate:"required,min=1,max=100"`
-	MaxDaybookLimit int    `json:"max_daybook_limit" mapstructure:"MAX_DAYBOOK_LIMIT" validate:"required,min=1,max=1000"`
-	StaticDir       string `json:"static_dir" mapstructure:"STATIC_DIR" validate:"required"`
+	PageSize             int    `json:"page_size" mapstructure:"PAGE_SIZE" validate:"required,min=1,max=100"`
+	MaxDaybookLimit      int    `json:"max_daybook_limit" mapstructure:"MAX_DAYBOOK_LIMIT" validate:"required,min=1"`
+	MaxPostLength        int    `json:"max_post_length" mapstructure:"MAX_POST_LENGTH" validate:"required,min=1"`
+	MaxCommentLength     int    `json:"max_comment_length" mapstructure:"MAX_COMMENT_LENGTH" validate:"required,min=1"`
+	MaxDescriptionLength int    `json:"max_description_length" mapstructure:"MAX_DESCRIPTION_LENGTH" validate:"required,min=1"`
+	StaticDir            string `json:"static_dir" mapstructure:"STATIC_DIR" validate:"required"`
 	LocalesDir      string `json:"locales_dir" mapstructure:"LOCALES_DIR" validate:"required"`
 	DefaultLang     string `json:"default_lang" mapstructure:"DEFAULT_LANG" validate:"required"`
 }

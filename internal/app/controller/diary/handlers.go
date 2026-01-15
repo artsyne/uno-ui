@@ -22,6 +22,12 @@ func (ctrl *DiaryController) CreateDiary(c *gin.Context) {
 	// 获取已验证的请求数据
 	req := middleware.MustGetValidatedRequest[CreateDiaryRequest](c)
 
+	// 校验描述长度
+	if len(req.Remark) > ctrl.config.App.MaxDescriptionLength {
+		ctrl.renderService.JSONError(c, errors.ValidationError)
+		return
+	}
+
 	nowTime := pkg.GetNowTimeUnixMilli()
 
 	// 使用结构体字面量创建完整的日记本对象
@@ -74,6 +80,12 @@ func (ctrl *DiaryController) UpdateDiary(c *gin.Context) {
 
 	// 获取已验证的请求数据
 	req := middleware.MustGetValidatedRequest[UpdateDiaryRequest](c)
+
+	// 校验描述长度
+	if len(req.Remark) > ctrl.config.App.MaxDescriptionLength {
+		ctrl.renderService.JSONError(c, errors.ValidationError)
+		return
+	}
 
 	// 验证日记本所有权
 	originalDiary, err := ctrl.diaryService.GetDiaryByID(req.DiaryID)
