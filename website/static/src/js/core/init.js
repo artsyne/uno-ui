@@ -17,42 +17,38 @@ import { Settings } from '../modules/settings.js';
  */
 
 // 1. Uno UI Configuration
-if (window.Uno) {
-  window.Uno.setConfig({
-    debug: true,
+window.Uno.setConfig({
+  debug: false,
+  notify: {
+    position: 'bottom-right',
+  },
+  ui: {
+    base: 'shadow-md border border-gray-200 dark:border-gray-700',
+    box: {
+      container:
+        'relative transform overflow-hidden shadow-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg flex flex-col max-h-[90vh] pointer-events-auto outline-none',
+      cancelBtn:
+        'mt-3 inline-flex w-full justify-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto',
+      okBtn: 'btn ml-4',
+      promptInput:
+        'w-full px-3 py-2 border focus:ring-2 focus:ring-blue-500 outline-none',
+    },
     notify: {
-      position: 'bottom-right',
+      item: 'pointer-events-auto max-w-[calc(100vw-2rem)] overflow-hidden shadow-md border border-gray-200 dark:border-gray-700',
     },
-    ui: {
-      base: 'shadow-md border border-gray-200 dark:border-gray-700',
-      box: {
-        container:
-          'relative transform overflow-hidden shadow-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg flex flex-col max-h-[90vh] pointer-events-auto outline-none',
-        cancelBtn:
-          'mt-3 inline-flex w-full justify-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto',
-        okBtn: 'btn ml-4',
-        promptInput:
-          'w-full px-3 py-2 border focus:ring-2 focus:ring-blue-500 outline-none',
-      },
-      notify: {
-        item: 'pointer-events-auto max-w-[calc(100vw-2rem)] overflow-hidden shadow-md border border-gray-200 dark:border-gray-700',
-      },
-      tooltip: {
-        content:
-          'fixed px-3 py-2 text-sm font-medium shadow-md border border-gray-200 dark:border-gray-700 whitespace-nowrap bg-white text-gray-900 dark:bg-slate-800 dark:text-white',
-      },
+    tooltip: {
+      content:
+        'fixed px-3 py-2 text-sm font-medium shadow-md border border-gray-200 dark:border-gray-700 whitespace-nowrap bg-white text-gray-900 dark:bg-slate-800 dark:text-white',
     },
-  });
-} else {
-  console.error('[Init] Uno Global not found! Ensure uno.umd.js is loaded.');
-}
+  },
+});
 
 // 2. Global Helper Functions
-window.getUno = () => window.Alpine?.store('uno') || null;
-window.getUnoNotify = () => window.getUno()?.notify || null;
-window.getUnoBox = () => window.getUno()?.box || null;
-window.getUnoValid = () => window.getUno()?.valid || null;
-window.getUnoTooltip = () => window.getUno()?.tooltip || null;
+window.getUno = () => window.Alpine.store('uno');
+window.getUnoNotify = () => window.getUno()?.notify;
+window.getUnoBox = () => window.getUno()?.box;
+window.getUnoValid = () => window.getUno()?.valid;
+window.getUnoTooltip = () => window.getUno()?.tooltip;
 
 // 2.1 Fetch Interceptor for Global Progress Bar
 const originalFetch = window.fetch;
@@ -88,7 +84,7 @@ document.body.addEventListener('showToast', (evt) => {
 
 document.body.addEventListener('htmx:afterSwap', (evt) => {
   const target = evt?.detail?.target;
-  if (target && window.Alpine?.initTree) {
+  if (target) {
     window.Alpine.initTree(target);
   }
 });

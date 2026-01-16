@@ -139,12 +139,12 @@
        x-transition:leave-end="opacity-0"
        @click="$store.uno.box.items.length && $store.uno.box.items[$store.uno.box.items.length - 1].closeOnOverlayClick && $store.uno.box.items[$store.uno.box.items.length - 1].close()"></div>
 
-  <div :class="Uno.getStyle('box', 'dialogWrapper')"
+  <div :class="[Uno.getStyle('box', 'dialogWrapper'), 'grid grid-cols-1']"
        @click.self="$store.uno.box.items.length && $store.uno.box.items[$store.uno.box.items.length - 1].closeOnOverlayClick && $store.uno.box.items[$store.uno.box.items.length - 1].close()">
-    <template x-for="item in $store.uno.box.items" :key="item.id">
+    <template x-for="(item, index) in $store.uno.box.items" :key="item.id">
       <div :id="'uno-box-outer-container' + item.id"
-           :class="[Uno.getStyle('box', 'itemWrapper'), $store.uno.box.getPositionClasses(item.position)]"
-           :style="'z-index:' + ${g.options?.ui?.layers?.box||k("BOX")}"
+           :class="[Uno.getStyle('box', 'itemWrapper'), $store.uno.box.getPositionClasses(item.position), 'col-start-1 row-start-1']"
+           :style="'z-index:' + (${g.options?.ui?.layers?.box||k("BOX")} + index * 10)"
            x-show="item.isOpen"
            x-transition:enter="ease-out duration-300"
            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"

@@ -12,10 +12,6 @@ export function initAuth() {
       try {
         const result = JSON.parse(xhr.responseText);
         const notify = window.getUnoNotify();
-        if (!notify) {
-          console.error('[Auth] Uno notify not available');
-          return;
-        }
 
         if (!result.success) {
           let msg = result.message || 'common.op_fail';
@@ -29,7 +25,7 @@ export function initAuth() {
           notify.success(result.message || 'auth.success');
         }
       } catch (e) {
-        console.error('Failed to parse JSON response', e);
+        // ignore
       }
       return;
     }
@@ -51,24 +47,10 @@ export function initAuth() {
  * Registers custom validation callbacks for the Uno valid plugin
  */
 export function initValidationCallbacks() {
-  if (!window.Alpine) {
-    console.warn(
-      '[Validation] Alpine not found, cannot register validation callbacks',
-    );
-    return;
-  }
-
   // Get Uno valid store
   // Access via main 'uno' store is the canonical way
   const unoStore = Alpine.store('uno');
   const validStore = unoStore?.valid || Alpine.store('valid');
-
-  if (!validStore || !validStore.registerValidator) {
-    console.error(
-      '[Validation] Uno valid store not found. Ensure Uno is initialized before this callback.',
-    );
-    return;
-  }
 
   // Register checkUsername callback
   // Pattern: Sync Return + Async Side Effect
@@ -100,7 +82,9 @@ export function initValidationCallbacks() {
       validStore.showError(name, msg);
       return true; // Return true to prevent sync validation failure, error is shown manually
     } catch (error) {
-      console.error('Validation error:', error);
+      const t = (key) => Alpine.store('i18n').t(key);
+      const msg = t('common.op_fail');
+      validStore.showError(name, msg);
       return true;
     }
   });
@@ -143,7 +127,6 @@ export function initValidationCallbacks() {
       validStore.showError(name, msg);
       return true;
     } catch (error) {
-      console.error('Validation error:', error);
       return true;
     }
   });

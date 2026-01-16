@@ -146,9 +146,8 @@ export function DiaryList() {
         widthClass: 'w-full lg:w-[90%]',
         heightClass: 'h-[90vh]',
         onContentLoad: (el) => {
-          if (window.htmx) {
             htmx.process(el);
-          }
+            window.Alpine.initTree(el);
         },
         onClose: () => {
           // Restore original URL when closing the modal
@@ -205,7 +204,6 @@ export function DiaryList() {
           }
         })
         .catch((err) => {
-          console.error('Error loading form:', err);
           const container = document.getElementById('post-form-container');
           if (container)
             container.innerHTML = `<p class="text-red-500">${this.$store.i18n.t('common.load_fail')}</p>`;
@@ -345,8 +343,9 @@ export function DiaryList() {
           return false;
         }
       } catch (e) {
-        console.error('Submit error:', e);
-        uno.notify.error('common.net_error');
+        const t = (key) => Alpine.store('i18n').t(key);
+        const msg = t('common.net_error');
+        uno.notify.error(msg);
         return false;
       }
     },
@@ -377,6 +376,10 @@ export function DiaryList() {
             // Manually populate action field since backend doesn't populate it in form/diary template
             const actionInput = container.querySelector('#action');
             if (actionInput) actionInput.value = 'diary.edit';
+
+            if (window.Alpine) {
+              window.Alpine.initTree(container);
+            }
           }
         })
         .catch((err) => {

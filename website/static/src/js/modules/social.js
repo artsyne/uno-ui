@@ -5,17 +5,11 @@ const isJsonResponse = (response) => {
 
 const safeJson = async (response, context) => {
   if (!isJsonResponse(response)) {
-    console.warn(
-      '[Social] Non-JSON response for',
-      context,
-      response.headers.get('content-type'),
-    );
     return null;
   }
   try {
     return await response.json();
   } catch (e) {
-    console.warn('[Social] Failed to parse JSON for', context, e);
     return null;
   }
 };
@@ -66,6 +60,14 @@ export function SocialMixin() {
           this.stats[postId].like_count = count;
         }
       });
+
+      // Listen for global post-comment-updated events to sync state
+      window.addEventListener('post-comment-updated', (evt) => {
+        const { postId, count } = evt.detail;
+        if (this.stats[postId]) {
+          this.stats[postId].comment_num = count;
+        }
+      });
     },
 
     async loadDiaryLike() {
@@ -88,7 +90,7 @@ export function SocialMixin() {
           this.diaryLike.count = result.data.like_count;
         }
       } catch (e) {
-        console.error('[Social] Error loading diary like:', e);
+        // ignore
       }
     },
 
@@ -97,10 +99,6 @@ export function SocialMixin() {
       this.diaryLike.loading = true;
 
       const notify = window.getUnoNotify();
-      if (!notify) {
-        this.diaryLike.loading = false;
-        return;
-      }
 
       try {
         const response = await fetch('/api/diary/like', {
@@ -120,7 +118,6 @@ export function SocialMixin() {
           notify.error(result.message || 'common.op_fail');
         }
       } catch (e) {
-        console.error('Diary like error:', e);
         notify.error('common.op_fail');
       } finally {
         this.diaryLike.loading = false;
@@ -144,7 +141,6 @@ export function SocialMixin() {
         });
 
         if (!response.ok) {
-          console.warn('[Social] Failed to fetch stats:', response.status);
           return;
         }
 
@@ -182,7 +178,7 @@ export function SocialMixin() {
           });
         }
       } catch (e) {
-        console.error('[Social] Error loading stats:', e);
+        // ignore
       }
     },
 
@@ -192,8 +188,6 @@ export function SocialMixin() {
       if (!this.stats[id]) return;
 
       const notify = window.getUnoNotify();
-      if (!notify) return;
-
       const isLiked = this.stats[id].liked;
 
       try {
@@ -218,7 +212,6 @@ export function SocialMixin() {
           notify.error(result.message || 'common.op_fail');
         }
       } catch (e) {
-        console.error('Like error:', e);
         notify.error('common.op_fail');
       }
     },
@@ -237,10 +230,6 @@ export function LikeButton(initialCount, initialLiked, postId) {
       this.loading = true;
 
       const notify = window.getUnoNotify();
-      if (!notify) {
-        this.loading = false;
-        return;
-      }
 
       try {
         const response = await fetch('/api/post/like', {
@@ -272,7 +261,6 @@ export function LikeButton(initialCount, initialLiked, postId) {
           notify.error(result.message || 'common.op_fail');
         }
       } catch (e) {
-        console.error('Like error:', e);
         notify.error('common.op_fail');
       } finally {
         this.loading = false;
@@ -300,7 +288,6 @@ export function CommentsMixin(postId) {
       const countEl = document.getElementById('post-comment-count');
 
       if (!this.postId) {
-        console.warn('[CommentsMixin] No postId provided');
         wrapper.innerHTML =
           '<div class="text-center text-gray-400 py-8">Comments disabled</div>';
         return;
@@ -354,11 +341,22 @@ export function CommentsMixin(postId) {
           countEl.append(` ${totalCountHeader}`);
         }
 
+        // Dispatch global event to sync with other components (e.g., list view)
+        if (totalCountHeader && this.postId) {
+          window.dispatchEvent(
+            new CustomEvent('post-comment-updated', {
+              detail: {
+                postId: parseInt(this.postId),
+                count: parseInt(totalCountHeader),
+              },
+            }),
+          );
+        }
+
         if (window.Alpine?.initTree) {
           window.Alpine.initTree(wrapper);
         }
       } catch (e) {
-        console.error('Load comments error:', e);
         wrapper.innerHTML =
           '<div class="text-center text-red-500 py-8">Failed to load comments</div>';
       } finally {
@@ -372,7 +370,8 @@ export function CommentsMixin(postId) {
 
       if (!notify || !valid) return;
 
-      const form = document.getElementById('comment_editor_form');
+      const root = this.$root || document;
+      const form = root.querySelector('#comment_editor_form');
       if (!form) return;
 
       // Use Uno Validation engine
@@ -416,7 +415,6 @@ export function CommentsMixin(postId) {
 
     async deleteComment(commentId) {
       const uno = window.getUno();
-      if (!uno) return;
 
       if (
         !(await uno.box.confirm(this.$store.i18n.t('comments.delete_confirm')))
@@ -445,7 +443,6 @@ export function CommentsMixin(postId) {
           notify.error(result.message || 'common.op_fail');
         }
       } catch (e) {
-        console.error('Delete comment error:', e);
         notify.error('common.op_fail');
       }
     },

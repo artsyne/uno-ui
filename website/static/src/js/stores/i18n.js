@@ -72,10 +72,6 @@ export default {
 
     // Return key if not found
     if (!text) {
-      // Only warn if it's not a missing Uno key that we expect might be missing
-      console.warn(
-        `[i18n] Missing translation for key: ${key} in language: ${lang}`,
-      );
       return key;
     }
 
@@ -115,7 +111,6 @@ export default {
 
   set(lang) {
     if (!SUPPORTED_LANGUAGES.includes(lang)) {
-      console.warn(`[I18n Store] Unsupported language: ${lang}`);
       return;
     }
 
