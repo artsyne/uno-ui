@@ -162,9 +162,6 @@ func (ctrl *PostController) DeletePost(c *gin.Context) {
 		return
 	}
 
-	// 减少日记本的文章数量
-	_ = ctrl.diaryService.DecrementPostCount(postData.DiaryID, userData.UserId, userData.UserName, currentTime)
-
 	ctrl.renderService.JSONSuccess(c, nil)
 }
 

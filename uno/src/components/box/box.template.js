@@ -88,13 +88,13 @@ export const getBoxTemplate = () => {
                x-show="item.showOkButton || item.showCancelButton">
             <button type="button"
                     :id="'uno-box-ok' + item.id"
-                    :class="Uno.getStyle('box', 'okBtn')"
+                    :class="[Uno.getStyle('box', 'okBtn'), item.okButtonClass]"
                     x-show="item.showOkButton"
                     x-text="item.okText"
                     @click="$store.uno.box.handleOk(item)"></button>
             <button type="button"
                     :id="'uno-box-cancel' + item.id"
-                    :class="Uno.getStyle('box', 'cancelBtn')"
+                    :class="[Uno.getStyle('box', 'cancelBtn'), item.cancelButtonClass]"
                     x-show="item.showCancelButton"
                     x-text="item.cancelText"
                     @click="item.onCancel ? (item.onCancel() !== false && item.close()) : item.close()"></button>

@@ -96,6 +96,15 @@ describe('Box Component', () => {
       expect(item.title).toBe('Test')
     })
 
+    it('should pass button classes to item', () => {
+      const item = boxStore.open({ 
+        okButtonClass: 'custom-ok', 
+        cancelButtonClass: 'custom-cancel' 
+      })
+      expect(item.okButtonClass).toBe('custom-ok')
+      expect(item.cancelButtonClass).toBe('custom-cancel')
+    })
+
     it('should use 4-level configuration merge', () => {
       Uno.getConfig.mockImplementation((key, opts) => ({
         defaultWidth: 400,

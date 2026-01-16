@@ -67,8 +67,7 @@
                         <i class="mdi mdi-comment-text-outline mr-1"></i> <span
                             x-text="getStats({{.PostID}}).comment_num"></span>
                     </button>
-                    <button class="btn-social" @click="toggleLike({{.PostID}})"
-                        :class="getStats({{.PostID}}).liked ? 'text-red-500' : ''">
+                    <button class="btn-social" @click="toggleLike({{.PostID}})">
                         <i class="mdi mr-1"
                             :class="getStats({{.PostID}}).liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
                         <span x-text="getStats({{.PostID}}).like_num"></span>

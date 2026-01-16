@@ -103,8 +103,7 @@ export function DiaryList() {
                           <i class="mdi mdi-comment-text-outline mr-1"></i> <span
                               x-text="getStats(${post.post_id}).comment_num"></span>
                       </button>
-                      <button class="btn-social" @click="toggleLike(${post.post_id})"
-                          :class="getStats(${post.post_id}).liked ? 'text-red-500' : ''">
+                      <button class="btn-social" @click="toggleLike(${post.post_id})">
                           <i class="mdi mr-1"
                               :class="getStats(${post.post_id}).liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
                           <span x-text="getStats(${post.post_id}).like_num"></span>
@@ -118,16 +117,26 @@ export function DiaryList() {
     confirmDelete(diaryId, postId) {
       const uno = window.getUno();
       if (!uno) return;
-      uno.box.confirm({
-        content: this.$store.i18n.t('diary.delete.confirm'),
-        okButtonClass: 'btn',
-        onOk: () => {
+      const title = String(this.$store.i18n.t('common.delete') || 'Delete');
+      const content = String(
+        this.$store.i18n.t('diary.delete.confirm') || 'Confirm delete?',
+      );
+
+      uno.box
+        .confirm(content, {
+          title,
+          okText: title,
+          cancelText: String(this.$store.i18n.t('common.cancel') || 'Cancel'),
+          okButtonClass: 'btn ml-2',
+        })
+        .then((confirmed) => {
+          if (!confirmed) return;
           this.deletePost(diaryId, postId);
-        },
-      });
+        });
     },
     async deletePost(diaryId, postId) {
-      const notify = window.getUno()?.notify;
+      const uno = window.getUno();
+      const notify = uno?.notify;
       if (!notify) return;
 
       try {
@@ -195,10 +204,10 @@ export function DiaryList() {
       const boxId = uno.box.dialog({
         title: title,
         content: `<div class="modal-body" id="post-form-container">${this.$store.i18n.t('common.loading')}</div>`,
-        widthClass: '!w-[800px]',
-        heightClass: '!h-[500px]',
+        widthClass: 'w-full lg:w-[70%]',
+        heightClass: 'h-[70vh]',
         showOkButton: true,
-        okButtonText: this.$store.i18n.t('common.save'),
+        okText: this.$store.i18n.t('common.save'),
         containerClass: '!border',
         okButtonClass: 'btn',
         buttonAlign: 'right',
@@ -379,7 +388,7 @@ export function DiaryList() {
         widthClass: '!w-[880px]',
         heightClass: '!h-[570px]',
         showOkButton: true,
-        okButtonText: this.$store.i18n.t('common.save'),
+        okText: this.$store.i18n.t('common.save'),
         containerClass: '!border',
         okButtonClass: 'btn',
         buttonAlign: 'right',
@@ -485,7 +494,7 @@ export function DiaryList() {
                 span.innerHTML = `
                 <button class="btn" @click="toggleDiaryLike(${diary.diary_id})" :disabled="diaryLike.loading">
                     <i class="mdi mr-1"
-                        :class="diaryLike.liked ? 'mdi-thumb-up text-red-500' : 'mdi-thumb-up-outline'"></i>
+                        :class="diaryLike.liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
                     <span x-text="diaryLike.count"></span>
                 </button>`;
                 btnContainer.appendChild(span);

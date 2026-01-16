@@ -7,7 +7,7 @@ export const registerValidDirectives = (Alpine) => {
 
     const fieldName = el.name || el.id
     if (!fieldName) {
-      console.warn('[Uno Valid] Element has no name or id:', el)
+      log.warn('[Uno Valid] Element has no name or id:', el)
       return
     }
 

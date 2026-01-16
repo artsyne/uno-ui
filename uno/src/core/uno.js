@@ -146,36 +146,6 @@ export class UnoInstance {
         document.addEventListener('htmx:timeout', end)
 
         document.addEventListener('htmx:xhr:progress', (event) => callEach('progress', event))
-      },
-      // Global HTMX event binding for notify functionality - progress bar only
-      bindNotifyToHtmx: () => {
-        if (typeof window === 'undefined' || typeof document === 'undefined') return
-        if (!window.htmx || !window.Alpine) return
-
-        if (!once(document, 'uno:htmx:bind-notify')) return
-
-        document.addEventListener('htmx:beforeRequest', () => {
-          window.Alpine.store('uno').notify.startProgress()
-        })
-
-        document.addEventListener('htmx:afterRequest', () => {
-          window.Alpine.store('uno').notify.stopProgress()
-        })
-
-        document.addEventListener('htmx:responseError', () => {
-          window.Alpine.store('uno').notify.stopProgress()
-          window.Alpine.store('uno').notify.error('Request failed')
-        })
-
-        document.addEventListener('htmx:sendError', () => {
-          window.Alpine.store('uno').notify.stopProgress()
-          window.Alpine.store('uno').notify.error('Request failed')
-        })
-
-        document.addEventListener('htmx:timeout', () => {
-          window.Alpine.store('uno').notify.stopProgress()
-          window.Alpine.store('uno').notify.warning('Request timed out')
-        })
       }
     }
     const base = 'rounded-lg shadow-md border border-gray-200 dark:border-gray-700'

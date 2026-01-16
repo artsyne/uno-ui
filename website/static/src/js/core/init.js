@@ -19,7 +19,10 @@ import { Settings } from '../modules/settings.js';
 // 1. Uno UI Configuration
 if (window.Uno) {
   window.Uno.setConfig({
-    debug: false,
+    debug: true,
+    notify: {
+      position: 'bottom-right',
+    },
     ui: {
       base: 'shadow-md border border-gray-200 dark:border-gray-700',
       box: {
@@ -27,8 +30,7 @@ if (window.Uno) {
           'relative transform overflow-hidden shadow-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg flex flex-col max-h-[90vh] pointer-events-auto outline-none',
         cancelBtn:
           'mt-3 inline-flex w-full justify-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto',
-        okBtn:
-          'inline-flex w-full justify-center bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto',
+        okBtn: 'btn',
         promptInput:
           'w-full px-3 py-2 border focus:ring-2 focus:ring-blue-500 outline-none',
       },
@@ -51,6 +53,25 @@ window.getUnoNotify = () => window.getUno()?.notify || null;
 window.getUnoBox = () => window.getUno()?.box || null;
 window.getUnoValid = () => window.getUno()?.valid || null;
 window.getUnoTooltip = () => window.getUno()?.tooltip || null;
+
+// 2.1 Fetch Interceptor for Global Progress Bar
+const originalFetch = window.fetch;
+window.fetch = function (input, init) {
+  const notify = window.getUnoNotify();
+  const shouldNotify = notify && (!init || !init.skipProgress);
+
+  if (shouldNotify) {
+    notify.progressRequests++;
+    if (notify.progressRequests === 1) notify.startProgress();
+  }
+
+  return originalFetch(input, init).finally(() => {
+    if (shouldNotify) {
+      if (notify.progressRequests > 0) notify.progressRequests--;
+      if (notify.progressRequests === 0) notify.stopProgress();
+    }
+  });
+};
 
 // 3. Initialize Auth (HTMX Config)
 initAuth();
@@ -96,6 +117,10 @@ document.addEventListener('alpine:init', () => {
         if (i18nStore.init) i18nStore.init.call(this);
       },
     });
+    // Manually call init() because Alpine won't do it again for an existing store
+    if (existingI18n.init) {
+      existingI18n.init();
+    }
   } else {
     Alpine.store('i18n', i18nStore);
   }

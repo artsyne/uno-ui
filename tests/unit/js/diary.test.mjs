@@ -4,6 +4,8 @@ import { DiaryList } from '../../../website/static/src/js/modules/diary.js';
 describe('Diary Modules', () => {
   let mockBoxOpen;
   let mockBoxClose;
+  let mockBoxConfirm;
+  let mockBoxDialog;
   let mockNotifySuccess;
   let mockNotifyError;
 
@@ -11,42 +13,39 @@ describe('Diary Modules', () => {
     // Mock Alpine store which uno-shim.js uses
     mockBoxOpen = jest.fn();
     mockBoxClose = jest.fn();
+    mockBoxConfirm = jest.fn();
+    mockBoxDialog = jest.fn();
     mockNotifySuccess = jest.fn();
     mockNotifyError = jest.fn();
 
     const mockAlpine = {
       store: jest.fn((name) => {
-        if (name === 'box') {
+        if (name === 'uno') {
           return {
-            open: mockBoxOpen,
-            close: mockBoxClose,
-          };
-        }
-        if (name === 'notify') {
-          return {
-            success: mockNotifySuccess,
-            error: mockNotifyError,
+            box: {
+              open: mockBoxOpen,
+              close: mockBoxClose,
+              confirm: mockBoxConfirm,
+              dialog: mockBoxDialog,
+            },
+            notify: { success: mockNotifySuccess, error: mockNotifyError },
           };
         }
         return null;
       }),
+      initTree: jest.fn(),
     };
 
     // Attach Alpine to the existing window object
     if (typeof window !== 'undefined') {
       window.Alpine = mockAlpine;
-      // Also mock Uno for any direct legacy usage if present
-      window.Uno = {
-        box: { confirm: mockBoxOpen }, // shim maps confirm to open
-        notify: { success: mockNotifySuccess, error: mockNotifyError },
-      };
+      window.getUno = () => window.Alpine.store('uno');
+      window.getUnoNotify = () => window.Alpine.store('uno').notify;
     } else {
       global.window = {
         Alpine: mockAlpine,
-        Uno: {
-          box: { confirm: mockBoxOpen },
-          notify: { success: mockNotifySuccess, error: mockNotifyError },
-        },
+        getUno: () => mockAlpine.store('uno'),
+        getUnoNotify: () => mockAlpine.store('uno').notify,
       };
     }
 
@@ -144,8 +143,16 @@ describe('Diary Modules', () => {
 
     test('confirmDelete should call Uno.box.confirm', () => {
       const diaryList = createDiaryList();
+      mockBoxConfirm.mockResolvedValueOnce(true);
       diaryList.confirmDelete(1, 100);
-      expect(mockBoxOpen).toHaveBeenCalledWith('confirm', expect.any(Object));
+      expect(mockBoxConfirm).toHaveBeenCalledWith(
+        '确认删除?',
+        expect.objectContaining({
+          title: expect.any(String),
+          okText: expect.any(String),
+          cancelText: expect.any(String),
+        }),
+      );
     });
 
     test('deletePost should call fetch and remove element on success', async () => {
@@ -160,13 +167,13 @@ describe('Diary Modules', () => {
       });
 
       global.fetch.mockResolvedValueOnce({
-        json: async () => ({ code: 0 }),
+        json: async () => ({ success: true }),
       });
 
       await diaryList.deletePost(1, 100);
 
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/post/delete'),
+        '/post/100?diary_id=1',
         expect.any(Object),
       );
       expect(mockElement.remove).toHaveBeenCalled();
@@ -182,7 +189,7 @@ describe('Diary Modules', () => {
 
       global.fetch.mockResolvedValueOnce({
         json: async () => ({
-          code: 0,
+          success: true,
           data: { is_liked: true, like_count: 5 },
         }),
       });
@@ -202,7 +209,7 @@ describe('Diary Modules', () => {
 
       global.fetch.mockResolvedValueOnce({
         json: async () => ({
-          code: 0,
+          success: true,
           data: { is_liked: true, like_count: 6 },
         }),
       });
@@ -211,17 +218,14 @@ describe('Diary Modules', () => {
 
       expect(diaryList.diaryLike.liked).toBe(true);
       expect(diaryList.diaryLike.count).toBe(6);
-      expect(mockNotifySuccess).toHaveBeenCalledWith(
-        '点赞成功',
-        expect.any(Object),
-      );
+      expect(mockNotifySuccess).toHaveBeenCalledWith('social.like.success');
     });
     test('openCreatePost should call Box.dialog and fetch form', async () => {
       const diaryList = createDiaryList();
 
       // Mock Box.dialog return value
       const mockBoxId = 'box-123';
-      mockBoxOpen.mockReturnValue(mockBoxId);
+      mockBoxDialog.mockReturnValue(mockBoxId);
 
       // Mock fetch for form
       global.fetch.mockResolvedValueOnce({
@@ -234,8 +238,7 @@ describe('Diary Modules', () => {
 
       diaryList.openCreatePost(1);
 
-      expect(mockBoxOpen).toHaveBeenCalledWith(
-        'dialog',
+      expect(mockBoxDialog).toHaveBeenCalledWith(
         expect.objectContaining({
           title: '写日记',
         }),
@@ -250,10 +253,9 @@ describe('Diary Modules', () => {
 
       diaryList.openPostModal('/p/1');
 
-      expect(mockBoxOpen).toHaveBeenCalledWith(
-        'dialog',
+      expect(mockBoxDialog).toHaveBeenCalledWith(
         expect.objectContaining({
-          ajaxUrl: '/p/1?isajax=true',
+          hxUrl: '/p/1?isajax=true',
         }),
       );
     });

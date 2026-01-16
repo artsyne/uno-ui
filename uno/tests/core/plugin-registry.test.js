@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { registerPlugin, getStore } from '../../src/core/plugin-registry'
+import { log } from '../../src/utils/log'
 
 describe('Plugin Registry', () => {
   let Alpine
@@ -7,16 +8,21 @@ describe('Plugin Registry', () => {
 
   beforeEach(() => {
     mockStoreData = {}
-
-    // Mock Alpine.store
     Alpine = {
       store: vi.fn((name, value) => {
-        if (value !== undefined) {
+        if (value) {
           mockStoreData[name] = value
         }
         return mockStoreData[name]
       })
     }
+
+    // Mock log
+    vi.spyOn(log, 'error').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   describe('registerPlugin()', () => {
@@ -102,21 +108,17 @@ describe('Plugin Registry', () => {
     })
 
     it('should handle null Alpine gracefully', () => {
-      console.error = vi.fn()
-
       registerPlugin(null, 'box', {})
 
-      expect(console.error).toHaveBeenCalledWith(
+      expect(log.error).toHaveBeenCalledWith(
         expect.stringContaining('Alpine.store is not available')
       )
     })
 
     it('should handle Alpine without store function', () => {
-      console.error = vi.fn()
-
       registerPlugin({}, 'box', {})
 
-      expect(console.error).toHaveBeenCalledWith(
+      expect(log.error).toHaveBeenCalledWith(
         expect.stringContaining('Alpine.store is not available')
       )
     })

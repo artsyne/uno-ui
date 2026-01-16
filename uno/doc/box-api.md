@@ -25,7 +25,11 @@ Trigger dialogs directly from HTML without writing JavaScript.
   "type": "confirm",
   "title": "Delete Item?",
   "content": "This action cannot be undone.",
-  "onOk": "deleteItem()"
+  "onOk": "deleteItem()",
+  "okText": "Yes",
+  "cancelText": "No",
+  "okButtonClass": "bg-red-600 hover:bg-red-700",
+  "cancelButtonClass": "ml-2"
 }'
 >
   Delete
@@ -38,11 +42,16 @@ Use the global store for programmatic control.
 
 ```javascript
 // Alert
-Alpine.store('uno').box.alert('Operation successful')
+Alpine.store('uno').box.alert('Operation successful!')
 
 // Confirm
 Alpine.store('uno')
-  .box.confirm('Are you sure?')
+  .box.confirm('Are you sure?', {
+    title: 'Confirm Action',
+    okText: 'Yes, do it',
+    okButtonClass: 'bg-green-600',
+    cancelButtonClass: 'text-gray-500'
+  })
   .then((confirmed) => {
     if (confirmed) console.log('Confirmed')
   })
@@ -75,6 +84,8 @@ The following options can be passed to `open()`, `dialog()`, or used in the `x-u
 | `showCancelButton`    | `Boolean`  | `false`    | No       | Whether to show the secondary action button. (Default `true` for `confirm` type). |
 | `okText`              | `String`   | `'OK'`     | No       | Text for the OK button. Supports i18n keys.                                       |
 | `cancelText`          | `String`   | `'Cancel'` | No       | Text for the Cancel button. Supports i18n keys.                                   |
+| `okButtonClass`       | `String`   | -          | No       | Tailwind CSS classes for the OK button.                                           |
+| `cancelButtonClass`   | `String`   | -          | No       | Tailwind CSS classes for the Cancel button.                                       |
 | `closeOnEsc`          | `Boolean`  | `false`    | No       | If `true`, pressing ESC closes the dialog.                                        |
 | `closeOnOverlayClick` | `Boolean`  | `false`    | No       | If `true`, clicking the backdrop closes the dialog.                               |
 | `hxUrl`               | `String`   | -          | No       | URL to fetch content from via HTMX.                                               |

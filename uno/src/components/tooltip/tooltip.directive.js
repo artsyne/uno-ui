@@ -1,4 +1,5 @@
 import { Uno } from '../../core/uno'
+import { log } from '../../utils/log'
 
 export const registerTooltipDirectives = (Alpine) => {
   const directiveHandler = (el, { expression, modifiers }, { evaluateLater, effect, cleanup }) => {
@@ -9,7 +10,7 @@ export const registerTooltipDirectives = (Alpine) => {
       // Strict Mode: Value must be an object or string (content)
       // Modifiers are NOT supported for configuration to enforce explicit config objects.
       if (modifiers.length > 0) {
-        console.warn(
+        log.warn(
           '[Uno] x-uno-tooltip modifiers are deprecated in v2.0. Use configuration object instead.'
         )
       }

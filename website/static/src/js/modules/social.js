@@ -56,6 +56,16 @@ export function SocialMixin() {
           this.loadStats();
         }
       });
+
+      // Listen for global post-liked events to sync state
+      window.addEventListener('post-liked', (evt) => {
+        const { postId, liked, count } = evt.detail;
+        if (this.stats[postId]) {
+          this.stats[postId].liked = liked;
+          this.stats[postId].like_num = count;
+          this.stats[postId].like_count = count;
+        }
+      });
     },
 
     async loadDiaryLike() {
@@ -247,6 +257,16 @@ export function LikeButton(initialCount, initialLiked, postId) {
           this.count = result.data.like_count;
           notify.success(
             this.liked ? 'social.like.success' : 'social.like.cancel',
+          );
+          // Dispatch global event to sync with other components (e.g., list view)
+          window.dispatchEvent(
+            new CustomEvent('post-liked', {
+              detail: {
+                postId: parseInt(this.postId),
+                liked: this.liked,
+                count: this.count,
+              },
+            }),
           );
         } else {
           notify.error(result.message || 'common.op_fail');

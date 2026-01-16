@@ -1,12 +1,12 @@
+import { log } from '../../utils/log'
+
 export const registerNotifyDirectives = (Alpine) => {
   Alpine.directive('uno-notify', (el, { expression }, { evaluateLater }) => {
     // Usage: <button x-uno-notify="{ message: 'Message', type: 'success' }">
     // Usage: <button x-uno-notify="'Message'">
 
     if (!expression) {
-      console.warn(
-        '[Uno] x-uno-notify directive requires a configuration object or message string.'
-      )
+      log.warn('[Uno] x-uno-notify directive requires a configuration object or message string.')
       return
     }
 
@@ -26,7 +26,7 @@ export const registerNotifyDirectives = (Alpine) => {
           message = result.message || ''
           config = result
         } else {
-          console.warn('[Uno] x-uno-notify directive value must be a string or object', result)
+          log.warn('[Uno] x-uno-notify directive value must be a string or object', result)
           return
         }
 

@@ -4,7 +4,7 @@ export const registerTabDirectives = (Alpine) => {
   // ============================================================
   Alpine.directive('uno-tab', (el, { expression }, { evaluateLater, cleanup }) => {
     if (!expression) {
-      console.warn('[Uno] x-uno-tab directive requires a configuration object.')
+      log.warn('[Uno] x-uno-tab directive requires a configuration object.')
       return
     }
 
@@ -18,7 +18,7 @@ export const registerTabDirectives = (Alpine) => {
       } else if (typeof value === 'string') {
         config = { name: value }
       } else {
-        console.warn('[Uno] x-uno-tab directive value must be a string or object', value)
+        log.warn('[Uno] x-uno-tab directive value must be a string or object', value)
         return
       }
 

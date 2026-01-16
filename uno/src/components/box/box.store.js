@@ -168,6 +168,8 @@ export const createBoxStore = (Alpine) => ({
       showCancelButton,
       okText: config.okText || 'OK',
       cancelText: config.cancelText || 'Cancel',
+      okButtonClass: config.okButtonClass,
+      cancelButtonClass: config.cancelButtonClass,
       onOk: config.onOk,
       onCancel: config.onCancel,
       onBeforeClose: config.onBeforeClose,

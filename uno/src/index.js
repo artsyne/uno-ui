@@ -36,7 +36,6 @@ if (typeof window !== 'undefined') {
   // Auto-register with Alpine when available
   const autoRegister = () => {
     if (window.Alpine && !Uno.initialized) {
-      console.log('[Uno] Auto-registering with Alpine')
       Uno.init(window.Alpine)
     }
   }

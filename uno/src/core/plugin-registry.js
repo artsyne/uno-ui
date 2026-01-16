@@ -9,6 +9,8 @@
  * @license MIT
  */
 
+import { log } from '../utils/log'
+
 /**
  * Register a plugin store under the 'uno' namespace
  *
@@ -23,7 +25,7 @@
  */
 export function registerPlugin(Alpine, pluginName, pluginStore) {
   if (!Alpine || typeof Alpine.store !== 'function') {
-    console.error('[Uno] Alpine.store is not available')
+    log.error('[Uno] Alpine.store is not available')
     return
   }
 

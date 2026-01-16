@@ -16,7 +16,15 @@
     "pub_time": "Added",
     "time_zone": "Time Zone",
     "lang": "Language",
-    "default_page_desc": "iDiary - Record life, share beauty"
+    "default_page_desc": "iDiary - Record life, share beauty",
+    "save_success": "Saved successfully",
+    "save_fail": "Save failed",
+    "net_error": "Network error",
+    "op_fail": "Operation failed",
+    "load_fail": "Load failed"
+  },
+  "operation": {
+    "success": "Operation successful"
   },
   "error": {
     "title": "Error Occurred",
@@ -63,6 +71,13 @@
     "button": {
       "settings": "Diary Settings",
       "write_entry": "Write Entry"
+    },
+    "notebook_add": "Add Notebook",
+    "delete": {
+      "confirm": "Are you sure you want to delete this?",
+      "success": "Deleted successfully",
+      "fail": "Delete failed",
+      "net_error": "Network error"
     },
     "label": {
       "notebook": "Diary Notebook",
@@ -161,6 +176,17 @@
       "change_password_button": "Change Password",
       "timezone_note": "Timezone setting will affect the display style of time",
       "email_note": "Email address modification will not take effect immediately. A verification email will be sent to the new email address. Please click the link in the email to complete the verification and modification"
+    },
+    "profile": {
+      "introduction": "Introduction",
+      "menu": "Menu",
+      "latest_public_diary": "Latest Public Diary",
+      "joined_diaries": "Joined Diaries",
+      "my_apps": "My Apps",
+      "app_list": "App List",
+      "diary_notebook": "Diary Notebook",
+      "add_notebook": "Add Notebook",
+      "posts_count": "Posts"
     }
   },
   "form": {

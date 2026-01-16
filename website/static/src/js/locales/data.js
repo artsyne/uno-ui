@@ -2,6 +2,7 @@ export default {
   en: {
     'common.save': 'Save',
     'common.edit': 'Edit',
+    'common.cancel': 'Cancel',
     'common.delete': 'Delete',
     'common.op_fail': 'Operation failed',
     'common.loading': 'Loading...',
@@ -15,6 +16,7 @@ export default {
     'diary.delete.net_error': 'Network error, delete failed',
     'diary.edit.title': 'Edit Diary',
     'diary.create.title': 'Write Diary',
+    'diary.notebook.add': 'Add Notebook',
     'diary.settings.title': 'Diary Settings',
     'social.like.success': 'Liked successfully',
     'social.like.cancel': 'Unliked successfully',
@@ -29,6 +31,7 @@ export default {
   'zh-cn': {
     'common.save': '保存',
     'common.edit': '编辑',
+    'common.cancel': '取消',
     'common.delete': '删除',
     'common.op_fail': '操作失败',
     'common.loading': '加载中...',
@@ -42,6 +45,7 @@ export default {
     'diary.delete.net_error': '网络错误，删除失败',
     'diary.edit.title': '编辑日记',
     'diary.create.title': '写日记',
+    'diary.notebook.add': '新建日记本',
     'diary.settings.title': '日记本设置',
     'social.like.success': '点赞成功',
     'social.like.cancel': '取消点赞',

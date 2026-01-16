@@ -1,4 +1,5 @@
 import { trapFocus } from '../../utils/a11y'
+import { log } from '../../utils/log'
 
 export const registerBoxDirectives = (Alpine) => {
   // ============================================================
@@ -16,7 +17,7 @@ export const registerBoxDirectives = (Alpine) => {
   // ============================================================
   Alpine.directive('uno-box', (el, { expression }, { evaluateLater, cleanup }) => {
     if (!expression) {
-      console.warn('[Uno] x-uno-box directive requires a configuration object.')
+      log.warn('[Uno] x-uno-box directive requires a configuration object.')  
       return
     }
 
@@ -31,7 +32,7 @@ export const registerBoxDirectives = (Alpine) => {
       // Access store via uno namespace
       const store = Alpine.store('uno')?.box
       if (!store) {
-        console.warn('[Uno] Box store not found. Is Uno initialized?')
+        log.warn('[Uno] Box store not found. Is Uno initialized?')
         return
       }
 
@@ -39,7 +40,7 @@ export const registerBoxDirectives = (Alpine) => {
         if (evaluated && typeof evaluated === 'object') {
           store.open(evaluated)
         } else {
-          console.warn('[Uno] x-uno-box directive value must be an object', evaluated)
+          log.warn('[Uno] x-uno-box directive value must be an object', evaluated)
         }
       })
     }

@@ -1,6 +1,6 @@
 import B from "alpinejs";
-let L = !1, H = null;
-const f = {
+let L = !1, O = null;
+const d = {
   /**
    * Set debug mode
    * @param {boolean} debug
@@ -13,7 +13,7 @@ const f = {
    * @param {Function} reporter - (error, ...args) => void
    */
   setReporter(i) {
-    H = i;
+    O = i;
   },
   /**
    * Log info message
@@ -41,28 +41,28 @@ const f = {
    * @param {...any} args - Arguments to log
    */
   error(...i) {
-    if (H)
+    if (O)
       try {
-        H(...i);
+        O(...i);
       } catch (t) {
         L && typeof console < "u" && typeof console.error == "function" && console.error("[Uno Error] Reporter failed:", t);
       }
     L && typeof console < "u" && typeof console.error == "function" && console.error("[Uno Error]", ...i);
   }
-}, R = /* @__PURE__ */ new WeakMap();
-function M(i, t) {
+}, D = /* @__PURE__ */ new WeakMap();
+function H(i, t) {
   if (!i) return !1;
   const n = String(t);
-  let e = R.get(i);
-  return e || (e = /* @__PURE__ */ new Set(), R.set(i, e)), e.has(n) ? !1 : (e.add(n), !0);
+  let e = D.get(i);
+  return e || (e = /* @__PURE__ */ new Set(), D.set(i, e)), e.has(n) ? !1 : (e.add(n), !0);
 }
-function z(i) {
+function P(i) {
   return i ? i.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "").replace(/<img\b[^>]*>/gim, "").replace(/\s+on[a-z]+="[^"]*"/gim, "").replace(/\s+on[a-z]+='[^']*'/gim, "").replace(/\s+href="javascript:[^"]*"/gim, "").replace(/\s+href='javascript:[^']*'/gim, "").replace(/javascript:/gim, "") : "";
 }
 function q(i, t, { trusted: n = !1, alpine: e } = {}) {
-  i && (i.innerHTML = n ? String(t ?? "") : z(String(t ?? "")), e?.initTree?.(i));
+  i && (i.innerHTML = n ? String(t ?? "") : P(String(t ?? "")), e?.initTree?.(i));
 }
-const O = {
+const M = {
   /**
    * Ensure a container element exists in the DOM, creating it if necessary.
    *
@@ -132,7 +132,7 @@ const O = {
         s.setAttribute(a, c);
       }), t && (s.innerHTML = t), e ? e.appendChild(s) : document.documentElement.appendChild(s), s;
     } catch (s) {
-      return f.error(`DomManager: Failed to inject container #${i}`, s), null;
+      return d.error(`DomManager: Failed to inject container #${i}`, s), null;
     }
   },
   /**
@@ -196,29 +196,29 @@ const O = {
         const n = document.createElement("style");
         n.id = i, window.Uno?.options?.csp?.nonce && n.setAttribute("nonce", window.Uno.options.csp.nonce), n.textContent = t, document.head.appendChild(n);
       } catch (n) {
-        f.error(`DomManager: Failed to inject styles #${i}`, n);
+        d.error(`DomManager: Failed to inject styles #${i}`, n);
       }
   },
   // Exports
   setHTML: q,
   // Secure HTML setting
-  sanitize: z
+  sanitize: P
   // HTML sanitization
 };
 function $(i) {
   return Object.prototype.toString.call(i) === "[object Object]";
 }
-function b(i, t) {
+function w(i, t) {
   if (!$(i)) return $(t) ? { ...t } : t;
   if (!$(t)) return t === void 0 ? { ...i } : t;
   const n = { ...i };
   for (const [e, o] of Object.entries(t)) {
     if ($(o) && $(n[e])) {
-      n[e] = b(n[e], o);
+      n[e] = w(n[e], o);
       continue;
     }
     if ($(o)) {
-      n[e] = b({}, o);
+      n[e] = w({}, o);
       continue;
     }
     if (typeof o == "string" && o.trim().indexOf("+") === 0 && typeof n[e] == "string") {
@@ -240,12 +240,12 @@ const k = {
   NOTIFY: 1600,
   TOOLTIP: 1700,
   MAX: 9999
-}, C = (i) => {
+}, E = (i) => {
   if (!i) return k.BASE;
   const t = i.toUpperCase();
   return k[t] !== void 0 ? k[t] : k.BASE;
 };
-class V {
+class A {
   /**
    * Create an UnoInstance.
    *
@@ -280,15 +280,15 @@ class V {
         if (typeof document > "u") throw new Error("document is not available");
         const c = document.createElement("div");
         let r = "";
-        const l = (u) => {
-          u.preventDefault(), r = u.detail.serverResponse, u.detail.shouldSwap = !1;
+        const l = (f) => {
+          f.preventDefault(), r = f.detail.serverResponse, f.detail.shouldSwap = !1;
         };
         c.addEventListener("htmx:beforeSwap", l);
         try {
-          const u = a.swap || "innerHTML";
-          return await this.htmx.ajax(o, s, { ...a, target: c, swap: u }), r;
-        } catch (u) {
-          throw f.error("HTMX fragment fetch failed:", { method: o, url: s, error: u }), u;
+          const f = a.swap || "innerHTML";
+          return await this.htmx.ajax(o, s, { ...a, target: c, swap: f }), r;
+        } catch (f) {
+          throw d.error("HTMX fragment fetch failed:", { method: o, url: s, error: f }), f;
         } finally {
           c.removeEventListener("htmx:beforeSwap", l), c.remove();
         }
@@ -301,47 +301,33 @@ class V {
        * @param {Function} [handlers.end] - Called when a request ends (success, error, or timeout)
        */
       onRequest: (o = {}) => {
-        if (!o || typeof o != "object" || (this._htmxRequestHandlers.push(o), typeof window > "u" || typeof document > "u") || !window.htmx || !M(document, "uno:htmx:request-hooks")) return;
-        const s = (l) => l?.detail?.xhr, a = (l, u) => {
+        if (!o || typeof o != "object" || (this._htmxRequestHandlers.push(o), typeof window > "u" || typeof document > "u") || !window.htmx || !H(document, "uno:htmx:request-hooks")) return;
+        const s = (l) => l?.detail?.xhr, a = (l, f) => {
           for (const p of this._htmxRequestHandlers) {
             const g = p?.[l];
             if (typeof g == "function")
               try {
-                g(u);
+                g(f);
               } catch (y) {
-                f.error("Uno.htmx.onRequest handler failed", y);
+                d.error("Uno.htmx.onRequest handler failed", y);
               }
           }
         }, c = (l) => {
-          const u = s(l);
-          if (u && this._htmxActiveXhrs) {
-            if (this._htmxActiveXhrs.has(u)) return;
-            this._htmxActiveXhrs.add(u);
+          const f = s(l);
+          if (f && this._htmxActiveXhrs) {
+            if (this._htmxActiveXhrs.has(f)) return;
+            this._htmxActiveXhrs.add(f);
           }
           a("start", l);
         }, r = (l) => {
-          const u = s(l);
-          if (u && this._htmxActiveXhrs) {
-            if (!this._htmxActiveXhrs.has(u)) return;
-            this._htmxActiveXhrs.delete(u);
+          const f = s(l);
+          if (f && this._htmxActiveXhrs) {
+            if (!this._htmxActiveXhrs.has(f)) return;
+            this._htmxActiveXhrs.delete(f);
           }
           a("end", l);
         };
         document.addEventListener("htmx:beforeRequest", c), document.addEventListener("htmx:afterRequest", r), document.addEventListener("htmx:responseError", r), document.addEventListener("htmx:sendError", r), document.addEventListener("htmx:timeout", r), document.addEventListener("htmx:xhr:progress", (l) => a("progress", l));
-      },
-      // Global HTMX event binding for notify functionality - progress bar only
-      bindNotifyToHtmx: () => {
-        typeof window > "u" || typeof document > "u" || !window.htmx || !window.Alpine || M(document, "uno:htmx:bind-notify") && (document.addEventListener("htmx:beforeRequest", () => {
-          window.Alpine.store("uno").notify.startProgress();
-        }), document.addEventListener("htmx:afterRequest", () => {
-          window.Alpine.store("uno").notify.stopProgress();
-        }), document.addEventListener("htmx:responseError", () => {
-          window.Alpine.store("uno").notify.stopProgress(), window.Alpine.store("uno").notify.error("Request failed");
-        }), document.addEventListener("htmx:sendError", () => {
-          window.Alpine.store("uno").notify.stopProgress(), window.Alpine.store("uno").notify.error("Request failed");
-        }), document.addEventListener("htmx:timeout", () => {
-          window.Alpine.store("uno").notify.stopProgress(), window.Alpine.store("uno").notify.warning("Request timed out");
-        }));
       }
     };
     const e = {
@@ -425,7 +411,7 @@ class V {
         }
       }
     };
-    this.options = b(e, t);
+    this.options = w(e, t);
   }
   /**
    * ✅ Unified configuration retrieval method
@@ -444,7 +430,7 @@ class V {
   getConfig(t, n = {}) {
     const e = this.options || {};
     let o = this.pluginDefaults[t] ? { ...this.pluginDefaults[t] } : {};
-    return e.plugins && e.plugins[t] && (o = b(o, e.plugins[t])), e[t] && (o = b(o, e[t])), n && (o = b(o, n)), o;
+    return e.plugins && e.plugins[t] && (o = w(o, e.plugins[t])), e[t] && (o = w(o, e[t])), n && (o = w(o, n)), o;
   }
   /**
    * ✅ Register plugin defaults
@@ -505,7 +491,7 @@ class V {
    * Uno.setConfig({ debug: true }).setConfig({ ui: { base: 'shadow' } })
    */
   setConfig(t) {
-    return !t || typeof t != "object" ? (f.warn("setConfig called with invalid argument, expected object"), this) : (this.initialized ? (f.info("Uno configuration updated after initialization"), this.options = b(this.options, t)) : this._preInitConfig = b(this._preInitConfig, t), this);
+    return !t || typeof t != "object" ? (d.warn("setConfig called with invalid argument, expected object"), this) : (this.initialized ? (d.info("Uno configuration updated after initialization"), this.options = w(this.options, t)) : this._preInitConfig = w(this._preInitConfig, t), this);
   }
   /**
    * Get current global configuration
@@ -521,7 +507,7 @@ class V {
    * @returns {UnoInstance}
    */
   use(t, n = {}) {
-    return this.initialized && f.warn("Uno.use() called after initialization. Plugin might not work correctly."), this.plugins.push({ plugin: t, options: n }), this;
+    return this.initialized && d.warn("Uno.use() called after initialization. Plugin might not work correctly."), this.plugins.push({ plugin: t, options: n }), this;
   }
   /**
    * Initialize Uno - Automatically waits for Alpine if needed
@@ -541,17 +527,17 @@ class V {
    */
   async init(t = {}, n = {}) {
     if (this.initialized)
-      return f.warn("Uno has already been initialized."), B || (typeof window < "u" ? window.Alpine : null);
+      return d.warn("Uno has already been initialized."), B || (typeof window < "u" ? window.Alpine : null);
     let e = B;
-    return !e && typeof window < "u" && window.Alpine && (e = window.Alpine), t && (t.version || typeof t.start == "function" || typeof t.store == "function") && (e = t), this.options = b(this.options, this._preInitConfig), f.setDebug(this.options.debug !== !1), this.options.onError && f.setReporter(this.options.onError), e && typeof e.store == "function" ? (this._doInit(e), e) : typeof document > "u" ? (f.error("Alpine not found and document is unavailable. Cannot initialize Uno."), null) : (f.debug("Alpine not ready, waiting for alpine:init event..."), new Promise((s) => {
+    return !e && typeof window < "u" && window.Alpine && (e = window.Alpine), t && (t.version || typeof t.start == "function" || typeof t.store == "function") && (e = t), this.options = w(this.options, this._preInitConfig), d.setDebug(this.options.debug !== !1), this.options.onError && d.setReporter(this.options.onError), e && typeof e.store == "function" ? (this._doInit(e), e) : typeof document > "u" ? (d.error("Alpine not found and document is unavailable. Cannot initialize Uno."), null) : (d.debug("Alpine not ready, waiting for alpine:init event..."), new Promise((s) => {
       document.addEventListener(
         "alpine:init",
         () => {
           if (e = window.Alpine || B, !e) {
-            f.error("Alpine still not found after alpine:init event"), s(null);
+            d.error("Alpine still not found after alpine:init event"), s(null);
             return;
           }
-          f.debug("Alpine ready, continuing Uno initialization"), this._doInit(e), s(e);
+          d.debug("Alpine ready, continuing Uno initialization"), this._doInit(e), s(e);
         },
         { once: !0 }
       );
@@ -563,17 +549,17 @@ class V {
    * @param {Object} alpine - Alpine instance
    */
   _doInit(t) {
-    f.info(`Uno v${this.version} initializing...`), typeof window < "u" && typeof document < "u" && window.htmx && typeof t?.initTree == "function" && M(document, "uno:htmx-afterSwap:initTree") && document.addEventListener("htmx:afterSwap", (n) => {
+    d.info(`Uno v${this.version} initializing...`), typeof window < "u" && typeof document < "u" && window.htmx && typeof t?.initTree == "function" && H(document, "uno:htmx-afterSwap:initTree") && document.addEventListener("htmx:afterSwap", (n) => {
       const e = n?.detail?.elt;
       e && t.initTree(e);
     }), this.plugins.forEach(({ plugin: n, options: e }) => {
       try {
-        const o = b(this.options, e);
+        const o = w(this.options, e);
         n(t, o);
       } catch (o) {
-        f.error("Failed to load plugin", o);
+        d.error("Failed to load plugin", o);
       }
-    }), this._setupGlobalErrorHandlers(), this.initialized = !0, f.info("Uno initialized");
+    }), this._setupGlobalErrorHandlers(), this.initialized = !0, d.info("Uno initialized");
   }
   /**
    * Setup global error boundaries for unhandled errors and promise rejections.
@@ -589,7 +575,7 @@ class V {
    * @private
    */
   _setupGlobalErrorHandlers() {
-    if (!(typeof window > "u") && M(window, "uno:global-error-handlers")) {
+    if (!(typeof window > "u") && H(window, "uno:global-error-handlers")) {
       const t = typeof WeakSet == "function" ? /* @__PURE__ */ new WeakSet() : null;
       window.addEventListener("unhandledrejection", (n) => {
         const e = n.reason;
@@ -597,25 +583,25 @@ class V {
           if (t.has(e)) return;
           t.add(e);
         }
-        f.error("Unhandled Promise Rejection:", e);
+        d.error("Unhandled Promise Rejection:", e);
       }), window.addEventListener("error", (n) => {
         const e = n.error;
         if (t && e instanceof Error) {
           if (t.has(e)) return;
           t.add(e);
         }
-        f.error("Uncaught Error:", {
+        d.error("Uncaught Error:", {
           message: n.message,
           filename: n.filename,
           lineno: n.lineno,
           colno: n.colno,
           error: e
         });
-      }), f.debug("Global error handlers installed");
+      }), d.debug("Global error handlers installed");
     }
   }
 }
-const h = new V(), F = {
+const h = new A(), F = {
   box: {
     ok: "OK",
     cancel: "Cancel",
@@ -709,19 +695,19 @@ const h = new V(), F = {
   },
   charCount: "剩餘: {count}"
 };
-const j = {
+const _ = {
   en: F,
   "zh-CN": W,
   "zh-TW": X
-}, D = Object.keys(j);
+}, R = Object.keys(_);
 function Y() {
   if (typeof localStorage < "u") {
     const i = localStorage.getItem("uno.lang");
-    if (i && D.includes(i)) return i;
+    if (i && R.includes(i)) return i;
   }
   if (typeof navigator < "u") {
     const i = navigator.language, t = i.startsWith("zh") ? i.includes("TW") || i.includes("Hant") ? "zh-TW" : "zh-CN" : "en";
-    return D.includes(t) ? t : "en";
+    return R.includes(t) ? t : "en";
   }
   return "en";
 }
@@ -734,25 +720,25 @@ function Z(i, t) {
   }
   return e;
 }
-function _(i, t) {
+function z(i, t) {
   for (const n in t)
-    t[n] && typeof t[n] == "object" ? (i[n] || Object.assign(i, { [n]: {} }), _(i[n], t[n])) : Object.assign(i, { [n]: t[n] });
+    t[n] && typeof t[n] == "object" ? (i[n] || Object.assign(i, { [n]: {} }), z(i[n], t[n])) : Object.assign(i, { [n]: t[n] });
 }
 function N(i) {
   const t = i.store("i18n"), n = {
     locale: Y(),
-    messages: j,
+    messages: _,
     loading: !1,
     init() {
       typeof document < "u" && (document.documentElement.lang = this.locale);
     },
     t(e, o = {}) {
       const s = this.locale, a = this.messages[s] || this.messages.en, c = Z(a, e);
-      return (typeof c == "string" ? c : e).replace(/\{(\w+)\}/g, (l, u) => u in o ? String(o[u]) : `{${u}}`);
+      return (typeof c == "string" ? c : e).replace(/\{(\w+)\}/g, (l, f) => f in o ? String(o[f]) : `{${f}}`);
     },
     setLocale(e) {
       if (!this.messages[e]) {
-        f.warn(`[Uno] Language ${e} not found. Please load it first using loadLocale().`);
+        d.warn(`[Uno] Language ${e} not found. Please load it first using loadLocale().`);
         return;
       }
       this.locale = e, typeof localStorage < "u" && localStorage.setItem("uno.lang", e), typeof document < "u" && (document.documentElement.lang = e);
@@ -762,7 +748,7 @@ function N(i) {
       this.setLocale(e);
     },
     extend(e) {
-      _(this.messages, e);
+      z(this.messages, e);
     },
     async loadLocale(e, o) {
       if (!this.messages[e]) {
@@ -773,28 +759,28 @@ function N(i) {
           const a = await s.json();
           this.messages[e] = a, this.setLocale(e);
         } catch (s) {
-          f.error(`[Uno] Failed to load locale ${e}:`, s);
+          d.error(`[Uno] Failed to load locale ${e}:`, s);
         } finally {
           this.loading = !1;
         }
       }
     }
   };
-  t ? (f.info("[Uno] Merging into existing i18n store"), t.messages || (t.messages = {}), _(t.messages, j), t.t || (t.t = n.t), t.setLocale || (t.setLocale = n.setLocale), t.setLang || (t.setLang = n.setLang), t.loadLocale || (t.loadLocale = n.loadLocale)) : i.store("i18n", n), i.directive("t", (e, { expression: o, modifiers: s }, { effect: a }) => {
+  t ? (d.info("[Uno] Merging into existing i18n store"), t.messages || (t.messages = {}), z(t.messages, _), t.t || (t.t = n.t), t.setLocale || (t.setLocale = n.setLocale), t.setLang || (t.setLang = n.setLang), t.loadLocale || (t.loadLocale = n.loadLocale)) : i.store("i18n", n), i.directive("t", (e, { expression: o, modifiers: s }, { effect: a }) => {
     const c = () => i.store("i18n");
     a(() => {
       const r = c();
       r.locale;
-      const l = o, u = r.t(l);
+      const l = o, f = r.t(l);
       s.length > 0 ? s.forEach((p) => {
-        e.setAttribute(p, u);
-      }) : e.textContent = u;
+        e.setAttribute(p, f);
+      }) : e.textContent = f;
     });
   });
 }
 function U(i, t, n) {
   if (!i || typeof i.store != "function") {
-    console.error("[Uno] Alpine.store is not available");
+    d.error("[Uno] Alpine.store is not available");
     return;
   }
   const e = i.store("uno");
@@ -837,39 +823,39 @@ const K = (i) => {
   return t.includes("bottom") && (n = "flex-col-reverse", o = "space-y-reverse space-y-2"), t.includes("left") ? e = "items-start" : t.includes("center") ? t === "center" ? e = "items-center justify-center" : e = "items-center" : e = "items-end", { flexDir: n, alignItems: e, spaceY: o };
 };
 function Q(i, t, n) {
-  const e = i.getBoundingClientRect(), o = t.getBoundingClientRect(), s = o.width, a = o.height, c = e.width, r = e.height, l = { top: e.top, left: e.left }, u = window.innerWidth, p = window.innerHeight, g = 0, y = 0, E = p, v = u, x = (T, A) => {
-    if (A) {
-      if (T + s > v)
-        return v - s - 10;
+  const e = i.getBoundingClientRect(), o = t.getBoundingClientRect(), s = o.width, a = o.height, c = e.width, r = e.height, l = { top: e.top, left: e.left }, f = window.innerWidth, p = window.innerHeight, g = 0, y = 0, C = p, b = f, x = (T, V) => {
+    if (V) {
+      if (T + s > b)
+        return b - s - 10;
       if (T < y)
         return y + 10;
     } else {
-      if (T + a > E)
-        return E - a - 10;
+      if (T + a > C)
+        return C - a - 10;
       if (T < g)
         return g + 10;
     }
     return T;
   };
-  let w, d, m = n;
+  let v, u, m = n;
   switch (n) {
     case "left":
-      d = l.left - s - 5, d < y && (d = l.left + c + 5, m = "right"), w = x(l.top + r / 2 - a / 2, !1);
+      u = l.left - s - 5, u < y && (u = l.left + c + 5, m = "right"), v = x(l.top + r / 2 - a / 2, !1);
       break;
     case "top":
-      w = l.top - a - 8, w < g && (w = l.top + r + 8, m = "bottom"), d = l.left + (c - s) / 2, d = x(d, !0);
+      v = l.top - a - 8, v < g && (v = l.top + r + 8, m = "bottom"), u = l.left + (c - s) / 2, u = x(u, !0);
       break;
     case "right":
-      d = l.left + c + 5, d + s > v && (d = l.left - s - 5, m = "left"), w = x(l.top + r / 2 - a / 2, !1);
+      u = l.left + c + 5, u + s > b && (u = l.left - s - 5, m = "left"), v = x(l.top + r / 2 - a / 2, !1);
       break;
     case "bottom":
     default:
-      w = l.top + r + 8, w + a > E && (w = l.top - a - 8, m = "top"), d = l.left + (c - s) / 2, d = x(d, !0);
+      v = l.top + r + 8, v + a > C && (v = l.top - a - 8, m = "top"), u = l.left + (c - s) / 2, u = x(u, !0);
       break;
   }
-  return { top: w, left: d, position: m };
+  return { top: v, left: u, position: m };
 }
-const tt = () => (h.options?.ui?.layers?.tooltip || C("TOOLTIP"), `
+const tt = () => (h.options?.ui?.layers?.tooltip || E("TOOLTIP"), `
     <div id="uno-tooltip-content"
          x-show="$store.uno.tooltip.visible"
          role="tooltip"
@@ -924,7 +910,7 @@ const et = (i) => {
     }, a = (c) => {
       const r = i.store("uno")?.tooltip;
       if (!r?.visible || r.triggerMode !== "click" || r.clickOutside !== !0) return;
-      const l = c.target, u = document.getElementById("uno-tooltip-content"), p = r.triggerEl && r.triggerEl.contains(l), g = u && u.contains(l);
+      const l = c.target, f = document.getElementById("uno-tooltip-content"), p = r.triggerEl && r.triggerEl.contains(l), g = f && f.contains(l);
       !p && !g && r.hide();
     };
     window.addEventListener("scroll", e, !0), window.addEventListener("resize", o), window.addEventListener("keydown", s), window.addEventListener("click", a), I = () => {
@@ -937,7 +923,7 @@ const et = (i) => {
     placement: "top",
     top: -9999,
     left: -9999,
-    zIndex: C("TOOLTIP"),
+    zIndex: E("TOOLTIP"),
     triggerEl: null,
     triggerMode: "hover",
     clickOutside: !0,
@@ -951,14 +937,14 @@ const et = (i) => {
       this.ensureContainer();
     },
     show(e = {}) {
-      f.info("Tooltip show called", e);
+      d.info("Tooltip show called", e);
       const o = h.getConfig("tooltip", e);
-      if (f.info("Tooltip resolved config", o), !o.target && typeof o.content == "string" && o.content.startsWith("#") && (o.content.includes(" ") || document.querySelector(o.content) && (o.target = o.content)), this.triggerEl = o.element || this.triggerEl, o.target) {
+      if (d.info("Tooltip resolved config", o), !o.target && typeof o.content == "string" && o.content.startsWith("#") && (o.content.includes(" ") || document.querySelector(o.content) && (o.target = o.content)), this.triggerEl = o.element || this.triggerEl, o.target) {
         const s = document.querySelector(o.target);
-        s ? this.content = z(s.innerHTML) : (f.warn(`Tooltip target element not found: ${o.target}`), this.content = o.content || "");
+        s ? this.content = P(s.innerHTML) : (d.warn(`Tooltip target element not found: ${o.target}`), this.content = o.content || "");
       } else
         this.content = o.content || "";
-      this.placement = o.placement, this.triggerMode = o.trigger, this.clickOutside = o.clickOutside, this.offset = o.offset, this.arrow = o.arrow !== !1, this.zIndex = h.options?.ui?.layers?.tooltip || C("TOOLTIP"), this.hxUrl = o.hxUrl, this.hxHeaders = o.hxHeaders, this.hxTrigger = o.hxTrigger || "load", this.visible = !0, this.ensureContainer(), n(), i.nextTick(() => {
+      this.placement = o.placement, this.triggerMode = o.trigger, this.clickOutside = o.clickOutside, this.offset = o.offset, this.arrow = o.arrow !== !1, this.zIndex = h.options?.ui?.layers?.tooltip || E("TOOLTIP"), this.hxUrl = o.hxUrl, this.hxHeaders = o.hxHeaders, this.hxTrigger = o.hxTrigger || "load", this.visible = !0, this.ensureContainer(), n(), i.nextTick(() => {
         this.updatePosition();
       });
     },
@@ -986,8 +972,8 @@ const et = (i) => {
     ensureContainer() {
       const e = "uno-tooltip-manager";
       if (document.getElementById(e)) return;
-      const o = h.options?.ui?.layers?.tooltip || C("TOOLTIP"), s = tt();
-      O.ensureContainer(e, s, {
+      const o = h.options?.ui?.layers?.tooltip || E("TOOLTIP"), s = tt();
+      M.ensureContainer(e, s, {
         "x-data": "{}",
         style: `position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: ${o};`
       });
@@ -997,42 +983,42 @@ const et = (i) => {
   };
 }, nt = (i) => {
   const t = (n, { expression: e, modifiers: o }, { evaluateLater: s, effect: a, cleanup: c }) => {
-    const r = e ? s(e) : null, l = (d) => (o.length > 0 && console.warn(
+    const r = e ? s(e) : null, l = (u) => (o.length > 0 && d.warn(
       "[Uno] x-uno-tooltip modifiers are deprecated in v2.0. Use configuration object instead."
-    ), { ...typeof d == "object" && d !== null ? d : d ? { content: d } : {}, element: n }), u = (d) => {
+    ), { ...typeof u == "object" && u !== null ? u : u ? { content: u } : {}, element: n }), f = (u) => {
       const m = i.store("uno")?.tooltip;
-      m && m.show(l(d));
-    }, p = (d) => {
+      m && m.show(l(u));
+    }, p = (u) => {
       const m = i.store("uno")?.tooltip;
-      m && (m.visible && m.triggerEl === n ? m.hide() : u(d));
+      m && (m.visible && m.triggerEl === n ? m.hide() : f(u));
     };
     let g = null;
     r && a(() => {
-      r((d) => {
-        g = d;
+      r((u) => {
+        g = u;
       });
     });
     const y = () => {
       if (e && g === null) return;
-      const d = l(g);
-      h.getConfig("tooltip", d).trigger === "hover" && u(g);
-    }, E = () => {
-      const d = i.store("uno")?.tooltip;
-      d && d.triggerMode === "hover" && d.triggerEl === n && d.scheduleHide();
-    }, v = (d) => {
+      const u = l(g);
+      h.getConfig("tooltip", u).trigger === "hover" && f(g);
+    }, C = () => {
+      const u = i.store("uno")?.tooltip;
+      u && u.triggerMode === "hover" && u.triggerEl === n && u.scheduleHide();
+    }, b = (u) => {
       const m = l(g);
-      h.getConfig("tooltip", m).trigger === "click" && (d.preventDefault(), p(g));
+      h.getConfig("tooltip", m).trigger === "click" && (u.preventDefault(), p(g));
     }, x = () => {
-      const d = l(g);
-      h.getConfig("tooltip", d).trigger === "focus" && u(g);
-    }, w = () => {
-      const d = i.store("uno")?.tooltip;
-      d && d.triggerMode === "focus" && d.triggerEl === n && d.hide();
+      const u = l(g);
+      h.getConfig("tooltip", u).trigger === "focus" && f(g);
+    }, v = () => {
+      const u = i.store("uno")?.tooltip;
+      u && u.triggerMode === "focus" && u.triggerEl === n && u.hide();
     };
-    n.addEventListener("mouseenter", y), n.addEventListener("mouseleave", E), n.addEventListener("click", v), n.addEventListener("focus", x), n.addEventListener("blur", w), c(() => {
-      n.removeEventListener("mouseenter", y), n.removeEventListener("mouseleave", E), n.removeEventListener("click", v), n.removeEventListener("focus", x), n.removeEventListener("blur", w);
-      const d = i.store("uno")?.tooltip;
-      d && d.triggerEl === n && d.hide();
+    n.addEventListener("mouseenter", y), n.addEventListener("mouseleave", C), n.addEventListener("click", b), n.addEventListener("focus", x), n.addEventListener("blur", v), c(() => {
+      n.removeEventListener("mouseenter", y), n.removeEventListener("mouseleave", C), n.removeEventListener("click", b), n.removeEventListener("focus", x), n.removeEventListener("blur", v);
+      const u = i.store("uno")?.tooltip;
+      u && u.triggerEl === n && u.hide();
     });
   };
   i.directive("uno-tooltip", t);
@@ -1132,7 +1118,7 @@ const ot = (i, t = {}) => {
   </template>
 `, st = () => `
     <div :class="Uno.getStyle('notify', 'progressWrap')"
-         style="z-index: ${C("MAX")}"
+         style="z-index: ${E("MAX")}"
          x-show="$store.uno.notify.progressVisible"
          x-transition:enter="transition-opacity duration-200"
          x-transition:enter-start="opacity-0"
@@ -1179,7 +1165,7 @@ const ot = (i, t = {}) => {
     return null;
   },
   onHtmxError(t, n) {
-    this._onHtmxEnd(n), console.error("HTMX Error:", t), this.error("Content load failed"), n.onError && n.onError(t);
+    this._onHtmxEnd(n), d.error("HTMX Error:", t), this.error("Content load failed"), n.onError && n.onError(t);
   },
   _onHtmxBegin(t) {
     !t || t.__unoHtmxActive || (t.__unoHtmxActive = !0, this.progressRequests++, this.progressRequests === 1 && this.startProgress());
@@ -1201,7 +1187,7 @@ const ot = (i, t = {}) => {
   },
   getContainerStyle() {
     return {
-      zIndex: h.options?.ui?.layers?.notify || C("NOTIFY")
+      zIndex: h.options?.ui?.layers?.notify || E("NOTIFY")
     };
   },
   getContainerClass(t) {
@@ -1209,12 +1195,12 @@ const ot = (i, t = {}) => {
     return [n, e, o.flexDir, o.alignItems].join(" ");
   },
   ensureContainer() {
-    const t = "uno-notify-container", n = it(), e = O.ensureContainer(t, n, {
+    const t = "uno-notify-container", n = it(), e = M.ensureContainer(t, n, {
       "x-data": "{}"
       // Independent Alpine component
     });
     e && i.initTree && i.initTree(e);
-    const o = "uno-global-progress", s = st(), a = O.ensureContainer(o, s, {
+    const o = "uno-global-progress", s = st(), a = M.ensureContainer(o, s, {
       "x-data": "{}"
     });
     a && i.initTree && i.initTree(a);
@@ -1225,7 +1211,7 @@ const ot = (i, t = {}) => {
     let s = t;
     i.store("i18n") && typeof i.store("i18n").t == "function" && (s = i.store("i18n").t(t));
     const a = e.duration !== void 0 ? e.duration : 3e3;
-    f.info("[Notify] Show:", { id: o, message: s, duration: a, config: e });
+    d.info("[Notify] Show:", { id: o, message: s, duration: a, config: e });
     const c = {
       id: o,
       message: s,
@@ -1266,9 +1252,7 @@ const ot = (i, t = {}) => {
 }), at = (i) => {
   i.directive("uno-notify", (t, { expression: n }, { evaluateLater: e }) => {
     if (!n) {
-      console.warn(
-        "[Uno] x-uno-notify directive requires a configuration object or message string."
-      );
+      d.warn("[Uno] x-uno-notify directive requires a configuration object or message string.");
       return;
     }
     const o = e(n), s = () => {
@@ -1280,7 +1264,7 @@ const ot = (i, t = {}) => {
         else if (typeof c == "object" && c !== null)
           r = c.message || "", l = c;
         else {
-          console.warn("[Uno] x-uno-notify directive value must be a string or object", c);
+          d.warn("[Uno] x-uno-notify directive value must be a string or object", c);
           return;
         }
         a.show(r, l);
@@ -1319,7 +1303,7 @@ const lt = (i, t = {}) => {
     <template x-for="item in $store.uno.box.items" :key="item.id">
       <div :id="'uno-box-outer-container' + item.id"
            :class="[Uno.getStyle('box', 'itemWrapper'), $store.uno.box.getPositionClasses(item.position)]"
-           :style="'z-index:' + ${h.options?.ui?.layers?.box || C("BOX")}"
+           :style="'z-index:' + ${h.options?.ui?.layers?.box || E("BOX")}"
            x-show="item.isOpen"
            x-transition:enter="ease-out duration-300"
            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -1382,13 +1366,13 @@ const lt = (i, t = {}) => {
                x-show="item.showOkButton || item.showCancelButton">
             <button type="button"
                     :id="'uno-box-ok' + item.id"
-                    :class="Uno.getStyle('box', 'okBtn')"
+                    :class="[Uno.getStyle('box', 'okBtn'), item.okButtonClass]"
                     x-show="item.showOkButton"
                     x-text="item.okText"
                     @click="$store.uno.box.handleOk(item)"></button>
             <button type="button"
                     :id="'uno-box-cancel' + item.id"
-                    :class="Uno.getStyle('box', 'cancelBtn')"
+                    :class="[Uno.getStyle('box', 'cancelBtn'), item.cancelButtonClass]"
                     x-show="item.showCancelButton"
                     x-text="item.cancelText"
                     @click="item.onCancel ? (item.onCancel() !== false && item.close()) : item.close()"></button>
@@ -1450,10 +1434,10 @@ const lt = (i, t = {}) => {
    */
   prompt(t, n = "", e = {}) {
     return new Promise((o) => {
-      const s = "prompt-" + Math.random().toString(36).slice(2, 11), a = h.getStyle("box", "promptWrapper"), c = h.getStyle("box", "promptText"), r = h.getStyle("box", "promptInput"), l = h.dom.sanitize(t), u = h.dom.sanitize(n), p = `
+      const s = "prompt-" + Math.random().toString(36).slice(2, 11), a = h.getStyle("box", "promptWrapper"), c = h.getStyle("box", "promptText"), r = h.getStyle("box", "promptInput"), l = h.dom.sanitize(t), f = h.dom.sanitize(n), p = `
         <div class="${a}">
           <p class="${c}">${l}</p>
-          <input id="${s}" type="text" class="${r}" value="${u}">
+          <input id="${s}" type="text" class="${r}" value="${f}">
         </div>
       `;
       this.open("confirm", {
@@ -1516,6 +1500,8 @@ const lt = (i, t = {}) => {
       showCancelButton: r,
       okText: s.okText || "OK",
       cancelText: s.cancelText || "Cancel",
+      okButtonClass: s.okButtonClass,
+      cancelButtonClass: s.cancelButtonClass,
       onOk: s.onOk,
       onCancel: s.onCancel,
       onBeforeClose: s.onBeforeClose,
@@ -1540,18 +1526,18 @@ const lt = (i, t = {}) => {
           y();
           return;
         }
-        let E = !1;
-        const v = (x) => {
-          x && x.target !== g || E || (E = !0, g.removeEventListener("transitionend", v), y());
+        let C = !1;
+        const b = (x) => {
+          x && x.target !== g || C || (C = !0, g.removeEventListener("transitionend", b), y());
         };
-        g.addEventListener("transitionend", v), setTimeout(v, 350);
+        g.addEventListener("transitionend", b), setTimeout(b, 350);
       }
     };
     this.items.push(l), this.ensureContainer();
-    const u = this.items[this.items.length - 1], p = () => {
-      u.isOpen = !0;
+    const f = this.items[this.items.length - 1], p = () => {
+      f.isOpen = !0;
     };
-    return i && typeof i.nextTick == "function" ? i.nextTick(p) : setTimeout(p, 0), u;
+    return i && typeof i.nextTick == "function" ? i.nextTick(p) : setTimeout(p, 0), f;
   },
   /**
    * Handle OK button click
@@ -1616,7 +1602,7 @@ const lt = (i, t = {}) => {
     const o = {
       "x-data": "{}",
       class: "relative",
-      style: `z-index: ${h.options?.ui?.layers?.box || C("BOX")};`,
+      style: `z-index: ${h.options?.ui?.layers?.box || E("BOX")};`,
       "x-show": "$store.uno.box.items.length > 0",
       "x-cloak": ""
       // Hide until Alpine is ready
@@ -1673,18 +1659,18 @@ const gt = (i) => {
     e(o);
   }), i.directive("uno-box", (t, { expression: n }, { evaluateLater: e, cleanup: o }) => {
     if (!n) {
-      console.warn("[Uno] x-uno-box directive requires a configuration object.");
+      d.warn("[Uno] x-uno-box directive requires a configuration object.");
       return;
     }
     const s = e(n), a = (c) => {
       c.preventDefault();
       const r = i.store("uno")?.box;
       if (!r) {
-        console.warn("[Uno] Box store not found. Is Uno initialized?");
+        d.warn("[Uno] Box store not found. Is Uno initialized?");
         return;
       }
       s((l) => {
-        l && typeof l == "object" ? r.open(l) : console.warn("[Uno] x-uno-box directive value must be an object", l);
+        l && typeof l == "object" ? r.open(l) : d.warn("[Uno] x-uno-box directive value must be an object", l);
       });
     };
     t.addEventListener("click", a), o(() => t.removeEventListener("click", a));
@@ -1702,7 +1688,7 @@ const ht = (i, t = {}) => {
   h.registerPluginDefaults("box", { ...n, ...t.plugins?.box, ...t.box });
   const e = dt(i);
   U(i, "box", e), gt(i);
-}, P = {
+}, j = {
   // --- Standard Types ---
   email: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
   url: /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i,
@@ -1753,7 +1739,7 @@ const ht = (i, t = {}) => {
    * @param {Function} validatorFn - The validator function.
    */
   registerValidator(t, n) {
-    typeof n == "function" ? this.customValidators[t] = n : f.error(`[Valid] Invalid validator function for ${t}`);
+    typeof n == "function" ? this.customValidators[t] = n : d.error(`[Valid] Invalid validator function for ${t}`);
   },
   /**
    * Validates a single field against its rules.
@@ -1771,10 +1757,10 @@ const ht = (i, t = {}) => {
       return delete this.errors[t], !0;
     if (o) {
       const r = e.type || (e.email ? "email" : null);
-      r && P[r] && (P[r].test(a) || (o = !1, s = e[`msg${r.charAt(0).toUpperCase() + r.slice(1)}`] || e.msgType || this.getI18nMsg(`valid.${r}`) || `Invalid ${r} format`));
+      r && j[r] && (j[r].test(a) || (o = !1, s = e[`msg${r.charAt(0).toUpperCase() + r.slice(1)}`] || e.msgType || this.getI18nMsg(`valid.${r}`) || `Invalid ${r} format`));
     }
     if (o && e.minLength !== null && e.minLength !== void 0 && a.length < e.minLength && (o = !1, s = e.msgMinLength || this.getI18nMsg("valid.min", { n: e.minLength }) || `Minimum length is ${e.minLength}`), o && e.maxLength !== null && e.maxLength !== void 0 && a.length > e.maxLength && (o = !1, s = e.msgMaxLength || this.getI18nMsg("valid.max", { n: e.maxLength }) || `Maximum length is ${e.maxLength}`), o && (e.min !== null && e.min !== void 0 || e.max !== null && e.max !== void 0))
-      if (P.number.test(a)) {
+      if (j.number.test(a)) {
         const r = parseFloat(a);
         e.min !== null && e.min !== void 0 && r < e.min && (o = !1, s = e.msgMin || this.getI18nMsg("valid.rangeMin", { n: e.min }) || `Value must be at least ${e.min}`), o && e.max !== null && e.max !== void 0 && r > e.max && (o = !1, s = e.msgMax || this.getI18nMsg("valid.rangeMax", { n: e.max }) || `Value must be at most ${e.max}`);
       } else
@@ -1783,7 +1769,7 @@ const ht = (i, t = {}) => {
       try {
         (e.pattern instanceof RegExp ? e.pattern : new RegExp(e.pattern)).test(a) || (o = !1, s = e.msgPattern || this.getI18nMsg("valid.pattern") || "Invalid format");
       } catch (r) {
-        f.error(`[Valid] Invalid regex pattern for ${t}`, r);
+        d.error(`[Valid] Invalid regex pattern for ${t}`, r);
       }
     if (o && e.match) {
       const r = document.querySelector(
@@ -1793,7 +1779,7 @@ const ht = (i, t = {}) => {
     }
     if (o && e.validator) {
       let r = e.validator;
-      if (typeof e.validator == "string" && (r = this.customValidators[e.validator], r || f.warn(`[Valid] Validator "${e.validator}" not found`)), typeof r == "function") {
+      if (typeof e.validator == "string" && (r = this.customValidators[e.validator], r || d.warn(`[Valid] Validator "${e.validator}" not found`)), typeof r == "function") {
         const l = r(n, t);
         l === !1 ? (o = !1, s = e.msgValidator || "Validation failed") : typeof l == "string" ? (o = !1, s = l) : typeof l == "object" && l.valid === !1 && (o = !1, s = l.message || e.msgValidator || "Validation failed");
       }
@@ -1836,7 +1822,7 @@ const ht = (i, t = {}) => {
     if (t.tagName === "FORM") return;
     const s = t.name || t.id;
     if (!s) {
-      console.warn("[Uno Valid] Element has no name or id:", t);
+      d.warn("[Uno Valid] Element has no name or id:", t);
       return;
     }
     const a = n ? e(n) : () => {
@@ -1855,18 +1841,18 @@ const ht = (i, t = {}) => {
     n ? a((g) => {
       l(typeof g == "object" ? g : {});
     }) : l({});
-    const u = () => {
+    const f = () => {
       const g = i.store("uno").valid.rules[s];
       g && g.realtime !== !1 && i.store("uno").valid.validate(s, t.value);
     }, p = () => {
       i.store("uno").valid.validate(s, t.value);
     };
-    t.addEventListener("input", u), t.addEventListener("blur", p), o(() => {
-      t.removeEventListener("input", u), t.removeEventListener("blur", p);
+    t.addEventListener("input", f), t.addEventListener("blur", p), o(() => {
+      t.removeEventListener("input", f), t.removeEventListener("blur", p);
     });
   }), typeof document < "u" && (document.body.addEventListener("htmx:confirm", (t) => {
     const n = t.detail.elt, e = n.tagName === "FORM" ? n : n.closest("form");
-    e && e.hasAttribute("x-uno-valid") && (i.store("uno").valid.validateForm(e) || (t.preventDefault(), t.stopPropagation(), f.info("[Valid] Form validation failed. Request blocked."), e.dispatchEvent(
+    e && e.hasAttribute("x-uno-valid") && (i.store("uno").valid.validateForm(e) || (t.preventDefault(), t.stopPropagation(), d.info("[Valid] Form validation failed. Request blocked."), e.dispatchEvent(
       new CustomEvent("uno:validation-failed", {
         bubbles: !0,
         detail: { errors: i.store("uno").valid.errors }
@@ -1877,7 +1863,7 @@ const ht = (i, t = {}) => {
     if (n.status === 422)
       try {
         const e = JSON.parse(n.responseText);
-        e.errors && (i.store("uno").valid.showErrors(e.errors), f.info("[Valid] Server validation errors applied", e.errors));
+        e.errors && (i.store("uno").valid.showErrors(e.errors), d.info("[Valid] Server validation errors applied", e.errors));
       } catch {
       }
   }));
@@ -1903,9 +1889,9 @@ const xt = (i, t = {}) => {
   init() {
     const t = () => {
       let n = window.location.hash.slice(1);
-      if (!n && window.location.href.includes("#") && (n = window.location.href.split("#")[1]), f.info(`[Tab] checkHash: ${n}`), n && this.registry[n]) {
+      if (!n && window.location.href.includes("#") && (n = window.location.href.split("#")[1]), d.info(`[Tab] checkHash: ${n}`), n && this.registry[n]) {
         const { group: e, name: o } = this.registry[n];
-        f.info(`[Tab] checkHash match: ${o}`), this.activate({ group: e, name: o, updateHash: !1 });
+        d.info(`[Tab] checkHash match: ${o}`), this.activate({ group: e, name: o, updateHash: !1 });
       }
     };
     t(), window.addEventListener("hashchange", t), window.addEventListener("load", t);
@@ -1920,11 +1906,11 @@ const xt = (i, t = {}) => {
       hash: !0,
       ...t
     });
-    n.name && (f.info(
+    n.name && (d.info(
       `[Tab] Activating ${n.name} in ${n.group}. Hash update: ${n.updateHash !== !1}`
     ), this.registry[n.name] || (this.registry[n.name] = { group: n.group, name: n.name }), this.groups[n.group] = n.name, n.hash && n.updateHash !== !1 && window.location.hash.slice(1) !== n.name && window.history.replaceState(null, null, `#${n.name}`), n.updateHash === !1 && setTimeout(() => {
       const e = document.getElementById(`tab-${n.name}`);
-      e && e.hasAttribute("hx-get") && (f.info(`[Tab] Triggering HTMX for ${n.name}`), window.htmx && window.htmx.trigger(e, "click"));
+      e && e.hasAttribute("hx-get") && (d.info(`[Tab] Triggering HTMX for ${n.name}`), window.htmx && window.htmx.trigger(e, "click"));
     }, 0));
   },
   /**
@@ -1942,14 +1928,14 @@ const xt = (i, t = {}) => {
    * @param {string} group
    */
   register(t, n = "default") {
-    f.info(`[Tab] Registering ${t} in ${n}. Hash: ${window.location.hash}`), this.registry[t] = { name: t, group: n }, this.groups[n] || (this.groups[n] = t);
+    d.info(`[Tab] Registering ${t} in ${n}. Hash: ${window.location.hash}`), this.registry[t] = { name: t, group: n }, this.groups[n] || (this.groups[n] = t);
     let e = window.location.hash.slice(1);
-    !e && window.location.href.includes("#") && (e = window.location.href.split("#")[1]), e === t && (f.info(`[Tab] Hash match for ${t}. Activating.`), this.activate({ group: n, name: t, updateHash: !1 }));
+    !e && window.location.href.includes("#") && (e = window.location.href.split("#")[1]), e === t && (d.info(`[Tab] Hash match for ${t}. Activating.`), this.activate({ group: n, name: t, updateHash: !1 }));
   }
-}), wt = (i) => {
+}), vt = (i) => {
   i.directive("uno-tab", (t, { expression: n }, { evaluateLater: e, cleanup: o }) => {
     if (!n) {
-      console.warn("[Uno] x-uno-tab directive requires a configuration object.");
+      log.warn("[Uno] x-uno-tab directive requires a configuration object.");
       return;
     }
     const s = e(n);
@@ -1960,7 +1946,7 @@ const xt = (i, t = {}) => {
       else if (typeof c == "string")
         r = { name: c };
       else {
-        console.warn("[Uno] x-uno-tab directive value must be a string or object", c);
+        log.warn("[Uno] x-uno-tab directive value must be a string or object", c);
         return;
       }
       r.group || (r.group = "default"), r.name && i.store("uno").tab.register(r.name, r.group);
@@ -1974,7 +1960,7 @@ const xt = (i, t = {}) => {
     t.addEventListener("click", a), o(() => t.removeEventListener("click", a));
   });
 };
-const vt = (i, t = {}) => {
+const bt = (i, t = {}) => {
   const n = {
     defaultTab: "",
     hash: !0,
@@ -1983,14 +1969,14 @@ const vt = (i, t = {}) => {
   };
   h.registerPluginDefaults("tab", { ...n, ...t.plugins?.tab, ...t.tab });
   const e = yt();
-  U(i, "tab", e), i.store("uno").tab.init(), wt(i);
+  U(i, "tab", e), i.store("uno").tab.init(), vt(i);
 };
-h.dom = O;
+h.dom = M;
 typeof window < "u" && (window.Uno = h);
-h.use(N).use(ot).use(lt).use(ht).use(xt).use(vt);
+h.use(N).use(ot).use(lt).use(ht).use(xt).use(bt);
 if (typeof window < "u") {
   const i = () => {
-    window.Alpine && !h.initialized && (console.log("[Uno] Auto-registering with Alpine"), h.init(window.Alpine));
+    window.Alpine && !h.initialized && h.init(window.Alpine);
   };
   window.Alpine ? i() : document.addEventListener(
     "alpine:init",
@@ -2001,12 +1987,12 @@ if (typeof window < "u") {
   );
 }
 export {
-  O as DomManager,
+  M as DomManager,
   h as Uno,
   ht as box,
   h as default,
   lt as notify,
-  vt as tab,
+  bt as tab,
   ot as tooltip,
   xt as valid
 };

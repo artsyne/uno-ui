@@ -13,7 +13,7 @@
     "create:dirs": "node scripts/build/create-dirs.js",
     "verify:theme": "node scripts/build/verify-theme.js",
     "dev": "npm run build:dev",
-    "lint": "eslint website/static/src/js",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint website/static/src/js",
     "test:build": "npm run build:prod && npm run verify:theme",
     "test:unit": "NODE_OPTIONS=--experimental-vm-modules jest tests/unit",
     "test:integration": "jest tests/integration",

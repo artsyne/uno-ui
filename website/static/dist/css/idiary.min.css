@@ -1450,9 +1450,6 @@
   .\!h-\[60vh\] {
     height: 60vh !important;
   }
-  .\!h-\[500px\] {
-    height: 500px !important;
-  }
   .\!h-\[570px\] {
     height: 570px !important;
   }
@@ -1492,6 +1489,9 @@
   .h-96 {
     height: calc(var(--spacing) * 96);
   }
+  .h-\[70vh\] {
+    height: 70vh;
+  }
   .h-\[90vh\] {
     height: 90vh;
   }
@@ -1527,9 +1527,6 @@
   }
   .\!w-\[80vw\] {
     width: 80vw !important;
-  }
-  .\!w-\[800px\] {
-    width: 800px !important;
   }
   .\!w-\[880px\] {
     width: 880px !important;
@@ -3048,6 +3045,11 @@
   .lg\:w-2\/5 {
     @media (width >= 64rem) {
       width: calc(2/5 * 100%);
+    }
+  }
+  .lg\:w-\[70\%\] {
+    @media (width >= 64rem) {
+      width: 70%;
     }
   }
   .lg\:w-\[90\%\] {

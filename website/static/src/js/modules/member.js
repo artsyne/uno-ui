@@ -90,18 +90,40 @@ export const Member = {
     const uno = window.getUno();
     if (!uno) return;
 
-    const title = this.$store.i18n.t('diary.create.title');
+    const title = this.$store.i18n.t('diary.notebook.add');
     const boxId = uno.box.dialog({
       title: title,
-      ajaxUrl: '/form/diary?action=diary.add',
-      width: 800,
+      content: `<div class="modal-body" id="diary-form-container">${this.$store.i18n.t('common.loading')}</div>`,
+      widthClass: '!w-[880px]',
+      heightClass: '!h-[570px]',
       showOkButton: true,
-      okButtonText: this.$store.i18n.t('common.save'),
+      okText: this.$store.i18n.t('common.save'),
+      containerClass: '!border',
+      okButtonClass: 'btn',
+      buttonAlign: 'right',
       onOk: () => this.submitDiaryForm(boxId),
-      onContentLoad: (el) => {
-        if (window.htmx) htmx.process(el);
-      },
     });
+
+    fetch('/form/diary?action=diary.add')
+      .then((res) => res.text())
+      .then((html) => {
+        const container = document.getElementById('diary-form-container');
+        if (container) {
+          container.innerHTML = html;
+          // Manually populate action field
+          const actionInput = container.querySelector('#action');
+          if (actionInput) actionInput.value = 'diary.add';
+
+          if (window.Alpine) {
+            window.Alpine.initTree(container);
+          }
+        }
+      })
+      .catch((err) => {
+        const container = document.getElementById('diary-form-container');
+        if (container)
+          container.innerHTML = `<p class="text-red-500">${this.$store.i18n.t('common.load_fail')}</p>`;
+      });
   },
 
   async submitDiaryForm(boxId) {
@@ -139,9 +161,7 @@ export const Member = {
           new CustomEvent('diary:added', { detail: result.data }),
         );
       } else {
-        uno.notify.error(
-          result.message || 'common.op_fail',
-        );
+        uno.notify.error(result.message || 'common.op_fail');
       }
     } catch (e) {
       uno.notify.error('common.net_error');

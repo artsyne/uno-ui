@@ -60,7 +60,7 @@ export const createNotifyStore = (Alpine) => ({
 
   onHtmxError(error, item) {
     this._onHtmxEnd(item)
-    console.error('HTMX Error:', error)
+    log.error('HTMX Error:', error)
     this.error('Content load failed') // Could be localized if needed
     if (item.onError) {
       item.onError(error)

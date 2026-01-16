@@ -73,7 +73,7 @@
                         class="inline-block">
                         <button @click="toggle"
                             class="flex items-center hover:text-blue-500 transition-colors focus:outline-none"
-                            :class="{'text-blue-500': liked}" :disabled="loading">
+                            :disabled="loading">
                             <i class="mdi mr-1 text-lg" :class="liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
                             <span x-text="count"></span>
                         </button>

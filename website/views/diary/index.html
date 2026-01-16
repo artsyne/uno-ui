@@ -30,7 +30,7 @@
             <span id="diary-like-wrapper" data-diary-id="{{.Data.Diary.DiaryID}}">
                 <button class="btn" @click="toggleDiaryLike({{.Data.Diary.DiaryID}})" :disabled="diaryLike.loading">
                     <i class="mdi mr-1"
-                        :class="diaryLike.liked ? 'mdi-thumb-up text-red-500' : 'mdi-thumb-up-outline'"></i>
+                        :class="diaryLike.liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
                     <span x-text="diaryLike.count"></span>
                 </button>
             </span>
