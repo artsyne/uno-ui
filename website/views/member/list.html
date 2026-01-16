@@ -4,27 +4,7 @@
         {{ $timeZone := .Data.TimeZone }}
         {{ $lang := .Context.Lang }}
         {{ range .Data.Diaries }}
-        <div class="border h-72 text-center dt{{ .ThemeID }}" data-diary-id="{{ .DiaryID }}">
-            <div class="h-full flex flex-col p-3">
-                <div class="flex-grow flex items-center justify-center flex-col">
-                    <h1 class="text-xl mb-2 break-words w-full">
-                        <a href="/d/{{ .DiaryID }}" class="block w-full">{{ .Title }}
-                            {{ if gt .ViewSetting 1 }}
-                            <i class="mdi mdi-lock-outline"></i>
-                            {{ end }}
-                        </a>
-                    </h1>
-                    {{ if gt .InfoNum 0 }}
-                    <p class="mb-2">
-                        <span class="mr-1">{{ .InfoNum }}</span>{{getMessage "member.profile.posts_count" $lang}}
-                    </span>
-                    <p class="mb-2">
-                        {{ formatLocalTime .LastActionUTCTime $timeZone}}
-                    </p>
-                    {{ end }}
-                </div>
-            </div>
-        </div>
+        {{ template "member/diary_card" dict "Diary" . "Lang" $lang "TimeZone" $timeZone }}
         {{ end }}
     </div>
 

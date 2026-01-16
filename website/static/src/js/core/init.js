@@ -30,7 +30,7 @@ if (window.Uno) {
           'relative transform overflow-hidden shadow-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg flex flex-col max-h-[90vh] pointer-events-auto outline-none',
         cancelBtn:
           'mt-3 inline-flex w-full justify-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto',
-        okBtn: 'btn',
+        okBtn: 'btn ml-4',
         promptInput:
           'w-full px-3 py-2 border focus:ring-2 focus:ring-blue-500 outline-none',
       },

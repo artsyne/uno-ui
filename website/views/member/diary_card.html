@@ -1,0 +1,23 @@
+{{define "member/diary_card"}}
+<div class="border h-72 text-center dt{{ .Diary.ThemeID }}" data-diary-id="{{ .Diary.DiaryID }}" id="diary-card-{{ .Diary.DiaryID }}">
+  <div class="h-full flex flex-col p-3">
+    <div class="flex-grow flex items-center justify-center flex-col">
+      <h1 class="text-xl mb-2 break-words w-full">
+        <a href="/d/{{ .Diary.DiaryID }}" class="block w-full">{{ .Diary.Title }}
+          {{ if gt .Diary.ViewSetting 1 }}
+          <i class="mdi mdi-lock-outline"></i>
+          {{ end }}
+        </a>
+      </h1>
+      {{ if gt .Diary.InfoNum 0 }}
+      <p class="mb-2">
+        <span class="mr-1">{{ .Diary.InfoNum }}</span>{{getMessage "member.profile.posts_count" .Lang}}
+      </p>
+      <p class="mb-2">
+        {{ formatLocalTime .Diary.LastActionUTCTime .TimeZone}}
+      </p>
+      {{ end }}
+    </div>
+  </div>
+</div>
+{{end}}

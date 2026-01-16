@@ -1,7 +1,9 @@
 package diary
 
 import (
+	"fmt"
 	"log/slog"
+	"net/http"
 
 	"github.com/biuren/hebe/internal/app/middleware"
 	"github.com/biuren/hebe/internal/domain/diary"
@@ -67,6 +69,29 @@ func (ctrl *DiaryController) CreateDiary(c *gin.Context) {
 	diaryData.DiaryID = diaryID
 
 	// 返回成功响应
+	if c.GetHeader("HX-Request") == "true" {
+		lang := loginUser.Lang
+		if lang == "" {
+			lang = "en"
+		}
+		timezone := loginUser.TimeZone
+		if timezone == "" {
+			timezone = "UTC"
+		}
+
+		msg := ctrl.renderService.GetI18nManager().GetMessage("operation.success", lang)
+		triggerJSON := fmt.Sprintf(`{"showToast": {"type": "success", "message": "%s"}, "closeDiaryModal": true}`, msg)
+		c.Header("HX-Trigger", triggerJSON)
+
+		data := map[string]interface{}{
+			"Diary":    diaryData,
+			"Lang":     lang,
+			"TimeZone": timezone,
+		}
+		c.HTML(http.StatusOK, "member/diary_card", data)
+		return
+	}
+
 	ctrl.renderService.JSONSuccess(c, diaryData)
 }
 

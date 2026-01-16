@@ -15,8 +15,24 @@ export function DiaryList() {
       // Expose to global window for tooltip access
       window.openEditPost = (diaryId, postId) =>
         this.openEditPost(diaryId, postId);
-      window.confirmDelete = (diaryId, postId) =>
-        this.confirmDelete(diaryId, postId);
+
+      window.deletePost = (diaryId, postId) => this.deletePost(diaryId, postId);
+    },
+
+    async deletePost(diaryId, postId) {
+      const uno = window.getUno();
+      if (!uno) return;
+      const t = (key) => this.$store.i18n.t(key);
+
+      const confirmed = await uno.box.confirm(t('diary.delete.confirm'));
+      if (confirmed) {
+        if (window.htmx) {
+          htmx.ajax('DELETE', `/post/${postId}?diary_id=${diaryId}`, {
+            target: `#post-card-${postId}`,
+            swap: 'delete',
+          });
+        }
+      }
     },
 
     _escapeHtml(unsafe) {
@@ -62,9 +78,9 @@ export function DiaryList() {
                             @click.prevent="openEditPost(${post.diary_id}, ${post.post_id}); $store.uno.tooltip.hide()">
                             <i class="mdi mdi-pencil-outline mr-2"></i> ${t('common.edit')}</a>
                     </li>
-                    <li class="py-1"><a href="#" class="block hover:text-red-500"
-                            @click.prevent="confirmDelete(${post.diary_id}, ${post.post_id}); $store.uno.tooltip.hide()">
-                            <i class="mdi mdi-delete-outline mr-2"></i> ${t('common.delete')}</a>
+                    <li class="py-1"><button class="block w-full text-left hover:text-red-500"
+                            @click="deletePost(${post.diary_id}, ${post.post_id}); $store.uno.tooltip.hide()">
+                            <i class="mdi mdi-delete-outline mr-2"></i> ${t('common.delete')}</button>
                     </li>
                 </ul>
             </div>`;
@@ -77,7 +93,7 @@ export function DiaryList() {
       }
 
       return `
-          <div class="card mb-6 break-inside-avoid" data-post-id="${post.post_id}">
+          <div class="card mb-6 break-inside-avoid" id="post-card-${post.post_id}" data-post-id="${post.post_id}">
               ${ownerMenu}
               <div class="mb-4">
                   ${titleHtml}
@@ -112,49 +128,6 @@ export function DiaryList() {
               </div>
           </div>
         `;
-    },
-
-    confirmDelete(diaryId, postId) {
-      const uno = window.getUno();
-      if (!uno) return;
-      const title = String(this.$store.i18n.t('common.delete') || 'Delete');
-      const content = String(
-        this.$store.i18n.t('diary.delete.confirm') || 'Confirm delete?',
-      );
-
-      uno.box
-        .confirm(content, {
-          title,
-          okText: title,
-          cancelText: String(this.$store.i18n.t('common.cancel') || 'Cancel'),
-          okButtonClass: 'btn ml-2',
-        })
-        .then((confirmed) => {
-          if (!confirmed) return;
-          this.deletePost(diaryId, postId);
-        });
-    },
-    async deletePost(diaryId, postId) {
-      const uno = window.getUno();
-      const notify = uno?.notify;
-      if (!notify) return;
-
-      try {
-        const response = await fetch(`/post/${postId}?diary_id=${diaryId}`, {
-          method: 'DELETE',
-        });
-        const result = await response.json();
-        if (result.success) {
-          const el = document.querySelector(`.card[data-post-id="${postId}"]`);
-          if (el) el.remove();
-          notify.success('diary.delete.success');
-        } else {
-          notify.error(result.message || 'diary.delete.fail');
-        }
-      } catch (error) {
-        console.error('Delete error:', error);
-        notify.error('diary.delete.net_error');
-      }
     },
 
     // Modal Actions

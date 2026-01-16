@@ -1,7 +1,9 @@
 package post
 
 import (
+	"fmt"
 	"log/slog"
+	"net/http"
 	"strconv"
 
 	"github.com/biuren/hebe/internal/app/middleware"
@@ -159,6 +161,15 @@ func (ctrl *PostController) DeletePost(c *gin.Context) {
 	deleteErr := ctrl.postService.DeletePostByID(req.PostID, userData.UserId, userData.UserName, currentTime)
 	if deleteErr != nil {
 		ctrl.renderService.JSONError(c, deleteErr)
+		return
+	}
+
+	// HTMX 请求支持
+	if c.GetHeader("HX-Request") == "true" {
+		msg := ctrl.renderService.GetI18nManager().GetMessage("diary.delete.success", userData.Lang)
+		triggerJSON := fmt.Sprintf(`{"showToast": {"type": "success", "message": "%s"}}`, msg)
+		c.Header("HX-Trigger", triggerJSON)
+		c.Status(http.StatusOK)
 		return
 	}
 
