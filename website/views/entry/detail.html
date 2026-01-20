@@ -18,35 +18,28 @@
             <div class="card border-none">
                 <div class="flex justify-between mb-4">
                     {{if .Data.PreviousEntryID}}
-                    {{if .Data.IsAjax}}
-                    <a href="#" hx-get="/entry/{{.Data.PreviousEntryID}}?isajax=true" hx-target="#entry-detail-container"
-                        hx-swap="outerHTML" hx-push-url="/entry/{{.Data.PreviousEntryID}}"
+                    <a href="/entry/{{.Data.PreviousEntryID}}" hx-get="/entry/{{.Data.PreviousEntryID}}"
+                        hx-target="#entry-detail-container" hx-swap="outerHTML"
+                        hx-push-url="/entry/{{.Data.PreviousEntryID}}"
                         title='{{getMessage "common.previous" .Context.Lang}}'>
-                        {{else}}
-                        <a href="/entry/{{.Data.PreviousEntryID}}"
-                            title='{{getMessage "common.previous" .Context.Lang}}'>
-                            {{end}}
-                            <i class="mdi mdi-arrow-left"></i></a>
-                        {{else}}
-                        <a href="#" title='{{getMessage "common.is_first_page" .Context.Lang}}'
-                            class="cursor-not-allowed opacity-50">
-                            <i class="mdi mdi-arrow-left"></i></a>
-                        {{end}}
+                        <i class="mdi mdi-arrow-left"></i></a>
+                    {{else}}
+                    <a href="#" title='{{getMessage "common.is_first_page" .Context.Lang}}'
+                        class="cursor-not-allowed opacity-50">
+                        <i class="mdi mdi-arrow-left"></i></a>
+                    {{end}}
 
-                        {{if .Data.NextEntryID}}
-                        {{if .Data.IsAjax}}
-                        <a href="#" hx-get="/entry/{{.Data.NextEntryID}}?isajax=true" hx-target="#entry-detail-container"
-                            hx-swap="outerHTML" hx-push-url="/entry/{{.Data.NextEntryID}}"
-                            title='{{getMessage "common.next" .Context.Lang}}'>
-                            {{else}}
-                            <a href="/entry/{{.Data.NextEntryID}}" title='{{getMessage "common.next" .Context.Lang}}'>
-                                {{end}}
-                                <i class="mdi mdi-arrow-right"></i></a>
-                            {{else}}
-                            <a href="#" title='{{getMessage "common.is_last_page" .Context.Lang}}'
-                                class="cursor-not-allowed opacity-50">
-                                <i class="mdi mdi-arrow-right"></i></a>
-                            {{end}}
+                    {{if .Data.NextEntryID}}
+                    <a href="/entry/{{.Data.NextEntryID}}" hx-get="/entry/{{.Data.NextEntryID}}"
+                        hx-target="#entry-detail-container" hx-swap="outerHTML"
+                        hx-push-url="/entry/{{.Data.NextEntryID}}"
+                        title='{{getMessage "common.next" .Context.Lang}}'>
+                        <i class="mdi mdi-arrow-right"></i></a>
+                    {{else}}
+                    <a href="#" title='{{getMessage "common.is_last_page" .Context.Lang}}'
+                        class="cursor-not-allowed opacity-50">
+                        <i class="mdi mdi-arrow-right"></i></a>
+                    {{end}}
                 </div>
                 <div class="flex justify-between mb-4">
                     <p class="text-gray-600 dark:text-gray-400 text-sm">{{getMessage "common.authors" .Context.Lang}}

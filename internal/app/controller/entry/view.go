@@ -167,9 +167,7 @@ func (ctrl *EntryController) ShowEntry(c *gin.Context) {
 	}
 
 	// 兼容 HTMX 请求头
-	if c.GetHeader("HX-Request") == "true" {
-		req.IsAjax = true
-	}
+	isAjax := c.GetHeader("HX-Request") == "true"
 
 	// 获取日记信息 - 调用entry模块
 	entryInfo, err := ctrl.entryService.GetEntryByID(req.EntryID)
@@ -227,7 +225,6 @@ func (ctrl *EntryController) ShowEntry(c *gin.Context) {
 	data.Data["Diary"] = diaryInfo
 	data.Data["TimeZone"] = timeZone
 	data.Data["IsLiked"] = isLiked
-	data.Data["IsAjax"] = req.IsAjax
 	data.Data["PreviousEntryID"] = previousEntryID
 	data.Data["NextEntryID"] = nextEntryID
 	// 渲染 Markdown 内容为 HTML
@@ -235,7 +232,7 @@ func (ctrl *EntryController) ShowEntry(c *gin.Context) {
 
 	// 构建页面数据
 	viewPath := "entry/view"
-	if req.IsAjax {
+	if isAjax {
 		viewPath = "entry/detail"
 	}
 	ctrl.renderService.HTML(c, viewPath, data)

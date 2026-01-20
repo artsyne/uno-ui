@@ -79,13 +79,11 @@ type ListEntriesRequest struct {
 //
 // 字段:
 //   - EntryID: 日记ID，必需且大于0
-//   - IsAjax: 是否为异步请求，true表示是异步请求
 //
 // 路由:
 //   - /entry/:entryid
 type ShowEntryDetailRequest struct {
 	EntryID int64 `uri:"entryid" form:"entry_id" json:"entry_id" binding:"required,min=1"`
-	IsAjax  bool  `form:"isajax" json:"isajax"`
 }
 
 // GetEntriesStatsRequest 获取日记统计信息请求

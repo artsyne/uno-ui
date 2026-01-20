@@ -258,7 +258,7 @@ describe('Diary Modules', () => {
 
       expect(mockBoxDialog).toHaveBeenCalledWith(
         expect.objectContaining({
-          hxUrl: '/entry/1?isajax=true',
+          hxUrl: '/entry/1',
         }),
       );
 

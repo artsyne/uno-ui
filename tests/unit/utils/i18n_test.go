@@ -41,26 +41,26 @@ func TestI18nMessageLoading(t *testing.T) {
 		assert.NotEqual(t, "common.save", zhMsg, "中文消息应该被正确加载")
 	})
 
-	// 测试 member.profile 相关消息
-	t.Run("member.profile消息加载", func(t *testing.T) {
+	// 测试 user.profile 相关消息
+	t.Run("user.profile消息加载", func(t *testing.T) {
 		// 测试 entries_count
-		entriesCountMsg := manager.GetMessage("member.profile.entries_count", "zh-cn")
-		assert.NotEqual(t, "member.profile.entries_count", entriesCountMsg, "entries_count 应该被正确加载")
+		entriesCountMsg := manager.GetMessage("user.profile.entries_count", "zh-cn")
+		assert.NotEqual(t, "user.profile.entries_count", entriesCountMsg, "entries_count 应该被正确加载")
 		assert.Equal(t, "篇日记", entriesCountMsg, "entries_count 应该翻译为'篇日记'")
 
-		// 测试其他 member.profile 键
+		// 测试其他 user.profile 键
 		testCases := []struct {
-				key      string
-				expected string
-			}{
-				{"member.profile.introduction", "个人介绍"},
-				{"member.profile.menu", "目录"},
-				{"member.profile.latest_public_diary", "最新公开日记"},
-				{"member.profile.joined_diaries", "参与的日记本"},
-				{"member.profile.my_apps", "我的应用"},
-				{"member.profile.app_list", "应用列表"},
-				{"member.profile.diary", "日记本"},
-			}
+			key      string
+			expected string
+		}{
+			{"user.profile.introduction", "个人介绍"},
+			{"user.profile.menu", "目录"},
+			{"user.profile.latest_public_diary", "最新公开日记"},
+			{"user.profile.joined_diaries", "参与的日记本"},
+			{"user.profile.my_apps", "我的应用"},
+			{"user.profile.app_list", "应用列表"},
+			{"user.profile.diary", "日记本"},
+		}
 
 		for _, tc := range testCases {
 			t.Run(tc.key, func(t *testing.T) {
@@ -95,8 +95,8 @@ func TestI18nMessageLoading(t *testing.T) {
 // TestI18nCacheKeyBuilding 测试缓存键构建
 func TestI18nCacheKeyBuilding(t *testing.T) {
 	t.Run("基本缓存键构建", func(t *testing.T) {
-		cacheKey := i18n.BuildCacheKey("zh-cn", "member.profile.entries_count")
-		expected := "zh-cn:member.profile.entries_count"
+		cacheKey := i18n.BuildCacheKey("zh-cn", "user.profile.entries_count")
+		expected := "zh-cn:user.profile.entries_count"
 		assert.Equal(t, expected, cacheKey, "缓存键格式应该正确")
 	})
 
