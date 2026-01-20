@@ -113,16 +113,16 @@ button.btn-social{
   @apply tracking-wide leading-7;
 }
 
-/* post卡片的样式定义 */
-.post-time {
+/* entry卡片的样式定义 */
+.entry-time {
   @apply inline-block px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-400;
 }
 
-.post-edit {
+.entry-edit {
   @apply absolute top-1 right-1 z-10 text-sm w-7 h-7 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700  text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200;
 }
 
-.post-title{
+.entry-title{
 @apply break-words mb-2;
 }
 

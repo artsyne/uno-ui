@@ -1,0 +1,17 @@
+{{define "user/list"}}
+<div id="diary-container">
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8" id="diary_list">
+        {{ $timeZone := .Data.TimeZone }}
+        {{ $lang := .Context.Lang }}
+        {{ range .Data.Diaries }}
+        {{ template "user/diary_card" dict "Diary" . "Lang" $lang "TimeZone" $timeZone }}
+        {{ end }}
+    </div>
+
+    {{ if gt .Data.DiariesNum .Data.PageSize }}
+    <div class="flex justify-center mt-10" hx-boost="true" hx-target="#diary-container" hx-swap="outerHTML">
+        {{ template "pagination" . }}
+    </div>
+    {{ end }}
+</div>
+{{end}}

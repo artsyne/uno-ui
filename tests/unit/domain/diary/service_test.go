@@ -617,8 +617,8 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 	})
 }
 
-// TestDiaryService_PostCountOperations 测试文章数量操作
-func TestDiaryService_PostCountOperations(t *testing.T) {
+// TestDiaryService_EntryCountOperations 测试日记数量操作
+func TestDiaryService_EntryCountOperations(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
@@ -647,7 +647,7 @@ func TestDiaryService_PostCountOperations(t *testing.T) {
 	// 添加一个日记本
 	testDiary := &diary.Diary{
 		Title:         ctx.GetDataGenerator().GenerateUniqueString("fullname"),
-		Remark:        "测试文章数量操作",
+		Remark:        "测试日记数量操作",
 		AddUserID:     testUser.UserId,
 		AddUserName:   testUser.UserName,
 		Status:        1,
@@ -663,9 +663,9 @@ func TestDiaryService_PostCountOperations(t *testing.T) {
 	require.NoError(t, err)
 	initialCount := initialDiary.InfoNum
 
-	t.Run("增加文章计数", func(t *testing.T) {
+	t.Run("增加日记计数", func(t *testing.T) {
 		actionTime := int64(1642680100)
-		err := diaryService.IncrementPostCount(diaryID, testUser.UserId, testUser.UserName, actionTime)
+		err := diaryService.IncrementEntryCount(diaryID, testUser.UserId, testUser.UserName, actionTime)
 		assert.NoError(t, err)
 
 		// 验证计数是否增加
@@ -677,7 +677,7 @@ func TestDiaryService_PostCountOperations(t *testing.T) {
 		assert.Equal(t, actionTime, updatedDiary.LastActionUTCTime)
 	})
 
-	t.Run("减少文章计数", func(t *testing.T) {
+	t.Run("减少日记计数", func(t *testing.T) {
 		actionTime := int64(1642680200)
 
 		// 获取当前计数
@@ -685,7 +685,7 @@ func TestDiaryService_PostCountOperations(t *testing.T) {
 		require.NoError(t, err)
 		currentCount := currentDiary.InfoNum
 
-		err = diaryService.DecrementPostCount(diaryID, testUser.UserId, testUser.UserName, actionTime)
+		err = diaryService.DecrementEntryCount(diaryID, testUser.UserId, testUser.UserName, actionTime)
 		assert.NoError(t, err)
 
 		// 验证计数是否减少
@@ -699,10 +699,10 @@ func TestDiaryService_PostCountOperations(t *testing.T) {
 		actionTime := int64(1642680300)
 
 		// 对不存在的日记本操作不会返回错误，只是不会影响任何行
-		err := diaryService.IncrementPostCount(99999, testUser.UserId, testUser.UserName, actionTime)
+		err := diaryService.IncrementEntryCount(99999, testUser.UserId, testUser.UserName, actionTime)
 		assert.NoError(t, err)
 
-		err = diaryService.DecrementPostCount(99999, testUser.UserId, testUser.UserName, actionTime)
+		err = diaryService.DecrementEntryCount(99999, testUser.UserId, testUser.UserName, actionTime)
 		assert.NoError(t, err)
 	})
 
@@ -714,13 +714,13 @@ func TestDiaryService_PostCountOperations(t *testing.T) {
 		// 尝试减少计数，即使当前计数已经很低
 		actionTime := int64(1642680400)
 		for i := 0; i < int(currentDiary.InfoNum)+5; i++ { // 减少超过当前计数的次数
-			err = diaryService.DecrementPostCount(diaryID, testUser.UserId, testUser.UserName, actionTime)
+			err = diaryService.DecrementEntryCount(diaryID, testUser.UserId, testUser.UserName, actionTime)
 			// 可能有些减少操作会成功，有些可能失败，这取决于具体实现
 		}
 
 		// 验证计数没有变为负数
 		finalDiary, err := diaryService.GetDiaryByID(diaryID)
 		require.NoError(t, err)
-		assert.True(t, finalDiary.InfoNum >= 0, "文章计数不应该为负数")
+		assert.True(t, finalDiary.InfoNum >= 0, "日记计数不应该为负数")
 	})
 }

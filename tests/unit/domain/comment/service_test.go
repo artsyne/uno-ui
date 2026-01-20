@@ -5,7 +5,7 @@ import (
 
 	"github.com/biuren/hebe/internal/domain/comment"
 	"github.com/biuren/hebe/internal/domain/diary"
-	"github.com/biuren/hebe/internal/domain/post"
+	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
@@ -17,7 +17,7 @@ import (
 )
 
 // setupTestData 创建测试用的用户、日记本和文章
-func setupTestData(t *testing.T, ctx *framework.TestContext) (*user.User, *diary.Diary, *post.Post, *comment.Service) {
+func setupTestData(t *testing.T, ctx *framework.TestContext) (*user.User, *diary.Diary, *entry.Entry, *comment.Service) {
 	t.Helper()
 
 	// 创建真实的服务
@@ -25,15 +25,15 @@ func setupTestData(t *testing.T, ctx *framework.TestContext) (*user.User, *diary
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository()
+	entryRepo := repository.NewEntryRepository()
 	commentRepo := repository.NewCommentRepository()
-	
+
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryService := diary.NewService(config, diaryRepo)
-	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
-	commentService := comment.NewService(config, commentRepo, userService, postService, diaryService)
+	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	commentService := comment.NewService(config, commentRepo, userService, entryService, diaryService)
 
 	// 创建测试用户
 	testUser := &user.User{
@@ -62,7 +62,7 @@ func setupTestData(t *testing.T, ctx *framework.TestContext) (*user.User, *diary
 	testDiary.DiaryID = diaryID
 
 	// 创建测试文章
-	testPost := &post.Post{
+	testEntry := &entry.Entry{
 		Title:       "测试文章",
 		Body:        "这是一篇用于评论测试的文章",
 		DiaryID:     testDiary.DiaryID,
@@ -70,18 +70,18 @@ func setupTestData(t *testing.T, ctx *framework.TestContext) (*user.User, *diary
 		AddUserName: testUser.UserName,
 		Status:      1,
 	}
-	postID, err := postService.AddPost(testPost)
+	entryID, err := entryService.AddEntry(testEntry)
 	require.NoError(t, err)
-	testPost.PostID = postID
+	testEntry.EntryID = entryID
 
-	return testUser, testDiary, testPost, commentService
+	return testUser, testDiary, testEntry, commentService
 }
 
 func TestCommentService_AddComment(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
-	testUser, _, testPost, commentService := setupTestData(t, ctx.(*framework.TestContext))
+	testUser, _, testEntry, commentService := setupTestData(t, ctx.(*framework.TestContext))
 
 	tests := []struct {
 		name    string
@@ -92,7 +92,7 @@ func TestCommentService_AddComment(t *testing.T) {
 		{
 			name: "成功添加评论",
 			comment: &comment.Comment{
-				PostID:      testPost.PostID,
+				EntryID:     testEntry.EntryID,
 				Content:     "这是一条测试评论",
 				AddUserID:   testUser.UserId,
 				AddUserName: testUser.UserName,
@@ -103,7 +103,7 @@ func TestCommentService_AddComment(t *testing.T) {
 		{
 			name: "无效的用户ID",
 			comment: &comment.Comment{
-				PostID:      testPost.PostID,
+				EntryID:     testEntry.EntryID,
 				Content:     "这是一条测试评论",
 				AddUserID:   0,
 				AddUserName: "invalid",
@@ -115,7 +115,7 @@ func TestCommentService_AddComment(t *testing.T) {
 		{
 			name: "无效的文章ID",
 			comment: &comment.Comment{
-				PostID:      99999,
+				EntryID:     99999,
 				Content:     "这是一条测试评论",
 				AddUserID:   testUser.UserId,
 				AddUserName: testUser.UserName,
@@ -141,7 +141,7 @@ func TestCommentService_AddComment(t *testing.T) {
 				// 验证评论是否正确保存
 				savedComment, err := commentService.GetCommentByID(commentID)
 				assert.NoError(t, err)
-				assert.Equal(t, tt.comment.PostID, savedComment.PostID)
+				assert.Equal(t, tt.comment.EntryID, savedComment.EntryID)
 				assert.Equal(t, tt.comment.Content, savedComment.Content)
 				assert.Equal(t, tt.comment.AddUserID, savedComment.AddUserID)
 				assert.NotEmpty(t, savedComment.AddUtcTime)
@@ -154,11 +154,11 @@ func TestCommentService_GetCommentByID(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
-	testUser, _, testPost, commentService := setupTestData(t, ctx.(*framework.TestContext))
+	testUser, _, testEntry, commentService := setupTestData(t, ctx.(*framework.TestContext))
 
 	// 先创建一个评论
 	testComment := &comment.Comment{
-		PostID:      testPost.PostID,
+		EntryID:     testEntry.EntryID,
 		Content:     "测试评论内容",
 		AddUserID:   testUser.UserId,
 		AddUserName: testUser.UserName,
@@ -194,7 +194,7 @@ func TestCommentService_GetCommentByID(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, comment)
-				assert.Equal(t, testComment.PostID, comment.PostID)
+				assert.Equal(t, testComment.EntryID, comment.EntryID)
 				assert.Equal(t, testComment.Content, comment.Content)
 				assert.Equal(t, testComment.AddUserID, comment.AddUserID)
 			}
@@ -202,30 +202,30 @@ func TestCommentService_GetCommentByID(t *testing.T) {
 	}
 }
 
-func TestCommentService_ListCommentsByPostID(t *testing.T) {
+func TestCommentService_ListCommentsByEntryID(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
-	testUser, _, testPost, commentService := setupTestData(t, ctx.(*framework.TestContext))
+	testUser, _, testEntry, commentService := setupTestData(t, ctx.(*framework.TestContext))
 
 	// 创建多个评论
 	comments := []*comment.Comment{
 		{
-			PostID:      testPost.PostID,
+			EntryID:     testEntry.EntryID,
 			Content:     "第一条评论",
 			AddUserID:   testUser.UserId,
 			AddUserName: testUser.UserName,
 			AddUserIP:   "127.0.0.1",
 		},
 		{
-			PostID:      testPost.PostID,
+			EntryID:     testEntry.EntryID,
 			Content:     "第二条评论",
 			AddUserID:   testUser.UserId,
 			AddUserName: testUser.UserName,
 			AddUserIP:   "127.0.0.1",
 		},
 		{
-			PostID:      testPost.PostID,
+			EntryID:     testEntry.EntryID,
 			Content:     "第三条评论",
 			AddUserID:   testUser.UserId,
 			AddUserName: testUser.UserName,
@@ -239,13 +239,13 @@ func TestCommentService_ListCommentsByPostID(t *testing.T) {
 	}
 
 	// 测试分页获取评论
-	commentList, total, err := commentService.ListCommentsByPostID(testPost.PostID, 1, 2)
+	commentList, total, err := commentService.ListCommentsByEntryID(testEntry.EntryID, 1, 2)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, total)
 	assert.Len(t, commentList, 2)
 
 	// 测试获取第二页
-	commentList, total, err = commentService.ListCommentsByPostID(testPost.PostID, 2, 2)
+	commentList, total, err = commentService.ListCommentsByEntryID(testEntry.EntryID, 2, 2)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, total)
 	assert.Len(t, commentList, 1)
@@ -255,11 +255,11 @@ func TestCommentService_DeleteComment(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
-	testUser, _, testPost, commentService := setupTestData(t, ctx.(*framework.TestContext))
+	testUser, _, testEntry, commentService := setupTestData(t, ctx.(*framework.TestContext))
 
 	// 先创建一个评论
 	testComment := &comment.Comment{
-		PostID:      testPost.PostID,
+		EntryID:     testEntry.EntryID,
 		Content:     "待删除的评论",
 		AddUserID:   testUser.UserId,
 		AddUserName: testUser.UserName,
@@ -277,21 +277,21 @@ func TestCommentService_DeleteComment(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestCommentService_GetCommentCountByPostID(t *testing.T) {
+func TestCommentService_GetCommentCountByEntryID(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
 
-	testUser, _, testPost, commentService := setupTestData(t, ctx.(*framework.TestContext))
+	testUser, _, testEntry, commentService := setupTestData(t, ctx.(*framework.TestContext))
 
 	// 初始评论数应该为0
-	count, err := commentService.GetCommentCountByPostID(testPost.PostID)
+	count, err := commentService.GetCommentCountByEntryID(testEntry.EntryID)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, count)
 
 	// 添加几条评论
 	for i := 0; i < 3; i++ {
 		testComment := &comment.Comment{
-			PostID:      testPost.PostID,
+			EntryID:     testEntry.EntryID,
 			Content:     "测试评论",
 			AddUserID:   testUser.UserId,
 			AddUserName: testUser.UserName,
@@ -302,7 +302,7 @@ func TestCommentService_GetCommentCountByPostID(t *testing.T) {
 	}
 
 	// 验证评论数
-	count, err = commentService.GetCommentCountByPostID(testPost.PostID)
+	count, err = commentService.GetCommentCountByEntryID(testEntry.EntryID)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, count)
 }

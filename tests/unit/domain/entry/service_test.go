@@ -1,11 +1,11 @@
-package post_test
+package entry_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/biuren/hebe/internal/domain/diary"
-	"github.com/biuren/hebe/internal/domain/post"
+	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
@@ -49,8 +49,8 @@ func setupTestUserAndDiary(t *testing.T, ctx *framework.TestContext, userService
 	return testUser, testDiary
 }
 
-// TestPostService_AddPost 测试添加文章功能
-func TestPostService_AddPost(t *testing.T) {
+// TestEntryService_AddEntry 测试添加文章功能
+func TestEntryService_AddEntry(t *testing.T) {
 	// 使用新测试框架
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
@@ -60,19 +60,19 @@ func TestPostService_AddPost(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository()
+	entryRepo := repository.NewEntryRepository()
 	
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryService := diary.NewService(config, diaryRepo)
-	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
+	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
 	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
 
 	t.Run("成功添加文章", func(t *testing.T) {
-		newPost := &post.Post{
+		newEntry := &entry.Entry{
 			Title:       "测试文章标题",
 			Body:        "这是一篇测试文章的内容",
 			DiaryID:     testDiary.DiaryID,
@@ -81,14 +81,14 @@ func TestPostService_AddPost(t *testing.T) {
 			Status:      1,
 		}
 
-		postID, err := postService.AddPost(newPost)
+		entryID, err := entryService.AddEntry(newEntry)
 		require.NoError(t, err)
-		assert.True(t, postID > 0)
-		assert.Equal(t, postID, newPost.PostID)
+		assert.True(t, entryID > 0)
+		assert.Equal(t, entryID, newEntry.EntryID)
 	})
 
 	t.Run("无效的日记本ID", func(t *testing.T) {
-		invalidPost := &post.Post{
+		invalidEntry := &entry.Entry{
 			Title:       "标题",
 			Body:        "内容",
 			DiaryID:     99999, // 不存在的日记本ID
@@ -97,12 +97,12 @@ func TestPostService_AddPost(t *testing.T) {
 			Status:      1,
 		}
 
-		_, err := postService.AddPost(invalidPost)
+		_, err := entryService.AddEntry(invalidEntry)
 		assert.Error(t, err)
 	})
 
 	t.Run("无效的用户ID", func(t *testing.T) {
-		invalidPost := &post.Post{
+		invalidEntry := &entry.Entry{
 			Title:       "标题",
 			Body:        "内容",
 			DiaryID:     testDiary.DiaryID,
@@ -111,13 +111,13 @@ func TestPostService_AddPost(t *testing.T) {
 			Status:      1,
 		}
 
-		_, err := postService.AddPost(invalidPost)
+		_, err := entryService.AddEntry(invalidEntry)
 		assert.Error(t, err)
 	})
 }
 
-// TestPostService_GetPostByID 测试根据ID获取文章
-func TestPostService_GetPostByID(t *testing.T) {
+// TestEntryService_GetEntryByID 测试根据ID获取文章
+func TestEntryService_GetEntryByID(t *testing.T) {
 	// 使用新测试框架
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
@@ -127,19 +127,19 @@ func TestPostService_GetPostByID(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository()
+	entryRepo := repository.NewEntryRepository()
 	
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryService := diary.NewService(config, diaryRepo)
-	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
+	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
 	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
 
 	// 添加一篇文章
-	newPost := &post.Post{
+	newEntry := &entry.Entry{
 		Title:       "可获取的文章",
 		Body:        "测试获取功能的文章内容",
 		Summary:     "测试摘要",
@@ -148,28 +148,28 @@ func TestPostService_GetPostByID(t *testing.T) {
 		AddUserName: testUser.UserName,
 		Status:      1,
 	}
-	postID, err := postService.AddPost(newPost)
+	entryID, err := entryService.AddEntry(newEntry)
 	require.NoError(t, err)
 
 	t.Run("成功获取文章", func(t *testing.T) {
-		retrievedPost, err := postService.GetPostByID(postID)
+		retrievedEntry, err := entryService.GetEntryByID(entryID)
 		require.NoError(t, err)
-		assert.NotNil(t, retrievedPost)
-		assert.Equal(t, "可获取的文章", retrievedPost.Title)
-		assert.Equal(t, "测试获取功能的文章内容", retrievedPost.Body)
-		assert.Equal(t, testUser.UserId, retrievedPost.AddUserID)
-		assert.Equal(t, testDiary.DiaryID, retrievedPost.DiaryID)
+		assert.NotNil(t, retrievedEntry)
+		assert.Equal(t, "可获取的文章", retrievedEntry.Title)
+		assert.Equal(t, "测试获取功能的文章内容", retrievedEntry.Body)
+		assert.Equal(t, testUser.UserId, retrievedEntry.AddUserID)
+		assert.Equal(t, testDiary.DiaryID, retrievedEntry.DiaryID)
 	})
 
 	t.Run("文章不存在", func(t *testing.T) {
-		retrievedPost, err := postService.GetPostByID(99999)
+		retrievedEntry, err := entryService.GetEntryByID(99999)
 		assert.Error(t, err)
-		assert.Nil(t, retrievedPost)
+		assert.Nil(t, retrievedEntry)
 	})
 }
 
-// TestPostService_UpdatePost 测试更新文章
-func TestPostService_UpdatePost(t *testing.T) {
+// TestEntryService_UpdateEntry 测试更新文章
+func TestEntryService_UpdateEntry(t *testing.T) {
 	// 使用新测试框架
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
@@ -179,19 +179,19 @@ func TestPostService_UpdatePost(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository()
+	entryRepo := repository.NewEntryRepository()
 	
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryService := diary.NewService(config, diaryRepo)
-	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
+	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
 	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
 
 	// 添加一篇文章
-	originalPost := &post.Post{
+	originalEntry := &entry.Entry{
 		Title:       "原始标题",
 		Body:        "原始内容",
 		Summary:     "原始摘要",
@@ -200,12 +200,12 @@ func TestPostService_UpdatePost(t *testing.T) {
 		AddUserName: testUser.UserName,
 		Status:      1,
 	}
-	postID, err := postService.AddPost(originalPost)
+	entryID, err := entryService.AddEntry(originalEntry)
 	require.NoError(t, err)
 
 	t.Run("成功更新文章", func(t *testing.T) {
-		updatedPost := &post.Post{
-			PostID:        postID,
+		updatedEntry := &entry.Entry{
+			EntryID:        entryID,
 			Title:         "更新后的标题",
 			Body:          "更新后的内容",
 			Summary:       "更新后的摘要",
@@ -216,20 +216,20 @@ func TestPostService_UpdatePost(t *testing.T) {
 			Status:        1,
 		}
 
-		err := postService.UpdatePost(updatedPost)
+		err := entryService.UpdateEntry(updatedEntry)
 		assert.NoError(t, err)
 
 		// 验证更新是否成功
-		retrievedPost, err := postService.GetPostByID(postID)
+		retrievedEntry, err := entryService.GetEntryByID(entryID)
 		require.NoError(t, err)
-		assert.Equal(t, "更新后的标题", retrievedPost.Title)
-		assert.Equal(t, "更新后的内容", retrievedPost.Body)
-		assert.Equal(t, "更新后的摘要", retrievedPost.Summary)
+		assert.Equal(t, "更新后的标题", retrievedEntry.Title)
+		assert.Equal(t, "更新后的内容", retrievedEntry.Body)
+		assert.Equal(t, "更新后的摘要", retrievedEntry.Summary)
 	})
 
 	t.Run("更新不存在的文章", func(t *testing.T) {
-		nonExistentPost := &post.Post{
-			PostID:      99999,
+		nonExistentEntry := &entry.Entry{
+			EntryID:      99999,
 			Title:       "不存在的文章",
 			Body:        "测试",
 			DiaryID:     testDiary.DiaryID,
@@ -238,13 +238,13 @@ func TestPostService_UpdatePost(t *testing.T) {
 			Status:      1,
 		}
 
-		err := postService.UpdatePost(nonExistentPost)
+		err := entryService.UpdateEntry(nonExistentEntry)
 		assert.Error(t, err)
 	})
 
 	t.Run("内容为空时更新失败", func(t *testing.T) {
-		invalidPost := &post.Post{
-			PostID:      postID,
+		invalidEntry := &entry.Entry{
+			EntryID:      entryID,
 			Title:       "标题",
 			Body:        "", // 空内容
 			DiaryID:     testDiary.DiaryID,
@@ -253,13 +253,13 @@ func TestPostService_UpdatePost(t *testing.T) {
 			Status:      1,
 		}
 
-		err := postService.UpdatePost(invalidPost)
+		err := entryService.UpdateEntry(invalidEntry)
 		assert.Error(t, err)
 	})
 }
 
-// TestPostService_ListPostsByUserID 测试分页获取用户文章列表
-func TestPostService_ListPostsByUserID(t *testing.T) {
+// TestEntryService_ListEntriesByUserID 测试分页获取用户文章列表
+func TestEntryService_ListEntriesByUserID(t *testing.T) {
 	// 使用新测试框架
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
@@ -273,8 +273,8 @@ func TestPostService_ListPostsByUserID(t *testing.T) {
 	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(config, diaryRepo)
-	postRepo := repository.NewPostRepository()
-	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
+	entryRepo := repository.NewEntryRepository()
+	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
 	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
@@ -305,7 +305,7 @@ func TestPostService_ListPostsByUserID(t *testing.T) {
 
 	// 为testUser添加5篇文章
 	for i := 1; i <= 5; i++ {
-		post := &post.Post{
+		entry := &entry.Entry{
 			Title:       fmt.Sprintf("文章%d", i),
 			Body:        fmt.Sprintf("第%d篇文章内容", i),
 			Summary:     fmt.Sprintf("第%d篇文章摘要", i),
@@ -315,12 +315,12 @@ func TestPostService_ListPostsByUserID(t *testing.T) {
 			Status:      1,
 			InfoType:    1,
 		}
-		_, err := postService.AddPost(post)
+		_, err := entryService.AddEntry(entry)
 		require.NoError(t, err)
 	}
 
 	// 为otherUser添加1篇文章
-	otherPost := &post.Post{
+	otherEntry := &entry.Entry{
 		Title:       "其他用户的文章",
 		Body:        "其他用户的文章内容",
 		Summary:     "其他用户的文章摘要",
@@ -330,61 +330,61 @@ func TestPostService_ListPostsByUserID(t *testing.T) {
 		Status:      1,
 		InfoType:    1,
 	}
-	_, err = postService.AddPost(otherPost)
+	_, err = entryService.AddEntry(otherEntry)
 	require.NoError(t, err)
 
 	t.Run("第一页，每页3篇", func(t *testing.T) {
-		posts, total, err := postService.ListPostsByUserID(testUser.UserId, testDiary.DiaryID, 1, 3)
+		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, testDiary.DiaryID, 1, 3)
 		require.NoError(t, err)
-		assert.Len(t, posts, 3)
+		assert.Len(t, entries, 3)
 		assert.Equal(t, 5, total)
 
 		// 验证返回的都是指定用户和日记本的文章
-		for _, p := range posts {
+		for _, p := range entries {
 			assert.Equal(t, testUser.UserId, p.AddUserID)
 			assert.Equal(t, testDiary.DiaryID, p.DiaryID)
 		}
 	})
 
 	t.Run("第二页，每页3篇", func(t *testing.T) {
-		posts, total, err := postService.ListPostsByUserID(testUser.UserId, testDiary.DiaryID, 2, 3)
+		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, testDiary.DiaryID, 2, 3)
 		require.NoError(t, err)
-		assert.Len(t, posts, 2) // 剩余2篇
+		assert.Len(t, entries, 2) // 剩余2篇
 		assert.Equal(t, 5, total)
 	})
 
 	t.Run("获取所有文章", func(t *testing.T) {
-		posts, total, err := postService.ListPostsByUserID(testUser.UserId, testDiary.DiaryID, 1, 10)
+		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, testDiary.DiaryID, 1, 10)
 		require.NoError(t, err)
-		assert.Len(t, posts, 5)
+		assert.Len(t, entries, 5)
 		assert.Equal(t, 5, total)
 	})
 
 	t.Run("获取其他用户的文章", func(t *testing.T) {
-		posts, total, err := postService.ListPostsByUserID(otherUser.UserId, otherDiaryID, 1, 10)
+		entries, total, err := entryService.ListEntriesByUserID(otherUser.UserId, otherDiaryID, 1, 10)
 		require.NoError(t, err)
-		assert.Len(t, posts, 1)
+		assert.Len(t, entries, 1)
 		assert.Equal(t, 1, total)
-		assert.Equal(t, "其他用户的文章", posts[0].Title)
+		assert.Equal(t, "其他用户的文章", entries[0].Title)
 	})
 
 	t.Run("不存在的用户", func(t *testing.T) {
-		posts, total, err := postService.ListPostsByUserID(99999, testDiary.DiaryID, 1, 10)
+		entries, total, err := entryService.ListEntriesByUserID(99999, testDiary.DiaryID, 1, 10)
 		assert.NoError(t, err) // 应该返回空列表而不是错误
-		assert.Len(t, posts, 0)
+		assert.Len(t, entries, 0)
 		assert.Equal(t, 0, total)
 	})
 
 	t.Run("不存在的日记本", func(t *testing.T) {
-		posts, total, err := postService.ListPostsByUserID(testUser.UserId, 99999, 1, 10)
+		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, 99999, 1, 10)
 		assert.NoError(t, err) // 应该返回空列表而不是错误
-		assert.Len(t, posts, 0)
+		assert.Len(t, entries, 0)
 		assert.Equal(t, 0, total)
 	})
 }
 
-// TestPostService_GetPostCountByUserID 测试获取用户文章数量
-func TestPostService_GetPostCountByUserID(t *testing.T) {
+// TestEntryService_GetEntryCountByUserID 测试获取用户文章数量
+func TestEntryService_GetEntryCountByUserID(t *testing.T) {
 	// 使用新测试框架
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
@@ -398,21 +398,21 @@ func TestPostService_GetPostCountByUserID(t *testing.T) {
 	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(config, diaryRepo)
-	postRepo := repository.NewPostRepository()
-	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
+	entryRepo := repository.NewEntryRepository()
+	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
 		testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
 
 	t.Run("初始文章数量为0", func(t *testing.T) {
-		count, err := postService.GetPostCountByUserID(testUser.UserId, testDiary.DiaryID)
+		count, err := entryService.GetEntryCountByUserID(testUser.UserId, testDiary.DiaryID)
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 	})
 
 	// 添加3篇文章
 	for i := 1; i <= 3; i++ {
-		post := &post.Post{
+		entry := &entry.Entry{
 			Title:       fmt.Sprintf("文章%d", i),
 			Body:        fmt.Sprintf("第%d篇文章内容", i),
 			DiaryID:     testDiary.DiaryID,
@@ -420,31 +420,31 @@ func TestPostService_GetPostCountByUserID(t *testing.T) {
 			AddUserName: testUser.UserName,
 			Status:      1,
 		}
-		_, err := postService.AddPost(post)
+		_, err := entryService.AddEntry(entry)
 		require.NoError(t, err)
 	}
 
 	t.Run("添加文章后的数量", func(t *testing.T) {
-		count, err := postService.GetPostCountByUserID(testUser.UserId, testDiary.DiaryID)
+		count, err := entryService.GetEntryCountByUserID(testUser.UserId, testDiary.DiaryID)
 		require.NoError(t, err)
 		assert.Equal(t, 3, count)
 	})
 
 	t.Run("不存在的用户", func(t *testing.T) {
-		count, err := postService.GetPostCountByUserID(99999, testDiary.DiaryID)
+		count, err := entryService.GetEntryCountByUserID(99999, testDiary.DiaryID)
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 	})
 
 	t.Run("不存在的日记本", func(t *testing.T) {
-		count, err := postService.GetPostCountByUserID(testUser.UserId, 99999)
+		count, err := entryService.GetEntryCountByUserID(testUser.UserId, 99999)
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 	})
 }
 
-// TestPostService_UpdatePostByID 测试根据ID更新文章
-func TestPostService_UpdatePostByID(t *testing.T) {
+// TestEntryService_UpdateEntryByID 测试根据ID更新文章
+func TestEntryService_UpdateEntryByID(t *testing.T) {
 	// 使用新测试框架
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
@@ -458,14 +458,14 @@ func TestPostService_UpdatePostByID(t *testing.T) {
 	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(config, diaryRepo)
-	postRepo := repository.NewPostRepository()
-	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
+	entryRepo := repository.NewEntryRepository()
+	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
 	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
 
 	// 添加一篇文章
-	originalPost := &post.Post{
+	originalEntry := &entry.Entry{
 		Title:       "待更新的文章",
 		Body:        "原始内容",
 		Summary:     "原始摘要",
@@ -474,12 +474,12 @@ func TestPostService_UpdatePostByID(t *testing.T) {
 		AddUserName: testUser.UserName,
 		Status:      1,
 	}
-	postID, err := postService.AddPost(originalPost)
+	entryID, err := entryService.AddEntry(originalEntry)
 	require.NoError(t, err)
 
 	t.Run("成功更新文章", func(t *testing.T) {
-		updatedPost := &post.Post{
-			PostID:        postID,
+		updatedEntry := &entry.Entry{
+			EntryID:        entryID,
 			Title:         "已更新的文章",
 			Body:          "更新后的内容",
 			Summary:       "更新后的摘要",
@@ -490,20 +490,20 @@ func TestPostService_UpdatePostByID(t *testing.T) {
 			Status:        1,
 		}
 
-		err := postService.UpdatePostByID(updatedPost)
+		err := entryService.UpdateEntryByID(updatedEntry)
 		assert.NoError(t, err)
 
 		// 验证更新是否成功
-		retrievedPost, err := postService.GetPostByID(postID)
+		retrievedEntry, err := entryService.GetEntryByID(entryID)
 		require.NoError(t, err)
-		assert.Equal(t, "已更新的文章", retrievedPost.Title)
-		assert.Equal(t, "更新后的内容", retrievedPost.Body)
-		assert.Equal(t, "更新后的摘要", retrievedPost.Summary)
+		assert.Equal(t, "已更新的文章", retrievedEntry.Title)
+		assert.Equal(t, "更新后的内容", retrievedEntry.Body)
+		assert.Equal(t, "更新后的摘要", retrievedEntry.Summary)
 	})
 
 	t.Run("更新不存在的文章", func(t *testing.T) {
-		nonExistentPost := &post.Post{
-			PostID:      99999,
+		nonExistentEntry := &entry.Entry{
+			EntryID:      99999,
 			Title:       "不存在",
 			Body:        "测试",
 			DiaryID:     testDiary.DiaryID,
@@ -512,13 +512,13 @@ func TestPostService_UpdatePostByID(t *testing.T) {
 			Status:      1,
 		}
 
-		err := postService.UpdatePostByID(nonExistentPost)
+		err := entryService.UpdateEntryByID(nonExistentEntry)
 		assert.Error(t, err)
 	})
 }
 
-// TestPostService_DeletePostByID 测试删除文章
-func TestPostService_DeletePostByID(t *testing.T) {
+// TestEntryService_DeleteEntryByID 测试删除文章
+func TestEntryService_DeleteEntryByID(t *testing.T) {
 	// 使用新测试框架
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
@@ -532,14 +532,14 @@ func TestPostService_DeletePostByID(t *testing.T) {
 	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(config, diaryRepo)
-	postRepo := repository.NewPostRepository()
-	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
+	entryRepo := repository.NewEntryRepository()
+	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
 	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
 
 	// 添加一篇文章用于删除测试
-	newPost := &post.Post{
+	newEntry := &entry.Entry{
 		Title:       "待删除的文章",
 		Body:        "这篇文章将被删除",
 		Summary:     "删除测试",
@@ -548,40 +548,40 @@ func TestPostService_DeletePostByID(t *testing.T) {
 		AddUserName: testUser.UserName,
 		Status:      1,
 	}
-	postID, err := postService.AddPost(newPost)
+	entryID, err := entryService.AddEntry(newEntry)
 	require.NoError(t, err)
 
 	// 验证文章存在
-	retrievedPost, err := postService.GetPostByID(postID)
+	retrievedEntry, err := entryService.GetEntryByID(entryID)
 	require.NoError(t, err)
-	assert.NotNil(t, retrievedPost)
+	assert.NotNil(t, retrievedEntry)
 
 	t.Run("成功删除文章", func(t *testing.T) {
 		currentTime := int64(1642680300)
-		err := postService.DeletePostByID(postID, testUser.UserId, testUser.UserName, currentTime)
+		err := entryService.DeleteEntryByID(entryID, testUser.UserId, testUser.UserName, currentTime)
 		assert.NoError(t, err)
 
 		// 验证文章已被删除
-		deletedPost, err := postService.GetPostByID(postID)
+		deletedEntry, err := entryService.GetEntryByID(entryID)
 		assert.Error(t, err)
-		assert.Nil(t, deletedPost)
+		assert.Nil(t, deletedEntry)
 	})
 
 	t.Run("删除不存在的文章", func(t *testing.T) {
 		currentTime := int64(1642680300)
-		err := postService.DeletePostByID(99999, testUser.UserId, testUser.UserName, currentTime)
+		err := entryService.DeleteEntryByID(99999, testUser.UserId, testUser.UserName, currentTime)
 		assert.Error(t, err)
 	})
 
 	t.Run("删除已删除的文章", func(t *testing.T) {
 		currentTime := int64(1642680300)
-		err := postService.DeletePostByID(postID, testUser.UserId, testUser.UserName, currentTime)
+		err := entryService.DeleteEntryByID(entryID, testUser.UserId, testUser.UserName, currentTime)
 		assert.Error(t, err)
 	})
 }
 
-// TestPostService_GetPostsStats 测试获取文章统计信息功能
-func TestPostService_GetPostsStats(t *testing.T) {
+// TestEntryService_GetEntriesStats 测试获取文章统计信息功能
+func TestEntryService_GetEntriesStats(t *testing.T) {
 	// 使用新测试框架
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	defer ctx.Cleanup()
@@ -591,21 +591,21 @@ func TestPostService_GetPostsStats(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository()
+	entryRepo := repository.NewEntryRepository()
 	
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryService := diary.NewService(config, diaryRepo)
-	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
+	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
 	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
 
 	// 创建多篇测试文章
-	var testPosts []*post.Post
+	var testEntries []*entry.Entry
 	for i := 0; i < 3; i++ {
-		testPost := &post.Post{
+		testEntry := &entry.Entry{
 			Title:       fmt.Sprintf("测试文章%d", i+1),
 			Body:        fmt.Sprintf("这是第%d篇测试文章的内容", i+1),
 			DiaryID:     testDiary.DiaryID,
@@ -616,28 +616,28 @@ func TestPostService_GetPostsStats(t *testing.T) {
 			LikeNum:     int32(5 * (i + 1)),  // 设置不同的点赞数
 			CommentNum:  int32(2 * (i + 1)),  // 设置不同的评论数
 		}
-		postID, err := postService.AddPost(testPost)
+		entryID, err := entryService.AddEntry(testEntry)
 		require.NoError(t, err)
-		testPost.PostID = postID
-		testPosts = append(testPosts, testPost)
+		testEntry.EntryID = entryID
+		testEntries = append(testEntries, testEntry)
 	}
 
 	t.Run("成功获取多篇文章统计信息", func(t *testing.T) {
 		// 构建文章ID列表
-		postIDs := make([]int64, len(testPosts))
-		for i, p := range testPosts {
-			postIDs[i] = p.PostID
+		entryIDs := make([]int64, len(testEntries))
+		for i, p := range testEntries {
+			entryIDs[i] = p.EntryID
 		}
 
 		// 获取统计信息
-		stats, err := postService.GetPostsStats(postIDs)
+		stats, err := entryService.GetEntriesStats(entryIDs)
 		require.NoError(t, err)
-		assert.Len(t, stats, len(testPosts))
+		assert.Len(t, stats, len(testEntries))
 
 		// 验证返回的统计信息
 		for i, stat := range stats {
 			assert.Equal(t, testDiary.DiaryID, stat.DiaryID)
-			assert.Equal(t, testPosts[i].PostID, stat.PostID)
+			assert.Equal(t, testEntries[i].EntryID, stat.EntryID)
 			// 注意：由于数据库操作可能重置统计数据，这里主要验证结构正确性
 			assert.GreaterOrEqual(t, stat.ViewNum, int32(0))
 			assert.GreaterOrEqual(t, stat.LikeNum, int32(0))
@@ -646,25 +646,25 @@ func TestPostService_GetPostsStats(t *testing.T) {
 	})
 
 	t.Run("空文章ID列表", func(t *testing.T) {
-		stats, err := postService.GetPostsStats([]int64{})
+		stats, err := entryService.GetEntriesStats([]int64{})
 		require.NoError(t, err)
 		assert.Empty(t, stats)
 	})
 
 	t.Run("不存在的文章ID", func(t *testing.T) {
-		stats, err := postService.GetPostsStats([]int64{99999, 99998})
+		stats, err := entryService.GetEntriesStats([]int64{99999, 99998})
 		require.NoError(t, err)
 		assert.Empty(t, stats) // 不存在的文章应该返回空列表
 	})
 
 	t.Run("混合存在和不存在的文章ID", func(t *testing.T) {
-		mixedIDs := []int64{testPosts[0].PostID, 99999, testPosts[1].PostID}
-		stats, err := postService.GetPostsStats(mixedIDs)
+		mixedIDs := []int64{testEntries[0].EntryID, 99999, testEntries[1].EntryID}
+		stats, err := entryService.GetEntriesStats(mixedIDs)
 		require.NoError(t, err)
 		// 应该只返回存在的文章统计信息
 		assert.Len(t, stats, 2)
 		for _, stat := range stats {
-			assert.Contains(t, []int64{testPosts[0].PostID, testPosts[1].PostID}, stat.PostID)
+			assert.Contains(t, []int64{testEntries[0].EntryID, testEntries[1].EntryID}, stat.EntryID)
 		}
 	})
 }

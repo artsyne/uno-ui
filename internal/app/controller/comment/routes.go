@@ -16,7 +16,7 @@ import (
 //   - POST /api/comment/create - 创建评论
 //   - POST /api/comment/delete - 删除评论
 //   - GET /api/comment/list - 获取评论列表
-//   - GET /api/post/:post_id/comments - 根据日记ID获取评论列表（RESTful风格）
+//   - GET /api/entry/:entry_id/comments - 根据日记ID获取评论列表（RESTful风格）
 func RegisterRoutes(router *gin.RouterGroup, ctrl *CommentController) {
 	// 评论相关API路由组
 	commentAPI := router.Group("/comment")
@@ -38,5 +38,5 @@ func RegisterRoutes(router *gin.RouterGroup, ctrl *CommentController) {
 
 	// RESTful风格的路由
 	// 根据日记ID获取评论列表
-	router.GET("/post/:post_id/comments", middleware.Validate[GetCommentsByPathRequest](), ctrl.GetCommentsByPostIDFromPath)
+	router.GET("/entry/:entry_id/comments", middleware.Validate[GetCommentsByPathRequest](), ctrl.GetCommentsByEntryIDFromPath)
 }

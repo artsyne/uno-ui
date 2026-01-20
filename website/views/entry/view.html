@@ -1,4 +1,4 @@
-{{define "post/view"}}
+{{define "entry/view"}}
 {{template "header" .}}
 {{template "navbar" .}}
 
@@ -7,18 +7,18 @@
     <section class="flex justify-between mb-10">
         <div id="page-nav">
             <ul class="flex text-lg text-gray-700 dark:text-gray-300">
-                <li><a href="/u/{{.Data.Post.AddUserID}}">{{.Data.Post.AddUserName}}</a>
+                <li><a href="/u/{{.Data.Entry.AddUserID}}">{{.Data.Entry.AddUserName}}</a>
                     <i class="mdi mdi-slash-forward mx-3 text-gray-500 dark:text-gray-400"></i>
                 </li>
                 <li>
-                    <a href="/d/{{.Data.Post.DiaryID}}">{{.Data.Diary.Title}}</a>
+                    <a href="/diary/{{.Data.Entry.DiaryID}}">{{.Data.Diary.Title}}</a>
                 </li>
             </ul>
         </div>
     </section>
 
-    <div id="post-detail-container-outer" class="container post-container mx-auto dt{{.Data.Diary.ThemeID}}">
-        {{template "post/detail" .}}
+    <div id="entry-detail-container-outer" class="container entry-container mx-auto dt{{.Data.Diary.ThemeID}}">
+        {{template "entry/detail" .}}
     </div>
 </main>
 {{template "footer" .}}

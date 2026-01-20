@@ -11,14 +11,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	diary "github.com/biuren/hebe/internal/app/controller/diary"
+	"github.com/biuren/hebe/internal/app/view"
 	types "github.com/biuren/hebe/internal/contracts"
 	diaryDomain "github.com/biuren/hebe/internal/domain/diary"
 	likeDomain "github.com/biuren/hebe/internal/domain/like"
 	userDomain "github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/config"
-	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/utils/i18n"
-	diary "github.com/biuren/hebe/internal/app/controller/diary"
 )
 
 // 简化的测试，专注于控制器的基本功能
@@ -39,7 +39,7 @@ func TestDiaryController_Basic(t *testing.T) {
 			SummaryMax:  100,
 			Suffix:      ".html",
 			PageSize:    10,
-			MaxDaybookLimit: 100,
+			MaxDiaryLimit: 100,
 			StaticDir:   "static",
 			LocalesDir:  "locales",
 			DefaultLang: "zh-cn",
@@ -187,11 +187,11 @@ func TestDiaryController_ViewService(t *testing.T) {
 				Domain:      "http://localhost",
 				Port:        "8080",
 				SummaryMax:  100,
-				Suffix:      ".html",
-				PageSize:    10,
-				MaxDaybookLimit: 100,
-				StaticDir:   "static",
-				LocalesDir:  "locales",
+			Suffix:      ".html",
+			PageSize:    10,
+			MaxDiaryLimit: 100,
+			StaticDir:   "static",
+			LocalesDir:  "locales",
 				DefaultLang: "zh-cn",
 			},
 		}
@@ -212,7 +212,7 @@ func TestDiaryController_ViewService(t *testing.T) {
 				SummaryMax:  100,
 				Suffix:      ".html",
 				PageSize:    10,
-				MaxDaybookLimit: 100,
+				MaxDiaryLimit: 100,
 				StaticDir:   "static",
 				LocalesDir:  "locales",
 				DefaultLang: "zh-cn",

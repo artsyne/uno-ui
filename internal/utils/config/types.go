@@ -35,8 +35,8 @@ type AppConfig struct {
 	SummaryMax      int    `json:"summary_max" mapstructure:"SUMMARY_MAX" validate:"required,min=10,max=1000"`
 	Suffix          string `json:"suffix" mapstructure:"SUFFIX" validate:"required"`
 	PageSize             int    `json:"page_size" mapstructure:"PAGE_SIZE" validate:"required,min=1,max=100"`
-	MaxDaybookLimit      int    `json:"max_daybook_limit" mapstructure:"MAX_DAYBOOK_LIMIT" validate:"required,min=1"`
-	MaxPostLength        int    `json:"max_post_length" mapstructure:"MAX_POST_LENGTH" validate:"required,min=1"`
+	MaxDiaryLimit      int    `json:"max_diary_limit" mapstructure:"MAX_DIARY_LIMIT" validate:"required,min=1"`
+	MaxEntryLength        int    `json:"max_entry_length" mapstructure:"MAX_ENTRY_LENGTH" validate:"required,min=1"`
 	MaxCommentLength     int    `json:"max_comment_length" mapstructure:"MAX_COMMENT_LENGTH" validate:"required,min=1"`
 	MaxDescriptionLength int    `json:"max_description_length" mapstructure:"MAX_DESCRIPTION_LENGTH" validate:"required,min=1"`
 	StaticDir            string `json:"static_dir" mapstructure:"STATIC_DIR" validate:"required"`

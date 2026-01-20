@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
+	core "github.com/biuren/hebe/tests/framework/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	core "github.com/biuren/hebe/tests/framework/core"
 )
 
 // TestFrameworkBasicFunctionality 验证新框架基本功能
@@ -82,13 +82,13 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 		assert.Equal(t, int8(1), diary.Status)
 
 		// 测试文章生成
-		post := generator.CreatePost(1, 1)
-		assert.NotNil(t, post)
-		assert.NotEmpty(t, post.Title)
-		assert.NotEmpty(t, post.Body)
-		assert.Equal(t, int64(1), post.DiaryID)
-		assert.Equal(t, int64(1), post.AddUserID)
-		assert.Equal(t, int8(1), post.Status)
+		entry := generator.CreateEntry(1, 1)
+		assert.NotNil(t, entry)
+		assert.NotEmpty(t, entry.Title)
+		assert.NotEmpty(t, entry.Body)
+		assert.Equal(t, int64(1), entry.DiaryID)
+		assert.Equal(t, int64(1), entry.AddUserID)
+		assert.Equal(t, int8(1), entry.Status)
 	})
 
 	t.Run("配置管理器功能测试", func(t *testing.T) {
@@ -154,7 +154,7 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 				ctx := NewTestContext()
 
 				// 执行一些操作
-			isolator := ctx.GetIsolator()
+				isolator := ctx.GetIsolator()
 				generator := ctx.GetDataGenerator()
 
 				user := generator.CreateUser()
@@ -281,7 +281,7 @@ func TestDatabaseInitialization(t *testing.T) {
 		assert.Equal(t, 1, tableCount, "br_user表不存在，数据库schema可能未正确加载")
 
 		// 检查更多关键表
-        keyTables := []string{"br_diary", "br_post", "br_user"}
+		keyTables := []string{"br_diary", "br_entry", "br_user"}
 		for _, tableName := range keyTables {
 			var count int
 			err = db.QueryRow("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = ? AND table_name = ?",

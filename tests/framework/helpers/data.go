@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/biuren/hebe/internal/domain/diary"
-	"github.com/biuren/hebe/internal/domain/post"
+	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/domain/user"
 	. "github.com/biuren/hebe/tests/framework/types"
 )
@@ -92,13 +92,13 @@ func (dg *DataGeneratorImpl) CreateDiary(userID int64, options ...DiaryOption) *
 	}
 }
 
-// CreatePost 创建测试文章
-func (dg *DataGeneratorImpl) CreatePost(userID, diaryID int64, options ...PostOption) *post.Post {
+// CreateEntry 创建测试文章
+func (dg *DataGeneratorImpl) CreateEntry(userID, diaryID int64, options ...EntryOption) *entry.Entry {
 	// 默认选项
-	opts := &PostOptions{
-		Title:    dg.isolator.IsolateTitle("post"),
-		Body:     "Test post body content with detailed information",
-		Summary:  "Test post summary",
+	opts := &EntryOptions{
+		Title:    dg.isolator.IsolateTitle("entry"),
+		Body:     "Test entry body content with detailed information",
+		Summary:  "Test entry summary",
 		InfoType: 1, // 普通文章
 	}
 
@@ -109,7 +109,7 @@ func (dg *DataGeneratorImpl) CreatePost(userID, diaryID int64, options ...PostOp
 
 	now := time.Now().Unix()
 
-	return &post.Post{
+	return &entry.Entry{
 		Title:         opts.Title,
 		Body:          opts.Body,
 		Summary:       opts.Summary,
@@ -223,32 +223,32 @@ func WithThemeID(themeID int) DiaryOption {
 	}
 }
 
-// Post选项函数
+// Entry选项函数
 
-// WithPostTitle 设置文章标题
-func WithPostTitle(title string) PostOption {
-	return func(opts *PostOptions) {
+// WithEntryTitle 设置文章标题
+func WithEntryTitle(title string) EntryOption {
+	return func(opts *EntryOptions) {
 		opts.Title = title
 	}
 }
 
-// WithPostBody 设置文章内容
-func WithPostBody(body string) PostOption {
-	return func(opts *PostOptions) {
+// WithEntryBody 设置文章内容
+func WithEntryBody(body string) EntryOption {
+	return func(opts *EntryOptions) {
 		opts.Body = body
 	}
 }
 
-// WithPostSummary 设置文章摘要
-func WithPostSummary(summary string) PostOption {
-	return func(opts *PostOptions) {
+// WithEntrySummary 设置文章摘要
+func WithEntrySummary(summary string) EntryOption {
+	return func(opts *EntryOptions) {
 		opts.Summary = summary
 	}
 }
 
 // WithInfoType 设置信息类型
-func WithInfoType(infoType int) PostOption {
-	return func(opts *PostOptions) {
+func WithInfoType(infoType int) EntryOption {
+	return func(opts *EntryOptions) {
 		opts.InfoType = infoType
 	}
 }
@@ -296,28 +296,28 @@ func (dg *DataGeneratorImpl) CreateDiaries(userID int64, count int, baseOptions 
 	return diaries
 }
 
-// CreatePosts 批量创建文章
-func (dg *DataGeneratorImpl) CreatePosts(userID, diaryID int64, count int, baseOptions ...PostOption) []*post.Post {
-	posts := make([]*post.Post, count)
+// CreateEntries 批量创建文章
+func (dg *DataGeneratorImpl) CreateEntries(userID, diaryID int64, count int, baseOptions ...EntryOption) []*entry.Entry {
+	entries := make([]*entry.Entry, count)
 
 	for i := 0; i < count; i++ {
 		// 为每个文章创建唯一的选项
-		options := make([]PostOption, len(baseOptions))
+		options := make([]EntryOption, len(baseOptions))
 		copy(options, baseOptions)
 
 		// 添加索引以确保唯一性
 		options = append(options,
-			WithPostTitle(fmt.Sprintf("post%d", i)),
+			WithEntryTitle(fmt.Sprintf("entry%d", i)),
 		)
 
-		posts[i] = dg.CreatePost(userID, diaryID, options...)
+		entries[i] = dg.CreateEntry(userID, diaryID, options...)
 	}
 
-	return posts
+	return entries
 }
 
 // CreateCompleteUserScenario 创建完整的用户场景（用户+日记+文章）
-func (dg *DataGeneratorImpl) CreateCompleteUserScenario(diaryCount, postCount int) (*user.User, []*diary.Diary, []*post.Post) {
+func (dg *DataGeneratorImpl) CreateCompleteUserScenario(diaryCount, entryCount int) (*user.User, []*diary.Diary, []*entry.Entry) {
 	// 创建用户
 	testUser := dg.CreateUser()
 
@@ -333,15 +333,15 @@ func (dg *DataGeneratorImpl) CreateCompleteUserScenario(diaryCount, postCount in
 	}
 
 	// 创建文章
-	posts := make([]*post.Post, 0)
+	entries := make([]*entry.Entry, 0)
 	for i := range diaries {
 		// 每个日记创建指定数量的文章
 		diaryID := int64(2000 + i)
-		diaryPosts := dg.CreatePosts(userID, diaryID, postCount,
-			WithPostTitle(fmt.Sprintf("diary%d_post", i+1)),
+		diaryEntries := dg.CreateEntries(userID, diaryID, entryCount,
+			WithEntryTitle(fmt.Sprintf("diary%d_entry%d", i+1, i+1)),
 		)
-		posts = append(posts, diaryPosts...)
+		entries = append(entries, diaryEntries...)
 	}
 
-	return testUser, diaries, posts
+	return testUser, diaries, entries
 }

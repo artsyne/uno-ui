@@ -5,8 +5,13 @@ import (
 
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/utils/i18n"
+	framework "github.com/biuren/hebe/tests/framework"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestMain(m *testing.M) {
+	framework.RunTestsWithFlags(m)
+}
 
 // TestI18nMessageLoading 测试国际化消息加载功能
 func TestI18nMessageLoading(t *testing.T) {
@@ -38,10 +43,10 @@ func TestI18nMessageLoading(t *testing.T) {
 
 	// 测试 member.profile 相关消息
 	t.Run("member.profile消息加载", func(t *testing.T) {
-		// 测试 posts_count
-		postsCountMsg := manager.GetMessage("member.profile.posts_count", "zh-cn")
-		assert.NotEqual(t, "member.profile.posts_count", postsCountMsg, "posts_count 应该被正确加载")
-		assert.Equal(t, "篇", postsCountMsg, "posts_count 应该翻译为'篇'")
+		// 测试 entries_count
+		entriesCountMsg := manager.GetMessage("member.profile.entries_count", "zh-cn")
+		assert.NotEqual(t, "member.profile.entries_count", entriesCountMsg, "entries_count 应该被正确加载")
+		assert.Equal(t, "篇日记", entriesCountMsg, "entries_count 应该翻译为'篇日记'")
 
 		// 测试其他 member.profile 键
 		testCases := []struct {
@@ -51,10 +56,10 @@ func TestI18nMessageLoading(t *testing.T) {
 				{"member.profile.introduction", "个人介绍"},
 				{"member.profile.menu", "目录"},
 				{"member.profile.latest_public_diary", "最新公开日记"},
-				{"member.profile.joined_diaries", "加入日记本"},
+				{"member.profile.joined_diaries", "参与的日记本"},
 				{"member.profile.my_apps", "我的应用"},
 				{"member.profile.app_list", "应用列表"},
-				{"member.profile.diary_notebook", "日记本"},
+				{"member.profile.diary", "日记本"},
 			}
 
 		for _, tc := range testCases {
@@ -90,8 +95,8 @@ func TestI18nMessageLoading(t *testing.T) {
 // TestI18nCacheKeyBuilding 测试缓存键构建
 func TestI18nCacheKeyBuilding(t *testing.T) {
 	t.Run("基本缓存键构建", func(t *testing.T) {
-		cacheKey := i18n.BuildCacheKey("zh-cn", "member.profile.posts_count")
-		expected := "zh-cn:member.profile.posts_count"
+		cacheKey := i18n.BuildCacheKey("zh-cn", "member.profile.entries_count")
+		expected := "zh-cn:member.profile.entries_count"
 		assert.Equal(t, expected, cacheKey, "缓存键格式应该正确")
 	})
 

@@ -13,11 +13,11 @@
                     {{formatLocalTime .AddUtcTime $.Data.time_zone}}
                 </span>
             </div>
-            {{if or (eq $.Data.CurrentUserID .AddUserID) (eq $.Data.CurrentUserID $.Data.PostOwnerID)}}
+            {{if or (eq $.Data.CurrentUserID .AddUserID) (eq $.Data.CurrentUserID $.Data.EntryOwnerID)}}
             <a href="javascript:void(0)"
                 class="text-xs hover:underline  ml-4 text-red-500 invisible group-hover:visible"
                 @click.prevent="deleteComment('{{.CommentID}}')">
-                {{getMessage "comments.delete" $.Context.Lang}}
+                {{getMessage "comment.delete" $.Context.Lang}}
             </a>
             {{end}}
         </div>
@@ -42,7 +42,7 @@
     </div>
     {{end}}
     {{else}}
-    <p class="text-center text-gray-500 py-8">{{getMessage "comments.no_comments" $.Context.Lang}}</p>
+    <p class="text-center text-gray-500 py-8">{{getMessage "comment.no_comments" $.Context.Lang}}</p>
     {{end}}
 </div>
 {{end}}

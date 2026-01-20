@@ -12,10 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/biuren/hebe/internal/core/database"
 	"github.com/biuren/hebe/internal/domain/diary"
-	"github.com/biuren/hebe/internal/domain/post"
+	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
@@ -24,8 +23,9 @@ import (
 	core "github.com/biuren/hebe/tests/framework/core"
 	"github.com/biuren/hebe/tests/framework/helpers"
 	. "github.com/biuren/hebe/tests/framework/types"
-	"github.com/jmoiron/sqlx"
+	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 )
 
 // TestContext 测试上下文实现
@@ -60,7 +60,7 @@ type DataIsolator struct {
 type ServiceRegistry struct {
 	userService  *user.Service
 	diaryService *diary.Service
-	postService  *post.Service
+	entryService *entry.Service
 	mu           sync.RWMutex
 }
 
@@ -293,10 +293,10 @@ func (sr *ServiceRegistry) GetDiaryService() *diary.Service {
 	return sr.diaryService
 }
 
-func (sr *ServiceRegistry) GetPostService() *post.Service {
+func (sr *ServiceRegistry) GetEntryService() *entry.Service {
 	sr.mu.RLock()
 	defer sr.mu.RUnlock()
-	return sr.postService
+	return sr.entryService
 }
 
 func (sr *ServiceRegistry) InitializeServices(db *sqlx.DB, testConfig TestConfigInterface) error {
@@ -313,7 +313,7 @@ func (sr *ServiceRegistry) InitializeServices(db *sqlx.DB, testConfig TestConfig
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository()
+	entryRepo := repository.NewEntryRepository()
 	
 	// 创建服务实例
 	taskService := task.NewService(appConfig, taskRepo)
@@ -321,7 +321,7 @@ func (sr *ServiceRegistry) InitializeServices(db *sqlx.DB, testConfig TestConfig
 	i18nManager := i18n.NewLocalizationManager(appConfig)
 	sr.userService = user.NewService(appConfig, userRepo, taskService, i18nManager)
 	sr.diaryService = diary.NewService(appConfig, diaryRepo)
-	sr.postService = post.NewService(appConfig, userRepo, taskService, diaryRepo, postRepo, i18nManager)
+	sr.entryService = entry.NewService(appConfig, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
 	
 	return nil
 }
@@ -469,16 +469,16 @@ func (dg *DataGenerator) CreateDiary(userID int64, options ...DiaryOption) *diar
 	}
 }
 
-// CreatePost 创建测试文章
-func (dg *DataGenerator) CreatePost(userID, diaryID int64, options ...PostOption) *post.Post {
+// CreateEntry 创建测试文章
+func (dg *DataGenerator) CreateEntry(userID, diaryID int64, options ...EntryOption) *entry.Entry {
 	dg.mu.Lock()
 	defer dg.mu.Unlock()
 	
 	// 设置默认选项
-	opts := &PostOptions{
-		Title:    dg.isolator.IsolateTitle("Test Post"),
-		Body:     "Test post content",
-		Summary:  "Test post summary",
+	opts := &EntryOptions{
+		Title:    dg.isolator.IsolateTitle("Test Entry"),
+		Body:     "Test entry content",
+		Summary:  "Test entry summary",
 		InfoType: 1,
 	}
 	
@@ -488,7 +488,7 @@ func (dg *DataGenerator) CreatePost(userID, diaryID int64, options ...PostOption
 	}
 	
 	// 创建文章对象
-	return &post.Post{
+	return &entry.Entry{
 		AddUserID: userID,
 		DiaryID:   diaryID,
 		Title:     opts.Title,

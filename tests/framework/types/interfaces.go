@@ -5,7 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/biuren/hebe/internal/domain/diary"
-	"github.com/biuren/hebe/internal/domain/post"
+	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/jmoiron/sqlx"
@@ -62,7 +62,7 @@ type CleanupManagerInterface interface {
 type DataGeneratorInterface interface {
 	CreateUser(options ...UserOption) *user.User
 	CreateDiary(userID int64, options ...DiaryOption) *diary.Diary
-	CreatePost(userID, diaryID int64, options ...PostOption) *post.Post
+	CreateEntry(userID, diaryID int64, options ...EntryOption) *entry.Entry
 	GenerateUniqueString(prefix string) string
 	GenerateUniqueEmail(prefix string) string
 }
@@ -71,7 +71,7 @@ type DataGeneratorInterface interface {
 type ServiceRegistryInterface interface {
 	GetUserService() *user.Service
 	GetDiaryService() *diary.Service
-	GetPostService() *post.Service
+	GetEntryService() *entry.Service
 	InitializeServices(db *sqlx.DB, testConfig TestConfigInterface) error
 }
 

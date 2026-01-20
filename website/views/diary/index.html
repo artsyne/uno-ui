@@ -3,7 +3,7 @@
 {{template "navbar" .}}
 
 <main class="main dt{{.Data.Diary.ThemeID}} transition-colors duration-200"
-    data-social-setting="{{.Data.Diary.SocialSetting}}" data-is-owner="{{.Data.IsOwner}}" x-data="diaryList">
+    data-social-setting="{{.Data.Diary.SocialSetting}}" data-is-owner="{{.Data.IsOwner}}" x-data="diaryDetail">
     <section class="flex justify-between mb-10">
         <div id="page-nav">
             <ul class="flex text-lg">
@@ -12,7 +12,7 @@
                     <i class="mdi mdi-slash-forward mx-3"></i>
                 </li>
                 <li>
-                    <a href="/d/{{.Data.Diary.DiaryID}}" id="diary_title"
+                    <a href="/diary/{{.Data.Diary.DiaryID}}" id="diary_title"
                         class="hover:text-red-500 dark:hover:text-red-400">{{.Data.Diary.Title}}{{if eq
                         .Data.Diary.ViewSetting 2}}<i class="mdi mdi-lock-outline mx-3"></i>{{end}}
                     </a>
@@ -21,16 +21,15 @@
         </div>
         <div>
             {{if .Data.IsOwner}}
-            <button class="mr-3 btn" @click="openEditDiary({{.Data.Diary.DiaryID}})"><i class="mdi mdi-cogs"></i>
+            <button class="mr-3 btn" @click="openDiarySettings({{.Data.Diary.DiaryID}})"><i class="mdi mdi-cogs"></i>
                 {{getMessage
-                "diary.button.settings" .Context.Lang}}</button>
+                "diary.settings" .Context.Lang}}</button>
             {{end}}
             <!-- 日记本点赞按钮容器 -->
             {{if eq .Data.Diary.SocialSetting 1}}
             <span id="diary-like-wrapper" data-diary-id="{{.Data.Diary.DiaryID}}">
                 <button class="btn" @click="toggleDiaryLike({{.Data.Diary.DiaryID}})" :disabled="diaryLike.loading">
-                    <i class="mdi mr-1"
-                        :class="diaryLike.liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
+                    <i class="mdi mr-1" :class="diaryLike.liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
                     <span x-text="diaryLike.count"></span>
                 </button>
             </span>
@@ -41,7 +40,7 @@
     <section class="mb-10">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div>
-                <h1 class="card-title">{{getMessage "diary.label.introduction" .Context.Lang}}</h1>
+                <h1 class="card-title">{{getMessage "diary.label_info.introduction" .Context.Lang}}</h1>
                 <div class="text-sm">
                     <p id="diary_remark">{{.Data.Diary.Remark}}</p>
                 </div>
@@ -53,12 +52,12 @@
                         <li class="py-1">
                             <a href="#" class="hover:text-red-500 dark:hover:text-red-400">
                                 <i class="mdi mdi-account-group"></i>
-                                <span>{{getMessage "diary.label.authors_list" .Context.Lang}}</span>
+                                <span>{{getMessage "diary.label_info.authors_list" .Context.Lang}}</span>
                             </a>
                         </li>
                         <li class="py-1"><a href="#" class="hover:text-red-500 dark:hover:text-red-400">
                                 <i class="mdi mdi-delete-outline"></i>
-                                <span>{{getMessage "diary.label.liked_members_list" .Context.Lang}}</span>
+                                <span>{{getMessage "diary.label_info.liked_users_list" .Context.Lang}}</span>
                             </a></li>
                     </ul>
                 </div>

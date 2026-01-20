@@ -53,7 +53,7 @@ func TestConfig_AppConfig(t *testing.T) {
 	assert.Equal(t, 555, cfg.App.SummaryMax)
 	assert.Equal(t, "...", cfg.App.Suffix)
 	assert.Equal(t, 20, cfg.App.PageSize)
-	assert.Equal(t, 500, cfg.App.MaxDaybookLimit)
+	assert.Equal(t, 500, cfg.App.MaxDiaryLimit)
 	// 使用跨平台路径检查
 	assert.Contains(t, strings.ReplaceAll(cfg.App.StaticDir, "\\", "/"), "website/static")
 	assert.Contains(t, strings.ReplaceAll(cfg.App.LocalesDir, "\\", "/"), "website/locales")

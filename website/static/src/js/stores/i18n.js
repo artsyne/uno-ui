@@ -1,5 +1,5 @@
 import { getCookie, setCookie } from '../utils/cookie.js';
-import localeData from '../locales/data.js';
+import localeData from '../locales/index.js';
 
 const STORAGE_KEY = 'idiary-lang';
 const DEFAULT_LANGUAGE = 'en';

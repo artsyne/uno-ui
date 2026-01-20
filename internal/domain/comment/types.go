@@ -4,17 +4,17 @@ package comment
 // 用于接收前端表单提交的数据
 type CommentRequest struct {
 	CommentID int64  `form:"comment_id" json:"comment_id"` // 评论ID
-	PostID    int64  `form:"post_id" json:"post_id"`       // 日记ID
+	EntryID    int64  `form:"entry_id" json:"entry_id"`       // 日记ID
 	Content   string `form:"content" json:"content"`       // 评论内容
 }
 
 // Comment 评论数据库对象
 // 包含评论的完整信息，对应数据库br_comment表
 type Comment struct {
-	CommentID  int64  `form:"comment_id" json:"comment_id" db:"comment_id"`       // 评论ID
-	PostID     int64  `form:"post_id" json:"post_id" db:"post_id"`                // 日记ID
-	Content    string `form:"content" json:"content" db:"content"`                // 评论内容
-	AddUtcTime int64  `form:"add_utc_time" json:"add_utc_time" db:"add_utc_time"` // 创建时间（UTC 毫秒）
+	CommentID   int64  `form:"comment_id" json:"comment_id" db:"comment_id"`       // 评论ID
+	EntryID     int64  `form:"entry_id" json:"entry_id" db:"entry_id"`             // 日记ID
+	Content     string `form:"content" json:"content" db:"content"`                // 评论内容
+	AddUtcTime  int64  `form:"add_utc_time" json:"add_utc_time" db:"add_utc_time"` // 创建时间（UTC 毫秒）
 	AddUserID   int64  `form:"add_user_id" json:"add_user_id" db:"add_user_id"`       // 创建用户ID
 	AddUserName string `form:"add_user_name" json:"add_user_name" db:"add_user_name"` // 创建用户名
 	AddUserIP   string `form:"add_user_ip" json:"add_user_ip" db:"add_user_ip"`       // 创建用户IP

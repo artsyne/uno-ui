@@ -26,36 +26,36 @@ type RepositoryInterface interface {
 	//   - error: 查询失败时返回错误
 	GetByID(commentID int64) (*Comment, error)
 
-	// ListByPostID 根据日记ID分页查询评论信息
+	// ListByEntryID 根据日记ID分页查询评论信息
 	// 参数:
-	//   - postID: 日记ID
+	//   - entryID: 日记ID
 	//   - pageIndex: 页码（从1开始）
 	//   - pageSize: 每页大小
 	// 返回:
 	//   - []Comment: 评论列表
 	//   - int: 总记录数
 	//   - error: 查询失败时返回错误
-	ListByPostID(postID int64, pageIndex, pageSize int) ([]Comment, int, error)
+	ListByEntryID(entryID int64, pageIndex, pageSize int) ([]Comment, int, error)
 
-	// GetCountByPostID 根据日记ID统计评论数量
+	// GetCountByEntryID 根据日记ID统计评论数量
 	// 参数:
-	//   - postID: 日记ID
+	//   - entryID: 日记ID
 	// 返回:
 	//   - int: 评论数量
 	//   - error: 查询失败时返回错误
-	GetCountByPostID(postID int64) (int, error)
+	GetCountByEntryID(entryID int64) (int, error)
 
-	// IncrementPostCommentNum 增加日记的评论数量
+	// IncrementEntryCommentNum 增加日记的评论数量
 	// 参数:
-	//   - postID: 日记ID
+	//   - entryID: 日记ID
 	// 返回:
 	//   - error: 更新失败时返回错误
-	IncrementPostCommentNum(postID int64) error
+	IncrementEntryCommentNum(entryID int64) error
 
-	// DecrementPostCommentNum 减少日记的评论数量
+	// DecrementEntryCommentNum 减少日记的评论数量
 	// 参数:
-	//   - postID: 日记ID
+	//   - entryID: 日记ID
 	// 返回:
 	//   - error: 更新失败时返回错误
-	DecrementPostCommentNum(postID int64) error
+	DecrementEntryCommentNum(entryID int64) error
 }

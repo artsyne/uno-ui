@@ -1,0 +1,40 @@
+export default {
+  'common.save': '保存',
+  'common.edit': '编辑',
+  'common.cancel': '取消',
+  'common.delete': '删除',
+  'common.op_fail': '操作失败',
+  'common.op_success': '操作成功',
+  'common.loading': '加载中...',
+  'common.load_fail': '加载失败',
+  'common.save_success': '保存成功',
+  'common.save_fail': '保存失败',
+  'common.net_error': '网络错误',
+  
+  'diary.create': '新建日记本',
+  'diary.settings': '日记本设置',
+  
+  'entry.create': '写日记',
+  'entry.edit': '编辑日记',
+  'entry.delete.confirm': '确定要删除这篇日记吗？',
+  'entry.delete.success': '删除成功',
+  'entry.delete.fail': '删除失败',
+  'entry.delete.net_error': '网络错误，删除失败',
+  'entry.like.success': '点赞成功',
+  'entry.like.cancel': '取消点赞',
+  'social.like.success': '点赞成功',
+  'social.like.cancel': '取消点赞',
+  
+  'auth.username_taken': '用户名已被占用',
+  'auth.email_taken': '邮箱已被占用',
+  'auth.success': '操作成功',
+  
+  'comment.submit_success': '留言提交成功',
+  'comment.delete_confirm': '确定要删除这条留言吗？',
+  'comment.delete_success': '留言删除成功',
+  'comment.disabled': '评论已关闭',
+  'comment.load_fail': '加载评论失败',
+  
+  'common.views': '浏览',
+  'common.comments': '评论',
+};

@@ -25,7 +25,7 @@ type RepositoryInterface interface {
 	//   - error: 删除失败时返回错误
 	Delete(diaryID int64) error
 
-	// IncrementPostNum 增加日记本的日记数量
+	// IncrementEntryNum 增加日记本的日记数量
 	// 参数:
 	//   - diaryID: 日记本ID
 	//   - userID: 操作用户ID
@@ -33,9 +33,9 @@ type RepositoryInterface interface {
 	//   - actionUTCTime: 操作时间（UTC时间戳）
 	// 返回:
 	//   - error: 操作失败时返回错误
-	IncrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error
+	IncrementEntryNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error
 
-	// DecrementPostNum 减少日记本的日记数量
+	// DecrementEntryNum 减少日记本的日记数量
 	// 参数:
 	//   - diaryID: 日记本ID
 	//   - userID: 操作用户ID
@@ -43,7 +43,7 @@ type RepositoryInterface interface {
 	//   - actionUTCTime: 操作时间（UTC时间戳）
 	// 返回:
 	//   - error: 操作失败时返回错误
-	DecrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error
+	DecrementEntryNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error
 
 	// GetByDiaryID 根据ID获取日记本对象
 	// 参数:

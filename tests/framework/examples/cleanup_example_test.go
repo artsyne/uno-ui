@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/biuren/hebe/internal/domain/diary"
-	"github.com/biuren/hebe/internal/domain/post"
+	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
@@ -31,14 +31,14 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		diaryRepo := repository.NewDiaryRepository()
-		postRepo := repository.NewPostRepository()
+		entryRepo := repository.NewEntryRepository()
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		
 		taskService := task.NewService(config, taskRepo)
 		i18nManager := i18n.NewLocalizationManager(config)
 		userService := user.NewService(config, userRepo, taskService, i18nManager)
 		diaryService := diary.NewService(config, diaryRepo)
-		postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
+		entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
 
 		// 创建一些测试数据
 		generator := ctx.GetDataGenerator()
@@ -58,11 +58,11 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		isolator.TrackCreated("br_diary", diaryID)
 
 		// 创建文章并保存到数据库
-		testPost := generator.CreatePost(testUser.UserId, testDiary.DiaryID)
-		postID, err := postService.AddPost(testPost)
+		testEntry := generator.CreateEntry(testUser.UserId, testDiary.DiaryID)
+		entryID, err := entryService.AddEntry(testEntry)
 		require.NoError(t, err)
-		testPost.PostID = postID
-		isolator.TrackCreated("br_post", postID)
+		testEntry.EntryID = entryID
+		isolator.TrackCreated("br_entry", entryID)
 
 		// 验证数据已创建
 		assert.True(t, isolator.GetDataCount() > 0)

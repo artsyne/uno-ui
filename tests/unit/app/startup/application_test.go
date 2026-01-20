@@ -3,9 +3,9 @@ package startup
 import (
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	bootstrap "github.com/biuren/hebe/internal/app/startup"
 	"github.com/biuren/hebe/internal/utils/config"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -50,7 +50,7 @@ func TestNewApplication(t *testing.T) {
 					GinMode: "debug",
 					Suffix: ".html",
 					PageSize: 10,
-					MaxDaybookLimit: 100,
+					MaxDiaryLimit: 100,
 					SummaryMax: 200,
 					StaticDir: "static",
 					LocalesDir: "locales",
@@ -106,7 +106,7 @@ func TestApplication_Bootstrap(t *testing.T) {
 			GinMode: "debug",
 			Suffix:  ".html",
 			PageSize: 10,
-			MaxDaybookLimit: 100,
+			MaxDiaryLimit: 100,
 			SummaryMax: 200,
 			StaticDir: "static",
 			LocalesDir: "locales",
@@ -200,7 +200,7 @@ func TestApplication_Run(t *testing.T) {
 			GinMode: "debug",
 			Suffix: ".html",
 			PageSize: 10,
-			MaxDaybookLimit: 100,
+			MaxDiaryLimit: 100,
 			SummaryMax: 200,
 			StaticDir: "static",
 			LocalesDir: "locales",
@@ -292,7 +292,7 @@ func TestApplication_Fields(t *testing.T) {
 			GinMode: "debug",
 			Suffix: ".html",
 			PageSize: 10,
-			MaxDaybookLimit: 100,
+			MaxDiaryLimit: 100,
 			SummaryMax: 200,
 			StaticDir: "static",
 			LocalesDir: "locales",
@@ -335,7 +335,7 @@ func TestApplication_InitializationSteps(t *testing.T) {
 			GinMode: "debug",
 			Suffix: ".html",
 			PageSize: 10,
-			MaxDaybookLimit: 100,
+			MaxDiaryLimit: 100,
 			SummaryMax: 200,
 			StaticDir: "static",
 			LocalesDir: "locales",
@@ -388,7 +388,7 @@ func TestApplication_ConfigValidation(t *testing.T) {
 					GinMode: "debug",
 					Suffix: ".html",
 					PageSize: 10,
-					MaxDaybookLimit: 100,
+					MaxDiaryLimit: 100,
 					SummaryMax: 200,
 					StaticDir: "static",
 					LocalesDir: "locales",

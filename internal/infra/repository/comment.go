@@ -31,11 +31,11 @@ func NewCommentRepository() comment.RepositoryInterface {
 func (r *CommentRepository) Insert(comment *comment.Comment) (int64, error) {
 	sqlstr := `
         INSERT INTO br_comment(
-            post_id, content, add_utc_time, add_user_id, add_user_name, add_user_ip
+            entry_id, content, add_utc_time, add_user_id, add_user_name, add_user_ip
         )
         VALUES(?, ?, ?, ?, ?, ?)
     `
-	res, err := r.db.Exec(sqlstr, comment.PostID, comment.Content, comment.AddUtcTime,
+	res, err := r.db.Exec(sqlstr, comment.EntryID, comment.Content, comment.AddUtcTime,
 		comment.AddUserID, comment.AddUserName, comment.AddUserIP)
 
 	if err != nil {
@@ -67,7 +67,7 @@ func (r *CommentRepository) Delete(commentID int64) error {
 // GetByID 根据评论ID获取评论信息
 func (r *CommentRepository) GetByID(commentID int64) (*comment.Comment, error) {
 	var commentData comment.Comment
-	sqlstr := `SELECT comment_id, post_id, content, add_utc_time, add_user_id, add_user_name, add_user_ip 
+	sqlstr := `SELECT comment_id, entry_id, content, add_utc_time, add_user_id, add_user_name, add_user_ip 
                FROM br_comment WHERE comment_id = ?`
 	err := r.db.Get(&commentData, sqlstr, commentID)
 	if err == sql.ErrNoRows {
@@ -79,14 +79,14 @@ func (r *CommentRepository) GetByID(commentID int64) (*comment.Comment, error) {
 	return &commentData, nil
 }
 
-// ListByPostID 根据日记ID分页查询评论信息
-func (r *CommentRepository) ListByPostID(postID int64, pageIndex, pageSize int) ([]comment.Comment, int, error) {
+// ListByEntryID 根据日记ID分页查询评论信息
+func (r *CommentRepository) ListByEntryID(entryID int64, pageIndex, pageSize int) ([]comment.Comment, int, error) {
 	commentArray := []comment.Comment{}
 	offset := (pageIndex - 1) * pageSize
-	sqlstr := `SELECT comment_id, post_id, content, add_utc_time, add_user_id, add_user_name, add_user_ip 
-               FROM br_comment WHERE post_id = ?
+	sqlstr := `SELECT comment_id, entry_id, content, add_utc_time, add_user_id, add_user_name, add_user_ip 
+               FROM br_comment WHERE entry_id = ?
                ORDER BY comment_id DESC LIMIT ? OFFSET ?`
-	err := r.db.Select(&commentArray, sqlstr, postID, pageSize, offset)
+	err := r.db.Select(&commentArray, sqlstr, entryID, pageSize, offset)
 	if err == sql.ErrNoRows {
 		return []comment.Comment{}, 0, nil
 	}
@@ -94,7 +94,7 @@ func (r *CommentRepository) ListByPostID(postID int64, pageIndex, pageSize int) 
 		return nil, 0, err
 	}
 
-	count, err := r.GetCountByPostID(postID)
+	count, err := r.GetCountByEntryID(entryID)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -102,18 +102,18 @@ func (r *CommentRepository) ListByPostID(postID int64, pageIndex, pageSize int) 
 	return commentArray, count, nil
 }
 
-// GetCountByPostID 根据日记ID统计评论数量
-func (r *CommentRepository) GetCountByPostID(postID int64) (int, error) {
+// GetCountByEntryID 根据日记ID统计评论数量
+func (r *CommentRepository) GetCountByEntryID(entryID int64) (int, error) {
 	var count int
-	sqlstr := `SELECT COUNT(*) FROM br_comment WHERE post_id = ?`
-	err := r.db.Get(&count, sqlstr, postID)
+	sqlstr := `SELECT COUNT(*) FROM br_comment WHERE entry_id = ?`
+	err := r.db.Get(&count, sqlstr, entryID)
 	return count, err
 }
 
-// IncrementPostCommentNum 增加日记的评论数量
-func (r *CommentRepository) IncrementPostCommentNum(postID int64) error {
-	sqlstr := `UPDATE br_post SET comment_num = comment_num + 1 WHERE post_id = ?`
-	result, err := r.db.Exec(sqlstr, postID)
+// IncrementEntryCommentNum 增加日记的评论数量
+func (r *CommentRepository) IncrementEntryCommentNum(entryID int64) error {
+	sqlstr := `UPDATE br_entry SET comment_num = comment_num + 1 WHERE entry_id = ?`
+	result, err := r.db.Exec(sqlstr, entryID)
 	if err != nil {
 		return err
 	}
@@ -124,16 +124,16 @@ func (r *CommentRepository) IncrementPostCommentNum(postID int64) error {
 		return err
 	}
 	if rowsAffected == 0 {
-		return errors.PostNotFound.WithDetails(fmt.Sprintf("post_id: %d", postID))
+		return errors.EntryNotFound.WithDetails(fmt.Sprintf("entry_id: %d", entryID))
 	}
 
 	return nil
 }
 
-// DecrementPostCommentNum 减少日记的评论数量
-func (r *CommentRepository) DecrementPostCommentNum(postID int64) error {
-	sqlstr := `UPDATE br_post SET comment_num = GREATEST(comment_num - 1, 0) WHERE post_id = ?`
-	result, err := r.db.Exec(sqlstr, postID)
+// DecrementEntryCommentNum 减少日记的评论数量
+func (r *CommentRepository) DecrementEntryCommentNum(entryID int64) error {
+	sqlstr := `UPDATE br_entry SET comment_num = GREATEST(comment_num - 1, 0) WHERE entry_id = ?`
+	result, err := r.db.Exec(sqlstr, entryID)
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func (r *CommentRepository) DecrementPostCommentNum(postID int64) error {
 		return err
 	}
 	if rowsAffected == 0 {
-		return errors.PostNotFound.WithDetails(fmt.Sprintf("post_id: %d", postID))
+		return errors.EntryNotFound.WithDetails(fmt.Sprintf("entry_id: %d", entryID))
 	}
 
 	return nil

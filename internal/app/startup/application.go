@@ -11,21 +11,21 @@ import (
 
 	"github.com/biuren/hebe/internal/app/controller/validation"
 	"github.com/biuren/hebe/internal/app/middleware"
-	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/app/route"
-	"github.com/biuren/hebe/internal/core/initializer"
-	"github.com/biuren/hebe/internal/utils/config"
+	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/core/di"
+	bootstrap "github.com/biuren/hebe/internal/core/initializer"
 	"github.com/biuren/hebe/internal/domain/comment"
 	"github.com/biuren/hebe/internal/domain/diary"
+	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/domain/like"
-	"github.com/biuren/hebe/internal/domain/post"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
+	"github.com/biuren/hebe/internal/utils/config"
+	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/internal/utils/i18n"
 	utilsMiddleware "github.com/biuren/hebe/internal/utils/middleware"
-	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/pkg"
 )
 
@@ -176,7 +176,7 @@ func (a *Application) registerAppServices() error {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository()
+	entryRepo := repository.NewEntryRepository()
 	commentRepo := repository.NewCommentRepository()
 	likeRepo := repository.NewLikeRepository()
 	
@@ -184,21 +184,21 @@ func (a *Application) registerAppServices() error {
 	taskService := task.NewService(a.config, taskRepo)
 	userService := user.NewService(a.config, userRepo, taskService, i18nManager)
 	diaryService := diary.NewService(a.config, diaryRepo)
-	postService := post.NewService(a.config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
-	commentService := comment.NewService(a.config, commentRepo, userService, postService, diaryService)
+	entryService := entry.NewService(a.config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	commentService := comment.NewService(a.config, commentRepo, userService, entryService, diaryService)
 	likeService := like.NewLikeService(likeRepo)
 	
 	// 注册为预创建实例，避免循环依赖
 	di.Value(a.container, userRepo)
 	di.Value(a.container, taskRepo)
 	di.Value(a.container, diaryRepo)
-	di.Value(a.container, postRepo)
+	di.Value(a.container, entryRepo)
 	di.Value(a.container, commentRepo)
 	di.Value(a.container, likeRepo)
 	di.Value(a.container, taskService)
 	di.Value(a.container, userService)
 	di.Value(a.container, diaryService)
-	di.Value(a.container, postService)
+	di.Value(a.container, entryService)
 	di.Value(a.container, commentService)
 	di.Value(a.container, likeService)
 

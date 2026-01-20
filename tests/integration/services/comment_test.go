@@ -5,7 +5,7 @@ import (
 
 	"github.com/biuren/hebe/internal/domain/comment"
 	"github.com/biuren/hebe/internal/domain/diary"
-	"github.com/biuren/hebe/internal/domain/post"
+	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
@@ -27,15 +27,15 @@ func TestCommentServiceIntegration(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository()
+	entryRepo := repository.NewEntryRepository()
 	commentRepo := repository.NewCommentRepository()
 	
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryService := diary.NewService(config, diaryRepo)
-	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
-	commentService := comment.NewService(config, commentRepo, userService, postService, diaryService)
+	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	commentService := comment.NewService(config, commentRepo, userService, entryService, diaryService)
 
 	// 创建测试用户
 	testUser := &user.User{
@@ -64,7 +64,7 @@ func TestCommentServiceIntegration(t *testing.T) {
 	testDiary.DiaryID = diaryID
 
 	// 创建测试文章
-	testPost := &post.Post{
+	testEntry := &entry.Entry{
 		Title:       "集成测试文章",
 		Body:        "这是一篇用于评论集成测试的文章",
 		DiaryID:     testDiary.DiaryID,
@@ -72,14 +72,14 @@ func TestCommentServiceIntegration(t *testing.T) {
 		AddUserName: testUser.UserName,
 		Status:      1,
 	}
-	postID, err := postService.AddPost(testPost)
+	entryID, err := entryService.AddEntry(testEntry)
 	require.NoError(t, err)
-	testPost.PostID = postID
+	testEntry.EntryID = entryID
 
 	t.Run("完整的评论生命周期测试", func(t *testing.T) {
 		// 1. 添加评论
 		newComment := &comment.Comment{
-			PostID:      testPost.PostID,
+			EntryID:     testEntry.EntryID,
 			Content:     "这是一条集成测试评论",
 			AddUserID:   testUser.UserId,
 			AddUserName: testUser.UserName,
@@ -92,18 +92,18 @@ func TestCommentServiceIntegration(t *testing.T) {
 		// 2. 获取评论
 		savedComment, err := commentService.GetCommentByID(commentID)
 		assert.NoError(t, err)
-		assert.Equal(t, newComment.PostID, savedComment.PostID)
+		assert.Equal(t, newComment.EntryID, savedComment.EntryID)
 		assert.Equal(t, newComment.Content, savedComment.Content)
 		assert.Equal(t, newComment.AddUserID, savedComment.AddUserID)
 		assert.NotEmpty(t, savedComment.AddUtcTime)
 
 		// 3. 验证评论数量
-		count, err := commentService.GetCommentCountByPostID(testPost.PostID)
+		count, err := commentService.GetCommentCountByEntryID(testEntry.EntryID)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, count)
 
 		// 4. 获取评论列表
-		commentList, total, err := commentService.ListCommentsByPostID(testPost.PostID, 1, 10)
+		commentList, total, err := commentService.ListCommentsByEntryID(testEntry.EntryID, 1, 10)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, total)
 		assert.Len(t, commentList, 1)
@@ -118,7 +118,7 @@ func TestCommentServiceIntegration(t *testing.T) {
 		assert.Error(t, err)
 
 		// 7. 验证评论数量已减少
-		count, err = commentService.GetCommentCountByPostID(testPost.PostID)
+		count, err = commentService.GetCommentCountByEntryID(testEntry.EntryID)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, count)
 	})
@@ -137,7 +137,7 @@ func TestCommentServiceIntegration(t *testing.T) {
 
 		// 两个用户分别添加评论
 		comment1 := &comment.Comment{
-			PostID:      testPost.PostID,
+			EntryID:     testEntry.EntryID,
 			Content:     "用户1的评论",
 			AddUserID:   testUser.UserId,
 			AddUserName: testUser.UserName,
@@ -147,7 +147,7 @@ func TestCommentServiceIntegration(t *testing.T) {
 		assert.NoError(t, err)
 
 		comment2 := &comment.Comment{
-			PostID:      testPost.PostID,
+			EntryID:     testEntry.EntryID,
 			Content:     "用户2的评论",
 			AddUserID:   testUser2.UserId,
 			AddUserName: testUser2.UserName,
@@ -157,12 +157,12 @@ func TestCommentServiceIntegration(t *testing.T) {
 		assert.NoError(t, err)
 
 		// 验证评论总数
-		count, err := commentService.GetCommentCountByPostID(testPost.PostID)
+		count, err := commentService.GetCommentCountByEntryID(testEntry.EntryID)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, count)
 
 		// 获取评论列表
-		commentList, total, err := commentService.ListCommentsByPostID(testPost.PostID, 1, 10)
+		commentList, total, err := commentService.ListCommentsByEntryID(testEntry.EntryID, 1, 10)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, total)
 		assert.Len(t, commentList, 2)
@@ -172,7 +172,7 @@ func TestCommentServiceIntegration(t *testing.T) {
 		assert.NoError(t, err)
 
 		// 验证只剩下用户2的评论
-		count, err = commentService.GetCommentCountByPostID(testPost.PostID)
+		count, err = commentService.GetCommentCountByEntryID(testEntry.EntryID)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, count)
 
@@ -186,7 +186,7 @@ func TestCommentServiceIntegration(t *testing.T) {
 		var commentIDs []int64
 		for i := 1; i <= 5; i++ {
 			testComment := &comment.Comment{
-				PostID:      testPost.PostID,
+				EntryID:     testEntry.EntryID,
 				Content:     "分页测试评论" + string(rune(i)),
 				AddUserID:   testUser.UserId,
 				AddUserName: testUser.UserName,
@@ -198,19 +198,19 @@ func TestCommentServiceIntegration(t *testing.T) {
 		}
 
 		// 测试第一页（每页2条）
-		commentList, total, err := commentService.ListCommentsByPostID(testPost.PostID, 1, 2)
+		commentList, total, err := commentService.ListCommentsByEntryID(testEntry.EntryID, 1, 2)
 		assert.NoError(t, err)
 		assert.Equal(t, 5, total)
 		assert.Len(t, commentList, 2)
 
 		// 测试第二页
-		commentList, total, err = commentService.ListCommentsByPostID(testPost.PostID, 2, 2)
+		commentList, total, err = commentService.ListCommentsByEntryID(testEntry.EntryID, 2, 2)
 		assert.NoError(t, err)
 		assert.Equal(t, 5, total)
 		assert.Len(t, commentList, 2)
 
 		// 测试第三页（最后一页，只有1条）
-		commentList, total, err = commentService.ListCommentsByPostID(testPost.PostID, 3, 2)
+		commentList, total, err = commentService.ListCommentsByEntryID(testEntry.EntryID, 3, 2)
 		assert.NoError(t, err)
 		assert.Equal(t, 5, total)
 		assert.Len(t, commentList, 1)
@@ -233,19 +233,19 @@ func TestCommentServiceErrorHandling(t *testing.T) {
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
-	postRepo := repository.NewPostRepository()
+	entryRepo := repository.NewEntryRepository()
 	commentRepo := repository.NewCommentRepository()
 	
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager)
 	diaryService := diary.NewService(config, diaryRepo)
-	postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
-	commentService := comment.NewService(config, commentRepo, userService, postService, diaryService)
+	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	commentService := comment.NewService(config, commentRepo, userService, entryService, diaryService)
 
 	t.Run("无效用户ID错误处理", func(t *testing.T) {
 		invalidComment := &comment.Comment{
-			PostID:      1,
+			EntryID:     1,
 			Content:     "测试评论",
 			AddUserID:   99999, // 不存在的用户ID
 			AddUserName: "不存在的用户",
@@ -269,7 +269,7 @@ func TestCommentServiceErrorHandling(t *testing.T) {
 		require.NoError(t, err)
 
 		invalidComment := &comment.Comment{
-			PostID:      99999, // 不存在的文章ID
+			EntryID:     99999, // 不存在的文章ID
 			Content:     "测试评论",
 			AddUserID:   testUser.UserId,
 			AddUserName: testUser.UserName,

@@ -4022,7 +4022,7 @@ button.btn-social {
   --tw-tracking: var(--tracking-wide);
   letter-spacing: var(--tracking-wide);
 }
-.post-time {
+.entry-time {
   display: inline-block;
   background-color: var(--color-gray-100);
   padding-inline: calc(var(--spacing) * 2);
@@ -4037,7 +4037,7 @@ button.btn-social {
     color: var(--color-gray-400);
   }
 }
-.post-edit {
+.entry-edit {
   position: absolute;
   top: calc(var(--spacing) * 1);
   right: calc(var(--spacing) * 1);
@@ -4083,7 +4083,7 @@ button.btn-social {
     }
   }
 }
-.post-title {
+.entry-title {
   margin-bottom: calc(var(--spacing) * 2);
   overflow-wrap: break-word;
 }

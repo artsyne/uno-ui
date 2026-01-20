@@ -16,7 +16,7 @@ test.describe('Diary Refactor Verification', () => {
     });
 
     // Mock network requests to avoid dependency on backend state
-    await page.route('**/api/post/stats', async (route) => {
+    await page.route('**/api/entry/stats', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -44,7 +44,7 @@ test.describe('Diary Refactor Verification', () => {
     // NOTE: This test requires a running server. If not running, it will fail.
     // I will try to visit a page. If I can't reach it, the test fails, which is fine for verification.
     try {
-      await page.goto('http://localhost:8080/d/1', { timeout: 5000 });
+      await page.goto('http://localhost:8080/diary/1', { timeout: 5000 });
     } catch (e) {
       console.log(
         'Skipping navigation check as server might not be running at localhost:8080',

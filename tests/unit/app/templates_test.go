@@ -170,7 +170,7 @@ func TestTemplateIntegration(t *testing.T) {
 	t.Run("多语言模板", func(t *testing.T) {
 		tmplText := `
 {{- $locale := .Locale -}}
-{{getMessage "common.home" $locale}} | {{getMessage "common.settings" $locale}}
+{{getMessage "common.menu" $locale}} | {{getMessage "common.save" $locale}}
 `
 
 		tmpl := template.New("multilang")
@@ -183,14 +183,14 @@ func TestTemplateIntegration(t *testing.T) {
 		err = tmpl.Execute(&zhBuf, map[string]string{"Locale": "zh-cn"})
 		require.NoError(t, err, "中文模板执行不应该出错")
 		zhResult := strings.TrimSpace(zhBuf.String())
-		assert.Equal(t, "首页 | 设置", zhResult, "中文输出应该正确")
+		assert.Equal(t, "目录 | 保存", zhResult, "中文输出应该正确")
 
 		// 测试英文
 		var enBuf strings.Builder
 		err = tmpl.Execute(&enBuf, map[string]string{"Locale": "en"})
 		require.NoError(t, err, "英文模板执行不应该出错")
 		enResult := strings.TrimSpace(enBuf.String())
-		assert.Equal(t, "Home | Settings", enResult, "英文输出应该正确")
+		assert.Equal(t, "Menu | Save", enResult, "英文输出应该正确")
 	})
 }
 

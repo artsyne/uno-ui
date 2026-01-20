@@ -9,8 +9,8 @@
     "cancel": "取消",
     "menu": "目录",
     "authors": "作者",
-    "next": "下一页",
-    "previous": "上一页",
+    "next": "下一篇",
+    "previous": "上一篇",
     "is_last_page": "已是最后一篇",
     "is_first_page": "已是第一篇",
     "pub_time": "添加时间",
@@ -21,10 +21,17 @@
     "save_fail": "保存失败",
     "net_error": "网络错误",
     "op_fail": "操作失败",
+    "op_success": "操作成功",
     "load_fail": "加载失败"
   },
   "operation": {
     "success": "操作成功"
+  },
+  "social": {
+    "like": {
+      "success": "点赞成功",
+      "cancel": "取消点赞"
+    }
   },
   "error": {
     "title": "错误发生",
@@ -33,21 +40,20 @@
   },
   "page": {
     "title": {
-      "diary_list": "我的日记",
-      "diary_detail": "日记详情",
-      "user_settings": "用户设置"
+      "diaries_list": "日记列表",
+      "entry_detail": "日记详情",
+      "user_settings": "设置"
     }
   },
   "diary": {
-    "title": "我的日记",
-    "title_desc": "记录生活点滴，分享精彩瞬间",
-    "index": {
+    "label": "日记本",
+    "create": "新建日记本",
+    "settings": "日记本设置",
+    "list": {
       "title": "日记列表"
     },
-    "detail": {
-      "title": "日记详情",
-      "title_desc": "查看日记详细内容"
-    },
+    "title": "我的日记本",
+    "title_desc": "记录生活点滴，分享精彩瞬间",
     "form": {
       "title": "日记本设置",
       "name_required": "日记本名称 *",
@@ -64,29 +70,23 @@
       "content_required": "请输入日记内容",
       "style_selection": "选择风格"
     },
-    "new_entry": "写新日记",
-    "weather": "天气",
-    "mood": "心情",
-    "content_placeholder": "{{username}}，今天有什么新鲜事？",
     "button": {
-      "settings": "日记本设置",
-      "write_entry": "写日记"
+      "settings": "日记本设置"
     },
-    "notebook_add": "新建日记本",
-    "delete": {
-      "confirm": "确定要删除吗？",
-      "success": "删除成功",
-      "fail": "删除失败",
-      "net_error": "网络错误"
-    },
-    "label": {
-      "notebook": "日记本",
-      "introduction": "日记本介绍",
-      "authors_list": "作者列表",
-      "liked_members_list": "点赞会员列表"
+    "label_info": {
+      "introduction": "简介",
+      "authors_list": "作者",
+      "liked_users_list": "点赞用户"
     }
   },
-  "post": {
+  "entry": {
+    "label": "日记",
+    "create": "写日记",
+    "edit": "编辑日记",
+    "detail": {
+      "title": "日记详情",
+      "title_desc": "查看日记详细内容"
+    },
     "form": {
       "title": "发表日记",
       "title_optional": "标题(非必填)",
@@ -94,19 +94,81 @@
       "content_required": "日记内容 *",
       "content_placeholder": "请输入日记内容...",
       "title_required": "请输入标题"
+    },
+    "delete": {
+      "confirm": "确定要删除这篇日记吗？",
+      "success": "删除成功",
+      "fail": "删除失败",
+      "net_error": "网络错误"
+    },
+    "weather": "天气",
+    "mood": "心情",
+    "content_placeholder": "{{username}}，今天有什么新鲜事？",
+    "button": {
+      "create": "写日记"
+    },
+    "like": {
+      "success": "点赞成功",
+      "cancel": "取消点赞"
     }
+  },
+  "comment": {
+    "title": "留言",
+    "submit": "留言",
+    "placeholder": "在这里写下你的留言...",
+    "login_to_comment": "登录后留言",
+    "no_comments": "暂无留言",
+    "delete": "删除",
+    "submit_success": "留言提交成功",
+    "delete_confirm": "确定要删除这条留言吗？",
+    "delete_success": "留言删除成功",
+    "disabled": "评论已关闭",
+    "load_fail": "加载评论失败"
   },
   "user": {
     "settings": {
-      "title": "用户设置",
+      "title": "设置",
       "description_limit_exceeded": "简介超过限制",
       "profile_updated": "资料更新成功",
       "email_updated": "邮箱更新成功",
-      "password_changed": "密码修改成功"
+      "password_changed": "密码修改成功",
+      "profile_card_title": "个人资料",
+      "username_label": "用户名",
+      "username_placeholder": "用户名",
+      "username_note": "用户名是您在 idiary.ai 的唯一标识，不能修改。",
+      "full_name_label": "全名",
+      "full_name_placeholder": "请输入您的全名",
+      "display_name_note": "您可以在 idiary.ai 上展示您的真实姓名，如果为空则显示用户名。",
+      "bio_label": "个人简介",
+      "bio_placeholder": "请输入个人简介",
+      "save_changes_button": "保存更改",
+      "email_card_title": "邮箱设置",
+      "email_placeholder": "请输入邮箱地址",
+      "update_password_card_title": "修改密码",
+      "current_password_label": "当前密码",
+      "current_password_placeholder": "请输入当前密码",
+      "new_password_label": "新密码",
+      "new_password_placeholder": "请输入新密码",
+      "confirm_password_label": "确认密码",
+      "confirm_password_placeholder": "请再次输入新密码",
+      "change_password_button": "修改密码",
+      "timezone_note": "时区设置会影响时间显示风格",
+      "email_note": "邮箱修保存改后，不会立刻修改邮箱。系统会往新邮箱发送一封邮件，点击邮件中的链接完成邮箱验证和修改"
     },
     "label": {
       "my_home": "我的主页",
-      "settings": "用户设置"
+      "settings": "设置"
+    },
+    "profile": {
+      "introduction": "个人介绍",
+      "menu": "目录",
+      "latest_public_diary": "最新公开日记",
+      "joined_diaries": "参与的日记本",
+      "my_apps": "我的应用",
+      "app_list": "应用列表",
+      "diary": "日记本",
+      "create_diary": "新建日记本",
+      "entries_count": "篇日记"
     }
   },
   "auth": {
@@ -140,7 +202,8 @@
       "activation_success": "感谢你激活账户，你可以正常使用中国日记网所有功能",
       "username_taken": "该用户名已被注册",
       "email_taken": "该邮箱已被注册",
-      "username_invalid": "用户名格式无效"
+      "username_invalid": "用户名格式无效",
+      "success": "操作成功"
     },
     "title": {
       "login": "登录",
@@ -151,44 +214,6 @@
   "greeting": {
     "message": "你好，{{username}}！欢迎使用 iDiary。"
   },
-  "member": {
-    "settings": {
-      "title": "设置",
-      "profile_card_title": "个人资料",
-      "username_label": "用户名",
-      "username_placeholder": "用户名",
-      "username_note": "用户名是您在 idiary.ai 的唯一标识，不能修改。",
-      "full_name_label": "全名",
-      "full_name_placeholder": "请输入您的全名",
-      "display_name_note": "您可以在 idiary.ai 上展示您的真实姓名，如果为空则显示用户名。",
-      "bio_label": "个人简介",
-      "bio_placeholder": "请输入个人简介",
-      "save_changes_button": "保存更改",
-      "email_card_title": "邮箱设置",
-      "email_placeholder": "请输入邮箱地址",
-      "update_password_card_title": "修改密码",
-      "current_password_label": "当前密码",
-      "current_password_placeholder": "请输入当前密码",
-      "new_password_label": "新密码",
-      "new_password_placeholder": "请输入新密码",
-      "confirm_password_label": "确认密码",
-      "confirm_password_placeholder": "请再次输入新密码",
-      "change_password_button": "修改密码",
-      "timezone_note": "时区设置会影响时间显示风格",
-      "email_note": "邮箱修保存改后，不会立刻修改邮箱。系统会往新邮箱发送一封邮件，点击邮件中的链接完成邮箱验证和修改"
-    },
-    "profile": {
-      "introduction": "个人介绍",
-      "menu": "目录",
-      "latest_public_diary": "最新公开日记",
-      "joined_diaries": "参与的日记本",
-      "my_apps": "我的应用",
-      "app_list": "应用列表",
-      "diary_notebook": "日记本",
-      "add_notebook": "添加日记本",
-      "posts_count": "篇日记"
-    }
-  },
   "form": {
     "style_selection": "选择风格",
     "placeholder": {
@@ -196,14 +221,6 @@
       "new_password": "请输入新的密码",
       "confirm_password": "请再次输入密码"
     }
-  },
-  "comments": {
-    "title": "留言",
-    "submit": "留言",
-    "placeholder": "在这里写下你的留言...",
-    "login_to_comment": "登录后留言",
-    "no_comments": "暂无留言",
-    "delete": "删除"
   },
   "markdown": {
     "syntax": {

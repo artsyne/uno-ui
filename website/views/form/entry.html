@@ -1,21 +1,21 @@
-{{define "form/post"}}
+{{define "form/entry"}}
 
 <div class="px-4">
-    <form id="post_editor_form" x-uno-valid onsubmit="return false;" @submit.prevent>
+    <form id="entry_editor_form" x-uno-valid onsubmit="return false;" @submit.prevent>
         <div class="flex flex-col mx-auto">
             <div class="form-group">
                 <div class="block">
-                    <label class="form-title" for="info_title">{{getMessage "post.form.title_optional"
+                    <label class="form-title" for="info_title">{{getMessage "entry.form.title_optional"
                         .Context.Lang}}</label>
                     <input type="text" class="form-control" id="info_title" name="info_title" x-uno-valid
-                        maxlength="250" placeholder='{{getMessage "form.placeholder.diary_title" .Context.Lang}}'
-                        value="{{if .Data.Post}}{{.Data.Post.Title}}{{end}}">
+                        maxlength="250" placeholder='{{getMessage "entry.form.title_placeholder" .Context.Lang}}'
+                        value="{{if .Data.Entry}}{{.Data.Entry.Title}}{{end}}">
                     <div x-text="$store.uno.valid.errors['info_title']" x-show="$store.uno.valid.errors['info_title']"
                         class="text-xs text-red-500 mt-1"></div>
                 </div>
                 <div class="block">
                     <div class="flex justify-between relative">
-                        <label class="form-title" for="info_body">{{getMessage "post.form.content_required"
+                        <label class="form-title" for="info_body">{{getMessage "entry.form.content_required"
                             .Context.Lang}}</label>
 
                         <a href="#" class="form-title text-sm hover:text-blue-600"
@@ -74,15 +74,16 @@
                     </div>
                     <textarea class="form-control h-96" id="info_body" name="info_body" rows="8" x-uno-valid
                         maxlength="10000" required
-                        placeholder='{{getMessage "post.form.content_placeholder" .Context.Lang}}'>{{if .Data.Post}}{{.Data.Post.Body}}{{end}}</textarea>
+                        placeholder='{{getMessage "entry.form.content_placeholder" .Context.Lang}}'>{{if .Data.Entry}}{{.Data.Entry.Body}}{{end}}</textarea>
                     <div x-text="$store.uno.valid.errors['info_body']" x-show="$store.uno.valid.errors['info_body']"
                         class="text-xs text-red-500 mt-1"></div>
                 </div>
-                <input type="hidden" name="post_id" id="post_id" value="{{if .Data.Post}}{{.Data.Post.PostID}}{{end}}">
+                <input type="hidden" name="entry_id" id="entry_id"
+                    value="{{if .Data.Entry}}{{.Data.Entry.EntryID}}{{end}}">
                 <input type="hidden" name="action" id="action"
-                    value="{{if .Data.Post}}post.edit{{else}}post.create{{end}}">
+                    value="{{if .Data.Entry}}entry.edit{{else}}entry.create{{end}}">
                 <input type="hidden" name="diary_id" id="diary_id"
-                    value="{{if .Data.Post}}{{.Data.Post.DiaryID}}{{else}}{{.Data.DiaryID}}{{end}}">
+                    value="{{if .Data.Entry}}{{.Data.Entry.DiaryID}}{{else}}{{.Data.DiaryID}}{{end}}">
             </div>
         </div>
     </form>

@@ -125,11 +125,11 @@ func (r *DiaryRepository) Delete(diaryID int64) error {
 	return err
 }
 
-// IncrementPostNum 增加日记本的日记数量
+// IncrementEntryNum 增加日记本的日记数量
 // 通过空间 ID 把空间信息数量加一，并更新最后动作时间,用户ID,用户名
 // 参数: diaryID - 日记本ID, userID - 用户ID, userName - 用户名, actionUTCTime - 操作时间
 // 返回: 可能的错误
-func (r *DiaryRepository) IncrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
+func (r *DiaryRepository) IncrementEntryNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
 	sqlstr := `
 		UPDATE br_diary SET info_num = info_num + 1,
 		last_action_utc_time = ?,
@@ -141,11 +141,11 @@ func (r *DiaryRepository) IncrementPostNum(diaryID int64, userID int64, userName
 	return err
 }
 
-// DecrementPostNum 减少日记本的日记数量
+// DecrementEntryNum 减少日记本的日记数量
 // 通过空间 ID 把空间信息数量减一，并更新最后动作时间,用户ID,用户名
 // 参数: diaryID - 日记本ID, userID - 用户ID, userName - 用户名, actionUTCTime - 操作时间
 // 返回: 可能的错误
-func (r *DiaryRepository) DecrementPostNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
+func (r *DiaryRepository) DecrementEntryNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
 	sqlstr := `
 		UPDATE br_diary SET info_num = info_num - 1,
 		last_action_utc_time = ?,

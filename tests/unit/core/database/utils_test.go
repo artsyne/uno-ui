@@ -49,7 +49,7 @@ func TestGetTables(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"Tables_in_cd"}).
 			AddRow("br_user").
 			AddRow("br_diary").
-			AddRow("br_post")
+			AddRow("br_entry")
 
 		mockDB.mock.ExpectQuery("SHOW TABLES").WillReturnRows(rows)
 
@@ -61,7 +61,7 @@ func TestGetTables(t *testing.T) {
 		assert.Len(t, tables, 3)
 		assert.Equal(t, "br_user", tables[0].TableName)
 		assert.Equal(t, "br_diary", tables[1].TableName)
-		assert.Equal(t, "br_post", tables[2].TableName)
+		assert.Equal(t, "br_entry", tables[2].TableName)
 
 		// 验证所有期望都被满足
 		assert.NoError(t, mockDB.mock.ExpectationsWereMet())

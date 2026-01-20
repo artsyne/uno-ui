@@ -11,5 +11,5 @@ type Like struct {
 // 点赞类型常量
 const (
 	LikeTypeDiary = 1 // 日记本点赞
-	LikeTypePost  = 2 // 日记点赞
+	LikeTypeEntry = 2 // 日记点赞
 )

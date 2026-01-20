@@ -96,11 +96,11 @@ type Diary struct {
 }
 ```
 
-### 4.2 Post
+### 4.2 Entry
 
 ```go
-type Post struct {
-    PostID  int64  `json:"post_id"`
+type Entry struct {
+    EntryID int64  `json:"entry_id"`
     DiaryID int64  `json:"diary_id"`
     Title   string `json:"title"`
     Body    string `json:"body"`

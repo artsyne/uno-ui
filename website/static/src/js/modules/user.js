@@ -1,4 +1,4 @@
-export const Member = {
+export const User = {
   currentBoxId: null,
 
   init() {
@@ -13,11 +13,11 @@ export const Member = {
     });
   },
 
-  openAddDiary() {
+  openCreateDiary() {
     const uno = window.getUno();
     if (!uno) return;
 
-    const title = this.$store.i18n.t('diary.notebook.add');
+    const title = this.$store.i18n.t('diary.create');
     this.currentBoxId = uno.box.dialog({
       title: title,
       content: `<div class="modal-body" id="diary-form-container">${this.$store.i18n.t('common.loading')}</div>`,
@@ -29,16 +29,17 @@ export const Member = {
       okButtonClass: 'btn',
       buttonAlign: 'right',
       onOk: async () => {
-        const form = document.querySelector('#daybook_editor_form');
+        const form = document.querySelector('#diary_editor_form'); // Check if ID matches form template
         if (!form) return;
         if (await uno.valid.validateForm(form)) {
-          // Trigger HTMX submission
+          // Trigger HTMX submission or handle via fetch if form/diary uses htmx
+          // The original code used window.htmx.trigger(form, 'submit').
           if (window.htmx) window.htmx.trigger(form, 'submit');
         }
       },
     });
 
-    fetch('/form/diary?action=diary.add')
+    fetch('/form/diary?action=diary.create')
       .then((res) => res.text())
       .then((html) => {
         const container = document.getElementById('diary-form-container');
@@ -46,7 +47,7 @@ export const Member = {
           container.innerHTML = html;
           // Manually populate action field
           const actionInput = container.querySelector('#action');
-          if (actionInput) actionInput.value = 'diary.add';
+          if (actionInput) actionInput.value = 'diary.create';
 
           if (window.Alpine) {
             window.Alpine.initTree(container);

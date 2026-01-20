@@ -1,0 +1,40 @@
+export default {
+  'common.save': 'Save',
+  'common.edit': 'Edit',
+  'common.cancel': 'Cancel',
+  'common.delete': 'Delete',
+  'common.op_fail': 'Operation failed',
+  'common.op_success': 'Operation successful',
+  'common.loading': 'Loading...',
+  'common.load_fail': 'Load failed',
+  'common.save_success': 'Saved successfully',
+  'common.save_fail': 'Save failed',
+  'common.net_error': 'Network error',
+
+  'diary.create': 'New Diary',
+  'diary.settings': 'Diary Settings',
+
+  'entry.create': 'New Entry',
+  'entry.edit': 'Edit Entry',
+  'entry.delete.confirm': 'Are you sure you want to delete this entry?',
+  'entry.delete.success': 'Deleted successfully',
+  'entry.delete.fail': 'Delete failed',
+  'entry.delete.net_error': 'Network error, delete failed',
+  'entry.like.success': 'Liked successfully',
+  'entry.like.cancel': 'Unliked successfully',
+  'social.like.success': 'Liked successfully',
+  'social.like.cancel': 'Unliked successfully',
+
+  'auth.username_taken': 'Username already taken',
+  'auth.email_taken': 'Email already taken',
+  'auth.success': 'Success',
+
+  'comment.submit_success': 'Comment submitted successfully',
+  'comment.delete_confirm': 'Are you sure you want to delete this comment?',
+  'comment.delete_success': 'Comment deleted successfully',
+  'comment.disabled': 'Comments disabled',
+  'comment.load_fail': 'Failed to load comments',
+
+  'common.views': 'Views',
+  'common.comments': 'Comments',
+};

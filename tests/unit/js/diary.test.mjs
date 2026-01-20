@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import { DiaryList } from '../../../website/static/src/js/modules/diary.js';
+import { DiaryDetail } from '../../../website/static/src/js/modules/diary-detail.js';
 
 describe('Diary Modules', () => {
   let mockBoxOpen;
@@ -29,6 +29,14 @@ describe('Diary Modules', () => {
               dialog: mockBoxDialog,
             },
             notify: { success: mockNotifySuccess, error: mockNotifyError },
+            valid: {
+              validateForm: jest.fn().mockResolvedValue(true),
+            },
+          };
+        }
+        if (name === 'i18n') {
+          return {
+            t: (key) => key,
           };
         }
         return null;
@@ -61,22 +69,19 @@ describe('Diary Modules', () => {
     mockNotifyError.mockClear();
   });
 
-  const createDiaryList = () => {
-    const component = DiaryList();
+  const createDiaryDetail = () => {
+    const component = DiaryDetail();
     component.$store = {
       i18n: {
         t: (key) => {
           const map = {
-            'diary.delete.confirm': '确认删除?',
-            'diary.delete.success': '删除成功',
-            'diary.delete.fail': '删除失败',
-            'diary.delete.net_error': '网络错误',
+            'entry.delete.confirm': '确认删除?',
             'common.op_fail': '操作失败',
-            'diary.edit.title': '编辑日记',
-            'diary.create.title': '写日记',
+            'entry.edit': '编辑日记',
+            'entry.create': '写日记',
             'common.save': '保存',
             'common.loading': '加载中...',
-            'operation.success': '操作成功',
+            'common.save_success': '保存成功',
             'social.like.success': '点赞成功',
             'social.like.cancel': '取消点赞',
           };
@@ -90,9 +95,9 @@ describe('Diary Modules', () => {
     return component;
   };
 
-  describe('DiaryList', () => {
+  describe('DiaryDetail', () => {
     test('should initialize and load stats', () => {
-      const diaryList = createDiaryList();
+      const diaryDetail = createDiaryDetail();
 
       // Mock document.querySelector for main
       const mockMain = { dataset: { socialSetting: '1' } };
@@ -110,8 +115,8 @@ describe('Diary Modules', () => {
       });
 
       const mockElements = [
-        { dataset: { postId: '1' } },
-        { dataset: { postId: '2' } },
+        { dataset: { entryId: '1' } },
+        { dataset: { entryId: '2' } },
       ];
       mockQuerySelectorAll.mockReturnValue(mockElements);
 
@@ -130,74 +135,60 @@ describe('Diary Modules', () => {
           code: 0,
           data: {
             stats: [
-              { post_id: '1', view_num: 10, like_num: 5 },
-              { post_id: '2', view_num: 20, like_num: 8 },
+              { entry_id: '1', view_num: 10, like_num: 5 },
+              { entry_id: '2', view_num: 20, like_num: 8 },
             ],
           },
         }),
       });
 
-      diaryList.init();
-      expect(mockQuerySelectorAll).toHaveBeenCalledWith('[data-post-id]');
+      diaryDetail.init();
+      expect(mockQuerySelectorAll).toHaveBeenCalledWith('[data-entry-id]');
     });
 
-    test('confirmDelete should call Uno.box.confirm', () => {
-      const diaryList = createDiaryList();
+    test('deleteEntry should confirm and call fetch', async () => {
+      const diaryDetail = createDiaryDetail();
       mockBoxConfirm.mockResolvedValueOnce(true);
-      diaryList.confirmDelete(1, 100);
-      expect(mockBoxConfirm).toHaveBeenCalledWith(
-        '确认删除?',
+
+      // Mock window.htmx
+      window.htmx = {
+        ajax: jest.fn(),
+      };
+
+      await diaryDetail.deleteEntry(1, 100);
+
+      expect(mockBoxConfirm).toHaveBeenCalledWith('确认删除?');
+      expect(window.htmx.ajax).toHaveBeenCalledWith(
+        'DELETE',
+        '/entry/100?diary_id=1',
         expect.objectContaining({
-          title: expect.any(String),
-          okText: expect.any(String),
-          cancelText: expect.any(String),
+          target: '#entry-card-100',
+          swap: 'delete',
         }),
       );
     });
 
-    test('deletePost should call fetch and remove element on success', async () => {
-      const diaryList = createDiaryList();
-
-      // Mock document.querySelector
-      const mockElement = { remove: jest.fn() };
-      const mockQuerySelector = jest.fn().mockReturnValue(mockElement);
-      Object.defineProperty(document, 'querySelector', {
-        value: mockQuerySelector,
-        writable: true,
-      });
-
-      global.fetch.mockResolvedValueOnce({
-        json: async () => ({ success: true }),
-      });
-
-      await diaryList.deletePost(1, 100);
-
-      expect(global.fetch).toHaveBeenCalledWith(
-        '/post/100?diary_id=1',
-        expect.any(Object),
-      );
-      expect(mockElement.remove).toHaveBeenCalled();
-      expect(mockNotifySuccess).toHaveBeenCalled();
-    });
-
     test('loadDiaryLike should update state on success', async () => {
-      const diaryList = createDiaryList();
+      const diaryDetail = createDiaryDetail();
 
       // Mock getElementById for container
       const mockContainer = { dataset: { diaryId: '123' } };
       jest.spyOn(document, 'getElementById').mockReturnValue(mockContainer);
 
       global.fetch.mockResolvedValueOnce({
+        headers: {
+          get: () => 'application/json',
+        },
         json: async () => ({
           success: true,
           data: { is_liked: true, like_count: 5 },
         }),
       });
 
-      await diaryList.loadDiaryLike();
+      await diaryDetail.loadDiaryLike();
 
-      expect(diaryList.diaryLike.liked).toBe(true);
-      expect(diaryList.diaryLike.count).toBe(5);
+      expect(diaryDetail.diaryLike.liked).toBe(true);
+      expect(diaryDetail.diaryLike.count).toBe(5);
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/diary/like/status'),
         expect.any(Object),
@@ -205,23 +196,27 @@ describe('Diary Modules', () => {
     });
 
     test('toggleDiaryLike should update state and notify', async () => {
-      const diaryList = createDiaryList();
+      const diaryDetail = createDiaryDetail();
 
       global.fetch.mockResolvedValueOnce({
+        headers: {
+          get: () => 'application/json',
+        },
         json: async () => ({
           success: true,
           data: { is_liked: true, like_count: 6 },
         }),
       });
 
-      await diaryList.toggleDiaryLike(123);
+      await diaryDetail.toggleDiaryLike(123);
 
-      expect(diaryList.diaryLike.liked).toBe(true);
-      expect(diaryList.diaryLike.count).toBe(6);
+      expect(diaryDetail.diaryLike.liked).toBe(true);
+      expect(diaryDetail.diaryLike.count).toBe(6);
       expect(mockNotifySuccess).toHaveBeenCalledWith('social.like.success');
     });
-    test('openCreatePost should call Box.dialog and fetch form', async () => {
-      const diaryList = createDiaryList();
+
+    test('openCreateEntry should call Box.dialog and fetch form', async () => {
+      const diaryDetail = createDiaryDetail();
 
       // Mock Box.dialog return value
       const mockBoxId = 'box-123';
@@ -229,14 +224,14 @@ describe('Diary Modules', () => {
 
       // Mock fetch for form
       global.fetch.mockResolvedValueOnce({
-        text: async () => '<form>Create Post</form>',
+        text: async () => '<form>Create Entry</form>',
       });
 
       // Mock getElementById for form container
       const mockContainer = { innerHTML: '' };
       jest.spyOn(document, 'getElementById').mockReturnValue(mockContainer);
 
-      diaryList.openCreatePost(1);
+      diaryDetail.openCreateEntry(1);
 
       expect(mockBoxDialog).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -244,20 +239,31 @@ describe('Diary Modules', () => {
         }),
       );
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/form/post?action=post.create&diary_id=1'),
+        expect.stringContaining('/form/entry?action=entry.create&diary_id=1'),
       );
     });
 
-    test('openPostModal should call Box.dialog with ajaxUrl', () => {
-      const diaryList = createDiaryList();
+    test('openEntryModal should call Box.dialog with ajaxUrl', () => {
+      const diaryDetail = createDiaryDetail();
 
-      diaryList.openPostModal('/p/1');
+      // Mock window.location
+      const originalLocation = window.location;
+      delete window.location;
+      window.location = { href: 'http://localhost/' };
+
+      // Mock history.pushState
+      const pushStateSpy = jest.spyOn(window.history, 'pushState');
+
+      diaryDetail.openEntryModal('/entry/1');
 
       expect(mockBoxDialog).toHaveBeenCalledWith(
         expect.objectContaining({
-          hxUrl: '/p/1?isajax=true',
+          hxUrl: '/entry/1?isajax=true',
         }),
       );
+
+      // Restore window.location
+      window.location = originalLocation;
     });
   });
 });

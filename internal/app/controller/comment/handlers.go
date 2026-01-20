@@ -41,7 +41,7 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 
 	// 构建新评论对象，设置所有必要字段
 	commentData := &comment.Comment{
-		PostID:      req.PostID,
+		EntryID:     req.EntryID,
 		Content:     req.Content,
 		AddUserID:   loginUser.UserId,
 		AddUserName: loginUser.UserName,
@@ -51,7 +51,7 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 	// 调用服务层创建评论
 	commentID, err := ctrl.commentService.AddComment(commentData)
 	if err != nil {
-		slog.Error("Failed to add comment", "error", err, "post_id", req.PostID, "user_id", loginUser.UserId)
+		slog.Error("Failed to add comment", "error", err, "entry_id", req.EntryID, "user_id", loginUser.UserId)
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
@@ -148,9 +148,9 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 	req.PageSize = ctrl.config.App.PageSize
 
 	// 调用服务层获取评论列表
-	comments, total, err := ctrl.commentService.ListCommentsByPostID(req.PostID, req.PageIndex, req.PageSize)
+	comments, total, err := ctrl.commentService.ListCommentsByEntryID(req.EntryID, req.PageIndex, req.PageSize)
 	if err != nil {
-		slog.Error("ListCommentsByPostID failed", "error", err, "post_id", req.PostID)
+		slog.Error("ListCommentsByEntryID failed", "error", err, "entry_id", req.EntryID)
 		if c.GetHeader("HX-Request") == "true" || c.GetHeader("X-Requested-With") == "XMLHttpRequest" {
 			c.String(200, `<div class="text-center text-red-500 py-8">Failed to load comments</div>`)
 			return
@@ -181,7 +181,7 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 	}
 
 	// 获取日记作者ID，用于前端判断删除权限
-	postOwnerID, _ := ctrl.commentService.GetPostOwnerID(req.PostID)
+	entryOwnerID, _ := ctrl.commentService.GetEntryOwnerID(req.EntryID)
 
 	// 检查是否为HTMX请求
 	if c.GetHeader("HX-Request") == "true" {
@@ -194,8 +194,8 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 			},
 			"time_zone":     tz,
 			"CurrentUserID": currentUserID,
-			"PostID":        req.PostID,
-			"PostOwnerID":   postOwnerID,
+			"EntryID":       req.EntryID,
+			"EntryOwnerID":  entryOwnerID,
 			"TotalCount":    total,
 		}
 
@@ -220,14 +220,14 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 	})
 }
 
-// GetCommentsByPostIDFromPath 从URL路径参数获取日记ID并返回评论列表
+// GetCommentsByEntryIDFromPath 从URL路径参数获取日记ID并返回评论列表
 // 这是一个便捷方法，用于处理RESTful风格的URL
 //
 // 参数:
 //   - c: Gin上下文对象
 //
-// URL格式: /api/post/:post_id/comments
-func (ctrl *CommentController) GetCommentsByPostIDFromPath(c *gin.Context) {
+// URL格式: /api/entry/:entry_id/comments
+func (ctrl *CommentController) GetCommentsByEntryIDFromPath(c *gin.Context) {
 	// 获取已验证的请求数据
 	req := middleware.MustGetValidatedRequest[GetCommentsByPathRequest](c)
 
@@ -240,9 +240,9 @@ func (ctrl *CommentController) GetCommentsByPostIDFromPath(c *gin.Context) {
 	}
 
 	// 调用服务层获取评论列表
-	comments, total, err := ctrl.commentService.ListCommentsByPostID(req.PostID, pageIndex, pageSize)
+	comments, total, err := ctrl.commentService.ListCommentsByEntryID(req.EntryID, pageIndex, pageSize)
 	if err != nil {
-		slog.Error("ListCommentsByPostID failed", "error", err, "post_id", req.PostID)
+		slog.Error("ListCommentsByEntryID failed", "error", err, "entry_id", req.EntryID)
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
@@ -280,7 +280,7 @@ func (ctrl *CommentController) GetCommentsByPostIDFromPath(c *gin.Context) {
 		}
 		data.Data["time_zone"] = tz
 		data.Data["CurrentUserID"] = currentUserID
-		data.Data["PostID"] = req.PostID
+		data.Data["EntryID"] = req.EntryID
 		data.Data["TotalCount"] = total
 
 		ctrl.renderService.HTML(c, "comment/list", data)

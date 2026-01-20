@@ -2,7 +2,7 @@ package comment
 
 import (
 	"github.com/biuren/hebe/internal/domain/diary"
-	"github.com/biuren/hebe/internal/domain/post"
+	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/utils/errors"
@@ -15,7 +15,7 @@ type Service struct {
 	config       *config.Config      // 配置管理器
 	repo         RepositoryInterface // 评论数据访问层接口
 	userService  *user.Service       // 用户业务逻辑层
-	postService  *post.Service       // 日记业务逻辑层
+	entryService *entry.Service      // 日记业务逻辑层
 	diaryService *diary.Service      // 日记本业务逻辑层
 }
 
@@ -24,17 +24,17 @@ type Service struct {
 //   - config: 配置管理器
 //   - commentRepo: 评论数据访问层接口
 //   - userService: 用户业务逻辑层
-//   - postService: 日记业务逻辑层
+//   - entryService: 日记业务逻辑层
 //   - diaryService: 日记本业务逻辑层
 //
 // 返回:
 //   - *Service: 评论业务逻辑层实例
-func NewService(config *config.Config, commentRepo RepositoryInterface, userService *user.Service, postService *post.Service, diaryService *diary.Service) *Service {
+func NewService(config *config.Config, commentRepo RepositoryInterface, userService *user.Service, entryService *entry.Service, diaryService *diary.Service) *Service {
 	return &Service{
 		config:       config,
 		repo:         commentRepo,
 		userService:  userService,
-		postService:  postService,
+		entryService: entryService,
 		diaryService: diaryService,
 	}
 }
@@ -61,13 +61,13 @@ func (s *Service) AddComment(comment *Comment) (int64, error) {
 	}
 
 	// 验证日记是否存在
-	postData, err := s.postService.GetPostByID(comment.PostID)
+	entryData, err := s.entryService.GetEntryByID(comment.EntryID)
 	if err != nil {
-		return 0, errors.PostNotFound.WithDetails("日记不存在")
+		return 0, errors.EntryNotFound.WithDetails("日记不存在")
 	}
 
 	// 验证日记本是否存在
-	_, err = s.diaryService.GetDiaryByID(postData.DiaryID)
+	_, err = s.diaryService.GetDiaryByID(entryData.DiaryID)
 	if err != nil {
 		return 0, errors.DiaryNotFound.WithDetails("日记本不存在")
 	}
@@ -82,7 +82,7 @@ func (s *Service) AddComment(comment *Comment) (int64, error) {
 	}
 
 	// 增加日记的评论数量
-	err = s.repo.IncrementPostCommentNum(comment.PostID)
+	err = s.repo.IncrementEntryCommentNum(comment.EntryID)
 	if err != nil {
 		return 0, errors.DatabaseError.WithDetails(err.Error())
 	}
@@ -106,19 +106,19 @@ func (s *Service) DeleteComment(commentID int64, userID int64) error {
 	}
 
 	// 获取日记信息
-	postData, err := s.postService.GetPostByID(comment.PostID)
+	entryData, err := s.entryService.GetEntryByID(comment.EntryID)
 	if err != nil {
-		return errors.PostNotFound.WithDetails("日记不存在")
+		return errors.EntryNotFound.WithDetails("日记不存在")
 	}
 
 	// 获取日记本信息
-	diaryData, err := s.diaryService.GetDiaryByID(postData.DiaryID)
+	diaryData, err := s.diaryService.GetDiaryByID(entryData.DiaryID)
 	if err != nil {
 		return errors.DiaryNotFound.WithDetails("日记本不存在")
 	}
 
 	// 检查删除权限：评论作者、日记作者或日记本所有者
-	if comment.AddUserID != userID && postData.AddUserID != userID && diaryData.AddUserID != userID {
+	if comment.AddUserID != userID && entryData.AddUserID != userID && diaryData.AddUserID != userID {
 		return errors.PermissionDenied.WithDetails("无权限删除该评论")
 	}
 
@@ -129,7 +129,7 @@ func (s *Service) DeleteComment(commentID int64, userID int64) error {
 	}
 
 	// 减少日记的评论数量
-	err = s.repo.DecrementPostCommentNum(comment.PostID)
+	err = s.repo.DecrementEntryCommentNum(comment.EntryID)
 	if err != nil {
 		return &errors.DatabaseError
 	}
@@ -148,24 +148,24 @@ func (s *Service) GetCommentByID(commentID int64) (*Comment, error) {
 	return s.repo.GetByID(commentID)
 }
 
-// GetPostOwnerID 获取日记作者ID
+// GetEntryOwnerID 获取日记作者ID
 // 参数:
-//   - postID: 日记ID
+//   - entryID: 日记ID
 //
 // 返回:
 //   - int64: 作者ID
 //   - error: 获取失败时返回错误
-func (s *Service) GetPostOwnerID(postID int64) (int64, error) {
-	postData, err := s.postService.GetPostByID(postID)
+func (s *Service) GetEntryOwnerID(entryID int64) (int64, error) {
+	entryData, err := s.entryService.GetEntryByID(entryID)
 	if err != nil {
 		return 0, err
 	}
-	return postData.AddUserID, nil
+	return entryData.AddUserID, nil
 }
 
-// ListCommentsByPostID 根据日记ID分页查询评论列表
+// ListCommentsByEntryID 根据日记ID分页查询评论列表
 // 参数:
-//   - postID: 日记ID
+//   - entryID: 日记ID
 //   - pageIndex: 页码（从1开始）
 //   - pageSize: 每页大小
 //
@@ -173,23 +173,23 @@ func (s *Service) GetPostOwnerID(postID int64) (int64, error) {
 //   - []Comment: 评论列表
 //   - int: 总记录数
 //   - error: 查询失败时返回错误
-func (s *Service) ListCommentsByPostID(postID int64, pageIndex, pageSize int) ([]Comment, int, error) {
+func (s *Service) ListCommentsByEntryID(entryID int64, pageIndex, pageSize int) ([]Comment, int, error) {
 	// 验证日记是否存在
-	_, err := s.postService.GetPostByID(postID)
+	_, err := s.entryService.GetEntryByID(entryID)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return s.repo.ListByPostID(postID, pageIndex, pageSize)
+	return s.repo.ListByEntryID(entryID, pageIndex, pageSize)
 }
 
-// GetCommentCountByPostID 根据日记ID统计评论数量
+// GetCommentCountByEntryID 根据日记ID统计评论数量
 // 参数:
-//   - postID: 日记ID
+//   - entryID: 日记ID
 //
 // 返回:
 //   - int: 评论数量
 //   - error: 查询失败时返回错误
-func (s *Service) GetCommentCountByPostID(postID int64) (int, error) {
-	return s.repo.GetCountByPostID(postID)
+func (s *Service) GetCommentCountByEntryID(entryID int64) (int, error) {
+	return s.repo.GetCountByEntryID(entryID)
 }

@@ -37,7 +37,7 @@ type AuthUser struct {
 //	data := &PageData[map[string]interface{}]{
 //	    Title: "首页",
 //	    Context: renderContext,
-//	    Data: map[string]interface{}{"posts": posts},
+//	    Data: map[string]interface{}{"entries": entries},
 //	}
 type PageData[T any] struct {
 	// 页面元信息

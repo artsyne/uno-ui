@@ -1,4 +1,4 @@
-{{define "member/settings"}}
+{{define "user/settings"}}
 {{template "header" .}}
 {{template "navbar" .}}
 
@@ -14,7 +14,7 @@
                     <span class="mdi mdi-slash-forward"></span>
                 </li>
                 <li>
-                    <a href="#">{{getMessage "member.settings.title" .Context.Lang}}</a>
+                    <a href="#">{{getMessage "user.settings.title" .Context.Lang}}</a>
                 </li>
             </ul>
         </div>
@@ -23,7 +23,7 @@
     <section class="mx-auto lg:w-2/3">
         <!-- Profile Card -->
         <div class="mb-8" x-data="{ loading: false }">
-            <div class="card-title">{{getMessage "member.settings.profile_card_title" .Context.Lang}}</div>
+            <div class="card-title">{{getMessage "user.settings.profile_card_title" .Context.Lang}}</div>
             <form id="profile-form" x-uno-valid hx-post="/u/settings/profile" hx-swap="none"
                 @htmx:before-request="loading = true" @htmx:after-request="loading = false" novalidate>
                 <div>
@@ -35,44 +35,42 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-title">{{getMessage "member.settings.username_label" .Context.Lang}}</label>
+                        <label class="form-title">{{getMessage "user.settings.username_label" .Context.Lang}}</label>
                         <input type="text" class="form-control" id="user_name" name="user_name"
                             value="{{.Data.User.UserName}}" readonly
-                            placeholder='{{getMessage "member.settings.username_placeholder" .Context.Lang}}' />
+                            placeholder='{{getMessage "user.settings.username_placeholder" .Context.Lang}}' />
                         <p class="form-info">
-                            {{getMessage "member.settings.username_note" .Context.Lang}}
+                            {{getMessage "user.settings.username_note" .Context.Lang}}
                         </p>
                     </div>
 
                     <!-- Full name -->
                     <div class="mb-4">
-                        <label class="form-title" for="full_name">{{getMessage "member.settings.full_name_label"
-                            .Context.Lang}}</label>
+                        <label class="form-title" for="full_name">{{getMessage "user.settings.full_name_label" .Context.Lang}}</label>
                         <input type="text" class="form-control" id="full_name" name="full_name"
-                            placeholder='{{getMessage "member.settings.full_name_placeholder" .Context.Lang}}'
+                            placeholder='{{getMessage "user.settings.full_name_placeholder" .Context.Lang}}'
                             value="{{.Data.User.FullName}}" data-original-value="{{.Data.User.FullName}}" x-uno-valid
                             maxlength="30" />
                         <div x-text="$store.uno.valid.errors['full_name']" x-show="$store.uno.valid.errors['full_name']"
                             class="text-xs text-red-500 mt-1"></div>
                         <p class="form-info">
-                            {{getMessage "member.settings.display_name_note" .Context.Lang}}
+                            {{getMessage "user.settings.display_name_note" .Context.Lang}}
                         </p>
                     </div>
 
                     <!-- Bio -->
                     <div class="mb-4">
-                        <label class="form-title" for="remark">{{getMessage "member.settings.bio_label"
-                            .Context.Lang}}</label>
-                        <textarea class="form-control" id="remark" name="remark" style="height: 120px;" placeholder='{{getMessage "member.settings.bio_placeholder"
-                            .Context.Lang}}' x-uno-valid maxlength="250">{{.Data.User.Remark}}</textarea>
+                        <label class="form-title" for="remark">{{getMessage "user.settings.bio_label" .Context.Lang}}</label>
+                        <textarea class="form-control" id="remark" name="remark" style="height: 120px;"
+                            placeholder='{{getMessage "user.settings.bio_placeholder" .Context.Lang}}' x-uno-valid
+                            maxlength="250">{{.Data.User.Remark}}</textarea>
                         <div x-text="$store.uno.valid.errors['remark']" x-show="$store.uno.valid.errors['remark']"
                             class="text-xs text-red-500 mt-1"></div>
                     </div>
 
                     <!-- Timezone -->
                     <div class="mb-4">
-                        <label class="form-title" for="time_zone">{{getMessage "common.time_zone"
-                            .Context.Lang}}</label>
+                        <label class="form-title" for="time_zone">{{getMessage "common.time_zone" .Context.Lang}}</label>
                         <select class="form-control" id="time_zone" name="time_zone"
                             data-original-value="{{.Data.User.TimeZone}}">
                             {{range .Data.TimeZones}}
@@ -80,7 +78,7 @@
                             {{end}}
                         </select>
                         <p class="form-info">
-                            {{getMessage "member.settings.timezone_note" .Context.Lang}}
+                            {{getMessage "user.settings.timezone_note" .Context.Lang}}
                         </p>
                     </div>
 
@@ -100,7 +98,7 @@
                         <button type="submit" class="btn" :disabled="loading"
                             :class="{'opacity-50 cursor-not-allowed': loading}">
                             <span x-show="loading" class="mdi mdi-loading mdi-spin mr-1"></span>
-                            {{getMessage "member.settings.save_changes_button" .Context.Lang}}
+                            {{getMessage "user.settings.save_changes_button" .Context.Lang}}
                         </button>
                     </div>
                 </div>
@@ -109,19 +107,19 @@
 
         <!-- Email Card -->
         <div class="mb-8">
-            <div class="card-title">{{getMessage "member.settings.email_card_title" .Context.Lang}}</div>
+            <div class="card-title">{{getMessage "user.settings.email_card_title" .Context.Lang}}</div>
             <form id="email-form" x-data="{ loading: false }" hx-post="/u/settings/email" hx-swap="none"
                 @htmx:before-request="loading = true" @htmx:after-request="loading = false" x-uno-valid novalidate>
                 <div>
                     <div class="mb-4">
                         <input type="email" class="form-control" id="email" name="email"
-                            placeholder='{{getMessage "member.settings.email_placeholder" .Context.Lang}}'
+                            placeholder='{{getMessage "user.settings.email_placeholder" .Context.Lang}}'
                             value="{{.Data.User.Email}}" data-original-value="{{.Data.User.Email}}"
                             x-uno-valid="{ validator: 'checkEmail' }" required />
                         <div x-text="$store.uno.valid.errors['email']" x-show="$store.uno.valid.errors['email']"
                             class="text-xs text-red-500 mt-1"></div>
                         <p class="form-info">
-                            {{getMessage "member.settings.email_note" .Context.Lang}}
+                            {{getMessage "user.settings.email_note" .Context.Lang}}
                         </p>
                     </div>
 
@@ -130,7 +128,7 @@
                         <button type="submit" class="btn" :disabled="loading"
                             :class="{'opacity-50 cursor-not-allowed': loading}">
                             <span x-show="loading" class="mdi mdi-loading mdi-spin mr-1"></span>
-                            {{getMessage "member.settings.save_changes_button" .Context.Lang}}
+                            {{getMessage "user.settings.save_changes_button" .Context.Lang}}
                         </button>
                     </div>
                 </div>
@@ -139,16 +137,15 @@
 
         <!-- Password Card -->
         <div x-data="{ loading: false }">
-            <div class="card-title">{{getMessage "member.settings.update_password_card_title" .Context.Lang}}</div>
+            <div class="card-title">{{getMessage "user.settings.update_password_card_title" .Context.Lang}}</div>
             <form id="password-form" x-uno-valid hx-post="/u/settings/password" hx-swap="none"
                 @htmx:before-request="loading = true" @htmx:after-request="loading = false" novalidate>
                 <div>
                     <!-- Current password -->
                     <div class="mb-4">
-                        <label class="form-title" for="current_pwd">{{getMessage
-                            "member.settings.current_password_label" .Context.Lang}}</label>
+                        <label class="form-title" for="current_pwd">{{getMessage "user.settings.current_password_label" .Context.Lang}}</label>
                         <input type="password" class="form-control" id="current_pwd" name="current_pwd"
-                            placeholder='{{getMessage "member.settings.current_password_placeholder" .Context.Lang}}'
+                            placeholder='{{getMessage "user.settings.current_password_placeholder" .Context.Lang}}'
                             x-uno-valid required />
                         <div x-text="$store.uno.valid.errors['current_pwd']"
                             x-show="$store.uno.valid.errors['current_pwd']" class="text-xs text-red-500 mt-1"></div>
@@ -156,10 +153,9 @@
 
                     <!-- New password -->
                     <div class="mb-4">
-                        <label class="form-title" for="new_pwd">{{getMessage "member.settings.new_password_label"
-                            .Context.Lang}}</label>
+                        <label class="form-title" for="new_pwd">{{getMessage "user.settings.new_password_label" .Context.Lang}}</label>
                         <input type="password" class="form-control" id="new_pwd" name="new_pwd"
-                            placeholder='{{getMessage "member.settings.new_password_placeholder" .Context.Lang}}'
+                            placeholder='{{getMessage "user.settings.new_password_placeholder" .Context.Lang}}'
                             x-uno-valid minlength="6" maxlength="30" required />
                         <div x-text="$store.uno.valid.errors['new_pwd']" x-show="$store.uno.valid.errors['new_pwd']"
                             class="text-xs text-red-500 mt-1"></div>
@@ -167,10 +163,9 @@
 
                     <!-- Confirm password -->
                     <div class="mb-4">
-                        <label class="form-title" for="confirm_pwd">{{getMessage
-                            "member.settings.confirm_password_label" .Context.Lang}}</label>
+                        <label class="form-title" for="confirm_pwd">{{getMessage "user.settings.confirm_password_label" .Context.Lang}}</label>
                         <input type="password" class="form-control" id="confirm_pwd" name="confirm_pwd"
-                            placeholder='{{getMessage "member.settings.confirm_password_placeholder" .Context.Lang}}'
+                            placeholder='{{getMessage "user.settings.confirm_password_placeholder" .Context.Lang}}'
                             x-uno-valid="{ validator: 'matchPwd', msgValidator: '{{getMessage "auth.message.password_mismatch" .Context.Lang}}' }" required />
                         <div x-text="$store.uno.valid.errors['confirm_pwd']"
                             x-show="$store.uno.valid.errors['confirm_pwd']" class="text-xs text-red-500 mt-1"></div>
@@ -181,7 +176,7 @@
                         <button type="submit" class="btn" :disabled="loading"
                             :class="{'opacity-50 cursor-not-allowed': loading}">
                             <span x-show="loading" class="mdi mdi-loading mdi-spin mr-1"></span>
-                            {{getMessage "member.settings.change_password_button" .Context.Lang}}
+                            {{getMessage "user.settings.change_password_button" .Context.Lang}}
                         </button>
                     </div>
                 </div>

@@ -96,7 +96,7 @@ var (
 	UserNotFound     = NewAppError(1301, "user_not_found", 404)
 	ResourceNotFound = NewAppError(1302, "resource_not_found", 404)
 	DiaryNotFound    = NewAppError(1303, "diary_not_found", 404)
-	PostNotFound     = NewAppError(1304, "post_not_found", 404)
+	EntryNotFound    = NewAppError(1304, "entry_not_found", 404)
 	CommentNotFound  = NewAppError(1305, "comment_not_found", 404)
 	PageNotFound     = NewAppError(1306, "page_not_found", 404)
 

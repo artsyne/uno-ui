@@ -26,7 +26,7 @@ DROP TABLE IF EXISTS br_comment;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE br_comment (
   comment_id bigint unsigned NOT NULL AUTO_INCREMENT,
-  post_id bigint unsigned NOT NULL,
+  entry_id bigint unsigned NOT NULL,
   content varchar(5000) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   add_utc_time bigint unsigned NOT NULL DEFAULT '0',
   add_user_id bigint unsigned NOT NULL,
@@ -126,14 +126,14 @@ CREATE TABLE br_like (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `br_post`
+-- Table structure for table `br_entry`
 --
 
-DROP TABLE IF EXISTS br_post;
+DROP TABLE IF EXISTS br_entry;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE br_post (
-  post_id bigint unsigned NOT NULL AUTO_INCREMENT,
+CREATE TABLE br_entry (
+  entry_id bigint unsigned NOT NULL AUTO_INCREMENT,
   diary_id bigint unsigned NOT NULL DEFAULT '0',
   is_top tinyint unsigned NOT NULL DEFAULT '0',
   info_type tinyint unsigned NOT NULL DEFAULT '0',
@@ -149,7 +149,7 @@ CREATE TABLE br_post (
   add_utc_time bigint unsigned NOT NULL DEFAULT '0',
   update_utc_time bigint unsigned NOT NULL DEFAULT '0',
   `status` tinyint unsigned NOT NULL DEFAULT '1',
-  PRIMARY KEY (post_id)
+  PRIMARY KEY (entry_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=114 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

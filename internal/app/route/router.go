@@ -10,15 +10,15 @@ import (
 	"github.com/biuren/hebe/internal/app/controller"
 	commentController "github.com/biuren/hebe/internal/app/controller/comment"
 	diaryController "github.com/biuren/hebe/internal/app/controller/diary"
-	postController "github.com/biuren/hebe/internal/app/controller/post"
+	entryController "github.com/biuren/hebe/internal/app/controller/entry"
 	userController "github.com/biuren/hebe/internal/app/controller/user"
 	"github.com/biuren/hebe/internal/app/templates"
 	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/core/di"
 	commentDomain "github.com/biuren/hebe/internal/domain/comment"
 	diaryDomain "github.com/biuren/hebe/internal/domain/diary"
+	entryDomain "github.com/biuren/hebe/internal/domain/entry"
 	likeDomain "github.com/biuren/hebe/internal/domain/like"
-	postDomain "github.com/biuren/hebe/internal/domain/post"
 	userDomain "github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/gin-gonic/gin"
@@ -63,8 +63,8 @@ func setPath(server *gin.Engine, container *di.Container) {
 	// 通过DI容器创建controllers，注册模块路由
 	createUserController(container).RegisterRoutes(server)
 	createDiaryController(container).RegisterRoutes(server)
-	createPostController(container).RegisterRoutes(server)
-	
+	createEntryController(container).RegisterRoutes(server)
+
 	// 注册评论路由
 	commentCtrl := createCommentController(container)
 	apiGroup := server.Group("/api")
@@ -75,7 +75,7 @@ func setPath(server *gin.Engine, container *di.Container) {
 type controllerDependencies struct {
 	userService    *userDomain.Service
 	diaryService   *diaryDomain.Service
-	postService    *postDomain.Service
+	entryService   *entryDomain.Service
 	commentService *commentDomain.Service
 	likeService    likeDomain.Service
 	authHelper     *userDomain.AuthHelper
@@ -95,7 +95,7 @@ type controllerDependencies struct {
 // 包含的依赖:
 //   - userService: 用户业务服务
 //   - diaryService: 日记业务服务
-//   - postService: 文章业务服务
+//   - entryService: 日记业务服务
 //   - likeService: 点赞业务服务
 //   - authHelper: 认证辅助服务
 //   - config: 应用配置
@@ -104,7 +104,7 @@ func getControllerDependencies(container *di.Container) *controllerDependencies 
 	return &controllerDependencies{
 		userService:    di.Get[*userDomain.Service](container),
 		diaryService:   di.Get[*diaryDomain.Service](container),
-		postService:    di.Get[*postDomain.Service](container),
+		entryService:   di.Get[*entryDomain.Service](container),
 		commentService: di.Get[*commentDomain.Service](container),
 		likeService:    di.Get[likeDomain.Service](container),
 		authHelper:     di.Get[*userDomain.AuthHelper](container),
@@ -152,17 +152,17 @@ func createDiaryController(container *di.Container) *diaryController.DiaryContro
 	return diaryController.NewDiaryController(deps.config, deps.diaryService, deps.userService, deps.likeService, deps.authHelper, deps.renderService)
 }
 
-// createPostController 通过DI容器创建PostController
+// createEntryController 通过DI容器创建EntryController
 // 创建文章控制器实例，处理文章的创建、编辑、删除、查看等功能
 //
 // 参数:
 //   - container: DI依赖注入容器
 //
 // 返回:
-//   - *postController.PostController: 文章控制器实例
-func createPostController(container *di.Container) *postController.PostController {
+//   - *entryController.EntryController: 文章控制器实例
+func createEntryController(container *di.Container) *entryController.EntryController {
 	deps := getControllerDependencies(container)
-	return postController.NewPostController(deps.config, deps.postService, deps.diaryService, deps.authHelper, deps.renderService, deps.userService, deps.likeService)
+	return entryController.NewEntryController(deps.config, deps.entryService, deps.diaryService, deps.authHelper, deps.renderService, deps.userService, deps.likeService)
 }
 
 // createCommentController 通过DI容器创建CommentController

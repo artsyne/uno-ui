@@ -94,8 +94,8 @@ func TestPageData(t *testing.T) {
 		}
 
 		data := map[string]interface{}{
-			"posts": []string{"post1", "post2"},
-			"count": 2,
+			"entries": []string{"entry1", "entry2"},
+			"count":   2,
 		}
 
 		pageData := &contracts.PageData[map[string]interface{}]{

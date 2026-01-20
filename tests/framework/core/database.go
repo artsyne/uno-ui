@@ -228,8 +228,19 @@ func (dm *DatabaseManager) loadDatabaseSchema(db *sql.DB) error {
 	successCount := 0
 	skippedCount := 0
 	for i, stmt := range sqlStatements {
-		stmt = strings.TrimSpace(stmt)
-		if stmt == "" || strings.HasPrefix(stmt, "--") || strings.HasPrefix(stmt, "/*") {
+		// 处理语句中的注释行
+		lines := strings.Split(stmt, "\n")
+		var validLines []string
+		for _, line := range lines {
+			line = strings.TrimSpace(line)
+			if line == "" || strings.HasPrefix(line, "--") || (strings.HasPrefix(line, "/*") && !strings.HasPrefix(line, "/*!")) {
+				continue
+			}
+			validLines = append(validLines, line)
+		}
+		stmt = strings.Join(validLines, " ")
+
+		if stmt == "" {
 			continue
 		}
 

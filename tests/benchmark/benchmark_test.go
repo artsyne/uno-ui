@@ -19,7 +19,7 @@ func TestBenchmarkEnvironmentSetup(t *testing.T) {
 	// 验证服务实例
 	assert.NotNil(t, benchServices.userService, "user service should be initialized")
 	assert.NotNil(t, benchServices.diaryService, "diary service should be initialized")
-	assert.NotNil(t, benchServices.postService, "post service should be initialized")
+	assert.NotNil(t, benchServices.entryService, "entry service should be initialized")
 	assert.NotNil(t, benchServices.taskService, "task service should be initialized")
 	
 	// 验证测试上下文功能
@@ -105,12 +105,12 @@ func TestBenchmarkServicesIntegration(t *testing.T) {
 	
 	userService := benchServices.userService
 	diaryService := benchServices.diaryService
-	postService := benchServices.postService
+	entryService := benchServices.entryService
 	taskService := benchServices.taskService
 	
 	assert.NotNil(t, userService, "user service should be available")
 	assert.NotNil(t, diaryService, "diary service should be available")
-	assert.NotNil(t, postService, "post service should be available")
+	assert.NotNil(t, entryService, "entry service should be available")
 	assert.NotNil(t, taskService, "task service should be available")
 }
 
@@ -125,7 +125,7 @@ func TestBenchmarkConfiguration(t *testing.T) {
 	require.NotNil(t, appConfig, "app config should not be nil")
 	
 	// 验证关键配置项
-	assert.Greater(t, appConfig.App.MaxDaybookLimit, 0, "max daybook limit should be positive")
+	assert.Greater(t, appConfig.App.MaxDiaryLimit, 0, "max diary limit should be positive")
 	assert.Greater(t, appConfig.App.SummaryMax, 0, "summary max should be positive")
 	assert.Greater(t, appConfig.App.PageSize, 0, "page size should be positive")
 	assert.NotEmpty(t, appConfig.App.DefaultLang, "default language should not be empty")

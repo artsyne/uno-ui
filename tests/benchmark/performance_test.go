@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/biuren/hebe/internal/domain/diary"
-	"github.com/biuren/hebe/internal/domain/post"
+	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
@@ -26,7 +26,7 @@ var (
 type benchmarkServices struct {
 	userService  *user.Service
 	diaryService *diary.Service
-	postService  *post.Service
+	entryService *entry.Service
 	taskService  *task.Service
 }
 
@@ -38,19 +38,19 @@ func initBenchmarkEnv() {
 		userRepo := repository.NewUserRepository()
 		taskRepo := repository.NewTaskRepository()
 		diaryRepo := repository.NewDiaryRepository()
-		postRepo := repository.NewPostRepository()
+		entryRepo := repository.NewEntryRepository()
 		config := benchCtx.GetConfig().GetAppConfig()
 
 		taskService := task.NewService(config, taskRepo)
 		i18nManager := i18n.NewLocalizationManager(config)
 		userService := user.NewService(config, userRepo, taskService, i18nManager)
 		diaryService := diary.NewService(config, diaryRepo)
-		postService := post.NewService(config, userRepo, taskService, diaryRepo, postRepo, i18nManager)
+		entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
 
 		benchServices = &benchmarkServices{
 			userService:  userService,
 			diaryService: diaryService,
-			postService:  postService,
+			entryService: entryService,
 			taskService:  taskService,
 		}
 	})
@@ -120,16 +120,16 @@ func BenchmarkDiaryCreation(b *testing.B) {
 	}
 }
 
-// BenchmarkPostCreation 文章创建性能基准测试
-func BenchmarkPostCreation(b *testing.B) {
+// BenchmarkEntryCreation 文章创建性能基准测试
+func BenchmarkEntryCreation(b *testing.B) {
 	initBenchmarkEnv()
 
 	// 创建测试用户 - 使用唯一前缀
 	timestamp := time.Now().UnixNano()
 	uniqueID := fmt.Sprintf("%d_%d", timestamp, rand.Int63())
 	testUser := &user.User{
-		UserName: fmt.Sprintf("post_bench_%s_%s", uniqueID, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
-		Email:    fmt.Sprintf("post_bench_%s_%s@example.com", uniqueID, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
+		UserName: fmt.Sprintf("entry_bench_%s_%s", uniqueID, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
+		Email:    fmt.Sprintf("entry_bench_%s_%s@example.com", uniqueID, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
 		Pwd:      "password123",
 		TimeZone: "UTC",
 		Lang:     "en",
@@ -158,8 +158,8 @@ func BenchmarkPostCreation(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		testPost := &post.Post{
-			Title:       benchCtx.GetDataGenerator().GenerateUniqueString("benchpost"),
+		testEntry := &entry.Entry{
+			Title:       benchCtx.GetDataGenerator().GenerateUniqueString("benchentry"),
 			Body:        "这是一篇性能测试文章的内容",
 			Summary:     "性能测试摘要",
 			DiaryID:     diaryID,
@@ -169,7 +169,7 @@ func BenchmarkPostCreation(b *testing.B) {
 			Status:      1,
 			InfoType:    1,
 		}
-		_, err := benchServices.postService.AddPost(testPost)
+		_, err := benchServices.entryService.AddEntry(testEntry)
 		if err != nil {
 			b.Fatal(err)
 		}

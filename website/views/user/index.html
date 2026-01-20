@@ -1,4 +1,4 @@
-{{ define "member/index" }}
+{{ define "user/index" }}
 {{ template "header" . }}
 {{ template "navbar" . }}
 
@@ -16,50 +16,50 @@
     <section class="mb-10">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div>
-                <h1 class="card-title">{{getMessage "member.profile.introduction" .Context.Lang}}</h1>
+                <h1 class="card-title">{{getMessage "user.profile.introduction" .Context.Lang}}</h1>
                 <div>{{ .Data.User.Remark }}</div>
             </div>
             <div>
-                <h1 class="card-title">{{getMessage "member.profile.menu" .Context.Lang}}</h1>
+                <h1 class="card-title">{{getMessage "user.profile.menu" .Context.Lang}}</h1>
                 <div>
                     <ul class="text-gray-900 dark:text-gray-100">
                         <li class="py-1">
                             <a href="#">
                                 <i class="mdi mdi-book-outline"></i>
-                                <span>{{getMessage "member.profile.latest_public_diary" .Context.Lang}}</span>
+                                <span>{{getMessage "user.profile.latest_public_diary" .Context.Lang}}</span>
                             </a>
                         </li>
                         <li class="py-1">
                             <a href="#">
                                 <i class="mdi mdi-book-multiple"></i>
-                                <span>{{getMessage "member.profile.joined_diaries" .Context.Lang}}</span>
+                                <span>{{getMessage "user.profile.joined_diaries" .Context.Lang}}</span>
                             </a>
                         </li>
                     </ul>
                 </div>
             </div>
             <div class="lg:col-span-2">
-                <h1 class="card-title">{{getMessage "member.profile.my_apps" .Context.Lang}}</h1>
+                <h1 class="card-title">{{getMessage "user.profile.my_apps" .Context.Lang}}</h1>
                 <div>
-                    {{getMessage "member.profile.app_list" .Context.Lang}}
+                    {{getMessage "user.profile.app_list" .Context.Lang}}
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="flex justify-between mb-10" x-data="member">
-        <div class="text-lg">{{getMessage "member.profile.diary_notebook" .Context.Lang}}</div>
+    <section class="flex justify-between mb-10" x-data="user">
+        <div class="text-lg">{{getMessage "diary.list.title" .Context.Lang}}</div>
         <div>
             {{if .Data.IsOwner}}
-            <button class="btn" @click="openAddDiary()">
-                <i class="mdi mdi-plus"></i> {{getMessage "member.profile.add_notebook" .Context.Lang}}
+            <button class="btn" @click="openCreateDiary()">
+                <i class="mdi mdi-plus"></i> {{getMessage "diary.create" .Context.Lang}}
             </button>
             {{end}}
         </div>
     </section>
 
     <section>
-        {{ template "member/list" . }}
+        {{ template "user/list" . }}
     </section>
 </main>
 {{ template "footer" . }}

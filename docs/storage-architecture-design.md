@@ -29,10 +29,10 @@
 ├─────────────────────────────────────────────────────────┤
 │              App Layer (Controllers/ViewService)        │
 ├─────────────────────────────────────────────────────────┤
-│    Domain Layer (User/Diary/Post/Task Domains)         │
+│    Domain Layer (User/Diary/Entry/Task Domains)         │
 ├─────────────────────────────────────────────────────────┤
 │         Infrastructure Layer (Repositories)            │
-│    UserRepo    │  DiaryRepo   │  PostRepo   │  TaskRepo  │
+│    UserRepo    │  DiaryRepo   │  EntryRepo   │  TaskRepo  │
 ├─────────────────────────────────────────────────────────┤
 │              Core Layer (Database/DI/Config)           │
 │      MySQL       │    Redis     │   SQLx     │           │
@@ -50,13 +50,11 @@
 #### 已实现的存储功能
 
 1. **MySQL 主存储**
-
    - 用户信息、日记元数据、文章内容
    - 基于 SQLx 的类型安全数据库操作
    - Repository 模式实现数据访问层
 
 2. **Redis 缓存存储**
-
    - 用户会话管理
    - 临时数据缓存
    - 提高系统响应速度
@@ -102,7 +100,6 @@
    ```
 
 2. **存储策略配置**
-
    - 每个日记本独立配置存储后端（即选择哪个云盘）
    - 用户自主授权云存储访问
    - 支持存储迁移和备份
@@ -177,16 +174,16 @@ iDiary.ai Hebe 的存储架构采用分层设计，当前已实现稳定的本�
 ```
 User模块 (独立模块，提供认证和授权服务)
    ↑
-Post模块 (依赖User获取云盘授权，并提供统一的存储服务)
+Entry模块 (依赖User获取云盘授权，并提供统一的存储服务)
    ↑
-Diary模块 (依赖Post获取内容，传递存储配置)
+Diary模块 (依赖Entry获取内容，传递存储配置)
 ```
 
 **关键设计原则**:
 
-- Post模块不主动获取Diary配置，通过参数接收
-- Diary模块作为编排者，传递完整存储配置给Post模块
-- User模块提供云盘授权服务，供Post模块调用
+- Entry模块不主动获取Diary配置，通过参数接收
+- Diary模块作为编排者，传递完整存储配置给Entry模块
+- User模块提供云盘授权服务，供Entry模块调用
 
 ## 3. 数据库设计
 
@@ -287,7 +284,7 @@ CREATE TABLE br_cloud_sync_log (
   log_id bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '日志ID，主键',
   user_id bigint unsigned NOT NULL COMMENT '用户ID',
   auth_id bigint unsigned NOT NULL COMMENT '云盘授权ID',
-  post_id bigint unsigned DEFAULT NULL COMMENT '内容ID，关联br_post.post_id',
+  post_id bigint unsigned DEFAULT NULL COMMENT '内容ID，关联br_entry.entry_id',
   operation varchar(20) NOT NULL COMMENT '操作类型: upload/download/delete/sync',
   status varchar(20) NOT NULL COMMENT '状态: success/failed/pending',
   file_path varchar(500) DEFAULT '' COMMENT '文件路径',
@@ -300,7 +297,7 @@ CREATE TABLE br_cloud_sync_log (
   KEY idx_auth_status (auth_id, status) COMMENT '授权状态索引',
   FOREIGN KEY (user_id) REFERENCES br_user(user_id) ON DELETE CASCADE,
   FOREIGN KEY (auth_id) REFERENCES br_cloud_authorization(auth_id) ON DELETE CASCADE,
-  FOREIGN KEY (post_id) REFERENCES br_post(post_id) ON DELETE SET NULL
+  FOREIGN KEY (post_id) REFERENCES br_entry(entry_id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='云盘同步操作日志表';
 ```
 
@@ -376,9 +373,9 @@ Storage Backend (存储后端: DB/Cloud)
 - **`/{year}`**: 四位数的年份，例如 `2024`。
 - **`/{month}`**: 两位数的月份，例如 `07`。
 - **`/{post_id}_{validation_hash}.md`**: 日记文件名，由三部分组成：
-    - `post_id`: 日记内容的唯一标识符（ID）。
-    - `validation_hash`: 用于验证文件完整性的哈希串（取哈希值的前8位）。
-    - `.md`: 文件扩展名，表示 Markdown 格式。
+  - `post_id`: 日记内容的唯一标识符（ID）。
+  - `validation_hash`: 用于验证文件完整性的哈希串（取哈希值的前8位）。
+  - `.md`: 文件扩展名，表示 Markdown 格式。
 
 #### 文件名验证哈希算法
 
@@ -461,7 +458,7 @@ func (m *StorageManager) RouteStorage(config *StorageConfig) (StorageAdapter, er
         }
         return adapter, nil
     }
-    
+
     // 默认或明确配置为 database 时，返回数据库适配器
     return m.databaseAdapter, nil
 }

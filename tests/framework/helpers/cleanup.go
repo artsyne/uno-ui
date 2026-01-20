@@ -139,7 +139,7 @@ func (cm *CleanupManagerImpl) getTablesInCleanupOrder() []string {
 		"br_job_history",  // 任务历史表
 		"br_job_queue",    // 任务队列表
 		"br_diary_member", // 日记成员表（依赖日记和用户）
-		"br_post",         // 文章表（依赖日记和用户）
+		"br_entry",        // 文章表（依赖日记和用户）
 		"br_diary",        // 日记表（依赖用户）
 		"br_user_stat",    // 用户统计表（依赖用户）
 		"br_valid_code",   // 验证码表（依赖用户）
@@ -159,7 +159,7 @@ func (cm *CleanupManagerImpl) cleanupTableByPrefix(table string) (int, error) {
 	case "br_diary":
 		whereClause = fmt.Sprintf("title LIKE '%s%%' OR add_user_name LIKE '%s%%'",
 			cm.isolator.GetPrefix(), cm.isolator.GetPrefix())
-	case "br_post":
+	case "br_entry":
 		whereClause = fmt.Sprintf("title LIKE '%s%%' OR add_user_name LIKE '%s%%'",
 			cm.isolator.GetPrefix(), cm.isolator.GetPrefix())
 	case "br_comment":
@@ -211,8 +211,8 @@ func (cm *CleanupManagerImpl) cleanupTableByIDs(table string, ids []interface{})
 		primaryKey = "user_id"
 	case "br_diary":
 		primaryKey = "diary_id"
-	case "br_post":
-		primaryKey = "post_id"
+	case "br_entry":
+		primaryKey = "entry_id"
 	case "br_comment":
 		primaryKey = "comment_id"
 	case "br_job_queue", "br_job_history":

@@ -1,11 +1,11 @@
-{{define "post/detail"}}
-<div id="post-detail-container">
+{{define "entry/detail"}}
+<div id="entry-detail-container">
     <section class="grid grid-cols-1 lg:grid-cols-12 gap-10 mx-auto">
         <div class="lg:col-start-2  lg:col-span-7 flex min-h-[500px]">
             <div class="w-full card">
-                {{if .Data.Post.Title}}
+                {{if .Data.Entry.Title}}
                 <h1 class="text-2xl font-bold text-center text-gray-800 dark:text-gray-200 mb-6">
-                    {{.Data.Post.Title}}
+                    {{.Data.Entry.Title}}
                 </h1>
                 {{end}}
                 <div class="prose max-w-none text-gray-700 dark:text-gray-300 text-relaxed">
@@ -17,13 +17,14 @@
         <div class="lg:col-start-9 lg:col-span-3">
             <div class="card border-none">
                 <div class="flex justify-between mb-4">
-                    {{if .Data.PreviousPostID}}
+                    {{if .Data.PreviousEntryID}}
                     {{if .Data.IsAjax}}
-                    <a href="#" hx-get="/p/{{.Data.PreviousPostID}}?isajax=true" hx-target="#post-detail-container"
-                        hx-swap="outerHTML" hx-push-url="/p/{{.Data.PreviousPostID}}"
+                    <a href="#" hx-get="/entry/{{.Data.PreviousEntryID}}?isajax=true" hx-target="#entry-detail-container"
+                        hx-swap="outerHTML" hx-push-url="/entry/{{.Data.PreviousEntryID}}"
                         title='{{getMessage "common.previous" .Context.Lang}}'>
                         {{else}}
-                        <a href="/p/{{.Data.PreviousPostID}}" title='{{getMessage "common.previous" .Context.Lang}}'>
+                        <a href="/entry/{{.Data.PreviousEntryID}}"
+                            title='{{getMessage "common.previous" .Context.Lang}}'>
                             {{end}}
                             <i class="mdi mdi-arrow-left"></i></a>
                         {{else}}
@@ -32,13 +33,13 @@
                             <i class="mdi mdi-arrow-left"></i></a>
                         {{end}}
 
-                        {{if .Data.NextPostID}}
+                        {{if .Data.NextEntryID}}
                         {{if .Data.IsAjax}}
-                        <a href="#" hx-get="/p/{{.Data.NextPostID}}?isajax=true" hx-target="#post-detail-container"
-                            hx-swap="outerHTML" hx-push-url="/p/{{.Data.NextPostID}}"
+                        <a href="#" hx-get="/entry/{{.Data.NextEntryID}}?isajax=true" hx-target="#entry-detail-container"
+                            hx-swap="outerHTML" hx-push-url="/entry/{{.Data.NextEntryID}}"
                             title='{{getMessage "common.next" .Context.Lang}}'>
                             {{else}}
-                            <a href="/p/{{.Data.NextPostID}}" title='{{getMessage "common.next" .Context.Lang}}'>
+                            <a href="/entry/{{.Data.NextEntryID}}" title='{{getMessage "common.next" .Context.Lang}}'>
                                 {{end}}
                                 <i class="mdi mdi-arrow-right"></i></a>
                             {{else}}
@@ -50,26 +51,26 @@
                 <div class="flex justify-between mb-4">
                     <p class="text-gray-600 dark:text-gray-400 text-sm">{{getMessage "common.authors" .Context.Lang}}
                     </p>
-                    <p><a href="/u/{{.Data.Post.AddUserID}}"
-                            class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors duration-200">{{.Data.Post.AddUserName}}</a>
+                    <p><a href="/u/{{.Data.Entry.AddUserID}}"
+                            class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors duration-200">{{.Data.Entry.AddUserName}}</a>
                     </p>
                 </div>
                 <div class="flex justify-between mb-4">
                     <p class="text-gray-600 dark:text-gray-400 text-sm">{{getMessage "common.pub_time"
                         .Context.Lang}}</p>
-                    <p>{{formatLocalTime .Data.Post.AddUTCTime .Data.TimeZone}}</p>
+                    <p>{{formatLocalTime .Data.Entry.AddUTCTime .Data.TimeZone}}</p>
                 </div>
 
                 {{if eq .Data.Diary.SocialSetting 1}}
                 <div
                     class="flex items-center text-gray-600 dark:text-gray-400 text-sm mt-4 border-t border-gray-100 dark:border-gray-700 pt-4">
                     <span class="mr-6 flex items-center" title="Views">
-                        <i class="mdi mdi-eye mr-1 text-lg"></i> {{.Data.Post.ViewNum}}
+                        <i class="mdi mdi-eye mr-1 text-lg"></i> {{.Data.Entry.ViewNum}}
                     </span>
-                    <span id="post-comment-count" class="mr-6 flex items-center" title="Comments">
-                        <i class="mdi mdi-comment-text-outline mr-1 text-lg"></i> {{.Data.Post.CommentNum}}
+                    <span id="entry-comment-count" class="mr-6 flex items-center" title="Comments">
+                        <i class="mdi mdi-comment-text-outline mr-1 text-lg"></i> {{.Data.Entry.CommentNum}}
                     </span>
-                    <div x-data="likeButton({{.Data.Post.LikeNum}}, {{.Data.IsLiked}}, {{.Data.Post.PostID}})"
+                    <div x-data="likeButton({{.Data.Entry.LikeNum}}, {{.Data.IsLiked}}, {{.Data.Entry.EntryID}})"
                         class="inline-block">
                         <button @click="toggle"
                             class="flex items-center hover:text-blue-500 transition-colors focus:outline-none"
@@ -84,8 +85,8 @@
 
             <!-- 评论区域容器 -->
             {{if eq .Data.Diary.SocialSetting 1}}
-            <div id="comments-section" class="mt-6 pt-4" x-data="CommentsMixin('{{.Data.Post.PostID}}')">
-                <h3 class="text-lg font-bold mb-4 text-gray-800 dark:text-gray-200">{{getMessage "comments.title"
+            <div id="comments-section" class="mt-6 pt-4" x-data="CommentsMixin('{{.Data.Entry.EntryID}}')">
+                <h3 class="text-lg font-bold mb-4 text-gray-800 dark:text-gray-200">{{getMessage "comment.title"
                     .Context.Lang}}</h3>
 
                 <div id="comments-list-wrapper">
@@ -99,16 +100,14 @@
                 <div class="mt-8 mb-6">
                     <form id="comment_editor_form" @submit.prevent="submit" x-uno-valid>
                         <textarea x-model="content" name="comment_content" id="comment_content" x-uno-valid
-                            class="form-control"
-                            rows="3" placeholder='{{getMessage "comments.placeholder" .Context.Lang}}' required
+                            class="form-control" rows="3"
+                            placeholder='{{getMessage "comment.placeholder" .Context.Lang}}' required
                             maxlength="1000"></textarea>
                         <div x-text="$store.uno.valid.errors['comment_content']"
                             x-show="$store.uno.valid.errors['comment_content']" class="text-xs text-red-500 mt-1"></div>
                         <div class="text-right mt-2">
-                            <button type="submit"
-                                class="btn"
-                                :disabled="submitting || !content.trim()">
-                                <span x-show="!submitting">{{getMessage "comments.submit" .Context.Lang}}</span>
+                            <button type="submit" class="btn" :disabled="submitting || !content.trim()">
+                                <span x-show="!submitting">{{getMessage "comment.submit" .Context.Lang}}</span>
                                 <span x-show="submitting" class="mdi mdi-loading mdi-spin"></span>
                             </button>
                         </div>
@@ -117,7 +116,7 @@
                 {{else}}
                 <div
                     class="text-center p-6 border border-gray-200 dark:border-gray-700 mt-8 mb-6 bg-gray-50 dark:bg-gray-800">
-                    <p class="text-gray-600 dark:text-gray-400">{{getMessage "comments.login_to_comment" .Context.Lang}}
+                    <p class="text-gray-600 dark:text-gray-400">{{getMessage "comment.login_to_comment" .Context.Lang}}
                     </p>
                 </div>
                 {{end}}

@@ -16,13 +16,13 @@ const safeJson = async (response, context) => {
 
 export function SocialMixin() {
   return {
-    stats: {}, // Map of postId -> { view_num, comment_num, like_num, liked, like_count }
+    stats: {}, // Map of entryId -> { view_num, comment_num, like_num, liked, like_count }
     diaryLike: { liked: false, count: 0, loading: false },
     socialSetting: 2,
 
-    getStats(postId) {
+    getStats(entryId) {
       return (
-        this.stats[postId] || {
+        this.stats[entryId] || {
           view_num: 0,
           comment_num: 0,
           like_num: 0,
@@ -51,21 +51,21 @@ export function SocialMixin() {
         }
       });
 
-      // Listen for global post-liked events to sync state
-      window.addEventListener('post-liked', (evt) => {
-        const { postId, liked, count } = evt.detail;
-        if (this.stats[postId]) {
-          this.stats[postId].liked = liked;
-          this.stats[postId].like_num = count;
-          this.stats[postId].like_count = count;
+      // Listen for global entry-liked events to sync state
+      window.addEventListener('entry-liked', (evt) => {
+        const { entryId, liked, count } = evt.detail;
+        if (this.stats[entryId]) {
+          this.stats[entryId].liked = liked;
+          this.stats[entryId].like_num = count;
+          this.stats[entryId].like_count = count;
         }
       });
 
-      // Listen for global post-comment-updated events to sync state
-      window.addEventListener('post-comment-updated', (evt) => {
-        const { postId, count } = evt.detail;
-        if (this.stats[postId]) {
-          this.stats[postId].comment_num = count;
+      // Listen for global entry-comment-updated events to sync state
+      window.addEventListener('entry-comment-updated', (evt) => {
+        const { entryId, count } = evt.detail;
+        if (this.stats[entryId]) {
+          this.stats[entryId].comment_num = count;
         }
       });
     },
@@ -125,32 +125,32 @@ export function SocialMixin() {
     },
 
     async loadStats() {
-      // 1. Get all post IDs from the DOM
-      const postElements = document.querySelectorAll('[data-post-id]');
-      const postIds = Array.from(postElements)
-        .map((el) => el.dataset.postId)
+      // 1. Get all entry IDs from the DOM
+      const entryElements = document.querySelectorAll('[data-entry-id]');
+      const entryIds = Array.from(entryElements)
+        .map((el) => el.dataset.entryId)
         .filter((id) => id);
 
-      if (postIds.length === 0) return;
+      if (entryIds.length === 0) return;
 
       try {
-        const response = await fetch('/api/post/stats', {
+        const response = await fetch('/api/entry/stats', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ postids: postIds.join(',') }),
+          body: JSON.stringify({ entryids: entryIds.join(',') }),
         });
 
         if (!response.ok) {
           return;
         }
 
-        const statsResult = await safeJson(response, '/api/post/stats');
+        const statsResult = await safeJson(response, '/api/entry/stats');
         if (!statsResult) return;
 
         if (statsResult.success && statsResult.data && statsResult.data.stats) {
           statsResult.data.stats.forEach((stat) => {
-            if (!this.stats[stat.post_id]) this.stats[stat.post_id] = {};
-            Object.assign(this.stats[stat.post_id], {
+            if (!this.stats[stat.entry_id]) this.stats[stat.entry_id] = {};
+            Object.assign(this.stats[stat.entry_id], {
               view_num: stat.view_num || 0,
               comment_num: stat.comment_num || 0,
               like_num: stat.like_num || 0,
@@ -160,21 +160,21 @@ export function SocialMixin() {
         }
 
         // 3. Fetch like status
-        const likeResponse = await fetch('/api/post/like/status', {
+        const likeResponse = await fetch('/api/entry/like/status', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ postids: postIds.join(',') }),
+          body: JSON.stringify({ entryids: entryIds.join(',') }),
         });
         const likeResult = await safeJson(
           likeResponse,
-          '/api/post/like/status',
+          '/api/entry/like/status',
         );
         if (!likeResult) return;
 
         if (likeResult.success && likeResult.data && likeResult.data.status) {
           likeResult.data.status.forEach((status) => {
-            if (!this.stats[status.postid]) this.stats[status.postid] = {};
-            this.stats[status.postid].liked = status.liked;
+            if (!this.stats[status.entry_id]) this.stats[status.entry_id] = {};
+            this.stats[status.entry_id].liked = status.liked;
           });
         }
       } catch (e) {
@@ -183,18 +183,18 @@ export function SocialMixin() {
     },
 
     // Like action wrapper for child components (if needed by parent)
-    async toggleLike(postId) {
-      const id = parseInt(postId);
+    async toggleLike(entryId) {
+      const id = parseInt(entryId);
       if (!this.stats[id]) return;
 
       const notify = window.getUnoNotify();
       const isLiked = this.stats[id].liked;
 
       try {
-        const response = await fetch('/api/post/like', {
+        const response = await fetch('/api/entry/like', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ post_id: id }),
+          body: JSON.stringify({ entry_id: id }),
         });
         const result = await response.json();
 
@@ -218,11 +218,11 @@ export function SocialMixin() {
   };
 }
 
-export function LikeButton(initialCount, initialLiked, postId) {
+export function LikeButton(initialCount, initialLiked, entryId) {
   return {
     count: initialCount,
     liked: initialLiked,
-    postId: postId,
+    entryId: entryId,
     loading: false,
 
     async toggle() {
@@ -232,12 +232,12 @@ export function LikeButton(initialCount, initialLiked, postId) {
       const notify = window.getUnoNotify();
 
       try {
-        const response = await fetch('/api/post/like', {
+        const response = await fetch('/api/entry/like', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ post_id: parseInt(this.postId) }),
+          body: JSON.stringify({ entry_id: parseInt(this.entryId) }),
         });
 
         const result = await response.json();
@@ -249,9 +249,9 @@ export function LikeButton(initialCount, initialLiked, postId) {
           );
           // Dispatch global event to sync with other components (e.g., list view)
           window.dispatchEvent(
-            new CustomEvent('post-liked', {
+            new CustomEvent('entry-liked', {
               detail: {
-                postId: parseInt(this.postId),
+                entryId: parseInt(this.entryId),
                 liked: this.liked,
                 count: this.count,
               },
@@ -268,9 +268,9 @@ export function LikeButton(initialCount, initialLiked, postId) {
     },
   };
 }
-export function CommentsMixin(postId) {
+export function CommentsMixin(entryId) {
   return {
-    postId: postId,
+    entryId: entryId,
     content: '',
     submitting: false,
     loadingComments: false,
@@ -286,10 +286,11 @@ export function CommentsMixin(postId) {
       if (!wrapper) return;
 
       const countEl = document.getElementById('post-comment-count');
+      const t = (key) => this.$store?.i18n?.t(key) || key;
 
-      if (!this.postId) {
+      if (!this.entryId) {
         wrapper.innerHTML =
-          '<div class="text-center text-gray-400 py-8">Comments disabled</div>';
+          `<div class="text-center text-gray-400 py-8">${t('comment.disabled')}</div>`;
         return;
       }
 
@@ -298,8 +299,8 @@ export function CommentsMixin(postId) {
 
       try {
         const response = await fetch(
-          `/api/comment/list?post_id=${encodeURIComponent(
-            this.postId,
+          `/api/comment/list?entry_id=${encodeURIComponent(
+            this.entryId,
           )}&page_index=${encodeURIComponent(pageIndex)}&_t=${new Date().getTime()}`,
           {
             method: 'GET',
@@ -319,15 +320,15 @@ export function CommentsMixin(postId) {
         ) {
           try {
             const json = JSON.parse(result);
-            wrapper.innerHTML = `<div class="text-center text-red-500 py-8">${json.message || 'Failed to load comments'}</div>`;
+            wrapper.innerHTML = `<div class="text-center text-red-500 py-8">${json.message || t('comment.load_fail')}</div>`;
           } catch (e) {
-            wrapper.innerHTML = `<div class="text-center text-red-500 py-8">Failed to load comments</div>`;
+            wrapper.innerHTML = `<div class="text-center text-red-500 py-8">${t('comment.load_fail')}</div>`;
           }
           return;
         }
 
         if (!response.ok) {
-          wrapper.innerHTML = `<div class="text-center text-red-500 py-8">Failed to load comments (Status ${response.status})</div>`;
+          wrapper.innerHTML = `<div class="text-center text-red-500 py-8">${t('comment.load_fail')} (Status ${response.status})</div>`;
           return;
         }
 
@@ -342,11 +343,11 @@ export function CommentsMixin(postId) {
         }
 
         // Dispatch global event to sync with other components (e.g., list view)
-        if (totalCountHeader && this.postId) {
+        if (totalCountHeader && this.entryId) {
           window.dispatchEvent(
-            new CustomEvent('post-comment-updated', {
+            new CustomEvent('entry-comment-updated', {
               detail: {
-                postId: parseInt(this.postId),
+                entryId: parseInt(this.entryId),
                 count: parseInt(totalCountHeader),
               },
             }),
@@ -358,7 +359,7 @@ export function CommentsMixin(postId) {
         }
       } catch (e) {
         wrapper.innerHTML =
-          '<div class="text-center text-red-500 py-8">Failed to load comments</div>';
+          `<div class="text-center text-red-500 py-8">${t('comment.load_fail')}</div>`;
       } finally {
         this.loadingComments = false;
       }
@@ -390,7 +391,7 @@ export function CommentsMixin(postId) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            post_id: parseInt(this.postId),
+            entry_id: parseInt(this.entryId),
             content: this.content,
             parent_id: 0,
           }),
@@ -399,7 +400,7 @@ export function CommentsMixin(postId) {
         const result = await response.json();
 
         if (result.success) {
-          notify.success('comments.submit_success');
+          notify.success('comment.submit_success');
           this.content = '';
           await this.loadComments(1);
         } else {
@@ -417,7 +418,7 @@ export function CommentsMixin(postId) {
       const uno = window.getUno();
 
       if (
-        !(await uno.box.confirm(this.$store.i18n.t('comments.delete_confirm')))
+        !(await uno.box.confirm(this.$store.i18n.t('comment.delete_confirm')))
       ) {
         return;
       }
@@ -437,7 +438,7 @@ export function CommentsMixin(postId) {
         const result = await response.json();
 
         if (result.success) {
-          notify.success('comments.delete_success');
+          notify.success('comment.delete_success');
           await this.loadComments(this.currentPage);
         } else {
           notify.error(result.message || 'common.op_fail');

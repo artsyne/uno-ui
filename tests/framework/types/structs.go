@@ -89,8 +89,8 @@ type DiaryOptions struct {
 	ThemeID       int
 }
 
-// PostOptions 文章创建选项
-type PostOptions struct {
+// EntryOptions 日记创建选项
+type EntryOptions struct {
 	Title    string
 	Body     string
 	Summary  string
@@ -103,8 +103,8 @@ type UserOption func(*UserOptions)
 // DiaryOption 日记选项函数类型
 type DiaryOption func(*DiaryOptions)
 
-// PostOption 文章选项函数类型
-type PostOption func(*PostOptions)
+// EntryOption 日记选项函数类型
+type EntryOption func(*EntryOptions)
 
 // HTTPResponse HTTP响应结构
 type HTTPResponse struct {

@@ -204,5 +204,5 @@ func (ctrl *UserController) ShowUserSettingsPage(c *gin.Context) {
 	data.Data["SupportLangs"] = supportLangs
 	data.Data["TimeZones"] = ctrl.renderService.GetTimeZones()
 	
-	ctrl.renderService.HTML(c, "member/settings", data)
+	ctrl.renderService.HTML(c, "user/settings", data)
 }

@@ -1,10 +1,10 @@
 import themeStore from '../stores/theme.js';
 import i18nStore from '../stores/i18n.js';
 import { Navbar, Footer } from '../modules/layout.js';
-import { DiaryList } from '../modules/diary.js';
+import { DiaryDetail } from '../modules/diary-detail.js';
 import { LikeButton, CommentsMixin } from '../modules/social.js';
 import { initAuth, initValidationCallbacks } from '../modules/auth.js';
-import { Member } from '../modules/member.js';
+import { User } from '../modules/user.js';
 import { Settings } from '../modules/settings.js';
 
 /**
@@ -98,10 +98,10 @@ document.addEventListener('alpine:init', () => {
   // Register Components
   Alpine.data('navbar', Navbar);
   Alpine.data('footer', Footer);
-  Alpine.data('diaryList', DiaryList);
+  Alpine.data('diaryDetail', DiaryDetail);
   Alpine.data('likeButton', LikeButton);
   Alpine.data('CommentsMixin', CommentsMixin);
-  Alpine.data('member', () => Member);
+  Alpine.data('user', () => User);
   Alpine.data('settings', Settings);
 
   // Register Stores

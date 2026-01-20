@@ -1,0 +1,32 @@
+package entry
+
+// EntryRequest 日记表单对象
+// 用于接收前端表单提交的数据
+type EntryRequest struct {
+	EntryID  int64  `form:"entry_id" json:"entry_id" `  // 日记ID
+	DiaryID  int64  `form:"diary_id" json:"diary_id"`   // 日记本ID
+	Title    string `form:"info_title" json:"title"`    // 日记标题
+	InfoType int8   `form:"info_type" json:"info_type"` // 信息类型（1:文本 2:图片 3:视频 4:音频 5:文件）
+	Body     string `form:"info_body" json:"body"`      // 日记内容
+}
+
+// Entry 日记数据库对象
+// 包含日记的完整信息，对应数据库br_entry表
+type Entry struct {
+	EntryID       int64  `form:"entry_id" json:"entry_id" db:"entry_id"`                      // 日记ID
+	DiaryID       int64  `form:"diary_id" json:"diary_id" db:"diary_id"`                      // 日记本ID
+	IsTop         int8   `form:"is_top" json:"is_top" db:"is_top"`                            // 是否置顶（0:否 1:是）
+	Title         string `form:"title" json:"title" db:"title"`                               // 日记标题
+	Summary       string `form:"summary" json:"summary" db:"summary"`                         // 日记摘要
+	Body          string `form:"body" json:"body" db:"body"`                                  // 日记内容
+	ViewNum       int32  `form:"view_num" json:"view_num" db:"view_num"`                      // 浏览次数
+	LikeNum       int32  `form:"like_num" json:"like_num" db:"like_num"`                      // 点赞次数
+	CommentNum    int32  `form:"comment_num" json:"comment_num" db:"comment_num"`             // 评论次数
+	AddUserID     int64  `form:"add_user_id" json:"add_user_id" db:"add_user_id"`             // 创建用户ID
+	AddUserName   string `form:"add_user_name" json:"add_user_name" db:"add_user_name"`       // 创建用户名
+	AddUserIP     string `form:"add_user_ip" json:"add_user_ip" db:"add_user_ip"`             // 创建用户IP
+	AddUTCTime    int64  `form:"add_utc_time" json:"add_utc_time" db:"add_utc_time"`          // 创建时间（UTC时间戳）
+	UpdateUTCTime int64  `form:"update_utc_time" json:"update_utc_time" db:"update_utc_time"` // 更新时间（UTC时间戳）
+	Status        int8   `form:"status" json:"status" db:"status"`                            // 状态（0:删除 1:正常）
+	InfoType      int8   `form:"info_type" json:"info_type" db:"info_type"`                   // 信息类型（1:文本 2:图片 3:视频 4:音频 5:文件）
+}

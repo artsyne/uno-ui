@@ -146,9 +146,9 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 
 	// 检查是否为HTMX请求
 	if c.GetHeader("HX-Request") == "true" {
-		ctrl.renderService.HTML(c, "member/list", data)
+		ctrl.renderService.HTML(c, "user/list", data)
 		return
 	}
 
-	ctrl.renderService.HTML(c, "member/index", data)
+	ctrl.renderService.HTML(c, "user/index", data)
 }
