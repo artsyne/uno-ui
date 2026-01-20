@@ -81,9 +81,11 @@ export const createTooltipStore = (Alpine) => {
     hxHeaders: null,
     hxTrigger: 'load',
 
-    init() {
-      this.ensureContainer()
-    },
+    /**
+     * Active tooltip ID
+     * @type {string|null}
+     */
+    active: null,
 
     show(instanceOpts = {}) {
       log.info('Tooltip show called', instanceOpts)
@@ -96,10 +98,10 @@ export const createTooltipStore = (Alpine) => {
         // Check if element exists to avoid treating "#1" as a selector if it's just text
         // We only support simple ID selectors for this auto-detection
         if (!config.content.includes(' ')) {
-           const targetEl = document.querySelector(config.content)
-           if (targetEl) {
-             config.target = config.content
-           }
+          const targetEl = document.querySelector(config.content)
+          if (targetEl) {
+            config.target = config.content
+          }
         }
       }
 

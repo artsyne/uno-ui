@@ -69,8 +69,8 @@ describe('Box Component', () => {
       expect(boxStore.items).toEqual([])
     })
 
-    it('should call ensureContainer on init', () => {
-      boxStore.init()
+    it('should call ensureContainer on open', () => {
+      boxStore.open('dialog')
       expect(Uno.dom.ensureContainer).toHaveBeenCalled()
     })
   })
@@ -97,9 +97,9 @@ describe('Box Component', () => {
     })
 
     it('should pass button classes to item', () => {
-      const item = boxStore.open({ 
-        okButtonClass: 'custom-ok', 
-        cancelButtonClass: 'custom-cancel' 
+      const item = boxStore.open({
+        okButtonClass: 'custom-ok',
+        cancelButtonClass: 'custom-cancel'
       })
       expect(item.okButtonClass).toBe('custom-ok')
       expect(item.cancelButtonClass).toBe('custom-cancel')

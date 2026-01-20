@@ -1,6 +1,6 @@
 # TypeScript Usage Guide
 
-Uno UI v0.6.0+ includes full TypeScript type definitions for enhanced developer experience. This guide shows you how to use Uno with TypeScript.
+Uno UI v0.7.0+ includes full TypeScript type definitions for enhanced developer experience. This guide shows you how to use Uno with TypeScript.
 
 ## Installation
 

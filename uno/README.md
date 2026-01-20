@@ -45,7 +45,7 @@ Simply include the compiled CSS and JS files in your HTML.
     <script src="https://unpkg.com/htmx.org@2.0.8"></script>
 
     <!-- 3. Uno Framework (Must load before your app code if you use global Uno) -->
-    <script defer src="https://unpkg.com/uno-ui@0.6.0/dist/uno.umd.js"></script>
+    <script defer src="https://unpkg.com/uno-ui@0.7.0/dist/uno.umd.js"></script>
 
     <!-- 4. Your App Code (Defensive Initialization) -->
     <script defer src="/js/app.js"></script>
@@ -78,7 +78,9 @@ const initApp = () => {
 
   // 2. Register Alpine Components
   Alpine.data('myComponent', () => ({
-    init() { console.log('Initialized') }
+    init() {
+      console.log('Initialized')
+    }
   }))
 }
 
@@ -98,7 +100,7 @@ For NPM users, configure Uno using `setConfig()` BEFORE Alpine loads:
 <head>
   <!-- 1. Configure Uno (before Alpine loads) -->
   <script type="module">
-    import Uno from 'https://unpkg.com/uno-ui@0.6.0/dist/uno.es.js'
+    import Uno from 'https://unpkg.com/uno-ui@0.7.0/dist/uno.es.js'
 
     Uno.setConfig({
       debug: true,
@@ -208,7 +210,7 @@ Uno provides a set of essential components. Detailed documentation is available 
 
 ## TypeScript Support
 
-Uno UI v0.6.0+ includes full TypeScript type definitions. See the [TypeScript Usage Guide](doc/typescript-usage.md) for detailed information.
+Uno UI v0.7.0+ includes full TypeScript type definitions. See the [TypeScript Usage Guide](doc/typescript-usage.md) for detailed information.
 
 **Key Features:**
 

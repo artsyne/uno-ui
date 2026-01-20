@@ -94,8 +94,10 @@ describe('Tooltip Component', () => {
       expect(tooltipStore.left).toBe(-9999)
     })
 
-    it('should call ensureContainer on init', () => {
-      tooltipStore.init()
+    it('should call ensureContainer on show', () => {
+      const trigger = document.createElement('div')
+      document.body.appendChild(trigger)
+      tooltipStore.show({ element: trigger, content: 'test' })
       expect(DomManager.ensureContainer).toHaveBeenCalled()
     })
   })

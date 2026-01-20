@@ -2,116 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [0.7.0] - 2026-01-20
 
-## [0.6.0] - 2026-01-06
+### 🚀 Major Improvements
 
-### Added
+- **Lazy Initialization**: The core plugins (`box`, `notify`, `tab`, `tooltip`) have been refactored to support lazy initialization. This means:
+  - Global DOM elements (containers, overlays) are no longer injected immediately upon application startup.
+  - Resources are allocated only when a component is actually used (e.g., calling `box.open()`, `notify.show()`, or using directives like `x-uno-tab`).
+  - Improved initial page load performance and reduced DOM footprint.
 
-- **TypeScript Support**: Full TypeScript type definitions included (`types/index.d.ts`, `types/alpinejs.d.ts`)
-  - Complete type definitions for all components (Box, Notify, Tooltip, Tab, Valid)
-  - Type-safe configuration interfaces
-  - IntelliSense support in IDEs
-  - Compile-time type checking
-  - Alpine.js store type extensions
-  - Alpine.js minimal type definitions included (no external dependencies)
-  - No additional setup required
-- TypeScript Usage Guide documentation (`doc/typescript-usage.md`)
-- tsconfig.example.json for reference configuration
-- Updated README with TypeScript examples and features
+### ⚠️ Breaking Changes
 
-### Changed
+- **Internal API**: The `init()` methods on store instances (e.g., `Alpine.store('uno').box.init()`) no longer trigger immediate DOM injection. They are now effectively no-ops or handle internal state setup only. If you were manually calling these methods to force DOM injection, this will no longer work (nor is it necessary).
+- **Tab Component**: The Tab component now only starts listening for `hashchange` events after the first tab is registered (via directive or JS). This prevents Uno from interfering with hash routing on pages that don't use tabs.
 
-- Version bumped to 0.6.0
-- package.json updated with type declarations
-- Enhanced README with TypeScript support section
+### 🐛 Fixes
 
-### Technical Details
+- Fixed an issue where `ensureContainer` was being called eagerly, causing unnecessary DOM mutations.
 
-**Type Coverage:**
+## [0.6.0] - 2025-12-18
 
-- Core: `UnoInstance`, `UnoOptions`, `DomManager`, `HtmxUtilities`
-- Box: `BoxOptions`, `BoxItem`, `BoxStore`, `BoxPosition`, `BoxType`
-- Notify: `NotifyOptions`, `NotifyItem`, `NotifyStore`, `NotifyPosition`, `NotifyType`
-- Tooltip: `TooltipOptions`, `TooltipStore`, `TooltipPlacement`, `TooltipTrigger`
-- Tab: `TabOptions`, `TabStore`
-- Valid: `ValidOptions`, `ValidStore`, `ValidationRule`, `ValidationResult`
-- I18n: `I18nStore`, `I18nMessages`
-- UI Configuration: Complete type definitions for all styling options
+### ✨ Features
 
-**Developer Experience:**
+- **TypeScript Support**: Full TypeScript definitions included.
+- **Valid Component**: New validation engine.
+- **I18n**: Enhanced internationalization support.
 
-- Zero-cost abstraction: Type definitions don't affect runtime bundle size
-- Full autocomplete and IntelliSense support
-- Type-safe configuration at all levels
-- Compatible with both JavaScript and TypeScript projects
+### 📦 Chore
 
-## [0.5.0] - 2026-01-05
-
-### Added
-
-- Store-First, Directive-Driven architecture
-- 9-point positioning system for Box component
-- Performance benchmarks (~0.19ms per operation)
-- Security: XSS protection with automatic HTML sanitization
-- HTMX native integration
-- Comprehensive E2E test suite (195 tests, 100% passing)
-- Modular component structure
-- Unified plugin registration system
-
-### Removed
-
-- Backward compatibility: `trustedHTML` option removed for security
-- Legacy API: Direct store mutations replaced with plugin registry
-
-### Changed
-
-- All components refactored to Store-First pattern
-- Components registered under `Alpine.store('uno')` namespace
-- Configuration system upgraded to 4-level merge strategy
-- Documentation updated and expanded
-
-### Breaking Changes
-
-- All components now accessed via `Alpine.store('uno').{component}`
-- `trustedHTML` configuration removed (use HTMX for dynamic content)
-- Legacy direct store access deprecated
-
-### Security
-
-- Removed `trustedHTML` to prevent XSS vulnerabilities
-- All user content automatically sanitized
-- Image tags removed from sanitization to prevent `onerror` XSS
-
-### Performance
-
-- Tooltip operations: ~0.19ms per show/hide
-- Bundle size: 19.88 kB (gzipped)
-- Zero layout thrashing with RAF optimization
-
-## [0.4.0] - 2025-12-XX
-
-### Added
-
-- Initial public release
-- Basic component library (Box, Notify, Tooltip, Tab, Valid)
-- Alpine.js integration
-- Tailwind CSS styling
-
----
-
-## Versioning
-
-We follow [Semantic Versioning](https://semver.org/):
-
-- **MAJOR** version for incompatible API changes
-- **MINOR** version for new functionality in a backward compatible manner
-- **PATCH** version for backward compatible bug fixes
-
-## Links
-
-- [Documentation](./README.md)
-- [TypeScript Guide](./doc/typescript-usage.md)
-- [API Reference](./doc/)
-- [GitHub Repository](#)
+- Updated dependencies.

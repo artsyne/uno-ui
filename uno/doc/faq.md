@@ -24,7 +24,7 @@ This document addresses common questions and issues when using Uno UI.
 
 ```html
 <script src="https://unpkg.com/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
-<script src="https://unpkg.com/uno-ui@0.6.0/dist/uno.umd.js"></script>
+<script src="https://unpkg.com/uno-ui@0.7.0/dist/uno.umd.js"></script>
 ```
 
 2. **NPM (Recommended)**:

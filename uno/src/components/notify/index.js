@@ -38,8 +38,8 @@ export default (Alpine, options = {}) => {
   const notifyStore = createNotifyStore(Alpine)
   registerPlugin(Alpine, 'notify', notifyStore)
 
-  // Ensure initialization (container creation)
-  notifyStore.init()
+  // Lazy initialization: Container is injected on first show() or progress
+  // notifyStore.init() is removed
 
   // Register Directive
   registerNotifyDirectives(Alpine)

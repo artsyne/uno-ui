@@ -78,7 +78,12 @@ describe('Notify Component', () => {
     expect(notifyStore).toBeDefined()
   })
 
-  it('should initialize container on init', () => {
+  it('should NOT initialize container on init', () => {
+    expect(DomManager.ensureContainer).not.toHaveBeenCalled()
+  })
+
+  it('should initialize container on show', () => {
+    notifyStore.show('Test')
     expect(DomManager.ensureContainer).toHaveBeenCalled()
 
     // Verify template contains correct HTMX init logic

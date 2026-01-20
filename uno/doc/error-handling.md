@@ -4,7 +4,7 @@ This document explains how Uno UI handles errors and provides best practices for
 
 ## Overview
 
-Uno UI v0.6.0+ includes a comprehensive error handling system that:
+Uno UI v0.7.0+ includes a comprehensive error handling system that:
 
 - ✅ Catches unhandled Promise rejections
 - ✅ Catches uncaught JavaScript errors

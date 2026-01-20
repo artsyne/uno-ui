@@ -695,11 +695,11 @@ const h = new A(), F = {
   },
   charCount: "剩餘: {count}"
 };
-const _ = {
+const j = {
   en: F,
   "zh-CN": W,
   "zh-TW": X
-}, R = Object.keys(_);
+}, R = Object.keys(j);
 function Y() {
   if (typeof localStorage < "u") {
     const i = localStorage.getItem("uno.lang");
@@ -720,14 +720,14 @@ function Z(i, t) {
   }
   return e;
 }
-function z(i, t) {
+function _(i, t) {
   for (const n in t)
-    t[n] && typeof t[n] == "object" ? (i[n] || Object.assign(i, { [n]: {} }), z(i[n], t[n])) : Object.assign(i, { [n]: t[n] });
+    t[n] && typeof t[n] == "object" ? (i[n] || Object.assign(i, { [n]: {} }), _(i[n], t[n])) : Object.assign(i, { [n]: t[n] });
 }
 function N(i) {
   const t = i.store("i18n"), n = {
     locale: Y(),
-    messages: _,
+    messages: j,
     loading: !1,
     init() {
       typeof document < "u" && (document.documentElement.lang = this.locale);
@@ -748,7 +748,7 @@ function N(i) {
       this.setLocale(e);
     },
     extend(e) {
-      z(this.messages, e);
+      _(this.messages, e);
     },
     async loadLocale(e, o) {
       if (!this.messages[e]) {
@@ -766,7 +766,7 @@ function N(i) {
       }
     }
   };
-  t ? (d.info("[Uno] Merging into existing i18n store"), t.messages || (t.messages = {}), z(t.messages, _), t.t || (t.t = n.t), t.setLocale || (t.setLocale = n.setLocale), t.setLang || (t.setLang = n.setLang), t.loadLocale || (t.loadLocale = n.loadLocale)) : i.store("i18n", n), i.directive("t", (e, { expression: o, modifiers: s }, { effect: a }) => {
+  t ? (d.info("[Uno] Merging into existing i18n store"), t.messages || (t.messages = {}), _(t.messages, j), t.t || (t.t = n.t), t.setLocale || (t.setLocale = n.setLocale), t.setLang || (t.setLang = n.setLang), t.loadLocale || (t.loadLocale = n.loadLocale)) : i.store("i18n", n), i.directive("t", (e, { expression: o, modifiers: s }, { effect: a }) => {
     const c = () => i.store("i18n");
     a(() => {
       const r = c();
@@ -933,9 +933,11 @@ const et = (i) => {
     hxUrl: null,
     hxHeaders: null,
     hxTrigger: "load",
-    init() {
-      this.ensureContainer();
-    },
+    /**
+     * Active tooltip ID
+     * @type {string|null}
+     */
+    active: null,
     show(e = {}) {
       d.info("Tooltip show called", e);
       const o = h.getConfig("tooltip", e);
@@ -1147,9 +1149,11 @@ const ot = (i, t = {}) => {
   progressVisible: !1,
   progressPercent: 0,
   _progressInterval: null,
-  init() {
-    this.ensureContainer();
-  },
+  /**
+   * Notification queue
+   * @type {Array}
+   */
+  notifications: [],
   // HTMX Event Handlers
   onContentLoaded(t, n) {
     this._onHtmxEnd(n);
@@ -1284,7 +1288,7 @@ const lt = (i, t = {}) => {
     ...t.notify
   });
   const e = rt(i);
-  U(i, "notify", e), e.init(), at(i);
+  U(i, "notify", e), at(i);
 }, ct = () => `
   <!-- Backdrop / Overlay -->
   <div id="uno-box-overlay"
@@ -1384,12 +1388,10 @@ const lt = (i, t = {}) => {
 `, dt = (i) => ({
   items: [],
   /**
-   * Initialize the box component
-   * Ensures container exists when store is initialized
+   * Dialog stack management
+   * @type {Array}
    */
-  init() {
-    this.ensureContainer();
-  },
+  stack: [],
   // ============================================================
   // Public API - Convenience Methods
   // ============================================================
@@ -1688,7 +1690,7 @@ const ht = (i, t = {}) => {
   h.registerPluginDefaults("box", { ...n, ...t.plugins?.box, ...t.box });
   const e = dt(i);
   U(i, "box", e), gt(i);
-}, j = {
+}, z = {
   // --- Standard Types ---
   email: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
   url: /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i,
@@ -1757,10 +1759,10 @@ const ht = (i, t = {}) => {
       return delete this.errors[t], !0;
     if (o) {
       const r = e.type || (e.email ? "email" : null);
-      r && j[r] && (j[r].test(a) || (o = !1, s = e[`msg${r.charAt(0).toUpperCase() + r.slice(1)}`] || e.msgType || this.getI18nMsg(`valid.${r}`) || `Invalid ${r} format`));
+      r && z[r] && (z[r].test(a) || (o = !1, s = e[`msg${r.charAt(0).toUpperCase() + r.slice(1)}`] || e.msgType || this.getI18nMsg(`valid.${r}`) || `Invalid ${r} format`));
     }
     if (o && e.minLength !== null && e.minLength !== void 0 && a.length < e.minLength && (o = !1, s = e.msgMinLength || this.getI18nMsg("valid.min", { n: e.minLength }) || `Minimum length is ${e.minLength}`), o && e.maxLength !== null && e.maxLength !== void 0 && a.length > e.maxLength && (o = !1, s = e.msgMaxLength || this.getI18nMsg("valid.max", { n: e.maxLength }) || `Maximum length is ${e.maxLength}`), o && (e.min !== null && e.min !== void 0 || e.max !== null && e.max !== void 0))
-      if (j.number.test(a)) {
+      if (z.number.test(a)) {
         const r = parseFloat(a);
         e.min !== null && e.min !== void 0 && r < e.min && (o = !1, s = e.msgMin || this.getI18nMsg("valid.rangeMin", { n: e.min }) || `Value must be at least ${e.min}`), o && e.max !== null && e.max !== void 0 && r > e.max && (o = !1, s = e.msgMax || this.getI18nMsg("valid.rangeMax", { n: e.max }) || `Value must be at most ${e.max}`);
       } else
@@ -1886,7 +1888,15 @@ const xt = (i, t = {}) => {
   groups: {},
   // Registry: { [tabName]: { group, name, ... } }
   registry: {},
-  init() {
+  // Initialization state
+  initialized: !1,
+  /**
+   * Ensure the store is initialized (lazy loading)
+   * Sets up hash change listeners only when needed
+   */
+  ensureInit() {
+    if (this.initialized) return;
+    this.initialized = !0;
     const t = () => {
       let n = window.location.hash.slice(1);
       if (!n && window.location.href.includes("#") && (n = window.location.href.split("#")[1]), d.info(`[Tab] checkHash: ${n}`), n && this.registry[n]) {
@@ -1897,10 +1907,16 @@ const xt = (i, t = {}) => {
     t(), window.addEventListener("hashchange", t), window.addEventListener("load", t);
   },
   /**
+   * Active tab ID
+   * @type {string|null}
+   */
+  active: null,
+  /**
    * Activate a tab
    * @param {object} instanceOpts - Options { name, group, ... }
    */
   activate(t = {}) {
+    this.ensureInit();
     const n = h.getConfig("tab", {
       group: "default",
       hash: !0,
@@ -1928,7 +1944,7 @@ const xt = (i, t = {}) => {
    * @param {string} group
    */
   register(t, n = "default") {
-    d.info(`[Tab] Registering ${t} in ${n}. Hash: ${window.location.hash}`), this.registry[t] = { name: t, group: n }, this.groups[n] || (this.groups[n] = t);
+    this.ensureInit(), d.info(`[Tab] Registering ${t} in ${n}. Hash: ${window.location.hash}`), this.registry[t] = { name: t, group: n }, this.groups[n] || (this.groups[n] = t);
     let e = window.location.hash.slice(1);
     !e && window.location.href.includes("#") && (e = window.location.href.split("#")[1]), e === t && (d.info(`[Tab] Hash match for ${t}. Activating.`), this.activate({ group: n, name: t, updateHash: !1 }));
   }
@@ -1969,7 +1985,7 @@ const bt = (i, t = {}) => {
   };
   h.registerPluginDefaults("tab", { ...n, ...t.plugins?.tab, ...t.tab });
   const e = yt();
-  U(i, "tab", e), i.store("uno").tab.init(), vt(i);
+  U(i, "tab", e), vt(i);
 };
 h.dom = M;
 typeof window < "u" && (window.Uno = h);

@@ -7,12 +7,10 @@ export const createBoxStore = (Alpine) => ({
   items: [],
 
   /**
-   * Initialize the box component
-   * Ensures container exists when store is initialized
+   * Dialog stack management
+   * @type {Array}
    */
-  init() {
-    this.ensureContainer()
-  },
+  stack: [],
 
   // ============================================================
   // Public API - Convenience Methods

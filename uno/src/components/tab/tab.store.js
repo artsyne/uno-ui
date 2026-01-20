@@ -6,8 +6,17 @@ export const createTabStore = (Alpine) => ({
   groups: {},
   // Registry: { [tabName]: { group, name, ... } }
   registry: {},
+  // Initialization state
+  initialized: false,
 
-  init() {
+  /**
+   * Ensure the store is initialized (lazy loading)
+   * Sets up hash change listeners only when needed
+   */
+  ensureInit() {
+    if (this.initialized) return
+    this.initialized = true
+
     // Hash synchronization
     const checkHash = () => {
       let hash = window.location.hash.slice(1)
@@ -37,10 +46,18 @@ export const createTabStore = (Alpine) => ({
   },
 
   /**
+   * Active tab ID
+   * @type {string|null}
+   */
+  active: null,
+
+  /**
    * Activate a tab
    * @param {object} instanceOpts - Options { name, group, ... }
    */
   activate(instanceOpts = {}) {
+    this.ensureInit()
+
     // 4-level merge via Uno.getConfig
     const config = Uno.getConfig('tab', {
       group: 'default',
@@ -106,6 +123,8 @@ export const createTabStore = (Alpine) => ({
    * @param {string} group
    */
   register(name, group = 'default') {
+    this.ensureInit()
+
     log.info(`[Tab] Registering ${name} in ${group}. Hash: ${window.location.hash}`)
     this.registry[name] = { name, group }
     // If no active tab for this group, set this one

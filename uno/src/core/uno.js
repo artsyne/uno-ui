@@ -4,7 +4,7 @@
  * Manages plugins, initialization, and global configuration.
  *
  * @module uno.core.instance
- * @version 0.6.0
+ * @version 0.7.0
  */
 
 import Alpine from 'alpinejs'

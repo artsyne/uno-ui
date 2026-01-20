@@ -35,8 +35,8 @@ export default (Alpine, options = {}) => {
   const tabStore = createTabStore(Alpine)
   registerPlugin(Alpine, 'tab', tabStore)
 
-  // Explicitly initialize the store
-  Alpine.store('uno').tab.init()
+  // Lazy initialization: Store is initialized on first directive usage or JS call
+  // Alpine.store('uno').tab.init()
 
   // Register Directive
   registerTabDirectives(Alpine)

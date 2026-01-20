@@ -23,10 +23,11 @@ export const createNotifyStore = (Alpine) => ({
   progressPercent: 0,
   _progressInterval: null,
 
-  init() {
-    // Ensure container exists when store is initialized
-    this.ensureContainer()
-  },
+  /**
+   * Notification queue
+   * @type {Array}
+   */
+  notifications: [],
 
   // HTMX Event Handlers
   onContentLoaded(el, item) {
