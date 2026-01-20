@@ -2,62 +2,87 @@
 {{template "header" .}}
 {{template "navbar" .}}
 
-<!-- Hero Section -->
-<div id="hero" class="relative h-96 bg-gradient-to-r from-blue-600 to-purple-700 overflow-hidden">
-    <div class="absolute inset-0 bg-black bg-opacity-30"></div>
-    <div class="relative z-10 flex items-center justify-center h-full text-center text-white">
-        <div class="max-w-4xl mx-auto px-4">
-            <h1 class="text-5xl font-bold mb-4 animate-fade-in">{{getMessage "index.hero.title" .Context.Lang}}</h1>
-            <h2 class="text-xl mb-8 opacity-90">{{getMessage "index.hero.subtitle" .Context.Lang}}</h2>
-            <div class="space-x-4">
-                <a href="/zh-cn/passport/register"
-                    class="btn text-white px-8 py-3 rounded-lg font-semibold transition-colors duration-300">{{getMessage "index.hero.start" .Context.Lang}}</a>
-                <a href="/zh-cn/passport/login"
-                    class="border-2 border-white text-white hover:bg-white hover:text-gray-800 px-8 py-3 rounded-lg font-semibold transition-colors duration-300">{{getMessage "index.hero.login" .Context.Lang}}</a>
-            </div>
+<div class="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+
+    <!-- Hero Section -->
+    <div class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden" x-data="{ show: false }"
+        x-init="setTimeout(() => show = true, 100)">
+        <div class="container mx-auto px-4 relative z-10 text-center">
+
+            <h1 style="display: none;" x-show="show" x-transition:enter="transition ease-out duration-1000 transform"
+                x-transition:enter-start="opacity-0 translate-y-5" x-transition:enter-end="opacity-100 translate-y-0"
+                class="text-4xl md:text-6xl font-bold tracking-tight text-gray-600 dark:text-gray-200 mb-8 leading-tight">
+                记录人生，伴你前行
+            </h1>
+
+            <p style="display: none;" x-show="show"
+                x-transition:enter="transition ease-out duration-1000 delay-100 transform"
+                x-transition:enter-start="opacity-0 translate-y-5" x-transition:enter-end="opacity-100 translate-y-0"
+                class="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-gray-500 dark:text-gray-400 mb-12 font-light leading-relaxed">
+                回归书写本质。iDiary.ai 为你提供一个安全、纯粹、智能的私人空间，<br class="hidden md:block" />
+                让每一个珍贵的瞬间都能被妥善珍藏。
+            </p>
+        </div>
+
+        <!-- Subtle Background Decoration -->
+        <div
+            class="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-radial-gradient from-gray-100 to-transparent dark:from-gray-800/20 dark:to-transparent opacity-50 -z-10 pointer-events-none">
         </div>
     </div>
-</div>
 
-<!-- Features Section -->
-<div class="py-16 transition-colors duration-200">
-    <div class="container mx-auto px-4">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold mb-4">为什么选择 iDiary.ai Hebe？</h2>
-            <p class="max-w-2xl mx-auto">基于 Go 1.25 和现代化架构的智能日记平台，为您提供安全、高效、智能的记录体验</p>
-        </div>
+    <!-- Features Section -->
+    <div class="py-24 border-t border-gray-100 dark:border-gray-800">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div class="text-center">
-                <div class="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-brain text-2xl text-red-600"></i>
+                <!-- Feature 1: AI -->
+                <div class="group text-center md:text-left">
+                    <div
+                        class="inline-flex items-center justify-center w-12 h-12 mb-6 text-gray-600 dark:text-gray-200 group-hover:text-red-600 transition-colors duration-300">
+                        <i class="mdi mdi-robot text-4xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-600 dark:text-gray-200 mb-3">AI</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                        自动分析日记中的情感色彩，生成情绪趋势图，助你更好地了解内心变化。
+                    </p>
                 </div>
-                <h3 class="text-lg font-semibold mb-2">智能管理</h3>
-                <p class="text-sm">AI 驱动的内容分类和智能标签，让日记管理更轻松</p>
-            </div>
 
-            <div class="text-center">
-                <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-cloud text-2xl"></i>
+                <!-- Feature 2: Markdown -->
+                <div class="group text-center md:text-left">
+                    <div
+                        class="inline-flex items-center justify-center w-12 h-12 mb-6 text-gray-600 dark:text-gray-200 group-hover:text-red-600 transition-colors duration-300">
+                        <i class="mdi mdi-language-markdown text-4xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-600 dark:text-gray-200 mb-3">Markdown</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                        支持标准 Markdown 语法，让排版更精美，专注于内容创作，享受纯粹的写作体验。
+                    </p>
                 </div>
-                <h3 class="text-lg font-semibold mb-2">多云存储</h3>
-                <p class="text-sm">支持多种云存储服务，数据安全有保障</p>
-            </div>
 
-            <div class="text-center">
-                <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-mobile-alt text-2xl"></i>
+                <!-- Feature 3: Security & Storage -->
+                <div class="group text-center md:text-left">
+                    <div
+                        class="inline-flex items-center justify-center w-12 h-12 mb-6 text-gray-600 dark:text-gray-200 group-hover:text-red-600 transition-colors duration-300">
+                        <i class="mdi mdi-cloud-lock-outline text-4xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-600 dark:text-gray-200 mb-3">安全</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                        数据加密存储，支持 Dropbox、Google Drive 等多云同步，你的数据永远属于你。
+                    </p>
                 </div>
-                <h3 class="text-lg font-semibold mb-2">响应式设计</h3>
-                <p class="text-sm">完美适配各种设备，随时随地记录生活</p>
-            </div>
 
-            <div class="text-center">
-                <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-rocket text-2xl text-purple-600"></i>
+                <!-- Feature 4: i18n -->
+                <div class="group text-center md:text-left">
+                    <div
+                        class="inline-flex items-center justify-center w-12 h-12 mb-6 text-gray-600 dark:text-gray-200 group-hover:text-red-600 transition-colors duration-300">
+                        <i class="mdi mdi-translate text-4xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-600 dark:text-gray-200 mb-3">多语言</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                        内置智能国际化系统，支持中、英、日、法等多种语言，打破语言障碍。
+                    </p>
                 </div>
-                <h3 class="text-lg font-semibold mb-2">高性能</h3>
-                <p class="text-sm">基于 Go 1.25 泛型架构，毫秒级响应速度</p>
+
             </div>
         </div>
     </div>
