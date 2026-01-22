@@ -129,8 +129,19 @@ This setup ensures that if a user visits `page#users`, the "Users" tab activates
 </div>
 ```
 
+## Troubleshooting
+
+### Common Issues
+
+| Issue | Possible Cause | Solution |
+| :--- | :--- | :--- |
+| **Tab not switching** | Name mismatch between trigger and panel. | Ensure `trigger('myTab')` matches `panel('myTab')`. |
+| **Hash not updating** | `options.hash` set to `false`. | Enable hash sync in `window.unoTabs('default', { hash: true })`. |
+| **Content not loading (HTMX)** | Trigger missing `hx-get` or invalid URL. | Check console for HTMX errors. Ensure `hx-target` is correct. |
+
 ## Version History
 
-| Version | Date       | Changes                                              |
-| :------ | :--------- | :--------------------------------------------------- |
-| v1.0.0  | 2025-01-09 | Initial release with Hash Sync and HTMX integration. |
+| Version | Date | Changes |
+| :--- | :--- | :--- |
+| v0.7.0 | 2026-01-20 | **Lazy Listener**: Hash change listener now starts only after first tab usage. |
+| v0.6.0 | 2025-12-18 | Initial stable release. |

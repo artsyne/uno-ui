@@ -1,6 +1,18 @@
 import { log } from '../../utils/log'
 
+/**
+ * Registers the `x-uno-valid` directive.
+ *
+ * @param {Object} Alpine - The Alpine.js instance.
+ */
 export const registerValidDirectives = (Alpine) => {
+  /**
+   * x-uno-valid directive
+   *
+   * Usage:
+   *  <input x-uno-valid="['required', 'email']">
+   *  <input x-uno-valid="{ type: 'length', min: 5 }">
+   */
   Alpine.directive('uno-valid', (el, { expression }, { evaluateLater, cleanup }) => {
     // If used on a form, it acts as a marker for the global HTMX listener
     if (el.tagName === 'FORM') return
@@ -13,46 +25,30 @@ export const registerValidDirectives = (Alpine) => {
 
     const getExpression = expression ? evaluateLater(expression) : () => {}
 
-    // Parse configuration from attributes
-    const buildFromAttrs = () => ({
-      // Standard HTML5
-      required: el.hasAttribute('required'),
-      minLength: el.getAttribute('minlength') || null,
-      maxLength: el.getAttribute('maxlength') || null,
-      min: el.getAttribute('min') || null,
-      max: el.getAttribute('max') || null,
-      pattern: el.getAttribute('pattern') || null,
-      type: el.getAttribute('type') || null
-    })
-
-    const initialAttrs = buildFromAttrs()
-
     // Register rules in store
     const register = (config) => {
-      Alpine.store('uno').valid.addRules(fieldName, { ...initialAttrs, ...config })
+      Alpine.store('uno').valid.addRules(fieldName, config)
     }
 
     if (expression) {
       getExpression((value) => {
-        const config = typeof value === 'object' ? value : {}
-        register(config)
+        // We expect an array or object here, passed directly to store normalization
+        register(value)
       })
     } else {
-      register({})
+      // Empty directive x-uno-valid means no rules initially?
+      // Or maybe we shouldn't allow empty.
+      // For now, register empty config.
+      register([])
     }
 
     // Event Listeners
     const onInput = () => {
-      const rules = Alpine.store('uno').valid.rules[fieldName]
-      // Default to realtime unless explicitly disabled
-      if (rules && rules.realtime !== false) {
-        Alpine.store('uno').valid.validate(fieldName, el.value)
-      }
+      Alpine.store('uno').valid.validate(fieldName, el.value, 'input')
     }
 
     const onBlur = () => {
-      // Always validate on blur, regardless of realtime setting
-      Alpine.store('uno').valid.validate(fieldName, el.value)
+      Alpine.store('uno').valid.validate(fieldName, el.value, 'blur')
     }
 
     el.addEventListener('input', onInput)
@@ -72,24 +68,17 @@ export const registerValidDirectives = (Alpine) => {
      * Handles htmx:confirm event.
      * Validates the form before HTMX issues a request.
      */
-    document.body.addEventListener('htmx:confirm', (evt) => {
+    document.body.addEventListener('htmx:confirm', async (evt) => {
       const el = evt.detail.elt
       const form = el.tagName === 'FORM' ? el : el.closest('form')
 
       if (form && form.hasAttribute('x-uno-valid')) {
-        const isValid = Alpine.store('uno').valid.validateForm(form)
+        evt.preventDefault()
 
-        if (!isValid) {
-          evt.preventDefault()
-          evt.stopPropagation() // Stop HTMX
-          log.info('[Valid] Form validation failed. Request blocked.')
+        const isValid = await Alpine.store('uno').valid.validateForm(form)
 
-          form.dispatchEvent(
-            new CustomEvent('uno:validation-failed', {
-              bubbles: true,
-              detail: { errors: Alpine.store('uno').valid.errors }
-            })
-          )
+        if (isValid) {
+          evt.detail.issueRequest(true)
         }
       }
     })

@@ -133,8 +133,19 @@ Fetch user details when hovering over a username.
 </div>
 ```
 
+## Troubleshooting
+
+### Common Issues
+
+| Issue | Possible Cause | Solution |
+| :--- | :--- | :--- |
+| **Tooltip not showing** | `z-index` too low or overflow hidden on parent. | Tooltips are appended to body. Check `z-index` in `window.UnoConfig`. |
+| **Wrong position** | Element near edge or moving. | Call `Alpine.store('uno').tooltip.updatePosition()` if anchor moves. |
+| **Flickering** | Hover logic conflict. | Ensure `offset` is sufficient to prevent mouse leaving trigger area. |
+
 ## Version History
 
-| Version | Date       | Changes                                                  |
-| :------ | :--------- | :------------------------------------------------------- |
-| v1.0.0  | 2025-01-09 | Initial release with Smart Positioning and HTMX support. |
+| Version | Date | Changes |
+| :--- | :--- | :--- |
+| v0.7.0 | 2026-01-20 | Refactored for **Lazy Initialization**. |
+| v0.6.0 | 2025-12-18 | Initial stable release. |

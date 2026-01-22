@@ -151,6 +151,15 @@ declare module 'uno-ui' {
   }
 
   /**
+   * Valid plugin default configuration
+   */
+  export interface ValidPluginDefaults {
+    emptyQuit?: boolean
+    debounce?: number
+    scrollOnError?: boolean
+  }
+
+  /**
    * Plugin function type
    */
   export type Plugin = (Alpine: AlpineType, options?: any) => void

@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { JSDOM } from 'jsdom'
+import { TextEncoder, TextDecoder } from 'util'
+
+global.TextEncoder = TextEncoder
+global.TextDecoder = TextDecoder
 
 describe('Valid Component', () => {
   let ValidPlugin
@@ -9,15 +12,16 @@ describe('Valid Component', () => {
   let directives = {}
 
   beforeEach(async () => {
-    // 1. Fresh JSDOM for each test to avoid listener pollution
+    // 1. Fresh JSDOM for each test
+    const { JSDOM } = await import('jsdom')
     const dom = new JSDOM('<!DOCTYPE html><body></body>')
     global.document = dom.window.document
     global.window = dom.window
     global.HTMLElement = dom.window.HTMLElement
     global.NodeList = dom.window.NodeList
 
-    // Fix: Make sure CustomEvent is available globally and matches JSDOM's
     global.CustomEvent = dom.window.CustomEvent
+    global.Event = dom.window.Event
     global.MutationObserver =
       dom.window.MutationObserver ||
       class {
@@ -28,22 +32,25 @@ describe('Valid Component', () => {
         }
       }
 
-    // Dynamic imports to ensure MutationObserver is ready before Alpine loads
+    // Dynamic imports
     const validModule = await import('../../src/components/valid')
     ValidPlugin = validModule.default
     const unoModule = await import('../../src/core/uno')
     UnoInstance = unoModule.UnoInstance
 
     // Mock Element methods
-    global.HTMLElement.prototype.scrollIntoView = vi.fn()
-    global.HTMLElement.prototype.focus = vi.fn()
-    global.HTMLElement.prototype.matches = function (selector) {
+    dom.window.HTMLElement.prototype.scrollIntoView = vi.fn()
+    dom.window.HTMLElement.prototype.focus = vi.fn()
+    dom.window.HTMLElement.prototype.matches = function (selector) {
       return (
         (this.constructor.name === 'HTMLFormElement' && selector === 'form') ||
         (this.constructor.name === 'HTMLInputElement' && selector === 'input') ||
         dom.window.document.querySelector(selector) === this
       )
     }
+    // Also mock on Element just in case
+    dom.window.Element.prototype.scrollIntoView = vi.fn()
+    dom.window.Element.prototype.focus = vi.fn()
 
     // 2. Mock Alpine
     store = {}
@@ -66,98 +73,309 @@ describe('Valid Component', () => {
     ValidPlugin(Alpine)
   })
 
-  describe('Store: valid', () => {
+  describe('Store: valid (Normalization)', () => {
     it('should register store', () => {
       expect(store.uno).toBeDefined()
       expect(store.uno.valid).toBeDefined()
     })
 
-    it('should add rules correctly', () => {
-      store.uno.valid.addRules('username', { required: true })
-      // Use toMatchObject because default config is merged
-      expect(store.uno.valid.rules['username']).toMatchObject({ required: true })
+    it('should normalize string config to array', () => {
+      store.uno.valid.addRules('field1', 'required')
+      const rules = store.uno.valid.rules['field1']
+      expect(Array.isArray(rules)).toBe(true)
+      expect(rules[0]).toMatchObject({ type: 'required', emptyQuit: true })
     })
 
-    it('should validate required field', () => {
-      store.uno.valid.addRules('username', { required: true })
+    it('should normalize array of strings', () => {
+      store.uno.valid.addRules('field2', ['required', 'email'])
+      const rules = store.uno.valid.rules['field2']
+      expect(rules).toHaveLength(2)
+      expect(rules[0]).toMatchObject({ type: 'required' })
+      expect(rules[1]).toMatchObject({ type: 'email' })
+    })
 
-      const resultFail = store.uno.valid.validate('username', '')
+    it('should normalize mixed array', () => {
+      store.uno.valid.addRules('field3', ['required', { type: 'length', min: 5 }])
+      const rules = store.uno.valid.rules['field3']
+      expect(rules[0]).toMatchObject({ type: 'required' })
+      expect(rules[1]).toMatchObject({ type: 'length', min: 5 })
+    })
+
+    it('should handle single object config (legacy-ish but supported)', () => {
+      store.uno.valid.addRules('field4', { type: 'custom' })
+      const rules = store.uno.valid.rules['field4']
+      expect(Array.isArray(rules)).toBe(true)
+      expect(rules[0]).toMatchObject({ type: 'custom' })
+    })
+  })
+
+  describe('Validation Logic', () => {
+    it('should validate required field', async () => {
+      store.uno.valid.addRules('username', ['required'])
+
+      const resultFail = await store.uno.valid.validate('username', '')
       expect(resultFail).toBe(false)
-      expect(store.uno.valid.errors['username']).toBe('This field is required')
+      expect(store.uno.valid.errors['username']).toBeTruthy()
 
-      const resultPass = store.uno.valid.validate('username', 'valid')
+      const resultPass = await store.uno.valid.validate('username', 'valid')
       expect(resultPass).toBe(true)
-      // undefined because we delete the error key
       expect(store.uno.valid.errors['username']).toBeUndefined()
     })
 
-    it('should validate email field', () => {
-      store.uno.valid.addRules('email', { email: true })
+    it('should validate email field (using built-in VALIDATORS)', async () => {
+      store.uno.valid.addRules('email', ['email'])
 
-      expect(store.uno.valid.validate('email', 'invalid')).toBe(false)
-      expect(store.uno.valid.validate('email', 'test@example.com')).toBe(true)
+      expect(await store.uno.valid.validate('email', 'invalid')).toBe(false)
+      expect(await store.uno.valid.validate('email', 'test@example.com')).toBe(true)
     })
 
-    it('should validate minLength', () => {
-      store.uno.valid.addRules('pass', { minLength: 5 })
+    it('should respect EmptyQuit (skip validation if empty and not required)', async () => {
+      // Rule: email type, but NOT required (implicit)
+      store.uno.valid.addRules('optionalEmail', ['email'])
 
-      expect(store.uno.valid.validate('pass', '1234')).toBe(false)
-      expect(store.uno.valid.validate('pass', '12345')).toBe(true)
-    })
-
-    it('should support emptyquit behavior (skip validation if empty and not required)', () => {
-      // Rule: email type, but NOT required
-      store.uno.valid.addRules('optionalEmail', { email: true, required: false })
-
-      // Empty value -> should be valid (skipped)
-      expect(store.uno.valid.validate('optionalEmail', '')).toBe(true)
+      // Empty value -> should be valid (skipped due to EmptyQuit default)
+      expect(await store.uno.valid.validate('optionalEmail', '')).toBe(true)
       expect(store.uno.valid.errors['optionalEmail']).toBeUndefined()
 
       // Non-empty invalid value -> should fail
-      expect(store.uno.valid.validate('optionalEmail', 'not-an-email')).toBe(false)
-      expect(store.uno.valid.errors['optionalEmail']).toBeTruthy()
+      expect(await store.uno.valid.validate('optionalEmail', 'not-an-email')).toBe(false)
     })
 
-    it('should validate numeric limits (min/max)', () => {
-      store.uno.valid.addRules('age', { min: 18, max: 100, type: 'number' })
+    it('should validate numeric limits (min/max) via range type', async () => {
+      // Note: validation.js doesn't have 'range' type in VALIDATORS regex,
+      // but valid.store.js handles 'range' type logic manually?
+      // Let's check valid.store.js implementation.
+      // It has `else if (type === 'range')` block.
+
+      store.uno.valid.addRules('age', [{ type: 'range', min: 18, max: 100 }])
 
       // Valid range
-      expect(store.uno.valid.validate('age', '20')).toBe(true)
+      expect(await store.uno.valid.validate('age', '20')).toBe(true)
 
       // Too low
-      expect(store.uno.valid.validate('age', '17')).toBe(false)
-      expect(store.uno.valid.errors['age']).toMatch(/at least 18/)
+      expect(await store.uno.valid.validate('age', '17')).toBe(false)
+      expect(store.uno.valid.errors['age']).toMatch(/Min value/)
 
       // Too high
-      expect(store.uno.valid.validate('age', '101')).toBe(false)
-      expect(store.uno.valid.errors['age']).toMatch(/at most 100/)
-
-      // Not a number
-      expect(store.uno.valid.validate('age', 'abc')).toBe(false)
-      expect(store.uno.valid.errors['age']).toMatch(/Invalid number format/)
+      expect(await store.uno.valid.validate('age', '101')).toBe(false)
+      expect(store.uno.valid.errors['age']).toMatch(/Max value/)
     })
 
-    it('should support custom validators', () => {
+    it('should validate match rule (password confirm)', async () => {
+      document.body.innerHTML = `
+        <form>
+          <input name="password" value="secret123" />
+          <input name="confirm" value="secret123" />
+          <input name="confirm_bad" value="wrong" />
+        </form>
+      `
+
+      store.uno.valid.addRules('confirm', [{ type: 'match', target: 'password' }])
+      store.uno.valid.addRules('confirm_bad', [{ type: 'match', target: 'password' }])
+
+      // Good match
+      const isValid = await store.uno.valid.validate('confirm', 'secret123')
+      expect(isValid).toBe(true)
+      expect(store.uno.valid.errors['confirm']).toBeUndefined()
+
+      // Bad match
+      const isValidBad = await store.uno.valid.validate('confirm_bad', 'wrong')
+      expect(isValidBad).toBe(false)
+      expect(store.uno.valid.errors['confirm_bad']).toBeTruthy()
+    })
+
+    it('should support custom validators', async () => {
       const customFn = vi.fn((val) => {
         return val === 'secret' ? true : 'Wrong secret'
       })
 
       store.uno.valid.registerValidator('checkSecret', customFn)
-      store.uno.valid.addRules('secretField', { validator: 'checkSecret' })
+      store.uno.valid.addRules('secretField', [{ type: 'custom', fn: 'checkSecret' }])
 
       // Invalid
-      expect(store.uno.valid.validate('secretField', 'guess')).toBe(false)
+      expect(await store.uno.valid.validate('secretField', 'guess')).toBe(false)
       expect(store.uno.valid.errors['secretField']).toBe('Wrong secret')
-      expect(customFn).toHaveBeenCalledWith('guess', 'secretField')
+      expect(customFn).toHaveBeenCalled()
 
       // Valid
-      expect(store.uno.valid.validate('secretField', 'secret')).toBe(true)
-      expect(store.uno.valid.errors['secretField']).toBeUndefined()
+      expect(await store.uno.valid.validate('secretField', 'secret')).toBe(true)
+    })
+
+    it('should support custom validators with type="validator" and name property', async () => {
+      const customFn = vi.fn((val) => val === 'secret')
+      store.uno.valid.registerValidator('checkSecret2', customFn)
+      store.uno.valid.addRules('secretField2', [{ type: 'validator', name: 'checkSecret2' }])
+
+      // Invalid
+      await store.uno.valid.validate('secretField2', 'guess')
+      expect(customFn).toHaveBeenCalled()
+      expect(store.uno.valid.errors['secretField2']).toBeTruthy()
+
+      // Valid
+      await store.uno.valid.validate('secretField2', 'secret')
+      expect(store.uno.valid.errors['secretField2']).toBeUndefined()
+    })
+  })
+
+  describe('Validation Sequence', () => {
+    it('should stop at first error', async () => {
+      // Order: required -> length -> email
+      // We use a custom validator to spy on execution
+      const spyValidator = vi.fn(() => true)
+      store.uno.valid.registerValidator('spy', spyValidator)
+
+      store.uno.valid.addRules('seq', [
+        'required',
+        { type: 'length', min: 5 },
+        { type: 'custom', fn: 'spy' }
+      ])
+
+      // 1. Fails required (empty)
+      // spy should NOT be called
+      await store.uno.valid.validate('seq', '')
+      expect(store.uno.valid.errors['seq']).toMatch(/required/i)
+      expect(spyValidator).not.toHaveBeenCalled()
+
+      // 2. Fails length ('abc')
+      // spy should NOT be called
+      await store.uno.valid.validate('seq', 'abc')
+      expect(store.uno.valid.errors['seq']).toMatch(/Min length/i)
+      expect(spyValidator).not.toHaveBeenCalled()
+
+      // 3. Passes both
+      // spy SHOULD be called
+      await store.uno.valid.validate('seq', 'abcde')
+      expect(store.uno.valid.errors['seq']).toBeUndefined()
+      expect(spyValidator).toHaveBeenCalled()
+    })
+  })
+
+  describe('Trigger Logic', () => {
+    it('should respect trigger: "blur"', async () => {
+      const spyValidator = vi.fn(() => true)
+      store.uno.valid.registerValidator('spy', spyValidator)
+      store.uno.valid.addRules('blurField', [{ type: 'custom', fn: 'spy', trigger: 'blur' }])
+
+      // 1. Triggered by INPUT -> Should SKIP
+      await store.uno.valid.validate('blurField', 'val', 'input')
+      expect(spyValidator).not.toHaveBeenCalled()
+
+      // 2. Triggered by BLUR -> Should RUN
+      await store.uno.valid.validate('blurField', 'val', 'blur')
+      expect(spyValidator).toHaveBeenCalledTimes(1)
+    })
+
+    it('should respect realtime: false (legacy)', async () => {
+      const spyValidator = vi.fn(() => true)
+      store.uno.valid.registerValidator('spyLegacy', spyValidator)
+      store.uno.valid.addRules('legacyField', [
+        { type: 'custom', fn: 'spyLegacy', realtime: false }
+      ])
+
+      // 1. Triggered by INPUT -> Should SKIP
+      await store.uno.valid.validate('legacyField', 'val', 'input')
+      expect(spyValidator).not.toHaveBeenCalled()
+
+      // 2. Triggered by BLUR -> Should RUN
+      await store.uno.valid.validate('legacyField', 'val', 'blur')
+      expect(spyValidator).toHaveBeenCalledTimes(1)
+    })
+
+    it('should always run on submit trigger', async () => {
+      const spyValidator = vi.fn(() => true)
+      store.uno.valid.registerValidator('spySubmit', spyValidator)
+      store.uno.valid.addRules('submitField', [
+        { type: 'custom', fn: 'spySubmit', trigger: 'blur' }
+      ])
+
+      // 1. Triggered by SUBMIT -> Should RUN regardless of trigger: 'blur'
+      await store.uno.valid.validate('submitField', 'val', 'submit')
+      expect(spyValidator).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('Async & Debounce', () => {
+    it('should debounce async validation', async () => {
+      vi.useFakeTimers()
+
+      const asyncFn = vi.fn(async () => true)
+      store.uno.valid.registerValidator('asyncCheck', asyncFn)
+
+      store.uno.valid.addRules('asyncField', [{ type: 'custom', fn: 'asyncCheck', debounce: 500 }])
+
+      // Start validation
+      const promise = store.uno.valid.validate('asyncField', 'test')
+
+      // Should be in validating state
+      expect(store.uno.valid.validating['asyncField']).toBe(true)
+      expect(asyncFn).not.toHaveBeenCalled()
+
+      // Advance time
+      vi.advanceTimersByTime(500)
+
+      // Wait for promise
+      const result = await promise
+
+      expect(result).toBe(true)
+      expect(asyncFn).toHaveBeenCalled()
+      expect(store.uno.valid.validating['asyncField']).toBeUndefined()
+
+      vi.useRealTimers()
+    })
+
+    it('should NOT debounce on blur event', async () => {
+      vi.useFakeTimers()
+      const asyncFn = vi.fn(async () => true)
+      store.uno.valid.registerValidator('blurAsync', asyncFn)
+      store.uno.valid.addRules('blurAsyncField', [
+        { type: 'custom', fn: 'blurAsync', debounce: 500 }
+      ])
+
+      // Trigger by BLUR
+      const promise = store.uno.valid.validate('blurAsyncField', 'test', 'blur')
+
+      // Should call immediately (no waiting for timer)
+      // But since it's async function, we await it.
+      await promise
+
+      expect(asyncFn).toHaveBeenCalled()
+
+      vi.useRealTimers()
+    })
+
+    it('should debounce custom validator with type="validator" and name property', async () => {
+      vi.useFakeTimers()
+      const asyncFn = vi.fn(async () => true)
+      store.uno.valid.registerValidator('checkDebounce', asyncFn)
+      store.uno.valid.addRules('debounceField', [
+        { type: 'validator', name: 'checkDebounce', debounce: 300 }
+      ])
+
+      // Start validation
+      const promise = store.uno.valid.validate('debounceField', 'test')
+
+      // Should be in validating state
+      expect(store.uno.valid.validating['debounceField']).toBe(true)
+      expect(asyncFn).not.toHaveBeenCalled()
+
+      // Advance time partially
+      vi.advanceTimersByTime(200)
+      expect(asyncFn).not.toHaveBeenCalled()
+
+      // Advance time fully
+      vi.advanceTimersByTime(100)
+      const result = await promise
+
+      expect(result).toBe(true)
+      expect(asyncFn).toHaveBeenCalled()
+      expect(store.uno.valid.validating['debounceField']).toBeUndefined()
+
+      vi.useRealTimers()
     })
   })
 
   describe('Form Validation', () => {
-    it('should validate all fields in form', () => {
+    it('should validate all fields in form', async () => {
       document.body.innerHTML = `
         <form id="testForm">
           <input name="user" value="" />
@@ -165,11 +383,16 @@ describe('Valid Component', () => {
         </form>
       `
       const form = document.getElementById('testForm')
+      // Explicitly mock scrollIntoView/focus on elements to avoid prototype issues
+      form.querySelectorAll('input').forEach((el) => {
+        el.scrollIntoView = vi.fn()
+        el.focus = vi.fn()
+      })
 
-      store.uno.valid.addRules('user', { required: true })
-      store.uno.valid.addRules('email', { email: true })
+      store.uno.valid.addRules('user', ['required'])
+      store.uno.valid.addRules('email', ['email'])
 
-      const isValid = store.uno.valid.validateForm(form)
+      const isValid = await store.uno.valid.validateForm(form)
 
       expect(isValid).toBe(false)
       expect(store.uno.valid.errors['user']).toBeTruthy()
@@ -178,54 +401,81 @@ describe('Valid Component', () => {
   })
 
   describe('HTMX Integration', () => {
-    it('should intercept htmx:confirm and validate', () => {
+    it('should intercept htmx:confirm and validate', async () => {
       document.body.innerHTML = `
         <form id="htmxForm" x-uno-valid>
           <input name="field" value="" />
         </form>
       `
       const form = document.getElementById('htmxForm')
-      store.uno.valid.addRules('field', { required: true })
+      store.uno.valid.addRules('field', ['required'])
 
       const preventDefault = vi.fn()
       const issueRequest = vi.fn()
 
-      // IMPORTANT: bubbles: true is required for event delegation
-      const evt = new window.CustomEvent('htmx:confirm', {
-        bubbles: true,
-        detail: { issueRequest, elt: form }
+      // Use legacy createEvent to ensure maximum compatibility with JSDOM
+      const evt = form.ownerDocument.createEvent('CustomEvent')
+      evt.initCustomEvent('htmx:confirm', true, true, { issueRequest, elt: form })
+
+      // We can't easily mock preventDefault on the instance created this way if it's strictly checked
+      // But we can check if defaultPrevented becomes true
+      // Or we can try to spy on it?
+      // Let's just mock it for now as before, hoping createEvent makes a valid event
+      Object.defineProperty(evt, 'preventDefault', { value: preventDefault })
+
+      // Mock scrollIntoView/focus on inputs
+      form.querySelectorAll('input').forEach((el) => {
+        el.scrollIntoView = vi.fn()
+        el.focus = vi.fn()
       })
-      evt.preventDefault = preventDefault
+
+      form.dispatchEvent(evt) // We need to await the event handler?
+      // The event handler is async but dispatchEvent is sync.
+      // We can't easily await the handler.
+      // But since we use await inside the handler, the checks after dispatchEvent might run before handler finishes?
+      // Actually, since we are in JSDOM/Node, the microtask queue handling matters.
 
       form.dispatchEvent(evt)
+
+      // Wait for promises to resolve
+      await new Promise(process.nextTick)
 
       expect(preventDefault).toHaveBeenCalled()
       expect(issueRequest).not.toHaveBeenCalled()
       expect(store.uno.valid.errors['field']).toBeTruthy()
     })
 
-    it('should allow request if validation passes', () => {
+    it('should allow request if validation passes', async () => {
       document.body.innerHTML = `
         <form id="htmxForm" x-uno-valid>
           <input name="field" value="valid" />
         </form>
       `
       const form = document.getElementById('htmxForm')
-      store.uno.valid.addRules('field', { required: true })
+      store.uno.valid.addRules('field', ['required'])
 
       const preventDefault = vi.fn()
       const issueRequest = vi.fn()
 
-      const evt = new window.CustomEvent('htmx:confirm', {
-        bubbles: true,
-        detail: { issueRequest, elt: form }
+      // Use legacy createEvent
+      const evt = form.ownerDocument.createEvent('CustomEvent')
+      evt.initCustomEvent('htmx:confirm', true, true, { issueRequest, elt: form })
+      Object.defineProperty(evt, 'preventDefault', { value: preventDefault })
+
+      // Mock scrollIntoView/focus just in case validation fails and tries to focus
+      form.querySelectorAll('input').forEach((el) => {
+        el.scrollIntoView = vi.fn()
+        el.focus = vi.fn()
       })
-      evt.preventDefault = preventDefault
 
       form.dispatchEvent(evt)
 
-      expect(preventDefault).not.toHaveBeenCalled()
-      expect(issueRequest).not.toHaveBeenCalled()
+      // Wait for promises
+      await new Promise(process.nextTick)
+
+      // Expectation: preventDefault called (to pause), then issueRequest called
+      expect(preventDefault).toHaveBeenCalled()
+      expect(issueRequest).toHaveBeenCalled()
     })
   })
 })

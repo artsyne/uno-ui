@@ -1,4 +1,3 @@
-import { Uno } from '../../core/uno'
 import { getZIndex } from '../../core/layer'
 
 export const getNotifyTemplate = () => {

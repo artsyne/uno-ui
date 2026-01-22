@@ -30,7 +30,7 @@
         </a>
         <h1 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
           <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">Uno</span>
-          Valid Plugin (Standard HTML5)
+          Valid Plugin (Array Config)
         </h1>
       </div>
       <div class="flex items-center gap-4">
@@ -68,10 +68,11 @@
     <div
       class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
       <p class="text-slate-600 dark:text-slate-300">
-        This page demonstrates the new <strong>Standard HTML5</strong> validation plugin. It uses
-        <code>x-uno-valid</code> on the form and standard HTML5 attributes like
-        <code>required</code>, <code>pattern</code>, <code>type</code>, <code>min/max</code>. HTMX
-        integration is automatic via <code>hx-post</code> interception. Errors are displayed using
+        This page demonstrates the <strong>Directive-Driven</strong> validation plugin. It uses
+        <code>x-uno-valid</code> with an array of rules (e.g., <code>['required', 'email']</code>) to define validation
+        logic.
+        HTML5 attributes like <code>required</code> are NOT used for validation.
+        HTMX integration is automatic via <code>hx-post</code> interception. Errors are displayed using
         <code>x-text="$uno.valid.getMessage('name')"</code>.
       </p>
     </div>
@@ -82,10 +83,9 @@
         class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
         <div
           class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
-          <h2 class="font-semibold text-slate-800 dark:text-white">1. Standard Validators</h2>
+          <h2 class="font-semibold text-slate-800 dark:text-white">1. Array Configuration</h2>
           <span
-            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">HTML5
-            Native</span>
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Directive</span>
         </div>
         <!-- 
                     Use x-uno-valid to enable Uno validation interception.
@@ -95,12 +95,12 @@
           <!-- Validname -->
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Username
-              <code>pattern</code></label>
-            <input x-uno-valid="{ msgPattern: 'Only letters, numbers, _, - allowed' }" name="username"
-              pattern="^[a-zA-Z0-9_\-]+$" required
-              class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
-              :class="$store.uno.valid.errors['username'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'"
-              placeholder="Letters, numbers, _ -">
+              <code>['required', 'validname']</code></label>
+            <input
+              x-uno-valid="['required', { type: 'pattern', pattern: '^[a-zA-Z0-9_\\-]+$', msg: 'Only letters, numbers, _, - allowed' }]"
+              name="username" type="text"
+              class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              placeholder="jdoe_123">
             <!-- Error Message -->
             <div x-text="$store.uno.valid.errors['username']" x-show="$store.uno.valid.errors['username']"
               class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
@@ -109,9 +109,10 @@
           <!-- Email -->
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Email
-              <code>type="email"</code></label>
-            <input x-uno-valid="{ msgType: 'Please enter a valid email address' }" name="email" type="email" required
-              class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+              <code>['required', 'email']</code></label>
+            <input x-uno-valid="['required', { type: 'email', msg: 'Please enter a valid email address' }]" name="email"
+              type="text"
+              class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               :class="$store.uno.valid.errors['email'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'"
               placeholder="user@example.com">
             <div x-text="$store.uno.valid.errors['email']" x-show="$store.uno.valid.errors['email']"
@@ -121,10 +122,10 @@
           <!-- Mobile -->
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Mobile
-              <code>type="tel"</code></label>
-            <input x-uno-valid="{ msgPattern: 'Invalid phone number format' }" name="mobile" type="tel"
-              pattern="^\+?[0-9]{7,15}$"
-              class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+              <code>[{ type: 'pattern', ... }]</code></label>
+            <input x-uno-valid="[{ type: 'pattern', pattern: '^\\+?[0-9]{7,15}$', msg: 'Invalid phone number format' }]"
+              name="mobile" type="text"
+              class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               :class="$store.uno.valid.errors['mobile'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'"
               placeholder="+1234567890" />
             <div x-text="$store.uno.valid.errors['mobile']" x-show="$store.uno.valid.errors['mobile']"
@@ -135,9 +136,9 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Website
-                <code>type="url"</code></label>
-              <input x-uno-valid="{ msgType: 'Must be a valid URL (https://...)' }" name="url" type="url"
-                class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                <code>['url']</code></label>
+              <input x-uno-valid="[{ type: 'url', msg: 'Must be a valid URL (https://...)' }]" name="url" type="text"
+                class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 :class="$store.uno.valid.errors['url'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'"
                 placeholder="https://..." />
               <div x-text="$store.uno.valid.errors['url']" x-show="$store.uno.valid.errors['url']"
@@ -145,10 +146,11 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Domain
-                <code>pattern</code></label>
-              <input x-uno-valid="{ msgPattern: 'Invalid domain format' }" name="domain"
-                pattern="^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$"
-                class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                <code>[{ type: 'pattern', ... }]</code></label>
+              <input
+                x-uno-valid="[{ type: 'pattern', pattern: '^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$', msg: 'Invalid domain format' }]"
+                name="domain" type="text"
+                class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 :class="$store.uno.valid.errors['domain'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'"
                 placeholder="example.com" />
               <div x-text="$store.uno.valid.errors['domain']" x-show="$store.uno.valid.errors['domain']"
@@ -160,9 +162,9 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Date
-                <code>type="date"</code></label>
-              <input x-uno-valid name="date" type="date"
-                class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                <code>['date']</code></label>
+              <input x-uno-valid="['date']" name="date" type="date"
+                class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 :class="$store.uno.valid.errors['date'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'"
                 placeholder="YYYY-MM-DD" />
               <div x-text="$store.uno.valid.errors['date']" x-show="$store.uno.valid.errors['date']"
@@ -170,9 +172,9 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Integer
-                <code>type="number"</code></label>
-              <input x-uno-valid name="int" type="number" step="1"
-                class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                <code>['int']</code></label>
+              <input x-uno-valid="['int']" name="int" type="number" step="1"
+                class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 :class="$store.uno.valid.errors['int'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'"
                 placeholder="123" />
               <div x-text="$store.uno.valid.errors['int']" x-show="$store.uno.valid.errors['int']"
@@ -201,9 +203,9 @@
           <!-- Password & Compare -->
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Password
-              <code>minlength="8"</code></label>
-            <input x-uno-valid="{ validator: 'pwd' }" id="logic_pwd" name="logic_password" type="password" minlength="8"
-              required
+              <code>['required', {type:'length', min:8}]</code></label>
+            <input x-uno-valid="['required', { type: 'length', min: 8 }, { type: 'validator', name: 'pwd' }]"
+              id="logic_password" name="logic_password" type="password"
               class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
               :class="$store.uno.valid.errors['logic_password'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'" />
             <div x-text="$store.uno.valid.errors['logic_password']"
@@ -212,8 +214,10 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Confirm
-              <code>match="logic_password"</code></label>
-            <input x-uno-valid="{ match: 'logic_password' }" name="confirm" type="password" required
+              <code>match logic_password</code></label>
+            <input
+              x-uno-valid="['required', { type: 'match', target: 'logic_password', msg: 'Passwords do not match' }]"
+              name="confirm" type="password"
               class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
               :class="$store.uno.valid.errors['confirm'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'" />
             <div x-text="$store.uno.valid.errors['confirm']" x-show="$store.uno.valid.errors['confirm']"
@@ -223,9 +227,10 @@
           <!-- Age Range -->
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Age
-              <code>min="18" max="60"</code></label>
-            <input x-uno-valid="{ msgMin: 'Must be at least 18', msgMax: 'Must be at most 60' }" name="logic_age"
-              type="number" min="18" max="60" required
+              <code>{ min: 18, max: 60 }</code></label>
+            <input
+              x-uno-valid="['required', { type: 'range', min: 18, msgMin: 'Must be at least 18', max: 60, msgMax: 'Must be at most 60' }]"
+              name="logic_age" type="number"
               class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
               :class="$store.uno.valid.errors['logic_age'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'" />
             <div x-text="$store.uno.valid.errors['logic_age']" x-show="$store.uno.valid.errors['logic_age']"
@@ -237,8 +242,9 @@
           <!-- Multi-Rule JSON (simulated via directive object) -->
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Multi-Rule
-              <code>x-uno-valid="{ ... }"</code></label>
-            <input x-uno-valid="{ required: true, email: true, validator: 'checkemail' }" name="multirule"
+              <code>x-uno-valid="[...]"</code></label>
+            <input x-uno-valid="['required', 'email', { type: 'validator', name: 'checkemail', debounce: 500 }]"
+              name="multirule"
               class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
               placeholder="Required + Email + Custom CheckEmail" />
             <div x-text="$store.uno.valid.errors['multirule']" x-show="$store.uno.valid.errors['multirule']"
@@ -251,8 +257,8 @@
           <!-- Custom Function -->
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Custom Function
-              <code>validator="checkname"</code></label>
-            <input x-uno-valid="{ validator: 'checkname' }" name="custom" required
+              <code>{ name: 'checkname' }</code></label>
+            <input x-uno-valid="['required', { type: 'validator', name: 'checkname', debounce: 500 }]" name="custom"
               class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
               placeholder="Type 'admin' to fail" />
             <div x-text="$store.uno.valid.errors['custom']" x-show="$store.uno.valid.errors['custom']"
@@ -281,9 +287,9 @@
           <div class="relative">
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
               Bio
-              <code>minlength/maxlength</code>
+              <code>{ min: 10, max: 200 }</code>
             </label>
-            <textarea x-uno-valid x-model="bio" name="bio" minlength="10" maxlength="200" required
+            <textarea x-uno-valid="['required', { type: 'length', min: 10, max: 200 }]" x-model="bio" name="bio"
               class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors h-32 p-3"
               :class="$store.uno.valid.errors['bio'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'"
               placeholder="Tell us about yourself (10-200 chars)..."></textarea>
@@ -298,27 +304,6 @@
               class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
           </div>
 
-          <!-- Password Match -->
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Password</label>
-              <input x-uno-valid name="password" type="password" required minlength="8"
-                class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                :class="$store.uno.valid.errors['password'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'" />
-              <div x-text="$store.uno.valid.errors['password']" x-show="$store.uno.valid.errors['password']"
-                class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Confirm
-                <code>match="password"</code></label>
-              <input x-uno-valid="{ match: 'password' }" name="confirm_password" type="password" required
-                class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                :class="$store.uno.valid.errors['confirm_password'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'" />
-              <div x-text="$store.uno.valid.errors['confirm_password']"
-                x-show="$store.uno.valid.errors['confirm_password']"
-                class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
-            </div>
-          </div>
 
           <button type="submit"
             class="w-full bg-slate-800 dark:bg-blue-600 text-white py-2 rounded-lg hover:bg-slate-700 dark:hover:bg-blue-700 transition-colors">
@@ -344,8 +329,8 @@
               <span class="text-xs text-slate-400 font-normal ml-2">Type invalid email to see error, leave empty to
                 pass</span>
             </label>
-            <input x-uno-valid name="opt_email" type="email"
-              class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+            <input x-uno-valid="['email']" name="opt_email" type="text"
+              class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               :class="$store.uno.valid.errors['opt_email'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'"
               placeholder="user@example.com (Optional)" />
             <div x-text="$store.uno.valid.errors['opt_email']" x-show="$store.uno.valid.errors['opt_email']"
@@ -356,10 +341,10 @@
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
               Age (18-60)
-              <code>min="18" max="60"</code>
+              <code>{ type: 'range', min: 18, max: 60 }</code>
             </label>
-            <input x-uno-valid name="full_age" type="number" min="18" max="60" required
-              class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+            <input x-uno-valid="['required', { type: 'range', min: 18, max: 60 }]" name="full_age" type="number"
+              class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               :class="$store.uno.valid.errors['full_age'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'"
               placeholder="Enter age" />
             <div x-text="$store.uno.valid.errors['full_age']" x-show="$store.uno.valid.errors['full_age']"
@@ -370,11 +355,12 @@
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
               Product ID
-              <code>pattern="^[A-Z]{2}-\d{4}$"</code>
+              <code>{ type: 'pattern', ... }</code>
             </label>
-            <input x-uno-valid="{ msgPattern: 'Format must be XX-0000 (e.g. AB-1234)' }" name="product_id"
-              pattern="^[A-Z]{2}-\d{4}$" required
-              class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+            <input
+              x-uno-valid="['required', { type: 'pattern', pattern: '^[A-Z]{2}-\\d{4}$', msg: 'Format must be XX-0000 (e.g. AB-1234)' }]"
+              name="product_id" type="text"
+              class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               :class="$store.uno.valid.errors['product_id'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'"
               placeholder="AB-1234" />
             <div x-text="$store.uno.valid.errors['product_id']" x-show="$store.uno.valid.errors['product_id']"
@@ -385,10 +371,10 @@
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
               Website URL
-              <code>type="url"</code>
+              <code>['required', 'url']</code>
             </label>
-            <input x-uno-valid name="website" type="url" required
-              class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+            <input x-uno-valid="['required', 'url']" name="website" type="text"
+              class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               :class="$store.uno.valid.errors['website'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'"
               placeholder="https://example.com" />
             <div x-text="$store.uno.valid.errors['website']" x-show="$store.uno.valid.errors['website']"
@@ -411,22 +397,21 @@
           <span
             class="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded border border-blue-200 dark:border-blue-800">Async</span>
         </div>
-        <form x-uno-valid hx-post="/api/validate" hx-swap="none" class="p-6 space-y-5" novalidate
-          x-data="{ checking: false }">
-          <!-- Remote Check (Blur only) -->
+        <form x-uno-valid hx-post="/api/validate" hx-swap="none" class="p-6 space-y-5" novalidate>
+          <!-- Remote Check (Blur + Debounce) -->
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
               Username Check
-              <code>realtime: false, validator: 'checkremote'</code>
+              <code>debounce: 500, validator: 'checkremote'</code>
             </label>
             <div class="relative">
-              <input x-uno-valid="{ realtime: false, validator: 'checkremote' }" name="remote_user" required
+              <input x-uno-valid="['required', { type: 'validator', name: 'checkremote', debounce: 500 }]"
+                name="remote_user"
                 class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                 :class="$store.uno.valid.errors['remote_user'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'"
-                placeholder="Type 'taken' to simulate taken username (Blur to trigger)"
-                @blur="checking = true; setTimeout(() => checking = false, 1100)" />
+                placeholder="Type 'taken' to simulate taken username (Blur or 500ms idle)" />
               <!-- Loading Spinner -->
-              <div x-show="checking" class="absolute right-3 top-2.5">
+              <div x-show="$store.uno.valid.validating['remote_user']" class="absolute right-3 top-2.5">
                 <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none"
                   viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -439,7 +424,7 @@
             <div x-text="$store.uno.valid.errors['remote_user']" x-show="$store.uno.valid.errors['remote_user']"
               class="text-xs mt-1 h-4 text-red-500 transition-all"></div>
             <p class="text-xs text-slate-500 mt-1">
-              Validation triggers only on blur (simulating network request).
+              Validation triggers on blur or after 500ms of idle input.
             </p>
           </div>
 
@@ -454,57 +439,130 @@
 
   <script>
     document.addEventListener('alpine:initialized', () => {
-      // Register custom validators
       // Ensure Uno store is available
       if (!Alpine.store('uno')) {
         console.error('Uno store not found!')
         return
       }
 
+      // ------------------------------------------------------------------
+      // Test Verification Console
+      // ------------------------------------------------------------------
+      const consoleDiv = document.createElement('div');
+      consoleDiv.id = 'test-console';
+      consoleDiv.style.cssText = 'position: fixed; bottom: 0; left: 0; right: 0; height: 150px; background: rgba(0,0,0,0.85); color: #0f0; font-family: monospace; font-size: 12px; padding: 10px; overflow-y: auto; z-index: 9999; pointer-events: none;';
+      consoleDiv.innerHTML = '<div style="border-bottom: 1px solid #333; margin-bottom: 5px; font-weight: bold;">Test Network Monitor (Mock & Real)</div>';
+      document.body.appendChild(consoleDiv);
+
+      const logToConsole = (msg, type = 'INFO') => {
+        const line = document.createElement('div');
+        line.innerHTML = `<span style="color: ${type === 'ERR' ? '#f55' : type === 'SUCCESS' ? '#5f5' : '#aaa'}">[${type}]</span> ${msg}`;
+        consoleDiv.appendChild(line);
+        consoleDiv.scrollTop = consoleDiv.scrollHeight;
+      };
+
+      // ------------------------------------------------------------------
+      // Mock Backend Implementation
+      // ------------------------------------------------------------------
+      const originalFetch = window.fetch;
+
+      // 1. Mock Fetch (for Validators)
+      window.fetch = async (input, init) => {
+        let url = input;
+        if (input instanceof Request) {
+          url = input.url;
+        }
+
+        // Intercept API calls
+        if (typeof url === 'string' && url.includes('/api/check')) {
+          const params = new URLSearchParams(url.split('?')[1]);
+          const q = params.get('q');
+
+          logToConsole(`FETCH (Mocked): ${url}`, 'INFO');
+
+          await new Promise(r => setTimeout(r, 400)); // Network delay
+
+          // Mock Responses
+          let responseData;
+          if (url.includes('checkname')) {
+            const taken = q === 'admin';
+            responseData = { valid: !taken, message: taken ? "Username 'admin' is already taken." : "" };
+          } else if (url.includes('checkemail')) {
+            const taken = q === 'test@exist.com';
+            responseData = { valid: !taken, message: taken ? "Email 'test@exist.com' is already registered." : "" };
+          } else if (url.includes('checkremote')) {
+            const taken = q === 'taken';
+            responseData = { valid: !taken, message: taken ? "User 'taken' is not available (Async Check)" : "" };
+          }
+
+          if (responseData) {
+            logToConsole(`RESPONSE: ${JSON.stringify(responseData)}`, responseData.valid ? 'SUCCESS' : 'ERR');
+            return new Response(JSON.stringify(responseData), { status: 200 });
+          }
+        }
+
+        logToConsole(`FETCH (Real): ${url}`, 'INFO');
+        return originalFetch(input, init);
+      };
+
+      // 2. Monitor HTMX Requests (XHR)
+      document.body.addEventListener('htmx:afterRequest', (evt) => {
+        const xhr = evt.detail.xhr;
+        const url = evt.detail.requestConfig.path;
+        const status = xhr.status;
+        const success = status >= 200 && status < 300;
+        logToConsole(`HTMX XHR: ${url} -> ${status}`, success ? 'SUCCESS' : 'ERR');
+
+        // If it's the validate endpoint, simulate a success toast if it failed (since we don't mock XHR)
+        // This is a "Client-side Mock" for visual feedback
+        if (url.includes('/api/validate') && status === 404) {
+          logToConsole(`Simulating Success for ${url}`, 'SUCCESS');
+          // Manually trigger success feedback
+          // In a real app, the server would send HX-Trigger. 
+          // Here we can use Uno's notify manually.
+          if (window.getUno && window.getUno().notify) {
+            window.getUno().notify.success('Validation Request Sent (Mocked Success)');
+          }
+        }
+      });
+
+      // ------------------------------------------------------------------
+      // Validator Registration
+      // ------------------------------------------------------------------
       const valid = Alpine.store('uno').valid
 
-      valid.registerValidator('checkname', function (value, fieldName) {
-        if (value === 'admin') {
-          // Simulate async check with real network request (for E2E interception)
-          console.log('Simulating async check for:', value)
-
-          // Use fetch to trigger a network request
-          fetch('./valid.html?mock_checkname=' + encodeURIComponent(value))
-            .then(response => {
-              // In a real app, handle response. Here we simulate the error for 'admin'
-              valid.showErrors({ [fieldName]: "Username 'admin' is already taken." })
-            })
-            .catch(error => {
-              // Network error or 404 (expected in this demo)
-              // Still show the validation error for demonstration
-              valid.showErrors({ [fieldName]: "Username 'admin' is already taken." })
-            })
-
-          return true // Optimistic return
+      valid.registerValidator('checkname', async function (value) {
+        if (!value) return true
+        try {
+          const res = await fetch(`/api/checkname?q=${encodeURIComponent(value)}`);
+          const data = await res.json();
+          return data.valid ? true : data.message;
+        } catch (e) {
+          console.error('Validation error:', e);
+          return "Validation error";
         }
-        return true
       })
 
-      valid.registerValidator('checkemail', function (value) {
-        if (value === 'test@exist.com') return "Email 'test@exist.com' is already registered."
-        return true
+      valid.registerValidator('checkemail', async function (value) {
+        if (!value) return true
+        try {
+          const res = await fetch(`/api/checkemail?q=${encodeURIComponent(value)}`);
+          const data = await res.json();
+          return data.valid ? true : data.message;
+        } catch (e) {
+          return "Validation error";
+        }
       })
 
-      // Remote validation simulation
-      valid.registerValidator('checkremote', function (value, fieldName) {
-        if (!value) return true // Let required rule handle empty
-
-        // Simulate async check
-        console.log('Simulating remote check for:', value)
-
-        // Simulate async failure for specific value
-        if (value === 'taken') {
-          setTimeout(() => {
-            valid.showErrors({ [fieldName]: "User 'taken' is not available (Async Check)" })
-          }, 1000)
+      valid.registerValidator('checkremote', async function (value) {
+        if (!value) return true
+        try {
+          const res = await fetch(`/api/checkremote?q=${encodeURIComponent(value)}`);
+          const data = await res.json();
+          return data.valid ? true : data.message;
+        } catch (e) {
+          return "Validation error";
         }
-
-        return true // Optimistic return
       })
     })
   </script>

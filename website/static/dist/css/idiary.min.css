@@ -2877,6 +2877,16 @@
       outline-style: none;
     }
   }
+  .disabled\:cursor-not-allowed {
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+  .disabled\:opacity-50 {
+    &:disabled {
+      opacity: 50%;
+    }
+  }
   .sm\:my-8 {
     @media (width >= 40rem) {
       margin-block: calc(var(--spacing) * 8);

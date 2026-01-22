@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2026-01-22
+
+### 🚀 Major Improvements
+
+- **Valid Plugin Overhaul**:
+  - **Array-based Configuration**: Validation rules are now defined as an ordered array (e.g., `['required', 'email']`), ensuring predictable execution order.
+  - **Debounce Support**: Added `debounce` option (e.g., `debounce: 500`) for async or heavy validators to reduce server load.
+  - **Enhanced Custom Validators**: Improved API for functional, regex, async, and composite validators.
+
+### ⚠️ Breaking Changes
+
+- **Valid Plugin**:
+  - **HTML5 Attributes Removed**: Support for defining rules via standard HTML5 attributes (e.g., `required`, `pattern=""`) has been **removed**. All rules must be explicitly defined in the `x-uno-valid` directive.
+  - **Strict Configuration**: `x-uno-valid` now expects an Array (or a single string/object which is normalized to an Array).
+
+### ✨ Features
+
+- **Valid Plugin**:
+  - `match` rule now supports `target` parameter (alias for `selector`) for easier field comparison (e.g., Password Confirmation).
+  - `emptyQuit` option (enabled by default) allows skipping validation for empty optional fields.
+  - `realtime: false` option to disable validation on input events for specific rules.
+
+### 🐛 Fixes
+
+- Fixed `valid` plugin not respecting `realtime: false` for input events.
+- Fixed `valid` plugin `match` rule issues with password confirmation.
+- Improved JSDoc comments for better IDE support.
+
 ## [0.7.0] - 2026-01-20
 
 ### 🚀 Major Improvements

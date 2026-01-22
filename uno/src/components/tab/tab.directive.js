@@ -1,3 +1,5 @@
+import { log } from '../../utils/log'
+
 export const registerTabDirectives = (Alpine) => {
   // ============================================================
   // Tab Directive (x-uno-tab)  // Usage: <button x-uno-tab="{ name: 'tab1' }">

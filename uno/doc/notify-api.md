@@ -167,8 +167,19 @@ const loadData = async () => {
 }
 ```
 
+## Troubleshooting
+
+### Common Issues
+
+| Issue | Possible Cause | Solution |
+| :--- | :--- | :--- |
+| **Notification not appearing** | `z-index` conflict or container hidden. | Check CSS. Notify container uses high z-index. |
+| **Progress bar stuck** | HTMX request failed or didn't complete. | Manually call `stopProgress()` in `catch/finally` block. |
+| **Missing styles** | Tailwind classes purged or not loaded. | Ensure `safelist` includes Uno classes if using PurgeCSS. |
+
 ## Version History
 
-| Version | Date       | Changes                                              |
-| :------ | :--------- | :--------------------------------------------------- |
-| v1.0.0  | 2025-01-09 | Initial release with Toasts and Global Progress Bar. |
+| Version | Date | Changes |
+| :--- | :--- | :--- |
+| v0.7.0 | 2026-01-20 | Refactored for **Lazy Initialization**. Containers injected on first usage. |
+| v0.6.0 | 2025-12-18 | Initial stable release. |

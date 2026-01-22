@@ -62,7 +62,7 @@ export function initValidationCallbacks() {
 
     try {
       const formData = new FormData();
-      formData.append('username', value);
+      formData.append('user_name', value);
 
       const response = await fetch('/check-username', {
         method: 'POST',

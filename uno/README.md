@@ -45,7 +45,7 @@ Simply include the compiled CSS and JS files in your HTML.
     <script src="https://unpkg.com/htmx.org@2.0.8"></script>
 
     <!-- 3. Uno Framework (Must load before your app code if you use global Uno) -->
-    <script defer src="https://unpkg.com/uno-ui@0.7.0/dist/uno.umd.js"></script>
+    <script defer src="https://unpkg.com/uno-ui@0.8.0/dist/uno.umd.js"></script>
 
     <!-- 4. Your App Code (Defensive Initialization) -->
     <script defer src="/js/app.js"></script>
@@ -100,7 +100,7 @@ For NPM users, configure Uno using `setConfig()` BEFORE Alpine loads:
 <head>
   <!-- 1. Configure Uno (before Alpine loads) -->
   <script type="module">
-    import Uno from 'https://unpkg.com/uno-ui@0.7.0/dist/uno.es.js'
+    import Uno from 'https://unpkg.com/uno-ui@0.8.0/dist/uno.es.js'
 
     Uno.setConfig({
       debug: true,

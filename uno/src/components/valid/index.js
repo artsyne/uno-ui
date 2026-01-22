@@ -5,7 +5,7 @@
  * Follows the "Store-First, Directive-Driven" pattern.
  *
  * Features:
- * - Declarative rules via HTML5 attributes
+ * - Declarative rules via x-uno-valid directive (Array Config)
  * - Real-time and submit-time validation
  * - Custom validator functions support
  * - HTMX integration (blocks invalid requests, handles 422 errors)
