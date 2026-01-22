@@ -23,6 +23,43 @@ export const registerValidDirectives = (Alpine) => {
       return
     }
 
+    // Auto-generate error element
+    const validConfig = Uno.getConfig('valid')
+    const uiConfig = Uno.options.ui?.valid || {}
+
+    // Check if autoError is explicitly disabled in config
+    if (validConfig.autoError !== false) {
+      const errorKey = `$store.uno.valid.errors['${fieldName}']`
+      const errorSelector = `[x-text="${errorKey.replace(/"/g, '\\"')}"]`
+
+      // Search within the form context if possible
+      const form = el.form || el.closest('form')
+      const existingError = form
+        ? form.querySelector(errorSelector)
+        : document.querySelector(errorSelector)
+
+      if (!existingError) {
+        let errorEl
+        if (typeof validConfig.createErrorElement === 'function') {
+          errorEl = validConfig.createErrorElement(fieldName, errorKey)
+        } else {
+          errorEl = document.createElement('div')
+          errorEl.setAttribute('x-text', errorKey)
+          errorEl.setAttribute('x-show', errorKey)
+
+          // Use helperText class from UI config or fallback
+          const cls = validConfig.errorClass || uiConfig.helperText || 'text-xs text-red-500 mt-1'
+          errorEl.className = cls
+        }
+
+        if (errorEl) {
+          el.after(errorEl)
+          // Initialize Alpine on the new element
+          Alpine.initTree(errorEl)
+        }
+      }
+    }
+
     const getExpression = expression ? evaluateLater(expression) : () => {}
 
     // Register rules in store

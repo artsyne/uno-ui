@@ -33,8 +33,8 @@ func TestUserDiaryIntegration(t *testing.T) {
 	t.Run("用户创建和日记本操作流程", func(t *testing.T) {
 		// 1. 注册用户 - 使用随机数据
 		testUser := &user.User{
-			UserName: ctx.GetDataGenerator().GenerateUniqueString("user"),
-			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("user"),
+			UserName: ctx.GetDataGenerator().GenerateUniqueString("u"),
+			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("u"),
 			Pwd:      "password123",
 			FullName: ctx.GetDataGenerator().GenerateUniqueString("fullname"),
 			TimeZone: "Asia/Shanghai",
@@ -108,8 +108,8 @@ func TestUserEntryDiaryIntegration(t *testing.T) {
 	t.Run("完整的内容创建流程", func(t *testing.T) {
 		// 1. 创建用户 - 使用随机数据
 		testUser := &user.User{
-			UserName: ctx.GetDataGenerator().GenerateUniqueString("user"),
-			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("user"),
+			UserName: ctx.GetDataGenerator().GenerateUniqueString("u"),
+			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("u"),
 			Pwd:      "password123",
 			FullName: ctx.GetDataGenerator().GenerateUniqueString("fullname"),
 			TimeZone: "UTC",
@@ -244,7 +244,7 @@ func TestMultiUserScenario(t *testing.T) {
 	t.Run("多用户数据隔离", func(t *testing.T) {
 		// 创建两个用户
 		user1 := &user.User{
-			UserName: ctx.GetDataGenerator().GenerateUniqueString("testuser1"),
+			UserName: ctx.GetDataGenerator().GenerateUniqueString("u1"),
 			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("user1"),
 			Pwd:      "password123",
 			TimeZone: "Asia/Shanghai",
@@ -253,7 +253,7 @@ func TestMultiUserScenario(t *testing.T) {
 		require.NoError(t, err)
 
 		user2 := &user.User{
-			UserName: ctx.GetDataGenerator().GenerateUniqueString("testuser2"),
+			UserName: ctx.GetDataGenerator().GenerateUniqueString("u2"),
 			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("user2"),
 			Pwd:      "password123",
 			TimeZone: "UTC",
@@ -389,7 +389,7 @@ func TestServiceErrorHandling(t *testing.T) {
 			Body:        "测试内容",
 			DiaryID:     99999, // 不存在的日记本ID
 			AddUserID:   1,
-			AddUserName: "testuser",
+			AddUserName: "u_inv",
 			AddUTCTime:  1642680100,
 			Status:      1,
 		}
@@ -397,10 +397,10 @@ func TestServiceErrorHandling(t *testing.T) {
 		assert.Error(t, err) // 应该出错
 
 		// 3. 尝试重复注册相同的用户名
-		duplicateUserName := ctx.GetDataGenerator().GenerateUniqueString("duplicateuser")
+		duplicateUserName := ctx.GetDataGenerator().GenerateUniqueString("dup")
 		user1 := &user.User{
 			UserName: duplicateUserName,
-			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("dup1"),
+			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("d1"),
 			Pwd:      "password123",
 			TimeZone: "UTC",
 		}
@@ -449,8 +449,8 @@ func TestServicePerformance(t *testing.T) {
 	t.Run("批量操作性能", func(t *testing.T) {
 		// 创建一个用户
 		testUser := &user.User{
-			UserName: ctx.GetDataGenerator().GenerateUniqueString("perfuser"),
-			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("perf"),
+			UserName: ctx.GetDataGenerator().GenerateUniqueString("pu"),
+			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("pu"),
 			Pwd:      "password123",
 			TimeZone: "UTC",
 			Lang:     "en",

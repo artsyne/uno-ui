@@ -180,7 +180,7 @@ export const EntryMixin = {
     if (!form) return false;
 
     if (uno.valid) {
-      const isValid = uno.valid.validateForm(form);
+      const isValid = await uno.valid.validateForm(form);
       if (!isValid) {
         return false;
       }
@@ -198,6 +198,10 @@ export const EntryMixin = {
       url = `/entry/${entryId}`;
       method = 'PUT';
     }
+
+    // Step 1: Add loading state
+    const { setFormLoading } = await import('./form.js');
+    setFormLoading(form, true);
 
     try {
       const response = await fetch(url, {
@@ -296,6 +300,8 @@ export const EntryMixin = {
       const msg = t('common.net_error');
       uno.notify.error(msg);
       return false;
+    } finally {
+        setFormLoading(form, false);
     }
   },
 
@@ -307,10 +313,14 @@ export const EntryMixin = {
     const confirmed = await uno.box.confirm(t('entry.delete.confirm'));
     if (confirmed) {
       if (window.htmx) {
-        htmx.ajax('DELETE', `/entry/${entryId}?diary_id=${diaryId}`, {
-          target: `#entry-card-${entryId}`,
-          swap: 'delete',
-        });
+        htmx
+          .ajax('DELETE', `/entry/${entryId}?diary_id=${diaryId}`, {
+            target: `#entry-card-${entryId}`,
+            swap: 'delete',
+          })
+          .then(() => {
+            uno.notify.success(t('common.delete_success'));
+          });
       }
     }
   },

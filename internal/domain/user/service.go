@@ -8,8 +8,8 @@ import (
 
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/utils/config"
-	"github.com/biuren/hebe/internal/utils/i18n"
 	"github.com/biuren/hebe/internal/utils/errors"
+	"github.com/biuren/hebe/internal/utils/i18n"
 	"github.com/biuren/hebe/pkg"
 )
 
@@ -297,10 +297,17 @@ func (s *Service) UpdateUserProfile(uid int64, fullName, remark, timeZone, lang 
 	if err != nil {
 		return errors.DatabaseError.WithDetails(fmt.Sprintf("更新用户资料失败: %v", err))
 	}
-	
+
 	// 检查是否更新成功
 	if rowsAffected == 0 {
-		return errors.UserNotFound.WithDetails("用户不存在")
+		// 如果影响行数为0，可能是因为数据没有变化，也可能是用户不存在
+		// 我们需要通过查询用户是否存在来区分
+		_, err := s.repo.GetUserByUserId(uid)
+		if err != nil {
+			// 如果查询用户报错（包括用户不存在），则返回错误
+			return err
+		}
+		// 用户存在但没有更新行数，说明数据未变更，视为成功
 	}
 
 	return nil
@@ -371,8 +378,13 @@ func (s *Service) UpdateUserPwd(userId int64, pwd string) (int64, error) {
 // validateUserInput 验证用户输入参数
 func (s *Service) validateUserInput(user *User) error {
 	// 判断参数是否到位
-	if len(user.UserName) < 6 || len(user.Pwd) < 6 {
-		return errors.ValidationError.WithDetails("用户名和密码长度至少6位")
+	if !pkg.IsUserName(user.UserName) {
+		return errors.ValidationError.WithDetails("用户名格式不正确")
+	}
+
+	// 判断密码格式
+	if !pkg.IsPwd(user.Pwd) {
+		return errors.ValidationError.WithDetails("密码格式不正确")
 	}
 
 	// 判断用户时区与语言是否正确

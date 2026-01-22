@@ -202,8 +202,8 @@ func loadTestConfig() *TestConfig {
 		},
 		Isolation: IsolationConfig{
 			Strategy:     getEnvString("IDIARY_TEST_ISOLATION_STRATEGY", "prefix"),
-			PrefixFormat: getEnvString("IDIARY_TEST_PREFIX_FORMAT", "test_{date}_{time}_{random}"),
-			MaxPrefixLen: getEnvInt("IDIARY_TEST_MAX_PREFIX_LEN", 20),
+			PrefixFormat: "t_{random}", // Hardcoded to ensure short prefix
+			MaxPrefixLen: 5,            // Hardcoded to ensure short prefix
 		},
 		Performance: PerformanceConfig{
 			Parallel:      ShouldRunParallel(), // 使用新的flag解析逻辑

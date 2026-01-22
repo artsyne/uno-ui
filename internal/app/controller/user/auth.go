@@ -1,7 +1,6 @@
 package user
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -28,10 +27,6 @@ func (ctrl *UserController) Login(c *gin.Context) {
 	// 验证用户名和密码
 	user, err := ctrl.service.LoginWithUsernameOrEmail(domainReq.LoginName, domainReq.Pwd)
 	if err != nil {
-		if ctrl.isHtmxRequest(c) {
-			ctrl.htmxAlert(c, http.StatusUnauthorized, err.Error())
-			return
-		}
 		ctrl.renderService.JSONError(c, errors.PasswordIncorrect.WithDetails(err.Error()))
 		return
 	}
@@ -49,12 +44,6 @@ func (ctrl *UserController) Login(c *gin.Context) {
 	// 设置登录Cookie
 	ctrl.auth.SetLoginCookie(c, authUser)
 
-	if ctrl.isHtmxRequest(c) {
-		c.Header("HX-Redirect", fmt.Sprintf("/u/%d", user.UserId))
-		c.Status(http.StatusOK)
-		return
-	}
-
 	// 返回登录成功响应
 	responseData := map[string]interface{}{
 		"IsLogin": true,
@@ -67,14 +56,7 @@ func (ctrl *UserController) Login(c *gin.Context) {
 func (ctrl *UserController) Register(c *gin.Context) {
 	// 如果已登录则跳转首页
 	if isAuth, _ := ctrl.auth.IsAuthenticated(c); isAuth {
-		// 检查是否为API或AJAX请求
-		if ctrl.isHtmxRequest(c) ||
-			c.GetHeader("X-Requested-With") == "XMLHttpRequest" ||
-			strings.Contains(c.GetHeader("Accept"), "application/json") {
-			ctrl.renderService.JSONError(c, errors.OperationNotAllowed.WithDetails("User already logged in"))
-			return
-		}
-		ctrl.renderService.Redirect(c, "/")
+		ctrl.renderService.JSONError(c, errors.OperationNotAllowed.WithDetails("User already logged in"))
 		return
 	}
 
@@ -94,19 +76,20 @@ func (ctrl *UserController) Register(c *gin.Context) {
 
 	// 调用服务层注册用户
 	if regErr := ctrl.service.RegisterUser(domainUser); regErr != nil {
-		if ctrl.isHtmxRequest(c) {
-			ctrl.htmxAlert(c, http.StatusBadRequest, regErr.Error())
-			return
-		}
 		ctrl.renderService.JSONError(c, regErr)
 		return
 	}
 
-	if ctrl.isHtmxRequest(c) {
-		c.Header("HX-Redirect", "/login")
-		c.Status(http.StatusOK)
-		return
+	// 注册成功后自动登录：创建会话并设置Cookie
+	authUser := &types.AuthUser{
+		UserId:   domainUser.UserId,
+		UserName: domainUser.UserName,
+		FullName: domainUser.FullName,
+		Email:    domainUser.Email,
+		Lang:     domainUser.Lang,
+		TimeZone: domainUser.TimeZone,
 	}
+	ctrl.auth.SetLoginCookie(c, authUser)
 
 	// 返回注册成功响应
 	responseData := map[string]interface{}{

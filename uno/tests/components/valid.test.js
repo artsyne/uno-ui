@@ -63,7 +63,8 @@ describe('Valid Component', () => {
         directives[name] = cb
       },
       magic: vi.fn(),
-      effect: vi.fn()
+      effect: vi.fn(),
+      initTree: vi.fn()
     }
 
     // 3. Mock Uno Global
@@ -476,6 +477,118 @@ describe('Valid Component', () => {
       // Expectation: preventDefault called (to pause), then issueRequest called
       expect(preventDefault).toHaveBeenCalled()
       expect(issueRequest).toHaveBeenCalled()
+    })
+  })
+
+  describe('Auto Error Generation', () => {
+    it('should automatically create error element if not exists', async () => {
+      document.body.innerHTML = `
+        <form>
+          <input name="auto" />
+        </form>
+      `
+      const input = document.querySelector('input')
+
+      // Mock Uno.options.valid default
+      global.Uno.options.valid = {}
+
+      const directiveFn = directives['uno-valid']
+      expect(directiveFn).toBeDefined()
+
+      // Call the directive function with mock params
+      const el = input
+      const expression = "['required']"
+      const evaluateLater = (expr) => (cb) => cb(['required']) // mock evaluateLater returning array via callback
+
+      const cleanup = () => {}
+      directiveFn(el, { expression }, { evaluateLater, cleanup })
+
+      // Check if error element was created
+      const errorEl = input.nextElementSibling
+      expect(errorEl).not.toBeNull()
+      expect(errorEl.tagName).toBe('DIV')
+      expect(errorEl.getAttribute('x-text')).toBe("$store.uno.valid.errors['auto']")
+      expect(errorEl.getAttribute('x-show')).toBe("$store.uno.valid.errors['auto']")
+      // Default class includes mt-1 (and text-red-500 etc)
+      // Note: we can't easily check default class without full Uno init, but we can check if it has a class
+      expect(errorEl.className).toBeTruthy()
+      expect(Alpine.initTree).toHaveBeenCalledWith(errorEl)
+    })
+
+    it('should NOT create error element if one already exists', async () => {
+      document.body.innerHTML = `
+        <form>
+          <input name="exists" />
+          <div x-text="$store.uno.valid.errors['exists']"></div>
+        </form>
+      `
+      const input = document.querySelector('input')
+      const originalError = document.querySelector('div')
+
+      // Mock Uno.options.valid default
+      global.Uno.options.valid = {}
+
+      const directiveFn = directives['uno-valid']
+      const evaluateLater = (expr) => (cb) => cb(['required'])
+      const cleanup = () => {}
+      directiveFn(input, { expression: "['required']" }, { evaluateLater, cleanup })
+
+      // Should still have only one error element (the original one)
+      expect(input.nextElementSibling).toBe(originalError)
+      // No new sibling inserted
+      expect(input.parentElement.children.length).toBe(2)
+      // initTree should NOT be called for existing element
+      expect(Alpine.initTree).not.toHaveBeenCalled()
+    })
+
+    it('should use custom createErrorElement if configured', async () => {
+      document.body.innerHTML = `
+        <form>
+          <input name="custom" />
+        </form>
+      `
+      const input = document.querySelector('input')
+
+      // Mock Uno config
+      global.Uno.options.valid = {
+        createErrorElement: (fieldName, errorKey) => {
+          const span = document.createElement('span')
+          span.id = 'custom-error-' + fieldName
+          span.textContent = 'Error Place'
+          return span
+        }
+      }
+
+      const directiveFn = directives['uno-valid']
+      const evaluateLater = (expr) => (cb) => cb(['required'])
+      const cleanup = () => {}
+      directiveFn(input, { expression: "['required']" }, { evaluateLater, cleanup })
+
+      const errorEl = input.nextElementSibling
+      expect(errorEl.tagName).toBe('SPAN')
+      expect(errorEl.id).toBe('custom-error-custom')
+      expect(Alpine.initTree).toHaveBeenCalledWith(errorEl)
+    })
+
+    it('should respect autoError: false config', async () => {
+      document.body.innerHTML = `
+        <form>
+          <input name="noauto" />
+        </form>
+      `
+      const input = document.querySelector('input')
+
+      global.Uno.options.valid = {
+        autoError: false
+      }
+
+      const directiveFn = directives['uno-valid']
+      const evaluateLater = (expr) => (cb) => cb(['required'])
+      const cleanup = () => {}
+      directiveFn(input, { expression: "['required']" }, { evaluateLater, cleanup })
+
+      const errorEl = input.nextElementSibling
+      expect(errorEl).toBeNull()
     })
   })
 })

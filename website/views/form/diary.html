@@ -3,23 +3,19 @@
 <div class="px-4" x-data="{ 
     theme: {{if .Data.Diary}}{{.Data.Diary.ThemeID}}{{else}}16{{end}} 
 }">
-    <form id="diary_editor_form" x-uno-valid hx-post="/diary" hx-target="#diary_list" hx-swap="afterbegin"
-        hx-indicator="#loading-indicator">
+    <form id="diary_editor_form" x-uno-valid>
         <div class="block mb-4">
             <label class="form-title">{{getMessage "diary.form.name_required" .Context.Lang}} </label>
-            <input type="text" class="form-control" id="title" name="title" x-uno-valid maxlength="100" required
+            <input type="text" class="form-control" id="title" name="title"
+                x-uno-valid="['required', { type: 'length', max: 100 }]"
                 placeholder='{{getMessage "diary.form.name_required" .Context.Lang}}' {{if
                 .Data.Diary}}value="{{.Data.Diary.Title}}" {{end}}>
-            <div x-text="$store.uno.valid.errors['title']" x-show="$store.uno.valid.errors['title']"
-                class="text-xs text-red-500 mt-1"></div>
         </div>
         <div class="block mb-4">
             <label class="form-title">{{getMessage "diary.form.description" .Context.Lang}}</label>
-            <textarea class="form-control" x-uno-valid maxlength="250" id="remark" name="remark"
+            <textarea class="form-control" x-uno-valid="[{ type: 'length', max: 250 }]" id="remark" name="remark"
                 placeholder='{{getMessage "diary.form.description" .Context.Lang}}'
                 style="height: 80px">{{if .Data.Diary}}{{.Data.Diary.Remark}}{{end}}</textarea>
-            <div x-text="$store.uno.valid.errors['remark']" x-show="$store.uno.valid.errors['remark']"
-                class="text-xs text-red-500 mt-1"></div>
         </div>
         <div class="block mb-4">
             <div class="flex items-center space-x-4 mb-2">

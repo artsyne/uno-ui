@@ -16,21 +16,12 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 
 	// 校验描述长度
 	if len(req.Remark) > ctrl.config.App.MaxDescriptionLength {
-		if ctrl.isHtmxRequest(c) {
-			msg := ctrl.renderService.GetMessage("user.settings.description_limit_exceeded", ctrl.renderService.GetLocaleFromContext(c))
-			ctrl.htmxToast(c, "error", msg)
-			return
-		}
 		ctrl.renderService.JSONError(c, errors.ValidationError)
 		return
 	}
 
 	// 调用service更新资料（包括时区和语言）
 	if err := ctrl.service.UpdateUserProfile(authUser.UserId, req.FullName, req.Remark, req.TimeZone, req.Lang); err != nil {
-		if ctrl.isHtmxRequest(c) {
-			ctrl.htmxToast(c, "error", err.Error())
-			return
-		}
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
@@ -42,12 +33,7 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	
 	ctrl.auth.SetLoginCookie(c, authUser)
 
-	if ctrl.isHtmxRequest(c) {
-		ctrl.htmxToast(c, "success", "Profile updated successfully")
-		return
-	}
-
-	ctrl.renderService.JSONSuccess(c, nil)
+	ctrl.renderService.JSONSuccessWithMsg(c, nil, "Profile updated successfully")
 }
 
 // UpdateEmail 更新用户邮箱
@@ -60,20 +46,11 @@ func (ctrl *UserController) UpdateEmail(c *gin.Context) {
 
 	// 调用service更新邮箱
 	if err := ctrl.service.UpdateUserEmail(authUser.UserId, req.Email); err != nil {
-		if ctrl.isHtmxRequest(c) {
-			ctrl.htmxToast(c, "error", err.Error())
-			return
-		}
 		ctrl.renderService.JSONError(c, errors.DatabaseError.WithDetails(err.Error()))
 		return
 	}
 
-	if ctrl.isHtmxRequest(c) {
-		ctrl.htmxToast(c, "success", "Email updated successfully")
-		return
-	}
-
-	ctrl.renderService.JSONSuccess(c, gin.H{"message": "邮箱更新成功"})
+	ctrl.renderService.JSONSuccessWithMsg(c, nil, "Email updated successfully")
 }
 
 // UpdatePassword 修改用户密码
@@ -87,10 +64,6 @@ func (ctrl *UserController) UpdatePassword(c *gin.Context) {
 	// 调用service更改密码
 	err := ctrl.service.ChangeUserPassword(authUser.UserId, req.CurrentPwd, req.NewPwd)
 	if err != nil {
-		if ctrl.isHtmxRequest(c) {
-			ctrl.htmxToast(c, "error", err.Error())
-			return
-		}
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
@@ -98,13 +71,7 @@ func (ctrl *UserController) UpdatePassword(c *gin.Context) {
 	// 更新 cookie
 	ctrl.auth.SetLoginCookie(c, authUser)
 
-	if ctrl.isHtmxRequest(c) {
-		msg := ctrl.renderService.GetMessage("user.settings.password_changed", ctrl.renderService.GetLocaleFromContext(c))
-		ctrl.htmxToast(c, "success", msg)
-		return
-	}
-
 	msg := ctrl.renderService.GetMessage("user.settings.password_changed", ctrl.renderService.GetLocaleFromContext(c))
-	ctrl.renderService.JSONSuccess(c, gin.H{"message": msg})
+	ctrl.renderService.JSONSuccessWithMsg(c, nil, msg)
 }
 

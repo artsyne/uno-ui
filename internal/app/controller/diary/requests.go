@@ -12,8 +12,8 @@ package diary
 type CreateDiaryRequest struct {
 	Title         string `form:"title" json:"title" binding:"required"`
 	Remark        string `form:"remark" json:"remark"`
-	ViewSetting   int8   `form:"view_setting" json:"view_setting" binding:"required,oneof=0 1 2"`
-	SocialSetting int8   `form:"social_setting" json:"social_setting" binding:"required,oneof=0 1"`
+	ViewSetting   int8   `form:"view_setting" json:"view_setting" binding:"required,oneof=1 2"`
+	SocialSetting int8   `form:"social_setting" json:"social_setting" binding:"required,oneof=1 2"`
 	ThemeID       int8   `form:"theme_id" json:"theme_id"`
 	AccessPwd     string `form:"access_pwd" json:"access_pwd"`
 }
@@ -32,8 +32,8 @@ type UpdateDiaryRequest struct {
 	DiaryID       int64  `form:"diary_id" json:"diary_id" uri:"id" binding:"required"`
 	Title         string `form:"title" json:"title" binding:"required"`
 	Remark        string `form:"remark" json:"remark"`
-	ViewSetting   int8   `form:"view_setting" json:"view_setting" binding:"required,oneof=0 1 2"`
-	SocialSetting int8   `form:"social_setting" json:"social_setting" binding:"required,oneof=0 1"`
+	ViewSetting   int8   `form:"view_setting" json:"view_setting" binding:"required,oneof=1 2"`
+	SocialSetting int8   `form:"social_setting" json:"social_setting" binding:"required,oneof=1 2"`
 	ThemeID       int8   `form:"theme_id" json:"theme_id"`
 	AccessPwd     string `form:"access_pwd" json:"access_pwd"`
 }

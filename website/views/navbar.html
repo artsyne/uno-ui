@@ -54,10 +54,10 @@
                 {{if not (isLogin .)}}
                 
                 <a class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200 mr-4"
-                    href="/register" role="button"><i class="mdi mdi-account-plus-outline text-lg"></i>
+                    href="/register" role="button">
                     {{getMessage "auth.button.register_free" .Context.Lang}}</a>
                 <a class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
-                    href="/login" role="button"><i class="mdi mdi-login text-lg"></i> {{getMessage "auth.button.login"
+                    href="/login" role="button">{{getMessage "auth.button.login"
                     .Context.Lang}}</a>
 
                 {{else}}

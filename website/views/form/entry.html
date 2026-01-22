@@ -7,11 +7,10 @@
                 <div class="block">
                     <label class="form-title" for="info_title">{{getMessage "entry.form.title_optional"
                         .Context.Lang}}</label>
-                    <input type="text" class="form-control" id="info_title" name="info_title" x-uno-valid
-                        maxlength="250" placeholder='{{getMessage "entry.form.title_placeholder" .Context.Lang}}'
+                    <input type="text" class="form-control" id="info_title" name="info_title"
+                        x-uno-valid="[{ type: 'length', max: 250 }]"
+                        placeholder='{{getMessage "entry.form.title_placeholder" .Context.Lang}}'
                         value="{{if .Data.Entry}}{{.Data.Entry.Title}}{{end}}">
-                    <div x-text="$store.uno.valid.errors['info_title']" x-show="$store.uno.valid.errors['info_title']"
-                        class="text-xs text-red-500 mt-1"></div>
                 </div>
                 <div class="block">
                     <div class="flex justify-between relative">
@@ -72,11 +71,9 @@
                             </ul>
                         </div>
                     </div>
-                    <textarea class="form-control h-96" id="info_body" name="info_body" rows="8" x-uno-valid
-                        maxlength="10000" required
+                    <textarea class="form-control h-96" id="info_body" name="info_body" rows="8"
+                        x-uno-valid="['required', { type: 'length', max: 10000 }]" maxlength="10000"
                         placeholder='{{getMessage "entry.form.content_placeholder" .Context.Lang}}'>{{if .Data.Entry}}{{.Data.Entry.Body}}{{end}}</textarea>
-                    <div x-text="$store.uno.valid.errors['info_body']" x-show="$store.uno.valid.errors['info_body']"
-                        class="text-xs text-red-500 mt-1"></div>
                 </div>
                 <input type="hidden" name="entry_id" id="entry_id"
                     value="{{if .Data.Entry}}{{.Data.Entry.EntryID}}{{end}}">

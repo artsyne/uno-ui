@@ -1,7 +1,6 @@
 package diary
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -79,16 +78,12 @@ func (ctrl *DiaryController) CreateDiary(c *gin.Context) {
 			timezone = "UTC"
 		}
 
-		msg := ctrl.renderService.GetI18nManager().GetMessage("operation.success", lang)
-		triggerJSON := fmt.Sprintf(`{"showToast": {"type": "success", "message": "%s"}, "closeDiaryModal": true}`, msg)
-		c.Header("HX-Trigger", triggerJSON)
-
 		data := map[string]interface{}{
 			"Diary":    diaryData,
 			"Lang":     lang,
 			"TimeZone": timezone,
 		}
-		c.HTML(http.StatusOK, "member/diary_card", data)
+		c.HTML(http.StatusOK, "user/diary_card", data)
 		return
 	}
 

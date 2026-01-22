@@ -92,12 +92,10 @@
                 {{if .Context.AuthUser}}
                 <div class="mt-8 mb-6">
                     <form id="comment_editor_form" @submit.prevent="submit" x-uno-valid>
-                        <textarea x-model="content" name="comment_content" id="comment_content" x-uno-valid
+                        <textarea x-model="content" name="comment_content" id="comment_content" 
+                            x-uno-valid="['required', { type: 'length', max: 1000 }]"
                             class="form-control" rows="3"
-                            placeholder='{{getMessage "comment.placeholder" .Context.Lang}}' required
-                            maxlength="1000"></textarea>
-                        <div x-text="$store.uno.valid.errors['comment_content']"
-                            x-show="$store.uno.valid.errors['comment_content']" class="text-xs text-red-500 mt-1"></div>
+                            placeholder='{{getMessage "comment.placeholder" .Context.Lang}}'></textarea>
                         <div class="text-right mt-2">
                             <button type="submit" class="btn" :disabled="submitting || !content.trim()">
                                 <span x-show="!submitting">{{getMessage "comment.submit" .Context.Lang}}</span>

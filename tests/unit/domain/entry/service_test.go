@@ -281,8 +281,8 @@ func TestEntryService_ListEntriesByUserID(t *testing.T) {
 
 	// 创建另一个用户和日记本
 	otherUser := &user.User{
-		UserName: ctx.GetDataGenerator().GenerateUniqueString("other_user"),
-		Email:    ctx.GetDataGenerator().GenerateUniqueEmail("other"),
+		UserName: ctx.GetDataGenerator().GenerateUniqueString("ou"),
+		Email:    ctx.GetDataGenerator().GenerateUniqueEmail("ou"),
 		Pwd:      "password123",
 		TimeZone: "UTC",
 		Lang:     "zh-cn",

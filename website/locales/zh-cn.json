@@ -203,6 +203,10 @@
       "username_taken": "该用户名已被注册",
       "email_taken": "该邮箱已被注册",
       "username_invalid": "用户名格式无效",
+      "username_required": "用户名不能为空",
+      "password_required": "密码不能为空",
+      "email_required": "邮箱地址不能为空",
+      "password_length": "密码长度必须在6到30个字符之间",
       "success": "操作成功"
     },
     "title": {

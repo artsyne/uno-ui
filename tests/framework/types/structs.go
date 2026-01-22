@@ -50,8 +50,8 @@ type CleanupConfig struct {
 // IsolationConfig 隔离配置
 type IsolationConfig struct {
 	Strategy     string `json:"strategy" default:"prefix"`                           // prefix|namespace|schema
-	PrefixFormat string `json:"prefix_format" default:"test_{date}_{time}_{random}"` // 前缀格式
-	MaxPrefixLen int    `json:"max_prefix_len" default:"20"`                         // 最大前缀长度
+	PrefixFormat string `json:"prefix_format" default:"t_{random}"`                  // 前缀格式 - 缩短以适应用户名长度限制
+	MaxPrefixLen int    `json:"max_prefix_len" default:"10"`                         // 最大前缀长度 - 缩短以适应用户名长度限制(16)
 }
 
 // PerformanceConfig 性能配置

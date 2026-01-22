@@ -413,7 +413,7 @@ func (dg *DataGenerator) CreateUser(options ...UserOption) *user.User {
 	
 	// 设置默认选项
 	opts := &UserOptions{
-		Username: dg.isolator.IsolateUsername("testuser"),
+		Username: dg.isolator.IsolateUsername("user"),
 		Email:    dg.isolator.IsolateEmail("test@example.com"),
 		Password: "password123",
 		FullName: "Test User",

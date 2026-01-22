@@ -17,7 +17,7 @@ export default {
     compareto: 'Not match',
     tagMax: 'Max {n} items',
     callback: 'Invalid',
-    validname: 'Letters, numbers, - and _ only',
+    validname: 'Letters, numbers, - and _ only (3-16 chars)',
     en: 'English letters only',
     domain: 'Invalid domain format',
     mobile: 'Invalid mobile number',
@@ -25,8 +25,8 @@ export default {
     email: 'Invalid email address',
     date: 'Invalid date format (YYYY-MM-DD)',
     url: 'Invalid URL',
-    pwd: 'At least 8 chars, 1 letter, 1 number',
-    strongpwd: 'At least 8 chars, 1 letter, 1 number, 1 special char'
+    pwd: 'Password must be 8-80 chars, contain letters and numbers, and can include _@#$%^&*()+-=',
+    strongpwd: 'Password must be 8-80 chars, contain letters, numbers, and at least 1 special char (_@#$%^&*()+-=)'
   },
   charCount: 'Remaining: {count}'
 }

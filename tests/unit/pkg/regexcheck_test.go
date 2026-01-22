@@ -644,7 +644,7 @@ func TestRegexCheckEdgeCases(t *testing.T) {
 		default:
 		}
 		
-		specialChars := "!@#$%^&*()"
+		specialChars := "Aa1@#$%^&*()"
 		assert.True(t, pkg.IsPwd(specialChars), "特殊字符应该是有效密码")
 		assert.False(t, pkg.IsID(specialChars), "特殊字符不应该是有效ID")
 		assert.False(t, pkg.IsUserName(specialChars), "特殊字符不应该是有效用户名")
@@ -679,7 +679,7 @@ func TestRegexCheckIntegration(t *testing.T) {
 		// 测试一个复杂的用户注册场景
 		userID := "user123456"
 		userName := "testuser"
-		password := "MyPass123!"
+		password := "MyPass123@"
 		email := "test@example.com"
 		phone := "13812345678"
 		

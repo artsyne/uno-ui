@@ -237,7 +237,7 @@ export class UnoInstance {
           stateValid: 'is-valid',
           stateValidating: 'validating',
           inputPaddingIcon: 'pr-10',
-          helperText: 'text-red-600 dark:text-red-400 text-xs'
+          helperText: 'text-red-600 dark:text-red-400 text-xs mt-1'
         }
       }
     }

@@ -203,6 +203,10 @@
       "username_taken": "Username already taken",
       "email_taken": "Email already taken",
       "username_invalid": "Invalid username format",
+      "username_required": "Username is required",
+      "password_required": "Password is required",
+      "email_required": "Email address is required",
+      "password_length": "Password must be between 6 and 30 characters",
       "success": "Success"
     },
     "title": {

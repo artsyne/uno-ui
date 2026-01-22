@@ -13,19 +13,17 @@ a {
   @apply text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300;
 }
 
-
-
 .main {
   @apply flex-1 container px-3 pt-10 mx-auto;
 }
 
 /* tooltips css*/
-.tooltip{
-@apply text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 absolute z-50;
+.tooltip {
+  @apply text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 absolute z-50;
 }
 
-.tooltip-link{
-@apply text-sm block px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200;
+.tooltip-link {
+  @apply text-sm block px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200;
 }
 
 /* 按钮样式 - 支持 dark mode */
@@ -33,8 +31,8 @@ a {
   @apply border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm tracking-widest text-black dark:text-white bg-gray-50 dark:bg-gray-800 transition hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer;
 }
 
-button.btn-social{
-@apply cursor-pointer text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300;
+button.btn-social {
+  @apply cursor-pointer text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300;
 }
 
 .btn-red {
@@ -93,6 +91,10 @@ button.btn-social{
   @apply border-red-500 dark:border-red-400;
 }
 
+.error-message {
+  @apply p-3 bg-red-50 border border-red-200 text-sm text-red-600 text-center rounded dark:bg-red-900/30 dark:border-red-800 dark:text-red-400;
+}
+
 .card {
   @apply relative border border-gray-200 dark:border-gray-700 p-4 dark:bg-gray-800 break-words overflow-visible transition-colors duration-200;
 }
@@ -122,8 +124,8 @@ button.btn-social{
   @apply absolute top-1 right-1 z-10 text-sm w-7 h-7 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700  text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200;
 }
 
-.entry-title{
-@apply break-words mb-2;
+.entry-title {
+  @apply break-words mb-2;
 }
 
 /* Liked state styles */

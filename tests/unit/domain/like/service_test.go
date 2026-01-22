@@ -5,11 +5,12 @@ import (
 
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/like"
-	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/domain/task"
+	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/utils/i18n"
 	framework "github.com/biuren/hebe/tests/framework"
+	ftypes "github.com/biuren/hebe/tests/framework/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -238,9 +239,12 @@ func TestLikeService_GetLikeCount(t *testing.T) {
 		require.NoError(t, err)
 
 		// 创建测试用户2（确保用户名和邮箱不重复）
-		testUser2 := ctx.GetDataGenerator().CreateUser()
-		testUser2.UserName = testUser2.UserName + "_2"  // 添加后缀避免重复
-		testUser2.Email = "user2_" + testUser2.Email    // 添加前缀避免邮箱重复
+		testUser2 := ctx.GetDataGenerator().CreateUser(
+			func(opts *ftypes.UserOptions) {
+				opts.Username = ctx.GetIsolator().IsolateUsername("u2")
+				opts.Email = ctx.GetIsolator().IsolateEmail("u2@test.com")
+			},
+		)
 		err = userService.RegisterUser(testUser2)
 		require.NoError(t, err)
 

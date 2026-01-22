@@ -126,8 +126,8 @@ func TestCommentServiceIntegration(t *testing.T) {
 	t.Run("多用户评论交互测试", func(t *testing.T) {
 		// 创建第二个用户
 		testUser2 := &user.User{
-			UserName: ctx.GetDataGenerator().GenerateUniqueString("user2"),
-			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("user2"),
+			UserName: ctx.GetDataGenerator().GenerateUniqueString("u2"),
+			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("u2"),
 			Pwd:      "password123",
 			TimeZone: "UTC",
 			Lang:     "zh-cn",

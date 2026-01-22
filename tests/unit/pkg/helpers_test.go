@@ -7,9 +7,9 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/biuren/hebe/pkg"
 	core "github.com/biuren/hebe/tests/framework/core"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestRand 测试随机字符串生成功能
@@ -298,9 +298,9 @@ func TestIsUserName(t *testing.T) {
 			expected: true,
 		},
 		{
-			name:     "无效用户名 - 包含下划线",
+			name:     "有效用户名 - 包含下划线",
 			userName: "user_name_123",
-			expected: false,
+			expected: true,
 		},
 		{
 			name:     "有效用户名 - 最小长度",
@@ -309,17 +309,17 @@ func TestIsUserName(t *testing.T) {
 		},
 		{
 			name:     "有效用户名 - 最大长度",
-			userName: "user123456789012345678901234", // 30个字符
+			userName: "user123456789012", // 16个字符
 			expected: true,
 		},
 		{
 			name:     "无效用户名 - 太短",
-			userName: "user1", // 5个字符
+			userName: "u1", // 2个字符
 			expected: false,
 		},
 		{
 			name:     "无效用户名 - 太长",
-			userName: "user123456789012345678901234567890", // 31个字符
+			userName: "user12345678901234567", // 17个字符
 			expected: false,
 		},
 		{
@@ -333,9 +333,9 @@ func TestIsUserName(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:     "无效用户名 - 包含连字符",
+			name:     "有效用户名 - 包含连字符",
 			userName: "user-123",
-			expected: false,
+			expected: true,
 		},
 		{
 			name:     "空用户名",
@@ -394,7 +394,7 @@ func TestIsPwd(t *testing.T) {
 		},
 		{
 			name:     "有效密码 - 最大长度",
-			password: "password12345678901234567890", // 30个字符
+			password: "password123456789012345678901234567890123456789012345678901234567890123456789012", // 80个字符
 			expected: true,
 		},
 		{
@@ -404,23 +404,23 @@ func TestIsPwd(t *testing.T) {
 		},
 		{
 			name:     "无效密码 - 太长",
-			password: "password12345678901234567890123", // 32个字符，超过30个限制
+			password: "password1234567890123456789012345678901234567890123456789012345678901234567890123", // 81个字符
 			expected: false,
 		},
 		{
-			name:     "有效密码 - 只有字母",
+			name:     "无效密码 - 只有字母",
 			password: "password",
-			expected: true,
+			expected: false,
 		},
 		{
-			name:     "有效密码 - 只有数字",
+			name:     "无效密码 - 只有数字",
 			password: "12345678",
-			expected: true,
+			expected: false,
 		},
 		{
-			name:     "有效密码 - 只有特殊字符",
+			name:     "无效密码 - 只有特殊字符",
 			password: "!@#$%^&*",
-			expected: true,
+			expected: false,
 		},
 		{
 			name:     "空密码",

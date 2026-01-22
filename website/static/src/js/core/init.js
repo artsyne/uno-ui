@@ -4,6 +4,7 @@ import { Navbar, Footer } from '../modules/layout.js';
 import { DiaryDetail } from '../modules/diary-detail.js';
 import { LikeButton, CommentsMixin } from '../modules/social.js';
 import { initAuth, initValidationCallbacks } from '../modules/auth.js';
+import { initFormHandlers } from '../modules/form.js';
 import { User } from '../modules/user.js';
 import { Settings } from '../modules/settings.js';
 
@@ -36,7 +37,7 @@ window.Uno.setConfig({
     notify: {
       item: 'pointer-events-auto max-w-[calc(100vw-2rem)] overflow-hidden shadow-md border border-gray-200 dark:border-gray-700',
       progressWrap:
-        'fixed top-0 left-0 right-0 h-0.5 bg-transparent pointer-events-none z-[100]',
+        'fixed top-0 left-0 right-0 h-1 bg-transparent pointer-events-none z-[9999]',
       progressBar:
         'h-full bg-slate-400 dark:bg-slate-500 transition-all duration-200 ease-out',
     },
@@ -75,8 +76,25 @@ window.fetch = function (input, init) {
 
 // 3. Initialize Auth (HTMX Config)
 initAuth();
+initFormHandlers();
 
 // 4. Global Event Listeners
+document.body.addEventListener('htmx:beforeRequest', () => {
+  const notify = window.getUnoNotify();
+  if (notify) {
+    notify.progressRequests++;
+    if (notify.progressRequests === 1) notify.startProgress();
+  }
+});
+
+document.body.addEventListener('htmx:afterRequest', () => {
+  const notify = window.getUnoNotify();
+  if (notify) {
+    if (notify.progressRequests > 0) notify.progressRequests--;
+    if (notify.progressRequests === 0) notify.stopProgress();
+  }
+});
+
 document.body.addEventListener('showToast', (evt) => {
   const { type, message } = evt.detail;
   const notify = window.getUnoNotify();

@@ -1,8 +1,6 @@
 package user
 
 import (
-	"net/http"
-
 	"github.com/biuren/hebe/internal/app/middleware"
 	"github.com/biuren/hebe/internal/utils/errors"
 	pkg "github.com/biuren/hebe/pkg"
@@ -17,24 +15,11 @@ func (ctrl *UserController) ValidateUsername(c *gin.Context) {
 	// 检查用户名是否已存在
 	isExistUserName, err := ctrl.service.IsExistUserName(req.UserName)
 	if err != nil {
-		if ctrl.isHtmxRequest(c) {
-			ctrl.htmxError(c, http.StatusInternalServerError, "Check failed")
-			return
-		}
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
 	if isExistUserName {
-		if ctrl.isHtmxRequest(c) {
-			ctrl.htmxError(c, http.StatusConflict, "Username taken")
-			return
-		}
 		ctrl.renderService.JSONError(c, errors.UserExists.WithDetails("用户名: "+req.UserName))
-		return
-	}
-
-	if ctrl.isHtmxRequest(c) {
-		ctrl.htmxSuccess(c, "Available")
 		return
 	}
 
@@ -48,10 +33,6 @@ func (ctrl *UserController) ValidateEmail(c *gin.Context) {
 
 	// 验证邮箱格式
 	if !pkg.IsEmail(req.Email) {
-		if ctrl.isHtmxRequest(c) {
-			ctrl.htmxError(c, http.StatusBadRequest, "Invalid email format")
-			return
-		}
 		ctrl.renderService.JSONError(c, errors.InvalidEmail)
 		return
 	}
@@ -59,24 +40,11 @@ func (ctrl *UserController) ValidateEmail(c *gin.Context) {
 	// 检查邮箱是否已存在
 	isExistEmail, err := ctrl.service.IsExistEmail(req.Email)
 	if err != nil {
-		if ctrl.isHtmxRequest(c) {
-			ctrl.htmxError(c, http.StatusInternalServerError, "Check failed")
-			return
-		}
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
 	if isExistEmail {
-		if ctrl.isHtmxRequest(c) {
-			ctrl.htmxError(c, http.StatusConflict, "Email taken")
-			return
-		}
 		ctrl.renderService.JSONError(c, errors.EmailExists.WithDetails("邮箱: "+req.Email))
-		return
-	}
-
-	if ctrl.isHtmxRequest(c) {
-		ctrl.htmxSuccess(c, "Available")
 		return
 	}
 

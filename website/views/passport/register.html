@@ -8,29 +8,31 @@
             <div class="mx-auto my-20 flex flex-col lg:w-2/5">
                 <div class="form-group">
                     <h1 class="form-header">{{getMessage "auth.title.register" .Context.Lang}}</h1>
-                    <div id="register-error"></div>
+                    <div id="register-error" class="error-message hidden my-2"></div>
                     <div class="block">
                         <label class="form-title">{{getMessage "auth.label.username" .Context.Lang}}</label>
-                        <input class="form-control" type="text" id="user_name" name="user_name" 
-                            x-uno-valid="{ validator: 'checkUsername', msgPattern: '{{getMessage "auth.message.username_invalid" .Context.Lang}}' }" 
-                            pattern="^[a-zA-Z0-9_\-]+$" required />
-                        <div x-text="$store.uno.valid.errors['user_name']" x-show="$store.uno.valid.errors['user_name']" class="text-xs text-red-500 mt-1"></div>
+                        <input class="form-control" type="text" id="user_name" name="user_name" x-uno-valid="[
+                               'required','validname',
+                                { type: 'validator', name: 'checkUsername', debounce: 500 }
+                            ]" />
                     </div>
                     <div class="block">
                         <label class="form-title">{{getMessage "auth.label.password" .Context.Lang}}</label>
-                        <input class="form-control" type="password" id="pwd" name="pwd" 
-                            x-uno-valid minlength="6" maxlength="30" required />
-                        <div x-text="$store.uno.valid.errors['pwd']" x-show="$store.uno.valid.errors['pwd']" class="text-xs text-red-500 mt-1"></div>
+                        <input class="form-control" type="password" id="pwd" name="pwd"
+                            x-uno-valid="['required','pwd']" />
                     </div>
                     <div class="block">
                         <label class="form-title">{{getMessage "auth.label.email_address" .Context.Lang}}</label>
-                        <input class="form-control" type="email" id="email" name="email" 
-                            x-uno-valid="{ validator: 'checkEmail' }" required />
-                        <div x-text="$store.uno.valid.errors['email']" x-show="$store.uno.valid.errors['email']" class="text-xs text-red-500 mt-1"></div>
+                        <input class="form-control" type="email" id="email" name="email" x-uno-valid="[
+                               'required','email',
+                                { type: 'validator', name: 'checkEmail', debounce: 500 }
+                            ]" />
                         <p class="form-info">
                             {{getMessage "auth.message.activation_email_note" .Context.Lang}}
                         </p>
                     </div>
+                    <input type="hidden" name="time_zone" x-data
+                        x-init="$el.value = Intl.DateTimeFormat().resolvedOptions().timeZone">
                     <div class="block text-center">
                         <button class="w-full btn" type="submit">{{getMessage
                             "auth.button.register_free" .Context.Lang}}

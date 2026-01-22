@@ -46,13 +46,12 @@
 
                     <!-- Full name -->
                     <div class="mb-4">
-                        <label class="form-title" for="full_name">{{getMessage "user.settings.full_name_label" .Context.Lang}}</label>
+                        <label class="form-title" for="full_name">{{getMessage "user.settings.full_name_label"
+                            .Context.Lang}}</label>
                         <input type="text" class="form-control" id="full_name" name="full_name"
                             placeholder='{{getMessage "user.settings.full_name_placeholder" .Context.Lang}}'
-                            value="{{.Data.User.FullName}}" data-original-value="{{.Data.User.FullName}}" x-uno-valid
-                            maxlength="30" />
-                        <div x-text="$store.uno.valid.errors['full_name']" x-show="$store.uno.valid.errors['full_name']"
-                            class="text-xs text-red-500 mt-1"></div>
+                            value="{{.Data.User.FullName}}" data-original-value="{{.Data.User.FullName}}"
+                            x-uno-valid="[{ type: 'length', max: 30 }]" />
                         <p class="form-info">
                             {{getMessage "user.settings.display_name_note" .Context.Lang}}
                         </p>
@@ -60,17 +59,18 @@
 
                     <!-- Bio -->
                     <div class="mb-4">
-                        <label class="form-title" for="remark">{{getMessage "user.settings.bio_label" .Context.Lang}}</label>
+                        <label class="form-title" for="remark">{{getMessage "user.settings.bio_label"
+                            .Context.Lang}}</label>
                         <textarea class="form-control" id="remark" name="remark" style="height: 120px;"
-                            placeholder='{{getMessage "user.settings.bio_placeholder" .Context.Lang}}' x-uno-valid
+                            placeholder='{{getMessage "user.settings.bio_placeholder" .Context.Lang}}'
+                            x-uno-valid="[{ type: 'length', max: 250 }]"
                             maxlength="250">{{.Data.User.Remark}}</textarea>
-                        <div x-text="$store.uno.valid.errors['remark']" x-show="$store.uno.valid.errors['remark']"
-                            class="text-xs text-red-500 mt-1"></div>
                     </div>
 
                     <!-- Timezone -->
                     <div class="mb-4">
-                        <label class="form-title" for="time_zone">{{getMessage "common.time_zone" .Context.Lang}}</label>
+                        <label class="form-title" for="time_zone">{{getMessage "common.time_zone"
+                            .Context.Lang}}</label>
                         <select class="form-control" id="time_zone" name="time_zone"
                             data-original-value="{{.Data.User.TimeZone}}">
                             {{range .Data.TimeZones}}
@@ -111,13 +111,14 @@
             <form id="email-form" x-data="{ loading: false }" hx-post="/u/settings/email" hx-swap="none"
                 @htmx:before-request="loading = true" @htmx:after-request="loading = false" x-uno-valid novalidate>
                 <div>
+                    <!-- Email -->
                     <div class="mb-4">
+                        <label class="form-title" for="email">{{getMessage "user.settings.email_label"
+                            .Context.Lang}}</label>
                         <input type="email" class="form-control" id="email" name="email"
                             placeholder='{{getMessage "user.settings.email_placeholder" .Context.Lang}}'
                             value="{{.Data.User.Email}}" data-original-value="{{.Data.User.Email}}"
-                            x-uno-valid="{ validator: 'checkEmail' }" required />
-                        <div x-text="$store.uno.valid.errors['email']" x-show="$store.uno.valid.errors['email']"
-                            class="text-xs text-red-500 mt-1"></div>
+                            x-uno-valid="['required', { type: 'checkEmail', debounce: 500 }]" />
                         <p class="form-info">
                             {{getMessage "user.settings.email_note" .Context.Lang}}
                         </p>
@@ -143,32 +144,33 @@
                 <div>
                     <!-- Current password -->
                     <div class="mb-4">
-                        <label class="form-title" for="current_pwd">{{getMessage "user.settings.current_password_label" .Context.Lang}}</label>
+                        <label class="form-title" for="current_pwd">{{getMessage "user.settings.current_password_label"
+                            .Context.Lang}}</label>
                         <input type="password" class="form-control" id="current_pwd" name="current_pwd"
                             placeholder='{{getMessage "user.settings.current_password_placeholder" .Context.Lang}}'
-                            x-uno-valid required />
+                            x-uno-valid="['required']" />
                         <div x-text="$store.uno.valid.errors['current_pwd']"
                             x-show="$store.uno.valid.errors['current_pwd']" class="text-xs text-red-500 mt-1"></div>
                     </div>
 
                     <!-- New password -->
                     <div class="mb-4">
-                        <label class="form-title" for="new_pwd">{{getMessage "user.settings.new_password_label" .Context.Lang}}</label>
+                        <label class="form-title" for="new_pwd">{{getMessage "user.settings.new_password_label"
+                            .Context.Lang}}</label>
                         <input type="password" class="form-control" id="new_pwd" name="new_pwd"
                             placeholder='{{getMessage "user.settings.new_password_placeholder" .Context.Lang}}'
-                            x-uno-valid minlength="6" maxlength="30" required />
+                            x-uno-valid="['required', { type: 'length', min: 6, max: 30 }]" />
                         <div x-text="$store.uno.valid.errors['new_pwd']" x-show="$store.uno.valid.errors['new_pwd']"
                             class="text-xs text-red-500 mt-1"></div>
                     </div>
 
                     <!-- Confirm password -->
                     <div class="mb-4">
-                        <label class="form-title" for="confirm_pwd">{{getMessage "user.settings.confirm_password_label" .Context.Lang}}</label>
+                        <label class="form-title" for="confirm_pwd">{{getMessage "user.settings.confirm_password_label"
+                            .Context.Lang}}</label>
                         <input type="password" class="form-control" id="confirm_pwd" name="confirm_pwd"
                             placeholder='{{getMessage "user.settings.confirm_password_placeholder" .Context.Lang}}'
-                            x-uno-valid="{ validator: 'matchPwd', msgValidator: '{{getMessage "auth.message.password_mismatch" .Context.Lang}}' }" required />
-                        <div x-text="$store.uno.valid.errors['confirm_pwd']"
-                            x-show="$store.uno.valid.errors['confirm_pwd']" class="text-xs text-red-500 mt-1"></div>
+                            x-uno-valid="['required', { type: 'matchPwd', msg: '{{getMessage "auth.message.password_mismatch" .Context.Lang}}', target: '#new_pwd' }]" />
                     </div>
 
                     <!-- Change password button -->

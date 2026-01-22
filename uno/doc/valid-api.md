@@ -92,6 +92,44 @@ By default, validation runs on both `input` and `blur` events. You can restrict 
 <input x-uno-valid="['required', 'validname', { type: 'checkRemote', trigger: 'blur' }]" />
 ```
 
+### Auto Error Generation (New in v0.8.0)
+
+The plugin automatically generates and manages error message elements. You do NOT need to manually add error containers.
+
+- **Placement**: Error messages are inserted immediately after the input element.
+- **Styling**: Uses the configured error class (default: `text-red-500 text-xs mt-1`).
+- **Behavior**:
+  - Shows error when validation fails.
+  - Hides/removes error when validation passes.
+  - Updates message automatically based on the failing rule.
+
+#### Configuration
+
+You can configure the auto-error behavior via `Uno.options.valid`:
+
+- `autoError` (boolean, default: `true`): Enable or disable auto-error generation globally.
+- `errorClass` (string, default: `text-red-500 text-xs mt-1`): CSS classes to apply to the generated error element.
+- `createErrorElement` (function): Custom function to create the error element.
+
+```javascript
+// Example: Custom configuration
+Uno.options.valid = {
+  autoError: true,
+  errorClass: 'text-danger small mt-2',
+  createErrorElement: (fieldName, errorKey) => {
+    const div = document.createElement('div')
+    div.className = 'custom-error'
+    return div
+  }
+}
+```
+
+```html
+<!-- No manual error div needed! -->
+<input name="email" x-uno-valid="['required', 'email']" />
+<!-- Auto-generated error will appear here -->
+```
+
 ## Built-in Validators
 
 The plugin includes a comprehensive set of validators. Use them by specifying the `type` property (or just the string name).

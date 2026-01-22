@@ -17,7 +17,7 @@ export default {
     compareto: '不一致',
     tagMax: '最多 {n} 项',
     callback: '校验失败',
-    validname: '仅限字母、数字、- 和 _',
+    validname: '仅限字母、数字、- 和 _ (3-16 个字符)',
     en: '仅限英文字母',
     domain: '无效的域名格式',
     mobile: '无效的手机号',
@@ -25,8 +25,8 @@ export default {
     email: '无效的邮箱地址',
     date: '无效的日期格式 (YYYY-MM-DD)',
     url: '无效的 URL',
-    pwd: '至少 8 位，包含 1 个字母和 1 个数字',
-    strongpwd: '至少 8 位，包含字母、数字和特殊字符'
+    pwd: '密码需 8-80 位，必须包含字母和数字，可含 _@#$%^&*()+-= 特殊字符',
+    strongpwd: '密码需 8-80 位，必须包含字母、数字和至少 1 个特殊字符 (_@#$%^&*()+-=)'
   },
   charCount: '剩余: {count}'
 }

@@ -7,25 +7,64 @@ export function initAuth() {
     // Handle JSON responses (e.g. validation errors from generic middleware)
     if (contentType && contentType.includes('application/json')) {
       evt.detail.shouldSwap = false;
-      evt.detail.isError = true;
 
       try {
         const result = JSON.parse(xhr.responseText);
         const notify = window.getUnoNotify();
 
         if (!result.success) {
+          evt.detail.isError = true;
           let msg = result.message || 'common.op_fail';
           // Append details if it's a string
           if (result.details && typeof result.details === 'string') {
             msg += ': ' + result.details;
           }
-          notify.error(msg);
+
+          // Locate error container:
+          // Priority 1: Check if the target itself is the error container or contains it
+          let errorContainer = null;
+          const target = evt.detail.target;
+
+          if (target) {
+            if (target.classList.contains('error-message')) {
+              errorContainer = target;
+            } else if (target.querySelector) {
+              errorContainer = target.querySelector('.error-message');
+            }
+          }
+
+          // Priority 2: Look inside the form (triggering element) if not found yet
+          if (
+            !errorContainer &&
+            evt.detail.elt &&
+            evt.detail.elt.querySelector
+          ) {
+            errorContainer = evt.detail.elt.querySelector('.error-message');
+          }
+
+          if (errorContainer) {
+            // Translate if possible
+            const i18n = window.Alpine?.store('i18n');
+            const translatedMsg = i18n ? i18n.t(msg) : msg;
+
+            errorContainer.textContent = translatedMsg;
+            errorContainer.classList.remove('hidden');
+
+            errorContainer.style.display = ''; // Ensure visibility
+          } else {
+            // Fallback: Log warning but DO NOT use notify as requested
+            console.warn(
+              'Error container .error-message not found. Message:',
+              msg,
+            );
+          }
         } else {
           // Success JSON
+          evt.detail.isError = false;
           notify.success(result.message || 'auth.success');
         }
       } catch (e) {
-        // ignore
+        evt.detail.isError = true;
       }
       return;
     }
@@ -38,6 +77,26 @@ export function initAuth() {
 
   // Handle HTMX redirect header if needed (though HX-Redirect handles it automatically)
   // But we might want to do something custom if needed.
+
+  // Handle Login Success Redirect
+  document.body.addEventListener('htmx:afterRequest', function (evt) {
+    const target = evt.detail.elt;
+    // Check if it is the login or register form submission
+    const action = target.getAttribute('hx-post');
+    if (action === '/login' || action === '/register') {
+      if (evt.detail.successful) {
+        try {
+          const res = JSON.parse(evt.detail.xhr.responseText);
+          if (res.success && res.data && res.data.UserId) {
+            window.location.href = '/u/' + res.data.UserId;
+          }
+        } catch (e) {
+          // JSON parse error or invalid structure, ignore
+          console.error('Auth response processing error:', e);
+        }
+      }
+    }
+  });
 }
 
 // Removed ValidForm: Obsolete. Uno now handles form interception via x-uno-valid and htmx:confirm.
@@ -53,10 +112,7 @@ export function initValidationCallbacks() {
   const validStore = unoStore?.valid || Alpine.store('valid');
 
   // Register checkUsername callback
-  // Pattern: Sync Return + Async Side Effect
-  // Uno's validator expects a synchronous boolean return.
-  // For async checks (server-side uniqueness), we return 'true' immediately to pass the sync check,
-  // then perform the async fetch. If it fails, we manually set the error using validStore.showError().
+  // Updated for Uno Valid v0.8.0+: Native Async Support
   validStore.registerValidator('checkUsername', async (value, name) => {
     if (!value) return true;
 
@@ -76,16 +132,17 @@ export function initValidationCallbacks() {
         return true;
       }
 
-      // Otherwise show error manually because validation is sync
+      // Return error message directly
       const t = (key) => Alpine.store('i18n').t(key);
-      const msg = result.message || t('auth.username_taken');
-      validStore.showError(name, msg);
-      return true; // Return true to prevent sync validation failure, error is shown manually
+      // Map backend error codes to frontend translation keys if necessary
+      let msgKey = result.message;
+      if (msgKey === 'user_exists') {
+        msgKey = 'auth.username_taken';
+      }
+      return t(msgKey) || t('auth.username_taken');
     } catch (error) {
       const t = (key) => Alpine.store('i18n').t(key);
-      const msg = t('common.op_fail');
-      validStore.showError(name, msg);
-      return true;
+      return t('common.op_fail');
     }
   });
 
@@ -121,21 +178,33 @@ export function initValidationCallbacks() {
         return true;
       }
 
-      // Otherwise show error manually
+      // Return error message directly
       const t = (key) => Alpine.store('i18n').t(key);
-      const msg = result.message || t('auth.email_taken');
-      validStore.showError(name, msg);
-      return true;
+      let msgKey = result.message;
+      if (msgKey === 'email_exists') {
+        msgKey = 'auth.email_taken';
+      }
+      return t(msgKey) || t('auth.email_taken');
     } catch (error) {
+      // On network error, we might want to fail gracefully or show error
+      // For now, let's return true to avoid blocking user if network is flaky,
+      // or return error string if strict. Original code returned true.
       return true;
     }
   });
 
   // Register matchPwd callback
-  validStore.registerValidator('matchPwd', (value, name) => {
+  validStore.registerValidator('matchPwd', (value, name, rule) => {
     if (!value) return true;
-    const newPwd = document.getElementById('new_pwd');
-    if (!newPwd) return true;
-    return value === newPwd.value;
+    // Support rule.target selector if provided, otherwise default to #new_pwd
+    // This makes it compatible with both old implicit behavior and new explicit config
+    const targetSelector = rule?.target || '#new_pwd';
+    // If target is ID without #, add it (backward compat for hardcoded #new_pwd logic)
+    const targetEl =
+      document.querySelector(targetSelector) ||
+      document.getElementById('new_pwd');
+
+    if (!targetEl) return true;
+    return value === targetEl.value;
   });
 }

@@ -114,7 +114,7 @@ export const VALIDATORS = {
   number: /^-?\d*(\.\d+)?$/, // Added floating point support for general 'number'
 
   // --- String Content ---
-  validname: /^[a-zA-Z0-9_-]+$/,
+  validname: /^[a-zA-Z0-9_-]{3,16}$/,
   en: /^[a-zA-Z]+$/,
   domain: /^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,6}$/,
   mobile: /^\+?[\d\s-]{7,}$/,
@@ -124,8 +124,8 @@ export const VALIDATORS = {
   hex: /^#?([a-f0-9]{6}|[a-f0-9]{3})$/i,
 
   // --- Security ---
-  pwd: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/, // Letters + Numbers, 8+
-  strongpwd: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/ // + Special Char
+  pwd: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d_@#$%^&*()+-=]{8,80}$/, // Password must be 8-80 chars, contain letters and numbers, and can include _@#$%^&*()+-= special characters
+  strongpwd: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,80}$/ // Password must be 8-80 chars, contain letters, numbers, and at least 1 special char (_@#$%^&*()+-=)
 }
 
 /**

@@ -20,7 +20,7 @@ func TestUserService_Integration_RegisterAndLogin(t *testing.T) {
 
 	// 测试用户注册
 	testUser := &user.User{
-		UserName: ctx.GetIsolator().IsolateUsername("integration_test_user"),
+		UserName: ctx.GetIsolator().IsolateUsername("u1"), // 短用户名: prefix(10) + _ + u1(2) = 13 <= 16
 		Email:    ctx.GetIsolator().IsolateEmail("integration@example.com"),
 		Pwd:      "password123",
 		TimeZone: "Asia/Shanghai",
@@ -31,13 +31,16 @@ func TestUserService_Integration_RegisterAndLogin(t *testing.T) {
 	}
 
 	// 1. 测试用户注册
+	t.Logf("注册前用户名: %s", testUser.UserName)
 	err := userService.RegisterUser(testUser)
 	assert.NoError(t, err, "用户注册失败")
+	t.Logf("注册后用户名: %s, ID: %d", testUser.UserName, testUser.UserId)
 	assert.Greater(t, testUser.UserId, int64(0), "用户ID应该大于0")
 	assert.NotEqual(t, "password123", testUser.Pwd, "密码应该已加密")
 
 	// 2. 测试用户名重复检查
 	isExistUserName, err := userService.IsExistUserName(testUser.UserName)
+	t.Logf("检查用户名: %s, 结果: %v, 错误: %v", testUser.UserName, isExistUserName, err)
 	assert.NoError(t, err, "检查用户名存在时出错")
 	assert.True(t, isExistUserName, "期望用户名已存在")
 

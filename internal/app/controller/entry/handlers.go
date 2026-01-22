@@ -1,7 +1,6 @@
 package entry
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -166,9 +165,6 @@ func (ctrl *EntryController) DeleteEntry(c *gin.Context) {
 
 	// HTMX 请求支持
 	if c.GetHeader("HX-Request") == "true" {
-		msg := ctrl.renderService.GetI18nManager().GetMessage("entry.delete.success", userData.Lang)
-		triggerJSON := fmt.Sprintf(`{"showToast": {"type": "success", "message": "%s"}}`, msg)
-		c.Header("HX-Trigger", triggerJSON)
 		c.Status(http.StatusOK)
 		return
 	}
