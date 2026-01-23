@@ -164,6 +164,24 @@ The plugin includes a comprehensive set of validators. Use them by specifying th
 | `pattern` | Custom Regex match.            | `pattern` (RegExp string), `msg` |
 | `match`   | Matches another field's value. | `match` (selector/name), `msg`   |
 
+## Feature: Length Control & Counter
+
+The `length` rule supports additional UI controls:
+
+- **`showCounter`** (boolean, default: `false`): Automatically displays a character counter (e.g., "5/100") in the bottom-right corner of the input.
+- **`stopOnMax`** (boolean, default: `false`): If `true`, prevents the user from typing more characters once the `max` limit is reached (sets `maxlength` attribute).
+
+```html
+<textarea 
+  x-uno-valid="[{ 
+    type: 'length', 
+    max: 200, 
+    showCounter: true, 
+    stopOnMax: true 
+  }]"
+></textarea>
+```
+
 ## Custom Validators
 
 Uno Valid provides a flexible system for defining custom validation logic. You can register reusable validator functions and invoke them via the `type` property.

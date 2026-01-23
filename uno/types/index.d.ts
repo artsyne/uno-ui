@@ -910,19 +910,32 @@ declare module 'uno-ui' {
   }
 
   /**
+   * Validation rule object configuration
+   */
+  export interface ValidationRuleObject {
+    type?: string
+    required?: boolean
+    min?: number
+    max?: number
+    minLength?: number
+    maxLength?: number
+    pattern?: string | RegExp
+    msg?: string
+    message?: string
+    trigger?: 'blur' | 'change' | 'submit' | 'input'
+    debounce?: number
+    emptyQuit?: boolean
+    match?: string
+    fn?: Function
+    /** Show character counter for length rules */
+    showCounter?: boolean
+    [key: string]: any
+  }
+
+  /**
    * Validation rule
    */
-  export type ValidationRule =
-    | 'required'
-    | 'email'
-    | 'url'
-    | 'number'
-    | 'min'
-    | 'max'
-    | 'minlength'
-    | 'maxlength'
-    | 'pattern'
-    | string
+  export type ValidationRule = string | ValidationRuleObject
 
   /**
    * Validation result
@@ -938,34 +951,35 @@ declare module 'uno-ui' {
    * Valid store interface
    */
   export interface ValidStore {
+    /** Errors keyed by field name */
+    errors: Record<string, string>
+    /** Rules keyed by field name */
+    rules: Record<string, ValidationRuleObject[]>
+    
     /**
-     * Validate a form element
-     * @param form - Form element
-     * @returns True if valid
+     * Add validation rules
      */
-    validate(form: HTMLFormElement): boolean
+    addRules(fieldName: string, config: ValidationRule[] | ValidationRuleObject | string, instanceOpts?: any): void
+
+    /**
+     * Normalize rules configuration
+     */
+    normalizeRules(config: any): ValidationRuleObject[]
 
     /**
      * Validate a single field
-     * @param field - Input element
-     * @returns Validation result
      */
-    validateField(
-      field: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    ): ValidationResult
+    validate(fieldName: string, value: any, eventType?: string): Promise<boolean>
 
     /**
-     * Clear validation errors
-     * @param form - Form element
+     * Validate a form
      */
-    clearErrors(form: HTMLFormElement): void
+    validateForm(form: HTMLFormElement): Promise<boolean>
 
     /**
-     * Show validation error
-     * @param field - Input element
-     * @param message - Error message
+     * Show errors
      */
-    showError(field: HTMLElement, message: string): void
+    showErrors(errors: Record<string, string>): void
 
     /**
      * Register custom validator
@@ -974,7 +988,7 @@ declare module 'uno-ui' {
      */
     registerValidator(
       name: string,
-      fn: (value: string, rule: string, field: HTMLElement) => boolean | string
+      fn: (value: any, fieldName: string, rule: ValidationRuleObject) => Promise<boolean | string | object> | boolean | string | object
     ): void
   }
 

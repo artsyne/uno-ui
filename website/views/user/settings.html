@@ -66,8 +66,8 @@
                             .Context.Lang}}</label>
                         <textarea class="form-control" id="remark" name="remark" style="height: 120px;"
                             placeholder='{{getMessage "user.settings.bio_placeholder" .Context.Lang}}'
-                            x-uno-valid="[{ type: 'length', max: 250 }]"
-                            maxlength="250">{{.Data.User.Remark}}</textarea>
+                            x-uno-valid="[{ type: 'length', max: 300, showCounter: true }]"
+                           >{{.Data.User.Remark}}</textarea>
                     </div>
 
                     <!-- Timezone -->

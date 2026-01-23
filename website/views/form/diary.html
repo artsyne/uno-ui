@@ -16,7 +16,7 @@
         </div>
         <div class="block mb-4">
             <label class="form-title">{{getMessage "diary.form.description" .Context.Lang}}</label>
-            <textarea class="form-control" x-uno-valid="[{ type: 'length', max: 250 }]" id="remark" name="remark"
+            <textarea class="form-control" x-uno-valid="[{ type: 'length', max: 300, showCounter: true }]" id="remark" name="remark"
                 placeholder='{{getMessage "diary.form.description" .Context.Lang}}'
                 style="height: 80px">{{if .Data.Diary}}{{.Data.Diary.Remark}}{{end}}</textarea>
         </div>

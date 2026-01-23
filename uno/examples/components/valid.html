@@ -71,8 +71,10 @@
         This page demonstrates the <strong>Directive-Driven</strong> validation plugin (v0.8.0+).
       </p>
       <ul class="list-disc list-inside mt-2 text-sm text-slate-500 dark:text-slate-400 space-y-1">
-        <li><strong>Auto Error Generation:</strong> Error messages are automatically injected after the input. No manual error `div`s needed!</li>
-        <li><strong>Array Configuration:</strong> Rules are defined in `x-uno-valid` (e.g., `['required', 'email']`).</li>
+        <li><strong>Auto Error Generation:</strong> Error messages are automatically injected after the input. No manual
+          error `div`s needed!</li>
+        <li><strong>Array Configuration:</strong> Rules are defined in `x-uno-valid` (e.g., `['required', 'email']`).
+        </li>
         <li><strong>HTMX Integration:</strong> Automatically intercepts `hx-post` if validation fails.</li>
         <li><strong>Async & Debounce:</strong> Native support for async validators with debounce.</li>
       </ul>
@@ -230,15 +232,18 @@
 
           <!-- Custom Function with Manual Error Override -->
           <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Custom Function (Manual Error)
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Custom Function (Manual
+              Error)
               <code>autoError: false</code></label>
-            <input x-uno-valid="['required', { type: 'validator', name: 'checkname', debounce: 500, autoError: false }]" name="custom"
+            <input x-uno-valid="['required', { type: 'validator', name: 'checkname', debounce: 500, autoError: false }]"
+              name="custom"
               class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
               placeholder="Type 'admin' to fail" />
             <!-- Manual Error Element -->
             <div x-text="$store.uno.valid.errors['custom']" x-show="$store.uno.valid.errors['custom']"
               class="text-xs mt-1 h-4 text-purple-500 font-bold transition-all"></div>
-            <p class="text-xs text-slate-500 mt-1">Simulates async check. 'admin' is taken. Shows manual error placement/style.</p>
+            <p class="text-xs text-slate-500 mt-1">Simulates async check. 'admin' is taken. Shows manual error
+              placement/style.</p>
           </div>
 
           <button type="submit"
@@ -248,39 +253,71 @@
         </form>
       </div>
 
-      <!-- Card 3: Advanced & Count -->
+      <!-- Card 3: Auto Counter Feature -->
       <div
         class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
         <div
           class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
-          <h2 class="font-semibold text-slate-800 dark:text-white">3. Advanced & Count</h2>
+          <h2 class="font-semibold text-slate-800 dark:text-white">3. Auto Character Counter</h2>
           <span
-            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Extras</span>
+            class="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded border border-blue-200 dark:border-blue-800">New
+            Feature</span>
         </div>
-        <form x-uno-valid hx-post="/api/validate" hx-swap="none" class="p-6 space-y-5" novalidate x-data="{ bio: '' }">
-          <!-- Bio (Count & Length) -->
+        <form x-uno-valid hx-post="/api/validate" hx-swap="none" class="p-6 space-y-5" novalidate>
+
+          <!-- Bio (Textarea with Auto Counter) -->
           <div class="relative">
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
-              Bio
-              <code>{ min: 10, max: 200 }</code>
+              Bio (Textarea)
+              <code>showCounter: true</code>
             </label>
-            <textarea x-uno-valid="['required', { type: 'length', min: 10, max: 200 }]" x-model="bio" name="bio"
-              class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors h-32 p-3"
-              :class="$store.uno.valid.errors['bio'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'"
+            <textarea x-uno-valid="['required', { type: 'length', min: 10, max: 200, showCounter: true }]" name="bio"
+              rows="4"
+              class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               placeholder="Tell us about yourself (10-200 chars)..."></textarea>
-
-            <!-- Character Count (Bottom Right Overlay) -->
-            <div
-              class="valid-count absolute bottom-6 right-2 text-xs text-slate-400 pointer-events-none bg-white/80 dark:bg-slate-900/80 px-1 rounded">
-              <span x-text="bio.length">0</span>/200
-            </div>
-            <!-- Auto error appears here by default -->
           </div>
 
+          <!-- Title (Input with Auto Counter) -->
+          <div class="relative">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+              Title (Input)
+              <code>showCounter: true</code>
+            </label>
+            <input x-uno-valid="['required', { type: 'length', max: 50, showCounter: true }]" name="title_counter"
+              type="text"
+              class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              placeholder="Enter title (max 50)...">
+          </div>
+
+          <!-- Note (No Relative Wrapper Test) -->
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+              Note (No relative wrapper)
+              <code>showCounter: true</code>
+            </label>
+            <textarea x-uno-valid="[{ type: 'length', max: 50, showCounter: true }]" name="note" rows="2"
+              class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              placeholder="Type note (max 50)..."></textarea>
+          </div>
+
+          <!-- StopOnMax Test -->
+          <div class="relative">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+              Strict Limit Input
+              <code>stopOnMax: true</code>
+            </label>
+            <input x-uno-valid="['required', { type: 'length', max: 10, showCounter: true, stopOnMax: true }]"
+              name="strict_limit" type="text"
+              class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              placeholder="Max 10 chars (Try typing more)...">
+            <p class="text-xs text-slate-500 mt-1">
+              You cannot type more than 10 characters.
+            </p>
+          </div>
 
           <button type="submit"
             class="w-full bg-slate-800 dark:bg-blue-600 text-white py-2 rounded-lg hover:bg-slate-700 dark:hover:bg-blue-700 transition-colors">
-            Validate Advanced
+            Validate Counter
           </button>
         </form>
       </div>
@@ -409,19 +446,17 @@
       }
 
       // ------------------------------------------------------------------
-      // Test Verification Console
+      // Test Verification Console (Output to Browser Console)
       // ------------------------------------------------------------------
-      const consoleDiv = document.createElement('div');
-      consoleDiv.id = 'test-console';
-      consoleDiv.style.cssText = 'position: fixed; bottom: 0; left: 0; right: 0; height: 150px; background: rgba(0,0,0,0.85); color: #0f0; font-family: monospace; font-size: 12px; padding: 10px; overflow-y: auto; z-index: 9999; pointer-events: none;';
-      consoleDiv.innerHTML = '<div style="border-bottom: 1px solid #333; margin-bottom: 5px; font-weight: bold;">Test Network Monitor (Mock & Real)</div>';
-      document.body.appendChild(consoleDiv);
-
       const logToConsole = (msg, type = 'INFO') => {
-        const line = document.createElement('div');
-        line.innerHTML = `<span style="color: ${type === 'ERR' ? '#f55' : type === 'SUCCESS' ? '#5f5' : '#aaa'}">[${type}]</span> ${msg}`;
-        consoleDiv.appendChild(line);
-        consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        const prefix = `[Test Network Monitor]`;
+        if (type === 'ERR') {
+          console.error(`${prefix} [${type}] ${msg}`);
+        } else if (type === 'SUCCESS') {
+          console.log(`%c${prefix} [${type}] ${msg}`, 'color: #22c55e; font-weight: bold;');
+        } else {
+          console.log(`${prefix} [${type}] ${msg}`);
+        }
       };
 
       // ------------------------------------------------------------------

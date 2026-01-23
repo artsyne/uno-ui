@@ -591,4 +591,99 @@ describe('Valid Component', () => {
       expect(errorEl).toBeNull()
     })
   })
+
+  describe('Length Rule Features', () => {
+    it('should set maxlength attribute when stopOnMax is true', () => {
+      document.body.innerHTML = `
+        <form>
+          <input name="limited" />
+        </form>
+      `
+      const input = document.querySelector('input')
+      global.Uno.options.valid = {}
+
+      const directiveFn = directives['uno-valid']
+      const evaluateLater = (expr) => (cb) => cb([{ type: 'length', max: 10, stopOnMax: true }])
+      const cleanup = () => {}
+
+      directiveFn(input, { expression: '...' }, { evaluateLater, cleanup })
+
+      expect(input.getAttribute('maxlength')).toBe('10')
+    })
+
+    it('should NOT set maxlength attribute when stopOnMax is false (default)', () => {
+      document.body.innerHTML = `
+        <form>
+          <input name="unlimited" />
+        </form>
+      `
+      const input = document.querySelector('input')
+      global.Uno.options.valid = {}
+
+      const directiveFn = directives['uno-valid']
+      const evaluateLater = (expr) => (cb) => cb([{ type: 'length', max: 10 }])
+      const cleanup = () => {}
+
+      directiveFn(input, { expression: '...' }, { evaluateLater, cleanup })
+
+      expect(input.hasAttribute('maxlength')).toBe(false)
+    })
+
+    it('should create counter element when showCounter is true', () => {
+      document.body.innerHTML = `
+        <form>
+          <div class="relative">
+            <input name="counter" />
+          </div>
+        </form>
+      `
+      const input = document.querySelector('input')
+      global.Uno.options.valid = {}
+
+      const directiveFn = directives['uno-valid']
+      const evaluateLater = (expr) => (cb) => cb([{ type: 'length', max: 20, showCounter: true }])
+      const cleanup = () => {}
+
+      directiveFn(input, { expression: '...' }, { evaluateLater, cleanup })
+
+      const counter = document.getElementById('counter-counter')
+      expect(counter).not.toBeNull()
+      expect(counter.textContent).toBe('0/20')
+      expect(counter.tagName).toBe('SPAN')
+    })
+
+    it('should update counter on input', () => {
+      document.body.innerHTML = `
+        <form>
+          <div class="relative">
+            <input name="updating" />
+          </div>
+        </form>
+      `
+      const input = document.querySelector('input')
+      global.Uno.options.valid = {}
+
+      const directiveFn = directives['uno-valid']
+      const evaluateLater = (expr) => (cb) => cb([{ type: 'length', max: 5, showCounter: true }])
+      const cleanup = () => {}
+
+      directiveFn(input, { expression: '...' }, { evaluateLater, cleanup })
+
+      const counter = document.getElementById('updating-counter')
+
+      // Simulate input
+      input.value = 'abc'
+      input.dispatchEvent(new Event('input'))
+
+      expect(counter.textContent).toBe('3/5')
+      expect(counter.className).toContain('text-gray-400')
+
+      // Exceed max
+      input.value = 'abcdef'
+      input.dispatchEvent(new Event('input'))
+
+      expect(counter.textContent).toBe('6/5')
+      expect(counter.className).toContain('text-red-500')
+    })
+  })
 })

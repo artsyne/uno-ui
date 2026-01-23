@@ -71,6 +71,74 @@ export const registerValidDirectives = (Alpine) => {
       getExpression((value) => {
         // We expect an array or object here, passed directly to store normalization
         register(value)
+
+        // --- Length Rule Features (Counter & StopOnMax) ---
+        const validStore = Alpine.store('uno').valid
+        if (validStore && validStore.normalizeRules) {
+          const rules = validStore.normalizeRules(value)
+          // Find any length-related rule
+          const lengthRule = rules.find((r) => r.type === 'length' || r.maxLength !== undefined || r.max !== undefined)
+
+          if (lengthRule) {
+            const max = lengthRule.max !== undefined ? lengthRule.max : lengthRule.maxLength
+
+            // 1. StopOnMax Feature
+            if (lengthRule.stopOnMax === true && max !== undefined) {
+              el.setAttribute('maxlength', max)
+            }
+
+            // 2. Counter Feature
+            if (lengthRule.showCounter === true && max !== undefined) {
+              const counterId = `${fieldName}-counter`
+              let counterEl = document.getElementById(counterId)
+
+              // Ensure parent is relative for absolute positioning
+              const parent = el.parentElement
+              if (parent && window.getComputedStyle(parent).position === 'static' && parent.tagName !== 'FORM' && parent.tagName !== 'BODY') {
+                parent.style.position = 'relative'
+              }
+
+              if (!counterEl) {
+                counterEl = document.createElement('span')
+                counterEl.id = counterId
+                // Default styling: bottom-right inside the input container
+                // Adjust margins to not overlap with border/padding
+                counterEl.className = 'absolute bottom-1 right-2 text-xs text-gray-400 pointer-events-none transition-colors duration-200'
+                el.after(counterEl)
+              }
+
+              const updateCounter = () => {
+                const current = el.value.length
+                counterEl.textContent = `${current}/${max}`
+
+                if (current > max) {
+                  counterEl.classList.add('text-red-500')
+                  counterEl.classList.remove('text-gray-400')
+                } else {
+                  counterEl.classList.remove('text-red-500')
+                  counterEl.classList.add('text-gray-400')
+                }
+              }
+
+              // Initial update
+              updateCounter()
+
+              // Bind to input
+              el.addEventListener('input', updateCounter)
+
+              // Cleanup listener when directive is destroyed
+              // Note: We don't remove the element itself automatically because it might be reused or handled by parent,
+              // but cleaner is to remove it if we created it.
+              // However, Alpine cleanup is called on element removal.
+              cleanup(() => {
+                el.removeEventListener('input', updateCounter)
+                if (counterEl && counterEl.parentNode) {
+                  counterEl.parentNode.removeChild(counterEl)
+                }
+              })
+            }
+          }
+        }
       })
     } else {
       // Empty directive x-uno-valid means no rules initially?
