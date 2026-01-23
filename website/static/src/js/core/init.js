@@ -37,7 +37,7 @@ window.Uno.setConfig({
     notify: {
       item: 'pointer-events-auto max-w-[calc(100vw-2rem)] overflow-hidden shadow-md border border-gray-200 dark:border-gray-700',
       progressWrap:
-        'fixed top-0 left-0 right-0 h-1 bg-transparent pointer-events-none z-[9999]',
+        'fixed top-0 left-0 right-0 h-0.5 bg-transparent pointer-events-none z-[9999]',
       progressBar:
         'h-full bg-slate-400 dark:bg-slate-500 transition-all duration-200 ease-out',
     },

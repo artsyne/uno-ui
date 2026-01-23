@@ -39,26 +39,21 @@ Focus on executing the Brand Guidelines with excellence:
 - **Spatial Composition**: Use the grid and spacing scale. Generous negative space is the primary design element.
 - **Backgrounds & Visual Details**: Flat, clean backgrounds. Use borders instead of shadows to define depth (Bordered Layout).
 
-## Negative Constraints (NEVER)
-
-- NEVER deviate from the defined Color Palette and Typography.
-- NEVER use heavy box-shadows or skeuomorphic elements.
-- NEVER use "cluttered" layouts; when in doubt, add more whitespace.
-- NEVER use generic "AI slop" code structures (see Technical Implementation Guidelines below).
-
-## Implementation Note
+### Implementation Note
 
 Match implementation complexity to the aesthetic vision. Maximalist designs need elaborate code with extensive animations and effects. Minimalist or refined designs need restraint, precision, and careful attention to spacing, typography, and subtle details.
 
 ## Technical Implementation Guidelines (Best Practices)
 
 ### 1. Tailwind CSS 4+
+
 - **Utility-First**: Use utility classes for 99% of styling. Avoid custom CSS classes unless creating complex animations or utilizing features not exposed by Tailwind.
 - **Dynamic Values**: Leverage Tailwind v4's arbitrary value support (e.g., `w-[123px]`) sparingly; prefer theme-consistent values.
 - **Dark Mode**: Always implement `dark:` variants for every color utility.
 - **Variables**: Use CSS variables for theme colors to allow runtime switching (e.g., `bg-[--bg-primary]`).
 
 ### 2. Alpine.js 3.15+
+
 - **Logic Separation**: Avoid massive `x-data="{...}"` objects in HTML. Extract logic into `Alpine.data()` or dedicated `<script>` blocks.
 
   ```html
@@ -85,10 +80,11 @@ Match implementation complexity to the aesthetic vision. Maximalist designs need
 - **Clean Interactions**: Use `hx-trigger` modifiers like `delay:500ms` for search inputs to reduce server load.
 - **Feedback**: Always provide visual feedback during requests using `.htmx-indicator` or `hx-indicator`.
 - **Progressive Enhancement**: Ensure forms and links work reasonably well (or degrade gracefully) if JS fails, though HTMX is primary.
-```
 
-### Negative Constraints (NEVER)
+## Negative Constraints (NEVER)
 
-- **NEVER** use heavy box-shadows or skeuomorphism.
+- **NEVER** deviate from the defined Color Palette and Typography.
+- **NEVER** use heavy box-shadows or skeuomorphic elements.
 - **NEVER** use "cluttered" layouts; whitespace is a feature.
+- **NEVER** use generic "AI slop" code structures.
 - **NEVER** return JSON to an HTMX request unless specifically required by a client-side extension.
