@@ -289,8 +289,7 @@ export function CommentsMixin(entryId) {
       const t = (key) => this.$store?.i18n?.t(key) || key;
 
       if (!this.entryId) {
-        wrapper.innerHTML =
-          `<div class="text-center text-gray-400 py-8">${t('comment.disabled')}</div>`;
+        wrapper.innerHTML = `<div class="text-center text-gray-400 py-8">${t('comment.disabled')}</div>`;
         return;
       }
 
@@ -358,8 +357,7 @@ export function CommentsMixin(entryId) {
           window.Alpine.initTree(wrapper);
         }
       } catch (e) {
-        wrapper.innerHTML =
-          `<div class="text-center text-red-500 py-8">${t('comment.load_fail')}</div>`;
+        wrapper.innerHTML = `<div class="text-center text-red-500 py-8">${t('comment.load_fail')}</div>`;
       } finally {
         this.loadingComments = false;
       }
@@ -381,8 +379,13 @@ export function CommentsMixin(entryId) {
         return;
       }
 
-      if (this.submitting) return;
-      this.submitting = true;
+      // Logic Note:
+      // We removed the `this.submitting` check here intentionally to rely purely on the UI mask
+      // (handled by setFormLoading) for preventing double submission.
+      // This ensures a cleaner separation of concerns where UI state (mask) dictates interaction.
+
+      const { setFormLoading } = await import('./form.js');
+      setFormLoading(form, true);
 
       try {
         const response = await fetch('/api/comment/create', {
@@ -410,7 +413,9 @@ export function CommentsMixin(entryId) {
         console.error('Submit comment error:', e);
         notify.error('common.op_fail');
       } finally {
-        this.submitting = false;
+        // Removed this.submitting = false;
+        const { setFormLoading } = await import('./form.js');
+        setFormLoading(form, false);
       }
     },
 

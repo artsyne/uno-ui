@@ -4,7 +4,12 @@
 
 <main class="main">
     <section>
-        <form hx-post="/login" hx-target="#login-error" hx-swap="innerHTML" x-uno-valid novalidate>
+        <form class="relative" hx-post="/login" hx-target="#login-error" hx-swap="innerHTML" x-uno-valid novalidate>
+            <div class="form-mask">
+                <div
+                    class="loading-spinner">
+                </div>
+            </div>
             <div class="flex flex-col my-20 mx-auto lg:w-2/5">
                 <div class="form-group">
                     <h1 class="form-header">{{getMessage "auth.title.login" .Context.Lang}}</h1>

@@ -11,34 +11,22 @@
 export function setFormLoading(form, isLoading) {
   if (!form || form.tagName !== 'FORM') return;
 
-  const submitBtn = form.querySelector('button[type="submit"]');
-  if (!submitBtn) return;
+  // 1. Handle Mask (if present)
+  // Look for mask inside the form first, then in the container
+  let mask = form.querySelector('.form-mask');
+  if (!mask) {
+    mask = form.parentElement?.querySelector('.form-mask');
+  }
 
-  if (isLoading) {
-    if (!submitBtn.disabled) {
-      submitBtn.dataset.originalContent = submitBtn.innerHTML;
-      submitBtn.disabled = true;
-      // Add loading spinner
-      const loadingIcon = '<span class="mdi mdi-loading mdi-spin mr-2"></span>';
-      if (!submitBtn.innerHTML.includes('mdi-loading')) {
-        submitBtn.innerHTML = loadingIcon + submitBtn.innerHTML;
-      }
-    }
-  } else {
-    if (submitBtn.disabled) {
-      submitBtn.disabled = false;
-      // Restore original content
-      if (submitBtn.dataset.originalContent) {
-        submitBtn.innerHTML = submitBtn.dataset.originalContent;
-        delete submitBtn.dataset.originalContent;
-      } else {
-        // Fallback cleanup if dataset is missing
-        submitBtn.innerHTML = submitBtn.innerHTML.replace(
-          '<span class="mdi mdi-loading mdi-spin mr-2"></span>',
-          '',
-        );
-      }
-    }
+  if (mask) {
+    mask.style.display = isLoading ? 'flex' : 'none';
+
+    // Mask Visual Feedback Policy:
+    // We retain the mask display logic above (to show loading spinner and block clicks via z-index).
+    // However, we REMOVED the logic that explicitly disables inputs/buttons (setting .disabled = true).
+    // This is to avoid visual state changes on the buttons (like graying out or opacity changes)
+    // while still preventing interaction through the full-screen mask.
+    // The mask itself (z-9999) acts as the interaction blocker.
   }
 }
 

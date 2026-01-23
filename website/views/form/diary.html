@@ -3,7 +3,10 @@
 <div class="px-4" x-data="{ 
     theme: {{if .Data.Diary}}{{.Data.Diary.ThemeID}}{{else}}16{{end}} 
 }">
-    <form id="diary_editor_form" x-uno-valid>
+    <form id="diary_editor_form" class="relative" x-uno-valid>
+        <div class="form-mask">
+            <div class="loading-spinner"></div>
+        </div>
         <div class="block mb-4">
             <label class="form-title">{{getMessage "diary.form.name_required" .Context.Lang}} </label>
             <input type="text" class="form-control" id="title" name="title"

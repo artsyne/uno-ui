@@ -152,7 +152,7 @@ describe('Diary Modules', () => {
 
       // Mock window.htmx
       window.htmx = {
-        ajax: jest.fn(),
+        ajax: jest.fn().mockResolvedValue({}),
       };
 
       await diaryDetail.deleteEntry(1, 100);

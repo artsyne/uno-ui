@@ -3816,6 +3816,47 @@ button.btn-social {
     color: var(--color-gray-100);
   }
 }
+.form-mask {
+  position: fixed;
+  inset: calc(var(--spacing) * 0);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in srgb, oklch(98.5% 0.002 247.839) 60%, transparent);
+  @supports (color: color-mix(in lab, red, red)) {
+    background-color: color-mix(in oklab, var(--color-gray-50) 60%, transparent);
+  }
+  transition-property: opacity;
+  transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+  transition-duration: var(--tw-duration, var(--default-transition-duration));
+  --tw-duration: 300ms;
+  transition-duration: 300ms;
+  html.dark & {
+    background-color: color-mix(in srgb, #000 60%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-black) 60%, transparent);
+    }
+  }
+}
+.loading-spinner {
+  height: calc(var(--spacing) * 10);
+  width: calc(var(--spacing) * 10);
+  animation: var(--animate-spin);
+  border-radius: calc(infinity * 1px);
+  border-style: var(--tw-border-style);
+  border-width: 4px;
+  border-top-color: var(--color-red-200);
+  border-right-color: transparent;
+  border-bottom-color: var(--color-red-200);
+  border-left-color: transparent;
+  html.dark & {
+    border-top-color: var(--color-red-400);
+  }
+  html.dark & {
+    border-bottom-color: var(--color-red-400);
+  }
+}
 .form-title {
   font-size: var(--text-sm);
   line-height: var(--tw-leading, var(--text-sm--line-height));

@@ -1,6 +1,11 @@
 {{define "form/entry"}}
 
-<div class="px-4">
+<div class="px-4 relative">
+    <div class="form-mask">
+        <div
+            class="loading-spinner">
+        </div>
+    </div>
     <form id="entry_editor_form" x-uno-valid onsubmit="return false;" @submit.prevent>
         <div class="flex flex-col mx-auto">
             <div class="form-group">

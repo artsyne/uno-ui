@@ -48,6 +48,15 @@ button.btn-social {
   @apply mb-12 text-center text-5xl font-extrabold text-gray-900 dark:text-gray-100;
 }
 
+/* Form Mask */
+.form-mask {
+  @apply fixed inset-0 z-[9999] hidden items-center justify-center bg-gray-50/60 dark:bg-black/60 transition-opacity duration-300;
+}
+
+.loading-spinner {
+  @apply w-10 h-10 border-4 border-t-red-200 dark:border-t-red-400 border-b-red-200 dark:border-b-red-400 border-l-transparent border-r-transparent rounded-full animate-spin;
+}
+
 .form-title {
   @apply text-sm text-gray-700 dark:text-gray-300;
 }
