@@ -6,6 +6,11 @@
 
 - **交互**: 始终用中文。关键逻辑必加注释。代码清晰 > 巧妙。
 - **开发**: SpecFirst (OpenSpec) -> TDD (Red-Green-Refactor)。
+- **技能**:
+  - 创意设计: [Frontend Design](.trae/skills/frontend-design/SKILL.md)
+  - 品牌规范: [Brand Guidelines](.trae/skills/brand-guidelines/SKILL.md)
+  - 后端规范: [Backend Best Practices](.trae/skills/backend-best-practices/SKILL.md)
+  - 测试策略: [Fullstack Testing](.trae/skills/fullstack-testing/SKILL.md)
 - **调试**: 遇到问题尝试 3 次后求助。
 
 ## 2. 技术栈 (Stack)
