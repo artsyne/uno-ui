@@ -16,65 +16,17 @@
         {{
         $timezone := .Data.TimeZone
         }}
+        {{
+        $isOwner := .Data.IsOwner
+        }}
+        {{
+        $diaryID := .Data.Diary.DiaryID
+        }}
+        {{
+        $socialSetting := .Data.Diary.SocialSetting
+        }}
         {{range .Data.Entries}}
-        <div class="card mb-6 break-inside-avoid" id="entry-card-{{.EntryID}}" data-entry-id="{{.EntryID}}">
-            {{if $.Data.IsOwner}}
-            <div class="entry-edit">
-                <a href="javascript:void(0)"
-                    x-uno-tooltip="{ content: '#entry-menu-{{.EntryID}}', trigger: 'click', placement: 'bottom' }">
-                    <i class="mdi mdi-dots-horizontal"></i>
-                </a>
-            </div>
-            <!-- Hidden Menu Content for Tooltip -->
-            <div id="entry-menu-{{.EntryID}}" class="hidden">
-                <ul class="text-left">
-                    <li class="py-1"><a href="#" class="block hover:text-blue-500"
-                            @click.prevent="openEditEntry({{$.Data.Diary.DiaryID}}, {{.EntryID}}); $store.uno?.tooltip?.hide()">
-                            <i class="mdi mdi-pencil-outline mr-2"></i> {{getMessage "common.edit" $lang}}</a>
-                    </li>
-                    <li class="py-1"><button class="block w-full text-left hover:text-red-500"
-                            @click="deleteEntry({{$.Data.Diary.DiaryID}}, {{.EntryID}}); $store.uno?.tooltip?.hide()">
-                            <i class="mdi mdi-delete-outline mr-2"></i> {{getMessage "common.delete" $lang}}</button>
-                    </li>
-                </ul>
-            </div>
-            {{end}}
-            <div class="mb-4">
-                {{if .Title }}
-                <h1 class="entry-title">
-                    {{.Title}}
-                </h1>
-                {{end}}
-                <p class="text-relaxed cursor-pointer">
-                    <a href="/entry/{{.EntryID}}" @click.prevent="openEntryModal('/entry/{{.EntryID}}')"
-                        style="all:unset !important">
-                        {{ .Summary}}
-                    </a>
-                </p>
-            </div>
-            <div class="flex justify-between">
-                <div>
-                    <span class="entry-time">
-                        {{formatLocalTime .AddUTCTime $timezone}}
-                    </span>
-                </div>
-                <!-- Alpine-based Stats Container -->
-                <div class="flex items-center" x-show="stats[{{.EntryID}}]" style="display: none;">
-                    <button class="btn-social mr-2">
-                        <i class="mdi mdi-eye mr-1"></i> <span x-text="getStats({{.EntryID}}).view_num"></span>
-                    </button>
-                    <button class="btn-social mr-2">
-                        <i class="mdi mdi-comment-text-outline mr-1"></i> <span
-                            x-text="getStats({{.EntryID}}).comment_num"></span>
-                    </button>
-                    <button class="btn-social" @click="toggleLike({{.EntryID}})">
-                        <i class="mdi mr-1"
-                            :class="getStats({{.EntryID}}).liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
-                        <span x-text="getStats({{.EntryID}}).like_num"></span>
-                    </button>
-                </div>
-            </div>
-        </div>
+        {{ template "diary/entry_card" dict "Entry" . "IsOwner" $isOwner "DiaryID" $diaryID "Lang" $lang "TimeZone" $timezone "IsLiked" false "SocialSetting" $socialSetting }}
         {{end}}
     </div>
 

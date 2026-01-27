@@ -175,7 +175,7 @@ func createEntryController(container *di.Container) *entryController.EntryContro
 //   - *commentController.CommentController: 评论控制器实例
 func createCommentController(container *di.Container) *commentController.CommentController {
 	deps := getControllerDependencies(container)
-	return commentController.NewCommentController(deps.config, deps.commentService, deps.authHelper, deps.renderService)
+	return commentController.NewCommentController(deps.config, deps.commentService, deps.diaryService, deps.entryService, deps.authHelper, deps.renderService)
 }
 
 // setTemplate 设置模板引擎

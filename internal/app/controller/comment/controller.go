@@ -3,6 +3,8 @@ package comment
 import (
 	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/domain/comment"
+	"github.com/biuren/hebe/internal/domain/diary"
+	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/config"
 )
@@ -12,11 +14,15 @@ import (
 //
 // 字段:
 //   - commentService: 评论业务逻辑服务
+//   - diaryService: 日记本业务逻辑服务
+//   - entryService: 日记业务逻辑服务
 //   - auth: 用户认证辅助工具
 //   - config: 应用配置
 //   - renderService: 视图渲染服务
 type CommentController struct {
 	commentService *comment.Service
+	diaryService   *diary.Service
+	entryService   *entry.Service
 	auth           *user.AuthHelper
 	config         *config.Config
 	renderService  *view.ViewService
@@ -28,15 +34,19 @@ type CommentController struct {
 // 参数:
 //   - config: 应用配置实例
 //   - commentService: 评论业务逻辑服务
+//   - diaryService: 日记本业务逻辑服务
+//   - entryService: 日记业务逻辑服务
 //   - auth: 用户认证辅助工具
 //   - renderService: 视图渲染服务
 //
 // 返回:
 //   - *CommentController: 初始化完成的评论控制器实例
-func NewCommentController(config *config.Config, commentService *comment.Service, auth *user.AuthHelper, renderService *view.ViewService) *CommentController {
+func NewCommentController(config *config.Config, commentService *comment.Service, diaryService *diary.Service, entryService *entry.Service, auth *user.AuthHelper, renderService *view.ViewService) *CommentController {
 	return &CommentController{
 		config:         config,
 		commentService: commentService,
+		diaryService:   diaryService,
+		entryService:   entryService,
 		auth:           auth,
 		renderService:  renderService,
 	}

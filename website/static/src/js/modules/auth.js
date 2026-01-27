@@ -111,39 +111,46 @@ export function initValidationCallbacks() {
   const unoStore = Alpine.store('uno');
   const validStore = unoStore?.valid || Alpine.store('valid');
 
-  // Register checkUsername callback
-  // Updated for Uno Valid v0.8.0+: Native Async Support
-  validStore.registerValidator('checkUsername', async (value, name) => {
-    if (!value) return true;
-
+  // Helper for remote validation
+  const validateRemote = async (url, payload, errorMap) => {
     try {
       const formData = new FormData();
-      formData.append('user_name', value);
-
-      const response = await fetch('/check-username', {
+      for (const [k, v] of Object.entries(payload)) {
+        formData.append(k, v);
+      }
+      const response = await fetch(url, {
         method: 'POST',
         body: formData,
       });
 
       const result = await response.json();
 
-      // If success is true, it means available
       if (result.success) {
         return true;
       }
 
-      // Return error message directly
       const t = (key) => Alpine.store('i18n').t(key);
-      // Map backend error codes to frontend translation keys if necessary
       let msgKey = result.message;
-      if (msgKey === 'user_exists') {
-        msgKey = 'auth.username_taken';
+      if (errorMap[msgKey]) {
+        msgKey = errorMap[msgKey];
       }
-      return t(msgKey) || t('auth.username_taken');
+      // Return translated message or fallback to the first error in map
+      return t(msgKey) || t(Object.values(errorMap)[0]);
     } catch (error) {
       const t = (key) => Alpine.store('i18n').t(key);
       return t('common.op_fail');
     }
+  };
+
+  // Register checkUsername callback
+  // Updated for Uno Valid v0.8.0+: Native Async Support
+  validStore.registerValidator('checkUsername', async (value, name) => {
+    if (!value) return true;
+    return validateRemote(
+      '/check-username',
+      { user_name: value },
+      { user_exists: 'auth.username_taken' },
+    );
   });
 
   // Register checkEmail callback
@@ -151,7 +158,6 @@ export function initValidationCallbacks() {
     if (!value) return true;
 
     // Check for original value (for edit forms)
-    // Try to find element by name (as name is passed) or fallback to id if name matches id
     const element =
       document.querySelector(`[name="${name}"]`) ||
       document.getElementById(name);
@@ -162,35 +168,11 @@ export function initValidationCallbacks() {
       }
     }
 
-    try {
-      const formData = new FormData();
-      formData.append('email', value);
-
-      const response = await fetch('/check-email', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      // If success is true, it means available
-      if (result.success) {
-        return true;
-      }
-
-      // Return error message directly
-      const t = (key) => Alpine.store('i18n').t(key);
-      let msgKey = result.message;
-      if (msgKey === 'email_exists') {
-        msgKey = 'auth.email_taken';
-      }
-      return t(msgKey) || t('auth.email_taken');
-    } catch (error) {
-      // On network error, we might want to fail gracefully or show error
-      // For now, let's return true to avoid blocking user if network is flaky,
-      // or return error string if strict. Original code returned true.
-      return true;
-    }
+    return validateRemote(
+      '/check-email',
+      { email: value },
+      { email_exists: 'auth.email_taken' },
+    );
   });
 
   // Register matchPwd callback

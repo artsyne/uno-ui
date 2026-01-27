@@ -3,7 +3,10 @@
 <div class="px-4" x-data="{ 
     theme: {{if .Data.Diary}}{{.Data.Diary.ThemeID}}{{else}}16{{end}} 
 }">
-    <form id="diary_editor_form" class="relative" x-uno-valid>
+    <form id="diary_editor_form" class="relative" x-uno-valid {{if .Data.Diary}} hx-put="/diary/{{.Data.Diary.DiaryID}}"
+        hx-swap="none" {{else}} hx-post="/diary" hx-target="#diary_list" hx-swap="afterbegin" {{end}}
+        hx-trigger="validated"
+        @submit.prevent="if(await $store.uno.valid.validateForm($el)) $el.dispatchEvent(new CustomEvent('validated', { bubbles: true }))">
         <div class="form-mask">
             <div class="loading-spinner"></div>
         </div>
@@ -16,8 +19,8 @@
         </div>
         <div class="block mb-4">
             <label class="form-title">{{getMessage "diary.form.description" .Context.Lang}}</label>
-            <textarea class="form-control" x-uno-valid="[{ type: 'length', max: 300, showCounter: true }]" id="remark" name="remark"
-                placeholder='{{getMessage "diary.form.description" .Context.Lang}}'
+            <textarea class="form-control" x-uno-valid="[{ type: 'length', max: 300, showCounter: true }]" id="remark"
+                name="remark" placeholder='{{getMessage "diary.form.description" .Context.Lang}}'
                 style="height: 80px">{{if .Data.Diary}}{{.Data.Diary.Remark}}{{end}}</textarea>
         </div>
         <div class="block mb-4">

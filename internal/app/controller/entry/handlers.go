@@ -63,7 +63,31 @@ func (ctrl *EntryController) CreateEntry(c *gin.Context) {
 	err = ctrl.diaryService.IncrementEntryCount(entryData.DiaryID, entryData.AddUserID, entryData.AddUserName, entryData.AddUTCTime)
 	if err != nil {
 		// 如果更新日记本数量失败，记录错误但不影响日记创建的成功响应
-		// 这里可以添加日志记录
+		slog.Error("Failed to increment entry count", "error", err, "diary_id", entryData.DiaryID)
+	}
+
+	// HTMX Support
+	if c.GetHeader("HX-Request") == "true" {
+		c.Header("HX-Trigger", `{"showToast": {"type": "success", "message": "common.save_success"}, "closeEntryModal": true}`)
+
+		// 获取日记本信息以获取社交设置
+		diaryData, _ := ctrl.diaryService.GetDiaryByID(entryData.DiaryID)
+		socialSetting := 1 // 默认开启
+		if diaryData != nil {
+			socialSetting = int(diaryData.SocialSetting)
+		}
+
+		data := map[string]interface{}{
+			"Entry":         entryData,
+			"IsOwner":       true,
+			"DiaryID":       entryData.DiaryID,
+			"Lang":          loginUser.Lang,
+			"TimeZone":      loginUser.TimeZone,
+			"IsLiked":       false,
+			"SocialSetting": socialSetting,
+		}
+		c.HTML(http.StatusOK, "diary/entry_card", data)
+		return
 	}
 
 	// 返回成功响应
@@ -122,6 +146,29 @@ func (ctrl *EntryController) UpdateEntry(c *gin.Context) {
 	// 调用服务层更新日记
 	if err := ctrl.entryService.UpdateEntry(entryData); err != nil {
 		ctrl.renderService.JSONError(c, err)
+		return
+	}
+
+	// HTMX Support
+	if c.GetHeader("HX-Request") == "true" {
+		c.Header("HX-Trigger", `{"showToast": {"type": "success", "message": "common.save_success"}, "closeEntryModal": true}`)
+
+		// Get Like Status
+		isLiked := false
+		likeStatus, err := ctrl.likeService.GetLikeStatus(loginUser.UserId, entryID, like.LikeTypeEntry)
+		if err == nil {
+			isLiked = likeStatus.IsLiked
+		}
+
+		data := map[string]interface{}{
+			"Entry":    entryData,
+			"IsOwner":  true, // User must be owner to update
+			"DiaryID":  entryData.DiaryID,
+			"Lang":     loginUser.Lang,
+			"TimeZone": loginUser.TimeZone,
+			"IsLiked":  isLiked,
+		}
+		c.HTML(http.StatusOK, "diary/entry_card", data)
 		return
 	}
 
@@ -234,6 +281,20 @@ func (ctrl *EntryController) LikeEntry(c *gin.Context) {
 	// 获取已验证的请求数据
 	req := middleware.MustGetValidatedRequest[LikeEntryRequest](c)
 	entryID := req.EntryID
+
+	// 验证 Entry 是否存在
+	entryData, err := ctrl.entryService.GetEntryByID(entryID)
+	if err != nil {
+		ctrl.renderService.JSONError(c, &errors.EntryNotFound)
+		return
+	}
+
+	// 验证 Diary 社交设置
+	_, err = ctrl.diaryService.CheckSocialEnabled(entryData.DiaryID)
+	if err != nil {
+		ctrl.renderService.JSONError(c, err)
+		return
+	}
 
 	// 获取点赞前的状态，用于判断是点赞还是取消点赞
 	beforeStatus, err := ctrl.likeService.GetLikeStatus(loginUser.UserId, entryID, like.LikeTypeEntry)

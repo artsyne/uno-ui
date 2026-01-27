@@ -1,0 +1,59 @@
+{{define "diary/entry_card"}}
+<div class="card mb-6 break-inside-avoid" id="entry-card-{{.Entry.EntryID}}" data-entry-id="{{.Entry.EntryID}}">
+    {{if .IsOwner}}
+    <div class="entry-edit">
+        <a href="javascript:void(0)"
+            x-uno-tooltip="{ content: '#entry-menu-{{.Entry.EntryID}}', trigger: 'click', placement: 'bottom' }">
+            <i class="mdi mdi-dots-horizontal"></i>
+        </a>
+    </div>
+    <!-- Hidden Menu Content for Tooltip -->
+    <div id="entry-menu-{{.Entry.EntryID}}" class="hidden">
+        <ul class="text-left">
+            <li class="py-1"><a href="#" class="block hover:text-blue-500"
+                    @click.prevent="openEditEntry({{.DiaryID}}, {{.Entry.EntryID}}); $store.uno?.tooltip?.hide()">
+                    <i class="mdi mdi-pencil-outline mr-2"></i> {{getMessage "common.edit" .Lang}}</a>
+            </li>
+            <li class="py-1"><button class="block w-full text-left hover:text-red-500"
+                    @click="deleteEntry({{.DiaryID}}, {{.Entry.EntryID}}); $store.uno?.tooltip?.hide()">
+                    <i class="mdi mdi-delete-outline mr-2"></i> {{getMessage "common.delete" .Lang}}</button>
+            </li>
+        </ul>
+    </div>
+    {{end}}
+    <div class="mb-4">
+        {{if .Entry.Title}}
+        <h1 class="entry-title">{{.Entry.Title}}</h1>
+        {{end}}
+        <p class="text-relaxed cursor-pointer">
+            <a href="/entry/{{.Entry.EntryID}}" @click.prevent="openEntryModal('/entry/{{.Entry.EntryID}}')"
+                style="all:unset !important">
+                {{.Entry.Summary}}
+            </a>
+        </p>
+    </div>
+    <div class="flex justify-between">
+        <div>
+            <span class="entry-time">
+                {{ formatLocalTime .Entry.AddUTCTime .TimeZone}}
+            </span>
+        </div>
+        <!-- Alpine-based Stats Container -->
+        <div class="flex items-center" x-show="socialSetting === 1 && stats[{{.Entry.EntryID}}]" style="display: none;"
+            x-effect="if (!stats[{{.Entry.EntryID}}]) stats[{{.Entry.EntryID}}] = { view_num: {{.Entry.ViewNum}}, comment_num: {{.Entry.CommentNum}}, like_num: {{.Entry.LikeNum}}, liked: {{.IsLiked}} }">
+            <button class="btn-social mr-2" title='{{getMessage "common.views" .Lang}}'>
+                <i class="mdi mdi-eye mr-1"></i> <span x-text="getStats({{.Entry.EntryID}}).view_num"></span>
+            </button>
+            <button class="btn-social mr-2" title='{{getMessage "common.comments" .Lang}}'>
+                <i class="mdi mdi-comment-text-outline mr-1"></i> <span
+                    x-text="getStats({{.Entry.EntryID}}).comment_num"></span>
+            </button>
+            <button class="btn-social" @click="toggleLike({{.Entry.EntryID}})">
+                <i class="mdi mr-1"
+                    :class="getStats({{.Entry.EntryID}}).liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
+                <span x-text="getStats({{.Entry.EntryID}}).like_num"></span>
+            </button>
+        </div>
+    </div>
+</div>
+{{end}}

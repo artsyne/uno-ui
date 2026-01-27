@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import { DiaryDetail } from '../../../website/static/src/js/modules/diary-detail.js';
+import DiaryDetail from '../../../website/static/src/js/modules/diary-detail.js';
 
 describe('Diary Modules', () => {
   let mockBoxOpen;
@@ -215,31 +215,20 @@ describe('Diary Modules', () => {
       expect(mockNotifySuccess).toHaveBeenCalledWith('social.like.success');
     });
 
-    test('openCreateEntry should call Box.dialog and fetch form', async () => {
+    test('openCreateEntry should call Box.dialog with hxUrl', () => {
       const diaryDetail = createDiaryDetail();
 
       // Mock Box.dialog return value
       const mockBoxId = 'box-123';
       mockBoxDialog.mockReturnValue(mockBoxId);
 
-      // Mock fetch for form
-      global.fetch.mockResolvedValueOnce({
-        text: async () => '<form>Create Entry</form>',
-      });
-
-      // Mock getElementById for form container
-      const mockContainer = { innerHTML: '' };
-      jest.spyOn(document, 'getElementById').mockReturnValue(mockContainer);
-
       diaryDetail.openCreateEntry(1);
 
       expect(mockBoxDialog).toHaveBeenCalledWith(
         expect.objectContaining({
           title: '写日记',
+          hxUrl: expect.stringContaining('/form/entry?action=entry.create&diary_id=1'),
         }),
-      );
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/form/entry?action=entry.create&diary_id=1'),
       );
     });
 

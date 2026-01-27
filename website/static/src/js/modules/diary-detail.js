@@ -1,7 +1,7 @@
 import { SocialMixin } from './social.js';
 import { EntryMixin } from './entry.js';
 
-export function DiaryDetail() {
+export default function DiaryDetail() {
   return {
     ...SocialMixin(),
     ...EntryMixin,
@@ -24,6 +24,23 @@ export function DiaryDetail() {
 
       window.openDiarySettings = (diaryId) => this.openDiarySettings(diaryId);
       window.toggleDiaryLike = (diaryId) => this.toggleDiaryLike(diaryId);
+
+      // Listen for diary updates globally to handle real-time changes
+      // This avoids race conditions where the modal closes (removing the listener)
+      // before the update event is processed.
+      this._bindDiaryUpdateListener();
+    },
+
+    _bindDiaryUpdateListener() {
+      const updateHandler = (evt) => {
+        // Handle both simple key (if sent as closeDiaryModal payload) and data payload
+        // When using HX-Trigger: {"diaryUpdated": data}, HTMX sets evt.detail to data directly
+        const diary = evt.detail.diaryUpdated || evt.detail.value || evt.detail;
+        if (diary && typeof diary === 'object' && diary.diary_id) {
+          this._updateDiaryUI(diary);
+        }
+      };
+      document.body.addEventListener('diaryUpdated', updateHandler);
     },
 
     openDiarySettings(diaryId) {
@@ -31,9 +48,15 @@ export function DiaryDetail() {
       if (!uno) return;
       const t = (key) => this.$store.i18n.t(key);
 
-      const boxId = uno.box.dialog({
+      let closeHandler;
+
+      // Generate boxId upfront to ensure availability in closures and correct type
+      const boxId =
+        'box-diary-settings-' + Math.random().toString(36).slice(2, 10);
+      const box = uno.box.dialog({
+        boxId: boxId,
         title: t('diary.settings'),
-        content: `<div class="modal-body" id="diary-form-container">${t('common.loading')}</div>`,
+        hxUrl: `/form/diary?action=diary.edit&diary_id=${diaryId}`,
         widthClass: '!w-[880px]',
         heightClass: '!h-[570px]',
         showOkButton: true,
@@ -41,131 +64,107 @@ export function DiaryDetail() {
         containerClass: '!border',
         okButtonClass: 'btn',
         buttonAlign: 'right',
-        onOk: () => this._handleDiarySettingsSubmit(boxId),
+        onContentLoad: (el) => {
+          if (!el) el = document.getElementById(boxId);
+          if (window.Alpine) window.Alpine.initTree(el);
+          if (window.htmx) window.htmx.process(el);
+
+          // Attach boxId to the form for reliable event-driven closing
+          const form = el.querySelector('form');
+          if (form) {
+            form.dataset.boxId = boxId;
+          }
+        },
+        onOk: async () => {
+          const form = document.getElementById('diary_editor_form');
+          if (form && (await uno.valid.validateForm(form))) {
+            form.dispatchEvent(new CustomEvent('validated', { bubbles: true }));
+            return false;
+          }
+          return false;
+        },
+        onClose: () => {
+          if (closeHandler)
+            document.body.removeEventListener(
+              'closeDiaryModal',
+              closeHandler,
+              true,
+            );
+        },
       });
 
-      fetch(`/form/diary?action=diary.edit&diary_id=${diaryId}`)
-        .then((res) => res.text())
-        .then((html) => {
-          const container = document.getElementById('diary-form-container');
-          if (container) {
-            container.innerHTML = html;
-            const actionInput = container.querySelector('#action');
-            if (actionInput) actionInput.value = 'diary.edit';
+      closeHandler = (evt) => {
+        const eventBoxId = evt?.target?.dataset?.boxId;
 
-            if (window.Alpine) {
-              window.Alpine.initTree(container);
-            }
-          }
-        })
-        .catch((err) => {
-          const container = document.getElementById('diary-form-container');
-          if (container)
-            container.innerHTML = `<p class="text-red-500">${t('common.load_fail')}</p>`;
-        });
+        // If the event carries a specific boxId, only close if it matches this box
+        if (eventBoxId && eventBoxId !== boxId) {
+          return;
+        }
+
+        uno.box.close(boxId);
+      };
+
+      document.body.addEventListener('closeDiaryModal', closeHandler, true);
     },
 
-    async _handleDiarySettingsSubmit(boxId) {
-      const uno = window.getUno();
-      if (!uno) return false;
-      const t = (key) => this.$store.i18n.t(key);
+    _updateDiaryUI(diary) {
+      const titleEl = document.getElementById('diary_title');
+      const remarkEl = document.getElementById('diary_remark');
 
-      const form = document.querySelector('#diary-form-container form');
-      if (!form) return false;
-
-      if (!(await uno.valid.validateForm(form))) {
-        return false;
+      if (titleEl) {
+        let iconHtml = '';
+        if (diary.view_setting === 2) {
+          iconHtml = '<i class="mdi mdi-lock-outline mx-3"></i>';
+        }
+        titleEl.innerHTML = diary.title + iconHtml;
+      }
+      if (remarkEl) {
+        remarkEl.innerText = diary.remark || '';
       }
 
-      const formData = new FormData(form);
-      const searchParams = new URLSearchParams(formData);
-      searchParams.delete('action');
-
-      const diaryId = formData.get('diary_id');
-
-      try {
-        const response = await fetch(`/diary/${diaryId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: searchParams,
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          uno.notify.success('common.save_success');
-          uno.box.close(boxId);
-
-          const diary = result.data;
-          const titleEl = document.getElementById('diary_title');
-          const remarkEl = document.getElementById('diary_remark');
-
-          if (titleEl) {
-            let iconHtml = '';
-            if (diary.view_setting === 2) {
-              iconHtml = '<i class="mdi mdi-lock-outline mx-3"></i>';
+      // Update Theme Class and Social Setting
+      const mainEl = document.querySelector('main');
+      if (mainEl) {
+        if (diary.theme_id) {
+          mainEl.classList.forEach((cls) => {
+            if (cls.startsWith('dt') && !isNaN(cls.substring(2))) {
+              mainEl.classList.remove(cls);
             }
-            titleEl.innerHTML = this._escapeHtml(diary.title) + iconHtml;
-          }
-          if (remarkEl) {
-            remarkEl.innerText = diary.remark || '';
-          }
+          });
+          mainEl.classList.add(`dt${diary.theme_id}`);
+        }
+        mainEl.dataset.socialSetting = diary.social_setting;
+      }
 
-          // Update Theme Class and Social Setting
-          const mainEl = document.querySelector('main');
-          if (mainEl) {
-            if (diary.theme_id) {
-              mainEl.classList.forEach((cls) => {
-                if (cls.startsWith('dt') && !isNaN(cls.substring(2))) {
-                  mainEl.classList.remove(cls);
-                }
-              });
-              mainEl.classList.add(`dt${diary.theme_id}`);
-            }
-            mainEl.dataset.socialSetting = diary.social_setting;
-          }
+      this.socialSetting = diary.social_setting;
 
-          this.socialSetting = diary.social_setting;
-
-          // Update Social Button
-          const socialWrapper = document.getElementById('diary-like-wrapper');
-          if (diary.social_setting === 1) {
-            if (!socialWrapper) {
-              const pageNav = document.getElementById('page-nav');
-              if (pageNav && pageNav.nextElementSibling) {
-                const btnContainer = pageNav.nextElementSibling;
-                const span = document.createElement('span');
-                span.id = 'diary-like-wrapper';
-                span.dataset.diaryId = diary.diary_id;
-                span.innerHTML = `
+      // Update Social Button
+      const socialWrapper = document.getElementById('diary-like-wrapper');
+      if (diary.social_setting === 1) {
+        if (!socialWrapper) {
+          const pageNav = document.getElementById('page-nav');
+          if (pageNav && pageNav.nextElementSibling) {
+            const btnContainer = pageNav.nextElementSibling;
+            const span = document.createElement('span');
+            span.id = 'diary-like-wrapper';
+            span.dataset.diaryId = diary.diary_id;
+            span.innerHTML = `
                 <button class="btn" @click="toggleDiaryLike(${diary.diary_id})" :disabled="diaryLike.loading">
                     <i class="mdi mr-1"
                         :class="diaryLike.liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
                     <span x-text="diaryLike.count"></span>
                 </button>`;
-                btnContainer.appendChild(span);
-                if (window.Alpine) {
-                  window.Alpine.initTree(span);
-                }
-              }
+            btnContainer.appendChild(span);
+            if (window.Alpine) {
+              window.Alpine.initTree(span);
             }
-            this.loadStats();
-            this.loadDiaryLike();
-          } else {
-            if (socialWrapper) socialWrapper.remove();
-            this.stats = {};
           }
-
-          return;
-        } else {
-          uno.notify.error(result.message || 'common.save_fail');
-          return false;
         }
-      } catch (e) {
-        uno.notify.error('common.net_error');
-        return false;
+        this.loadStats();
+        this.loadDiaryLike();
+      } else {
+        if (socialWrapper) socialWrapper.remove();
+        this.stats = {};
       }
     },
   };

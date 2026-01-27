@@ -48,6 +48,20 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 		AddUserIP:   c.ClientIP(),
 	}
 
+	// 验证 Entry 是否存在
+	entryData, err := ctrl.entryService.GetEntryByID(req.EntryID)
+	if err != nil {
+		ctrl.renderService.JSONError(c, errors.EntryNotFound)
+		return
+	}
+
+	// 验证 Diary 社交设置
+	_, err = ctrl.diaryService.CheckSocialEnabled(entryData.DiaryID)
+	if err != nil {
+		ctrl.renderService.JSONError(c, err)
+		return
+	}
+
 	// 调用服务层创建评论
 	commentID, err := ctrl.commentService.AddComment(commentData)
 	if err != nil {
@@ -139,6 +153,20 @@ func (ctrl *CommentController) DeleteComment(c *gin.Context) {
 func (ctrl *CommentController) GetComments(c *gin.Context) {
 	// 获取已验证的请求数据
 	req := middleware.MustGetValidatedRequest[GetCommentsRequest](c)
+
+	// 验证 Entry 是否存在
+	entryData, err := ctrl.entryService.GetEntryByID(req.EntryID)
+	if err != nil {
+		ctrl.renderService.JSONError(c, &errors.EntryNotFound)
+		return
+	}
+
+	// 验证 Diary 社交设置
+	_, err = ctrl.diaryService.CheckSocialEnabled(entryData.DiaryID)
+	if err != nil {
+		ctrl.renderService.JSONError(c, err)
+		return
+	}
 
 	// 设置默认分页参数
 	if req.PageIndex <= 0 {

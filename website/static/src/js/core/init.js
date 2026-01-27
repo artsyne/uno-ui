@@ -1,7 +1,7 @@
 import themeStore from '../stores/theme.js';
 import i18nStore from '../stores/i18n.js';
 import { Navbar, Footer } from '../modules/layout.js';
-import { DiaryDetail } from '../modules/diary-detail.js';
+import DiaryDetail from '../modules/diary-detail.js';
 import { LikeButton, CommentsMixin } from '../modules/social.js';
 import { initAuth, initValidationCallbacks } from '../modules/auth.js';
 import { initFormHandlers } from '../modules/form.js';

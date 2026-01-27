@@ -123,6 +123,24 @@ func (s *Service) GetDiaryByID(diaryID int64) (*Diary, error) {
 	return s.repo.GetByDiaryID(diaryID)
 }
 
+// CheckSocialEnabled 检查日记本社交功能是否开启
+// 参数:
+//   - diaryID: 日记本ID
+//
+// 返回:
+//   - *Diary: 日记本对象
+//   - error: 如果日记本不存在或社交功能关闭，返回相应错误
+func (s *Service) CheckSocialEnabled(diaryID int64) (*Diary, error) {
+	diary, err := s.GetDiaryByID(diaryID)
+	if err != nil {
+		return nil, &errors.DiaryNotFound
+	}
+	if diary.SocialSetting == 2 {
+		return nil, &errors.PermissionDenied
+	}
+	return diary, nil
+}
+
 // ListDiariesForWrite 获取用户的日记本列表（用于写日记界面）
 // 参数:
 //   - userID: 用户ID

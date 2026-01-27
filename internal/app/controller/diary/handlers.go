@@ -1,6 +1,7 @@
 package diary
 
 import (
+	"encoding/json"
 	"log/slog"
 	"net/http"
 
@@ -69,19 +70,15 @@ func (ctrl *DiaryController) CreateDiary(c *gin.Context) {
 
 	// 返回成功响应
 	if c.GetHeader("HX-Request") == "true" {
-		lang := loginUser.Lang
-		if lang == "" {
-			lang = "en"
-		}
-		timezone := loginUser.TimeZone
-		if timezone == "" {
-			timezone = "UTC"
-		}
+		// 设置 HX-Trigger 响应头，触发前端事件
+		// showToast: 显示成功提示
+		// closeDiaryModal: 关闭日记本弹窗 (需要前端监听此事件)
+		c.Header("HX-Trigger", `{"showToast": {"type": "success", "message": "common.save_success"}, "closeDiaryModal": true}`)
 
 		data := map[string]interface{}{
 			"Diary":    diaryData,
-			"Lang":     lang,
-			"TimeZone": timezone,
+			"Lang":     loginUser.Lang,
+			"TimeZone": loginUser.TimeZone,
 		}
 		c.HTML(http.StatusOK, "user/diary_card", data)
 		return
@@ -157,6 +154,23 @@ func (ctrl *DiaryController) UpdateDiary(c *gin.Context) {
 	}
 
 	// 返回成功响应
+	if c.GetHeader("HX-Request") == "true" {
+		// 构造 HX-Trigger 数据
+		triggerData := map[string]interface{}{
+			"showToast":       map[string]string{"type": "success", "message": "common.save_success"},
+			"closeDiaryModal": true,
+			"diaryUpdated":    formData,
+		}
+		if triggerJSON, err := json.Marshal(triggerData); err == nil {
+			c.Header("HX-Trigger", string(triggerJSON))
+		}
+
+		// UpdateDiary 通常在详情页调用，我们不需要返回HTML片段，而是让前端根据 diaryUpdated 事件刷新数据
+		// 或者返回空内容，因为 HX-Swap="none"
+		c.Status(http.StatusOK)
+		return
+	}
+
 	ctrl.renderService.JSONSuccess(c, formData)
 }
 
@@ -201,6 +215,13 @@ func (ctrl *DiaryController) LikeDiary(c *gin.Context) {
 	// 获取已验证的请求数据
 	req := middleware.MustGetValidatedRequest[LikeDiaryRequest](c)
 	diaryID := req.DiaryID
+
+	// 检查社交设置
+	_, err := ctrl.diaryService.CheckSocialEnabled(diaryID)
+	if err != nil {
+		ctrl.renderService.JSONError(c, err)
+		return
+	}
 
 	// 获取点赞前的状态，用于判断是点赞还是取消点赞
 	beforeStatus, err := ctrl.likeService.GetLikeStatus(loginUser.UserId, diaryID, like.LikeTypeDiary)
