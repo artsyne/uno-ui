@@ -27,7 +27,7 @@ func (ctrl *UserController) Login(c *gin.Context) {
 	// 验证用户名和密码
 	user, err := ctrl.service.LoginWithUsernameOrEmail(domainReq.LoginName, domainReq.Pwd)
 	if err != nil {
-		ctrl.renderService.JSONError(c, errors.PasswordIncorrect.WithDetails(err.Error()))
+		ctrl.renderService.JSONError(c, err)
 		return
 	}
 
@@ -56,7 +56,7 @@ func (ctrl *UserController) Login(c *gin.Context) {
 func (ctrl *UserController) Register(c *gin.Context) {
 	// 如果已登录则跳转首页
 	if isAuth, _ := ctrl.auth.IsAuthenticated(c); isAuth {
-		ctrl.renderService.JSONError(c, errors.OperationNotAllowed.WithDetails("User already logged in"))
+		ctrl.renderService.JSONError(c, errors.OperationNotAllowed.WithDetails(map[string]interface{}{"reason": "already_logged_in"}))
 		return
 	}
 

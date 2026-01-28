@@ -1,34 +1,35 @@
 # Project Rules
 
-<!-- AI_CONTEXT: AI 代码生成核心指导原则 -->
+<!-- AI_CONTEXT: Core Guidelines for AI Code Generation -->
 
-## 1. 核心原则 (Core)
+## 1. Core Principles (Core)
 
-- **交互**: 始终用中文。关键逻辑必加注释。代码清晰 > 巧妙。
-- **开发**: SpecFirst (OpenSpec) -> TDD (Red-Green-Refactor)。
-- **技能**:
-  - 创意设计: [Frontend Design](.trae/skills/frontend-design/SKILL.md)
-  - 品牌规范: [Brand Guidelines](.trae/skills/brand-guidelines/SKILL.md)
-  - 后端规范: [Backend Best Practices](.trae/skills/backend-best-practices/SKILL.md)
-  - 测试策略: [Fullstack Testing](.trae/skills/fullstack-testing/SKILL.md)
-- **调试**: 遇到问题尝试 3 次后求助。
+- **Interaction**: Always use Chinese. Critical logic must be commented. Clear code > Clever code.
+- **Development**: SpecFirst (OpenSpec) -> TDD (Red-Green-Refactor).
+- **Skills**:
+  - Creative Design: [Frontend Design](.trae/skills/frontend-design/SKILL.md)
+  - Brand Guidelines: [Brand Guidelines](.trae/skills/brand-guidelines/SKILL.md)
+  - Backend Standards: [Backend Best Practices](.trae/skills/backend-best-practices/SKILL.md)
+  - Testing Strategy: [Fullstack Testing](.trae/skills/fullstack-testing/SKILL.md)
+- **Debugging**: Try 3 times before asking for help.
 
-## 2. 技术栈 (Stack)
+## 2. Tech Stack (Stack)
 
-- **Go**: v1.25, Gin. 泛型, Embed. 严禁修改 `AppError` 核心逻辑。
-- **Web**: HTMX ^2.0, Alpine ^3.15, Tailwind v4. 逻辑分离 (`x-data` 优于内联)。
-- **架构**: DDD. `internal/`(核心), `website/`(Web). 接口注入 > 单例。
-- **I18n**: 双层策略。后端 `website/locales` (模板), 前端 `js/locales` (交互)。
+- **Go**: v1.25, Gin. Generics, Embed. Strictly forbidden to modify `AppError` core logic.
+- **Web**: HTMX ^2.0, Alpine ^3.15, Tailwind v4. Logic separation (`x-data` preferred over inline).
+- **Architecture**: DDD. `internal/` (Core), `website/` (Web). Interface injection > Singleton.
+- **I18n**: Dual strategy. Backend `website/locales` (Templates), Frontend `js/locales` (Interaction).
 
-## 3. 质量规范 (Quality)
+## 3. Quality Standards (Quality)
 
-- **限制**: 函数 ≤60 行, 参数 ≤5. 圈复杂度 ≤10.
-- **检查**: 必过 golangci-lint / ESLint. 零 TODOs.
-- **重构**: 仅优化结构/命名，严禁修改业务逻辑/API 契约。
+- **Build & Test**: Must compile and pass all unit tests.
+- **Limits**: Functions ≤60 lines, Args ≤5. Cyclomatic complexity ≤10.
+- **Checks**: Must pass golangci-lint / ESLint. Zero TODOs.
+- **Refactoring**: Optimize structure/naming only. Strictly forbidden to modify business logic/API contracts.
 
-## 4. 红线 (Critical)
+## 4. Red Lines (Critical)
 
-- 🚫 提交无法编译代码/暴露密钥。
-- 🚫 随意引入新依赖。
-- ✅ 保持 API 向后兼容。
-- ✅ 增量提交，小步快跑。
+- 🚫 Do not commit code that fails to compile or exposes secrets.
+- 🚫 Do not introduce new dependencies arbitrarily.
+- ✅ Maintain API backward compatibility.
+- ✅ Incremental commits, small steps.

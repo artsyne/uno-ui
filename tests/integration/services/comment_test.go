@@ -1,6 +1,7 @@
 package services_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/biuren/hebe/internal/domain/comment"
@@ -11,7 +12,7 @@ import (
 	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/utils/i18n"
 	framework "github.com/biuren/hebe/tests/framework"
-
+	"github.com/go-redis/redis"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -32,9 +33,16 @@ func TestCommentServiceIntegration(t *testing.T) {
 	
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
+		Password: config.Redis.Password,
+		DB:       0,
+	})
+	
+	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
 	diaryService := diary.NewService(config, diaryRepo)
-	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 	commentService := comment.NewService(config, commentRepo, userService, entryService, diaryService)
 
 	// 创建测试用户
@@ -238,9 +246,16 @@ func TestCommentServiceErrorHandling(t *testing.T) {
 	
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
+		Password: config.Redis.Password,
+		DB:       0,
+	})
+	
+	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
 	diaryService := diary.NewService(config, diaryRepo)
-	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 	commentService := comment.NewService(config, commentRepo, userService, entryService, diaryService)
 
 	t.Run("无效用户ID错误处理", func(t *testing.T) {
@@ -253,7 +268,7 @@ func TestCommentServiceErrorHandling(t *testing.T) {
 		}
 		_, err := commentService.AddComment(invalidComment)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "用户不存在")
+		assert.Contains(t, err.Error(), "user_not_found")
 	})
 
 	t.Run("无效文章ID错误处理", func(t *testing.T) {
@@ -277,7 +292,7 @@ func TestCommentServiceErrorHandling(t *testing.T) {
 		}
 		_, err = commentService.AddComment(invalidComment)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "日记不存在")
+		assert.Contains(t, err.Error(), "entry_not_found")
 	})
 
 	t.Run("获取不存在的评论", func(t *testing.T) {

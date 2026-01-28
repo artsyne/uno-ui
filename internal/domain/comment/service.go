@@ -51,25 +51,25 @@ func NewService(config *config.Config, commentRepo RepositoryInterface, userServ
 func (s *Service) AddComment(comment *Comment) (int64, error) {
 	// 验证用户ID
 	if comment.AddUserID <= 0 {
-		return 0, errors.InvalidParams.WithDetails("无效的用户ID")
+		return 0, errors.InvalidParams.WithDetails(map[string]interface{}{"reason": "invalid_user_id"})
 	}
 
 	// 验证用户是否存在
 	_, err := s.userService.GetUserByUserId(comment.AddUserID)
 	if err != nil {
-		return 0, errors.UserNotFound.WithDetails("用户不存在")
+		return 0, errors.UserNotFound.WithDetails(map[string]interface{}{"reason": "user_not_found"})
 	}
 
 	// 验证日记是否存在
 	entryData, err := s.entryService.GetEntryByID(comment.EntryID)
 	if err != nil {
-		return 0, errors.EntryNotFound.WithDetails("日记不存在")
+		return 0, errors.EntryNotFound.WithDetails(map[string]interface{}{"reason": "entry_not_found"})
 	}
 
 	// 验证日记本是否存在
 	_, err = s.diaryService.GetDiaryByID(entryData.DiaryID)
 	if err != nil {
-		return 0, errors.DiaryNotFound.WithDetails("日记本不存在")
+		return 0, errors.DiaryNotFound.WithDetails(map[string]interface{}{"reason": "diary_not_found"})
 	}
 
 	// 设置创建时间为 UTC 毫秒时间戳
@@ -78,13 +78,13 @@ func (s *Service) AddComment(comment *Comment) (int64, error) {
 	// 插入数据库
 	commentID, err := s.repo.Insert(comment)
 	if err != nil {
-		return 0, errors.DatabaseError.WithDetails(err.Error())
+		return 0, errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error()})
 	}
 
 	// 增加日记的评论数量
 	err = s.repo.IncrementEntryCommentNum(comment.EntryID)
 	if err != nil {
-		return 0, errors.DatabaseError.WithDetails(err.Error())
+		return 0, errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error()})
 	}
 
 	return commentID, nil
@@ -102,24 +102,24 @@ func (s *Service) DeleteComment(commentID int64, userID int64) error {
 	// 获取评论信息
 	comment, err := s.repo.GetByID(commentID)
 	if err != nil {
-		return errors.CommentNotFound.WithDetails("评论不存在")
+		return errors.CommentNotFound.WithDetails(map[string]interface{}{"reason": "comment_not_found"})
 	}
 
 	// 获取日记信息
 	entryData, err := s.entryService.GetEntryByID(comment.EntryID)
 	if err != nil {
-		return errors.EntryNotFound.WithDetails("日记不存在")
+		return errors.EntryNotFound.WithDetails(map[string]interface{}{"reason": "entry_not_found"})
 	}
 
 	// 获取日记本信息
 	diaryData, err := s.diaryService.GetDiaryByID(entryData.DiaryID)
 	if err != nil {
-		return errors.DiaryNotFound.WithDetails("日记本不存在")
+		return errors.DiaryNotFound.WithDetails(map[string]interface{}{"reason": "diary_not_found"})
 	}
 
 	// 检查删除权限：评论作者、日记作者或日记本所有者
 	if comment.AddUserID != userID && entryData.AddUserID != userID && diaryData.AddUserID != userID {
-		return errors.PermissionDenied.WithDetails("无权限删除该评论")
+		return errors.PermissionDenied.WithDetails(map[string]interface{}{"reason": "comment_permission_denied"})
 	}
 
 	// 删除评论

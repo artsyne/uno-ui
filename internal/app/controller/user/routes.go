@@ -22,22 +22,25 @@ import (
 //   - 用户激活
 //   - 个人设置管理
 func (ctrl *UserController) RegisterRoutes(router *gin.Engine) {
+	// 认证限流中间件
+	authLimit := middleware.AuthRateLimit(ctrl.config)
+
 	// 用户认证相关路由（无需鉴权）
 	router.GET("/register", ctrl.ShowRegisterPage)
-	router.POST("/register", middleware.Validate[RegisterRequest](), ctrl.Register)
-	router.POST("/check-username", middleware.Validate[CheckUserNameRequest](), ctrl.ValidateUsername)
-	router.POST("/check-email", middleware.Validate[CheckEmailRequest](), ctrl.ValidateEmail)
+	router.POST("/register", authLimit, middleware.Validate[RegisterRequest](), ctrl.Register)
+	router.POST("/check-username", authLimit, middleware.Validate[CheckUserNameRequest](), ctrl.ValidateUsername)
+	router.POST("/check-email", authLimit, middleware.Validate[CheckEmailRequest](), ctrl.ValidateEmail)
 
 	router.GET("/login", ctrl.ShowLoginPage)
-	router.POST("/login", middleware.Validate[LoginRequest](), ctrl.Login)
+	router.POST("/login", authLimit, middleware.Validate[LoginRequest](), ctrl.Login)
 
 	router.GET("/loginout", ctrl.Logout)
 
 	router.GET("/findpwd", ctrl.ShowPasswordResetPage)
-	router.POST("/findpwd", middleware.Validate[FindPasswordRequest](), ctrl.RequestPasswordReset)
+	router.POST("/findpwd", authLimit, middleware.Validate[FindPasswordRequest](), ctrl.RequestPasswordReset)
 
 	router.GET("/resetpwd", ctrl.ShowPasswordResetForm)
-	router.POST("/resetpwd", middleware.Validate[ResetPasswordRequest](), ctrl.ResetPassword)
+	router.POST("/resetpwd", authLimit, middleware.Validate[ResetPasswordRequest](), ctrl.ResetPassword)
 
 	router.GET("/activateuser", ctrl.ShowUserActivationPage)
 

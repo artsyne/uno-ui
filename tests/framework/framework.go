@@ -319,9 +319,9 @@ func (sr *ServiceRegistry) InitializeServices(db *sqlx.DB, testConfig TestConfig
 	taskService := task.NewService(appConfig, taskRepo)
 	// 创建一个简单的i18n管理器用于测试
 	i18nManager := i18n.NewLocalizationManager(appConfig)
-	sr.userService = user.NewService(appConfig, userRepo, taskService, i18nManager)
+	sr.userService = user.NewService(appConfig, userRepo, taskService, i18nManager, nil)
 	sr.diaryService = diary.NewService(appConfig, diaryRepo)
-	sr.entryService = entry.NewService(appConfig, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	sr.entryService = entry.NewService(appConfig, sr.userService, taskService, diaryRepo, entryRepo, i18nManager)
 	
 	return nil
 }

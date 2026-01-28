@@ -10,8 +10,10 @@ iDiary.ai Hebe是一个基于Go 1.25和Gin框架的现代化智能日记管理�
 ┌─────────────────────────────────────────────────────────────┐
 │                    Website Layer                            │
 │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐           │
-│  │Templates│ │ Static  │ │ Kiko.js │ │Tailwind │           │
-│  │(模板文件)│ │(静态资源)│ │(前端框架)│ │CSS 4.x  │           │
+│  │Templates│ │ Static  │ │Uno UI   │ │Tailwind │           │
+│  │(模板文件)│ │(静态资源)│ │(组件库) │ │CSS 4.x  │           │
+│  │         │ │         │ │Alpine.js│ │         │           │
+│  │         │ │         │ │HTMX     │ │         │           │
 │  └─────────┘ └─────────┘ └─────────┘ └─────────┘           │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -80,7 +82,9 @@ iDiary.ai Hebe是一个基于Go 1.25和Gin框架的现代化智能日记管理�
 
 - **Templates**: HTML模板文件，使用Go template语法
 - **Static**: 静态资源文件（CSS、JS、图片等）
-- **Kiko.js**: 自研前端框架，提供组件化和国际化支持
+- **Uno UI v0.8.0**: 现代化 UI 组件库，基于 Alpine.js 和 Tailwind CSS
+- **Alpine.js v3.14.8**: 轻量级响应式框架，提供声明式数据绑定和组件系统
+- **HTMX v2.0.4**: 服务端渲染增强，通过 HTML 属性实现动态交互
 - **Tailwind CSS 4.x**: 现代化CSS框架，提供响应式设计
 
 ### App Layer (应用服务层)
@@ -235,11 +239,13 @@ iDiary.ai Hebe是一个基于Go 1.25和Gin框架的现代化智能日记管理�
 项目采用混合架构模式管理配置，同时支持全局配置访问和DI容器注入：
 
 **配置生命周期管理**:
+
 1. **初始化阶段**: 配置系统初始化，创建全局配置实例
 2. **注册阶段**: DI容器初始化，将配置注册为预创建实例
 3. **注入阶段**: 应用层服务通过构造函数注入配置依赖
 
 **分层使用策略**:
+
 - **应用层/领域层**: 优先使用DI注入配置，提升测试性和松耦合性
 - **基础设施层**: 保留全局配置访问以保证向后兼容性
 - **模板/工具层**: 使用全局配置函数提供便利性
@@ -286,7 +292,7 @@ iDiary.ai Hebe是一个基于Go 1.25和Gin框架的现代化智能日记管理�
 #### Middleware 模块
 
 - **职责**: 通用中间件
-- **位置**: `internal/utils/middleware/`
+- **位置**: `internal/app/middleware/`
 - **功能**:
   - Panic恢复中间件
   - 错误处理中间件
@@ -553,8 +559,8 @@ func (a *Application) initGinServer() error {
     server := gin.New()
 
     // 初始化中间件链
-    server.Use(utilsMiddleware.PanicRecovery())   // panic recovery中间件
-    server.Use(utilsMiddleware.AppErrorHandler()) // 应用错误处理中间件
+    server.Use(middleware.PanicRecovery())   // panic recovery中间件
+    server.Use(middleware.AppErrorHandler()) // 应用错误处理中间件
     server.Use(middleware.SharedData())           // 用户共享数据中间件
 
     // 设置路由

@@ -9,6 +9,11 @@
     "ecmaVersion": 12,
     "sourceType": "module"
   },
+  "globals": {
+    "Alpine": "readonly",
+    "htmx": "readonly",
+    "process": "readonly"
+  },
   "rules": {
     "prettier/prettier": ["error"]
   }

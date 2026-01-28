@@ -172,6 +172,24 @@ CREATE TABLE br_diary_member (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `br_user_oauth`
+--
+
+DROP TABLE IF EXISTS br_user_oauth;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE br_user_oauth (
+  oauth_id bigint unsigned NOT NULL AUTO_INCREMENT,
+  user_id bigint unsigned NOT NULL,          -- 关联 br_user.user_id
+  provider varchar(20) COLLATE utf8mb4_general_ci NOT NULL,             -- 'google', 'facebook'
+  provider_user_id varchar(255) COLLATE utf8mb4_general_ci NOT NULL,    -- 三方平台的唯一标识符
+  created_utc_time bigint NOT NULL,
+  PRIMARY KEY (oauth_id),
+  UNIQUE KEY uk_provider_user (provider, provider_user_id),
+  KEY idx_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
 -- Table structure for table `br_user`
 --
 
@@ -183,7 +201,7 @@ CREATE TABLE br_user (
   user_name varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   full_name varchar(128) COLLATE utf8mb4_general_ci DEFAULT '',
   user_group tinyint unsigned NOT NULL DEFAULT '1',
-  pwd varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  pwd varchar(255) COLLATE utf8mb4_general_ci DEFAULT '',
   profile_url varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   face_url varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   email varchar(128) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',

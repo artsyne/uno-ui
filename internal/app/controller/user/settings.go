@@ -46,7 +46,7 @@ func (ctrl *UserController) UpdateEmail(c *gin.Context) {
 
 	// 调用service更新邮箱
 	if err := ctrl.service.UpdateUserEmail(authUser.UserId, req.Email); err != nil {
-		ctrl.renderService.JSONError(c, errors.DatabaseError.WithDetails(err.Error()))
+		ctrl.renderService.JSONError(c, errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error()}))
 		return
 	}
 

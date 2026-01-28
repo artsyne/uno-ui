@@ -1,13 +1,11 @@
 export function Navbar() {
   return {
-    init() {
-    },
+    init() {},
   };
 }
 
 export function Footer() {
   return {
-    init() {
-    },
+    init() {},
   };
 }

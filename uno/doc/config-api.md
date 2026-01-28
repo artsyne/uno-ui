@@ -144,3 +144,162 @@ Uno.setConfig({
   }
 })
 ```
+
+## CSP (Content Security Policy) Configuration
+
+Uno UI provides built-in support for Content Security Policy (CSP). When using CSP with inline styles or scripts, you can configure Uno to automatically inject the nonce attribute.
+
+### What is CSP?
+
+Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross Site Scripting (XSS) and data injection attacks.
+
+### Basic CSP Configuration
+
+#### 1. Server-Side CSP Header
+
+Configure your server to send a CSP header with a nonce:
+
+```http
+Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-abc123'; style-src 'self' 'nonce-abc123'
+```
+
+#### 2. Configure Uno with Nonce
+
+Pass the nonce to Uno during initialization:
+
+```javascript
+// CDN Usage
+<script type="module">
+  import Uno from 'https://unpkg.com/uno-ui@0.8.0/dist/uno.es.js'
+
+  Uno.setConfig({
+    csp: {
+      nonce: 'abc123' // Must match the nonce in your CSP header
+    }
+  })
+</script>
+```
+
+```javascript
+// NPM/Module Usage
+import Uno from 'uno-ui'
+
+Uno.setConfig({
+  csp: {
+    nonce: 'abc123'
+  }
+})
+```
+
+### Dynamic Nonce (Recommended for Production)
+
+In production, generate a unique nonce for each request:
+
+```javascript
+// Server-side (Node.js/Express example)
+const crypto = require('crypto')
+
+app.use((req, res, next) => {
+  const nonce = crypto.randomBytes(16).toString('base64')
+  res.locals.nonce = nonce
+  res.setHeader('Content-Security-Policy',
+    `default-src 'self'; script-src 'self' 'nonce-${nonce}'; style-src 'self' 'nonce-${nonce}'`
+  )
+  next()
+})
+
+// Pass nonce to template
+app.get('/', (req, res) => {
+  res.render('index.html', { nonce: res.locals.nonce })
+})
+```
+
+```html
+<!-- Template (EJS example) -->
+<script type="module">
+  import Uno from '/dist/uno.es.js'
+
+  Uno.setConfig({
+    csp: {
+      nonce: '<%= nonce %>'
+    }
+  })
+</script>
+```
+
+### CSP Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `nonce` | `string` | `null` | The CSP nonce value. If provided, Uno will automatically inject it into inline styles and scripts. |
+
+### What Uno Does with CSP
+
+When CSP nonce is configured, Uno automatically:
+
+1. **Injects nonce into inline styles**: All dynamically created `<style>` elements will have the `nonce` attribute
+2. **Injects nonce into inline scripts**: Any dynamically created `<script>` elements will have the `nonce` attribute
+3. **Maintains security**: Ensures all inline content complies with your CSP policy
+
+### Example: Complete CSP Setup
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Uno UI with CSP</title>
+
+  <!-- CSP Header (set by server) -->
+  <!-- Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-abc123'; style-src 'self' 'nonce-abc123' -->
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <!-- Configure Uno with CSP nonce -->
+  <script type="module">
+    import Uno from 'https://unpkg.com/uno-ui@0.8.0/dist/uno.es.js'
+
+    Uno.setConfig({
+      debug: false,
+      csp: {
+        nonce: 'abc123' // Must match server-generated nonce
+      },
+      ui: {
+        base: 'rounded-lg shadow-md'
+      }
+    })
+  </script>
+
+  <!-- Load Alpine -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js"></script>
+</head>
+<body>
+  <button x-data @click="$store.uno.box.alert('Hello!')">
+    Click Me
+  </button>
+</body>
+</html>
+```
+
+### Troubleshooting CSP Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| **Styles not applied** | CSP blocking inline styles | Ensure `style-src` includes the nonce or `'unsafe-inline'` |
+| **Scripts not executing** | CSP blocking inline scripts | Ensure `script-src` includes the nonce or `'unsafe-inline'` |
+| **Mixed Content errors** | Loading resources from HTTP on HTTPS page | Ensure all resources use HTTPS |
+| **Nonce mismatch** | Nonce in header doesn't match config | Verify nonce is correctly passed from server to client |
+
+### Best Practices
+
+1. **Always use unique nonces**: Generate a new nonce for each request
+2. **Don't use 'unsafe-inline'**: Use nonce instead of `'unsafe-inline'` for better security
+3. **Test in development**: Enable CSP in development to catch issues early
+4. **Monitor CSP violations**: Use the `Content-Security-Policy-Report-Only` header to test without blocking
+
+### Learn More
+
+- [MDN: Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)
+- [CSP Evaluator](https://csp-evaluator.withgoogle.com/)
+- [OWASP: Content Security Policy Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html)

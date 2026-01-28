@@ -17,14 +17,8 @@ type APIResponse[T any] struct {
 	RequestID string `json:"request_id" example:"req_123456"`
 }
 
-// APIErrorResponse 标准化错误响应结构
-type APIErrorResponse struct {
-	Success   bool        `json:"success" example:"false"`
-	Code      int         `json:"code" example:"4001001"`
-	Message   string      `json:"message" example:"验证失败"`
-	Details   interface{} `json:"details,omitempty"`
-	RequestID string      `json:"request_id"`
-}
+// APIErrorResponse 标准化错误响应结构 (Deprecated: use errors.APIErrorResponse instead)
+type APIErrorResponse = errors.APIErrorResponse
 
 // getRequestID 获取请求ID
 func getRequestID(c *gin.Context) string {
@@ -81,17 +75,15 @@ func (s *ViewService) JSONError(c *gin.Context, err error, data ...interface{}) 
 	s.logAppError(c, appErr)
 
 	// 如果没有提供详细数据，且错误包含详情，则将详情放入Data中
-	if responseData == nil && appErr.Details() != "" {
-		responseData = gin.H{"error_details": appErr.Details()}
+	if responseData == nil && appErr.Details() != nil {
+		if str, ok := appErr.Details().(string); ok && str != "" {
+			responseData = gin.H{"error_details": str}
+		} else if appErr.Details() != nil {
+			responseData = appErr.Details()
+		}
 	}
 
-	errorResponse := APIErrorResponse{
-		Success:   false,
-		Code:      appErr.Code(),
-		Message:   appErr.Key(),
-		Details:   responseData,
-		RequestID: getRequestID(c),
-	}
+	errorResponse := errors.NewAPIErrorResponse(appErr.Code(), appErr.Key(), responseData, getRequestID(c))
 	c.JSON(appErr.HttpCode(), errorResponse)
 }
 

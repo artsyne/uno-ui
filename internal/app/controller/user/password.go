@@ -21,7 +21,7 @@ func (ctrl *UserController) RequestPasswordReset(c *gin.Context) {
 	// 获取用户信息
 	userInfo, err := ctrl.service.GetUserByEmail(domainReq.Email)
 	if err != nil {
-		ctrl.renderService.JSONError(c, errors.UserNotFound.WithDetails("邮箱: "+req.Email))
+		ctrl.renderService.JSONError(c, errors.UserNotFound.WithDetails(map[string]interface{}{"email": req.Email, "reason": "user_not_found_by_email"}))
 		return
 	}
 
@@ -55,14 +55,14 @@ func (ctrl *UserController) ResetPassword(c *gin.Context) {
 	// 解析用户ID
 	userID, err := ctrl.service.ParseUserID(domainReq.UID)
 	if err != nil {
-		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails("用户ID格式错误"))
+		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(map[string]interface{}{"reason": "invalid_user_id_format"}))
 		return
 	}
 
 	// 检查验证码
 	valid, validCodeID := ctrl.service.CheckValidCode(userID, domainReq.Sign, ctrl.config.ValidCode.TypeResetPwd)
 	if !valid {
-		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails("验证码无效或已过期"))
+		ctrl.renderService.JSONError(c, errors.ValidationError.WithDetails(map[string]interface{}{"reason": "invalid_or_expired_code"}))
 		return
 	}
 

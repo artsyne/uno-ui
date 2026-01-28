@@ -2,7 +2,7 @@
 
 ## 📖 项目概述
 
-iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能日记管理系统，采用**领域驱动设计（DDD）**的分层架构，通过**Go 1.25泛型依赖注入容器**实现零反射、编译时类型安全的高性能设计。
+iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能日记管理系统，采用**领域驱动设计（DDD）**的分层架构，通过**Go 1.25泛型依赖注入容器**实现零反射、编译时类型安全的高性能设计。前端采用现代化的技术栈，基于 **Uno UI、Alpine.js、HTMX 和 Tailwind CSS**，提供流畅的用户体验。
 
 ### 🚀 核心特性
 
@@ -10,7 +10,7 @@ iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能�
 - **☁️ 多云存储**: 支持 Dropbox、Google Drive、阿里云盘、WebDAV 等多种云存储服务
 - **🏗️ 现代化架构**: 基于 DDD 分层设计，Go 1.25 泛型 DI 容器，零反射高性能
 - **🌍 国际化支持**: 智能语言检测，预加载缓存，微秒级翻译查找
-- **🎨 响应式设计**: Tailwind CSS 4.x + jquery 4.x + Kiko.js 组件库，现代化 UI/UX，支持 Light/Dark 主题切换
+- **🎨 现代化前端**: Uno UI + Alpine.js + HTMX + Tailwind CSS，响应式设计，支持 Light/Dark 主题切换
 - **⚡ 高性能**: 优化的数据库查询、Redis 缓存、异步任务处理
 - **🧪 完整测试**: 91%+ 覆盖率，真实环境测试框架，性能基准测试
 - **🔒 统一错误处理**: 4位错误码体系，结构化日志，优雅的错误降级
@@ -23,8 +23,10 @@ iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能�
 ┌─────────────────────────────────────────────────────────────────┐
 │                        表现层 (Website)                         │
 ├─────────────────────────────────────────────────────────────────┤
-│   视图模板     │   静态资源     │   Kiko框架     │   样式文件      │
-│  (Views)      │  (Static)     │ (JavaScript)  │ (Tailwind CSS) │
+│   视图模板     │   静态资源     │   Uno UI      │   Tailwind    │
+│  (Views)      │  (Static)     │ (Components)  │ CSS 4.x       │
+│               │               │   Alpine.js   │                │
+│               │               │   HTMX        │                │
 └─────────────────────────────────────────────────────────────────┘
                                    │
 ┌─────────────────────────────────────────────────────────────────┐
@@ -39,8 +41,8 @@ iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能�
 ┌─────────────────────────────────────────────────────────────────┐
 │                        领域层 (Domain)                          │
 ├─────────────────────────────────────────────────────────────────┤
-│   用户模块     │   日记模块     │   文章模块     │   任务模块      │
-│  (User)       │  (Diary)      │  (Post)       │  (Task)        │
+│   用户模块     │   日记模块     │   条目模块     │   评论模块      │
+│  (User)       │  (Diary)      │  (Entry)      │  (Comment)     │
 │  Service      │  Service      │  Service      │  Service       │
 │  Repository   │  Repository   │  Repository   │  Repository    │
 │  Types        │  Types        │  Types        │  Types         │
@@ -50,7 +52,7 @@ iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能�
 │                      基础设施层 (Infra)                         │
 ├─────────────────────────────────────────────────────────────────┤
 │                        仓储实现 (Repository)                     │
-│   用户仓储     │   日记仓储     │   文章仓储     │   任务仓储      │
+│   用户仓储     │   日记仓储     │   条目仓储     │   缓存实现      │
 └─────────────────────────────────────────────────────────────────┘
                                    │
 ┌─────────────────────────────────────────────────────────────────┐
@@ -72,10 +74,10 @@ iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能�
 
 ### 架构层次说明
 
-- **Website Layer**: 表现层（HTML模板、静态资源、Kiko.js组件、Tailwind CSS样式）
+- **Website Layer**: 表现层（HTML模板、静态资源、Uno UI 组件、Alpine.js、HTMX、Tailwind CSS）
 - **App Layer**: 应用层（控制器、视图服务、路由配置、模板函数、业务中间件、启动管理）
-- **Domain Layer**: 领域层（用户、日记、文章、任务等业务模块，服务接口、仓储接口、实体类型）
-- **Infra Layer**: 基础设施层（仓储实现、数据访问层、外部服务集成）
+- **Domain Layer**: 领域层（用户、日记、条目、评论、点赞、任务等业务模块，服务接口、仓储接口、实体类型）
+- **Infra Layer**: 基础设施层（仓储实现、数据访问层、缓存实现、外部服务集成）
 - **Core Layer**: 核心层（数据库连接、泛型DI容器、应用初始化器）
 - **Utils & Contracts**: 工具与合约层（配置管理、错误处理、国际化、系统中间件、通用工具包）
 
@@ -99,7 +101,7 @@ iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能�
 
 - [⚙️ Go 1.25泛型DI容器指南](./di-container-guide.md) - 零反射、高性能依赖注入容器
 - [🌍 国际化系统指南](./i18n-guide.md) - 多语言支持和智能语言检测
-- [🎨 主题系统指南](./THEME_SYSTEM_GUIDE.md) - Light/Dark主题切换系统
+- [🎨 主题系统指南](./theme-system-guide.md) - Light/Dark主题切换系统
 - [🔧 中间件系统详解](./middleware-guide.md) - 分层中间件架构和使用指南
 - [🎯 错误处理机制](./error-handling-examples.md) - 统一错误处理和ViewService
 - [📝 日志系统指南](./logging-enhancement-guide.md) - 基于slog的结构化日志系统
@@ -109,6 +111,7 @@ iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能�
 - [🎨 模板函数使用指南](./template-functions-guide.md) - 模板函数系统和数据访问
 - [📖 模板开发最佳实践](./template-usage-guide.md) - 模板开发架构和实践模式
 - [🌐 模板翻译指南](./template-translation-guide.md) - 模板国际化实现
+- [📱 前端代码审查报告](./frontend_review_report.md) - 前端架构和最佳实践
 
 ### 🧪 测试与质量
 
@@ -119,7 +122,7 @@ iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能�
 ### 分层架构
 
 - **App Layer**: 应用编排、HTTP处理、渲染服务
-- **Domain Layer**: 业务逻辑实现（User、Diary、Post、Task）
+- **Domain Layer**: 业务逻辑实现（User、Diary、Entry、Comment、Like、Task）
 - **Core Layer**: 基础设施服务（Config、DI、Database、Error、Middleware）
 - **Pkg Layer**: 纯函数工具库（通用工具和辅助功能）
 
@@ -136,10 +139,11 @@ iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能�
 
 **🎨 前端技术**:
 
+- **Uno UI v0.8.0**: 现代化 UI 组件库，基于 Alpine.js 和 Tailwind CSS
+- **Alpine.js v3.14.8**: 轻量级响应式框架，提供声明式数据绑定和组件系统
+- **HTMX v2.0.4**: 服务端渲染增强，通过 HTML 属性实现动态交互
 - **Tailwind CSS 4.x**: 原子化 CSS 框架，响应式设计
-- **Kiko.js**: 自研前端组件库 (Grid、Tab、Notify、Valid 等)
 - **JavaScript ES2023**: 现代 JS 特性，模块化设计
-- **国际化 i18n**: 多语言支持，智能语言切换
 
 **🏗️ 架构特性**:
 
@@ -206,10 +210,11 @@ iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能�
 
 **🎨 前端开发者**:
 
-1. [模板函数使用指南](./template-functions-guide.md) - 掌握模板数据访问和渲染
-2. [模板开发最佳实践](./template-usage-guide.md) - 学习模板架构模式
-3. [模板翻译指南](./template-translation-guide.md) - 实现模板国际化
-4. [国际化系统指南](./i18n-guide.md) - 深入多语言支持机制
+1. [前端代码审查报告](./frontend_review_report.md) - 了解前端架构和最佳实践
+2. [模板函数使用指南](./template-functions-guide.md) - 掌握模板数据访问和渲染
+3. [模板开发最佳实践](./template-usage-guide.md) - 学习模板架构模式
+4. [模板翻译指南](./template-translation-guide.md) - 实现模板国际化
+5. [国际化系统指南](./i18n-guide.md) - 深入多语言支持机制
 
 **🔧 后端开发者**:
 
@@ -254,6 +259,7 @@ iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能�
 
 | 文档                                              | 描述                   | 适合人群   |
 | ------------------------------------------------- | ---------------------- | ---------- |
+| [前端代码审查报告](./frontend_review_report.md)   | 前端架构和最佳实践     | 前端开发者 |
 | [模板函数使用指南](./template-functions-guide.md) | 模板函数系统和数据访问 | 前端开发者 |
 | [模板开发最佳实践](./template-usage-guide.md)     | 模板开发架构模式       | 前端开发者 |
 | [模板翻译指南](./template-translation-guide.md)   | 模板国际化实现         | 前端开发者 |
@@ -283,6 +289,14 @@ iDiary.ai Hebe 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能�
 - **预加载缓存**: 启动时加载所有语言文件到内存
 - **智能检测**: 用户设置→Cookie→浏览器→默认
 - **微秒级翻译**: 高效缓存map，翻译查找<1μs
+
+### 🎨 现代化前端技术栈
+
+- **Uno UI**: 现代化 UI 组件库，提供 Box、Notify、Tooltip、Tab、Valid 等组件
+- **Alpine.js**: 轻量级响应式框架，提供声明式数据绑定和组件系统
+- **HTMX**: 服务端渲染增强，通过 HTML 属性实现动态交互
+- **Tailwind CSS 4.x**: 原子化 CSS 框架，响应式设计
+- **模块化设计**: 清晰的模块划分，易于维护和扩展
 
 ### 🧪 真实环境测试
 
@@ -340,4 +354,4 @@ go test ./tests/benchmark/... -bench=.
 
 ---
 
-**📖 文档版本**: v3.0 | **🔄 最后更新**: 2024年 | **⚡ 基于最新代码完全重构**
+**📖 文档版本**: v4.0 | **🔄 最后更新**: 2026年1月 | **⚡ 基于最新代码完全重构**

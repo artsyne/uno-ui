@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/biuren/hebe/internal/core/database"
 	"github.com/biuren/hebe/internal/domain/comment"
@@ -58,7 +57,7 @@ func (r *CommentRepository) Delete(commentID int64) error {
 		return err
 	}
 	if rowsAffected == 0 {
-		return errors.CommentNotFound.WithDetails(fmt.Sprintf("comment_id: %d", commentID))
+		return errors.CommentNotFound.WithDetails(map[string]interface{}{"comment_id": commentID})
 	}
 
 	return nil
@@ -71,7 +70,7 @@ func (r *CommentRepository) GetByID(commentID int64) (*comment.Comment, error) {
                FROM br_comment WHERE comment_id = ?`
 	err := r.db.Get(&commentData, sqlstr, commentID)
 	if err == sql.ErrNoRows {
-		return nil, errors.CommentNotFound.WithDetails(fmt.Sprintf("comment_id: %d", commentID))
+		return nil, errors.CommentNotFound.WithDetails(map[string]interface{}{"comment_id": commentID})
 	}
 	if err != nil {
 		return nil, err
@@ -124,7 +123,7 @@ func (r *CommentRepository) IncrementEntryCommentNum(entryID int64) error {
 		return err
 	}
 	if rowsAffected == 0 {
-		return errors.EntryNotFound.WithDetails(fmt.Sprintf("entry_id: %d", entryID))
+		return errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": entryID})
 	}
 
 	return nil
@@ -144,7 +143,7 @@ func (r *CommentRepository) DecrementEntryCommentNum(entryID int64) error {
 		return err
 	}
 	if rowsAffected == 0 {
-		return errors.EntryNotFound.WithDetails(fmt.Sprintf("entry_id: %d", entryID))
+		return errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": entryID})
 	}
 
 	return nil

@@ -39,7 +39,7 @@ func TestTableStructure(t *testing.T) {
 	db := ctx.GetDatabase().GetDB()
 
 	// 检查关键表是否存在
-	tables := []string{"br_user", "br_diary", "br_comment", "br_follow"}
+	tables := []string{"br_user", "br_diary", "br_comment"}
 
 	for _, tableName := range tables {
 		result := db.QueryRow(`

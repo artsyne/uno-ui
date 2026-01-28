@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -26,13 +25,12 @@ func Validate[T any]() gin.HandlerFunc {
 			details := formatValidationError(err)
 
 			// 构造标准错误响应
-			errResponse := view.APIErrorResponse{
-				Success:   false,
-				Code:      errors.InvalidParams.Code(),
-				Message:   errors.InvalidParams.Key(), // "invalid_params"
-				Details:   details,
-				RequestID: getRequestID(c),
-			}
+			errResponse := errors.NewAPIErrorResponse(
+				errors.InvalidParams.Code(),
+				errors.InvalidParams.Key(),
+				details,
+				getRequestID(c),
+			)
 
 			c.AbortWithStatusJSON(http.StatusBadRequest, errResponse)
 			return
@@ -59,20 +57,6 @@ func formatValidationError(err error) interface{} {
 	}
 	// 非验证错误（如 JSON 解析失败）
 	return map[string]string{"error": err.Error()}
-}
-
-// getRequestID 辅助函数：获取请求ID (复用逻辑，避免循环依赖 view 包)
-// 注意：如果 view 包中也有此逻辑，且 middleware 依赖 view，可能会有循环依赖。
-// 这里 view 包依赖 errors 包，middleware 依赖 view 包。
-// 如果 view 包以后依赖 middleware，就会循环。目前看是安全的。
-func getRequestID(c *gin.Context) string {
-	reqID := c.GetHeader("X-Request-ID")
-	if reqID == "" {
-		if v, exists := c.Get("RequestId"); exists {
-			reqID, _ = v.(string)
-		}
-	}
-	return reqID
 }
 
 // GetValidatedRequest 从上下文中获取已验证的请求对象

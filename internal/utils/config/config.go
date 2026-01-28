@@ -122,6 +122,18 @@ func InitConfig() error {
 		Password: v.GetString("REDIS_PASSWORD"), // Redis密码可以为空
 	}
 
+	globalConfig.RateLimit = RateLimitConfig{
+		GeneralLimit: v.GetFloat64("RATE_LIMIT_GENERAL"),
+		GeneralBurst: v.GetInt("RATE_LIMIT_GENERAL_BURST"),
+		AuthLimit:    v.GetFloat64("RATE_LIMIT_AUTH"),
+		AuthBurst:    v.GetInt("RATE_LIMIT_AUTH_BURST"),
+	}
+
+	globalConfig.BruteForce = BruteForceConfig{
+		MaxFailures:    v.GetInt("BRUTE_FORCE_MAX_FAILURES"),
+		LockoutMinutes: v.GetInt("BRUTE_FORCE_LOCKOUT_MINUTES"),
+	}
+
 	// Email配置
 	globalConfig.Email = EmailConfig{
 		SMTPServer:   requireString(v, "SMTP_SERVER"),

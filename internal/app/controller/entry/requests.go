@@ -1,7 +1,6 @@
 package entry
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -134,7 +133,7 @@ func (r *GetEntriesStatsRequest) ParseEntryIDs() ([]int64, error) {
 	parts := strings.Split(r.EntryIDs, ",")
 	entryIDs := make([]int64, 0, len(parts))
 	if len(parts) > 50 {
-		return nil, errors.ValidationError.WithDetails("entryids 最多 50 个")
+		return nil, errors.ValidationError.WithDetails(map[string]interface{}{"reason": "entryids_limit_exceeded", "limit": 50})
 	}
 
 	for _, part := range parts {
@@ -144,7 +143,7 @@ func (r *GetEntriesStatsRequest) ParseEntryIDs() ([]int64, error) {
 		}
 		id, err := strconv.ParseInt(part, 10, 64)
 		if err != nil {
-			return nil, errors.InvalidFormat.WithDetails(fmt.Sprintf("invalid entry id: %s", part))
+			return nil, errors.InvalidFormat.WithDetails(map[string]interface{}{"reason": "invalid_entry_id", "value": part})
 		}
 		entryIDs = append(entryIDs, id)
 	}
@@ -174,7 +173,7 @@ func (r *GetEntryLikeStatusRequest) ParseEntryIDs() ([]int64, error) {
 	parts := strings.Split(r.EntryIDs, ",")
 	entryIDs := make([]int64, 0, len(parts))
 	if len(parts) > 50 {
-		return nil, errors.ValidationError.WithDetails("entryids 最多 50 个")
+		return nil, errors.ValidationError.WithDetails(map[string]interface{}{"reason": "entryids_limit_exceeded", "limit": 50})
 	}
 
 	for _, part := range parts {
@@ -184,7 +183,7 @@ func (r *GetEntryLikeStatusRequest) ParseEntryIDs() ([]int64, error) {
 		}
 		id, err := strconv.ParseInt(part, 10, 64)
 		if err != nil {
-			return nil, errors.InvalidFormat.WithDetails(fmt.Sprintf("invalid entry id: %s", part))
+			return nil, errors.InvalidFormat.WithDetails(map[string]interface{}{"reason": "invalid_entry_id", "value": part})
 		}
 		entryIDs = append(entryIDs, id)
 	}

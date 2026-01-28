@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	utilsMiddleware "github.com/biuren/hebe/internal/utils/middleware"
+	appMiddleware "github.com/biuren/hebe/internal/app/middleware"
 	framework "github.com/biuren/hebe/tests/framework"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -194,7 +194,7 @@ func TestPanicRecoveryMiddleware(t *testing.T) {
 		c, router := gin.CreateTestContext(w)
 
 		// 应用 PanicRecovery 中间件
-		router.Use(utilsMiddleware.PanicRecovery())
+		router.Use(appMiddleware.PanicRecovery())
 		router.GET("/panic", func(c *gin.Context) {
 			panic("intentional panic for testing")
 		})
@@ -217,7 +217,7 @@ func TestPanicRecoveryMiddleware(t *testing.T) {
 		c, router := gin.CreateTestContext(w)
 
 		// 应用 PanicRecovery 中间件
-		router.Use(utilsMiddleware.PanicRecovery())
+		router.Use(appMiddleware.PanicRecovery())
 		router.GET("/normal", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"message": "normal response"})
 		})
@@ -247,7 +247,7 @@ func TestAppErrorHandlerMiddleware(t *testing.T) {
 		c, router := gin.CreateTestContext(w)
 
 		// 应用 AppErrorHandler 中间件
-		router.Use(utilsMiddleware.AppErrorHandler())
+		router.Use(appMiddleware.AppErrorHandler())
 		router.GET("/error", func(c *gin.Context) {
 			// 模拟添加错误到上下文
 			c.Error(errors.New("test error"))
@@ -271,7 +271,7 @@ func TestAppErrorHandlerMiddleware(t *testing.T) {
 		c, router := gin.CreateTestContext(w)
 
 		// 应用 AppErrorHandler 中间件
-		router.Use(utilsMiddleware.AppErrorHandler())
+		router.Use(appMiddleware.AppErrorHandler())
 		router.GET("/normal", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"message": "normal response"})
 		})

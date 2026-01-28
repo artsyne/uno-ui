@@ -27,11 +27,12 @@ func PanicRecovery() gin.HandlerFunc {
 
 				// 使用统一的错误响应格式
 				internalErr := errors.InternalError
-				response := gin.H{
-					"code":    internalErr.Code(),
-					"message": internalErr.Key(),
-					"data":    nil,
-				}
+				response := errors.NewAPIErrorResponse(
+					internalErr.Code(),
+					internalErr.Key(),
+					nil,
+					getRequestID(c),
+				)
 
 				c.JSON(http.StatusInternalServerError, response)
 				c.Abort()

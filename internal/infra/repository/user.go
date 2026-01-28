@@ -3,8 +3,8 @@ package repository
 import (
 	"database/sql"
 
-	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/core/database"
+	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/pkg"
 	"github.com/jmoiron/sqlx"
@@ -228,7 +228,7 @@ func (r *UserRepository) GetUserByUserId(userId int64) (*user.User, error) {
 	userEntity := &user.User{}
 	err := r.db.Get(userEntity, sqlstr, userId)
 	if err == sql.ErrNoRows {
-		return nil, errors.UserNotFound.WithDetails("用户不存在")
+		return nil, errors.UserNotFound.WithDetails(map[string]interface{}{"reason": "user_not_found"})
 	}
 	return userEntity, err
 }
@@ -240,9 +240,9 @@ func (r *UserRepository) GetUserByUserName(userName string) (*user.User, error) 
 	err := r.db.Get(userEntity, sqlstr, userName)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.UserNotFound.WithDetails("用户不存在")
+			return nil, errors.UserNotFound.WithDetails(map[string]interface{}{"reason": "user_not_found"})
 		}
-		return nil, errors.DatabaseError.WithDetails(err.Error())
+		return nil, errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error()})
 	}
 	return userEntity, nil
 }
@@ -254,9 +254,9 @@ func (r *UserRepository) GetUserByEmail(email string) (*user.User, error) {
 	err := r.db.Get(userEntity, sqlstr, email)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.UserNotFound.WithDetails("用户不存在")
+			return nil, errors.UserNotFound.WithDetails(map[string]interface{}{"reason": "user_not_found"})
 		}
-		return nil, errors.DatabaseError.WithDetails(err.Error())
+		return nil, errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error()})
 	}
 	return userEntity, nil
 }

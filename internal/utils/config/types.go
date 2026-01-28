@@ -18,6 +18,8 @@ type Config struct {
     ValidCode       ValidCodeConfig `json:"valid_code" validate:"required"`
 	Database     DatabaseConfig `json:"database" validate:"required"`
 	Redis        RedisConfig    `json:"redis" validate:"required"`
+	RateLimit    RateLimitConfig `json:"rate_limit" validate:"required"`
+	BruteForce   BruteForceConfig `json:"brute_force" validate:"required"`
 	Email        EmailConfig    `json:"email" validate:"required"`
 	Cookie       CookieConfig   `json:"cookie" validate:"required"`
 	Upload       UploadConfig   `json:"upload" validate:"required"`
@@ -85,6 +87,20 @@ type RedisConfig struct {
 	Host     string `json:"host" mapstructure:"REDIS_HOST" validate:"required"`
 	Port     int    `json:"port" mapstructure:"REDIS_PORT" validate:"required,min=1,max=65535"`
 	Password string `json:"password" mapstructure:"REDIS_PASSWORD"`
+}
+
+// RateLimitConfig 限流配置
+type RateLimitConfig struct {
+	GeneralLimit  float64 `json:"general_limit" mapstructure:"RATE_LIMIT_GENERAL" validate:"required,min=0.1"`
+	GeneralBurst  int     `json:"general_burst" mapstructure:"RATE_LIMIT_GENERAL_BURST" validate:"required,min=1"`
+	AuthLimit     float64 `json:"auth_limit" mapstructure:"RATE_LIMIT_AUTH" validate:"required,min=0.1"`
+	AuthBurst     int     `json:"auth_burst" mapstructure:"RATE_LIMIT_AUTH_BURST" validate:"required,min=1"`
+}
+
+// BruteForceConfig 暴力破解防护配置
+type BruteForceConfig struct {
+	MaxFailures    int `json:"max_failures" mapstructure:"BRUTE_FORCE_MAX_FAILURES" validate:"required,min=3"`
+	LockoutMinutes int `json:"lockout_minutes" mapstructure:"BRUTE_FORCE_LOCKOUT_MINUTES" validate:"required,min=1"`
 }
 
 // EmailConfig 邮件配置

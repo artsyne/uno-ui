@@ -14,6 +14,7 @@ import (
 	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/utils/i18n"
 	"github.com/biuren/hebe/tests/framework"
+	"github.com/go-redis/redis"
 )
 
 // 全局测试上下文和服务，避免重复初始化
@@ -43,9 +44,16 @@ func initBenchmarkEnv() {
 
 		taskService := task.NewService(config, taskRepo)
 		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+
+		redisClient := redis.NewClient(&redis.Options{
+			Addr:     fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
+			Password: config.Redis.Password,
+			DB:       0, // Use default DB 0
+		})
+
+		userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
 		diaryService := diary.NewService(config, diaryRepo)
-		entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+		entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 		benchServices = &benchmarkServices{
 			userService:  userService,

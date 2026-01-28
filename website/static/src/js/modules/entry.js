@@ -51,7 +51,7 @@ export const EntryMixin = {
 
     // Generate boxId upfront to ensure availability in closures and correct type
     const boxId = 'box-entry-' + Math.random().toString(36).slice(2, 10);
-    const box = uno.box.dialog({
+    uno.box.dialog({
       boxId: boxId,
       title: title,
       hxUrl: url,

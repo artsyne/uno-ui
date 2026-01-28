@@ -43,7 +43,7 @@ func TestDiaryService_AddDiary(t *testing.T) {
 		taskRepo := repository.NewTaskRepository()
 		taskService := task.NewService(config, taskRepo)
 		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+		userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 		err := userService.RegisterUser(testUser)
 		require.NoError(t, err)
 
@@ -106,7 +106,7 @@ func TestDiaryService_AddDiary(t *testing.T) {
 		taskRepo := repository.NewTaskRepository()
 		taskService := task.NewService(config, taskRepo)
 		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+		userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 		err := userService.RegisterUser(testUser)
 		require.NoError(t, err)
 
@@ -158,7 +158,7 @@ func TestDiaryService_AddDiary_EmptyTitle(t *testing.T) {
 	config = ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	err := userService.RegisterUser(testUser)
 	require.NoError(t, err)
 
@@ -187,7 +187,7 @@ func TestDiaryService_GetDiaryByID(t *testing.T) {
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(config, diaryRepo)
 
@@ -244,7 +244,7 @@ func TestDiaryService_UpdateDiary(t *testing.T) {
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(config, diaryRepo)
 
@@ -347,7 +347,7 @@ func TestDiaryService_ListDiariesForWrite(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		taskService := task.NewService(config, taskRepo)
 		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+		userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 		diaryRepo := repository.NewDiaryRepository()
 		diaryService := diary.NewService(config, diaryRepo)
 
@@ -407,7 +407,7 @@ func TestDiaryService_ListDiariesForWrite(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		i18nManager := i18n.NewLocalizationManager(config)
 		taskService := task.NewService(config, taskRepo)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+		userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 		diaryRepo := repository.NewDiaryRepository()
 		diaryService := diary.NewService(config, diaryRepo)
 
@@ -470,7 +470,7 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 		diaryService := diary.NewService(config, diaryRepo)
 		taskService := task.NewService(config, taskRepo)
 		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+		userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 
 		// 创建测试用户
 		testUser := &user.User{
@@ -518,7 +518,7 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 		diaryService := diary.NewService(config, diaryRepo)
 		taskService := task.NewService(config, taskRepo)
 		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+		userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 
 		// 创建测试用户
 		testUser := &user.User{
@@ -566,7 +566,7 @@ func TestDiaryService_ListDiariesByUser(t *testing.T) {
 		diaryService := diary.NewService(config, diaryRepo)
 		taskService := task.NewService(config, taskRepo)
 		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+		userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 
 		// 创建测试用户
 		testUser := &user.User{
@@ -630,7 +630,7 @@ func TestDiaryService_EntryCountOperations(t *testing.T) {
 
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	diaryService := diary.NewService(config, diaryRepo)
 
 	// 创建一个用户

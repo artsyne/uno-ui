@@ -1,8 +1,6 @@
 package entry
 
 import (
-	"fmt"
-
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
@@ -23,18 +21,18 @@ type Service struct {
 // NewService 创建新的文章业务逻辑层实例
 // 参数:
 //   - config: 配置管理器
-//   - userRepo: 用户数据访问层接口
+//   - userService: 用户业务逻辑层
 //   - taskService: 任务业务逻辑层
 //   - diaryRepo: 日记本数据访问层接口
 //   - entryRepo: 日记数据访问层接口
 //   - i18nService: 国际化服务管理器
 // 返回:
 //   - *Service: 日记业务逻辑层实例
-func NewService(config *config.Config, userRepo user.RepositoryInterface, taskService *task.Service, diaryRepo diary.RepositoryInterface, entryRepo RepositoryInterface, i18nService i18n.I18nManager) *Service {
+func NewService(config *config.Config, userService *user.Service, taskService *task.Service, diaryRepo diary.RepositoryInterface, entryRepo RepositoryInterface, i18nService i18n.I18nManager) *Service {
 	return &Service{
-		config:       config, 
+		config:       config,
 		repo:         entryRepo,
-		userService:  user.NewService(config, userRepo, taskService, i18nService),
+		userService:  userService,
 		diaryService: diary.NewService(config, diaryRepo),
 	}
 }
@@ -52,24 +50,24 @@ func NewService(config *config.Config, userRepo user.RepositoryInterface, taskSe
 func (s *Service) AddEntry(entry *Entry) (int64, error) {
 	// 验证用户ID
 	if entry.AddUserID <= 0 {
-		return 0, errors.InvalidParams.WithDetails("无效的用户ID")
+		return 0, errors.InvalidParams.WithDetails(map[string]interface{}{"reason": "invalid_user_id"})
 	}
 	
 	// 验证用户是否存在
 	_, err := s.userService.GetUserByUserId(entry.AddUserID)
 	if err != nil {
-		return 0, errors.UserNotFound.WithDetails("用户不存在")
+		return 0, errors.UserNotFound.WithDetails(map[string]interface{}{"reason": "user_not_found"})
 	}
 	
 	// 验证日记本是否存在且属于该用户
 	diary, err := s.diaryService.GetDiaryByID(entry.DiaryID)
 	if err != nil {
-		return 0, errors.DiaryNotFound.WithDetails("日记本不存在")
+		return 0, errors.DiaryNotFound.WithDetails(map[string]interface{}{"reason": "diary_not_found"})
 	}
 	
 	// 检查日记本是否属于该用户
 	if diary.AddUserID != entry.AddUserID {
-		return 0, errors.PermissionDenied.WithDetails("无权限访问该日记本")
+		return 0, errors.PermissionDenied.WithDetails(map[string]interface{}{"reason": "diary_permission_denied"})
 	}
 	
 	//插入数据库
@@ -100,7 +98,7 @@ func (s *Service) GetEntryByID(entryID int64) (*Entry, error) {
 func (s *Service) UpdateEntry(entry *Entry) error {
 	// 验证内容不能为空
 	if entry.Body == "" {
-		return errors.ValidationError.WithDetails("文章内容不能为空")
+		return errors.ValidationError.WithDetails(map[string]interface{}{"field": "body", "reason": "required"})
 	}
 	
 	// 更新日记本
@@ -162,7 +160,7 @@ func (s *Service) DeleteEntryByID(entryID int64, userID int64, userName string, 
 		return err
 	}
 	if entry == nil {
-		return errors.EntryNotFound.WithDetails(fmt.Sprintf("entry_id: %d", entryID))
+		return errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": entryID})
 	}
 
 	// 执行软删除

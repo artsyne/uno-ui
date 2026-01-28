@@ -11,7 +11,7 @@ export const User = {
     const boxId = 'box-diary-' + Math.random().toString(36).slice(2, 10);
 
     // Create the dialog and store its ID locally for the event listener
-    const box = uno.box.dialog({
+    uno.box.dialog({
       boxId: boxId,
       title: title,
       hxUrl: '/form/diary?action=diary.create',

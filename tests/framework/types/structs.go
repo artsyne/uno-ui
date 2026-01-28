@@ -14,6 +14,9 @@ type TestConfig struct {
 	// 数据库配置
 	Database DatabaseConfig `json:"database"`
 
+	// Redis配置
+	Redis config.RedisConfig `json:"redis"`
+
 	// 清理配置
 	Cleanup CleanupConfig `json:"cleanup"`
 
@@ -159,10 +162,22 @@ func (tc *TestConfig) GetAppConfig() *config.Config {
 			Password: tc.Database.Password,
 			Conn:     "%s:%s@tcp(%s:3306)/%s?parseTime=true&loc=Local&charset=utf8mb4&collation=utf8mb4_general_ci",
 		},
-		Redis: config.RedisConfig{
-			Host:     "127.0.0.1",
-			Port:     6379,
-			Password: "",
+		Redis: tc.Redis,
+		RateLimit: config.RateLimitConfig{
+			GeneralLimit: 10.0,
+			GeneralBurst: 20,
+			AuthLimit:    5.0,
+			AuthBurst:    10,
+		},
+		BruteForce: config.BruteForceConfig{
+			MaxFailures:    5,
+			LockoutMinutes: 15,
+		},
+		ValidCode: config.ValidCodeConfig{
+			Length:         6,
+			TypeActiveUser: 1,
+			TypeResetPwd:   2,
+			ExpireMinutes:  30,
 		},
 		Email: config.EmailConfig{
 			SMTPServer:   "smtp.test.com",

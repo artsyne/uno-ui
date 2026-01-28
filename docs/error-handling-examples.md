@@ -113,19 +113,23 @@ type ViewService struct {
     i18nManager i18n.I18nManager
 }
 
-// 响应结构
-type JSONResponse struct {
-    Success bool        `json:"success"`
-    Message string      `json:"message"`
-    Code    int         `json:"code"`
-    Data    interface{} `json:"data"`
+// APIResponse 成功响应结构
+type APIResponse[T any] struct {
+	Success   bool   `json:"success" example:"true"`
+	Message   string `json:"message,omitempty" example:"操作成功"`
+	Data      T      `json:"data,omitempty"`
+	RequestID string `json:"request_id" example:"req_123456"`
 }
 
-type ErrorResponse struct {
-    Success bool        `json:"success"`
-    Message string      `json:"message"`
-    Code    int         `json:"code"`
-    Data    interface{} `json:"data,omitempty"`
+// APIErrorResponse 错误响应结构
+type APIErrorResponse struct {
+	Success   bool        `json:"success" example:"false"`
+	Code      int         `json:"code" example:"4001001"`
+	Message   string      `json:"message" example:"验证失败"`
+	Data      interface{} `json:"data,omitempty"`
+	Details   interface{} `json:"details,omitempty"`
+	Timestamp int64       `json:"timestamp"`
+	RequestID string      `json:"request_id"`
 }
 ```
 
@@ -831,12 +835,10 @@ func (s *diary.Service) BadCreate(userID int64, title string) (int64, error) {
 ### 🎯 开发体验提升
 
 1. **统一的API响应格式**
-
    - 成功响应: `{"success": true, "message": "success", "code": 0, "data": {...}}`
    - 错误响应: `{"success": false, "message": "user_not_found", "code": 1301, "data": null}`
 
 2. **类型安全的错误处理**
-
    - 编译时类型检查，避免运行时错误
    - 4位错误码体系，清晰的错误分类
    - 预定义错误，避免重复定义
@@ -849,13 +851,11 @@ func (s *diary.Service) BadCreate(userID int64, title string) (int64, error) {
 ### 🔧 运维和维护收益
 
 4. **自动化日志记录**
-
    - ViewService自动记录结构化错误日志
    - 包含错误码、关键信息、详细信息等完整上下文
    - 基于slog的高性能日志记录
 
 5. **便于问题定位**
-
    - 4位错误码快速定位错误类型
    - 详细的错误信息帮助开发者快速修复
    - 结构化日志便于日志分析和监控
@@ -868,13 +868,11 @@ func (s *diary.Service) BadCreate(userID int64, title string) (int64, error) {
 ### 🚀 架构优势
 
 7. **DDD架构集成**
-
    - 错误处理体系与DDD分层架构完美结合
    - 领域服务返回业务错误，控制器使用ViewService处理
    - 清晰的职责分离
 
 8. **高性能设计**
-
    - 基于Go 1.25泛型的DI容器，零反射开销
    - ViewService单例模式，避免重复创建
    - 结构化错误定义，内存效率高
@@ -892,3 +890,51 @@ func (s *diary.Service) BadCreate(userID int64, title string) (int64, error) {
 - **日志分析效率**: 结构化日志提升80%的日志分析效率
 
 这套现代化的错误处理体系是Go应用开发的最佳实践实现，为iDiary.ai Hebe项目的长期维护和扩展提供了坚实的技术基础。
+
+## 中间件错误处理
+
+Hebe 在中间件层（如 Security, Validator, Panic Recovery）也实现了统一的错误响应。
+
+### 1. CSRF 错误
+
+当 CSRF 校验失败时，返回 403 Forbidden 状态码，并包含统一的错误响应：
+
+```json
+{
+  "success": false,
+  "code": 1201, // ErrOriginInvalid
+  "message": "origin_invalid",
+  "data": "CSRF token mismatch",
+  "timestamp": 1700000000000,
+  "request_id": "req_123"
+}
+```
+
+### 2. 限流 (Rate Limit) 错误
+
+当请求频率超过限制时，返回 429 Too Many Requests 状态码：
+
+```json
+{
+  "success": false,
+  "code": 6301, // RateLimitExceeded
+  "message": "rate_limit_exceeded",
+  "data": "Rate limit exceeded. Please try again later.",
+  "timestamp": 1700000000000,
+  "request_id": "req_123"
+}
+```
+
+### 3. Panic 恢复
+
+当系统发生未捕获的 Panic 时，Recovery 中间件会捕获并返回 500 Internal Server Error，防止堆栈信息泄露给客户端：
+
+```json
+{
+  "success": false,
+  "code": 9999, // InternalError
+  "message": "internal_error",
+  "timestamp": 1700000000000,
+  "request_id": "req_123"
+}
+```

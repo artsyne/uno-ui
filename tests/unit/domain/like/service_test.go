@@ -33,7 +33,7 @@ func TestLikeService_ToggleLike(t *testing.T) {
 		taskRepo := repository.NewTaskRepository()
 		taskService := task.NewService(config, taskRepo)
 		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+		userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 		err := userService.RegisterUser(testUser)
 		require.NoError(t, err)
 
@@ -85,7 +85,7 @@ func TestLikeService_ToggleLike(t *testing.T) {
 		taskRepo := repository.NewTaskRepository()
 		taskService := task.NewService(config, taskRepo)
 		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+		userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 		err := userService.RegisterUser(testUser)
 		require.NoError(t, err)
 
@@ -144,7 +144,7 @@ func TestLikeService_GetLikeStatus(t *testing.T) {
 		taskRepo := repository.NewTaskRepository()
 		taskService := task.NewService(config, taskRepo)
 		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+		userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 		err := userService.RegisterUser(testUser)
 		require.NoError(t, err)
 
@@ -191,7 +191,7 @@ func TestLikeService_GetLikeCount(t *testing.T) {
 		taskRepo := repository.NewTaskRepository()
 		taskService := task.NewService(config, taskRepo)
 		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+		userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 		err := userService.RegisterUser(testUser)
 		require.NoError(t, err)
 
@@ -234,7 +234,7 @@ func TestLikeService_GetLikeCount(t *testing.T) {
 		taskRepo := repository.NewTaskRepository()
 		taskService := task.NewService(config, taskRepo)
 		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+		userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 		err := userService.RegisterUser(testUser1)
 		require.NoError(t, err)
 

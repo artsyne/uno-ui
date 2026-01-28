@@ -11,6 +11,7 @@ import (
 	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/internal/utils/i18n"
 	"github.com/biuren/hebe/pkg"
+	"github.com/go-redis/redis"
 )
 
 // Service 用户业务逻辑层实现
@@ -19,17 +20,19 @@ type Service struct {
 	repo        RepositoryInterface
 	taskService *task.Service
 	i18nService i18n.I18nManager
+	redis       *redis.Client
 }
 
 // NewService 创建用户业务逻辑层实例
 // NewService 创建用户服务实例，使用依赖注入
-func NewService(config *config.Config, repo RepositoryInterface, taskService *task.Service, i18nService i18n.I18nManager) *Service {
+func NewService(config *config.Config, repo RepositoryInterface, taskService *task.Service, i18nService i18n.I18nManager, redis *redis.Client) *Service {
 
 	return &Service{
 		config:      config,
 		repo:        repo,
 		taskService: taskService,
 		i18nService: i18nService,
+		redis:       redis,
 	}
 }
 
@@ -50,7 +53,7 @@ func (s *Service) RegisterUser(user *User) error {
 
 	// 插入数据库
 	if err := s.insertUserIntoDB(user); err != nil {
-		return errors.DatabaseError.WithDetails(fmt.Sprintf("用户注册失败: %v", err))
+		return errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "registration_failed"})
 	}
 
 	// 发送激活邮件
@@ -79,12 +82,73 @@ func (s *Service) LoginWithUsernameOrEmail(usernameOrEmail string, password stri
 		return nil, err
 	}
 
-	// 验证密码
-	if !s.verifyPassword(password, user.Pwd) {
-		return nil, errors.PasswordIncorrect.WithDetails("密码不正确")
+	// 检查账户是否被锁定
+	if err := s.checkBruteForce(user.UserId); err != nil {
+		return nil, err
 	}
 
+	// 验证密码
+	if !s.verifyPassword(password, user.Pwd) {
+		// 记录登录失败
+		s.recordLoginFailure(user.UserId)
+		return nil, errors.PasswordIncorrect
+	}
+
+	// 登录成功，清除失败记录
+	s.clearLoginFailure(user.UserId)
+
 	return user, nil
+}
+
+// checkBruteForce 检查暴力破解限制
+func (s *Service) checkBruteForce(userID int64) error {
+	if s.redis == nil {
+		return nil
+	}
+
+	key := fmt.Sprintf("brute_force:uid:%d", userID)
+	count, err := s.redis.Get(key).Int()
+	if err != nil && err != redis.Nil {
+		// Redis错误，降级处理，允许通过
+		return nil
+	}
+
+	if count >= s.config.BruteForce.MaxFailures {
+		return errors.AccountLocked.WithDetails(map[string]interface{}{
+			"lockout_minutes": s.config.BruteForce.LockoutMinutes,
+		})
+	}
+
+	return nil
+}
+
+// recordLoginFailure 记录登录失败
+func (s *Service) recordLoginFailure(userID int64) {
+	if s.redis == nil {
+		return
+	}
+
+	key := fmt.Sprintf("brute_force:uid:%d", userID)
+	
+	// 使用Pipeline原子操作
+	pipe := s.redis.Pipeline()
+	incr := pipe.Incr(key)
+	pipe.Exec()
+
+	// 如果是第一次失败（计数为1），设置过期时间
+	if incr.Val() == 1 {
+		s.redis.Expire(key, time.Duration(s.config.BruteForce.LockoutMinutes)*time.Minute)
+	}
+}
+
+// clearLoginFailure 清除登录失败记录
+func (s *Service) clearLoginFailure(userID int64) {
+	if s.redis == nil {
+		return
+	}
+
+	key := fmt.Sprintf("brute_force:uid:%d", userID)
+	s.redis.Del(key)
 }
 
 // ActivateUser 激活用户
@@ -92,23 +156,23 @@ func (s *Service) ActivateUser(uid string, sign string) error {
 	// 将字符串转换为整数类型的用户ID
 	userID, err := strconv.ParseInt(uid, 10, 64)
 	if err != nil {
-		return errors.InvalidParams.WithDetails("无效的用户ID格式")
+		return errors.InvalidParams.WithDetails(map[string]interface{}{"reason": "invalid_user_id_format"})
 	}
 
 	// 检查验证码是否有效
 	result, validID := s.repo.CheckValidCode(userID, sign, s.config.ValidCode.TypeActiveUser)
 	if !result {
-		return errors.InvalidParams.WithDetails("验证码无效或已过期")
+		return errors.InvalidParams.WithDetails(map[string]interface{}{"reason": "invalid_or_expired_code"})
 	}
 
 	// 更新用户状态
 	if rows, err := s.repo.UpdateUserStatus(userID, s.config.User.StatusOK); err != nil || rows != 1 {
-		return errors.DatabaseError.WithDetails(fmt.Sprintf("更新用户状态失败: %v", err))
+		return errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error()})
 	}
 
 	// 删除验证码
 	if rows, err := s.repo.DeleteValidCode(validID); err != nil || rows != 1 {
-		return errors.DatabaseError.WithDetails(fmt.Sprintf("删除验证码失败: %v", err))
+		return errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error()})
 	}
 
 	return nil
@@ -121,7 +185,7 @@ func (s *Service) IsExistEmail(email string) (bool, error) {
 	// 判断邮件地址是否存在
 	isExistEmail, err := s.repo.IsExistsEmail(email)
 	if err != nil {
-		return false, errors.DatabaseError.WithDetails(err.Error())
+		return false, errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "email_check_failed"})
 	}
 	return isExistEmail, nil
 }
@@ -131,7 +195,7 @@ func (s *Service) IsExistUserName(userName string) (bool, error) {
 	// 判断用户名是否存在
 	isExistName, err := s.repo.IsExistUserName(userName)
 	if err != nil {
-		return false, errors.DatabaseError.WithDetails(err.Error())
+		return false, errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "username_check_failed"})
 	}
 	return isExistName, nil
 }
@@ -188,23 +252,27 @@ func (s *Service) ChangeUserPassword(currentUserID int64, currentPwd, newPwd str
 
 	// 验证当前密码,有权限后才能修改数据库中的密码 - 使用统一的密码验证逻辑
 	if !s.verifyPassword(currentPwd, currentEncryptPwd) {
-		return errors.InvalidPassword.WithDetails("当前密码不正确")
+		return errors.InvalidPassword.WithDetails(map[string]interface{}{"reason": "incorrect_current_password"})
 	}
 
 	// 验证新密码强度
 	if len(newPwd) < s.config.User.PwdMinLen || len(newPwd) > s.config.User.PwdMaxLen {
-		return errors.ValidationError.WithDetails(fmt.Sprintf("新密码长度必须在%d-%d个字符之间", s.config.User.PwdMinLen, s.config.User.PwdMaxLen))
+		return errors.ValidationError.WithDetails(map[string]interface{}{
+			"reason": "password_length_invalid",
+			"min":    s.config.User.PwdMinLen,
+			"max":    s.config.User.PwdMaxLen,
+		})
 	}
 
 	// 使用统一的密码生成逻辑
 	newPwdHash, err := s.generatePasswordHash(newPwd)
 	if err != nil {
-		return errors.DatabaseError.WithDetails(err.Error())
+		return errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "password_hash_failed"})
 	}
 
 	// 更新用户密码
 	if err := s.UpdateUserPassword(currentUserID, newPwdHash); err != nil {
-		return errors.DatabaseError.WithDetails(err.Error())
+		return errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "password_update_failed"})
 	}
 
 	return nil
@@ -215,18 +283,22 @@ func (s *Service) ChangeUserPassword(currentUserID int64, currentPwd, newPwd str
 func (s *Service) ResetUserPassword(userId int64, newPassword string) error {
 	// 验证新密码强度
 	if len(newPassword) < s.config.User.PwdMinLen || len(newPassword) > s.config.User.PwdMaxLen {
-		return errors.ValidationError.WithDetails(fmt.Sprintf("新密码长度必须在%d-%d个字符之间", s.config.User.PwdMinLen, s.config.User.PwdMaxLen))
+		return errors.ValidationError.WithDetails(map[string]interface{}{
+			"reason": "password_length_invalid",
+			"min":    s.config.User.PwdMinLen,
+			"max":    s.config.User.PwdMaxLen,
+		})
 	}
 
 	// 使用统一的密码生成逻辑
 	newPwdHash, err := s.generatePasswordHash(newPassword)
 	if err != nil {
-		return errors.DatabaseError.WithDetails(fmt.Sprintf("密码哈希生成失败: %v", err))
+		return errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "password_hash_failed"})
 	}
 
 	// 更新用户密码
 	if err := s.UpdateUserPassword(userId, newPwdHash); err != nil {
-		return errors.DatabaseError.WithDetails(fmt.Sprintf("密码重置失败: %v", err))
+		return errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "password_reset_failed"})
 	}
 
 	return nil
@@ -274,7 +346,7 @@ func (s *Service) ParseUserID(idStr string) (int64, error) {
 	// 使用统一的ID解析方法
 	id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
 	if err != nil || id <= 0 {
-		return 0, errors.InvalidParams.WithDetails("无效的用户ID格式")
+		return 0, errors.InvalidParams.WithDetails(map[string]interface{}{"reason": "invalid_user_id_format"})
 	}
 	return id, nil
 }
@@ -295,7 +367,7 @@ func (s *Service) UpdateUserProfile(uid int64, fullName, remark, timeZone, lang 
 	// 调用repository更新用户资料
 	rowsAffected, err := s.repo.UpdateUserProfile(uid, fullName, remark, timeZone, lang)
 	if err != nil {
-		return errors.DatabaseError.WithDetails(fmt.Sprintf("更新用户资料失败: %v", err))
+		return errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "user_profile_update_failed"})
 	}
 
 	// 检查是否更新成功
@@ -319,7 +391,7 @@ func (s *Service) UpdateUserProfile(uid int64, fullName, remark, timeZone, lang 
 func (s *Service) UpdateUserEmail(uid int64, email string) error {
 	// 验证邮箱格式
 	if !pkg.IsEmail(email) {
-		return errors.InvalidFormat.WithDetails("邮箱格式不正确")
+		return errors.InvalidFormat.WithDetails(map[string]interface{}{"reason": "invalid_email_format"})
 	}
 
 	// 检查用户是否存在
@@ -336,16 +408,16 @@ func (s *Service) UpdateUserEmail(uid int64, email string) error {
 			// 如果是 UserNotFound 错误，说明邮箱未被使用，这是正常的，继续执行
 		} else {
 			// 如果是其他数据库错误，则返回数据库错误
-			return errors.DatabaseError.WithDetails(fmt.Sprintf("查询邮箱失败: %v", err))
+			return errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "email_query_failed"})
 		}
 	} else if existingUser != nil && existingUser.UserId != uid {
 		// 如果找到了用户且不是当前用户，则表示邮箱已被占用
-		return errors.EmailExists.WithDetails("邮箱已被其他用户使用")
+		return errors.EmailExists.WithDetails(map[string]interface{}{"reason": "email_already_used"})
 	}
 
 	// 调用 repository 更新邮箱
 	if _, err := s.repo.UpdateEmailByUserId(uid, email); err != nil {
-		return errors.DatabaseError.WithDetails(fmt.Sprintf("更新邮箱失败: %v", err))
+		return errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "email_update_failed"})
 	}
 
 	return nil
@@ -355,11 +427,11 @@ func (s *Service) UpdateUserEmail(uid int64, email string) error {
 func (s *Service) UpdateUserStatus(userId int64, status int8) (int64, error) {
 	rowsAffected, err := s.repo.UpdateUserStatus(userId, status)
 	if err != nil {
-		return 0, errors.DatabaseError.WithDetails(fmt.Sprintf("更新用户状态失败: %v", err))
+		return 0, errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "user_status_update_failed"})
 	}
 	// 检查是否更新成功
 	if rowsAffected == 0 {
-		return 0, errors.DatabaseError.WithDetails("未找到用户或状态未修改")
+		return 0, errors.DatabaseError.WithDetails(map[string]interface{}{"reason": "user_not_found_or_status_unchanged"})
 	}
 	return rowsAffected, nil
 }
@@ -368,7 +440,7 @@ func (s *Service) UpdateUserStatus(userId int64, status int8) (int64, error) {
 func (s *Service) UpdateUserPwd(userId int64, pwd string) (int64, error) {
 	rowsAffected, err := s.repo.UpdateUserPwd(userId, pwd)
 	if err != nil {
-		return 0, errors.DatabaseError.WithDetails(fmt.Sprintf("更新用户密码失败: %v", err))
+		return 0, errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "password_update_failed"})
 	}
 	return rowsAffected, nil
 }
@@ -379,17 +451,17 @@ func (s *Service) UpdateUserPwd(userId int64, pwd string) (int64, error) {
 func (s *Service) validateUserInput(user *User) error {
 	// 判断参数是否到位
 	if !pkg.IsUserName(user.UserName) {
-		return errors.ValidationError.WithDetails("用户名格式不正确")
+		return errors.ValidationError.WithDetails(map[string]interface{}{"reason": "invalid_username_format"})
 	}
 
 	// 判断密码格式
 	if !pkg.IsPwd(user.Pwd) {
-		return errors.ValidationError.WithDetails("密码格式不正确")
+		return errors.ValidationError.WithDetails(map[string]interface{}{"reason": "invalid_password_format"})
 	}
 
 	// 判断用户时区与语言是否正确
 	if !pkg.IsTimeZone(user.TimeZone) {
-		return errors.ValidationError.WithDetails("时区格式不正确")
+		return errors.ValidationError.WithDetails(map[string]interface{}{"reason": "invalid_timezone_format"})
 	}
 
 	// 判断用户名是否存在
@@ -398,7 +470,7 @@ func (s *Service) validateUserInput(user *User) error {
 		return err
 	}
 	if isExistUserName {
-		return errors.UserExists.WithDetails("用户名: " + user.UserName)
+		return errors.UserExists.WithDetails(map[string]interface{}{"username": user.UserName, "reason": "username_exists"})
 	}
 
 	// 判断邮件地址是否存在
@@ -407,7 +479,7 @@ func (s *Service) validateUserInput(user *User) error {
 		return err
 	}
 	if isExistEmail {
-		return errors.EmailExists.WithDetails("邮箱: " + user.Email)
+		return errors.EmailExists.WithDetails(map[string]interface{}{"email": user.Email, "reason": "email_exists"})
 	}
 
 	return nil

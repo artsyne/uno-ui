@@ -87,4 +87,7 @@ type RenderContext struct {
 	Theme string `json:"theme,omitempty"`
 	// Layout 页面布局设置
 	IsHXRequest bool `json:"is_hx_request"`
+
+	// CsrfToken CSRF令牌
+	CsrfToken string `json:"csrf_token"`
 }

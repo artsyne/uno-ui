@@ -2,7 +2,6 @@ package task
 
 import (
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -11,8 +10,6 @@ import (
 	"github.com/biuren/hebe/pkg"
 	"github.com/jasonlvhit/gocron"
 )
-
-
 
 // Service 任务业务逻辑层实现
 // 负责处理所有与任务相关的业务逻辑和规则验证
@@ -94,7 +91,7 @@ func (s *Service) CreateEmailTask(to, subject, body string) error {
 
 	taskBody, err := json.Marshal(emailTask)
 	if err != nil {
-		return errors.ValidationError.WithDetails(fmt.Sprintf("邮件任务序列化失败: %v", err))
+		return errors.ValidationError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "email_serialization_failed"})
 	}
 
 	nowTime := time.Now().Unix()
@@ -109,7 +106,7 @@ func (s *Service) CreateEmailTask(to, subject, body string) error {
 
 	_, err = s.repo.InsertJobQueue(jobQueue)
 	if err != nil {
-		return errors.DatabaseError.WithDetails(fmt.Sprintf("邮件任务创建失败: %v", err))
+		return errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "email_job_creation_failed"})
 	}
 	return nil
 }

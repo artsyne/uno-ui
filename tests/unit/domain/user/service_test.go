@@ -28,7 +28,7 @@ func TestUserService_RegisterUser(t *testing.T) {
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 
 	// 准备测试数据 - 使用随机数据避免冲突
 	newUser := &user.User{
@@ -114,7 +114,7 @@ func TestUserService_LoginWithUsernameOrEmail(t *testing.T) {
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -188,7 +188,7 @@ func TestUserService_UpdateUserProfile(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		taskService := task.NewService(config, taskRepo)
 		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+		userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -285,7 +285,7 @@ func TestUserService_IsExistUserName(t *testing.T) {
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -322,7 +322,7 @@ func TestUserService_IsExistEmail(t *testing.T) {
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -359,7 +359,7 @@ func TestUserService_GetUserByUserId(t *testing.T) {
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -401,7 +401,7 @@ func TestUserService_GetUserByEmail(t *testing.T) {
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{
@@ -410,6 +410,7 @@ func TestUserService_GetUserByEmail(t *testing.T) {
 		Pwd:      "password123",
 		FullName: ctx.GetDataGenerator().GenerateUniqueString("fullname"),
 		TimeZone: "Asia/Shanghai",
+		Lang:     "zh-cn",
 	}
 
 	err := userService.RegisterUser(newUser)
@@ -441,7 +442,7 @@ func TestUserService_UpdateUserStatus(t *testing.T) {
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 
 	// 先注册一个用户 - 使用随机数据
 	newUser := &user.User{

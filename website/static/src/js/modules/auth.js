@@ -1,3 +1,5 @@
+import { handleApiError } from '../utils/error-handler.js';
+
 export function initAuth() {
   // Configure HTMX to allow swapping on error status codes (4xx, 5xx)
   document.body.addEventListener('htmx:beforeSwap', function (evt) {
@@ -14,11 +16,9 @@ export function initAuth() {
 
         if (!result.success) {
           evt.detail.isError = true;
-          let msg = result.message || 'common.op_fail';
-          // Append details if it's a string
-          if (result.details && typeof result.details === 'string') {
-            msg += ': ' + result.details;
-          }
+
+          // Use standardized error handler
+          const { localizedMessage } = handleApiError(result);
 
           // Locate error container:
           // Priority 1: Check if the target itself is the error container or contains it
@@ -43,27 +43,23 @@ export function initAuth() {
           }
 
           if (errorContainer) {
-            // Translate if possible
-            const i18n = window.Alpine?.store('i18n');
-            const translatedMsg = i18n ? i18n.t(msg) : msg;
-
-            errorContainer.textContent = translatedMsg;
+            errorContainer.textContent = localizedMessage;
             errorContainer.classList.remove('hidden');
 
             errorContainer.style.display = ''; // Ensure visibility
           } else {
-            // Fallback: Log warning but DO NOT use notify as requested
-            console.warn(
-              'Error container .error-message not found. Message:',
-              msg,
-            );
+            notify.error(localizedMessage);
           }
         } else {
           // Success JSON
           evt.detail.isError = false;
-          notify.success(result.message || 'auth.success');
+          const i18n = window.Alpine?.store('i18n');
+          const msg = i18n
+            ? i18n.t(result.message || 'auth.success', result.data || {})
+            : result.message || 'auth.success';
+          notify.success(msg);
         }
-      } catch (e) {
+      } catch {
         evt.detail.isError = true;
       }
       return;
@@ -90,9 +86,8 @@ export function initAuth() {
           if (res.success && res.data && res.data.UserId) {
             window.location.href = '/u/' + res.data.UserId;
           }
-        } catch (e) {
+        } catch {
           // JSON parse error or invalid structure, ignore
-          console.error('Auth response processing error:', e);
         }
       }
     }
@@ -136,7 +131,7 @@ export function initValidationCallbacks() {
       }
       // Return translated message or fallback to the first error in map
       return t(msgKey) || t(Object.values(errorMap)[0]);
-    } catch (error) {
+    } catch {
       const t = (key) => Alpine.store('i18n').t(key);
       return t('common.op_fail');
     }
@@ -144,7 +139,7 @@ export function initValidationCallbacks() {
 
   // Register checkUsername callback
   // Updated for Uno Valid v0.8.0+: Native Async Support
-  validStore.registerValidator('checkUsername', async (value, name) => {
+  validStore.registerValidator('checkUsername', async (value) => {
     if (!value) return true;
     return validateRemote(
       '/check-username',

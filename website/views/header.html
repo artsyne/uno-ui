@@ -11,6 +11,7 @@
 	<title>{{.Title}}</title>
 	<meta name="user-id" content="{{ getUserID .}}">
 	<meta name="user-name" content="{{getUserName .}}">
+	<meta name="csrf-token" content="{{.Context.CsrfToken}}">
 	<link href="/public/dist/css/idiary.min.css?v={{getRandomVersion .}}" rel="stylesheet">
 	<link href="/public/dist/css/materialdesignicons.min.css?v=6.5.95" rel="stylesheet">
 	<script>
@@ -26,6 +27,6 @@
 	</script>
 </head>
 
-<body class="bg-white dark:bg-gray-900 transition-colors duration-200" x-data>
+<body class="bg-white dark:bg-gray-900 transition-colors duration-200" x-data="{ csrfToken: '{{.Context.CsrfToken}}' }">
 	<div id="app" class="flex flex-col mt-14 text-zinc-500 bg-white dark:bg-gray-900 transition-colors duration-200">
 		{{end}}

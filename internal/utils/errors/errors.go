@@ -6,10 +6,10 @@ import (
 
 // AppError 统一的错误结构体，包含所有必要信息
 type AppError struct {
-	code     int    // 错误数字码（私有）
-	key      string // 错误标识符（私有）
-	httpCode int    // HTTP状态码（私有）
-	details  string // 错误详情（私有，可选）
+	code     int         // 错误数字码（私有）
+	key      string      // 错误标识符（私有）
+	httpCode int         // HTTP状态码（私有）
+	details  interface{} // 错误详情（私有，可选）
 }
 
 // NewAppError 创建新的错误定义（构造函数）
@@ -18,7 +18,7 @@ func NewAppError(code int, key string, httpCode int) AppError {
 		code:     code,
 		key:      key,
 		httpCode: httpCode,
-		details:  "", // 默认无详情
+		details:  nil, // 默认无详情
 	}
 }
 
@@ -38,20 +38,20 @@ func (def AppError) HttpCode() int {
 }
 
 // Details 获取错误详情（只读访问）
-func (def AppError) Details() string {
+func (def AppError) Details() interface{} {
 	return def.details
 }
 
 // Error 实现 error 接口
 func (def AppError) Error() string {
-	if def.details != "" {
-		return fmt.Sprintf("[%d] %s: %s", def.code, def.key, def.details)
+	if def.details != nil {
+		return fmt.Sprintf("[%d] %s: %v", def.code, def.key, def.details)
 	}
 	return fmt.Sprintf("[%d] %s", def.code, def.key)
 }
 
 // WithDetails 返回带详细信息的新错误实例
-func (def AppError) WithDetails(details string) AppError {
+func (def AppError) WithDetails(details interface{}) AppError {
 	// 返回一个新的 AppError 值，确保不可变性
 	return AppError{
 		code:     def.code,
@@ -91,6 +91,8 @@ var (
 	AccessForbidden        = NewAppError(1202, "access_forbidden", 403)
 	InsufficientPrivileges = NewAppError(1203, "insufficient_privileges", 403)
 	OperationNotAllowed    = NewAppError(1204, "operation_not_allowed", 403)
+	// ErrOriginInvalid 是 OperationNotAllowed 的别名，用于 CSRF/Origin 验证失败
+	ErrOriginInvalid = OperationNotAllowed
 
 	// 1300-1399: 资源不存在 (404)
 	UserNotFound     = NewAppError(1301, "user_not_found", 404)
@@ -154,8 +156,8 @@ var (
 	DIServiceAlreadyRegistered = NewAppError(6251, "di_service_already_registered", 500)
 	DIServiceNotRegistered     = NewAppError(6252, "di_service_not_registered", 500)
 
-	// 6300-6399: 系统负载错误 (500)
-	RateLimitExceeded = NewAppError(6301, "rate_limit_exceeded", 500)
+	// 6300-6399: 系统负载错误 (500/429)
+	RateLimitExceeded = NewAppError(6301, "rate_limit_exceeded", 429)
 	ServerOverloaded  = NewAppError(6302, "server_overloaded", 500)
 	MaintenanceMode   = NewAppError(6303, "maintenance_mode", 500)
 

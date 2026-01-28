@@ -19,7 +19,7 @@ func (ctrl *UserController) ValidateUsername(c *gin.Context) {
 		return
 	}
 	if isExistUserName {
-		ctrl.renderService.JSONError(c, errors.UserExists.WithDetails("用户名: "+req.UserName))
+		ctrl.renderService.JSONError(c, errors.UserExists.WithDetails(map[string]interface{}{"username": req.UserName}))
 		return
 	}
 
@@ -44,7 +44,7 @@ func (ctrl *UserController) ValidateEmail(c *gin.Context) {
 		return
 	}
 	if isExistEmail {
-		ctrl.renderService.JSONError(c, errors.EmailExists.WithDetails("邮箱: "+req.Email))
+		ctrl.renderService.JSONError(c, errors.EmailExists.WithDetails(map[string]interface{}{"email": req.Email}))
 		return
 	}
 

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/biuren/hebe/internal/core/database"
 	"github.com/biuren/hebe/internal/domain/diary"
@@ -110,7 +109,7 @@ func (r *DiaryRepository) Update(d *diary.Diary) error {
 	}
 
 	if rowsAffected == 0 {
-		return errors.DiaryNotFound.WithDetails(fmt.Sprintf("diary with ID %d not found", d.DiaryID))
+		return errors.DiaryNotFound.WithDetails(map[string]interface{}{"diary_id": d.DiaryID})
 	}
 
 	return nil
@@ -165,7 +164,7 @@ func (r *DiaryRepository) GetByDiaryID(diaryID int64) (*diary.Diary, error) {
 	sqlstr := "SELECT * FROM br_diary WHERE diary_id = ?"
 	err := r.db.Get(d, sqlstr, diaryID)
 	if err == sql.ErrNoRows {
-		return nil, errors.DiaryNotFound.WithDetails("日记本不存在")
+		return nil, errors.DiaryNotFound.WithDetails(map[string]interface{}{"reason": "diary_not_found"})
 	}
 	return d, err
 }
@@ -231,7 +230,7 @@ func (r *DiaryRepository) IsDiaryOwner(diaryID, userID int64) (bool, error) {
 	sqlstr := "SELECT add_user_id FROM br_diary WHERE diary_id = ?"
 	err := r.db.Get(&ownerID, sqlstr, diaryID)
 	if err == sql.ErrNoRows {
-		return false, errors.DiaryNotFound.WithDetails("日记本不存在")
+		return false, errors.DiaryNotFound.WithDetails(map[string]interface{}{"reason": "diary_not_found"})
 	}
 	if err != nil {
 		return false, err

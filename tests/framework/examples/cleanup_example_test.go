@@ -1,6 +1,7 @@
 package examples
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/biuren/hebe/internal/domain/diary"
@@ -10,6 +11,7 @@ import (
 	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/utils/i18n"
 	"github.com/biuren/hebe/tests/framework"
+	"github.com/go-redis/redis"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -35,10 +37,17 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		
 		taskService := task.NewService(config, taskRepo)
-		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
-		diaryService := diary.NewService(config, diaryRepo)
-		entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	i18nManager := i18n.NewLocalizationManager(config)
+	
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
+		Password: config.Redis.Password,
+		DB:       0,
+	})
+	
+	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
+	diaryService := diary.NewService(config, diaryRepo)
+	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 		// 创建一些测试数据
 		generator := ctx.GetDataGenerator()
@@ -82,8 +91,15 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		
 		taskService := task.NewService(config, taskRepo)
-		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+	i18nManager := i18n.NewLocalizationManager(config)
+	
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
+		Password: config.Redis.Password,
+		DB:       0,
+	})
+	
+	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
 		diaryService := diary.NewService(config, diaryRepo)
 
 		// 创建一些测试数据
@@ -126,8 +142,15 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		
 		taskService := task.NewService(config, taskRepo)
-		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+	i18nManager := i18n.NewLocalizationManager(config)
+	
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
+		Password: config.Redis.Password,
+		DB:       0,
+	})
+	
+	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
 
 		// 创建第一批测试数据
 		generator := ctx.GetDataGenerator()
@@ -175,8 +198,15 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
 		
 		taskService := task.NewService(config, taskRepo)
-		i18nManager := i18n.NewLocalizationManager(config)
-		userService := user.NewService(config, userRepo, taskService, i18nManager)
+	i18nManager := i18n.NewLocalizationManager(config)
+	
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
+		Password: config.Redis.Password,
+		DB:       0,
+	})
+	
+	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
 
 		// 创建测试数据
 		generator := ctx.GetDataGenerator()

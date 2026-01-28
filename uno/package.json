@@ -30,7 +30,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prepublishOnly": "npm run test && npm run build"
   },
   "keywords": [
     "alpine",

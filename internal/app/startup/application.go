@@ -21,11 +21,11 @@ import (
 	"github.com/biuren/hebe/internal/domain/like"
 	"github.com/biuren/hebe/internal/domain/task"
 	"github.com/biuren/hebe/internal/domain/user"
+	"github.com/biuren/hebe/internal/infra/cache"
 	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/internal/utils/i18n"
-	utilsMiddleware "github.com/biuren/hebe/internal/utils/middleware"
 	"github.com/biuren/hebe/pkg"
 )
 
@@ -167,6 +167,12 @@ func (a *Application) registerAppServices() error {
 	// 创建 I18nManager 实例
 	i18nManager := i18n.NewLocalizationManager(a.config)
 	di.Value(a.container, i18nManager)
+
+	// 初始化 Redis 客户端
+	redisClient, err := cache.NewRedisClient(a.config.Redis)
+	if err != nil {
+		return fmt.Errorf("Redis连接失败: %w", err)
+	}
 	
 	// 创建 ViewService 实例
 	viewService := view.NewViewService(a.config, i18nManager)
@@ -182,9 +188,9 @@ func (a *Application) registerAppServices() error {
 	
 	// 创建服务实例
 	taskService := task.NewService(a.config, taskRepo)
-	userService := user.NewService(a.config, userRepo, taskService, i18nManager)
+	userService := user.NewService(a.config, userRepo, taskService, i18nManager, redisClient)
 	diaryService := diary.NewService(a.config, diaryRepo)
-	entryService := entry.NewService(a.config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	entryService := entry.NewService(a.config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 	commentService := comment.NewService(a.config, commentRepo, userService, entryService, diaryService)
 	likeService := like.NewLikeService(likeRepo)
 	
@@ -279,9 +285,12 @@ func (a *Application) initGinServer() error {
 	server := gin.New()
 
 	// 初始化中间件
-	server.Use(utilsMiddleware.PanicRecovery())   // panic recovery中间件
-	server.Use(utilsMiddleware.AppErrorHandler()) // 应用错误处理中间件
-	server.Use(middleware.SharedData())            // 用户共享数据中间件
+	server.Use(middleware.PanicRecovery())   // panic recovery中间件
+	server.Use(middleware.AppErrorHandler()) // 应用错误处理中间件
+	server.Use(middleware.CORS(a.config))         // CORS中间件
+	server.Use(middleware.SharedData())           // 用户共享数据中间件
+	server.Use(middleware.CSRF(a.config))         // CSRF防护中间件
+	server.Use(middleware.GeneralRateLimit(a.config)) // 全局限流中间件
 	slog.Info("成功初始化中间件")
 
 	// 初始化路由

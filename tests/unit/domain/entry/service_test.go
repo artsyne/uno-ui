@@ -64,9 +64,9 @@ func TestEntryService_AddEntry(t *testing.T) {
 	
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	diaryService := diary.NewService(config, diaryRepo)
-	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
 	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
@@ -131,9 +131,9 @@ func TestEntryService_GetEntryByID(t *testing.T) {
 	
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	diaryService := diary.NewService(config, diaryRepo)
-	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
 	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
@@ -183,9 +183,9 @@ func TestEntryService_UpdateEntry(t *testing.T) {
 	
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	diaryService := diary.NewService(config, diaryRepo)
-	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
 	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
@@ -270,11 +270,11 @@ func TestEntryService_ListEntriesByUserID(t *testing.T) {
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(config, diaryRepo)
 	entryRepo := repository.NewEntryRepository()
-	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
 	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
@@ -395,11 +395,11 @@ func TestEntryService_GetEntryCountByUserID(t *testing.T) {
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(config, diaryRepo)
 	entryRepo := repository.NewEntryRepository()
-	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
 		testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
@@ -455,11 +455,11 @@ func TestEntryService_UpdateEntryByID(t *testing.T) {
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(config, diaryRepo)
 	entryRepo := repository.NewEntryRepository()
-	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
 	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
@@ -529,11 +529,11 @@ func TestEntryService_DeleteEntryByID(t *testing.T) {
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	diaryRepo := repository.NewDiaryRepository()
 	diaryService := diary.NewService(config, diaryRepo)
 	entryRepo := repository.NewEntryRepository()
-	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
 	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
@@ -595,9 +595,9 @@ func TestEntryService_GetEntriesStats(t *testing.T) {
 	
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	diaryService := diary.NewService(config, diaryRepo)
-	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
 	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/biuren/hebe/internal/core/database"
 	"github.com/biuren/hebe/internal/domain/entry"
@@ -71,7 +70,7 @@ func (r *EntryRepository) Update(e *entry.Entry) error {
 		return err
 	}
 	if rowsAffected == 0 {
-		return errors.EntryNotFound.WithDetails(fmt.Sprintf("entry_id: %d", e.EntryID))
+		return errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": e.EntryID})
 	}
 
 	return nil
@@ -117,7 +116,7 @@ func (r *EntryRepository) GetByID(entryID int64) (*entry.Entry, error) {
 	e := &entry.Entry{}
 	err := r.db.Get(e, sqlstr, entryID)
 	if err == sql.ErrNoRows {
-		return nil, errors.EntryNotFound.WithDetails(fmt.Sprintf("entry_id: %d", entryID))
+		return nil, errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": entryID})
 	}
 	return e, err
 }
@@ -146,7 +145,7 @@ func (r *EntryRepository) UpdateByID(e *entry.Entry) error {
 		return err
 	}
 	if rowsAffected == 0 {
-		return errors.EntryNotFound.WithDetails(fmt.Sprintf("entry_id: %d", e.EntryID))
+		return errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": e.EntryID})
 	}
 	
 	return nil
@@ -166,7 +165,7 @@ func (r *EntryRepository) DeleteByID(entryID int64) error {
 		return err
 	}
 	if rowsAffected == 0 {
-		return errors.EntryNotFound.WithDetails(fmt.Sprintf("entry_id: %d", entryID))
+		return errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": entryID})
 	}
 	
 	return nil

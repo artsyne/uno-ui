@@ -30,9 +30,9 @@ func setupTestData(t *testing.T, ctx *framework.TestContext) (*user.User, *diary
 
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
-	userService := user.NewService(config, userRepo, taskService, i18nManager)
+	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	diaryService := diary.NewService(config, diaryRepo)
-	entryService := entry.NewService(config, userRepo, taskService, diaryRepo, entryRepo, i18nManager)
+	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 	commentService := comment.NewService(config, commentRepo, userService, entryService, diaryService)
 
 	// 创建测试用户
@@ -110,7 +110,7 @@ func TestCommentService_AddComment(t *testing.T) {
 				AddUserIP:   "127.0.0.1",
 			},
 			wantErr: true,
-			errMsg:  "无效的用户ID",
+			errMsg:  "invalid_user_id",
 		},
 		{
 			name: "无效的文章ID",
@@ -122,7 +122,7 @@ func TestCommentService_AddComment(t *testing.T) {
 				AddUserIP:   "127.0.0.1",
 			},
 			wantErr: true,
-			errMsg:  "日记不存在",
+			errMsg:  "entry_not_found",
 		},
 	}
 

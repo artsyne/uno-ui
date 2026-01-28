@@ -13,7 +13,7 @@
 
 ## 📖 项目概述
 
-**iDiary.ai Hebe** 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能日记管理系统，采用**领域驱动设计（DDD）**的分层架构，通过**Go 1.25泛型依赖注入容器**实现零反射、编译时类型安全的高性能设计。
+**iDiary.ai Hebe** 是一个基于 **Go 1.25** 和 **Gin** 框架的现代化智能日记管理系统，采用**领域驱动设计（DDD）**的分层架构，通过**Go 1.25泛型依赖注入容器**实现零反射、编译时类型安全的高性能设计。前端采用现代化的技术栈，基于 **Uno UI、Alpine.js、HTMX 和 Tailwind CSS**，提供流畅的用户体验。
 
 ### 🚀 核心特性
 
@@ -21,7 +21,7 @@
 - **☁️ 多云存储**: 支持 Dropbox、Google Drive、阿里云盘、WebDAV 等多种云存储服务
 - **🏗️ 现代化架构**: 基于 DDD 分层设计，Go 1.25 泛型 DI 容器，零反射高性能
 - **🌍 国际化支持**: 智能语言检测，预加载缓存，微秒级翻译查找
-- **🎨 响应式设计**: Tailwind CSS 4.x + Kiko.js 组件库，现代化 UI/UX，支持 Light/Dark 主题切换
+- **🎨 现代化前端**: Uno UI + Alpine.js + HTMX + Tailwind CSS，响应式设计，支持 Light/Dark 主题切换
 - **⚡ 高性能**: 优化的数据库查询、Redis 缓存、异步任务处理
 - **🧪 完整测试**: 91%+ 覆盖率，真实环境测试框架，性能基准测试
 - **🔒 统一错误处理**: 4位错误码体系，结构化日志，优雅的错误降级
@@ -39,11 +39,11 @@
 
 **🎨 前端技术**:
 
+- **Uno UI v0.8.0**: 现代化 UI 组件库，基于 Alpine.js 和 Tailwind CSS
+- **Alpine.js v3.14.8**: 轻量级响应式框架，提供声明式数据绑定和组件系统
+- **HTMX v2.0.4**: 服务端渲染增强，通过 HTML 属性实现动态交互
 - **Tailwind CSS 4.x**: 原子化 CSS 框架，响应式设计
-- **jquery 4.x**: 前端库，简化 DOM 操作
-- **Kiko.js**: 自研前端组件库 (Grid、Tab、Notify、Valid 等)
 - **JavaScript ES2023**: 现代 JS 特性，模块化设计
-- **国际化 i18n**: 多语言支持，智能语言切换
 
 **🏗️ 架构特性**:
 
@@ -96,17 +96,20 @@ hebe/
 │   ├── domain/                # 领域层 (Domain Layer)
 │   │   ├── user/              # 用户领域
 │   │   ├── diary/             # 日记领域
-│   │   ├── post/              # 文章领域
+│   │   ├── entry/             # 日记条目领域
+│   │   ├── comment/           # 评论领域
+│   │   ├── like/              # 点赞领域
 │   │   └── task/              # 任务领域
 │   ├── infra/                 # 基础设施层 (Infrastructure Layer)
-│   │   └── repository/        # 数据仓储实现
+│   │   ├── repository/        # 数据仓储实现
+│   │   └── cache/             # 缓存实现
 │   ├── core/                  # 核心层 (Core Layer)
 │   │   ├── database/          # 数据库连接管理
 │   │   ├── di/                # Go 1.25泛型DI容器
 │   │   └── initializer/       # 核心初始化器
 │   ├── utils/                 # 工具层 (Utils Layer)
 │   │   ├── config/            # 配置管理
-│   │   ├── error/             # 错误处理
+│   │   ├── errors/            # 错误处理
 │   │   ├── i18n/              # 国际化服务
 │   │   └── middleware/        # 系统级中间件
 │   └── contracts/             # 合约层 (Contracts Layer)
@@ -114,9 +117,28 @@ hebe/
 ├── pkg/                       # 公共工具包
 ├── website/                   # 前端资源
 │   ├── static/                # 静态资源 (CSS, JS, 图片)
-│   ├── views/                 # HTML模板
-│   └── locales/               # 国际化翻译文件
-├── kiko/                      # Kiko.js 前端组件库
+│   │   ├── dist/              # 构建输出
+│   │   └── src/               # 源码
+│   │       ├── js/            # JavaScript 源码
+│   │       │   ├── core/      # 核心初始化
+│   │       │   ├── modules/   # 功能模块
+│   │       │   ├── stores/    # Alpine.js Stores
+│   │       │   ├── utils/     # 工具函数
+│   │       │   └── locales/   # 国际化文件
+│   │       └── css/           # CSS 源码
+│   └── views/                 # HTML模板
+│       ├── base.html          # 基础模板
+│       ├── header.html        # 头部模板
+│       ├── footer.html        # 底部模板
+│       ├── navbar.html        # 导航栏
+│       ├── index.html         # 首页
+│       ├── comment/           # 评论相关
+│       ├── diary/             # 日记本相关
+│       ├── entry/             # 日记条目相关
+│       ├── form/              # 表单相关
+│       ├── passport/          # 认证相关
+│       └── user/              # 用户相关
+├── uno/                       # Uno UI 组件库（独立项目）
 ├── tests/                     # 测试代码
 │   ├── framework/             # 测试框架
 │   ├── unit/                  # 单元测试
@@ -144,7 +166,7 @@ hebe/
 ├── Website Layer: 表现层（模板、静态资源、UI组件）
 ├── App Layer: 应用层（控制器、视图服务、路由、中间件）
 ├── Domain Layer: 领域层（业务逻辑、领域服务、实体）
-├── Infra Layer: 基础设施层（仓储实现、数据访问）
+├── Infra Layer: 基础设施层（仓储实现、数据访问、缓存）
 ├── Core Layer: 核心层（数据库、DI容器、初始化）
 └── Utils Layer: 工具层（配置、错误处理、国际化、中间件）
 ```
@@ -225,7 +247,7 @@ docker-compose logs -f idiary
 
 ### 🌟 新手入门路径
 
-1. **📖 [项目文档总览](./docs/README.md)** - 开始这里！完整技术文档导航
+1. **📖 [项目文档总览](./docs/readme.md)** - 开始这里！完整技术文档导航
 2. **🏗️ [系统架构概览](./docs/architecture-overview.md)** - 理解DDD分层设计
 3. **🚀 [系统启动流程](./docs/system-startup-guide.md)** - 掌握应用启动过程
 4. **⚙️ [Go 1.25泛型DI容器](./docs/di-container-guide.md)** - 学习现代依赖注入
@@ -236,7 +258,7 @@ docker-compose logs -f idiary
 | ------------ | ------------------------------------------------------ | ------------------------- |
 | **依赖注入** | [Go 1.25泛型DI容器](./docs/di-container-guide.md)      | 零反射、高性能DI系统      |
 | **国际化**   | [国际化系统指南](./docs/i18n-guide.md) | 智能语言检测和翻译        |
-| **主题系统** | [主题系统指南](./docs/THEME_SYSTEM_GUIDE.md)           | Light/Dark主题切换系统    |
+| **主题系统** | [主题系统指南](./docs/theme-system-guide.md)           | Light/Dark主题切换系统    |
 | **中间件**   | [中间件系统详解](./docs/middleware-guide.md)           | 分层中间件架构            |
 | **错误处理** | [错误处理机制](./docs/error-handling-examples.md)      | 统一错误处理和ViewService |
 | **日志系统** | [日志系统指南](./docs/logging-enhancement-guide.md)    | slog结构化日志            |
@@ -339,6 +361,14 @@ go mod download
 - **预加载缓存**: 启动时加载所有语言文件到内存
 - **智能检测**: 用户设置→Cookie→浏览器→默认
 - **微秒级翻译**: 高效缓存map，翻译查找<1μs
+
+### 🎨 现代化前端技术栈
+
+- **Uno UI**: 现代化 UI 组件库，提供 Box、Notify、Tooltip、Tab、Valid 等组件
+- **Alpine.js**: 轻量级响应式框架，提供声明式数据绑定和组件系统
+- **HTMX**: 服务端渲染增强，通过 HTML 属性实现动态交互
+- **Tailwind CSS 4.x**: 原子化 CSS 框架，响应式设计
+- **模块化设计**: 清晰的模块划分，易于维护和扩展
 
 ### 🧪 真实环境测试
 

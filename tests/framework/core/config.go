@@ -10,13 +10,14 @@ import (
 
 	"github.com/biuren/hebe/internal/utils/config"
 	. "github.com/biuren/hebe/tests/framework/types"
+	"github.com/subosito/gotenv"
 )
 
 var (
-	globalTestConfig   *TestConfig
-	globalConfig       *config.Config
-	testConfigMutex    sync.RWMutex
-	globalConfigMutex  sync.RWMutex
+	globalTestConfig  *TestConfig
+	globalConfig      *config.Config
+	testConfigMutex   sync.RWMutex
+	globalConfigMutex sync.RWMutex
 )
 
 // ResetGlobalConfig 重置全局配置单例状态（仅用于测试）
@@ -84,19 +85,19 @@ func loadGlobalConfig() *config.Config {
 	return &config.Config{
 		Env: getEnvString("IDIARY_ENV", "test"),
 		App: config.AppConfig{
-			GinMode:         getEnvString("IDIARY_GIN_MODE", "debug"),
-			Domain:          getEnvString("IDIARY_DOMAIN", "http://127.0.0.1:8080"),
-			Port:            getEnvString("IDIARY_PORT", "8080"),
-			SummaryMax:      getEnvInt("IDIARY_SUMMARY_MAX", 555),
-			Suffix:          getEnvString("IDIARY_SUFFIX", "..."),
-			PageSize:        getEnvInt("IDIARY_PAGE_SIZE", 20),
-			MaxDiaryLimit:      getEnvInt("IDIARY_MAX_DIARY_LIMIT", 500),
-			MaxEntryLength:        getEnvInt("IDIARY_MAX_ENTRY_LENGTH", 20000),
+			GinMode:              getEnvString("IDIARY_GIN_MODE", "debug"),
+			Domain:               getEnvString("IDIARY_DOMAIN", "http://127.0.0.1:8080"),
+			Port:                 getEnvString("IDIARY_PORT", "8080"),
+			SummaryMax:           getEnvInt("IDIARY_SUMMARY_MAX", 555),
+			Suffix:               getEnvString("IDIARY_SUFFIX", "..."),
+			PageSize:             getEnvInt("IDIARY_PAGE_SIZE", 20),
+			MaxDiaryLimit:        getEnvInt("IDIARY_MAX_DIARY_LIMIT", 500),
+			MaxEntryLength:       getEnvInt("IDIARY_MAX_ENTRY_LENGTH", 20000),
 			MaxCommentLength:     getEnvInt("IDIARY_MAX_COMMENT_LENGTH", 1000),
 			MaxDescriptionLength: getEnvInt("IDIARY_MAX_DESCRIPTION_LENGTH", 500),
 			StaticDir:            getEnvString("IDIARY_STATIC_DIR", filepath.Join(GetProjectRoot(), "website/static")),
-			LocalesDir:      getEnvString("IDIARY_LOCALES_DIR", filepath.Join(GetProjectRoot(), "website/locales")),
-			DefaultLang:     getEnvString("IDIARY_DEFAULT_LANG", "zh-cn"),
+			LocalesDir:           getEnvString("IDIARY_LOCALES_DIR", filepath.Join(GetProjectRoot(), "website/locales")),
+			DefaultLang:          getEnvString("IDIARY_DEFAULT_LANG", "zh-cn"),
 		},
 		Database: config.DatabaseConfig{
 			Host:     getEnvString("IDIARY_DB_HOST", "127.0.0.1"),
@@ -105,16 +106,16 @@ func loadGlobalConfig() *config.Config {
 			User:     getEnvString("IDIARY_DB_USER", "root"),
 			Password: getEnvString("IDIARY_DB_PASSWORD", "123123"),
 			Conn:     getEnvString("IDIARY_DB_CONN", "%s:%s@tcp(%s:3306)/%s?parseTime=true&loc=Local&charset=utf8mb4&collation=utf8mb4_general_ci"),
-	},
-	User: config.UserConfig{
-		PwdMinLen:        getEnvInt("IDIARY_PWD_MIN_LEN", 6),
-		PwdMaxLen:        getEnvInt("IDIARY_PWD_MAX_LEN", 50),
-		DefaultGroup:     int8(getEnvInt("IDIARY_USER_DEFAULT_GROUP", 1)),
-		StatusOK:         int8(getEnvInt("IDIARY_USER_STATUS_OK", 1)),
-		StatusWaitActive: int8(getEnvInt("IDIARY_USER_STATUS_WAIT_ACTIVE", 0)),
-		StatusDeleted:    int8(getEnvInt("IDIARY_USER_STATUS_DEL", 2)),
-	},
-	Redis: config.RedisConfig{
+		},
+		User: config.UserConfig{
+			PwdMinLen:        getEnvInt("IDIARY_PWD_MIN_LEN", 6),
+			PwdMaxLen:        getEnvInt("IDIARY_PWD_MAX_LEN", 50),
+			DefaultGroup:     int8(getEnvInt("IDIARY_USER_DEFAULT_GROUP", 1)),
+			StatusOK:         int8(getEnvInt("IDIARY_USER_STATUS_OK", 1)),
+			StatusWaitActive: int8(getEnvInt("IDIARY_USER_STATUS_WAIT_ACTIVE", 0)),
+			StatusDeleted:    int8(getEnvInt("IDIARY_USER_STATUS_DEL", 2)),
+		},
+		Redis: config.RedisConfig{
 			Host:     getEnvString("IDIARY_REDIS_HOST", "127.0.0.1"),
 			Port:     getEnvInt("IDIARY_REDIS_PORT", 6379),
 			Password: getEnvString("IDIARY_REDIS_PASSWORD", ""),
@@ -169,19 +170,19 @@ func loadTestConfig() *TestConfig {
 
 	config := &TestConfig{
 		App: config.AppConfig{
-			GinMode:         getEnvString("IDIARY_GIN_MODE", "debug"),
-			Domain:          getEnvString("IDIARY_DOMAIN", "http://127.0.0.1:8080"),
-			Port:            getEnvString("IDIARY_PORT", "8080"),
-			SummaryMax:      getEnvInt("IDIARY_SUMMARY_MAX", 555),
-			Suffix:          getEnvString("IDIARY_SUFFIX", "..."),
-			PageSize:        getEnvInt("IDIARY_PAGE_SIZE", 20),
-			MaxDiaryLimit: getEnvInt("IDIARY_MAX_DIARY_LIMIT", 500),
+			GinMode:              getEnvString("IDIARY_GIN_MODE", "debug"),
+			Domain:               getEnvString("IDIARY_DOMAIN", "http://127.0.0.1:8080"),
+			Port:                 getEnvString("IDIARY_PORT", "8080"),
+			SummaryMax:           getEnvInt("IDIARY_SUMMARY_MAX", 555),
+			Suffix:               getEnvString("IDIARY_SUFFIX", "..."),
+			PageSize:             getEnvInt("IDIARY_PAGE_SIZE", 20),
+			MaxDiaryLimit:        getEnvInt("IDIARY_MAX_DIARY_LIMIT", 500),
 			MaxEntryLength:       getEnvInt("IDIARY_MAX_ENTRY_LENGTH", 20000),
 			MaxCommentLength:     getEnvInt("IDIARY_MAX_COMMENT_LENGTH", 1000),
 			MaxDescriptionLength: getEnvInt("IDIARY_MAX_DESCRIPTION_LENGTH", 500),
-			StaticDir:       getEnvString("IDIARY_STATIC_DIR", "website/static"),
-			LocalesDir:      getEnvString("IDIARY_LOCALES_DIR", "website/locales"),
-			DefaultLang:     getEnvString("IDIARY_DEFAULT_LANG", "zh-cn"),
+			StaticDir:            getEnvString("IDIARY_STATIC_DIR", "website/static"),
+			LocalesDir:           getEnvString("IDIARY_LOCALES_DIR", "website/locales"),
+			DefaultLang:          getEnvString("IDIARY_DEFAULT_LANG", "zh-cn"),
 		},
 		Database: DatabaseConfig{
 			Host:     getEnvString("IDIARY_DB_HOST", "127.0.0.1"),
@@ -192,6 +193,11 @@ func loadTestConfig() *TestConfig {
 			Charset:  getEnvString("IDIARY_DB_CHARSET", "utf8mb4"),
 			MaxConns: getEnvInt("IDIARY_DB_MAX_CONNS", 10),
 			MaxIdle:  getEnvInt("IDIARY_DB_MAX_IDLE", 5),
+		},
+		Redis: config.RedisConfig{
+			Host:     getEnvString("IDIARY_REDIS_HOST", "127.0.0.1"),
+			Port:     getEnvInt("IDIARY_REDIS_PORT", 6379),
+			Password: getEnvString("IDIARY_REDIS_PASSWORD", ""),
 		},
 		Cleanup: CleanupConfig{
 			Enabled:     ShouldCleanupDatabase(), // 使用新的flag解析逻辑
@@ -224,6 +230,13 @@ func loadTestConfig() *TestConfig {
 // setupTestEnvironment 统一设置测试环境变量
 // 替代当前分散在多个文件中的环境变量设置，基于实际的.env.local配置
 func setupTestEnvironment() {
+	// 尝试从项目根目录加载 .env.local
+	projectRoot := GetProjectRoot()
+	envLocalPath := filepath.Join(projectRoot, ".env.local")
+	if err := gotenv.Load(envLocalPath); err != nil {
+		// .env.local 文件不存在时不报错，这是预期的行为（在CI环境中可能不存在）
+	}
+
 	// 基本环境配置
 	setEnvIfNotExists("IDIARY_ENV", "test")
 	setEnvIfNotExists("IDIARY_GIN_MODE", "debug")
@@ -238,9 +251,12 @@ func setupTestEnvironment() {
 	setEnvIfNotExists("IDIARY_MAX_ENTRY_LENGTH", "20000")
 	setEnvIfNotExists("IDIARY_MAX_COMMENT_LENGTH", "1000")
 	setEnvIfNotExists("IDIARY_MAX_DESCRIPTION_LENGTH", "500")
-	setEnvIfNotExists("IDIARY_STATIC_DIR", filepath.Join(GetProjectRoot(), "website", "static"))
-	setEnvIfNotExists("IDIARY_LOCALES_DIR", filepath.Join(GetProjectRoot(), "website", "locales"))
-	setEnvIfNotExists("IDIARY_DEFAULT_LANG", "zh-cn")
+
+	// 强制使用绝对路径，确保在任何目录下运行测试都能找到资源
+	os.Setenv("IDIARY_STATIC_DIR", filepath.Join(GetProjectRoot(), "website", "static"))
+	os.Setenv("IDIARY_LOCALES_DIR", filepath.Join(GetProjectRoot(), "website", "locales"))
+
+	os.Setenv("IDIARY_DEFAULT_LANG", "zh-cn")
 
 	// 用户配置
 	setEnvIfNotExists("IDIARY_USER_DEFAULT_GROUP", "1")
@@ -255,6 +271,16 @@ func setupTestEnvironment() {
 	setEnvIfNotExists("IDIARY_VALID_CODE_ACTIVE_USER", "1")
 	setEnvIfNotExists("IDIARY_VALID_CODE_RESET_PWD", "2")
 	setEnvIfNotExists("IDIARY_VALID_CODE_EXPIRE_MINUTES", "30")
+
+	// 限流配置
+	setEnvIfNotExists("IDIARY_RATE_LIMIT_GENERAL", "10")
+	setEnvIfNotExists("IDIARY_RATE_LIMIT_GENERAL_BURST", "20")
+	setEnvIfNotExists("IDIARY_RATE_LIMIT_AUTH", "5")
+	setEnvIfNotExists("IDIARY_RATE_LIMIT_AUTH_BURST", "10")
+
+	// 暴力破解防护配置
+	setEnvIfNotExists("IDIARY_BRUTE_FORCE_MAX_FAILURES", "5")
+	setEnvIfNotExists("IDIARY_BRUTE_FORCE_LOCKOUT_MINUTES", "15")
 
 	// 必需的JSON配置
 	setEnvIfNotExists("IDIARY_SUPPORT_LANGS", `[{"code":"zh-cn","label":"简体中文","local-text":"简体中文"},{"code":"en","label":"English","local-text":"English"}]`)
@@ -337,7 +363,6 @@ func getDefaultTableOrder() []string {
 	return []string{
 		"br_comment",      // 评论表（子表）
 		"br_like",         // 点赞表（关联表）
-		"br_follow",       // 关注表（关联表）
 		"br_job_history",  // 任务历史表
 		"br_job_queue",    // 任务队列表
 		"br_diary_member", // 日记成员表（依赖日记和用户）
@@ -387,6 +412,15 @@ func getEnvBool(key string, defaultValue bool) bool {
 	if value := os.Getenv(key); value != "" {
 		if boolValue, err := strconv.ParseBool(value); err == nil {
 			return boolValue
+		}
+	}
+	return defaultValue
+}
+
+func getEnvFloat(key string, defaultValue float64) float64 {
+	if value := os.Getenv(key); value != "" {
+		if floatValue, err := strconv.ParseFloat(value, 64); err == nil {
+			return floatValue
 		}
 	}
 	return defaultValue
@@ -458,14 +492,14 @@ func GetProjectRoot() string {
 			panic(fmt.Sprintf("无法获取当前工作目录和可执行文件路径: %v, %v", err, execErr))
 		}
 	}
-	
+
 	// 向上查找包含go.mod的目录
 	for {
 		goModPath := filepath.Join(dir, "go.mod")
 		if _, err := os.Stat(goModPath); err == nil {
 			return dir
 		}
-		
+
 		parent := filepath.Dir(dir)
 		if parent == dir {
 			// 到达根目录，无法找到go.mod文件

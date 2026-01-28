@@ -48,6 +48,9 @@ async function build() {
       platform: 'browser',
       target: ['es2020'],
       logLevel: 'info',
+      define: {
+        'process.env.NODE_ENV': isDev ? '"development"' : '"production"',
+      },
     });
     console.log(
       `[Build] JS bundle built successfully at ${path.join(distDir, 'bundle.js')}`,

@@ -10,9 +10,9 @@ iDiary.ai Hebe采用分层中间件架构，通过Gin框架的中间件机制实
 HTTP Request
     ↓
 ┌─────────────────────────────────────────────────┐
-│          系统级中间件层 (Utils Layer)             │
-│   - utilsMiddleware.PanicRecovery()             │  ← 最高优先级，panic恢复
-│   - utilsMiddleware.AppErrorHandler()           │  ← 统一错误处理
+│          系统级中间件层 (System Layer)             │
+│   - middleware.PanicRecovery()                  │  ← 最高优先级，panic恢复
+│   - middleware.AppErrorHandler()                │  ← 统一错误处理
 └─────────────────────────────────────────────────┘
     ↓
 ┌─────────────────────────────────────────────────┐
@@ -38,7 +38,7 @@ HTTP Response (JSON/HTML)
 
 ### 1. PanicRecovery 中间件
 
-**文件位置**: `internal/utils/middleware/panic.go`
+**文件位置**: `internal/app/middleware/panic.go`
 
 **职责**: 捕获和处理运行时panic，防止应用崩溃
 
@@ -83,7 +83,7 @@ func PanicRecovery() gin.HandlerFunc {
 
 ### 2. AppErrorHandler 中间件
 
-**文件位置**: `internal/utils/middleware/apperror.go`
+**文件位置**: `internal/app/middleware/apperror.go`
 
 **职责**: 处理通过`c.Error()`添加的业务错误和应用错误
 
@@ -233,8 +233,8 @@ func (a *Application) initGinServer() error {
     server := gin.New()
 
     // 配置中间件链 - 严格按顺序加载
-    server.Use(utilsMiddleware.PanicRecovery())   // 1. panic恢复中间件
-    server.Use(utilsMiddleware.AppErrorHandler()) // 2. 应用错误处理中间件
+    server.Use(middleware.PanicRecovery())   // 1. panic恢复中间件
+    server.Use(middleware.AppErrorHandler()) // 2. 应用错误处理中间件
     server.Use(middleware.SharedData())           // 3. 共享数据中间件
 
     // 配置路由 - 通过DI容器创建控制器

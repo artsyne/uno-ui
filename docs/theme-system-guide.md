@@ -32,7 +32,7 @@ iDiary.ai Hebe 主题系统提供以下核心功能：
 - **CSS 框架**: Tailwind CSS 4.x (原生 dark mode 支持)
 - **构建工具**: Node.js + PostCSS
 - **模板引擎**: Go HTML Templates
-- **JavaScript**: jQuery 4.x + Kiko UI 插件系统
+- **JavaScript**: Uno UI + Alpine.js + HTMX + ES2023
 
 ## 目录结构
 

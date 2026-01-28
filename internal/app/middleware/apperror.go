@@ -20,11 +20,7 @@ func AppErrorHandler() gin.HandlerFunc {
 				// 处理 AppError 类型的业务错误
 				if appErr, ok := lastError.Err.(*errors.AppError); ok {
 					logAppError(c, appErr)
-					c.JSON(appErr.HttpCode(), gin.H{
-						"code":    appErr.Code(),
-						"message": appErr.Key(),
-						"data":    nil,
-					})
+					c.JSON(appErr.HttpCode(), errors.NewAPIErrorResponse(appErr.Code(), appErr.Key(), appErr.Details(), getRequestID(c)))
 					return
 				}
 
@@ -37,11 +33,7 @@ func AppErrorHandler() gin.HandlerFunc {
 					"client_ip", c.ClientIP())
 
 				internalErr := errors.InternalError
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"code":    internalErr.Code(),
-					"message": internalErr.Key(),
-					"data":    nil,
-				})
+				c.JSON(http.StatusInternalServerError, errors.NewAPIErrorResponse(internalErr.Code(), internalErr.Key(), nil, getRequestID(c)))
 			}
 		}()
 

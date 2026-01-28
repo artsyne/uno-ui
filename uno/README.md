@@ -208,6 +208,12 @@ Uno provides a set of essential components. Detailed documentation is available 
 | **Tooltip** | Smart positioning tooltips supporting Hover/Click triggers.                            | [Tooltip API](doc/tooltip-api.md) |
 | **Valid**   | Powerful form validation engine with declarative rules and async support.              | [Valid API](doc/valid-api.md)     |
 
+### Security
+
+Uno UI provides built-in support for Content Security Policy (CSP) to help you secure your applications against XSS attacks.
+
+- [CSP Configuration Guide](doc/csp-guide.md) - Learn how to configure CSP with Uno UI
+
 ## TypeScript Support
 
 Uno UI v0.7.0+ includes full TypeScript type definitions. See the [TypeScript Usage Guide](doc/typescript-usage.md) for detailed information.
@@ -404,7 +410,7 @@ npm run test:coverage
 
 **Test Coverage:**
 
-- ✅ 264 unit tests across 13 test files
+- ✅ 331 unit tests across 16 test files
 - ✅ 100% coverage of core modules (uno, plugin-registry, i18n, layer)
 - ✅ 100% coverage of all components (box, notify, tooltip, tab, valid)
 - ✅ 100% coverage of utility functions (dom, position, validation, a11y)

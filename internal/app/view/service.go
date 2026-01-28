@@ -97,10 +97,17 @@ func (s *ViewService) BuildRenderContext(c *gin.Context) *contracts.RenderContex
 
 	// 获取语言设置
 	lang := s.GetLocaleFromContext(c)
-	
+
+	// 获取 CSRF Token
+	csrfToken := ""
+	if val, exists := c.Get("CsrfToken"); exists {
+		csrfToken = val.(string)
+	}
+
 	return &contracts.RenderContext{
-		IsLogin:  isLogin,
-		AuthUser: authUser,
-		Lang:     lang,
+		IsLogin:   isLogin,
+		AuthUser:  authUser,
+		Lang:      lang,
+		CsrfToken: csrfToken,
 	}
 }

@@ -105,7 +105,7 @@ func (s *Service) DeleteDiary(diaryID, userID int64) error {
 		return err
 	}
 	if diary.InfoNum > 0 {
-		return errors.InvalidParams.WithDetails("日记本不为空，无法删除")
+		return errors.InvalidParams.WithDetails(map[string]interface{}{"reason": "diary_not_empty"})
 	}
 
 	// 删除日记本

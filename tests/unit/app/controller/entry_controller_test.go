@@ -347,6 +347,6 @@ func TestGetEntriesStatsRequestEdgeCases(t *testing.T) {
 		req := entryCtrl.GetEntriesStatsRequest{EntryIDs: "9223372036854775808"} // 超出int64最大值
 		_, err := req.ParseEntryIDs()
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "invalid entry id")
+		assert.Contains(t, err.Error(), "invalid_entry_id")
 	})
 }

@@ -83,7 +83,7 @@ internal/
 
 1. **Go 1.25泛型DI容器**: 零反射设计，57纳秒解析速度，完美的性能表现
 2. **清晰的分层架构**: DDD分层明确，依赖方向严格控制
-3. **现代化技术栈**: Go 1.25 + Gin + SQLx + Redis + Kiko.js + Tailwind CSS 4.x
+3. **现代化技术栈**: Go 1.25 + Gin + SQLx + Redis + Uno UI + Alpine.js + HTMX + Tailwind CSS 4.x
 4. **统一错误处理**: 4位错误码体系，结构化错误定义，便于维护
 5. **类型安全设计**: 泛型ViewService，编译时类型检查
 6. **异步任务支持**: 基于gocron的邮件任务调度系统
@@ -314,7 +314,7 @@ iDiary.ai Hebe项目展现了优秀的现代化架构设计：
 2. **现代化技术栈**
 
    - Go 1.25 + Gin + SQLx + Redis + gocron
-   - Kiko.js + Tailwind CSS 4.x + ES2023
+   - Uno UI + Alpine.js + HTMX + Tailwind CSS 4.x + ES2023
    - 结构化日志(slog) + 统一错误处理
 
 3. **优秀的架构设计**
@@ -384,7 +384,9 @@ iDiary.ai Hebe项目展现了优秀的现代化架构设计：
 
 ### 前端技术集成
 
-1. **Kiko.js框架**: 自研轻量级UI组件库
+1. **Uno UI**: 现代化 UI 组件库，基于 Alpine.js 和 Tailwind CSS
+2. **Alpine.js**: 轻量级响应式框架，提供声明式数据绑定和组件系统
+3. **HTMX**: 服务端渲染增强，通过 HTML 属性实现动态交互
 2. **Tailwind CSS 4.x**: 现代化CSS框架
 3. **ES2023特性**: 现代JavaScript语法支持
 4. **国际化支持**: 完整的多语言解决方案

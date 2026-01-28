@@ -53,7 +53,7 @@ export default function DiaryDetail() {
       // Generate boxId upfront to ensure availability in closures and correct type
       const boxId =
         'box-diary-settings-' + Math.random().toString(36).slice(2, 10);
-      const box = uno.box.dialog({
+      uno.box.dialog({
         boxId: boxId,
         title: t('diary.settings'),
         hxUrl: `/form/diary?action=diary.edit&diary_id=${diaryId}`,

@@ -55,11 +55,30 @@ window.getUnoBox = () => window.getUno()?.box;
 window.getUnoValid = () => window.getUno()?.valid;
 window.getUnoTooltip = () => window.getUno()?.tooltip;
 
+// 2.0.1 Helper to get CSRF Token
+window.getCsrfToken = () => {
+  return document
+    .querySelector('meta[name="csrf-token"]')
+    ?.getAttribute('content');
+};
+
 // 2.1 Fetch Interceptor for Global Progress Bar
 const originalFetch = window.fetch;
 window.fetch = function (input, init) {
   const notify = window.getUnoNotify();
   const shouldNotify = notify && (!init || !init.skipProgress);
+
+  // Inject CSRF Token
+  const csrfToken = window.getCsrfToken();
+  if (csrfToken) {
+    init = init || {};
+    init.headers = init.headers || {};
+    if (init.headers instanceof Headers) {
+      init.headers.append('X-CSRF-Token', csrfToken);
+    } else {
+      init.headers['X-CSRF-Token'] = csrfToken;
+    }
+  }
 
   if (shouldNotify) {
     notify.progressRequests++;
@@ -79,6 +98,13 @@ initAuth();
 initFormHandlers();
 
 // 4. Global Event Listeners
+document.body.addEventListener('htmx:configRequest', (evt) => {
+  const csrfToken = window.getCsrfToken();
+  if (csrfToken) {
+    evt.detail.headers['X-CSRF-Token'] = csrfToken;
+  }
+});
+
 document.body.addEventListener('htmx:beforeRequest', () => {
   const notify = window.getUnoNotify();
   if (notify) {

@@ -1,15 +1,17 @@
+import { handleApiError } from '../utils/error-handler.js';
+
 const isJsonResponse = (response) => {
   const contentType = response.headers.get('content-type') || '';
   return contentType.includes('application/json');
 };
 
-const safeJson = async (response, context) => {
+const safeJson = async (response) => {
   if (!isJsonResponse(response)) {
     return null;
   }
   try {
     return await response.json();
-  } catch (e) {
+  } catch {
     return null;
   }
 };
@@ -89,7 +91,7 @@ export function SocialMixin() {
           this.diaryLike.liked = result.data.is_liked;
           this.diaryLike.count = result.data.like_count;
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
     },
@@ -115,10 +117,12 @@ export function SocialMixin() {
             result.data.is_liked ? 'social.like.success' : 'social.like.cancel',
           );
         } else {
-          notify.error(result.message || 'common.op_fail');
+          const { localizedMessage } = handleApiError(result);
+          notify.error(localizedMessage);
         }
-      } catch (e) {
-        notify.error('common.op_fail');
+      } catch {
+        const { localizedMessage } = handleApiError(null);
+        notify.error(localizedMessage);
       } finally {
         this.diaryLike.loading = false;
       }
@@ -177,7 +181,7 @@ export function SocialMixin() {
             this.stats[status.entry_id].liked = status.liked;
           });
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
     },
@@ -188,7 +192,6 @@ export function SocialMixin() {
       if (!this.stats[id]) return;
 
       const notify = window.getUnoNotify();
-      const isLiked = this.stats[id].liked;
 
       try {
         const response = await fetch('/api/entry/like', {
@@ -209,10 +212,12 @@ export function SocialMixin() {
             result.data.is_liked ? 'social.like.success' : 'social.like.cancel',
           );
         } else {
-          notify.error(result.message || 'common.op_fail');
+          const { localizedMessage } = handleApiError(result);
+          notify.error(localizedMessage);
         }
-      } catch (e) {
-        notify.error('common.op_fail');
+      } catch {
+        const { localizedMessage } = handleApiError(null);
+        notify.error(localizedMessage);
       }
     },
   };
@@ -258,10 +263,12 @@ export function LikeButton(initialCount, initialLiked, entryId) {
             }),
           );
         } else {
-          notify.error(result.message || 'common.op_fail');
+          const { localizedMessage } = handleApiError(result);
+          notify.error(localizedMessage);
         }
-      } catch (e) {
-        notify.error('common.op_fail');
+      } catch {
+        const { localizedMessage } = handleApiError(null);
+        notify.error(localizedMessage);
       } finally {
         this.loading = false;
       }
@@ -319,8 +326,9 @@ export function CommentsMixin(entryId) {
         ) {
           try {
             const json = JSON.parse(result);
-            wrapper.innerHTML = `<div class="text-center text-red-500 py-8">${json.message || t('comment.load_fail')}</div>`;
-          } catch (e) {
+            const { localizedMessage } = handleApiError(json);
+            wrapper.innerHTML = `<div class="text-center text-red-500 py-8">${localizedMessage}</div>`;
+          } catch {
             wrapper.innerHTML = `<div class="text-center text-red-500 py-8">${t('comment.load_fail')}</div>`;
           }
           return;
@@ -356,7 +364,7 @@ export function CommentsMixin(entryId) {
         if (window.Alpine?.initTree) {
           window.Alpine.initTree(wrapper);
         }
-      } catch (e) {
+      } catch {
         wrapper.innerHTML = `<div class="text-center text-red-500 py-8">${t('comment.load_fail')}</div>`;
       } finally {
         this.loadingComments = false;
@@ -407,11 +415,15 @@ export function CommentsMixin(entryId) {
           this.content = '';
           await this.loadComments(1);
         } else {
-          notify.error(result.message || 'common.op_fail');
+          const { localizedMessage } = handleApiError(result);
+          notify.error(localizedMessage);
         }
       } catch (e) {
-        console.error('Submit comment error:', e);
-        notify.error('common.op_fail');
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Submit comment error:', e);
+        }
+        const { localizedMessage } = handleApiError(null);
+        notify.error(localizedMessage);
       } finally {
         // Removed this.submitting = false;
         const { setFormLoading } = await import('./form.js');
@@ -446,10 +458,12 @@ export function CommentsMixin(entryId) {
           notify.success('comment.delete_success');
           await this.loadComments(this.currentPage);
         } else {
-          notify.error(result.message || 'common.op_fail');
+          const { localizedMessage } = handleApiError(result);
+          notify.error(localizedMessage);
         }
-      } catch (e) {
-        notify.error('common.op_fail');
+      } catch {
+        const { localizedMessage } = handleApiError(null);
+        notify.error(localizedMessage);
       }
     },
   };
