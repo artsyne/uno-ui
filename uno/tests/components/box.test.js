@@ -75,6 +75,56 @@ describe('Box Component', () => {
     })
   })
 
+  describe('Auto Focus', () => {
+    it('should auto-focus first input for static content', () => {
+      const originalRaf = global.requestAnimationFrame
+      global.requestAnimationFrame = (cb) => setTimeout(cb, 0)
+      document.body.innerHTML = `
+        <div id="uno-box-containerSTATIC"></div>
+      `
+      const html = `<input type="text" id="firstInput"><input type="text" id="secondInput">`
+      boxStore.open({ boxId: 'STATIC', content: html, autoFocus: true })
+      const container = document.getElementById('uno-box-containerSTATIC')
+      container.innerHTML = html
+      const first = document.getElementById('firstInput')
+      expect(first).toBeDefined()
+      vi.runAllTimers()
+      global.requestAnimationFrame = originalRaf
+      expect(document.activeElement).toBe(first)
+    })
+
+    it('should NOT auto-focus when autoFocus=false', () => {
+      const originalRaf = global.requestAnimationFrame
+      global.requestAnimationFrame = (cb) => setTimeout(cb, 0)
+      document.body.innerHTML = `<div id="uno-box-containerNOFOCUS"></div>`
+      const html = `<input type="text" id="nf1"><input type="text" id="nf2">`
+      boxStore.open({ boxId: 'NOFOCUS', content: html, autoFocus: false })
+      const container = document.getElementById('uno-box-containerNOFOCUS')
+      container.innerHTML = html
+      const first = document.getElementById('nf1')
+      vi.runAllTimers()
+      global.requestAnimationFrame = originalRaf
+      expect(document.activeElement).not.toBe(first)
+    })
+
+    it('should skip hidden and disabled inputs', () => {
+      const originalRaf = global.requestAnimationFrame
+      global.requestAnimationFrame = (cb) => setTimeout(cb, 0)
+      document.body.innerHTML = `<div id="uno-box-containerSKIP"></div>`
+      const html = `
+        <input type="text" id="hidden" style="display:none">
+        <input type="text" id="disabled" disabled>
+        <input type="text" id="visible">
+      `
+      boxStore.open({ boxId: 'SKIP', content: html, autoFocus: true })
+      const container = document.getElementById('uno-box-containerSKIP')
+      container.innerHTML = html
+      const visible = document.getElementById('visible')
+      vi.runAllTimers()
+      global.requestAnimationFrame = originalRaf
+      expect(document.activeElement).toBe(visible)
+    })
+  })
   describe('open() - Core Method', () => {
     it('should create a box item with default config', () => {
       const item = boxStore.open('dialog')

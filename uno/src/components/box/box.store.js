@@ -156,6 +156,7 @@ export const createBoxStore = (Alpine) => ({
       widthClass: config.widthClass,
       heightClass: config.heightClass,
       containerClass: config.containerClass,
+      autoFocus: config.autoFocus !== undefined ? config.autoFocus : true,
       position: config.position || config.defaultPosition || 'center',
       modal: config.modal !== undefined ? config.modal : true,
       closeOnEsc: config.closeOnEsc !== undefined ? config.closeOnEsc : false,
@@ -236,12 +237,12 @@ export const createBoxStore = (Alpine) => ({
 
     const openNow = () => {
       reactiveItem.isOpen = true
+
+      this.scheduleAutoFocus(reactiveItem, Alpine)
     }
 
     if (Alpine && typeof Alpine.nextTick === 'function') {
       Alpine.nextTick(openNow)
-    } else {
-      setTimeout(openNow, 0)
     }
 
     return reactiveItem
@@ -332,12 +333,27 @@ export const createBoxStore = (Alpine) => ({
       window.Alpine.initTree(el)
     }
 
-    // Auto-focus first input if enabled (for async content)
-    if (item.autoFocus) {
-      // Small delay to ensure Alpine init and rendering is complete
-      setTimeout(() => {
-        this.focusFirstInput(el)
-      }, 50)
+    this.scheduleAutoFocus(item, window.Alpine)
+  },
+
+  scheduleAutoFocus(item, alpine) {
+    if (!item.autoFocus) return
+    const containerId = 'uno-box-container' + item.id
+    const run = () => {
+      const container = document.getElementById(containerId)
+      if (container) this.focusFirstInput(container)
+    }
+    const defer = (fn) => {
+      if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(() => requestAnimationFrame(fn))
+      } else {
+        setTimeout(fn, 0)
+      }
+    }
+    if (alpine && typeof alpine.nextTick === 'function') {
+      alpine.nextTick(() => defer(run))
+    } else {
+      defer(run)
     }
   },
 
@@ -360,8 +376,13 @@ export const createBoxStore = (Alpine) => ({
 
     // Find first visible input
     for (const input of inputs) {
-      // Check visibility (simple check)
-      if (input.offsetParent !== null) {
+      // Check visibility: must have layout (offsetParent) and not be hidden via style
+      const style = window.getComputedStyle(input)
+      if (
+        input.offsetParent !== null &&
+        style.visibility !== 'hidden' &&
+        style.display !== 'none'
+      ) {
         input.focus()
         return true
       }

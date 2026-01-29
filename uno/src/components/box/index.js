@@ -9,6 +9,7 @@
  * - HTMX native content loading
  * - Automatic XSS sanitization (trustedHTML removed for security)
  * - Focus trap and keyboard navigation
+ * - Auto-focus on first input field
  * - i18n support for button text
  * - Callback mechanism (onOk, onCancel, onBeforeClose, onClose, onContentLoad)
  *

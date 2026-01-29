@@ -296,7 +296,8 @@
             class="w-full px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 shadow-sm transition-colors">
             Modal (Escape to Close)
           </button>
-          <button x-uno-box="{ title: 'Click Overlay to Close', content: 'Click the dark overlay to close.', modal: true, closeOnOverlayClick: true }"
+          <button
+            x-uno-box="{ title: 'Click Overlay to Close', content: 'Click the dark overlay to close.', modal: true, closeOnOverlayClick: true }"
             class="w-full px-4 py-2 bg-fuchsia-600 text-white rounded-lg hover:bg-fuchsia-700 shadow-sm transition-colors">
             Modal (Overlay Click)
           </button>
@@ -330,6 +331,57 @@
           <p class="text-xs text-slate-500 dark:text-slate-400">
             Returns a Promise resolving to the input value or null if cancelled.
           </p>
+        </div>
+      </div>
+
+      <!-- Card 7: Auto Focus -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-white">7. Auto Focus</h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Focus</span>
+        </div>
+        <div class="p-6 space-y-4">
+          <!-- Case 1: Static Content -->
+          <button @click="$store.uno.box.open({
+              title: 'Static Content',
+              content: `<div class='space-y-4'><p>Focus should be on Username.</p><input type='text' class='border p-2 w-full dark:bg-slate-700 dark:border-slate-600 rounded' placeholder='Username'><input type='password' class='border p-2 w-full dark:bg-slate-700 dark:border-slate-600 rounded' placeholder='Password'></div>`,
+              showCancelButton: true
+            })"
+            class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm transition-colors">
+            Static Content (Focus Input)
+          </button>
+
+          <!-- Case 2: Async Content -->
+          <button @click="$store.uno.box.open({
+              title: 'Async Content',
+              hxUrl: '/examples/data/tab-content-htmx.html',
+              showCancelButton: true
+            })"
+            class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 shadow-sm transition-colors">
+            Async Content (HTMX)
+          </button>
+
+          <!-- Case 3: Hidden/Disabled Input -->
+          <button @click="$store.uno.box.open({
+              title: 'Hidden/Disabled Test',
+              content: `<div><input type='text' style='display:none' placeholder='Hidden'><input type='text' disabled class='border p-2 w-full mb-2 bg-gray-200 dark:bg-slate-600 rounded' placeholder='Disabled'><input type='text' class='border p-2 w-full dark:bg-slate-700 dark:border-slate-600 rounded' placeholder='Visible Input'></div>`
+            })"
+            class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 shadow-sm transition-colors">
+            Skip Hidden/Disabled
+          </button>
+
+          <!-- Case 4: AutoFocus Disabled -->
+          <button @click="$store.uno.box.open({
+              title: 'AutoFocus Off',
+              content: `<input type='text' class='border p-2 w-full dark:bg-slate-700 dark:border-slate-600 rounded' placeholder='Should NOT be focused'>`,
+              autoFocus: false
+            })"
+            class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 shadow-sm transition-colors">
+            AutoFocus Disabled
+          </button>
         </div>
       </div>
     </div>

@@ -25,7 +25,7 @@ const FOCUSABLE_SELECTOR = [
  * @returns {Function} cleanup function
  */
 export function trapFocus(el, options = {}) {
-  void options
+  const { initialFocus = true } = options
   const isVisible = (node) => {
     if (!(node instanceof HTMLElement)) return false
     const style = window.getComputedStyle(node)
@@ -67,10 +67,12 @@ export function trapFocus(el, options = {}) {
     if (first) first.focus()
   }
 
-  if (typeof requestAnimationFrame === 'function') {
-    requestAnimationFrame(() => requestAnimationFrame(focusFirstIfNeeded))
-  } else {
-    setTimeout(focusFirstIfNeeded, 0)
+  if (initialFocus) {
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => requestAnimationFrame(focusFirstIfNeeded))
+    } else {
+      setTimeout(focusFirstIfNeeded, 0)
+    }
   }
 
   el.addEventListener('keydown', handleKeyDown)

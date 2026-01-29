@@ -42,7 +42,7 @@ export const getBoxTemplate = () => {
         <div :id="'uno-box-container' + item.id"
              :class="[Uno.getStyle('box', 'container'), item.widthClass, item.heightClass, item.containerClass]"
              :style="(item.width ? 'width:' + item.width + 'px; max-width:' + item.width + 'px;' : (item.widthClass ? 'max-width:none;' : '')) + (item.height ? ' height:' + item.height + 'px;' : '')"
-             x-uno-trap>
+             x-uno-trap="{ initialFocus: !item.autoFocus }">
 
           <!-- Close Button -->
           <button type="button"

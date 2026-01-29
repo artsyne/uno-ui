@@ -88,11 +88,30 @@ The following options can be passed to `open()`, `dialog()`, or used in the `x-u
 | `cancelButtonClass`   | `String`   | -          | No       | Tailwind CSS classes for the Cancel button.                                       |
 | `closeOnEsc`          | `Boolean`  | `false`    | No       | If `true`, pressing ESC closes the dialog.                                        |
 | `closeOnOverlayClick` | `Boolean`  | `false`    | No       | If `true`, clicking the backdrop closes the dialog.                               |
+| `autoFocus`           | `Boolean`  | `true`     | No       | If `true`, automatically focuses the first input field after opening.             |
 | `hxUrl`               | `String`   | -          | No       | URL to fetch content from via HTMX.                                               |
 | `hxMethod`            | `String`   | `'GET'`    | No       | HTTP method for HTMX request.                                                     |
 | `onOk`                | `Function` | -          | No       | Callback when OK button is clicked. Return `false` to prevent closing.            |
 | `onCancel`            | `Function` | -          | No       | Callback when Cancel button is clicked.                                           |
 | `onClose`             | `Function` | -          | No       | Callback when dialog is closed (after animation).                                 |
+
+## Auto Focus
+
+By default (`autoFocus: true`), the Box component attempts to automatically focus the first "inputable" element within the dialog content when it opens or after HTMX content loads.
+
+- **Target Elements**: `input` (text, password, etc.), `textarea`, `select`.
+- **Exclusions**: `hidden`, `disabled`, `readonly` elements, and buttons (submit/reset/button).
+- **Visibility Check**: Elements must be visible (not `display: none` or `visibility: hidden`) to receive focus.
+
+To disable this behavior (e.g., if you want to rely on the default focus trap which usually focuses the first focusable element like the close button or container), set `autoFocus: false`.
+
+```javascript
+Alpine.store('uno').box.open({
+  title: 'Read Only',
+  content: '<input value="Copy this" readonly>',
+  autoFocus: false
+})
+```
 
 ## Events
 
@@ -223,16 +242,16 @@ Alpine.store('uno').box.open({
 
 ### Common Issues
 
-| Issue | Possible Cause | Solution |
-| :--- | :--- | :--- |
-| **Dialog not opening** | Alpine.js not initialized or store not ready. | Ensure `Alpine.start()` is called and `uno` store is accessed after `alpine:init`. |
-| **HTMX content missing** | `hxUrl` returned 404 or empty response. | Check Network tab. Ensure server returns partial HTML, not full page. |
-| **Styling broken** | Tailwind CSS not loaded or version mismatch. | Ensure Tailwind 4.x is loaded. Check `window.UnoConfig` overrides. |
-| **"Alpine is not defined"** | Script loading order incorrect. | Load Alpine.js *after* your app scripts or use `defer`. |
+| Issue                       | Possible Cause                                | Solution                                                                           |
+| :-------------------------- | :-------------------------------------------- | :--------------------------------------------------------------------------------- |
+| **Dialog not opening**      | Alpine.js not initialized or store not ready. | Ensure `Alpine.start()` is called and `uno` store is accessed after `alpine:init`. |
+| **HTMX content missing**    | `hxUrl` returned 404 or empty response.       | Check Network tab. Ensure server returns partial HTML, not full page.              |
+| **Styling broken**          | Tailwind CSS not loaded or version mismatch.  | Ensure Tailwind 4.x is loaded. Check `window.UnoConfig` overrides.                 |
+| **"Alpine is not defined"** | Script loading order incorrect.               | Load Alpine.js _after_ your app scripts or use `defer`.                            |
 
 ## Version History
 
-| Version | Date | Changes |
-| :--- | :--- | :--- |
-| v0.7.0 | 2026-01-20 | Refactored for **Lazy Initialization** (DOM elements created on demand). |
-| v0.6.0 | 2025-12-18 | Initial stable release. |
+| Version | Date       | Changes                                                                  |
+| :------ | :--------- | :----------------------------------------------------------------------- |
+| v0.7.0  | 2026-01-20 | Refactored for **Lazy Initialization** (DOM elements created on demand). |
+| v0.6.0  | 2025-12-18 | Initial stable release.                                                  |

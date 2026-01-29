@@ -5,10 +5,17 @@ export const registerBoxDirectives = (Alpine) => {
   // ============================================================
   // Focus Trap Directive
   // ============================================================
-  Alpine.directive('uno-trap', (el, { expression: _expression }, { cleanup }) => {
-    void _expression
-    const cleanupTrap = trapFocus(el)
-    cleanup(cleanupTrap)
+  Alpine.directive('uno-trap', (el, { expression }, { cleanup, evaluateLater }) => {
+    if (expression) {
+      const getExpression = evaluateLater(expression)
+      getExpression((options) => {
+        const cleanupTrap = trapFocus(el, options || {})
+        cleanup(cleanupTrap)
+      })
+    } else {
+      const cleanupTrap = trapFocus(el)
+      cleanup(cleanupTrap)
+    }
   })
 
   // ============================================================
