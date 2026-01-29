@@ -331,6 +331,42 @@ export const createBoxStore = (Alpine) => ({
     if (window.Alpine && window.Alpine.initTree) {
       window.Alpine.initTree(el)
     }
+
+    // Auto-focus first input if enabled (for async content)
+    if (item.autoFocus) {
+      // Small delay to ensure Alpine init and rendering is complete
+      setTimeout(() => {
+        this.focusFirstInput(el)
+      }, 50)
+    }
+  },
+
+  /**
+   * Focus the first input element in the container
+   * @param {HTMLElement} container - Container element
+   * @returns {boolean} True if an element was focused
+   */
+  focusFirstInput(container) {
+    if (!container) return false
+
+    // Selectors for input fields (excluding buttons, hidden, disabled, readonly)
+    const selector = [
+      'input:not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="image"]):not([disabled]):not([readonly])',
+      'textarea:not([disabled]):not([readonly])',
+      'select:not([disabled]):not([readonly])'
+    ].join(',')
+
+    const inputs = container.querySelectorAll(selector)
+
+    // Find first visible input
+    for (const input of inputs) {
+      // Check visibility (simple check)
+      if (input.offsetParent !== null) {
+        input.focus()
+        return true
+      }
+    }
+    return false
   },
 
   /**

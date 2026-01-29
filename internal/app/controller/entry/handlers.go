@@ -39,7 +39,7 @@ func (ctrl *EntryController) CreateEntry(c *gin.Context) {
 		Body:          req.Body,
 		Summary:       pkg.TruncateString(req.Body, ctrl.config.App.SummaryMax, ctrl.config.App.Suffix),
 		IsTop:         0,
-		InfoType:      1, // 默认为文本类型
+		InfoType:      entry.InfoTypeText, // 默认为文本类型
 		AddUTCTime:    nowTime,
 		AddUserID:     loginUser.UserId,
 		AddUserHandle: loginUser.Handle,

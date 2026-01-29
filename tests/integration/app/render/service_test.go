@@ -22,6 +22,8 @@ func TestRenderService_Integration(t *testing.T) {
 
 	// 获取全局配置
 	cfg := framework.GetGlobalConfig()
+	// 强制设置默认语言为 zh-cn，确保测试环境一致性
+	cfg.App.DefaultLang = "zh-cn"
 
 	// 创建i18n管理器和视图服务
 	i18nManager := i18n.NewLocalizationManager(cfg)

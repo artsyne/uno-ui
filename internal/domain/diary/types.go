@@ -17,7 +17,7 @@ type Diary struct {
 	SocialSetting int8   `form:"social_setting" json:"social_setting" db:"social_setting"` // 社交功能设置
 	AddUTCTime    int64  `form:"add_utc_time" json:"add_utc_time" db:"add_utc_time"`       // 创建时间（UTC时间戳）
 	AddUserID     int64  `form:"add_user_id" json:"add_user_id" db:"add_user_id"`          // 创建者用户ID
-	Status        int8   `form:"status" json:"status" db:"status"`                         // 日记本状态
+	Status        int8   `form:"status" json:"status" db:"status"`                         // 日记本状态（0:删除 1:正常）
 	InfoNum       int32  `form:"info_num" json:"info_num" db:"info_num"`                   // 信息数量
 	ThemeID       int8   `form:"theme_id" json:"theme_id" db:"theme_id"`                   // 主题ID
 
@@ -25,3 +25,8 @@ type Diary struct {
 	AddUserHandle      string `json:"add_user_handle" db:"handle"`             // 创建者Handle
 	AddUserDisplayName string `json:"add_user_display_name" db:"display_name"` // 创建者显示名称
 }
+
+const (
+	StatusDeleted int8 = 0 // 删除
+	StatusActive  int8 = 1 // 正常
+)

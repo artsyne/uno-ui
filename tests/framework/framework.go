@@ -494,7 +494,7 @@ func (dg *DataGenerator) CreateEntry(userID, diaryID int64, options ...EntryOpti
 		Title:     opts.Title,
 		Body:      opts.Body,
 		Summary:   opts.Summary,
-		InfoType:  int8(opts.InfoType),
+		InfoType:  entry.InfoType(opts.InfoType),
 		Status:    1,
 	}
 }
@@ -527,7 +527,9 @@ func RunTestsWithFlags(m *testing.M) {
 // WithCleanupEnabled 清理选项
 func WithCleanupEnabled(enabled bool) TestOption {
 	return func(tc *TestContext) {
-		// 设置清理配置
+		if config, ok := tc.config.(*TestConfig); ok {
+			config.Cleanup.Enabled = enabled
+		}
 	}
 }
 

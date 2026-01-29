@@ -1,8 +1,9 @@
-package framework
+package types
 
 import (
 	"time"
 
+	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/utils/config"
 )
 
@@ -98,7 +99,7 @@ type EntryOptions struct {
 	Title    string
 	Body     string
 	Summary  string
-	InfoType int
+	InfoType entry.InfoType
 }
 
 // UserOption 用户选项函数类型

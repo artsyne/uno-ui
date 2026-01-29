@@ -74,6 +74,48 @@ func TestValidationErrors(t *testing.T) {
 	}
 }
 
+// TestAppError_ModernErrorCodes 测试现代化的4位错误码范围
+func TestAppError_ModernErrorCodes(t *testing.T) {
+	tests := []struct {
+		name     string
+		errorDef errorsPkg.AppError
+		minRange int
+		maxRange int
+	}{
+		{"ValidationErrors", errorsPkg.ValidationError, 1000, 1999},
+		{"AuthenticationErrors", errorsPkg.Unauthorized, 1100, 1199},
+		{"PermissionErrors", errorsPkg.PermissionDenied, 1200, 1299},
+		{"NotFoundErrors", errorsPkg.UserNotFound, 1300, 1399},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			code := tt.errorDef.Code()
+			if code < tt.minRange || code > tt.maxRange {
+				t.Errorf("%s code %d not in range %d-%d", tt.name, code, tt.minRange, tt.maxRange)
+			}
+		})
+	}
+}
+
+// TestNewAPIErrorResponse 测试标准化错误响应创建
+func TestNewAPIErrorResponse(t *testing.T) {
+	code := 4001001
+	message := "Test Error"
+	details := map[string]string{"field": "error"}
+	reqID := "req-123"
+
+	resp := errorsPkg.NewAPIErrorResponse(code, message, details, reqID)
+
+	assert.False(t, resp.Success)
+	assert.Equal(t, code, resp.Code)
+	assert.Equal(t, message, resp.Message)
+	assert.Equal(t, details, resp.Details)
+	assert.Equal(t, details, resp.Data) // Verify Data is also set
+	assert.Equal(t, reqID, resp.RequestID)
+	assert.NotZero(t, resp.Timestamp)
+}
+
 // 测试认证错误 (1100-1199)
 func TestAuthenticationErrors(t *testing.T) {
 	tests := []struct {

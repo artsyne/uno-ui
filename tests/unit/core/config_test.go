@@ -76,11 +76,11 @@ func TestConfig_AppConfig(t *testing.T) {
 	assert.Equal(t, "debug", cfg.App.GinMode)
 	assert.Equal(t, "http://127.0.0.1:9090", cfg.App.Domain)
 	assert.Equal(t, "9090", cfg.App.Port)
-	assert.Equal(t, 555, cfg.App.SummaryMax)
+	assert.Equal(t, 1200, cfg.App.SummaryMax)
 	assert.Equal(t, "...", cfg.App.Suffix)
 	assert.Equal(t, 20, cfg.App.PageSize)
-	assert.Equal(t, 500, cfg.App.MaxDiaryLimit)
-	assert.Equal(t, "zh-cn", cfg.App.DefaultLang)
+	assert.Equal(t, 666, cfg.App.MaxDiaryLimit)
+	assert.Equal(t, "en", cfg.App.DefaultLang)
 
 	// Check relative paths or resolved paths
 	// .env.local has ./website/static

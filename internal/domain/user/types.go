@@ -19,8 +19,13 @@ type User struct {
 	LastLoginUTCTime int64  `form:"last_login_utc_time" json:"last_login_utc_time" db:"last_login_utc_time"`
 	TimeZone         string `form:"time_zone" json:"time_zone" db:"time_zone"`
 	Lang             string `form:"lang" json:"lang" db:"lang"`
-	Status           int8   `form:"status" json:"status" db:"status"`
+	Status           int8   `form:"status" json:"status" db:"status"` // 状态（0:删除 1:正常）
 }
+
+const (
+	StatusDeleted int8 = 0 // 删除
+	StatusActive  int8 = 1 // 正常
+)
 
 // ValidCode 验证码结构体
 type ValidCode struct {

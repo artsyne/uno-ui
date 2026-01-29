@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/utils/errors"
 )
 
@@ -13,15 +14,15 @@ import (
 // 字段:
 //   - DiaryID: 所属日记本ID，必需且大于0
 //   - Title: 日记标题
-//   - InfoType: 信息类型，1-5之间的值
+//   - InfoType: 信息类型，1-6之间的值
 //   - Body: 日记内容，必需且不能为空
 //   - IsTop: 是否置顶，0=否，1=是
 type CreateEntryRequest struct {
-	DiaryID  int64  `form:"diary_id" json:"diary_id" binding:"required,min=1"`
-	Title    string `form:"info_title" json:"title"`
-	InfoType int8   `form:"info_type" json:"info_type" binding:"required,oneof=1 2 3 4 5"`
-	Body     string `form:"info_body" json:"body" binding:"required,min=1"`
-	IsTop    int8   `form:"is_top" json:"is_top"`
+	DiaryID  int64          `form:"diary_id" json:"diary_id" binding:"required,min=1"`
+	Title    string         `form:"info_title" json:"title"`
+	InfoType entry.InfoType `form:"info_type" json:"info_type" binding:"required,oneof=1 2 3 4 5 6"`
+	Body     string         `form:"info_body" json:"body" binding:"required,min=1"`
+	IsTop    int8           `form:"is_top" json:"is_top"`
 }
 
 // UpdateEntryRequest 更新日记请求
@@ -30,15 +31,15 @@ type CreateEntryRequest struct {
 // 字段:
 //   - EntryID: 要更新的日记ID，必需且大于0
 //   - Title: 日记标题
-//   - InfoType: 信息类型，1-5之间的值
+//   - InfoType: 信息类型，1-6之间的值
 //   - Body: 日记内容，必需且不能为空
 //   - IsTop: 是否置顶，0=否，1=是
 type UpdateEntryRequest struct {
-	EntryID  int64  `uri:"id" form:"entry_id" json:"entry_id" binding:"required,min=1"`
-	Title    string `form:"info_title" json:"title"`
-	InfoType int8   `form:"info_type" json:"info_type" binding:"required,oneof=1 2 3 4 5"`
-	Body     string `form:"info_body" json:"body" binding:"required,min=1"`
-	IsTop    int8   `form:"is_top" json:"is_top"`
+	EntryID  int64          `uri:"id" form:"entry_id" json:"entry_id" binding:"required,min=1"`
+	Title    string         `form:"info_title" json:"title"`
+	InfoType entry.InfoType `form:"info_type" json:"info_type" binding:"required,oneof=1 2 3 4 5 6"`
+	Body     string         `form:"info_body" json:"body" binding:"required,min=1"`
+	IsTop    int8           `form:"is_top" json:"is_top"`
 }
 
 // DeleteEntryRequest 删除日记请求

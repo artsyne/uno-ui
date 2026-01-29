@@ -24,6 +24,13 @@ func NewLikeRepository() like.Repository {
 	}
 }
 
+// NewLikeRepositoryWithDB 创建带有指定DB连接的点赞仓储实例（用于测试）
+func NewLikeRepositoryWithDB(db *sqlx.DB) *LikeRepository {
+	return &LikeRepository{
+		db: db,
+	}
+}
+
 // ToggleLike 切换点赞状态
 func (r *LikeRepository) ToggleLike(userID, ownerID int64, likeType int) error {
 	// 检查是否已存在点赞记录

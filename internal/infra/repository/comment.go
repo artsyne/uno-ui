@@ -26,6 +26,13 @@ func NewCommentRepository() comment.RepositoryInterface {
 	}
 }
 
+// NewCommentRepositoryWithDB 创建带有指定DB连接的评论仓储实例（用于测试）
+func NewCommentRepositoryWithDB(db *sqlx.DB) *CommentRepository {
+	return &CommentRepository{
+		db: db,
+	}
+}
+
 // Insert 插入评论信息到数据库
 func (r *CommentRepository) Insert(comment *comment.Comment) (int64, error) {
 	sqlstr := `

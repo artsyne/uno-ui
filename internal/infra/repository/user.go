@@ -152,8 +152,8 @@ func (r *UserRepository) UpdateUser(user *user.User) (int64, error) {
 
 // DeleteByUserId 删除用户数据（假删除，设置status = 0）
 func (r *UserRepository) DeleteByUserId(id int64) (int64, error) {
-	sql := `UPDATE br_user SET status = 0 where user_id = ?`
-	res, err := r.db.Exec(sql, id)
+	sql := `UPDATE br_user SET status = ? where user_id = ?`
+	res, err := r.db.Exec(sql, user.StatusDeleted, id)
 
 	if err != nil {
 		return 0, err

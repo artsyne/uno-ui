@@ -154,22 +154,35 @@ func (cm *CleanupManagerImpl) cleanupTableByPrefix(table string) (int, error) {
 
 	switch table {
 	case "br_user":
-		whereClause = fmt.Sprintf("user_name LIKE '%s%%' OR email LIKE '%s%%'",
+		// User table uses handle (formerly user_name)
+		whereClause = fmt.Sprintf("handle LIKE '%s%%' OR email LIKE '%s%%'",
 			cm.isolator.GetPrefix(), cm.isolator.GetPrefix())
 	case "br_diary":
-		whereClause = fmt.Sprintf("title LIKE '%s%%' OR add_user_name LIKE '%s%%'",
+		// Clean by title prefix OR by users with prefix
+		whereClause = fmt.Sprintf("title LIKE '%s%%' OR add_user_id IN (SELECT user_id FROM br_user WHERE handle LIKE '%s%%')",
 			cm.isolator.GetPrefix(), cm.isolator.GetPrefix())
 	case "br_entry":
-		whereClause = fmt.Sprintf("title LIKE '%s%%' OR add_user_name LIKE '%s%%'",
+		// Clean by title prefix OR by users with prefix
+		whereClause = fmt.Sprintf("title LIKE '%s%%' OR add_user_id IN (SELECT user_id FROM br_user WHERE handle LIKE '%s%%')",
 			cm.isolator.GetPrefix(), cm.isolator.GetPrefix())
 	case "br_comment":
-		whereClause = fmt.Sprintf("add_user_name LIKE '%s%%'", cm.isolator.GetPrefix())
+		// Clean comments by users with prefix
+		whereClause = fmt.Sprintf("add_user_id IN (SELECT user_id FROM br_user WHERE handle LIKE '%s%%')",
+			cm.isolator.GetPrefix())
+	case "br_like":
+		// Clean likes by users with prefix
+		whereClause = fmt.Sprintf("user_id IN (SELECT user_id FROM br_user WHERE handle LIKE '%s%%')",
+			cm.isolator.GetPrefix())
 	case "br_follow":
-		whereClause = fmt.Sprintf("follow_user_name LIKE '%s%%'", cm.isolator.GetPrefix())
-	case "br_job_queue", "br_job_history":
-		whereClause = fmt.Sprintf("body LIKE '%s%%'", cm.isolator.GetPrefix())
+		// Clean follows by users with prefix
+		whereClause = fmt.Sprintf("user_id IN (SELECT user_id FROM br_user WHERE handle LIKE '%s%%')",
+			cm.isolator.GetPrefix())
 	case "br_diary_member":
-		whereClause = fmt.Sprintf("user_name LIKE '%s%%'", cm.isolator.GetPrefix())
+		// Clean members by users with prefix
+		whereClause = fmt.Sprintf("user_id IN (SELECT user_id FROM br_user WHERE handle LIKE '%s%%')",
+			cm.isolator.GetPrefix())
+	case "br_job_queue", "br_job_history":
+		whereClause = fmt.Sprintf("body LIKE '%%%s%%'", cm.isolator.GetPrefix())
 	default:
 		// 通用清理逻辑，查找包含前缀的记录
 		whereClause = "1=0" // 默认不清理未知表

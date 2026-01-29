@@ -51,6 +51,12 @@ func (s *Service) AddDiary(diary *Diary) (int64, error) {
 		return 0, err
 	}
 
+	// 设置默认状态
+	diary.Status = StatusActive
+	if diary.ThemeID == 0 {
+		diary.ThemeID = 1
+	}
+
 	// 新增日记本
 	diaryID, err := s.repo.Insert(diary)
 	if err != nil {

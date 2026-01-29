@@ -26,6 +26,13 @@ func NewEntryRepository() entry.RepositoryInterface {
 	}
 }
 
+// NewEntryRepositoryWithDB 创建带有指定DB连接的日记仓储实例（用于测试）
+func NewEntryRepositoryWithDB(db *sqlx.DB) *EntryRepository {
+	return &EntryRepository{
+		db: db,
+	}
+}
+
 // Insert 插入日记信息到数据库
 func (r *EntryRepository) Insert(e *entry.Entry) (int64, error) {
 	sqlstr := `
@@ -89,9 +96,9 @@ func (r *EntryRepository) ListByUserID(userID int64, diaryID int64, pageIndex, p
 		FROM br_entry e 
 		LEFT JOIN br_user u ON e.add_user_id = u.user_id
 		WHERE e.diary_id = ? AND e.add_user_id = ? 
-		and e.status = 1 ORDER BY e.entry_id DESC LIMIT ? offset ?`
+		and e.status = ? ORDER BY e.entry_id DESC LIMIT ? offset ?`
 
-	err := r.db.Select(&infoArray, sqlstr, diaryID, userID, pageSize, offset)
+	err := r.db.Select(&infoArray, sqlstr, diaryID, userID, entry.StatusActive, pageSize, offset)
 	if err == sql.ErrNoRows {
 		return nil, 0, nil
 	}
@@ -105,9 +112,9 @@ func (r *EntryRepository) ListByUserID(userID int64, diaryID int64, pageIndex, p
 // GetCountByUserID 根据用户ID和日记本ID统计信息数量
 func (r *EntryRepository) GetCountByUserID(userID int64, diaryID int64) (int, error) {
 	var count int
-	sqlstr := "SELECT COUNT(*) FROM br_entry WHERE diary_id = ? AND add_user_id = ? and  status = 1 "
+	sqlstr := "SELECT COUNT(*) FROM br_entry WHERE diary_id = ? AND add_user_id = ? and  status = ? "
 
-	err := r.db.Get(&count, sqlstr, diaryID, userID)
+	err := r.db.Get(&count, sqlstr, diaryID, userID, entry.StatusActive)
 	if err == sql.ErrNoRows {
 		return 0, nil
 	}
@@ -120,9 +127,9 @@ func (r *EntryRepository) GetByID(entryID int64) (*entry.Entry, error) {
 	sqlstr := `SELECT e.*, u.handle, u.display_name 
 		FROM br_entry e 
 		LEFT JOIN br_user u ON e.add_user_id = u.user_id
-		WHERE e.entry_id = ? AND e.status = 1`
+		WHERE e.entry_id = ? AND e.status = ?`
 	e := &entry.Entry{}
-	err := r.db.Get(e, sqlstr, entryID)
+	err := r.db.Get(e, sqlstr, entryID, entry.StatusActive)
 	if err == sql.ErrNoRows {
 		return nil, errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": entryID})
 	}
@@ -161,8 +168,8 @@ func (r *EntryRepository) UpdateByID(e *entry.Entry) error {
 
 // DeleteByID 根据日记ID软删除日记信息（设置status=0）
 func (r *EntryRepository) DeleteByID(entryID int64) error {
-	sqlstr := "UPDATE br_entry SET status = 0 WHERE entry_id = ? AND status = 1"
-	result, err := r.db.Exec(sqlstr, entryID)
+	sqlstr := "UPDATE br_entry SET status = ? WHERE entry_id = ? AND status = ?"
+	result, err := r.db.Exec(sqlstr, entry.StatusDeleted, entryID, entry.StatusActive)
 	if err != nil {
 		return err
 	}
@@ -183,10 +190,10 @@ func (r *EntryRepository) DeleteByID(entryID int64) error {
 // 注意：由于列表采用entry_id倒序排列，"上一篇"指的是entry_id更大的（更新的）日记
 func (r *EntryRepository) GetPreviousEntryByDiaryID(currentEntryID int64, diaryID int64) (int64, error) {
 	sqlstr := `SELECT entry_id FROM br_entry 
-			   WHERE diary_id = ? AND entry_id > ? AND status = 1 
+			   WHERE diary_id = ? AND entry_id > ? AND status = ? 
 			   ORDER BY entry_id ASC LIMIT 1`
 	var entryID int64
-	err := r.db.Get(&entryID, sqlstr, diaryID, currentEntryID)
+	err := r.db.Get(&entryID, sqlstr, diaryID, currentEntryID, entry.StatusActive)
 	if err == sql.ErrNoRows {
 		return 0, nil // 没有找到上一篇日记，返回0而不是错误
 	}
@@ -197,10 +204,10 @@ func (r *EntryRepository) GetPreviousEntryByDiaryID(currentEntryID int64, diaryI
 // 注意：由于列表采用entry_id倒序排列，"下一篇"指的是entry_id更小的（更旧的）日记
 func (r *EntryRepository) GetNextEntryByDiaryID(currentEntryID int64, diaryID int64) (int64, error) {
 	sqlstr := `SELECT entry_id FROM br_entry 
-			   WHERE diary_id = ? AND entry_id < ? AND status = 1 
+			   WHERE diary_id = ? AND entry_id < ? AND status = ? 
 			   ORDER BY entry_id DESC LIMIT 1`
 	var entryID int64
-	err := r.db.Get(&entryID, sqlstr, diaryID, currentEntryID)
+	err := r.db.Get(&entryID, sqlstr, diaryID, currentEntryID, entry.StatusActive)
 	if err == sql.ErrNoRows {
 		return 0, nil // 没有找到下一篇日记，返回0而不是错误
 	}
@@ -218,9 +225,9 @@ func (r *EntryRepository) GetStatsByIDs(entryIDs []int64) ([]entry.Entry, error)
 	query, args, err := sqlx.In(`
 		SELECT entry_id, diary_id, view_num, like_num, comment_num 
 		FROM br_entry 
-		WHERE entry_id IN (?) AND status = 1
+		WHERE entry_id IN (?) AND status = ?
 		ORDER BY entry_id
-	`, entryIDs)
+	`, entryIDs, entry.StatusActive)
 	if err != nil {
 		return nil, err
 	}

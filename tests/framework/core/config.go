@@ -210,7 +210,7 @@ func loadTestConfig() *TestConfig {
 			Password: getEnvString("IDIARY_REDIS_PASSWORD", ""),
 		},
 		Cleanup: CleanupConfig{
-			Enabled:     ShouldCleanupDatabase(), // 使用新的flag解析逻辑
+			Enabled:     true, // 默认启用清理，确保测试隔离
 			Strategy:    getEnvString("IDIARY_TEST_CLEANUP_STRATEGY", "prefix"),
 			Retention:   getEnvDuration("IDIARY_TEST_CLEANUP_RETENTION", 24*time.Hour),
 			BatchSize:   getEnvInt("IDIARY_TEST_CLEANUP_BATCH_SIZE", 100),
@@ -266,7 +266,7 @@ func setupTestEnvironment() {
 	os.Setenv("IDIARY_STATIC_DIR", filepath.Join(GetProjectRoot(), "website", "static"))
 	os.Setenv("IDIARY_LOCALES_DIR", filepath.Join(GetProjectRoot(), "website", "locales"))
 
-	os.Setenv("IDIARY_DEFAULT_LANG", "zh-cn")
+	setEnvIfNotExists("IDIARY_DEFAULT_LANG", "zh-cn")
 
 	// 用户配置
 	setEnvIfNotExists("IDIARY_USER_DEFAULT_GROUP", "1")

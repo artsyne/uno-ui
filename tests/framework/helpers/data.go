@@ -97,7 +97,7 @@ func (dg *DataGeneratorImpl) CreateEntry(userID, diaryID int64, options ...Entry
 		Title:    dg.isolator.IsolateTitle("entry"),
 		Body:     "Test entry body content with detailed information",
 		Summary:  "Test entry summary",
-		InfoType: 1, // 普通文章
+		InfoType: entry.InfoTypeText, // 普通文章
 	}
 
 	// 应用自定义选项
@@ -108,14 +108,19 @@ func (dg *DataGeneratorImpl) CreateEntry(userID, diaryID int64, options ...Entry
 	now := time.Now().Unix()
 
 	return &entry.Entry{
-		Title:         opts.Title,
-		Body:          opts.Body,
-		Summary:       opts.Summary,
 		DiaryID:       diaryID,
-		AddUserID:     userID,
+		Title:         opts.Title,
+		Summary:       opts.Summary,
+		Body:          opts.Body,
+		InfoType:      opts.InfoType,
+		Status:        1, // 正常状态
 		AddUTCTime:    now,
 		UpdateUTCTime: now,
-		Status:        1, // 正常状态
+		AddUserID:     userID,
+		AddUserIP:     "127.0.0.1",
+		ViewNum:       0,
+		LikeNum:       0,
+		CommentNum:    0,
 	}
 }
 
@@ -245,7 +250,7 @@ func WithEntrySummary(summary string) EntryOption {
 }
 
 // WithInfoType 设置信息类型
-func WithInfoType(infoType int) EntryOption {
+func WithInfoType(infoType entry.InfoType) EntryOption {
 	return func(opts *EntryOptions) {
 		opts.InfoType = infoType
 	}

@@ -108,12 +108,12 @@ func (r *DiaryRepository) Update(d *diary.Diary) error {
 	return nil
 }
 
-// Delete 删除日记本
+// Delete 删除日记本 (软删除)
 // 参数: diaryID - 日记本ID
 // 返回: 可能的错误
 func (r *DiaryRepository) Delete(diaryID int64) error {
-	sql := "DELETE FROM br_diary WHERE diary_id = ?"
-	_, err := r.db.Exec(sql, diaryID)
+	sql := "UPDATE br_diary SET status = ? WHERE diary_id = ?"
+	_, err := r.db.Exec(sql, diary.StatusDeleted, diaryID)
 	return err
 }
 
@@ -153,8 +153,8 @@ func (r *DiaryRepository) GetByDiaryID(diaryID int64) (*diary.Diary, error) {
 	           u1.handle, u1.display_name
 	           FROM br_diary d
 	           LEFT JOIN br_user u1 ON d.add_user_id = u1.user_id
-	           WHERE d.diary_id = ?`
-	err := r.db.Get(d, sqlstr, diaryID)
+	           WHERE d.diary_id = ? AND d.status = ?`
+	err := r.db.Get(d, sqlstr, diaryID, diary.StatusActive)
 	if err == sql.ErrNoRows {
 		return nil, errors.DiaryNotFound.WithDetails(map[string]interface{}{"reason": "diary_not_found"})
 	}
@@ -172,9 +172,9 @@ func (r *DiaryRepository) ListForWriteByUserID(userID int64) ([]diary.Diary, err
 	           u1.handle, u1.display_name
 	           FROM br_diary d
 	           LEFT JOIN br_user u1 ON d.add_user_id = u1.user_id
-	           WHERE d.add_user_id = ? 
+	           WHERE d.add_user_id = ? AND d.status = ?
 	           ORDER BY d.diary_id DESC`
-	err := r.db.Select(&diaryArray, sqlstr, userID)
+	err := r.db.Select(&diaryArray, sqlstr, userID, diary.StatusActive)
 	if err == sql.ErrNoRows {
 		return []diary.Diary{}, nil
 	}
@@ -229,8 +229,8 @@ func (r *DiaryRepository) GetCountByUserID(userID int64) (int, error) {
 // IsDiaryOwner 验证用户是否是日记本的拥有者
 func (r *DiaryRepository) IsDiaryOwner(diaryID, userID int64) (bool, error) {
 	var ownerID int64
-	sqlstr := "SELECT add_user_id FROM br_diary WHERE diary_id = ?"
-	err := r.db.Get(&ownerID, sqlstr, diaryID)
+	sqlstr := "SELECT add_user_id FROM br_diary WHERE diary_id = ? AND status = ?"
+	err := r.db.Get(&ownerID, sqlstr, diaryID, diary.StatusActive)
 	if err == sql.ErrNoRows {
 		return false, errors.DiaryNotFound.WithDetails(map[string]interface{}{"reason": "diary_not_found"})
 	}

@@ -201,6 +201,7 @@ CREATE TABLE br_user (
   email_verified tinyint NOT NULL DEFAULT '0',
   reg_ip varchar(128) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   created_utc_time bigint NOT NULL DEFAULT '0',
+  modified_utc_time bigint NOT NULL DEFAULT '0',
   remark varchar(2048) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   last_ip varchar(128) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   last_login_utc_time bigint NOT NULL DEFAULT '0',
