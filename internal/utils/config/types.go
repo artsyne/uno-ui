@@ -34,9 +34,9 @@ type AppConfig struct {
 	GinMode         string `json:"gin_mode" mapstructure:"GIN_MODE" validate:"required,oneof=debug release"`
 	Domain          string `json:"domain" mapstructure:"DOMAIN" validate:"required,url"`
 	Port            string `json:"port" mapstructure:"PORT" validate:"required,numeric"`
-	SummaryMax      int    `json:"summary_max" mapstructure:"SUMMARY_MAX" validate:"required,min=10,max=1000"`
+	SummaryMax      int    `json:"summary_max" mapstructure:"SUMMARY_MAX" validate:"required,min=300,max=2048"`
 	Suffix          string `json:"suffix" mapstructure:"SUFFIX" validate:"required"`
-	PageSize             int    `json:"page_size" mapstructure:"PAGE_SIZE" validate:"required,min=1,max=100"`
+	PageSize             int    `json:"page_size" mapstructure:"PAGE_SIZE" validate:"required,min=1,max=200"`
 	MaxDiaryLimit      int    `json:"max_diary_limit" mapstructure:"MAX_DIARY_LIMIT" validate:"required,min=1"`
 	MaxEntryLength        int    `json:"max_entry_length" mapstructure:"MAX_ENTRY_LENGTH" validate:"required,min=1"`
 	MaxCommentLength     int    `json:"max_comment_length" mapstructure:"MAX_COMMENT_LENGTH" validate:"required,min=1"`
