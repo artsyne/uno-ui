@@ -11,7 +11,7 @@ import (
 	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/utils/i18n"
 	framework "github.com/biuren/hebe/tests/framework"
-
+	
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -22,11 +22,12 @@ func setupTestUserAndDiary(t *testing.T, ctx *framework.TestContext, userService
 
 	// 创建用户 - 使用随机数据
 	testUser := &user.User{
-		UserName: ctx.GetDataGenerator().GenerateUniqueString("user"),
+		Handle: ctx.GetDataGenerator().GenerateUniqueString("user"),
 		Email:    ctx.GetDataGenerator().GenerateUniqueEmail("user"),
 		Pwd:      "password123",
 		TimeZone: "UTC",
 		Lang:     "zh-cn",
+		DisplayName: "Test User",
 	}
 	err := userService.RegisterUser(testUser)
 	require.NoError(t, err)
@@ -39,7 +40,7 @@ func setupTestUserAndDiary(t *testing.T, ctx *framework.TestContext, userService
 		SocialSetting: 1, // 必需字段：1-允许社交，2-不允许社交
 		ThemeID:       1, // 必需字段：主题ID，范围1-16
 		AddUserID:     testUser.UserId,
-		AddUserName:   testUser.UserName,
+		AddUserHandle: testUser.Handle,
 		Status:        1,
 	}
 	diaryID, err := diaryService.AddDiary(testDiary)
@@ -77,7 +78,8 @@ func TestEntryService_AddEntry(t *testing.T) {
 			Body:        "这是一篇测试文章的内容",
 			DiaryID:     testDiary.DiaryID,
 			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
+			AddUserHandle: testUser.Handle,
+			AddUserDisplayName: testUser.DisplayName,
 			Status:      1,
 		}
 
@@ -93,7 +95,8 @@ func TestEntryService_AddEntry(t *testing.T) {
 			Body:        "内容",
 			DiaryID:     99999, // 不存在的日记本ID
 			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
+			AddUserHandle: testUser.Handle,
+			AddUserDisplayName: testUser.DisplayName,
 			Status:      1,
 		}
 
@@ -107,7 +110,7 @@ func TestEntryService_AddEntry(t *testing.T) {
 			Body:        "内容",
 			DiaryID:     testDiary.DiaryID,
 			AddUserID:   0, // 无效用户ID
-			AddUserName: "invalid",
+			AddUserHandle: "invalid",
 			Status:      1,
 		}
 
@@ -145,7 +148,8 @@ func TestEntryService_GetEntryByID(t *testing.T) {
 		Summary:     "测试摘要",
 		DiaryID:     testDiary.DiaryID,
 		AddUserID:   testUser.UserId,
-		AddUserName: testUser.UserName,
+		AddUserHandle: testUser.Handle,
+		AddUserDisplayName: testUser.DisplayName,
 		Status:      1,
 	}
 	entryID, err := entryService.AddEntry(newEntry)
@@ -197,7 +201,8 @@ func TestEntryService_UpdateEntry(t *testing.T) {
 		Summary:     "原始摘要",
 		DiaryID:     testDiary.DiaryID,
 		AddUserID:   testUser.UserId,
-		AddUserName: testUser.UserName,
+		AddUserHandle: testUser.Handle,
+		AddUserDisplayName: testUser.DisplayName,
 		Status:      1,
 	}
 	entryID, err := entryService.AddEntry(originalEntry)
@@ -211,7 +216,8 @@ func TestEntryService_UpdateEntry(t *testing.T) {
 			Summary:       "更新后的摘要",
 			DiaryID:       testDiary.DiaryID,
 			AddUserID:     testUser.UserId,
-			AddUserName:   testUser.UserName,
+			AddUserHandle: testUser.Handle,
+			AddUserDisplayName: testUser.DisplayName,
 			UpdateUTCTime: 1642680200,
 			Status:        1,
 		}
@@ -234,7 +240,8 @@ func TestEntryService_UpdateEntry(t *testing.T) {
 			Body:        "测试",
 			DiaryID:     testDiary.DiaryID,
 			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
+			AddUserHandle: testUser.Handle,
+			AddUserDisplayName: testUser.DisplayName,
 			Status:      1,
 		}
 
@@ -249,7 +256,8 @@ func TestEntryService_UpdateEntry(t *testing.T) {
 			Body:        "", // 空内容
 			DiaryID:     testDiary.DiaryID,
 			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
+			AddUserHandle: testUser.Handle,
+			AddUserDisplayName: testUser.DisplayName,
 			Status:      1,
 		}
 
@@ -281,11 +289,12 @@ func TestEntryService_ListEntriesByUserID(t *testing.T) {
 
 	// 创建另一个用户和日记本
 	otherUser := &user.User{
-		UserName: ctx.GetDataGenerator().GenerateUniqueString("ou"),
+		Handle: ctx.GetDataGenerator().GenerateUniqueString("ou"),
 		Email:    ctx.GetDataGenerator().GenerateUniqueEmail("ou"),
 		Pwd:      "password123",
 		TimeZone: "UTC",
 		Lang:     "zh-cn",
+		DisplayName: "Other User",
 	}
 	err := userService.RegisterUser(otherUser)
 	require.NoError(t, err)
@@ -294,7 +303,7 @@ func TestEntryService_ListEntriesByUserID(t *testing.T) {
 		Title:         "其他用户的日记本",
 		Remark:        "测试",
 		AddUserID:     otherUser.UserId,
-		AddUserName:   otherUser.UserName,
+		AddUserHandle: otherUser.Handle,
 		Status:        1,
 		ViewSetting:   1,
 		SocialSetting: 1,
@@ -311,7 +320,8 @@ func TestEntryService_ListEntriesByUserID(t *testing.T) {
 			Summary:     fmt.Sprintf("第%d篇文章摘要", i),
 			DiaryID:     testDiary.DiaryID,
 			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
+			AddUserHandle: testUser.Handle,
+			AddUserDisplayName: testUser.DisplayName,
 			Status:      1,
 			InfoType:    1,
 		}
@@ -326,7 +336,8 @@ func TestEntryService_ListEntriesByUserID(t *testing.T) {
 		Summary:     "其他用户的文章摘要",
 		DiaryID:     otherDiaryID,
 		AddUserID:   otherUser.UserId,
-		AddUserName: otherUser.UserName,
+		AddUserHandle: otherUser.Handle,
+		AddUserDisplayName: otherUser.DisplayName,
 		Status:      1,
 		InfoType:    1,
 	}
@@ -417,7 +428,8 @@ func TestEntryService_GetEntryCountByUserID(t *testing.T) {
 			Body:        fmt.Sprintf("第%d篇文章内容", i),
 			DiaryID:     testDiary.DiaryID,
 			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
+			AddUserHandle: testUser.Handle,
+			AddUserDisplayName: testUser.DisplayName,
 			Status:      1,
 		}
 		_, err := entryService.AddEntry(entry)
@@ -471,7 +483,8 @@ func TestEntryService_UpdateEntryByID(t *testing.T) {
 		Summary:     "原始摘要",
 		DiaryID:     testDiary.DiaryID,
 		AddUserID:   testUser.UserId,
-		AddUserName: testUser.UserName,
+		AddUserHandle: testUser.Handle,
+		AddUserDisplayName: testUser.DisplayName,
 		Status:      1,
 	}
 	entryID, err := entryService.AddEntry(originalEntry)
@@ -485,7 +498,8 @@ func TestEntryService_UpdateEntryByID(t *testing.T) {
 			Summary:       "更新后的摘要",
 			DiaryID:       testDiary.DiaryID,
 			AddUserID:     testUser.UserId,
-			AddUserName:   testUser.UserName,
+			AddUserHandle:   testUser.Handle,
+			AddUserDisplayName: testUser.DisplayName,
 			UpdateUTCTime: 1642680300,
 			Status:        1,
 		}
@@ -508,7 +522,8 @@ func TestEntryService_UpdateEntryByID(t *testing.T) {
 			Body:        "测试",
 			DiaryID:     testDiary.DiaryID,
 			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
+			AddUserHandle: testUser.Handle,
+			AddUserDisplayName: testUser.DisplayName,
 			Status:      1,
 		}
 
@@ -545,7 +560,8 @@ func TestEntryService_DeleteEntryByID(t *testing.T) {
 		Summary:     "删除测试",
 		DiaryID:     testDiary.DiaryID,
 		AddUserID:   testUser.UserId,
-		AddUserName: testUser.UserName,
+		AddUserHandle: testUser.Handle,
+		AddUserDisplayName: testUser.DisplayName,
 		Status:      1,
 	}
 	entryID, err := entryService.AddEntry(newEntry)
@@ -558,7 +574,7 @@ func TestEntryService_DeleteEntryByID(t *testing.T) {
 
 	t.Run("成功删除文章", func(t *testing.T) {
 		currentTime := int64(1642680300)
-		err := entryService.DeleteEntryByID(entryID, testUser.UserId, testUser.UserName, currentTime)
+		err := entryService.DeleteEntryByID(entryID, testUser.UserId, currentTime)
 		assert.NoError(t, err)
 
 		// 验证文章已被删除
@@ -569,13 +585,13 @@ func TestEntryService_DeleteEntryByID(t *testing.T) {
 
 	t.Run("删除不存在的文章", func(t *testing.T) {
 		currentTime := int64(1642680300)
-		err := entryService.DeleteEntryByID(99999, testUser.UserId, testUser.UserName, currentTime)
+		err := entryService.DeleteEntryByID(99999, testUser.UserId, currentTime)
 		assert.Error(t, err)
 	})
 
 	t.Run("删除已删除的文章", func(t *testing.T) {
 		currentTime := int64(1642680300)
-		err := entryService.DeleteEntryByID(entryID, testUser.UserId, testUser.UserName, currentTime)
+		err := entryService.DeleteEntryByID(entryID, testUser.UserId, currentTime)
 		assert.Error(t, err)
 	})
 }
@@ -610,7 +626,8 @@ func TestEntryService_GetEntriesStats(t *testing.T) {
 			Body:        fmt.Sprintf("这是第%d篇测试文章的内容", i+1),
 			DiaryID:     testDiary.DiaryID,
 			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
+			AddUserHandle: testUser.Handle,
+			AddUserDisplayName: testUser.DisplayName,
 			Status:      1,
 			ViewNum:     int32(10 * (i + 1)), // 设置不同的浏览数
 			LikeNum:     int32(5 * (i + 1)),  // 设置不同的点赞数

@@ -10,7 +10,7 @@
 	<link rel="icon" href="/public/favicon.ico?v=7">
 	<title>{{.Title}}</title>
 	<meta name="user-id" content="{{ getUserID .}}">
-	<meta name="user-name" content="{{getUserName .}}">
+	<meta name="user-name" content="{{ or (getDisplayName .) (getHandle .) }}">
 	<meta name="csrf-token" content="{{.Context.CsrfToken}}">
 	<link href="/public/dist/css/idiary.min.css?v={{getRandomVersion .}}" rel="stylesheet">
 	<link href="/public/dist/css/materialdesignicons.min.css?v=6.5.95" rel="stylesheet">

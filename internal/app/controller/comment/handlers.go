@@ -41,11 +41,12 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 
 	// 构建新评论对象，设置所有必要字段
 	commentData := &comment.Comment{
-		EntryID:     req.EntryID,
-		Content:     req.Content,
-		AddUserID:   loginUser.UserId,
-		AddUserName: loginUser.UserName,
-		AddUserIP:   c.ClientIP(),
+		EntryID:            req.EntryID,
+		Content:            req.Content,
+		AddUserID:          loginUser.UserId,
+		AddUserHandle:      loginUser.Handle,
+		AddUserDisplayName: loginUser.DisplayName,
+		AddUserIP:          c.ClientIP(),
 	}
 
 	// 验证 Entry 是否存在

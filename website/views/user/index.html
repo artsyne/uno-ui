@@ -7,7 +7,7 @@
         <div id="page-nav">
             <ul class="flex text-lg">
                 <li>
-                    <a href="/u/{{ .Data.User.UserId }}">{{ .Data.User.UserName }}</a>
+                    <a href="/u/{{ .Data.User.UserId }}">{{ or .Data.User.DisplayName .Data.User.Handle }}</a>
                 </li>
             </ul>
         </div>

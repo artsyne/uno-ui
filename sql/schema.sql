@@ -30,7 +30,6 @@ CREATE TABLE br_comment (
   content varchar(5000) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   add_utc_time bigint unsigned NOT NULL DEFAULT '0',
   add_user_id bigint unsigned NOT NULL,
-  add_user_name varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   add_user_ip varchar(128) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   PRIMARY KEY (comment_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -58,11 +57,7 @@ CREATE TABLE br_diary (
   social_setting tinyint unsigned NOT NULL DEFAULT '1',
   add_utc_time bigint unsigned NOT NULL DEFAULT '0',
   add_user_id bigint unsigned NOT NULL,
-  add_user_name varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   info_num int unsigned NOT NULL DEFAULT '0',
-  last_action_utc_time bigint unsigned NOT NULL DEFAULT '0',
-  last_action_user_id bigint unsigned NOT NULL DEFAULT '0',
-  last_action_user_name varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   theme_id tinyint unsigned NOT NULL DEFAULT '16',
   `status` tinyint unsigned NOT NULL,
   PRIMARY KEY (diary_id)
@@ -144,7 +139,6 @@ CREATE TABLE br_entry (
   like_num int unsigned NOT NULL DEFAULT '0',
   comment_num int unsigned NOT NULL DEFAULT '0',
   add_user_id bigint unsigned NOT NULL DEFAULT '0',
-  add_user_name varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   add_user_ip varchar(128) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   add_utc_time bigint unsigned NOT NULL DEFAULT '0',
   update_utc_time bigint unsigned NOT NULL DEFAULT '0',
@@ -163,7 +157,6 @@ DROP TABLE IF EXISTS br_diary_member;
 CREATE TABLE br_diary_member (
   diary_id bigint unsigned NOT NULL,
   user_id bigint unsigned NOT NULL,
-  user_name varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   is_owner tinyint unsigned NOT NULL,
   join_time datetime NOT NULL,
   post_num int unsigned NOT NULL DEFAULT '0',
@@ -180,9 +173,9 @@ DROP TABLE IF EXISTS br_user_oauth;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE br_user_oauth (
   oauth_id bigint unsigned NOT NULL AUTO_INCREMENT,
-  user_id bigint unsigned NOT NULL,          -- 关联 br_user.user_id
-  provider varchar(20) COLLATE utf8mb4_general_ci NOT NULL,             -- 'google', 'facebook'
-  provider_user_id varchar(255) COLLATE utf8mb4_general_ci NOT NULL,    -- 三方平台的唯一标识符
+  user_id bigint unsigned NOT NULL,
+  provider varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  provider_user_id varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
   created_utc_time bigint NOT NULL,
   PRIMARY KEY (oauth_id),
   UNIQUE KEY uk_provider_user (provider, provider_user_id),
@@ -198,8 +191,8 @@ DROP TABLE IF EXISTS br_user;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE br_user (
   user_id bigint unsigned NOT NULL AUTO_INCREMENT,
-  user_name varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  full_name varchar(128) COLLATE utf8mb4_general_ci DEFAULT '',
+  handle varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  display_name varchar(128) COLLATE utf8mb4_general_ci DEFAULT '',
   user_group tinyint unsigned NOT NULL DEFAULT '1',
   pwd varchar(255) COLLATE utf8mb4_general_ci DEFAULT '',
   profile_url varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
@@ -215,7 +208,7 @@ CREATE TABLE br_user (
   lang varchar(8) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `status` tinyint unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY (user_id),
-  UNIQUE KEY user_name_UNIQUE (user_name),
+  UNIQUE KEY handle_UNIQUE (handle),
   UNIQUE KEY email_UNIQUE (email)
 ) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

@@ -114,6 +114,7 @@ func loadGlobalConfig() *config.Config {
 			StatusOK:         int8(getEnvInt("IDIARY_USER_STATUS_OK", 1)),
 			StatusWaitActive: int8(getEnvInt("IDIARY_USER_STATUS_WAIT_ACTIVE", 0)),
 			StatusDeleted:    int8(getEnvInt("IDIARY_USER_STATUS_DEL", 2)),
+			HandleCooldownDays: getEnvInt("IDIARY_HANDLE_COOLDOWN_DAYS", 30),
 		},
 		Redis: config.RedisConfig{
 			Host:     getEnvString("IDIARY_REDIS_HOST", "127.0.0.1"),
@@ -183,6 +184,15 @@ func loadTestConfig() *TestConfig {
 			StaticDir:            getEnvString("IDIARY_STATIC_DIR", "website/static"),
 			LocalesDir:           getEnvString("IDIARY_LOCALES_DIR", "website/locales"),
 			DefaultLang:          getEnvString("IDIARY_DEFAULT_LANG", "zh-cn"),
+		},
+		User: config.UserConfig{
+			PwdMinLen:          getEnvInt("IDIARY_PWD_MIN_LEN", 6),
+			PwdMaxLen:          getEnvInt("IDIARY_PWD_MAX_LEN", 50),
+			DefaultGroup:       int8(getEnvInt("IDIARY_USER_DEFAULT_GROUP", 1)),
+			StatusOK:           int8(getEnvInt("IDIARY_USER_STATUS_OK", 1)),
+			StatusWaitActive:   int8(getEnvInt("IDIARY_USER_STATUS_WAIT_ACTIVE", 0)),
+			StatusDeleted:      int8(getEnvInt("IDIARY_USER_STATUS_DEL", 2)),
+			HandleCooldownDays: getEnvInt("IDIARY_HANDLE_COOLDOWN_DAYS", 30),
 		},
 		Database: DatabaseConfig{
 			Host:     getEnvString("IDIARY_DB_HOST", "127.0.0.1"),
@@ -265,6 +275,7 @@ func setupTestEnvironment() {
 	setEnvIfNotExists("IDIARY_USER_STATUS_DEL", "0")
 	setEnvIfNotExists("IDIARY_USER_STATUS_OK", "1")
 	setEnvIfNotExists("IDIARY_USER_STATUS_WAIT_ACTIVE", "2")
+	setEnvIfNotExists("IDIARY_HANDLE_COOLDOWN_DAYS", "30")
 
 	// 验证码配置
 	setEnvIfNotExists("IDIARY_VALID_CODE_LEN", "6")

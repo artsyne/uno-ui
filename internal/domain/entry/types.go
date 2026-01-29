@@ -23,10 +23,13 @@ type Entry struct {
 	LikeNum       int32  `form:"like_num" json:"like_num" db:"like_num"`                      // 点赞次数
 	CommentNum    int32  `form:"comment_num" json:"comment_num" db:"comment_num"`             // 评论次数
 	AddUserID     int64  `form:"add_user_id" json:"add_user_id" db:"add_user_id"`             // 创建用户ID
-	AddUserName   string `form:"add_user_name" json:"add_user_name" db:"add_user_name"`       // 创建用户名
 	AddUserIP     string `form:"add_user_ip" json:"add_user_ip" db:"add_user_ip"`             // 创建用户IP
 	AddUTCTime    int64  `form:"add_utc_time" json:"add_utc_time" db:"add_utc_time"`          // 创建时间（UTC时间戳）
 	UpdateUTCTime int64  `form:"update_utc_time" json:"update_utc_time" db:"update_utc_time"` // 更新时间（UTC时间戳）
 	Status        int8   `form:"status" json:"status" db:"status"`                            // 状态（0:删除 1:正常）
 	InfoType      int8   `form:"info_type" json:"info_type" db:"info_type"`                   // 信息类型（1:文本 2:图片 3:视频 4:音频 5:文件）
+
+	// Joined fields from br_user
+	AddUserHandle      string `json:"add_user_handle" db:"handle"`             // 创建者Handle
+	AddUserDisplayName string `json:"add_user_display_name" db:"display_name"` // 创建者显示名称
 }

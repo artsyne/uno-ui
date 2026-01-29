@@ -10,12 +10,13 @@ type AuthUser struct {
 	LoginName    string `form:"login_name" json:"login_name"`         // 登录名
 	AccessUrl    string `form:"access_url" json:"access_url"`         // 访问URL
 	UserId       int64  `form:"user_id" json:"user_id"`               // 用户唯一标识ID
-	UserName     string `form:"user_name" json:"user_name"`           // 用户名
-	FullName     string `form:"full_name" json:"full_name"`           // 用户全名
+	Handle       string `form:"handle" json:"handle"`                 // 用户唯一标识符(句柄)
+	DisplayName  string `form:"display_name" json:"display_name"`     // 用户显示名称
 	Email        string `form:"email" json:"email" db:"email"`        // 邮箱地址
 	UserGroup    int8   `form:"user_group" json:"user_group"`         // 用户组标识
 	FaceUrl      string `form:"face_url" json:"face_url"`             // 头像URL
 	LoginUTCTime int64  `form:"login_utc_time" json:"login_utc_time"` // 登录时间（UTC时间戳）
+	ModifiedUTCTime int64 `form:"modified_utc_time" json:"modified_utc_time"` // 最后修改时间（UTC时间戳）
 	TimeZone     string `form:"time_zone" json:"time_zone"`           // 用户时区设置
 	Lang         string `form:"lang" json:"lang"`                     // 用户语言偏好
 	Status       int8   `form:"status" json:"status"`                 // 用户账户状态

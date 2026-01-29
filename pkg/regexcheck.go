@@ -11,8 +11,8 @@ func IsID(str string) bool {
 	return b
 }
 
-// 检查用户名是否合法，数字+字母  不限制大小写 3~16位
-func IsUserName(str string) bool {
+// IsHandle 检查Handle(用户名)是否合法，数字+字母  不限制大小写 3~16位
+func IsHandle(str string) bool {
 	b, _ := regexp.MatchString("^[0-9a-zA-Z_-]{3,16}$", str)
 	return b
 }

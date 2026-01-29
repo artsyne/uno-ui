@@ -59,6 +59,9 @@ type UserConfig struct {
     
     // 用户分组
     DefaultGroup int8 `json:"default_group" mapstructure:"DEFAULT_USER_GROUP" validate:"required"`
+
+    // Handle 修改冷却时间（天）
+    HandleCooldownDays int `json:"handle_cooldown_days" mapstructure:"HANDLE_COOLDOWN_DAYS" validate:"required,min=0"`
 }
 
 // ValidCodeConfig 验证码相关配置

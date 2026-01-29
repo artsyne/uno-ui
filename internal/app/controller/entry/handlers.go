@@ -42,7 +42,8 @@ func (ctrl *EntryController) CreateEntry(c *gin.Context) {
 		InfoType:      1, // 默认为文本类型
 		AddUTCTime:    nowTime,
 		AddUserID:     loginUser.UserId,
-		AddUserName:   loginUser.UserName,
+		AddUserHandle: loginUser.Handle,
+		AddUserDisplayName: loginUser.DisplayName,
 		AddUserIP:     c.ClientIP(),
 		UpdateUTCTime: nowTime,
 		Status:        1, // 默认状态为正常
@@ -60,7 +61,7 @@ func (ctrl *EntryController) CreateEntry(c *gin.Context) {
 	entryData.EntryID = entryID
 
 	// 日记本信息数量加一 - 在controller层处理跨模块调用
-	err = ctrl.diaryService.IncrementEntryCount(entryData.DiaryID, entryData.AddUserID, entryData.AddUserName, entryData.AddUTCTime)
+	err = ctrl.diaryService.IncrementEntryCount(entryData.DiaryID)
 	if err != nil {
 		// 如果更新日记本数量失败，记录错误但不影响日记创建的成功响应
 		slog.Error("Failed to increment entry count", "error", err, "diary_id", entryData.DiaryID)
@@ -204,7 +205,7 @@ func (ctrl *EntryController) DeleteEntry(c *gin.Context) {
 
 	// 执行删除操作
 	currentTime := pkg.GetNowTimeUnixMilli()
-	deleteErr := ctrl.entryService.DeleteEntryByID(req.EntryID, userData.UserId, userData.UserName, currentTime)
+	deleteErr := ctrl.entryService.DeleteEntryByID(req.EntryID, userData.UserId, currentTime)
 	if deleteErr != nil {
 		ctrl.renderService.JSONError(c, deleteErr)
 		return

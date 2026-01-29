@@ -118,27 +118,21 @@ func (r *MockDiaryRepository) GetCountByUserId(userId int64) (int64, error) {
 	return count, err
 }
 
-func (r *MockDiaryRepository) IncrementEntryNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
+func (r *MockDiaryRepository) IncrementEntryNum(diaryID int64) error {
 	sqlQuery := `
-		UPDATE br_diary SET info_num = info_num + 1,
-		last_action_utc_time = ?,
-		last_action_user_id=?, 
-		last_action_user_name = ? 
+		UPDATE br_diary SET info_num = info_num + 1
 		WHERE diary_id = ?
 	`
-	_, err := r.db.Exec(sqlQuery, actionUTCTime, userID, userName, diaryID)
+	_, err := r.db.Exec(sqlQuery, diaryID)
 	return err
 }
 
-func (r *MockDiaryRepository) DecrementEntryNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
+func (r *MockDiaryRepository) DecrementEntryNum(diaryID int64) error {
 	sqlQuery := `
-		UPDATE br_diary SET info_num = info_num - 1,
-		last_action_utc_time = ?,
-		last_action_user_id=?, 
-		last_action_user_name = ? 
+		UPDATE br_diary SET info_num = info_num - 1
 		WHERE diary_id = ?
 	`
-	_, err := r.db.Exec(sqlQuery, actionUTCTime, userID, userName, diaryID)
+	_, err := r.db.Exec(sqlQuery, diaryID)
 	return err
 }
 
@@ -297,14 +291,11 @@ func TestDiaryRepository_IncrementEntryNum(t *testing.T) {
 	defer repo.db.Close()
 
 	diaryID := int64(456)
-	userID := int64(123)
-	userName := "testuser"
-	actionUTCTime := int64(1640995200)
 
 	// 模拟成功增加
-	mock.ExpectExec(`UPDATE br_diary SET info_num = info_num \+ 1,\s*last_action_utc_time = \?,\s*last_action_user_id=\?,\s*last_action_user_name = \?\s*WHERE diary_id = \?`).WithArgs(actionUTCTime, userID, userName, diaryID).WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectExec(`UPDATE br_diary SET info_num = info_num \+ 1\s*WHERE diary_id = \?`).WithArgs(diaryID).WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err := repo.IncrementEntryNum(diaryID, userID, userName, actionUTCTime)
+	err := repo.IncrementEntryNum(diaryID)
 
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
@@ -315,14 +306,11 @@ func TestDiaryRepository_DecrementEntryNum(t *testing.T) {
 	defer repo.db.Close()
 
 	diaryID := int64(456)
-	userID := int64(123)
-	userName := "testuser"
-	actionUTCTime := int64(1640995200)
 
 	// 模拟成功减少
-	mock.ExpectExec(`UPDATE br_diary SET info_num = info_num - 1,\s*last_action_utc_time = \?,\s*last_action_user_id=\?,\s*last_action_user_name = \?\s*WHERE diary_id = \?`).WithArgs(actionUTCTime, userID, userName, diaryID).WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectExec(`UPDATE br_diary SET info_num = info_num - 1\s*WHERE diary_id = \?`).WithArgs(diaryID).WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err := repo.DecrementEntryNum(diaryID, userID, userName, actionUTCTime)
+	err := repo.DecrementEntryNum(diaryID)
 
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
@@ -333,14 +321,11 @@ func TestDiaryRepository_IncrementEntryNum_DatabaseError(t *testing.T) {
 	defer repo.db.Close()
 
 	diaryID := int64(456)
-	userID := int64(123)
-	userName := "testuser"
-	actionUTCTime := int64(1640995200)
 
 	// 模拟数据库错误
-	mock.ExpectExec(`UPDATE br_diary SET info_num = info_num \+ 1,\s*last_action_utc_time = \?,\s*last_action_user_id=\?,\s*last_action_user_name = \?\s*WHERE diary_id = \?`).WithArgs(actionUTCTime, userID, userName, diaryID).WillReturnError(sql.ErrConnDone)
+	mock.ExpectExec(`UPDATE br_diary SET info_num = info_num \+ 1\s*WHERE diary_id = \?`).WithArgs(diaryID).WillReturnError(sql.ErrConnDone)
 
-	err := repo.IncrementEntryNum(diaryID, userID, userName, actionUTCTime)
+	err := repo.IncrementEntryNum(diaryID)
 
 	assert.Error(t, err)
 	assert.Equal(t, sql.ErrConnDone, err)
@@ -352,14 +337,11 @@ func TestDiaryRepository_DecrementEntryNum_DatabaseError(t *testing.T) {
 	defer repo.db.Close()
 
 	diaryID := int64(456)
-	userID := int64(123)
-	userName := "testuser"
-	actionUTCTime := int64(1640995200)
 
 	// 模拟数据库错误
-	mock.ExpectExec(`UPDATE br_diary SET info_num = info_num - 1,\s*last_action_utc_time = \?,\s*last_action_user_id=\?,\s*last_action_user_name = \?\s*WHERE diary_id = \?`).WithArgs(actionUTCTime, userID, userName, diaryID).WillReturnError(sql.ErrConnDone)
+	mock.ExpectExec(`UPDATE br_diary SET info_num = info_num - 1\s*WHERE diary_id = \?`).WithArgs(diaryID).WillReturnError(sql.ErrConnDone)
 
-	err := repo.DecrementEntryNum(diaryID, userID, userName, actionUTCTime)
+	err := repo.DecrementEntryNum(diaryID)
 
 	assert.Error(t, err)
 	assert.Equal(t, sql.ErrConnDone, err)

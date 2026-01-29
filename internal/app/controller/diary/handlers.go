@@ -54,10 +54,7 @@ func (ctrl *DiaryController) CreateDiary(c *gin.Context) {
 		Status:             1, // 默认状态为正常
 		AddUTCTime:         nowTime,
 		AddUserID:          loginUser.UserId,
-		AddUserName:        loginUser.UserName,
-		LastActionUTCTime:  nowTime,
-		LastActionUserID:   loginUser.UserId,
-		LastActionUserName: loginUser.UserName,
+		AddUserHandle:      loginUser.Handle,
 	}
 
 	// 调用服务层创建日记本
@@ -128,7 +125,7 @@ func (ctrl *DiaryController) UpdateDiary(c *gin.Context) {
 	// 保留原有字段值，只更新可编辑字段
 	formData.AddUTCTime = originalDiary.AddUTCTime
 	formData.AddUserID = originalDiary.AddUserID
-	formData.AddUserName = originalDiary.AddUserName
+	formData.AddUserHandle = originalDiary.AddUserHandle
 	formData.AccessURL = originalDiary.AccessURL
 	formData.CoverURL = originalDiary.CoverURL
 	formData.CoverMidURL = originalDiary.CoverMidURL
@@ -141,11 +138,6 @@ func (ctrl *DiaryController) UpdateDiary(c *gin.Context) {
 	if req.AccessPwd != "" {
 		formData.AccessPwd = req.AccessPwd
 	}
-
-	// 更新最后操作时间和操作用户
-	formData.LastActionUTCTime = pkg.GetNowTimeUnixMilli()
-	formData.LastActionUserID = loginUser.UserId
-	formData.LastActionUserName = loginUser.UserName
 
 	// 调用服务层更新日记本
 	if err := ctrl.diaryService.UpdateDiary(formData); err != nil {

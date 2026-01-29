@@ -121,7 +121,7 @@ func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 
 	// 构建页面数据
 	data := ctrl.renderService.CreatePageData(c, "diary.list.title")
-	data.Title = diaryInfo.Title + " - " + diaryInfo.AddUserName
+	data.Title = diaryInfo.Title + " - " + diaryInfo.AddUserDisplayName
 	data.Data["Diary"] = diaryInfo
 	data.Data["Entries"] = entries
 	data.Data["PageLinks"] = pageLinks
@@ -220,7 +220,7 @@ func (ctrl *EntryController) ShowEntry(c *gin.Context) {
 
 	// 构建页面数据
 	data := ctrl.renderService.CreatePageData(c, "entry.detail.title")
-	data.Title = entryInfo.Title + " - " + entryInfo.AddUserName
+	data.Title = entryInfo.Title + " - " + entryInfo.AddUserDisplayName
 	data.Data["Entry"] = entryInfo
 	data.Data["Diary"] = diaryInfo
 	data.Data["TimeZone"] = timeZone

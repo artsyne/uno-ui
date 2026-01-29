@@ -24,7 +24,8 @@
     "op_success": "Operation successful",
     "load_fail": "Load failed",
     "views": "Views",
-    "comments": "Comments"
+    "comments": "Comments",
+    "days": "days"
   },
   "operation": {
     "success": "Operation successful"
@@ -105,7 +106,7 @@
     },
     "weather": "Weather",
     "mood": "Mood",
-    "content_placeholder": "{{username}}, what's new today?",
+    "content_placeholder": "{{handle}}, what's new today?",
     "button": {
       "create": "Write Entry"
     },
@@ -135,9 +136,12 @@
       "profile_card_title": "Profile",
       "username_label": "Username",
       "username_placeholder": "Username",
-      "username_note": "Username is your unique identifier on idiary.ai and cannot be modified.",
-      "full_name_label": "Full Name",
-      "full_name_placeholder": "Please enter your full name",
+      "username_note": "Username is your unique identifier on idiary.ai.",
+      "username_cooldown_msg": "You can change your username in",
+      "submit_handle": "Submit Change",
+      "username_updated": "Username updated successfully",
+      "full_name_label": "Display Name",
+      "full_name_placeholder": "Please enter your display name",
       "display_name_note": "You can display your real name on idiary.ai. If empty, username will be displayed.",
       "bio_label": "Bio",
       "bio_placeholder": "Please enter your bio",
@@ -216,7 +220,7 @@
     }
   },
   "greeting": {
-    "message": "Hello, {{username}}! Welcome to iDiary."
+    "message": "Hello, {{handle}}! Welcome to iDiary."
   },
   "form": {
     "style_selection": "Select Style",

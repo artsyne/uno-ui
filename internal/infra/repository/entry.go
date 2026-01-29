@@ -32,13 +32,13 @@ func (r *EntryRepository) Insert(e *entry.Entry) (int64, error) {
 		INSERT INTO br_entry(
 			diary_id,is_top,
 			title,summary,body,view_num,like_num,comment_num,add_user_id,
-			add_user_name,add_user_ip,add_utc_time,update_utc_time,status,info_type
+			add_user_ip,add_utc_time,update_utc_time,status,info_type
 		)
-		VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+		VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 	`
 	res, err := r.db.Exec(sqlstr, e.DiaryID,
 		e.IsTop, e.Title, e.Summary, e.Body, e.ViewNum, e.LikeNum,
-		e.CommentNum, e.AddUserID, e.AddUserName, e.AddUserIP, e.AddUTCTime,
+		e.CommentNum, e.AddUserID, e.AddUserIP, e.AddUTCTime,
 		e.UpdateUTCTime, e.Status, e.InfoType)
 
 	if err != nil {
@@ -84,8 +84,12 @@ func (r *EntryRepository) ListByUserID(userID int64, diaryID int64, pageIndex, p
 	// 计算偏移量，注意：页码通常从1开始，所以需要减1
 	offset := (pageIndex - 1) * pageSize
 
-	sqlstr := `SELECT * FROM br_entry WHERE diary_id = ? AND add_user_id = ? 
-		and status = 1 ORDER BY entry_id DESC LIMIT ? offset ?`
+	// JOIN br_user to get handle and display_name
+	sqlstr := `SELECT e.*, u.handle, u.display_name 
+		FROM br_entry e 
+		LEFT JOIN br_user u ON e.add_user_id = u.user_id
+		WHERE e.diary_id = ? AND e.add_user_id = ? 
+		and e.status = 1 ORDER BY e.entry_id DESC LIMIT ? offset ?`
 
 	err := r.db.Select(&infoArray, sqlstr, diaryID, userID, pageSize, offset)
 	if err == sql.ErrNoRows {
@@ -112,7 +116,11 @@ func (r *EntryRepository) GetCountByUserID(userID int64, diaryID int64) (int, er
 
 // GetByID 根据日记ID获取日记信息（只返回未删除的日记）
 func (r *EntryRepository) GetByID(entryID int64) (*entry.Entry, error) {
-	sqlstr := "SELECT * FROM br_entry WHERE entry_id = ? AND status = 1"
+	// JOIN br_user to get handle and display_name
+	sqlstr := `SELECT e.*, u.handle, u.display_name 
+		FROM br_entry e 
+		LEFT JOIN br_user u ON e.add_user_id = u.user_id
+		WHERE e.entry_id = ? AND e.status = 1`
 	e := &entry.Entry{}
 	err := r.db.Get(e, sqlstr, entryID)
 	if err == sql.ErrNoRows {
@@ -127,18 +135,18 @@ func (r *EntryRepository) UpdateByID(e *entry.Entry) error {
 		UPDATE br_entry SET 
 			diary_id = ?, is_top = ?, title = ?, summary = ?, body = ?, 
 			view_num = ?, like_num = ?, comment_num = ?, add_user_id = ?, 
-			add_user_name = ?, add_user_ip = ?, add_utc_time = ?, 
+			add_user_ip = ?, add_utc_time = ?, 
 			update_utc_time = ?, status = ?, info_type = ? 
 		WHERE entry_id = ?
 	`
 	result, err := r.db.Exec(sqlstr, e.DiaryID, e.IsTop, e.Title, e.Summary, e.Body,
-		e.ViewNum, e.LikeNum, e.CommentNum, e.AddUserID, e.AddUserName,
+		e.ViewNum, e.LikeNum, e.CommentNum, e.AddUserID,
 		e.AddUserIP, e.AddUTCTime, e.UpdateUTCTime, e.Status, e.InfoType,
 		e.EntryID)
 	if err != nil {
 		return err
 	}
-	
+
 	// 检查是否有行被更新
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
@@ -147,7 +155,7 @@ func (r *EntryRepository) UpdateByID(e *entry.Entry) error {
 	if rowsAffected == 0 {
 		return errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": e.EntryID})
 	}
-	
+
 	return nil
 }
 
@@ -158,7 +166,7 @@ func (r *EntryRepository) DeleteByID(entryID int64) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// 检查是否有行被更新
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
@@ -167,7 +175,7 @@ func (r *EntryRepository) DeleteByID(entryID int64) error {
 	if rowsAffected == 0 {
 		return errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": entryID})
 	}
-	
+
 	return nil
 }
 

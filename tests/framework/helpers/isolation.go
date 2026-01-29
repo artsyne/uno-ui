@@ -74,11 +74,11 @@ func (di *DataIsolatorImpl) IsolateEmail(email string) string {
 	return fmt.Sprintf("%s_%s@%s", di.prefix, parts[0], parts[1])
 }
 
-// IsolateUsername 隔离用户名
-// 确保用户名的唯一性和格式正确性
-func (di *DataIsolatorImpl) IsolateUsername(username string) string {
-	isolated := di.IsolateString(username)
-	// 确保用户名长度不超过数据库限制（通常100字符）
+// IsolateHandle 隔离Handle(用户名)
+// 确保Handle的唯一性和格式正确性
+func (di *DataIsolatorImpl) IsolateHandle(handle string) string {
+	isolated := di.IsolateString(handle)
+	// 确保Handle长度不超过数据库限制（通常100字符）
 	if len(isolated) > 90 { // 留出一些余量
 		isolated = isolated[:90]
 	}

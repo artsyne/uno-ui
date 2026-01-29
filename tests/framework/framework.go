@@ -231,8 +231,8 @@ func (di *DataIsolator) IsolateEmail(email string) string {
 	return fmt.Sprintf("%s_%s", di.prefix, email)
 }
 
-func (di *DataIsolator) IsolateUsername(username string) string {
-	return fmt.Sprintf("%s_%s", di.prefix, username)
+func (di *DataIsolator) IsolateHandle(handle string) string {
+	return fmt.Sprintf("%s_%s", di.prefix, handle)
 }
 
 func (di *DataIsolator) IsolateTitle(title string) string {
@@ -413,12 +413,12 @@ func (dg *DataGenerator) CreateUser(options ...UserOption) *user.User {
 	
 	// 设置默认选项
 	opts := &UserOptions{
-		Username: dg.isolator.IsolateUsername("user"),
-		Email:    dg.isolator.IsolateEmail("test@example.com"),
-		Password: "password123",
-		FullName: "Test User",
-		TimeZone: "UTC",
-		Lang:     "en",
+		Handle:      dg.isolator.IsolateHandle("user"),
+		Email:       dg.isolator.IsolateEmail("test@example.com"),
+		Password:    "password123",
+		DisplayName: "Test User",
+		TimeZone:    "UTC",
+		Lang:        "en",
 	}
 	
 	// 应用用户提供的选项
@@ -428,13 +428,13 @@ func (dg *DataGenerator) CreateUser(options ...UserOption) *user.User {
 	
 	// 创建用户对象
 	return &user.User{
-		UserName: opts.Username,
-		Email:    opts.Email,
-		Pwd:      opts.Password,
-		FullName: opts.FullName,
-		TimeZone: opts.TimeZone,
-		Lang:     opts.Lang,
-		Status:   3, // 正常状态
+		Handle:      opts.Handle,
+		Email:       opts.Email,
+		Pwd:         opts.Password,
+		DisplayName: opts.DisplayName,
+		TimeZone:    opts.TimeZone,
+		Lang:        opts.Lang,
+		Status:      3, // 正常状态
 	}
 }
 

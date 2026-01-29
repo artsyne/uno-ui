@@ -30,8 +30,8 @@ func NewMockUserRepository(t *testing.T) (*MockUserRepository, sqlmock.Sqlmock) 
 func (r *MockUserRepository) InsertUser(user *user.User) (int64, error) {
 	sql := `
                 insert into br_user  (
-                    user_name,
-                    full_name,
+                    handle,
+                    display_name,
                     user_group,
                     pwd,
                     profile_url,
@@ -68,8 +68,8 @@ func (r *MockUserRepository) InsertUser(user *user.User) (int64, error) {
                 `
 
 	res, err := r.db.Exec(sql,
-		user.UserName,
-		user.FullName,
+		user.Handle,
+		user.DisplayName,
 		user.UserGroup,
 		user.Pwd,
 		user.ProfileUrl,
@@ -97,8 +97,8 @@ func (r *MockUserRepository) UpdateUser(user *user.User) (int64, error) {
                 update br_user
                  set
                         user_id = ?,
-                        user_name = ?,
-                        full_name = ?,
+                        handle = ?,
+                        display_name = ?,
                         user_group = ?,
                         pwd = ?,
                         profile_url = ?,
@@ -117,8 +117,8 @@ func (r *MockUserRepository) UpdateUser(user *user.User) (int64, error) {
            `
 	res, err := r.db.Exec(sql,
 		user.UserId,
-		user.UserName,
-		user.FullName,
+		user.Handle,
+		user.DisplayName,
 		user.UserGroup,
 		user.Pwd,
 		user.ProfileUrl,
@@ -153,10 +153,10 @@ func (r *MockUserRepository) DeleteByUserId(id int64) (int64, error) {
 	return rows, err
 }
 
-func (r *MockUserRepository) IsExistUserName(userName string) (bool, error) {
+func (r *MockUserRepository) IsExistHandle(handle string) (bool, error) {
 	var count int
-	sql := "SELECT count(*) FROM br_user WHERE user_name = ?"
-	err := r.db.Get(&count, sql, userName)
+	sql := "SELECT count(*) FROM br_user WHERE handle = ?"
+	err := r.db.Get(&count, sql, handle)
 	return count > 0, err
 }
 
@@ -217,10 +217,10 @@ func (r *MockUserRepository) GetUserByUserId(userId int64) (*user.User, error) {
 	return user, err
 }
 
-func (r *MockUserRepository) GetUserByUserName(userName string) (*user.User, error) {
-	sqlQuery := "SELECT * FROM br_user WHERE user_name = ?"
+func (r *MockUserRepository) GetUserByHandle(handle string) (*user.User, error) {
+	sqlQuery := "SELECT * FROM br_user WHERE handle = ?"
 	user := &user.User{}
-	err := r.db.Get(user, sqlQuery, userName)
+	err := r.db.Get(user, sqlQuery, handle)
 	if err == sql.ErrNoRows {
 		return nil, err
 	}
@@ -244,9 +244,9 @@ func (r *MockUserRepository) GetUserEncryptPwd(userId int64) (string, error) {
 	return pwd, err
 }
 
-func (r *MockUserRepository) UpdateUserProfile(userId int64, fullName, remark, timeZone, lang string) (int64, error) {
-	sql := "UPDATE br_user SET full_name = ?, remark = ?, time_zone = ?, lang = ? WHERE user_id = ?"
-	res, err := r.db.Exec(sql, fullName, remark, timeZone, lang, userId)
+func (r *MockUserRepository) UpdateUserProfile(userId int64, displayName, remark, timeZone, lang string) (int64, error) {
+	sql := "UPDATE br_user SET display_name = ?, remark = ?, time_zone = ?, lang = ? WHERE user_id = ?"
+	res, err := r.db.Exec(sql, displayName, remark, timeZone, lang, userId)
 	if err != nil {
 		return 0, err
 	}
@@ -312,8 +312,8 @@ func TestUserRepository_InsertUser(t *testing.T) {
 	defer repo.db.Close()
 
 	testUser := &user.User{
-		UserName:           "testuser",
-		FullName:           "Test User",
+		Handle:             "testuser",
+		DisplayName:        "Test User",
 		UserGroup:          1,
 		Pwd:                "hashedpassword",
 		ProfileUrl:         "/profile/test",
@@ -332,7 +332,7 @@ func TestUserRepository_InsertUser(t *testing.T) {
 
 	// 模拟成功插入
 	mock.ExpectExec(`insert into br_user`).WithArgs(
-		testUser.UserName, testUser.FullName, testUser.UserGroup,
+		testUser.Handle, testUser.DisplayName, testUser.UserGroup,
 		testUser.Pwd, testUser.ProfileUrl, testUser.FaceUrl,
 		testUser.Email, testUser.EmailVerified, testUser.RegIp,
 		testUser.CreatedUTCTime, testUser.Remark, testUser.LastIp,
@@ -353,8 +353,8 @@ func TestUserRepository_UpdateUser(t *testing.T) {
 
 	testUser := &user.User{
 		UserId:             123,
-		UserName:           "testuser",
-		FullName:           "Updated User",
+		Handle:             "testuser",
+		DisplayName:        "Updated User",
 		UserGroup:          1,
 		Pwd:                "newhashedpassword",
 		ProfileUrl:         "/profile/updated",
@@ -373,7 +373,7 @@ func TestUserRepository_UpdateUser(t *testing.T) {
 
 	// 模拟成功更新
 	mock.ExpectExec(`update br_user`).WithArgs(
-		testUser.UserId, testUser.UserName, testUser.FullName,
+		testUser.UserId, testUser.Handle, testUser.DisplayName,
 		testUser.UserGroup, testUser.Pwd, testUser.ProfileUrl,
 		testUser.FaceUrl, testUser.Email, testUser.EmailVerified,
 		testUser.RegIp, testUser.CreatedUTCTime, testUser.Remark,
@@ -394,16 +394,16 @@ func TestUserRepository_GetUserByUserId(t *testing.T) {
 
 	userID := int64(123)
 	expectedUser := &user.User{
-		UserId:             123,
-		UserName:           "testuser",
-		FullName:           "Test User",
-		Email:              "test@example.com",
-		Status:             1,
+		UserId:      123,
+		Handle:      "testuser",
+		DisplayName: "Test User",
+		Email:       "test@example.com",
+		Status:      1,
 	}
 
 	// 模拟查询结果
 	rows := sqlmock.NewRows([]string{
-		"user_id", "user_name", "full_name", "user_group", "pwd",
+		"user_id", "handle", "display_name", "user_group", "pwd",
 		"profile_url", "face_url", "email", "email_verified", "reg_ip",
 		"created_utc_time", "remark", "last_ip", "last_login_utc_time",
 		"time_zone", "lang", "status",
@@ -421,21 +421,21 @@ func TestUserRepository_GetUserByUserId(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, expectedUser.UserId, result.UserId)
-	assert.Equal(t, expectedUser.UserName, result.UserName)
-	assert.Equal(t, expectedUser.FullName, result.FullName)
+	assert.Equal(t, expectedUser.Handle, result.Handle)
+	assert.Equal(t, expectedUser.DisplayName, result.DisplayName)
 	assert.Equal(t, expectedUser.Email, result.Email)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestUserRepository_GetUserByUserName(t *testing.T) {
+func TestUserRepository_GetUserByHandle(t *testing.T) {
 	repo, mock := NewMockUserRepository(t)
 	defer repo.db.Close()
 
-	userName := "testuser"
+	handle := "testuser"
 
 	// 模拟查询结果
 	rows := sqlmock.NewRows([]string{
-		"user_id", "user_name", "full_name", "user_group", "pwd",
+		"user_id", "handle", "display_name", "user_group", "pwd",
 		"profile_url", "face_url", "email", "email_verified", "reg_ip",
 		"created_utc_time", "remark", "last_ip", "last_login_utc_time",
 		"time_zone", "lang", "status",
@@ -446,26 +446,26 @@ func TestUserRepository_GetUserByUserName(t *testing.T) {
 		"UTC", "en", 1,
 	)
 
-	mock.ExpectQuery(`SELECT \* FROM br_user WHERE user_name = \?`).WithArgs(userName).WillReturnRows(rows)
+	mock.ExpectQuery(`SELECT \* FROM br_user WHERE handle = \?`).WithArgs(handle).WillReturnRows(rows)
 
-	result, err := repo.GetUserByUserName(userName)
+	result, err := repo.GetUserByHandle(handle)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Equal(t, userName, result.UserName)
+	assert.Equal(t, handle, result.Handle)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestUserRepository_GetUserByUserName_NotFound(t *testing.T) {
+func TestUserRepository_GetUserByHandle_NotFound(t *testing.T) {
 	repo, mock := NewMockUserRepository(t)
 	defer repo.db.Close()
 
-	userName := "nonexistent"
+	handle := "nonexistent"
 
 	// 模拟没有找到用户
-	mock.ExpectQuery(`SELECT \* FROM br_user WHERE user_name = \?`).WithArgs(userName).WillReturnError(sql.ErrNoRows)
+	mock.ExpectQuery(`SELECT \* FROM br_user WHERE handle = \?`).WithArgs(handle).WillReturnError(sql.ErrNoRows)
 
-	result, err := repo.GetUserByUserName(userName)
+	result, err := repo.GetUserByHandle(handle)
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
@@ -473,27 +473,27 @@ func TestUserRepository_GetUserByUserName_NotFound(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestUserRepository_IsExistUserName(t *testing.T) {
+func TestUserRepository_IsExistHandle(t *testing.T) {
 	repo, mock := NewMockUserRepository(t)
 	defer repo.db.Close()
 
-	t.Run("用户名存在", func(t *testing.T) {
-		userName := "existinguser"
+	t.Run("Handle存在", func(t *testing.T) {
+		handle := "existinguser"
 		rows := sqlmock.NewRows([]string{"count"}).AddRow(1)
-		mock.ExpectQuery(`SELECT count\(\*\) FROM br_user WHERE user_name = \?`).WithArgs(userName).WillReturnRows(rows)
+		mock.ExpectQuery(`SELECT count\(\*\) FROM br_user WHERE handle = \?`).WithArgs(handle).WillReturnRows(rows)
 
-		exists, err := repo.IsExistUserName(userName)
+		exists, err := repo.IsExistHandle(handle)
 
 		assert.NoError(t, err)
 		assert.True(t, exists)
 	})
 
-	t.Run("用户名不存在", func(t *testing.T) {
-		userName := "nonexistentuser"
+	t.Run("Handle不存在", func(t *testing.T) {
+		handle := "nonexistentuser"
 		rows := sqlmock.NewRows([]string{"count"}).AddRow(0)
-		mock.ExpectQuery(`SELECT count\(\*\) FROM br_user WHERE user_name = \?`).WithArgs(userName).WillReturnRows(rows)
+		mock.ExpectQuery(`SELECT count\(\*\) FROM br_user WHERE handle = \?`).WithArgs(handle).WillReturnRows(rows)
 
-		exists, err := repo.IsExistUserName(userName)
+		exists, err := repo.IsExistHandle(handle)
 
 		assert.NoError(t, err)
 		assert.False(t, exists)

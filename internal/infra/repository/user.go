@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/biuren/hebe/internal/core/database"
 	"github.com/biuren/hebe/internal/domain/user"
@@ -24,16 +25,14 @@ type UserRepository struct {
 	db *sqlx.DB
 }
 
-
-
 // ===================== User 相关方法 =====================
 
 // InsertUser 插入用户数据
 func (r *UserRepository) InsertUser(user *user.User) (int64, error) {
 	sql := `
                 insert into br_user  (
-                    user_name,
-                    full_name,
+                    handle,
+                    display_name,
                     user_group,
                     pwd,
                     profile_url,
@@ -42,6 +41,7 @@ func (r *UserRepository) InsertUser(user *user.User) (int64, error) {
                     email_verified,
                     reg_ip,
                     created_utc_time,
+                    modified_utc_time,
                     remark,
                     last_ip,
                     last_login_utc_time,
@@ -65,13 +65,14 @@ func (r *UserRepository) InsertUser(user *user.User) (int64, error) {
                     ?,
                     ?,
                     ?,
+                    ?,
                     ?
                 )
                 `
 
 	res, err := r.db.Exec(sql,
-		user.UserName,
-		user.FullName,
+		user.Handle,
+		user.DisplayName,
 		user.UserGroup,
 		user.Pwd,
 		user.ProfileUrl,
@@ -80,6 +81,7 @@ func (r *UserRepository) InsertUser(user *user.User) (int64, error) {
 		user.EmailVerified,
 		user.RegIp,
 		user.CreatedUTCTime,
+		user.ModifiedUTCTime,
 		user.Remark,
 		user.LastIp,
 		user.LastLoginUTCTime,
@@ -100,8 +102,8 @@ func (r *UserRepository) UpdateUser(user *user.User) (int64, error) {
                 update br_user
                  set
                         user_id = ?,
-                        user_name = ?,
-                        full_name = ?,
+                        handle = ?,
+                        display_name = ?,
                         user_group = ?,
                         pwd = ?,
                         profile_url = ?,
@@ -110,6 +112,7 @@ func (r *UserRepository) UpdateUser(user *user.User) (int64, error) {
                         email_verified = ?,
                         reg_ip = ?,
                         created_utc_time = ?,
+                        modified_utc_time = ?,
                         remark = ?,
                         last_ip = ?,
                         last_login_utc_time = ?,
@@ -120,8 +123,8 @@ func (r *UserRepository) UpdateUser(user *user.User) (int64, error) {
            `
 	res, err := r.db.Exec(sql,
 		user.UserId,
-		user.UserName,
-		user.FullName,
+		user.Handle,
+		user.DisplayName,
 		user.UserGroup,
 		user.Pwd,
 		user.ProfileUrl,
@@ -130,6 +133,7 @@ func (r *UserRepository) UpdateUser(user *user.User) (int64, error) {
 		user.EmailVerified,
 		user.RegIp,
 		user.CreatedUTCTime,
+		user.ModifiedUTCTime,
 		user.Remark,
 		user.LastIp,
 		user.LastLoginUTCTime,
@@ -158,10 +162,11 @@ func (r *UserRepository) DeleteByUserId(id int64) (int64, error) {
 	return rows, err
 }
 
-// IsExistUserName 判断用户名是否存在
-func (r *UserRepository) IsExistUserName(userName string) (bool, error) {
+// IsExistHandle 判断用户名是否存在
+func (r *UserRepository) IsExistHandle(handle string) (bool, error) {
+	fmt.Println("DEBUG: IsExistHandle called with handle:", handle)
 	var total int
-	err := r.db.Get(&total, "SELECT count(*) as num FROM br_user WHERE user_name = ?", userName)
+	err := r.db.Get(&total, "SELECT count(*) as num FROM br_user WHERE handle = ?", handle)
 	if err != nil {
 		return false, err
 	}
@@ -211,6 +216,17 @@ func (r *UserRepository) UpdateUserPwd(userId int64, pwd string) (int64, error) 
 	return rows, err
 }
 
+// UpdateUserHandle 更新用户Handle
+func (r *UserRepository) UpdateUserHandle(userId int64, handle string, modifiedUTCTime int64) (int64, error) {
+	sql := "UPDATE br_user SET handle = ?, modified_utc_time = ? WHERE user_id = ?"
+	res, err := r.db.Exec(sql, handle, modifiedUTCTime, userId)
+	if err != nil {
+		return 0, err
+	}
+	rows, err := res.RowsAffected()
+	return rows, err
+}
+
 // DeleteUser 彻底删除用户
 func (r *UserRepository) DeleteUser(userId int64) (int64, error) {
 	sql := "DELETE FROM br_user WHERE user_id = ?"
@@ -233,11 +249,11 @@ func (r *UserRepository) GetUserByUserId(userId int64) (*user.User, error) {
 	return userEntity, err
 }
 
-// GetUserByUserName 根据用户名获取用户信息
-func (r *UserRepository) GetUserByUserName(userName string) (*user.User, error) {
-	sqlstr := "SELECT * FROM br_user WHERE user_name = ?"
+// GetUserByHandle 根据用户名获取用户信息
+func (r *UserRepository) GetUserByHandle(handle string) (*user.User, error) {
+	sqlstr := "SELECT * FROM br_user WHERE handle = ?"
 	userEntity := &user.User{}
-	err := r.db.Get(userEntity, sqlstr, userName)
+	err := r.db.Get(userEntity, sqlstr, handle)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.UserNotFound.WithDetails(map[string]interface{}{"reason": "user_not_found"})
@@ -284,9 +300,9 @@ func (r *UserRepository) GetUserEncryptPwd(userId int64) (string, error) {
 }
 
 // UpdateUserProfile 更新用户基本资料
-func (r *UserRepository) UpdateUserProfile(userId int64, fullName, remark, timeZone, lang string) (int64, error) {
-	sql := "UPDATE br_user SET full_name = ?, remark = ?, time_zone = ?, lang = ? WHERE user_id = ?"
-	res, err := r.db.Exec(sql, fullName, remark, timeZone, lang, userId)
+func (r *UserRepository) UpdateUserProfile(userId int64, displayName, remark, timeZone, lang string) (int64, error) {
+	sql := "UPDATE br_user SET display_name = ?, remark = ?, time_zone = ?, lang = ? WHERE user_id = ?"
+	res, err := r.db.Exec(sql, displayName, remark, timeZone, lang, userId)
 	if err != nil {
 		return 0, err
 	}

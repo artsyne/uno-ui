@@ -47,7 +47,7 @@ func TestLikeService_ToggleLike(t *testing.T) {
 			SocialSetting: 1,
 			ThemeID:       1,
 			AddUserID:     testUser.UserId,
-			AddUserName:   testUser.UserName,
+			AddUserHandle: testUser.Handle,
 			Status:        1,
 		}
 		diaryID, err := diaryService.AddDiary(testDiary)
@@ -99,7 +99,7 @@ func TestLikeService_ToggleLike(t *testing.T) {
 			SocialSetting: 1,
 			ThemeID:       1,
 			AddUserID:     testUser.UserId,
-			AddUserName:   testUser.UserName,
+			AddUserHandle: testUser.Handle,
 			Status:        1,
 		}
 		diaryID, err := diaryService.AddDiary(testDiary)
@@ -158,7 +158,7 @@ func TestLikeService_GetLikeStatus(t *testing.T) {
 			SocialSetting: 1,
 			ThemeID:       1,
 			AddUserID:     testUser.UserId,
-			AddUserName:   testUser.UserName,
+			AddUserHandle: testUser.Handle,
 			Status:        1,
 		}
 		diaryID, err := diaryService.AddDiary(testDiary)
@@ -205,7 +205,7 @@ func TestLikeService_GetLikeCount(t *testing.T) {
 			SocialSetting: 1,
 			ThemeID:       1,
 			AddUserID:     testUser.UserId,
-			AddUserName:   testUser.UserName,
+			AddUserHandle: testUser.Handle,
 			Status:        1,
 		}
 		diaryID, err := diaryService.AddDiary(testDiary)
@@ -241,7 +241,7 @@ func TestLikeService_GetLikeCount(t *testing.T) {
 		// 创建测试用户2（确保用户名和邮箱不重复）
 		testUser2 := ctx.GetDataGenerator().CreateUser(
 			func(opts *ftypes.UserOptions) {
-				opts.Username = ctx.GetIsolator().IsolateUsername("u2")
+				opts.Handle = ctx.GetIsolator().IsolateHandle("u2")
 				opts.Email = ctx.GetIsolator().IsolateEmail("u2@test.com")
 			},
 		)
@@ -258,7 +258,7 @@ func TestLikeService_GetLikeCount(t *testing.T) {
 			SocialSetting: 1,
 			ThemeID:       1,
 			AddUserID:     testUser1.UserId,
-			AddUserName:   testUser1.UserName,
+			AddUserHandle: testUser1.Handle,
 			Status:        1,
 		}
 		diaryID, err := diaryService.AddDiary(testDiary)

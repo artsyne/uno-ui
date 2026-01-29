@@ -7,7 +7,7 @@
             <div class="flex items-center">
                 <a href="/u/{{.AddUserID}}"
                     class="font-semibold text-gray-800 dark:text-gray-200 no-underline hover:underline">
-                    {{.AddUserName}}
+                    {{ or .AddUserDisplayName .AddUserHandle }}
                 </a>
                 <span class="text-sm text-gray-500 dark:text-gray-400 ml-4">
                     {{formatLocalTime .AddUtcTime $.Data.time_zone}}

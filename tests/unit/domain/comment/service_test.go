@@ -37,9 +37,10 @@ func setupTestData(t *testing.T, ctx *framework.TestContext) (*user.User, *diary
 
 	// 创建测试用户
 	testUser := &user.User{
-		UserName: ctx.GetDataGenerator().GenerateUniqueString("user"),
+		Handle: ctx.GetDataGenerator().GenerateUniqueString("user"),
 		Email:    ctx.GetDataGenerator().GenerateUniqueEmail("user"),
 		Pwd:      "password123",
+		DisplayName: "Test User",
 		TimeZone: "UTC",
 		Lang:     "zh-cn",
 	}
@@ -54,7 +55,7 @@ func setupTestData(t *testing.T, ctx *framework.TestContext) (*user.User, *diary
 		SocialSetting: 1, // 允许社交
 		ThemeID:       1,
 		AddUserID:     testUser.UserId,
-		AddUserName:   testUser.UserName,
+		AddUserHandle: testUser.Handle,
 		Status:        1,
 	}
 	diaryID, err := diaryService.AddDiary(testDiary)
@@ -67,7 +68,8 @@ func setupTestData(t *testing.T, ctx *framework.TestContext) (*user.User, *diary
 		Body:        "这是一篇用于评论测试的文章",
 		DiaryID:     testDiary.DiaryID,
 		AddUserID:   testUser.UserId,
-		AddUserName: testUser.UserName,
+		AddUserHandle: testUser.Handle,
+		AddUserDisplayName: testUser.DisplayName,
 		Status:      1,
 	}
 	entryID, err := entryService.AddEntry(testEntry)
@@ -95,7 +97,8 @@ func TestCommentService_AddComment(t *testing.T) {
 				EntryID:     testEntry.EntryID,
 				Content:     "这是一条测试评论",
 				AddUserID:   testUser.UserId,
-				AddUserName: testUser.UserName,
+				AddUserHandle: testUser.Handle,
+				AddUserDisplayName: testUser.DisplayName,
 				AddUserIP:   "127.0.0.1",
 			},
 			wantErr: false,
@@ -106,7 +109,7 @@ func TestCommentService_AddComment(t *testing.T) {
 				EntryID:     testEntry.EntryID,
 				Content:     "这是一条测试评论",
 				AddUserID:   0,
-				AddUserName: "invalid",
+				AddUserHandle: "invalid",
 				AddUserIP:   "127.0.0.1",
 			},
 			wantErr: true,
@@ -118,7 +121,8 @@ func TestCommentService_AddComment(t *testing.T) {
 				EntryID:     99999,
 				Content:     "这是一条测试评论",
 				AddUserID:   testUser.UserId,
-				AddUserName: testUser.UserName,
+				AddUserHandle: testUser.Handle,
+				AddUserDisplayName: testUser.DisplayName,
 				AddUserIP:   "127.0.0.1",
 			},
 			wantErr: true,
@@ -161,7 +165,8 @@ func TestCommentService_GetCommentByID(t *testing.T) {
 		EntryID:     testEntry.EntryID,
 		Content:     "测试评论内容",
 		AddUserID:   testUser.UserId,
-		AddUserName: testUser.UserName,
+		AddUserHandle: testUser.Handle,
+		AddUserDisplayName: testUser.DisplayName,
 		AddUserIP:   "127.0.0.1",
 	}
 	commentID, err := commentService.AddComment(testComment)
@@ -214,21 +219,24 @@ func TestCommentService_ListCommentsByEntryID(t *testing.T) {
 			EntryID:     testEntry.EntryID,
 			Content:     "第一条评论",
 			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
+			AddUserHandle: testUser.Handle,
+			AddUserDisplayName: testUser.DisplayName,
 			AddUserIP:   "127.0.0.1",
 		},
 		{
 			EntryID:     testEntry.EntryID,
 			Content:     "第二条评论",
 			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
+			AddUserHandle: testUser.Handle,
+			AddUserDisplayName: testUser.DisplayName,
 			AddUserIP:   "127.0.0.1",
 		},
 		{
 			EntryID:     testEntry.EntryID,
 			Content:     "第三条评论",
 			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
+			AddUserHandle: testUser.Handle,
+			AddUserDisplayName: testUser.DisplayName,
 			AddUserIP:   "127.0.0.1",
 		},
 	}
@@ -262,7 +270,8 @@ func TestCommentService_DeleteComment(t *testing.T) {
 		EntryID:     testEntry.EntryID,
 		Content:     "待删除的评论",
 		AddUserID:   testUser.UserId,
-		AddUserName: testUser.UserName,
+		AddUserHandle: testUser.Handle,
+		AddUserDisplayName: testUser.DisplayName,
 		AddUserIP:   "127.0.0.1",
 	}
 	commentID, err := commentService.AddComment(testComment)
@@ -294,7 +303,8 @@ func TestCommentService_GetCommentCountByEntryID(t *testing.T) {
 			EntryID:     testEntry.EntryID,
 			Content:     "测试评论",
 			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
+			AddUserHandle: testUser.Handle,
+			AddUserDisplayName: testUser.DisplayName,
 			AddUserIP:   "127.0.0.1",
 		}
 		_, err := commentService.AddComment(testComment)

@@ -361,7 +361,7 @@ func TestIsUserName(t *testing.T) {
 		default:
 		}
 		t.Run(tt.name, func(t *testing.T) {
-			result := pkg.IsUserName(tt.userName)
+			result := pkg.IsHandle(tt.userName)
 			assert.Equal(t, tt.expected, result, "用户名验证结果应该匹配")
 		})
 	}

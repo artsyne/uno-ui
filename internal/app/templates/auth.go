@@ -17,12 +17,12 @@ import (
 //   - isLogin: 检查用户是否已登录
 //   - authUser: 获取认证用户对象
 //   - getLoginName: 获取登录名
-//   - getUserName: 获取用户名
+//   - getHandle: 获取Handle(原用户名)
 //   - getEmail: 获取邮箱地址
 //   - getFaceUrl: 获取头像URL
 //   - getUserAvatar: 获取用户头像（带默认值）
 //   - getUserID: 获取用户ID
-//   - getFullName: 获取全名
+//   - getDisplayName: 获取显示名称(原全名)
 //   - getUserGroup: 获取用户组
 //   - getTimeZone: 获取时区
 //   - getLang: 获取语言
@@ -34,12 +34,12 @@ func GetAuthFuncs() template.FuncMap {
 		"isLogin":       isLogin,
 		"authUser":      authUser,
 		"getLoginName":  getLoginName,
-		"getUserName":   getUserName,
+		"getHandle":     getHandle,
 		"getEmail":      getEmail,
 		"getFaceUrl":    getFaceUrl,
 		"getUserAvatar": getUserAvatar,
 		"getUserID":     getUserID,
-		"getFullName":   getFullName,
+		"getDisplayName": getDisplayName,
 		"getUserGroup":  getUserGroup,
 		"getTimeZone":   getTimeZone,
 		"getLang":       getLang,
@@ -88,17 +88,17 @@ func getLoginName(data *types.PageData[map[string]interface{}]) string {
 	return ""
 }
 
-// getUserName 获取用户名
-// 获取当前认证用户的用户名
+// getHandle 获取Handle
+// 获取当前认证用户的Handle
 //
 // 参数:
 //   - data: 页面数据对象，包含认证信息
 //
 // 返回:
-//   - string: 用户名，未登录时返回空字符串
-func getUserName(data *types.PageData[map[string]interface{}]) string {
+//   - string: Handle，未登录时返回空字符串
+func getHandle(data *types.PageData[map[string]interface{}]) string {
 	if u := authUser(data); u != nil {
-		return u.UserName
+		return u.Handle
 	}
 	return ""
 }
@@ -163,17 +163,17 @@ func getUserID(data *types.PageData[map[string]interface{}]) int64 {
 	return 0
 }
 
-// getFullName 获取全名
-// 获取当前认证用户的完整姓名
+// getDisplayName 获取显示名称
+// 获取当前认证用户的显示名称
 //
 // 参数:
 //   - data: 页面数据对象，包含认证信息
 //
 // 返回:
-//   - string: 用户全名，未登录时返回空字符串
-func getFullName(data *types.PageData[map[string]interface{}]) string {
+//   - string: 用户显示名称，未登录时返回空字符串
+func getDisplayName(data *types.PageData[map[string]interface{}]) string {
 	if u := authUser(data); u != nil {
-		return u.FullName
+		return u.DisplayName
 	}
 	return ""
 }
@@ -239,25 +239,25 @@ func getStatus(data *types.PageData[map[string]interface{}]) int8 {
 }
 
 // getFirstCharOfName 获取用户姓名首字符
-// 获取用户全名或用户名的首字符，并返回大写形式，用于头像显示等场景
+// 获取用户显示名称或Handle的首字符，并返回大写形式，用于头像显示等场景
 //
 // 参数:
 //   - data: 页面数据对象，包含认证信息
 //
 // 返回:
-//   - string: 用户姓名首字符的大写形式，优先使用全名，其次用户名，默认返回"I"
+//   - string: 用户姓名首字符的大写形式，优先使用显示名称，其次Handle，默认返回"I"
 //
 // 逻辑:
-//   1. 优先使用用户全名的首字符
-//   2. 如果全名为空，使用用户名的首字符
+//   1. 优先使用用户显示名称的首字符
+//   2. 如果显示名称为空，使用Handle的首字符
 //   3. 如果都为空或未登录，返回默认值"I"
 func getFirstCharOfName(data *types.PageData[map[string]interface{}]) string {
 	if u := authUser(data); u != nil {
 		name := ""
-		if u.FullName != "" {
-			name = u.FullName
-		} else if u.UserName != "" {
-			name = u.UserName
+		if u.DisplayName != "" {
+			name = u.DisplayName
+		} else if u.Handle != "" {
+			name = u.Handle
 		}
 
 		if name != "" {
@@ -266,7 +266,7 @@ func getFirstCharOfName(data *types.PageData[map[string]interface{}]) string {
 			}
 		}
 	}
-	return "I" // 如果没有全名或用户名，返回默认值 "I"
+	return "I" // 如果没有显示名称或Handle，返回默认值 "I"
 }
 
 // getRandomVersion 获取随机版本号

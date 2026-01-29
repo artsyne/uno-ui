@@ -181,7 +181,7 @@ func TestDatabaseCleanupExample(t *testing.T) {
 		isolator2.TrackCreated("br_user", user2.UserId)
 
 		// 验证新数据的用户名不同（因为前缀会更新）
-		assert.NotEqual(t, user1.UserName, user2.UserName)
+		assert.NotEqual(t, user1.Handle, user2.Handle)
 
 		// 最终清理
 		defer ctx.Cleanup()
@@ -251,7 +251,7 @@ func TestCommandLineFlagsExample(t *testing.T) {
 	generator := ctx.GetDataGenerator()
 	user := generator.CreateUser()
 	assert.NotNil(t, user)
-	t.Logf("创建用户: %s (ID: %d)", user.UserName, user.UserId)
+	t.Logf("创建用户: %s (ID: %d)", user.Handle, user.UserId)
 
 	diary := generator.CreateDiary(user.UserId)
 	assert.NotNil(t, diary)

@@ -77,7 +77,7 @@ func TestUserTableConstraints(t *testing.T) {
 
 	// 插入正常用户
 	_, err = tx.Exec(`
-		INSERT INTO br_user (user_name, email, pwd, status, created_utc_time) 
+		INSERT INTO br_user (handle, email, pwd, status, created_utc_time) 
 		VALUES (?, ?, ?, ?, ?)
 	`, "uniqueuser", "unique@example.com", "password", 1, 1642680000)
 	if err != nil {
@@ -86,7 +86,7 @@ func TestUserTableConstraints(t *testing.T) {
 
 	// 测试用户名唯一约束
 	_, err = tx.Exec(`
-		INSERT INTO br_user (user_name, email, pwd, status, created_utc_time) 
+		INSERT INTO br_user (handle, email, pwd, status, created_utc_time) 
 		VALUES (?, ?, ?, ?, ?)
 	`, "uniqueuser", "another@example.com", "password", 1, 1642680000)
 
@@ -96,7 +96,7 @@ func TestUserTableConstraints(t *testing.T) {
 
 	// 测试邮箱唯一约束
 	_, err = tx.Exec(`
-		INSERT INTO br_user (user_name, email, pwd, status, created_utc_time) 
+		INSERT INTO br_user (handle, email, pwd, status, created_utc_time) 
 		VALUES (?, ?, ?, ?, ?)
 	`, "anotheruser", "unique@example.com", "password", 1, 1642680000)
 
@@ -121,7 +121,7 @@ func TestTransactionIsolation(t *testing.T) {
 
 	// 在事务中插入数据
 	_, err = tx.Exec(`
-		INSERT INTO br_user (user_name, email, pwd, status, created_utc_time) 
+		INSERT INTO br_user (handle, email, pwd, status, created_utc_time) 
 		VALUES (?, ?, ?, ?, ?)
 	`, "txuser", "tx@example.com", "password", 1, 1642680000)
 	if err != nil {
@@ -129,7 +129,7 @@ func TestTransactionIsolation(t *testing.T) {
 	}
 
 	// 在事务内部可以查询到数据
-	row := tx.QueryRow("SELECT COUNT(*) FROM br_user WHERE user_name = ?", "txuser")
+	row := tx.QueryRow("SELECT COUNT(*) FROM br_user WHERE handle = ?", "txuser")
 	var count int
 	err = row.Scan(&count)
 	if err != nil {
@@ -143,7 +143,7 @@ func TestTransactionIsolation(t *testing.T) {
 	tx.Rollback()
 
 	// 回滚后数据应该不存在
-	row = db.QueryRow("SELECT COUNT(*) FROM br_user WHERE user_name = ?", "txuser")
+	row = db.QueryRow("SELECT COUNT(*) FROM br_user WHERE handle = ?", "txuser")
 	var userCount int
 	err = row.Scan(&userCount)
 	if err != nil {

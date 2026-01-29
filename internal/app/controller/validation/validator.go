@@ -63,7 +63,7 @@ func registerCustomValidators(v *validator.Validate) {
 //   - 使用pkg.IsUserName进行格式验证
 func validateUsername(fl validator.FieldLevel) bool {
 	username := fl.Field().String()
-	return pkg.IsUserName(username)
+	return pkg.IsHandle(username)
 }
 
 // validatePassword 验证密码格式
@@ -164,16 +164,16 @@ func ParseID(idStr string) (int64, error) {
 	return id, nil
 }
 
-// ValidateUsernameFormat 验证用户名格式
-// 检查用户名是否符合系统要求的格式
+// ValidateHandleFormat 验证Handle格式
+// 检查Handle是否符合系统要求的格式
 //
 // 参数:
-//   - userName: 待验证的用户名
+//   - handle: 待验证的Handle
 //
 // 返回值:
 //   - bool: 格式是否正确
-func ValidateUsernameFormat(userName string) bool {
-	return pkg.IsUserName(userName)
+func ValidateHandleFormat(handle string) bool {
+	return pkg.IsHandle(handle)
 }
 
 // ValidateEmailFormat 验证邮箱格式

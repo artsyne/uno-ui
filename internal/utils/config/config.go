@@ -95,6 +95,7 @@ func InitConfig() error {
 		StatusDeleted:    int8(requireInt(v, "USER_STATUS_DEL")),
 		StatusOK:         int8(requireInt(v, "USER_STATUS_OK")),
 		StatusWaitActive: int8(requireInt(v, "USER_STATUS_WAIT_ACTIVE")),
+		HandleCooldownDays: requireInt(v, "HANDLE_COOLDOWN_DAYS"),
 	}
 
 	// 验证码相关配置

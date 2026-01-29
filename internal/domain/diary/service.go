@@ -183,27 +183,21 @@ func (s *Service) ListDiariesByUser(userID int64, pageIndex, pageSize int) ([]Di
 // IncrementEntryCount 增加日记本的日记数量
 // 参数:
 //   - diaryID: 日记本ID
-//   - userID: 操作用户ID
-//   - userName: 操作用户名
-//   - actionTime: 操作时间（UTC时间戳）
 //
 // 返回:
 //   - error: 操作失败时返回错误
-func (s *Service) IncrementEntryCount(diaryID int64, userID int64, userName string, actionTime int64) error {
-	return s.repo.IncrementEntryNum(diaryID, userID, userName, actionTime)
+func (s *Service) IncrementEntryCount(diaryID int64) error {
+	return s.repo.IncrementEntryNum(diaryID)
 }
 
 // DecrementEntryCount 减少日记本的日记数量
 // 参数:
 //   - diaryID: 日记本ID
-//   - userID: 操作用户ID
-//   - userName: 操作用户名
-//   - actionTime: 操作时间（UTC时间戳）
 //
 // 返回:
 //   - error: 操作失败时返回错误
-func (s *Service) DecrementEntryCount(diaryID int64, userID int64, userName string, actionTime int64) error {
-	return s.repo.DecrementEntryNum(diaryID, userID, userName, actionTime)
+func (s *Service) DecrementEntryCount(diaryID int64) error {
+	return s.repo.DecrementEntryNum(diaryID)
 }
 
 // CheckDiaryLimit 检查用户日记本数量是否超过限制

@@ -14,8 +14,8 @@ type RepositoryInterface interface {
 	// DeleteByUserId 删除用户数据（假删除，设置status = 0）
 	DeleteByUserId(id int64) (int64, error)
 
-	// IsExistUserName 判断用户名是否存在
-	IsExistUserName(userName string) (bool, error)
+	// IsExistHandle 判断Handle是否存在
+	IsExistHandle(handle string) (bool, error)
 
 	// IsExistsEmail 判断邮箱是否存在
 	IsExistsEmail(email string) (bool, error)
@@ -35,8 +35,8 @@ type RepositoryInterface interface {
 	// GetUserByUserId 根据用户ID获取用户信息
 	GetUserByUserId(userId int64) (*User, error)
 
-	// GetUserByUserName 根据用户名获取用户信息
-	GetUserByUserName(userName string) (*User, error)
+	// GetUserByHandle 根据Handle获取用户信息
+	GetUserByHandle(handle string) (*User, error)
 
 	// GetUserByEmail 根据邮箱获取用户信息
 	GetUserByEmail(email string) (*User, error)
@@ -48,10 +48,13 @@ type RepositoryInterface interface {
 	GetUserTimeZone(userId int64) (string, error)
 
 	// UpdateUserProfile 更新用户基本资料
-	UpdateUserProfile(userId int64, fullName, remark, timeZone, lang string) (int64, error)
+	UpdateUserProfile(userId int64, displayName, remark, timeZone, lang string) (int64, error)
 
 	// UpdateUserPassword 更新用户密码
 	UpdateUserPassword(userId int64, pwd string) (int64, error)
+
+	// UpdateUserHandle 更新用户Handle
+	UpdateUserHandle(userId int64, handle string, modifiedUTCTime int64) (int64, error)
 
 	// ===================== ValidCode 相关方法 =====================
 

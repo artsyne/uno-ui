@@ -33,12 +33,12 @@ func (ctrl *UserController) Login(c *gin.Context) {
 
 	// 创建登录会话并设置Cookie
 	authUser := &types.AuthUser{
-		UserId:   user.UserId,
-		UserName: user.UserName,
-		FullName: user.FullName,
-		Email:    user.Email,
-		Lang:     user.Lang,
-		TimeZone: user.TimeZone,
+		UserId:      user.UserId,
+		Handle:      user.Handle,
+		DisplayName: user.DisplayName,
+		Email:       user.Email,
+		Lang:        user.Lang,
+		TimeZone:    user.TimeZone,
 	}
 
 	// 设置登录Cookie
@@ -65,13 +65,13 @@ func (ctrl *UserController) Register(c *gin.Context) {
 
 	// 转换为Domain层结构体
 	domainUser := &user.User{
-		UserName: req.UserName,
-		FullName: req.FullName,
-		Email:    req.Email,
-		Pwd:      req.Pwd,
-		TimeZone: req.TimeZone,
-		Lang:     req.Lang,
-		LastIp:   c.ClientIP(),
+		Handle:      req.Handle,
+		DisplayName: req.DisplayName,
+		Email:       req.Email,
+		Pwd:         req.Pwd,
+		TimeZone:    req.TimeZone,
+		Lang:        req.Lang,
+		LastIp:      c.ClientIP(),
 	}
 
 	// 调用服务层注册用户
@@ -82,12 +82,12 @@ func (ctrl *UserController) Register(c *gin.Context) {
 
 	// 注册成功后自动登录：创建会话并设置Cookie
 	authUser := &types.AuthUser{
-		UserId:   domainUser.UserId,
-		UserName: domainUser.UserName,
-		FullName: domainUser.FullName,
-		Email:    domainUser.Email,
-		Lang:     domainUser.Lang,
-		TimeZone: domainUser.TimeZone,
+		UserId:      domainUser.UserId,
+		Handle:      domainUser.Handle,
+		DisplayName: domainUser.DisplayName,
+		Email:       domainUser.Email,
+		Lang:        domainUser.Lang,
+		TimeZone:    domainUser.TimeZone,
 	}
 	ctrl.auth.SetLoginCookie(c, authUser)
 

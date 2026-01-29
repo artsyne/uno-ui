@@ -48,8 +48,8 @@ beforeAll(() => {
   };
 
   global.fetch = jest.fn(async (url, options) => {
-    if (url === '/check-username') {
-      const user = options.body.get('user_name');
+    if (url === '/check-handle') {
+      const user = options.body.get('handle');
       if (user === 'taken_user') {
         return {
           json: async () => ({ success: false, message: 'user_exists' }),
@@ -80,20 +80,20 @@ describe('Auth Validation', () => {
   });
 
   test('registers validators', () => {
-    expect(mockValidStore.validators['checkUsername']).toBeDefined();
+    expect(mockValidStore.validators['checkHandle']).toBeDefined();
     expect(mockValidStore.validators['checkEmail']).toBeDefined();
     expect(mockValidStore.validators['matchPwd']).toBeDefined();
   });
 
-  test('checkUsername returns true for valid user', async () => {
-    const checkUsername = mockValidStore.validators['checkUsername'];
-    const result = await checkUsername('testuser', 'user_name');
+  test('checkHandle returns true for valid user', async () => {
+    const checkHandle = mockValidStore.validators['checkHandle'];
+    const result = await checkHandle('testuser', 'handle');
     expect(result).toBe(true);
   });
 
-  test('checkUsername returns error message for taken user', async () => {
-    const checkUsername = mockValidStore.validators['checkUsername'];
-    const result = await checkUsername('taken_user', 'user_name');
+  test('checkHandle returns error message for taken user', async () => {
+    const checkHandle = mockValidStore.validators['checkHandle'];
+    const result = await checkHandle('taken_user', 'handle');
     expect(result).toBe('TRANS:auth.username_taken');
   });
 

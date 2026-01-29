@@ -37,8 +37,8 @@ func TestStandardFlagSyntax(t *testing.T) {
 
 	// 验证数据创建成功
 	assert.NotNil(t, user)
-	assert.NotEmpty(t, user.UserName)
-	t.Logf("创建测试用户: %s", user.UserName)
+	assert.NotEmpty(t, user.Handle)
+	t.Logf("创建测试用户: %s", user.Handle)
 
 	// 如果启用了清理，验证清理功能
 	if shouldCleanup {
@@ -80,6 +80,6 @@ func TestParameterConfiguration(t *testing.T) {
 	generator := ctx.GetDataGenerator()
 	user := generator.CreateUser()
 	assert.NotNil(t, user)
-	assert.NotEmpty(t, user.UserName)
-	t.Logf("创建测试用户: %s", user.UserName)
+	assert.NotEmpty(t, user.Handle)
+	t.Logf("创建测试用户: %s", user.Handle)
 }

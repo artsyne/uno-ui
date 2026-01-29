@@ -2,6 +2,7 @@ package user
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -64,17 +65,17 @@ func (s *Service) RegisterUser(user *User) error {
 
 // LoginWithUsernameOrEmail 用户登录验证，支持用户名或邮箱登录
 // 先尝试用户名登录，如果用户不存在则尝试邮箱登录
-func (s *Service) LoginWithUsernameOrEmail(usernameOrEmail string, password string) (*User, error) {
+func (s *Service) LoginWithUsernameOrEmail(loginName string, password string) (*User, error) {
 	var user *User
 	var err error
 
 	// 判断输入是否为邮箱地址
-	if pkg.IsEmail(usernameOrEmail) {
+	if pkg.IsEmail(loginName) {
 		// 如果是邮箱，直接通过邮箱查找
-		user, err = s.repo.GetUserByEmail(usernameOrEmail)
+		user, err = s.repo.GetUserByEmail(loginName)
 	} else {
-		// 如果不是邮箱，通过用户名查找
-		user, err = s.repo.GetUserByUserName(usernameOrEmail)
+		// 如果不是邮箱，通过Handle查找
+		user, err = s.repo.GetUserByHandle(loginName)
 	}
 
 	if err != nil {
@@ -129,7 +130,7 @@ func (s *Service) recordLoginFailure(userID int64) {
 	}
 
 	key := fmt.Sprintf("brute_force:uid:%d", userID)
-	
+
 	// 使用Pipeline原子操作
 	pipe := s.redis.Pipeline()
 	incr := pipe.Incr(key)
@@ -190,14 +191,14 @@ func (s *Service) IsExistEmail(email string) (bool, error) {
 	return isExistEmail, nil
 }
 
-// IsExistUserName 判断用户名是否存在
-func (s *Service) IsExistUserName(userName string) (bool, error) {
-	// 判断用户名是否存在
-	isExistName, err := s.repo.IsExistUserName(userName)
+// IsExistHandle 判断Handle是否存在
+func (s *Service) IsExistHandle(handle string) (bool, error) {
+	// 判断Handle是否存在
+	isExistHandle, err := s.repo.IsExistHandle(handle)
 	if err != nil {
-		return false, errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "username_check_failed"})
+		return false, errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "handle_check_failed"})
 	}
-	return isExistName, nil
+	return isExistHandle, nil
 }
 
 // ===================== 密码管理 =====================
@@ -354,7 +355,7 @@ func (s *Service) ParseUserID(idStr string) (int64, error) {
 // ===================== 个人资料管理 =====================
 // UpdateUserProfile 更新用户基本资料
 // 更新用户的全名、个人简介、时区和语言等信息
-func (s *Service) UpdateUserProfile(uid int64, fullName, remark, timeZone, lang string) error {
+func (s *Service) UpdateUserProfile(uid int64, displayName, remark, timeZone, lang string) error {
 
 	// 验证语言格式
 	if lang != "" {
@@ -365,7 +366,7 @@ func (s *Service) UpdateUserProfile(uid int64, fullName, remark, timeZone, lang 
 	}
 
 	// 调用repository更新用户资料
-	rowsAffected, err := s.repo.UpdateUserProfile(uid, fullName, remark, timeZone, lang)
+	rowsAffected, err := s.repo.UpdateUserProfile(uid, displayName, remark, timeZone, lang)
 	if err != nil {
 		return errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "user_profile_update_failed"})
 	}
@@ -385,7 +386,48 @@ func (s *Service) UpdateUserProfile(uid int64, fullName, remark, timeZone, lang 
 	return nil
 }
 
+// UpdateUserHandle 更新用户Handle
+func (s *Service) UpdateUserHandle(userId int64, newHandle string) error {
+	// 1. 验证 Handle 格式
+	if !pkg.IsHandle(newHandle) {
+		return errors.ValidationError.WithDetails(map[string]interface{}{"reason": "invalid_handle_format"})
+	}
 
+	// 2. 获取当前用户信息
+	user, err := s.repo.GetUserByUserId(userId)
+	if err != nil {
+		return err
+	}
+
+	// 3. 检查冷却时间
+	now := pkg.GetNowTimeUnixMilli()
+	cooldownMs := int64(s.config.User.HandleCooldownDays) * 24 * 3600 * 1000
+	if now-user.ModifiedUTCTime < cooldownMs {
+		remainingMs := cooldownMs - (now - user.ModifiedUTCTime)
+		daysRemaining := int64(math.Ceil(float64(remainingMs) / float64(24*3600*1000)))
+		return errors.ValidationError.WithDetails(map[string]interface{}{
+			"reason":         "handle_cooldown_active",
+			"days_remaining": daysRemaining,
+		})
+	}
+
+	// 4. 检查 Handle 是否已存在
+	isExist, err := s.IsExistHandle(newHandle)
+	if err != nil {
+		return err
+	}
+	if isExist {
+		return errors.UserExists.WithDetails(map[string]interface{}{"handle": newHandle, "reason": "handle_exists"})
+	}
+
+	// 5. 更新 Handle 和 ModifiedUTCTime
+	_, err = s.repo.UpdateUserHandle(userId, newHandle, now)
+	if err != nil {
+		return errors.DatabaseError.WithDetails(map[string]interface{}{"error": err.Error(), "reason": "handle_update_failed"})
+	}
+
+	return nil
+}
 
 // UpdateUserEmail 更新用户邮箱
 func (s *Service) UpdateUserEmail(uid int64, email string) error {
@@ -450,8 +492,8 @@ func (s *Service) UpdateUserPwd(userId int64, pwd string) (int64, error) {
 // validateUserInput 验证用户输入参数
 func (s *Service) validateUserInput(user *User) error {
 	// 判断参数是否到位
-	if !pkg.IsUserName(user.UserName) {
-		return errors.ValidationError.WithDetails(map[string]interface{}{"reason": "invalid_username_format"})
+	if !pkg.IsHandle(user.Handle) {
+		return errors.ValidationError.WithDetails(map[string]interface{}{"reason": "invalid_handle_format"})
 	}
 
 	// 判断密码格式
@@ -464,13 +506,13 @@ func (s *Service) validateUserInput(user *User) error {
 		return errors.ValidationError.WithDetails(map[string]interface{}{"reason": "invalid_timezone_format"})
 	}
 
-	// 判断用户名是否存在
-	isExistUserName, err := s.IsExistUserName(user.UserName)
+	// 判断Handle是否存在
+	isExistHandle, err := s.IsExistHandle(user.Handle)
 	if err != nil {
 		return err
 	}
-	if isExistUserName {
-		return errors.UserExists.WithDetails(map[string]interface{}{"username": user.UserName, "reason": "username_exists"})
+	if isExistHandle {
+		return errors.UserExists.WithDetails(map[string]interface{}{"handle": user.Handle, "reason": "handle_exists"})
 	}
 
 	// 判断邮件地址是否存在
@@ -487,7 +529,7 @@ func (s *Service) validateUserInput(user *User) error {
 
 // normalizeUserInput 转换用户名和邮件地址为小写并去除空格
 func (s *Service) normalizeUserInput(user *User) {
-	user.UserName = strings.TrimSpace(strings.ToLower(user.UserName))
+	user.Handle = strings.TrimSpace(strings.ToLower(user.Handle))
 	user.Email = strings.TrimSpace(strings.ToLower(user.Email))
 }
 
@@ -525,6 +567,7 @@ func (s *Service) initUserRegInfo(user *User) {
 	// 获取当前UTC时间
 	nowTime := pkg.GetNowTimeUnixMilli()
 	user.CreatedUTCTime = nowTime
+	user.ModifiedUTCTime = nowTime
 	user.LastLoginUTCTime = nowTime
 	// 设置默认语言
 	user.Lang = s.config.App.DefaultLang

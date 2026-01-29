@@ -8,7 +8,7 @@
         <div id="page-nav">
             <ul class="flex text-lg">
                 <li>
-                    <a href="/u/{{getUserID .}}">{{getUserName .}}</a>
+                    <a href="/u/{{getUserID .}}">{{ or (getDisplayName .) (getHandle .) }}</a>
                 </li>
                 <li class="mx-2">
                     <span class="mdi mdi-slash-forward"></span>
@@ -37,23 +37,13 @@
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-title">{{getMessage "user.settings.username_label" .Context.Lang}}</label>
-                        <input type="text" class="form-control" id="user_name" name="user_name"
-                            value="{{.Data.User.UserName}}" readonly
-                            placeholder='{{getMessage "user.settings.username_placeholder" .Context.Lang}}' />
-                        <p class="form-info">
-                            {{getMessage "user.settings.username_note" .Context.Lang}}
-                        </p>
-                    </div>
-
                     <!-- Full name -->
                     <div class="mb-4">
-                        <label class="form-title" for="full_name">{{getMessage "user.settings.full_name_label"
+                        <label class="form-title" for="display_name">{{getMessage "user.settings.full_name_label"
                             .Context.Lang}}</label>
-                        <input type="text" class="form-control" id="full_name" name="full_name"
+                        <input type="text" class="form-control" id="display_name" name="display_name"
                             placeholder='{{getMessage "user.settings.full_name_placeholder" .Context.Lang}}'
-                            value="{{.Data.User.FullName}}" data-original-value="{{.Data.User.FullName}}"
+                            value="{{.Data.User.DisplayName}}" data-original-value="{{.Data.User.DisplayName}}"
                             x-uno-valid="[{ type: 'length', max: 30 }]" />
                         <p class="form-info">
                             {{getMessage "user.settings.display_name_note" .Context.Lang}}
@@ -66,8 +56,7 @@
                             .Context.Lang}}</label>
                         <textarea class="form-control" id="remark" name="remark" style="height: 120px;"
                             placeholder='{{getMessage "user.settings.bio_placeholder" .Context.Lang}}'
-                            x-uno-valid="[{ type: 'length', max: 300, showCounter: true }]"
-                           >{{.Data.User.Remark}}</textarea>
+                            x-uno-valid="[{ type: 'length', max: 300, showCounter: true }]">{{.Data.User.Remark}}</textarea>
                     </div>
 
                     <!-- Timezone -->
@@ -100,6 +89,60 @@
                     <div class="flex justify-end mt-6">
                         <button type="submit" class="btn">
                             {{getMessage "user.settings.save_changes_button" .Context.Lang}}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Handle Card -->
+        <div class="mb-8" x-data="{ 
+            loading: false,
+            modifiedTime: {{.Data.User.ModifiedUTCTime}},
+            cooldownDays: {{.Data.HandleCooldownDays}},
+            originalHandle: '{{.Data.User.Handle}}',
+            currentHandle: '{{.Data.User.Handle}}',
+            get remainingDays() {
+                const now = new Date().getTime();
+                const cooldownMs = this.cooldownDays * 24 * 60 * 60 * 1000;
+                const passedMs = now - this.modifiedTime;
+                if (passedMs < cooldownMs) {
+                     return Math.ceil((cooldownMs - passedMs) / (24 * 60 * 60 * 1000));
+                }
+                return 0;
+            },
+            get isChanged() {
+                return this.currentHandle !== this.originalHandle;
+            }
+        }">
+            <div class="card-title">{{getMessage "user.settings.username_label" .Context.Lang}}</div>
+            <form id="handle-form" class="relative" x-uno-valid hx-post="/u/settings/handle" hx-swap="none"
+                @htmx:before-request="if(remainingDays > 0 || !isChanged) { $event.preventDefault(); return; } loading = true"
+                @htmx:after-request="loading = false; if($event.detail.successful) { modifiedTime = new Date().getTime(); originalHandle = currentHandle; }"
+                novalidate>
+                <div class="form-mask">
+                    <div class="loading-spinner"></div>
+                </div>
+                <div>
+                    <div class="mb-4">
+                        <input type="text" class="form-control" id="handle" name="handle" x-model="currentHandle"
+                            :data-original-value="originalHandle"
+                            placeholder='{{getMessage "user.settings.username_placeholder" .Context.Lang}}'
+                            :disabled="remainingDays > 0"
+                            x-uno-valid="['required','validname', { type: 'validator', name: 'checkHandle', debounce: 500 }]" />
+
+                        <p class="form-info" x-show="remainingDays > 0" x-cloak>
+                                {{getMessage "user.settings.username_cooldown_msg" .Context.Lang}} <span
+                                    x-text="remainingDays"></span> {{getMessage "common.days" .Context.Lang}}
+                        </p>
+                        <p class="form-info" x-show="remainingDays <= 0">
+                            {{getMessage "user.settings.username_note" .Context.Lang}}
+                        </p>
+                    </div>
+
+                    <div class="flex justify-end mt-6">
+                        <button type="submit" class="btn" :disabled="remainingDays > 0 || !isChanged">
+                            {{getMessage "user.settings.submit_handle" .Context.Lang}}
                         </button>
                     </div>
                 </div>

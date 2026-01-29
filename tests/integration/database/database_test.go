@@ -39,56 +39,56 @@ func TestUserTable(t *testing.T) {
 	db := dbManager.GetDB()
 
 		// 清理可能存在的测试数据
-		db.Exec("DELETE FROM br_user WHERE user_name = ?", "testuser")
+	db.Exec("DELETE FROM br_user WHERE handle = ?", "testuser")
 
-		// 插入测试用户
-		result, err := db.Exec(`
-			INSERT INTO br_user (user_name, email, pwd, status, created_utc_time) 
-			VALUES (?, ?, ?, ?, ?)
-		`, "testuser", "test@example.com", "hashed_password", 1, 1642680000)
-		if err != nil {
-			t.Fatalf("插入用户失败: %v", err)
-		}
+	// 插入测试用户
+	result, err := db.Exec(`
+		INSERT INTO br_user (handle, email, pwd, status, created_utc_time) 
+		VALUES (?, ?, ?, ?, ?)
+	`, "testuser", "test@example.com", "hashed_password", 1, 1642680000)
+	if err != nil {
+		t.Fatalf("插入用户失败: %v", err)
+	}
 
-		// 检查插入结果
-		rowsAffected, err := result.RowsAffected()
-		if err != nil {
-			t.Fatalf("获取影响行数失败: %v", err)
-		}
-		if rowsAffected != 1 {
-			t.Errorf("期望插入1行，实际插入: %d", rowsAffected)
-		}
+	// 检查插入结果
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		t.Fatalf("获取影响行数失败: %v", err)
+	}
+	if rowsAffected != 1 {
+		t.Errorf("期望插入1行，实际插入: %d", rowsAffected)
+	}
 
-		// 查询插入的用户
-		row := db.QueryRow("SELECT user_name, email FROM br_user WHERE user_name = ?", "testuser")
-		var userName, email string
-		err = row.Scan(&userName, &email)
-		if err != nil {
-			t.Fatalf("查询用户失败: %v", err)
-		}
+	// 查询插入的用户
+	row := db.QueryRow("SELECT handle, email FROM br_user WHERE handle = ?", "testuser")
+	var userName, email string
+	err = row.Scan(&userName, &email)
+	if err != nil {
+		t.Fatalf("查询用户失败: %v", err)
+	}
 
-		if userName != "testuser" {
-			t.Errorf("期望用户名为 'testuser'，实际得到: %s", userName)
-		}
-		if email != "test@example.com" {
-			t.Errorf("期望邮箱为 'test@example.com'，实际得到: %s", email)
-		}
+	if userName != "testuser" {
+		t.Errorf("期望用户名为 'testuser'，实际得到: %s", userName)
+	}
+	if email != "test@example.com" {
+		t.Errorf("期望邮箱为 'test@example.com'，实际得到: %s", email)
+	}
 
-		// 测试行数统计
-		var count int
-		err = db.QueryRow("SELECT COUNT(*) FROM br_user").Scan(&count)
-		if err != nil {
-			t.Fatalf("统计用户数量失败: %v", err)
-		}
-		if count < 1 {
-			t.Errorf("期望至少有1个用户，实际得到: %d", count)
-		}
+	// 测试行数统计
+	var count int
+	err = db.QueryRow("SELECT COUNT(*) FROM br_user").Scan(&count)
+	if err != nil {
+		t.Fatalf("统计用户数量失败: %v", err)
+	}
+	if count < 1 {
+		t.Errorf("期望至少有1个用户，实际得到: %d", count)
+	}
 
-		// 清理测试数据
-		_, err = db.Exec("DELETE FROM br_user WHERE user_name = ?", "testuser")
-		if err != nil {
-			t.Fatalf("清理测试数据失败: %v", err)
-		}
+	// 清理测试数据
+	_, err = db.Exec("DELETE FROM br_user WHERE handle = ?", "testuser")
+	if err != nil {
+		t.Fatalf("清理测试数据失败: %v", err)
+	}
 }
 
 // TestDiaryTable 测试日记表操作
@@ -99,9 +99,12 @@ func TestDiaryTable(t *testing.T) {
 	dbManager := ctx.GetDatabase()
 	db := dbManager.GetDB()
 
-		// 先插入用户（日记需要关联用户）
+	// 清理可能存在的测试数据
+	db.Exec("DELETE FROM br_user WHERE handle = ?", "diaryuser")
+
+	// 先插入用户（日记需要关联用户）
 		_, err := db.Exec(`
-			INSERT INTO br_user (user_name, email, pwd, status, created_utc_time) 
+			INSERT INTO br_user (handle, email, pwd, status, created_utc_time) 
 			VALUES (?, ?, ?, ?, ?)
 		`, "diaryuser", "diary@example.com", "hashed_password", 1, 1642680000)
 		if err != nil {
@@ -109,7 +112,7 @@ func TestDiaryTable(t *testing.T) {
 		}
 
 		// 获取用户ID
-		row := db.QueryRow("SELECT user_id FROM br_user WHERE user_name = ?", "diaryuser")
+		row := db.QueryRow("SELECT user_id FROM br_user WHERE handle = ?", "diaryuser")
 		var userID int64
 		err = row.Scan(&userID)
 		if err != nil {
@@ -118,9 +121,9 @@ func TestDiaryTable(t *testing.T) {
 
 		// 插入日记
 		result, err := db.Exec(`
-			INSERT INTO br_diary (title, remark, add_utc_time, add_user_id, add_user_name, status) 
-			VALUES (?, ?, ?, ?, ?, ?)
-		`, "测试日记", "这是一个测试日记", 1642680000, userID, "diaryuser", 1)
+			INSERT INTO br_diary (title, remark, add_utc_time, add_user_id, status) 
+			VALUES (?, ?, ?, ?, ?)
+		`, "测试日记", "这是一个测试日记", 1642680000, userID, 1)
 		if err != nil {
 			t.Fatalf("插入日记失败: %v", err)
 		}
@@ -135,9 +138,10 @@ func TestDiaryTable(t *testing.T) {
 		}
 
 		// 查询日记
-		diaryRow := db.QueryRow("SELECT title, remark, add_user_name FROM br_diary WHERE add_user_id = ?", userID)
-		var title, remark, addUserName string
-		err = diaryRow.Scan(&title, &remark, &addUserName)
+		diaryRow := db.QueryRow("SELECT title, remark, add_user_id FROM br_diary WHERE add_user_id = ?", userID)
+		var title, remark string
+		var dbUserID int64
+		err = diaryRow.Scan(&title, &remark, &dbUserID)
 		if err != nil {
 			t.Fatalf("查询日记失败: %v", err)
 		}
@@ -145,8 +149,8 @@ func TestDiaryTable(t *testing.T) {
 		if title != "测试日记" {
 			t.Errorf("期望日记标题为 '测试日记'，实际得到: %s", title)
 		}
-		if addUserName != "diaryuser" {
-			t.Errorf("期望创建者为 'diaryuser'，实际得到: %s", addUserName)
+		if dbUserID != userID {
+			t.Errorf("期望创建者ID为 %d，实际得到: %d", userID, dbUserID)
 		}
 
 		// 统计日记数量
@@ -164,7 +168,7 @@ func TestDiaryTable(t *testing.T) {
 		if err != nil {
 			t.Fatalf("清理日记数据失败: %v", err)
 		}
-		_, err = db.Exec("DELETE FROM br_user WHERE user_name = ?", "diaryuser")
+		_, err = db.Exec("DELETE FROM br_user WHERE handle = ?", "diaryuser")
 		if err != nil {
 			t.Fatalf("清理用户数据失败: %v", err)
 		}

@@ -14,9 +14,9 @@
                     <div id="register-error" class="error-message hidden my-2"></div>
                     <div class="block">
                         <label class="form-title">{{getMessage "auth.label.username" .Context.Lang}}</label>
-                        <input class="form-control" type="text" id="user_name" name="user_name" x-uno-valid="[
+                        <input class="form-control" type="text" id="handle" name="handle" x-uno-valid="[
                                'required','validname',
-                                { type: 'validator', name: 'checkUsername', debounce: 500 }
+                                { type: 'validator', name: 'checkHandle', debounce: 500 }
                             ]" />
                     </div>
                     <div class="block">

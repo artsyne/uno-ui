@@ -49,7 +49,7 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 		assert.NotEqual(t, "user@test.com", email)
 
 		// 测试用户名隔离
-		username := isolator.IsolateUsername("testuser")
+		username := isolator.IsolateHandle("testuser")
 		assert.Contains(t, username, "testuser")
 		assert.True(t, len(username) <= 90) // 验证长度限制
 
@@ -69,7 +69,7 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 		// 测试用户生成
 		user := generator.CreateUser()
 		assert.NotNil(t, user)
-		assert.NotEmpty(t, user.UserName)
+		assert.NotEmpty(t, user.Handle)
 		assert.NotEmpty(t, user.Email)
 		assert.Contains(t, user.Email, "@")
 		assert.Equal(t, int8(3), user.Status) // 正常状态

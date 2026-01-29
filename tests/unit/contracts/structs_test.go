@@ -16,8 +16,8 @@ func TestAuthUser(t *testing.T) {
 			LoginName:    "testuser",
 			AccessUrl:    "https://example.com",
 			UserId:       12345,
-			UserName:     "testuser",
-			FullName:     "Test User",
+			Handle:       "testuser",
+			DisplayName:  "Test User",
 			Email:        "test@example.com",
 			UserGroup:    1,
 			FaceUrl:      "https://example.com/avatar.jpg",
@@ -30,8 +30,8 @@ func TestAuthUser(t *testing.T) {
 		assert.Equal(t, "testuser", user.LoginName)
 		assert.Equal(t, "https://example.com", user.AccessUrl)
 		assert.Equal(t, int64(12345), user.UserId)
-		assert.Equal(t, "testuser", user.UserName)
-		assert.Equal(t, "Test User", user.FullName)
+		assert.Equal(t, "testuser", user.Handle)
+		assert.Equal(t, "Test User", user.DisplayName)
 		assert.Equal(t, "test@example.com", user.Email)
 		assert.Equal(t, int8(1), user.UserGroup)
 		assert.Equal(t, "https://example.com/avatar.jpg", user.FaceUrl)

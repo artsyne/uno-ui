@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/biuren/hebe/internal/core/database"
 	"github.com/biuren/hebe/internal/domain/diary"
@@ -46,16 +47,12 @@ func (r *DiaryRepository) Insert(d *diary.Diary) (int64, error) {
 		social_setting,
 		add_utc_time,
 		add_user_id,
-		add_user_name,
 		status,
 		info_num,
-		last_action_utc_time,
-		last_action_user_id,
-		last_action_user_name,
 		theme_id
 		)
 		VALUES
-		(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+		(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 	`
 
 	res, err := r.db.Exec(sql,
@@ -64,14 +61,14 @@ func (r *DiaryRepository) Insert(d *diary.Diary) (int64, error) {
 		d.MemberNum, d.ViewNum,
 		d.ViewSetting, d.AccessPwd, d.SocialSetting,
 		d.AddUTCTime,
-		d.AddUserID, d.AddUserName, d.Status, d.InfoNum,
-		d.LastActionUTCTime, d.LastActionUserID, d.LastActionUserName, d.ThemeID)
+		d.AddUserID, d.Status, d.InfoNum,
+		d.ThemeID)
 
 	if err != nil {
 		return 0, err
 	}
 	id, err := res.LastInsertId()
-
+	fmt.Printf("DEBUG: Insert Diary ID: %d, Error: %v\n", id, err)
 	return id, err
 }
 
@@ -85,17 +82,13 @@ func (r *DiaryRepository) Update(d *diary.Diary) error {
 		remark = ?,
 		view_setting = ?,
 		social_setting = ?,
-		theme_id = ?,
-		last_action_utc_time = ?,
-		last_action_user_id = ?,
-		last_action_user_name = ?
+		theme_id = ?
 		WHERE diary_id = ?
 	`
 
 	result, err := r.db.Exec(sql,
 		d.Title, d.Remark,
 		d.ViewSetting, d.SocialSetting, d.ThemeID,
-		d.LastActionUTCTime, d.LastActionUserID, d.LastActionUserName,
 		d.DiaryID)
 
 	if err != nil {
@@ -126,33 +119,27 @@ func (r *DiaryRepository) Delete(diaryID int64) error {
 
 // IncrementEntryNum 增加日记本的日记数量
 // 通过空间 ID 把空间信息数量加一，并更新最后动作时间,用户ID,用户名
-// 参数: diaryID - 日记本ID, userID - 用户ID, userName - 用户名, actionUTCTime - 操作时间
+// 参数: diaryID - 日记本ID, userID - 用户ID, actionUTCTime - 操作时间
 // 返回: 可能的错误
-func (r *DiaryRepository) IncrementEntryNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
+func (r *DiaryRepository) IncrementEntryNum(diaryID int64) error {
 	sqlstr := `
-		UPDATE br_diary SET info_num = info_num + 1,
-		last_action_utc_time = ?,
-		last_action_user_id=?, 
-		last_action_user_name = ? 
+		UPDATE br_diary SET info_num = info_num + 1
 		WHERE diary_id = ?
 	`
-	_, err := r.db.Exec(sqlstr, actionUTCTime, userID, userName, diaryID)
+	_, err := r.db.Exec(sqlstr, diaryID)
 	return err
 }
 
 // DecrementEntryNum 减少日记本的日记数量
-// 通过空间 ID 把空间信息数量减一，并更新最后动作时间,用户ID,用户名
-// 参数: diaryID - 日记本ID, userID - 用户ID, userName - 用户名, actionUTCTime - 操作时间
+// 通过空间 ID 把空间信息数量减一
+// 参数: diaryID - 日记本ID
 // 返回: 可能的错误
-func (r *DiaryRepository) DecrementEntryNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error {
+func (r *DiaryRepository) DecrementEntryNum(diaryID int64) error {
 	sqlstr := `
-		UPDATE br_diary SET info_num = info_num - 1,
-		last_action_utc_time = ?,
-		last_action_user_id=?, 
-		last_action_user_name = ? 
+		UPDATE br_diary SET info_num = info_num - 1
 		WHERE diary_id = ?
 	`
-	_, err := r.db.Exec(sqlstr, actionUTCTime, userID, userName, diaryID)
+	_, err := r.db.Exec(sqlstr, diaryID)
 	return err
 }
 
@@ -161,7 +148,12 @@ func (r *DiaryRepository) DecrementEntryNum(diaryID int64, userID int64, userNam
 // 返回: 日记本对象和可能的错误
 func (r *DiaryRepository) GetByDiaryID(diaryID int64) (*diary.Diary, error) {
 	d := &diary.Diary{}
-	sqlstr := "SELECT * FROM br_diary WHERE diary_id = ?"
+	// JOIN br_user to get handle for add_user
+	sqlstr := `SELECT d.*, 
+	           u1.handle, u1.display_name
+	           FROM br_diary d
+	           LEFT JOIN br_user u1 ON d.add_user_id = u1.user_id
+	           WHERE d.diary_id = ?`
 	err := r.db.Get(d, sqlstr, diaryID)
 	if err == sql.ErrNoRows {
 		return nil, errors.DiaryNotFound.WithDetails(map[string]interface{}{"reason": "diary_not_found"})
@@ -175,8 +167,13 @@ func (r *DiaryRepository) GetByDiaryID(diaryID int64) (*diary.Diary, error) {
 // 返回: 日记本列表和可能的错误
 func (r *DiaryRepository) ListForWriteByUserID(userID int64) ([]diary.Diary, error) {
 	diaryArray := []diary.Diary{}
-	sqlstr := `SELECT * FROM br_diary WHERE add_user_id = ? 
-		ORDER BY last_action_utc_time DESC, diary_id DESC`
+	// JOIN br_user
+	sqlstr := `SELECT d.*, 
+	           u1.handle, u1.display_name
+	           FROM br_diary d
+	           LEFT JOIN br_user u1 ON d.add_user_id = u1.user_id
+	           WHERE d.add_user_id = ? 
+	           ORDER BY d.diary_id DESC`
 	err := r.db.Select(&diaryArray, sqlstr, userID)
 	if err == sql.ErrNoRows {
 		return []diary.Diary{}, nil
@@ -190,8 +187,13 @@ func (r *DiaryRepository) ListForWriteByUserID(userID int64) ([]diary.Diary, err
 func (r *DiaryRepository) ListByUserID(userID int64, pageIndex, pageSize int) ([]diary.Diary, int, error) {
 	diaryArray := []diary.Diary{}
 	offset := (pageIndex - 1) * pageSize
-	sqlstr := `SELECT * FROM br_diary WHERE add_user_id = ?
-		ORDER BY last_action_utc_time DESC, diary_id DESC LIMIT ? OFFSET ?`
+	// JOIN br_user
+	sqlstr := `SELECT d.*, 
+	           u1.handle, u1.display_name
+	           FROM br_diary d
+	           LEFT JOIN br_user u1 ON d.add_user_id = u1.user_id
+	           WHERE d.add_user_id = ?
+	           ORDER BY d.diary_id DESC LIMIT ? OFFSET ?`
 	err := r.db.Select(&diaryArray, sqlstr, userID, pageSize, offset)
 	if err == sql.ErrNoRows {
 		return []diary.Diary{}, 0, nil

@@ -137,13 +137,25 @@ export function initValidationCallbacks() {
     }
   };
 
-  // Register checkUsername callback
+  // Register checkHandle callback
   // Updated for Uno Valid v0.8.0+: Native Async Support
-  validStore.registerValidator('checkUsername', async (value) => {
+  validStore.registerValidator('checkHandle', async (value, name) => {
     if (!value) return true;
+
+    // Check for original value (for edit forms)
+    const element =
+      document.querySelector(`[name="${name}"]`) ||
+      document.getElementById(name);
+    if (element) {
+      const originalValue = element.getAttribute('data-original-value');
+      if (originalValue && value === originalValue) {
+        return true;
+      }
+    }
+
     return validateRemote(
-      '/check-username',
-      { user_name: value },
+      '/check-handle',
+      { handle: value },
       { user_exists: 'auth.username_taken' },
     );
   });

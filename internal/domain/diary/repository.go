@@ -28,22 +28,16 @@ type RepositoryInterface interface {
 	// IncrementEntryNum 增加日记本的日记数量
 	// 参数:
 	//   - diaryID: 日记本ID
-	//   - userID: 操作用户ID
-	//   - userName: 操作用户名
-	//   - actionUTCTime: 操作时间（UTC时间戳）
 	// 返回:
 	//   - error: 操作失败时返回错误
-	IncrementEntryNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error
+	IncrementEntryNum(diaryID int64) error
 
 	// DecrementEntryNum 减少日记本的日记数量
 	// 参数:
 	//   - diaryID: 日记本ID
-	//   - userID: 操作用户ID
-	//   - userName: 操作用户名
-	//   - actionUTCTime: 操作时间（UTC时间戳）
 	// 返回:
 	//   - error: 操作失败时返回错误
-	DecrementEntryNum(diaryID int64, userID int64, userName string, actionUTCTime int64) error
+	DecrementEntryNum(diaryID int64) error
 
 	// GetByDiaryID 根据ID获取日记本对象
 	// 参数:

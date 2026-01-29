@@ -3,8 +3,8 @@ package user
 // User 用户信息结构体
 type User struct {
 	UserId           int64  `form:"user_id" json:"user_id" db:"user_id"`
-	UserName         string `form:"user_name" json:"user_name" db:"user_name"`
-	FullName         string `form:"full_name" json:"full_name" db:"full_name"`
+	Handle           string `form:"handle" json:"handle" db:"handle"`
+	DisplayName      string `form:"display_name" json:"display_name" db:"display_name"`
 	UserGroup        int8   `form:"user_group" json:"user_group" db:"user_group"`
 	Pwd              string `form:"pwd" json:"pwd" db:"pwd"`
 	ProfileUrl       string `form:"profile_url" json:"profile_url" db:"profile_url"`
@@ -13,6 +13,7 @@ type User struct {
 	EmailVerified    int8   `form:"email_verified" json:"email_verified" db:"email_verified"`
 	RegIp            string `form:"reg_ip" json:"reg_ip" db:"reg_ip"`
 	CreatedUTCTime   int64  `form:"created_utc_time" json:"created_utc_time" db:"created_utc_time"`
+	ModifiedUTCTime  int64  `form:"modified_utc_time" json:"modified_utc_time" db:"modified_utc_time"`
 	Remark           string `form:"remark" json:"remark" db:"remark"`
 	LastIp           string `form:"last_ip" json:"last_ip" db:"last_ip"`
 	LastLoginUTCTime int64  `form:"last_login_utc_time" json:"last_login_utc_time" db:"last_login_utc_time"`
@@ -39,13 +40,13 @@ type LoginRequest struct {
 }
 
 type RegisterRequest struct {
-	UserName string `form:"user_name" json:"user_name"`
-	FullName string `form:"full_name" json:"full_name"`
-	Email    string `form:"email" json:"email"`
-	Pwd      string `form:"pwd" json:"pwd"`
-	TimeZone string `form:"time_zone" json:"time_zone"`
-	Lang     string `form:"lang" json:"lang"`
-	LastIp   string `form:"last_ip" json:"last_ip"`
+	Handle      string `form:"handle" json:"handle"`
+	DisplayName string `form:"display_name" json:"display_name"`
+	Email       string `form:"email" json:"email"`
+	Pwd         string `form:"pwd" json:"pwd"`
+	TimeZone    string `form:"time_zone" json:"time_zone"`
+	Lang        string `form:"lang" json:"lang"`
+	LastIp      string `form:"last_ip" json:"last_ip"`
 }
 
 type ResetPasswordRequest struct {
@@ -54,8 +55,8 @@ type ResetPasswordRequest struct {
 	NewPwd string `form:"new_pwd" json:"new_pwd"`
 }
 
-type CheckUserNameRequest struct {
-	UserName string `form:"username" json:"username"`
+type CheckHandleRequest struct {
+	Handle string `form:"handle" json:"handle"`
 }
 
 type CheckEmailRequest struct {
@@ -68,17 +69,17 @@ type FindPasswordRequest struct {
 
 // UpdateProfileRequest 更新用户信息请求
 type UpdateProfileRequest struct {
-	UserId   int64  `form:"user_id" json:"user_id"`
-	FullName string `form:"full_name" json:"full_name"`
-	Remark   string `form:"remark" json:"remark"`
-	TimeZone string `form:"time_zone" json:"time_zone"`
-	Lang     string `form:"lang" json:"lang"`
+	UserId      int64  `form:"user_id" json:"user_id"`
+	DisplayName string `form:"display_name" json:"display_name"`
+	Remark      string `form:"remark" json:"remark"`
+	TimeZone    string `form:"time_zone" json:"time_zone"`
+	Lang        string `form:"lang" json:"lang"`
 }
 
 // UpdateEmailRequest 更新邮箱请求
 type UpdateEmailRequest struct {
 	UserId int64  `form:"user_id" json:"user_id"`
-	Email string `form:"email" json:"email"`
+	Email  string `form:"email" json:"email"`
 }
 
 // ChangePasswordRequest 修改密码请求

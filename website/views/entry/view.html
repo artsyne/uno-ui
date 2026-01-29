@@ -7,7 +7,7 @@
     <section class="flex justify-between mb-10">
         <div id="page-nav">
             <ul class="flex text-lg text-gray-700 dark:text-gray-300">
-                <li><a href="/u/{{.Data.Entry.AddUserID}}">{{.Data.Entry.AddUserName}}</a>
+                <li><a href="/u/{{.Data.Entry.AddUserID}}">{{ or .Data.Entry.AddUserDisplayName .Data.Entry.AddUserHandle }}</a>
                     <i class="mdi mdi-slash-forward mx-3 text-gray-500 dark:text-gray-400"></i>
                 </li>
                 <li>

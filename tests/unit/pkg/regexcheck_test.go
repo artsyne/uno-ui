@@ -624,7 +624,7 @@ func TestRegexCheckEdgeCases(t *testing.T) {
 		
 		emptyStr := ""
 		assert.False(t, pkg.IsID(emptyStr), "空字符串不应该是有效ID")
-		assert.False(t, pkg.IsUserName(emptyStr), "空字符串不应该是有效用户名")
+		assert.False(t, pkg.IsHandle(emptyStr), "空字符串不应该是有效用户名")
 		assert.False(t, pkg.IsPwd(emptyStr), "空字符串不应该是有效密码")
 		assert.False(t, pkg.IsInteger(emptyStr), "空字符串不应该是有效整数")
 		assert.False(t, pkg.IsDecimals(emptyStr), "空字符串不应该是有效小数")
@@ -647,7 +647,7 @@ func TestRegexCheckEdgeCases(t *testing.T) {
 		specialChars := "Aa1@#$%^&*()"
 		assert.True(t, pkg.IsPwd(specialChars), "特殊字符应该是有效密码")
 		assert.False(t, pkg.IsID(specialChars), "特殊字符不应该是有效ID")
-		assert.False(t, pkg.IsUserName(specialChars), "特殊字符不应该是有效用户名")
+		assert.False(t, pkg.IsHandle(specialChars), "特殊字符不应该是有效用户名")
 	})
 
 	t.Run("Unicode字符测试", func(t *testing.T) {
@@ -684,7 +684,7 @@ func TestRegexCheckIntegration(t *testing.T) {
 		phone := "13812345678"
 		
 		assert.True(t, pkg.IsID(userID), "用户ID应该有效")
-		assert.True(t, pkg.IsUserName(userName), "用户名应该有效")
+		assert.True(t, pkg.IsHandle(userName), "用户名应该有效")
 		assert.True(t, pkg.IsPwd(password), "密码应该有效")
 		assert.True(t, pkg.IsEmail(email), "邮箱应该有效")
 		assert.True(t, pkg.IsCellphone(phone), "手机号应该有效")
@@ -701,7 +701,7 @@ func TestRegexCheckIntegration(t *testing.T) {
 		testStr := "test123456"
 		for i := 0; i < 1000; i++ {
 			pkg.IsID(testStr)
-			pkg.IsUserName(testStr)
+			pkg.IsHandle(testStr)
 			pkg.IsPwd(testStr)
 			pkg.IsEmail("test@example.com")
 		}

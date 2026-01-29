@@ -7,19 +7,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ValidateUsername 验证用户名是否可用
-func (ctrl *UserController) ValidateUsername(c *gin.Context) {
+// ValidateHandle 验证用户名是否可用
+func (ctrl *UserController) ValidateHandle(c *gin.Context) {
 	// 获取已验证的请求数据
-	req := middleware.MustGetValidatedRequest[CheckUserNameRequest](c)
+	req := middleware.MustGetValidatedRequest[CheckHandleRequest](c)
 
 	// 检查用户名是否已存在
-	isExistUserName, err := ctrl.service.IsExistUserName(req.UserName)
+	isExistHandle, err := ctrl.service.IsExistHandle(req.Handle)
 	if err != nil {
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
-	if isExistUserName {
-		ctrl.renderService.JSONError(c, errors.UserExists.WithDetails(map[string]interface{}{"username": req.UserName}))
+	if isExistHandle {
+		ctrl.renderService.JSONError(c, errors.UserExists.WithDetails(map[string]interface{}{"handle": req.Handle}))
 		return
 	}
 

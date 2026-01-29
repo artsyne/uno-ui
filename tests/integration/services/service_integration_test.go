@@ -42,21 +42,21 @@ func TestUserDiaryIntegration(t *testing.T) {
 	diaryService := diary.NewService(config, diaryRepo)
 
 	t.Run("用户创建和日记本操作流程", func(t *testing.T) {
-		// 1. 注册用户 - 使用随机数据
+		// 1. 创建用户 - 使用随机数据
 		testUser := &user.User{
-			UserName: ctx.GetDataGenerator().GenerateUniqueString("u"),
-			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("u"),
-			Pwd:      "password123",
-			FullName: ctx.GetDataGenerator().GenerateUniqueString("fullname"),
-			TimeZone: "Asia/Shanghai",
-			Lang:     "zh-cn",
+			Handle:      ctx.GetDataGenerator().GenerateUniqueString("u"),
+			Email:       ctx.GetDataGenerator().GenerateUniqueEmail("u"),
+			Pwd:         "password123",
+			DisplayName: ctx.GetDataGenerator().GenerateUniqueString("fullname"),
+			TimeZone:    "UTC",
+			Lang:        "en",
 		}
 		err := userService.RegisterUser(testUser)
 		require.NoError(t, err)
 		require.True(t, testUser.UserId > 0)
 
 		// 2. 验证用户登录
-		authenticatedUser, err := userService.LoginWithUsernameOrEmail(testUser.UserName, "password123")
+		authenticatedUser, err := userService.LoginWithUsernameOrEmail(testUser.Handle, "password123")
 		require.NoError(t, err)
 		assert.Equal(t, testUser.UserId, authenticatedUser.UserId)
 
@@ -65,7 +65,6 @@ func TestUserDiaryIntegration(t *testing.T) {
 			Title:         ctx.GetDataGenerator().GenerateUniqueString("diary"),
 			Remark:        "用于集成测试的日记本",
 			AddUserID:     testUser.UserId,
-			AddUserName:   testUser.UserName,
 			AddUTCTime:    1642680000,
 			Status:        1,
 			ViewSetting:   1,
@@ -93,7 +92,7 @@ func TestUserDiaryIntegration(t *testing.T) {
 		// 7. 验证用户信息更新
 		updatedUser, err := userService.GetUserByUserId(testUser.UserId)
 		require.NoError(t, err)
-		assert.Equal(t, "Updated Name", updatedUser.FullName)
+		assert.Equal(t, "Updated Name", updatedUser.DisplayName)
 		assert.Equal(t, "Updated Remark", updatedUser.Remark)
 	})
 }
@@ -126,12 +125,12 @@ func TestUserEntryDiaryIntegration(t *testing.T) {
 	t.Run("完整的内容创建流程", func(t *testing.T) {
 		// 1. 创建用户 - 使用随机数据
 		testUser := &user.User{
-			UserName: ctx.GetDataGenerator().GenerateUniqueString("u"),
-			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("u"),
-			Pwd:      "password123",
-			FullName: ctx.GetDataGenerator().GenerateUniqueString("fullname"),
-			TimeZone: "UTC",
-			Lang:     "en",
+			Handle:      ctx.GetDataGenerator().GenerateUniqueString("u"),
+			Email:       ctx.GetDataGenerator().GenerateUniqueEmail("u"),
+			Pwd:         "password123",
+			DisplayName: ctx.GetDataGenerator().GenerateUniqueString("fullname"),
+			TimeZone:    "UTC",
+			Lang:        "en",
 		}
 		err := userService.RegisterUser(testUser)
 		require.NoError(t, err)
@@ -141,7 +140,6 @@ func TestUserEntryDiaryIntegration(t *testing.T) {
 			Title:         ctx.GetDataGenerator().GenerateUniqueString("diary"),
 			Remark:        "用于内容测试",
 			AddUserID:     testUser.UserId,
-			AddUserName:   testUser.UserName,
 			AddUTCTime:    1642680000,
 			Status:        1,
 			ViewSetting:   1,
@@ -153,20 +151,19 @@ func TestUserEntryDiaryIntegration(t *testing.T) {
 
 		// 3. 在日记本中创建文章 - 使用随机数据
 		testEntry := &entry.Entry{
-			Title:       ctx.GetDataGenerator().GenerateUniqueString("entry"),
-			Body:        ctx.GetDataGenerator().GenerateUniqueString("content"),
-			DiaryID:     diaryID,
-			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
-			AddUTCTime:  1642680100,
-			Status:      1,
+			Title:      ctx.GetDataGenerator().GenerateUniqueString("entry"),
+			Body:       ctx.GetDataGenerator().GenerateUniqueString("content"),
+			DiaryID:    diaryID,
+			AddUserID:  testUser.UserId,
+			AddUTCTime: 1642680100,
+			Status:     1,
 		}
 		entryID, err := entryService.AddEntry(testEntry)
 		require.NoError(t, err)
 		assert.True(t, entryID > 0)
 
 		// 更新日记本的文章计数
-		err = diaryService.IncrementEntryCount(diaryID, testUser.UserId, testUser.UserName, testEntry.AddUTCTime)
+		err = diaryService.IncrementEntryCount(diaryID)
 		require.NoError(t, err)
 
 		// 4. 验证文章计数
@@ -182,20 +179,19 @@ func TestUserEntryDiaryIntegration(t *testing.T) {
 		// 6. 创建更多文章
 		for i := 2; i <= 3; i++ {
 			additionalEntry := &entry.Entry{
-				Title:       "第" + string(rune('0'+i)) + "篇文章",
-				Body:        "这是第" + string(rune('0'+i)) + "篇文章的内容",
-				Summary:     "第" + string(rune('0'+i)) + "篇文章摘要",
-				DiaryID:     diaryID,
-				AddUserID:   testUser.UserId,
-				AddUserName: testUser.UserName,
-				AddUTCTime:  int64(1642680100 + i),
-				Status:      1,
+				Title:      "第" + string(rune('0'+i)) + "篇文章",
+				Body:       "这是第" + string(rune('0'+i)) + "篇文章的内容",
+				Summary:    "第" + string(rune('0'+i)) + "篇文章摘要",
+				DiaryID:    diaryID,
+				AddUserID:  testUser.UserId,
+				AddUTCTime: int64(1642680100 + i),
+				Status:     1,
 			}
 			_, err := entryService.AddEntry(additionalEntry)
 			require.NoError(t, err)
 
 			// 更新日记本的文章计数
-			err = diaryService.IncrementEntryCount(diaryID, testUser.UserId, testUser.UserName, additionalEntry.AddUTCTime)
+			err = diaryService.IncrementEntryCount(diaryID)
 			require.NoError(t, err)
 		}
 
@@ -226,7 +222,7 @@ func TestUserEntryDiaryIntegration(t *testing.T) {
 		assert.Equal(t, "更新后的内容", updatedEntry.Body)
 
 		// 11. 删除一篇文章
-		err = entryService.DeleteEntryByID(firstEntry.EntryID, testUser.UserId, testUser.UserName, 1234567890)
+		err = entryService.DeleteEntryByID(firstEntry.EntryID, testUser.UserId, 1234567890)
 		assert.NoError(t, err)
 
 		// 12. 验证文章已删除
@@ -269,7 +265,7 @@ func TestMultiUserScenario(t *testing.T) {
 	t.Run("多用户数据隔离", func(t *testing.T) {
 		// 创建两个用户
 		user1 := &user.User{
-			UserName: ctx.GetDataGenerator().GenerateUniqueString("u1"),
+			Handle:   ctx.GetDataGenerator().GenerateUniqueString("u1"),
 			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("user1"),
 			Pwd:      "password123",
 			TimeZone: "Asia/Shanghai",
@@ -278,7 +274,7 @@ func TestMultiUserScenario(t *testing.T) {
 		require.NoError(t, err)
 
 		user2 := &user.User{
-			UserName: ctx.GetDataGenerator().GenerateUniqueString("u2"),
+			Handle:   ctx.GetDataGenerator().GenerateUniqueString("u2"),
 			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("user2"),
 			Pwd:      "password123",
 			TimeZone: "UTC",
@@ -291,7 +287,6 @@ func TestMultiUserScenario(t *testing.T) {
 			Title:         "用户1的日记本",
 			Remark:        "用户1专用",
 			AddUserID:     user1.UserId,
-			AddUserName:   user1.UserName,
 			AddUTCTime:    1642680000,
 			Status:        1,
 			ViewSetting:   1,
@@ -305,7 +300,6 @@ func TestMultiUserScenario(t *testing.T) {
 			Title:         "用户2的日记本",
 			Remark:        "用户2专用",
 			AddUserID:     user2.UserId,
-			AddUserName:   user2.UserName,
 			AddUTCTime:    1642680000,
 			Status:        1,
 			ViewSetting:   1,
@@ -317,25 +311,23 @@ func TestMultiUserScenario(t *testing.T) {
 
 		// 为每个用户在各自的日记本中创建文章
 		entry1 := &entry.Entry{
-			Title:       "用户1的文章",
-			Body:        "用户1的内容",
-			DiaryID:     diary1ID,
-			AddUserID:   user1.UserId,
-			AddUserName: user1.UserName,
-			AddUTCTime:  1642680100,
-			Status:      1,
+			Title:      "用户1的文章",
+			Body:       "用户1的内容",
+			DiaryID:    diary1ID,
+			AddUserID:  user1.UserId,
+			AddUTCTime: 1642680100,
+			Status:     1,
 		}
 		entry1ID, err := entryService.AddEntry(entry1)
 		require.NoError(t, err)
 
 		entry2 := &entry.Entry{
-			Title:       "用户2的文章",
-			Body:        "用户2的内容",
-			DiaryID:     diary2ID,
-			AddUserID:   user2.UserId,
-			AddUserName: user2.UserName,
-			AddUTCTime:  1642680100,
-			Status:      1,
+			Title:      "用户2的文章",
+			Body:       "用户2的内容",
+			DiaryID:    diary2ID,
+			AddUserID:  user2.UserId,
+			AddUTCTime: 1642680100,
+			Status:     1,
 		}
 		entry2ID, err := entryService.AddEntry(entry2)
 		require.NoError(t, err)
@@ -404,7 +396,6 @@ func TestServiceErrorHandling(t *testing.T) {
 			Title:         "无效日记本",
 			Remark:        "测试",
 			AddUserID:     99999, // 不存在的用户ID
-			AddUserName:   "nonexistent",
 			AddUTCTime:    1642680000,
 			Status:        1,
 			ViewSetting:   1,
@@ -417,13 +408,12 @@ func TestServiceErrorHandling(t *testing.T) {
 
 		// 2. 尝试在不存在的日记本中创建文章
 		invalidPost := &entry.Entry{
-			Title:       "无效文章",
-			Body:        "测试内容",
-			DiaryID:     99999, // 不存在的日记本ID
-			AddUserID:   1,
-			AddUserName: "u_inv",
-			AddUTCTime:  1642680100,
-			Status:      1,
+			Title:      "无效文章",
+			Body:       "测试内容",
+			DiaryID:    99999, // 不存在的日记本ID
+			AddUserID:  1,
+			AddUTCTime: 1642680100,
+			Status:     1,
 		}
 		_, err = entryService.AddEntry(invalidPost)
 		assert.Error(t, err) // 应该出错
@@ -431,7 +421,7 @@ func TestServiceErrorHandling(t *testing.T) {
 		// 3. 尝试重复注册相同的用户名
 		duplicateUserName := ctx.GetDataGenerator().GenerateUniqueString("dup")
 		user1 := &user.User{
-			UserName: duplicateUserName,
+			Handle:   duplicateUserName,
 			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("d1"),
 			Pwd:      "password123",
 			TimeZone: "UTC",
@@ -440,7 +430,7 @@ func TestServiceErrorHandling(t *testing.T) {
 		require.NoError(t, err)
 
 		user2 := &user.User{
-			UserName: duplicateUserName, // 重复的用户名
+			Handle:   duplicateUserName, // 重复的用户名
 			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("dup2"),
 			Pwd:      "password123",
 			TimeZone: "UTC",
@@ -450,7 +440,7 @@ func TestServiceErrorHandling(t *testing.T) {
 
 		// 4. 尝试重复注册相同的邮箱
 		user3 := &user.User{
-			UserName: "anotheruser",
+			Handle:   "anotheruser",
 			Email:    user1.Email, // 重复的邮箱
 			Pwd:      "password123",
 			TimeZone: "UTC",
@@ -488,7 +478,7 @@ func TestServicePerformance(t *testing.T) {
 	t.Run("批量操作性能", func(t *testing.T) {
 		// 创建一个用户
 		testUser := &user.User{
-			UserName: ctx.GetDataGenerator().GenerateUniqueString("pu"),
+			Handle:   ctx.GetDataGenerator().GenerateUniqueString("pu"),
 			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("pu"),
 			Pwd:      "password123",
 			TimeZone: "UTC",
@@ -502,7 +492,6 @@ func TestServicePerformance(t *testing.T) {
 			Title:         "性能测试日记本",
 			Remark:        "用于性能测试",
 			AddUserID:     testUser.UserId,
-			AddUserName:   testUser.UserName,
 			AddUTCTime:    1642680000,
 			Status:        1,
 			ViewSetting:   1,
@@ -516,14 +505,13 @@ func TestServicePerformance(t *testing.T) {
 		const articleCount = 10
 		for i := 1; i <= articleCount; i++ {
 			article := &entry.Entry{
-				Title:       "性能测试文章" + string(rune('0'+i)),
-				Body:        "这是第" + string(rune('0'+i)) + "篇性能测试文章",
-				Summary:     "摘要" + string(rune('0'+i)),
-				DiaryID:     diaryID,
-				AddUserID:   testUser.UserId,
-				AddUserName: testUser.UserName,
-				AddUTCTime:  int64(1642680100 + i),
-				Status:      1,
+				Title:      "性能测试文章" + string(rune('0'+i)),
+				Body:       "这是第" + string(rune('0'+i)) + "篇性能测试文章",
+				Summary:    "摘要" + string(rune('0'+i)),
+				DiaryID:    diaryID,
+				AddUserID:  testUser.UserId,
+				AddUTCTime: int64(1642680100 + i),
+				Status:     1,
 			}
 			_, err := entryService.AddEntry(article)
 			require.NoError(t, err)

@@ -34,12 +34,12 @@ func NewDataGenerator(isolator DataIsolatorInterface) *DataGeneratorImpl {
 func (dg *DataGeneratorImpl) CreateUser(options ...UserOption) *user.User {
 	// 默认选项
 	opts := &UserOptions{
-		Username: dg.isolator.IsolateUsername("user"),
-		Email:    dg.isolator.IsolateEmail("user@test.com"),
-		Password: "password123",
-		FullName: "Test User",
-		TimeZone: "Asia/Shanghai",
-		Lang:     "zh-cn",
+		Handle:      dg.isolator.IsolateHandle("user"),
+		Email:       dg.isolator.IsolateEmail("user@test.com"),
+		Password:    "password123",
+		DisplayName: "Test User",
+		TimeZone:    "Asia/Shanghai",
+		Lang:        "zh-cn",
 	}
 
 	// 应用自定义选项
@@ -48,10 +48,10 @@ func (dg *DataGeneratorImpl) CreateUser(options ...UserOption) *user.User {
 	}
 
 	return &user.User{
-		UserName:         opts.Username,
+		Handle:           opts.Handle,
 		Email:            opts.Email,
 		Pwd:              opts.Password,
-		FullName:         opts.FullName,
+		DisplayName:      opts.DisplayName,
 		TimeZone:         opts.TimeZone,
 		Lang:             opts.Lang,
 		CreatedUTCTime:   time.Now().Unix(),
@@ -86,8 +86,6 @@ func (dg *DataGeneratorImpl) CreateDiary(userID int64, options ...DiaryOption) *
 		ThemeID:           int8(opts.ThemeID),
 		AddUTCTime:        now,
 		AddUserID:         userID,
-		LastActionUTCTime: now,
-		LastActionUserID:  userID,
 		Status:            1, // 正常状态
 	}
 }
@@ -132,9 +130,9 @@ func (dg *DataGeneratorImpl) GenerateUniqueEmail(prefix string) string {
 	return dg.isolator.IsolateEmail(email)
 }
 
-// GenerateUniqueUsername 生成唯一用户名
-func (dg *DataGeneratorImpl) GenerateUniqueUsername(prefix string) string {
-	return dg.isolator.IsolateUsername(prefix)
+// GenerateUniqueHandle 生成唯一Handle
+func (dg *DataGeneratorImpl) GenerateUniqueHandle(prefix string) string {
+	return dg.isolator.IsolateHandle(prefix)
 }
 
 // GenerateUniqueTitle 生成唯一标题
@@ -144,10 +142,10 @@ func (dg *DataGeneratorImpl) GenerateUniqueTitle(prefix string) string {
 
 // User选项函数
 
-// WithUsername 设置用户名
-func WithUsername(username string) UserOption {
+// WithHandle 设置Handle
+func WithHandle(handle string) UserOption {
 	return func(opts *UserOptions) {
-		opts.Username = username
+		opts.Handle = handle
 	}
 }
 
@@ -165,10 +163,10 @@ func WithPassword(password string) UserOption {
 	}
 }
 
-// WithFullName 设置全名
-func WithFullName(fullName string) UserOption {
+// WithDisplayName 设置显示名称
+func WithDisplayName(displayName string) UserOption {
 	return func(opts *UserOptions) {
-		opts.FullName = fullName
+		opts.DisplayName = displayName
 	}
 }
 
@@ -266,7 +264,7 @@ func (dg *DataGeneratorImpl) CreateUsers(count int, baseOptions ...UserOption) [
 
 		// 添加索引以确保唯一性
 		options = append(options,
-			WithUsername(fmt.Sprintf("user%d", i)),
+			WithHandle(fmt.Sprintf("user%d", i)),
 			WithEmail(fmt.Sprintf("user%d@test.com", i)),
 		)
 

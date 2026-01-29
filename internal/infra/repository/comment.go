@@ -30,12 +30,12 @@ func NewCommentRepository() comment.RepositoryInterface {
 func (r *CommentRepository) Insert(comment *comment.Comment) (int64, error) {
 	sqlstr := `
         INSERT INTO br_comment(
-            entry_id, content, add_utc_time, add_user_id, add_user_name, add_user_ip
+            entry_id, content, add_utc_time, add_user_id, add_user_ip
         )
-        VALUES(?, ?, ?, ?, ?, ?)
+        VALUES(?, ?, ?, ?, ?)
     `
 	res, err := r.db.Exec(sqlstr, comment.EntryID, comment.Content, comment.AddUtcTime,
-		comment.AddUserID, comment.AddUserName, comment.AddUserIP)
+		comment.AddUserID, comment.AddUserIP)
 
 	if err != nil {
 		return 0, err
@@ -66,8 +66,12 @@ func (r *CommentRepository) Delete(commentID int64) error {
 // GetByID 根据评论ID获取评论信息
 func (r *CommentRepository) GetByID(commentID int64) (*comment.Comment, error) {
 	var commentData comment.Comment
-	sqlstr := `SELECT comment_id, entry_id, content, add_utc_time, add_user_id, add_user_name, add_user_ip 
-               FROM br_comment WHERE comment_id = ?`
+	// JOIN br_user to get handle and display_name
+	sqlstr := `SELECT c.comment_id, c.entry_id, c.content, c.add_utc_time, c.add_user_id, c.add_user_ip,
+	           u.handle, u.display_name
+               FROM br_comment c 
+               LEFT JOIN br_user u ON c.add_user_id = u.user_id
+               WHERE c.comment_id = ?`
 	err := r.db.Get(&commentData, sqlstr, commentID)
 	if err == sql.ErrNoRows {
 		return nil, errors.CommentNotFound.WithDetails(map[string]interface{}{"comment_id": commentID})
@@ -82,9 +86,13 @@ func (r *CommentRepository) GetByID(commentID int64) (*comment.Comment, error) {
 func (r *CommentRepository) ListByEntryID(entryID int64, pageIndex, pageSize int) ([]comment.Comment, int, error) {
 	commentArray := []comment.Comment{}
 	offset := (pageIndex - 1) * pageSize
-	sqlstr := `SELECT comment_id, entry_id, content, add_utc_time, add_user_id, add_user_name, add_user_ip 
-               FROM br_comment WHERE entry_id = ?
-               ORDER BY comment_id DESC LIMIT ? OFFSET ?`
+	// JOIN br_user to get handle and display_name
+	sqlstr := `SELECT c.comment_id, c.entry_id, c.content, c.add_utc_time, c.add_user_id, c.add_user_ip,
+	           u.handle, u.display_name
+               FROM br_comment c 
+               LEFT JOIN br_user u ON c.add_user_id = u.user_id
+               WHERE c.entry_id = ?
+               ORDER BY c.comment_id DESC LIMIT ? OFFSET ?`
 	err := r.db.Select(&commentArray, sqlstr, entryID, pageSize, offset)
 	if err == sql.ErrNoRows {
 		return []comment.Comment{}, 0, nil

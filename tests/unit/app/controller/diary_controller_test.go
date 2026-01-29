@@ -152,13 +152,13 @@ func TestDiaryController_DataStructures(t *testing.T) {
 		// 测试用户结构
 		user := &userDomain.User{
 			UserId:   1,
-			UserName: "testuser",
+			Handle:   "testuser",
 			Email:    "test@example.com",
 		}
 
 		assert.NotNil(t, user)
 		assert.Equal(t, int64(1), user.UserId)
-		assert.Equal(t, "testuser", user.UserName)
+		assert.Equal(t, "testuser", user.Handle)
 		assert.Equal(t, "test@example.com", user.Email)
 	})
 
@@ -166,12 +166,12 @@ func TestDiaryController_DataStructures(t *testing.T) {
 		// 测试认证用户结构
 		authUser := &types.AuthUser{
 			UserId:   1,
-			UserName: "testuser",
+			Handle:   "testuser",
 		}
 
 		assert.NotNil(t, authUser)
 		assert.Equal(t, int64(1), authUser.UserId)
-		assert.Equal(t, "testuser", authUser.UserName)
+		assert.Equal(t, "testuser", authUser.Handle)
 	})
 }
 

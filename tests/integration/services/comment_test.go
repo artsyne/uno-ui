@@ -47,7 +47,7 @@ func TestCommentServiceIntegration(t *testing.T) {
 
 	// 创建测试用户
 	testUser := &user.User{
-		UserName: ctx.GetDataGenerator().GenerateUniqueString("user"),
+		Handle:   ctx.GetDataGenerator().GenerateUniqueString("user"),
 		Email:    ctx.GetDataGenerator().GenerateUniqueEmail("user"),
 		Pwd:      "password123",
 		TimeZone: "UTC",
@@ -64,7 +64,6 @@ func TestCommentServiceIntegration(t *testing.T) {
 		SocialSetting: 1, // 允许社交
 		ThemeID:       1,
 		AddUserID:     testUser.UserId,
-		AddUserName:   testUser.UserName,
 		Status:        1,
 	}
 	diaryID, err := diaryService.AddDiary(testDiary)
@@ -73,12 +72,11 @@ func TestCommentServiceIntegration(t *testing.T) {
 
 	// 创建测试文章
 	testEntry := &entry.Entry{
-		Title:       "集成测试文章",
-		Body:        "这是一篇用于评论集成测试的文章",
-		DiaryID:     testDiary.DiaryID,
-		AddUserID:   testUser.UserId,
-		AddUserName: testUser.UserName,
-		Status:      1,
+		Title:     "集成测试文章",
+		Body:      "这是一篇用于评论集成测试的文章",
+		DiaryID:   testDiary.DiaryID,
+		AddUserID: testUser.UserId,
+		Status:    1,
 	}
 	entryID, err := entryService.AddEntry(testEntry)
 	require.NoError(t, err)
@@ -87,11 +85,10 @@ func TestCommentServiceIntegration(t *testing.T) {
 	t.Run("完整的评论生命周期测试", func(t *testing.T) {
 		// 1. 添加评论
 		newComment := &comment.Comment{
-			EntryID:     testEntry.EntryID,
-			Content:     "这是一条集成测试评论",
-			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
-			AddUserIP:   "127.0.0.1",
+			EntryID:   testEntry.EntryID,
+			Content:   "这是一条集成测试评论",
+			AddUserID: testUser.UserId,
+			AddUserIP: "127.0.0.1",
 		}
 		commentID, err := commentService.AddComment(newComment)
 		assert.NoError(t, err)
@@ -134,7 +131,7 @@ func TestCommentServiceIntegration(t *testing.T) {
 	t.Run("多用户评论交互测试", func(t *testing.T) {
 		// 创建第二个用户
 		testUser2 := &user.User{
-			UserName: ctx.GetDataGenerator().GenerateUniqueString("u2"),
+			Handle:   ctx.GetDataGenerator().GenerateUniqueString("u2"),
 			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("u2"),
 			Pwd:      "password123",
 			TimeZone: "UTC",
@@ -145,21 +142,19 @@ func TestCommentServiceIntegration(t *testing.T) {
 
 		// 两个用户分别添加评论
 		comment1 := &comment.Comment{
-			EntryID:     testEntry.EntryID,
-			Content:     "用户1的评论",
-			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
-			AddUserIP:   "127.0.0.1",
+			EntryID:   testEntry.EntryID,
+			Content:   "用户1的评论",
+			AddUserID: testUser.UserId,
+			AddUserIP: "127.0.0.1",
 		}
 		commentID1, err := commentService.AddComment(comment1)
 		assert.NoError(t, err)
 
 		comment2 := &comment.Comment{
-			EntryID:     testEntry.EntryID,
-			Content:     "用户2的评论",
-			AddUserID:   testUser2.UserId,
-			AddUserName: testUser2.UserName,
-			AddUserIP:   "127.0.0.2",
+			EntryID:   testEntry.EntryID,
+			Content:   "用户2的评论",
+			AddUserID: testUser2.UserId,
+			AddUserIP: "127.0.0.2",
 		}
 		commentID2, err := commentService.AddComment(comment2)
 		assert.NoError(t, err)
@@ -194,15 +189,13 @@ func TestCommentServiceIntegration(t *testing.T) {
 		var commentIDs []int64
 		for i := 1; i <= 5; i++ {
 			testComment := &comment.Comment{
-				EntryID:     testEntry.EntryID,
-				Content:     "分页测试评论" + string(rune(i)),
-				AddUserID:   testUser.UserId,
-				AddUserName: testUser.UserName,
-				AddUserIP:   "127.0.0.1",
+				EntryID:   testEntry.EntryID,
+				Content:   "分页测试评论" + string(rune(i)),
+				AddUserID: testUser.UserId,
 			}
-			commentID, err := commentService.AddComment(testComment)
-			assert.NoError(t, err)
-			commentIDs = append(commentIDs, commentID)
+			id, err := commentService.AddComment(testComment)
+			require.NoError(t, err)
+			commentIDs = append(commentIDs, id)
 		}
 
 		// 测试第一页（每页2条）
@@ -260,11 +253,10 @@ func TestCommentServiceErrorHandling(t *testing.T) {
 
 	t.Run("无效用户ID错误处理", func(t *testing.T) {
 		invalidComment := &comment.Comment{
-			EntryID:     1,
-			Content:     "测试评论",
-			AddUserID:   99999, // 不存在的用户ID
-			AddUserName: "不存在的用户",
-			AddUserIP:   "127.0.0.1",
+			EntryID:   1,
+			Content:   "测试评论",
+			AddUserID: 99999, // 不存在的用户ID
+			AddUserIP: "127.0.0.1",
 		}
 		_, err := commentService.AddComment(invalidComment)
 		assert.Error(t, err)
@@ -274,7 +266,7 @@ func TestCommentServiceErrorHandling(t *testing.T) {
 	t.Run("无效文章ID错误处理", func(t *testing.T) {
 		// 先创建一个有效用户
 		testUser := &user.User{
-			UserName: ctx.GetDataGenerator().GenerateUniqueString("user"),
+			Handle:   ctx.GetDataGenerator().GenerateUniqueString("user"),
 			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("user"),
 			Pwd:      "password123",
 			TimeZone: "UTC",
@@ -284,11 +276,10 @@ func TestCommentServiceErrorHandling(t *testing.T) {
 		require.NoError(t, err)
 
 		invalidComment := &comment.Comment{
-			EntryID:     99999, // 不存在的文章ID
-			Content:     "测试评论",
-			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
-			AddUserIP:   "127.0.0.1",
+			EntryID:   99999, // 不存在的文章ID
+			Content:   "测试评论",
+			AddUserID: testUser.UserId,
+			AddUserIP: "127.0.0.1",
 		}
 		_, err = commentService.AddComment(invalidComment)
 		assert.Error(t, err)

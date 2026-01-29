@@ -149,11 +149,10 @@ func (s *Service) UpdateEntryByID(entry *Entry) error {
 // 参数:
 //   - entryID: 日记ID
 //   - userID: 操作用户ID
-//   - userName: 操作用户名
 //   - actionTime: 操作时间（UTC时间戳）
 // 返回:
 //   - error: 删除失败时返回错误
-func (s *Service) DeleteEntryByID(entryID int64, userID int64, userName string, actionTime int64) error {
+func (s *Service) DeleteEntryByID(entryID int64, userID int64, actionTime int64) error {
 	// 先获取日记信息，用于后续减少日记本统计数
 	entry, err := s.repo.GetByID(entryID)
 	if err != nil {
@@ -170,7 +169,7 @@ func (s *Service) DeleteEntryByID(entryID int64, userID int64, userName string, 
 	}
 
 	// 减少日记本的日记统计数
-	err = s.diaryService.DecrementEntryCount(entry.DiaryID, userID, userName, actionTime)
+	err = s.diaryService.DecrementEntryCount(entry.DiaryID)
 	if err != nil {
 		// 如果更新日记本数量失败，记录错误但不影响删除操作的成功
 		// 这里可以添加日志记录

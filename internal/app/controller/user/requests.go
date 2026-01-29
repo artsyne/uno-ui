@@ -9,13 +9,13 @@ type LoginRequest struct {
 
 // RegisterRequest 注册请求
 type RegisterRequest struct {
-	UserName string `form:"user_name" json:"user_name" binding:"required,username"`
-	FullName string `form:"full_name" json:"full_name" binding:"required,min=2,max=50"`
-	Email    string `form:"email" json:"email" binding:"required,email"`
-	Pwd      string `form:"pwd" json:"pwd" binding:"required,password"`
-	TimeZone string `form:"time_zone" json:"time_zone"`
-	Lang     string `form:"lang" json:"lang"`
-	LastIp   string `form:"last_ip" json:"last_ip"`
+	Handle      string `form:"handle" json:"handle" binding:"required,username"`
+	DisplayName string `form:"display_name" json:"display_name" binding:"required,min=2,max=50"`
+	Email       string `form:"email" json:"email" binding:"required,email"`
+	Pwd         string `form:"pwd" json:"pwd" binding:"required,password"`
+	TimeZone    string `form:"time_zone" json:"time_zone"`
+	Lang        string `form:"lang" json:"lang"`
+	LastIp      string `form:"last_ip" json:"last_ip"`
 }
 
 // ResetPasswordRequest 重置密码请求
@@ -25,9 +25,9 @@ type ResetPasswordRequest struct {
 	NewPwd string `form:"new_pwd" json:"new_pwd" binding:"required,password"`
 }
 
-// CheckUserNameRequest 检查用户名请求
-type CheckUserNameRequest struct {
-	UserName string `form:"user_name" json:"user_name" binding:"required,username"`
+// CheckHandleRequest 检查用户名请求
+type CheckHandleRequest struct {
+	Handle string `form:"handle" json:"handle" binding:"required,username"`
 }
 
 // CheckEmailRequest 检查邮箱请求
@@ -42,10 +42,15 @@ type FindPasswordRequest struct {
 
 // UpdateProfileRequest 更新用户信息请求
 type UpdateProfileRequest struct {
-	FullName string `form:"full_name" json:"full_name" binding:"required,min=2,max=50"`
-	Remark   string `form:"remark" json:"remark"`
-	TimeZone string `form:"time_zone" json:"time_zone" binding:"required"`
-	Lang     string `form:"lang" json:"lang" binding:"required"`
+	DisplayName string `form:"display_name" json:"display_name" binding:"required,min=2,max=50"`
+	Remark      string `form:"remark" json:"remark"`
+	TimeZone    string `form:"time_zone" json:"time_zone" binding:"required"`
+	Lang        string `form:"lang" json:"lang" binding:"required"`
+}
+
+// UpdateHandleRequest 更新用户名请求
+type UpdateHandleRequest struct {
+	Handle string `form:"handle" json:"handle" binding:"required,username"`
 }
 
 // UpdateEmailRequest 更新邮箱请求

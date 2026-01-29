@@ -39,7 +39,7 @@ type DatabaseManagerInterface interface {
 type DataIsolatorInterface interface {
 	IsolateString(value string) string
 	IsolateEmail(email string) string
-	IsolateUsername(username string) string
+	IsolateHandle(handle string) string
 	IsolateTitle(title string) string
 	TrackCreated(table string, id interface{})
 	GetCreatedData() map[string][]interface{}

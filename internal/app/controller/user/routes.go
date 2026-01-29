@@ -28,7 +28,7 @@ func (ctrl *UserController) RegisterRoutes(router *gin.Engine) {
 	// 用户认证相关路由（无需鉴权）
 	router.GET("/register", ctrl.ShowRegisterPage)
 	router.POST("/register", authLimit, middleware.Validate[RegisterRequest](), ctrl.Register)
-	router.POST("/check-username", authLimit, middleware.Validate[CheckUserNameRequest](), ctrl.ValidateUsername)
+	router.POST("/check-handle", authLimit, middleware.Validate[CheckHandleRequest](), ctrl.ValidateHandle)
 	router.POST("/check-email", authLimit, middleware.Validate[CheckEmailRequest](), ctrl.ValidateEmail)
 
 	router.GET("/login", ctrl.ShowLoginPage)
@@ -50,6 +50,7 @@ func (ctrl *UserController) RegisterRoutes(router *gin.Engine) {
 	{
 		authGroup.GET("/settings", ctrl.ShowUserSettingsPage)
 		authGroup.POST("/settings/profile", middleware.Validate[UpdateProfileRequest](), ctrl.UpdateProfile)
+		authGroup.POST("/settings/handle", middleware.Validate[UpdateHandleRequest](), ctrl.UpdateHandle)
 		authGroup.POST("/settings/email", middleware.Validate[UpdateEmailRequest](), ctrl.UpdateEmail)
 		authGroup.POST("/settings/password", middleware.Validate[ChangePasswordRequest](), ctrl.UpdatePassword)
 	}

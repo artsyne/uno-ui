@@ -22,7 +22,8 @@
     "net_error": "网络错误",
     "op_fail": "操作失败",
     "op_success": "操作成功",
-    "load_fail": "加载失败"
+    "load_fail": "加载失败",
+    "days": "天"
   },
   "operation": {
     "success": "操作成功"
@@ -103,7 +104,7 @@
     },
     "weather": "天气",
     "mood": "心情",
-    "content_placeholder": "{{username}}，今天有什么新鲜事？",
+    "content_placeholder": "{{handle}}，今天有什么新鲜事？",
     "button": {
       "create": "写日记"
     },
@@ -135,10 +136,13 @@
       "profile_card_title": "个人资料",
       "username_label": "用户名",
       "username_placeholder": "用户名",
-      "username_note": "用户名是您在 idiary.ai 的唯一标识，不能修改。",
-      "full_name_label": "全名",
-      "full_name_placeholder": "请输入您的全名",
-      "display_name_note": "您可以在 idiary.ai 上展示您的真实姓名，如果为空则显示用户名。",
+      "username_note": "用户名是您在 idiary.ai 的唯一标识。",
+      "username_cooldown_msg": "修改用户名需等待",
+      "submit_handle": "提交修改",
+      "username_updated": "用户名已成功更新",
+      "full_name_label": "昵称",
+      "full_name_placeholder": "请输入您的昵称",
+      "display_name_note": "您可以在 idiary.ai 上展示您的昵称，如果为空则显示用户名。",
       "bio_label": "个人简介",
       "bio_placeholder": "请输入个人简介",
       "save_changes_button": "保存更改",
@@ -216,7 +220,7 @@
     }
   },
   "greeting": {
-    "message": "你好，{{username}}！欢迎使用 iDiary。"
+    "message": "你好，{{handle}}！欢迎使用 iDiary。"
   },
   "form": {
     "style_selection": "选择风格",

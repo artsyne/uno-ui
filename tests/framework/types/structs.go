@@ -11,6 +11,9 @@ type TestConfig struct {
 	// 应用配置
 	App config.AppConfig `json:"app"`
 
+	// 用户配置
+	User config.UserConfig `json:"user"`
+
 	// 数据库配置
 	Database DatabaseConfig `json:"database"`
 
@@ -26,8 +29,6 @@ type TestConfig struct {
 	// 性能配置
 	Performance PerformanceConfig `json:"performance"`
 }
-
-
 
 // DatabaseConfig 数据库配置
 type DatabaseConfig struct {
@@ -52,9 +53,9 @@ type CleanupConfig struct {
 
 // IsolationConfig 隔离配置
 type IsolationConfig struct {
-	Strategy     string `json:"strategy" default:"prefix"`                           // prefix|namespace|schema
-	PrefixFormat string `json:"prefix_format" default:"t_{random}"`                  // 前缀格式 - 缩短以适应用户名长度限制
-	MaxPrefixLen int    `json:"max_prefix_len" default:"10"`                         // 最大前缀长度 - 缩短以适应用户名长度限制(16)
+	Strategy     string `json:"strategy" default:"prefix"`          // prefix|namespace|schema
+	PrefixFormat string `json:"prefix_format" default:"t_{random}"` // 前缀格式 - 缩短以适应用户名长度限制
+	MaxPrefixLen int    `json:"max_prefix_len" default:"10"`        // 最大前缀长度 - 缩短以适应用户名长度限制(16)
 }
 
 // PerformanceConfig 性能配置
@@ -75,12 +76,12 @@ type TestFlags struct {
 
 // UserOptions 用户创建选项
 type UserOptions struct {
-	Username string
-	Email    string
-	Password string
-	FullName string
-	TimeZone string
-	Lang     string
+	Handle      string
+	Email       string
+	Password    string
+	DisplayName string
+	TimeZone    string
+	Lang        string
 }
 
 // DiaryOptions 日记创建选项
@@ -152,8 +153,9 @@ func (tc *TestConfig) GetAppConfig() *config.Config {
 	// 返回完整的config.Config结构，包含所有必要的配置字段
 	// 这确保了所有服务都能获得完整的配置信息
 	return &config.Config{
-		Env: "test",
-		App: tc.App,
+		Env:  "test",
+		App:  tc.App,
+		User: tc.User,
 		Database: config.DatabaseConfig{
 			Host:     tc.Database.Host,
 			Port:     tc.Database.Port,

@@ -74,8 +74,8 @@ func BenchmarkUserRegistration(b *testing.B) {
 		randomNum := rand.Int63()
 		uniqueID := fmt.Sprintf("%d_%d", timestamp, randomNum)
 		testUser := &user.User{
-			UserName: fmt.Sprintf("%s_%s", benchCtx.GetDataGenerator().GenerateUniqueString("benchuser"), uniqueID),
-			Email:    fmt.Sprintf("%s_%s@example.com", benchCtx.GetDataGenerator().GenerateUniqueString("bench"), uniqueID),
+			Handle: fmt.Sprintf("%s_%s", benchCtx.GetDataGenerator().GenerateUniqueString("benchuser"), uniqueID),
+			Email:  fmt.Sprintf("%s_%s@example.com", benchCtx.GetDataGenerator().GenerateUniqueString("bench"), uniqueID),
 			Pwd:      "password123",
 			TimeZone: "UTC",
 			Lang:     "en",
@@ -99,8 +99,8 @@ func BenchmarkDiaryCreation(b *testing.B) {
 		uniqueID := fmt.Sprintf("%d_%d", timestamp, randomNum)
 
 		testUser := &user.User{
-			UserName: fmt.Sprintf("diary_bench_%s_%s", uniqueID, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
-			Email:    fmt.Sprintf("diary_bench_%s_%s@example.com", uniqueID, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
+			Handle: fmt.Sprintf("diary_bench_%s_%s", uniqueID, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
+			Email:  fmt.Sprintf("diary_bench_%s_%s@example.com", uniqueID, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
 			Pwd:      "password123",
 			TimeZone: "UTC",
 			Lang:     "en",
@@ -114,7 +114,7 @@ func BenchmarkDiaryCreation(b *testing.B) {
 			Title:         fmt.Sprintf("%s_%s", benchCtx.GetDataGenerator().GenerateUniqueString("benchdiary"), uniqueID),
 			Remark:        "性能测试日记本",
 			AddUserID:     testUser.UserId,
-			AddUserName:   testUser.UserName,
+			AddUserHandle: testUser.Handle,
 			AddUTCTime:    time.Now().Unix(),
 			Status:        1,
 			ViewSetting:   1,
@@ -136,8 +136,8 @@ func BenchmarkEntryCreation(b *testing.B) {
 	timestamp := time.Now().UnixNano()
 	uniqueID := fmt.Sprintf("%d_%d", timestamp, rand.Int63())
 	testUser := &user.User{
-		UserName: fmt.Sprintf("entry_bench_%s_%s", uniqueID, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
-		Email:    fmt.Sprintf("entry_bench_%s_%s@example.com", uniqueID, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
+		Handle: fmt.Sprintf("entry_bench_%s_%s", uniqueID, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
+		Email:  fmt.Sprintf("entry_bench_%s_%s@example.com", uniqueID, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
 		Pwd:      "password123",
 		TimeZone: "UTC",
 		Lang:     "en",
@@ -152,7 +152,7 @@ func BenchmarkEntryCreation(b *testing.B) {
 		Title:         fmt.Sprintf("%s_%s", benchCtx.GetDataGenerator().GenerateUniqueString("benchdiary"), uniqueID),
 		Remark:        "性能测试日记本",
 		AddUserID:     testUser.UserId,
-		AddUserName:   testUser.UserName,
+		AddUserHandle: testUser.Handle,
 		AddUTCTime:    time.Now().Unix(),
 		Status:        1,
 		ViewSetting:   1,
@@ -167,13 +167,13 @@ func BenchmarkEntryCreation(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		testEntry := &entry.Entry{
-			Title:       benchCtx.GetDataGenerator().GenerateUniqueString("benchentry"),
-			Body:        "这是一篇性能测试文章的内容",
-			Summary:     "性能测试摘要",
-			DiaryID:     diaryID,
-			AddUserID:   testUser.UserId,
-			AddUserName: testUser.UserName,
-			AddUTCTime:  time.Now().Unix(),
+			Title:         benchCtx.GetDataGenerator().GenerateUniqueString("benchentry"),
+			Body:          "这是一篇性能测试文章的内容",
+			Summary:       "性能测试摘要",
+			DiaryID:       diaryID,
+			AddUserID:     testUser.UserId,
+			AddUserHandle: testUser.Handle,
+			AddUTCTime:    time.Now().Unix(),
 			Status:      1,
 			InfoType:    1,
 		}
@@ -192,8 +192,8 @@ func BenchmarkUserQuery(b *testing.B) {
 	timestamp := time.Now().UnixNano()
 	uniqueID := fmt.Sprintf("%d_%d", timestamp, rand.Int63())
 	testUser := &user.User{
-		UserName: fmt.Sprintf("query_bench_%s_%s", uniqueID, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
-		Email:    fmt.Sprintf("query_bench_%s_%s@example.com", uniqueID, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
+		Handle: fmt.Sprintf("query_bench_%s_%s", uniqueID, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
+		Email:  fmt.Sprintf("query_bench_%s_%s@example.com", uniqueID, benchCtx.GetDataGenerator().GenerateUniqueString("user")),
 		Pwd:      "password123",
 		TimeZone: "UTC",
 		Lang:     "en",
@@ -224,8 +224,8 @@ func BenchmarkConcurrentUserRegistration(b *testing.B) {
 			randomNum := rand.Int63()
 			uniqueID := fmt.Sprintf("%d_%d", timestamp, randomNum)
 			testUser := &user.User{
-				UserName: fmt.Sprintf("%s_%s", benchCtx.GetDataGenerator().GenerateUniqueString("concurrentuser"), uniqueID),
-				Email:    fmt.Sprintf("%s_%s@example.com", benchCtx.GetDataGenerator().GenerateUniqueString("concurrent"), uniqueID),
+				Handle: fmt.Sprintf("%s_%s", benchCtx.GetDataGenerator().GenerateUniqueString("concurrentuser"), uniqueID),
+				Email:  fmt.Sprintf("%s_%s@example.com", benchCtx.GetDataGenerator().GenerateUniqueString("concurrent"), uniqueID),
 				Pwd:      "password123",
 				TimeZone: "UTC",
 				Lang:     "en",

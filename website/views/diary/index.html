@@ -8,7 +8,7 @@
         <div id="page-nav">
             <ul class="flex text-lg">
                 <li><a href="/u/{{.Data.Diary.AddUserID}}"
-                        class="hover:text-red-500 dark:hover:text-red-400">{{.Data.Diary.AddUserName}}</a>
+                        class="hover:text-red-500 dark:hover:text-red-400">{{ or .Data.Diary.AddUserDisplayName .Data.Diary.AddUserHandle }}</a>
                     <i class="mdi mdi-slash-forward mx-3"></i>
                 </li>
                 <li>
