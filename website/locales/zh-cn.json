@@ -81,6 +81,21 @@
     }
   },
   "entry": {
+    "drafts": {
+      "title": "草稿管理",
+      "tab_drafts": "草稿箱",
+      "tab_trash": "回收站",
+      "col_title": "标题",
+      "col_time": "最后保存/删除时间",
+      "col_ops": "操作",
+      "btn_edit": "编辑",
+      "btn_delete": "删除",
+      "btn_recover": "恢复",
+      "btn_hard_delete": "删除",
+      "confirm_hard_delete": "确认要永久删除该日记吗？此操作不可恢复。",
+      "empty_drafts": "暂无草稿",
+      "empty_trash": "回收站为空"
+    },
     "label": "日记",
     "create": "写日记",
     "edit": "编辑日记",
@@ -160,8 +175,9 @@
       "email_note": "邮箱修保存改后，不会立刻修改邮箱。系统会往新邮箱发送一封邮件，点击邮件中的链接完成邮箱验证和修改"
     },
     "label": {
+      "settings": "用户设置",
       "my_home": "我的主页",
-      "settings": "设置"
+      "drafts": "草稿箱"
     },
     "profile": {
       "introduction": "个人介绍",

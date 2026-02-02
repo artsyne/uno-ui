@@ -84,7 +84,7 @@ func (r *EntryRepository) Update(e *entry.Entry) error {
 }
 
 // ListByUserID 根据用户ID和日记本ID分页查询日记信息
-func (r *EntryRepository) ListByUserID(userID int64, diaryID int64, pageIndex, pageSize int) ([]entry.Entry, int, error) {
+func (r *EntryRepository) ListByUserID(userID int64, diaryID int64, status int8, pageIndex, pageSize int) ([]entry.Entry, int, error) {
 	infoArray := []entry.Entry{}
 	totalRecords := 0
 
@@ -92,33 +92,67 @@ func (r *EntryRepository) ListByUserID(userID int64, diaryID int64, pageIndex, p
 	offset := (pageIndex - 1) * pageSize
 
 	// JOIN br_user to get handle and display_name
-	sqlstr := `SELECT e.*, u.handle, u.display_name 
+	sqlstr := `SELECT e.*, COALESCE(u.handle, '') as handle, COALESCE(u.display_name, '') as display_name 
 		FROM br_entry e 
 		LEFT JOIN br_user u ON e.add_user_id = u.user_id
 		WHERE e.diary_id = ? AND e.add_user_id = ? 
 		and e.status = ? ORDER BY e.entry_id DESC LIMIT ? offset ?`
 
-	err := r.db.Select(&infoArray, sqlstr, diaryID, userID, entry.StatusActive, pageSize, offset)
-	if err == sql.ErrNoRows {
-		return nil, 0, nil
+	err := r.db.Select(&infoArray, sqlstr, diaryID, userID, status, pageSize, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	if len(infoArray) == 0 {
+		return []entry.Entry{}, 0, nil
 	}
 
 	//获取总记录数
-	totalRecords, err = r.GetCountByUserID(userID, diaryID)
+	totalRecords, err = r.GetCountByUserID(userID, diaryID, status)
 
 	return infoArray, totalRecords, err
 }
 
 // GetCountByUserID 根据用户ID和日记本ID统计信息数量
-func (r *EntryRepository) GetCountByUserID(userID int64, diaryID int64) (int, error) {
+func (r *EntryRepository) GetCountByUserID(userID int64, diaryID int64, status int8) (int, error) {
 	var count int
 	sqlstr := "SELECT COUNT(*) FROM br_entry WHERE diary_id = ? AND add_user_id = ? and  status = ? "
 
-	err := r.db.Get(&count, sqlstr, diaryID, userID, entry.StatusActive)
+	err := r.db.Get(&count, sqlstr, diaryID, userID, status)
 	if err == sql.ErrNoRows {
 		return 0, nil
 	}
 	return count, err
+}
+
+// ListAllByUserID 根据用户ID分页查询日记信息（跨日记本）
+func (r *EntryRepository) ListAllByUserID(userID int64, status int8, pageIndex, pageSize int) ([]entry.Entry, int, error) {
+	infoArray := []entry.Entry{}
+	totalRecords := 0
+
+	offset := (pageIndex - 1) * pageSize
+
+	sqlstr := `SELECT e.*, COALESCE(u.handle, '') as handle, COALESCE(u.display_name, '') as display_name 
+		FROM br_entry e 
+		LEFT JOIN br_user u ON e.add_user_id = u.user_id
+		WHERE e.add_user_id = ? 
+		and e.status = ? ORDER BY e.update_utc_time DESC LIMIT ? offset ?`
+
+	err := r.db.Select(&infoArray, sqlstr, userID, status, pageSize, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	if len(infoArray) == 0 {
+		return []entry.Entry{}, 0, nil
+	}
+
+	// 获取总记录数
+	countSql := "SELECT COUNT(*) FROM br_entry WHERE add_user_id = ? and status = ?"
+	err = r.db.Get(&totalRecords, countSql, userID, status)
+	if err == sql.ErrNoRows {
+		totalRecords = 0
+	}
+
+	return infoArray, totalRecords, err
 }
 
 // GetByID 根据日记ID获取日记信息（只返回未删除的日记）
@@ -130,6 +164,21 @@ func (r *EntryRepository) GetByID(entryID int64) (*entry.Entry, error) {
 		WHERE e.entry_id = ? AND e.status = ?`
 	e := &entry.Entry{}
 	err := r.db.Get(e, sqlstr, entryID, entry.StatusActive)
+	if err == sql.ErrNoRows {
+		return nil, errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": entryID})
+	}
+	return e, err
+}
+
+// GetByIDForUser 根据日记ID和用户ID获取日记信息（包含草稿/回收站状态）
+func (r *EntryRepository) GetByIDForUser(entryID int64, userID int64) (*entry.Entry, error) {
+	sqlstr := `SELECT e.*, COALESCE(u.handle, '') as handle, COALESCE(u.display_name, '') as display_name
+		FROM br_entry e 
+		LEFT JOIN br_user u ON e.add_user_id = u.user_id
+		WHERE e.entry_id = ? AND e.add_user_id = ?`
+
+	e := &entry.Entry{}
+	err := r.db.Get(e, sqlstr, entryID, userID)
 	if err == sql.ErrNoRows {
 		return nil, errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": entryID})
 	}
@@ -168,8 +217,28 @@ func (r *EntryRepository) UpdateByID(e *entry.Entry) error {
 
 // DeleteByID 根据日记ID软删除日记信息（设置status=0）
 func (r *EntryRepository) DeleteByID(entryID int64) error {
-	sqlstr := "UPDATE br_entry SET status = ? WHERE entry_id = ? AND status = ?"
-	result, err := r.db.Exec(sqlstr, entry.StatusDeleted, entryID, entry.StatusActive)
+	sqlstr := "UPDATE br_entry SET status = ? WHERE entry_id = ?"
+	result, err := r.db.Exec(sqlstr, entry.StatusDeleted, entryID)
+	if err != nil {
+		return err
+	}
+
+	// 检查是否有行被更新
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": entryID})
+	}
+
+	return nil
+}
+
+// HardDeleteByID 根据日记ID物理删除日记信息
+func (r *EntryRepository) HardDeleteByID(entryID int64) error {
+	sqlstr := "DELETE FROM br_entry WHERE entry_id = ?"
+	result, err := r.db.Exec(sqlstr, entryID)
 	if err != nil {
 		return err
 	}

@@ -1,0 +1,81 @@
+{{define "diary/drafts_list"}}
+<div class="relative overflow-x-auto">
+    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+                <th scope="col" class="px-6 py-3">
+                    {{getMessage "entry.drafts.col_title" .Context.Lang}}
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    {{getMessage "entry.drafts.col_time" .Context.Lang}}
+                </th>
+                <th scope="col" class="px-6 py-3 text-right">
+                    {{getMessage "entry.drafts.col_ops" .Context.Lang}}
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {{if .Data.Entries}}
+            {{range .Data.Entries}}
+            <tr
+                class="bg-white border-b border-gray-100 dark:bg-gray-800 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                    {{if eq $.Data.Status 2}}
+                    <a href="#" @click.prevent="openEditEntry({{.DiaryID}}, {{.EntryID}}, 'drafts')"
+                        class="hover:underline">
+                        {{or .Title "Untitled"}}
+                    </a>
+                    {{else}}
+                    <a href="#" @click.prevent="openEntryModal('/entry/{{.EntryID}}?with_del=true', false)"
+                        class="hover:underline">
+                        {{or .Title "Untitled"}}
+                    </a>
+                    {{end}}
+                </td>
+                <td class="px-6 py-4">
+                    {{formatLocalTime .UpdateUTCTime (getTimeZone $)}}
+                </td>
+                <td class="px-6 py-4 text-right space-x-2">
+                    {{if eq $.Data.Status 2}}
+                    <!-- 草稿状态：编辑、删除 -->
+                    <button class="btn-link" @click.prevent="openEditEntry({{.DiaryID}}, {{.EntryID}}, 'drafts')">
+                        {{getMessage "entry.drafts.btn_edit" $.Context.Lang}}
+                    </button>
+                    <button class="btn-link" @click.prevent="confirmDelete({{.EntryID}}, $el)">
+                        {{getMessage "entry.drafts.btn_delete" $.Context.Lang}}
+                    </button>
+                    {{else if eq $.Data.Status 0}}
+                    <!-- 回收站状态：恢复、彻底删除 -->
+                    <button class="btn-link" hx-put="/entry/{{.EntryID}}/recover" hx-target="closest tr"
+                        hx-swap="outerHTML">
+                        {{getMessage "entry.drafts.btn_recover" $.Context.Lang}}
+                    </button>
+                    <button class="btn-link" @click.prevent="confirmHardDelete({{.EntryID}}, $el)">
+                        {{getMessage "entry.drafts.btn_hard_delete" $.Context.Lang}}
+                    </button>
+                    {{end}}
+                </td>
+            </tr>
+            {{end}}
+            {{else}}
+            <tr>
+                <td colspan="3" class="px-6 py-4 text-center">
+                    {{if eq .Data.Status 2}}
+                    {{getMessage "entry.drafts.empty_drafts" .Context.Lang}}
+                    {{else}}
+                    {{getMessage "entry.drafts.empty_trash" .Context.Lang}}
+                    {{end}}
+                </td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+</div>
+
+<!-- 分页 -->
+{{if gt .Data.Total .Data.PageSize}}
+<div class="mt-4 flex justify-center" hx-boost="true" hx-target="#drafts-list" hx-swap="innerHTML" hx-push-url="true">
+    {{template "pagination" .}}
+</div>
+{{end}}
+{{end}}

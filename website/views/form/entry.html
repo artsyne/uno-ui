@@ -5,9 +5,12 @@
         <div class="loading-spinner">
         </div>
     </div>
-    <form id="entry_editor_form" x-uno-valid {{if .Data.Entry}} hx-put="/entry/{{.Data.Entry.EntryID}}"
-        hx-target="#entry-card-{{.Data.Entry.EntryID}}" hx-swap="outerHTML" {{else}} hx-post="/entry"
-        hx-target="#write-entry-card" hx-swap="afterend" {{end}} hx-trigger="validated"
+    <form id="entry_editor_form" x-uno-valid data-auto-save-enabled="{{getAutoSaveEnabled .}}"
+        data-auto-save-interval="{{getAutoSaveInterval .}}" {{if .Data.Entry}}
+        hx-put="/entry/{{.Data.Entry.EntryID}}?source={{.Context.Source}}" {{if eq .Context.Source "drafts"
+        }}hx-target="body" hx-swap="none" {{else}}hx-target="#entry-card-{{.Data.Entry.EntryID}}" hx-swap="outerHTML"
+        {{end}} {{else}} hx-post="/entry/publish?source={{.Context.Source}}" hx-target="#write-entry-card"
+        hx-swap="afterend" {{end}} hx-trigger="validated"
         @submit.prevent="if(await $store.uno.valid.validateForm($el)) $el.dispatchEvent(new CustomEvent('validated', { bubbles: true }))">
         <div class="flex flex-col mx-auto">
             <div class="form-group">
@@ -81,9 +84,16 @@
                     <textarea class="form-control h-96" id="info_body" name="info_body" rows="8"
                         x-uno-valid="['required', { type: 'length', max: 10000 }]" maxlength="10000"
                         placeholder='{{getMessage "entry.form.content_placeholder" .Context.Lang}}'>{{if .Data.Entry}}{{.Data.Entry.Body}}{{end}}</textarea>
+                    <div class="flex justify-end mt-1">
+                        <span id="auto-save-status" class="text-xs text-gray-500 italic"></span>
+                    </div>
                 </div>
                 <input type="hidden" name="entry_id" id="entry_id"
                     value="{{if .Data.Entry}}{{.Data.Entry.EntryID}}{{end}}">
+                <input type="hidden" name="info_type" id="info_type"
+                    value="{{if .Data.Entry}}{{.Data.Entry.InfoType}}{{else}}1{{end}}">
+                <input type="hidden" name="is_top" id="is_top"
+                    value="{{if .Data.Entry}}{{.Data.Entry.IsTop}}{{else}}0{{end}}">
                 <input type="hidden" name="action" id="action"
                     value="{{if .Data.Entry}}entry.edit{{else}}entry.create{{end}}">
                 <input type="hidden" name="diary_id" id="diary_id"

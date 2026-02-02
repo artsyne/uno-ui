@@ -271,26 +271,7 @@ func (a *AuthHelper) IfLoginGotoIndex(c *gin.Context) {
 	}
 }
 
-// GetLogin 获取登录用户信息（兼容性方法）
-// 这是 GetCurrentUser 的兼容性版本，只返回用户数据
-// 如果用户未登录返回 nil
-//
-// Parameters:
-//   - c: Gin上下文对象
-//
-// Returns:
-//   - *Login: 用户登录信息，如果未认证则返回nil
-//
-// Example:
-//
-//	user := helpers.Auth.GetLogin(c)
-//	if user != nil {
-//	    fmt.Printf("当前用户：%s", user.Username)
-//	}
-func (a *AuthHelper) GetLogin(c *gin.Context) *types.AuthUser {
-	userData, _ := a.GetCurrentUser(c)
-	return userData
-}
+
 
 // SetLoginCookie 设置登录Cookie
 func (a *AuthHelper) SetLoginCookie(c *gin.Context, authUser *types.AuthUser) {

@@ -381,13 +381,15 @@ func (dm *DatabaseManager) WithTransaction(fn func(*sql.Tx) error) error {
 
 	defer func() {
 		if p := recover(); p != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			panic(p)
 		}
 	}()
 
 	if err := fn(tx); err != nil {
-		tx.Rollback()
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("事务回滚失败: %w", rollbackErr)
+		}
 		return err
 	}
 

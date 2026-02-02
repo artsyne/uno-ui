@@ -9,7 +9,11 @@ import (
 // TestDatabaseConnection 测试数据库连接
 func TestDatabaseConnection(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if err := ctx.Cleanup(); err != nil {
+			t.Log(err)
+		}
+	}()
 
 	// 检查数据库连接
 	dbManager := ctx.GetDatabase()
@@ -33,13 +37,19 @@ func TestDatabaseConnection(t *testing.T) {
 // TestUserTable 测试用户表操作
 func TestUserTable(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if err := ctx.Cleanup(); err != nil {
+			t.Log(err)
+		}
+	}()
 
 	dbManager := ctx.GetDatabase()
 	db := dbManager.GetDB()
 
-		// 清理可能存在的测试数据
-	db.Exec("DELETE FROM br_user WHERE handle = ?", "testuser")
+	// 清理可能存在的测试数据
+	if _, err := db.Exec("DELETE FROM br_user WHERE handle = ?", "testuser"); err != nil {
+		t.Fatalf("清理测试数据失败: %v", err)
+	}
 
 	// 插入测试用户
 	result, err := db.Exec(`
@@ -94,13 +104,19 @@ func TestUserTable(t *testing.T) {
 // TestDiaryTable 测试日记表操作
 func TestDiaryTable(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if err := ctx.Cleanup(); err != nil {
+			t.Log(err)
+		}
+	}()
 
 	dbManager := ctx.GetDatabase()
 	db := dbManager.GetDB()
 
 	// 清理可能存在的测试数据
-	db.Exec("DELETE FROM br_user WHERE handle = ?", "diaryuser")
+	if _, err := db.Exec("DELETE FROM br_user WHERE handle = ?", "diaryuser"); err != nil {
+		t.Fatalf("清理测试数据失败: %v", err)
+	}
 
 	// 先插入用户（日记需要关联用户）
 		_, err := db.Exec(`

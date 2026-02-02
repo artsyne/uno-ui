@@ -57,7 +57,6 @@ func GetLocalizationFuncs() template.FuncMap {
 func getMessage(key, locale string) string {
 	cacheKey := i18n.BuildCacheKey(locale, key)
 	if message, exists := i18n.GetMessage(cacheKey); exists {
-		slog.Debug("getMessage: 消息已找到", "key", key, "locale", locale, "message", message)
 		return message
 	}
 	slog.Warn("getMessage: 消息未找到", "key", key, "locale", locale, "cacheKey", cacheKey)

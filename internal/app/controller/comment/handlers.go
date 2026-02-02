@@ -6,6 +6,7 @@ import (
 
 	"github.com/biuren/hebe/internal/app/middleware"
 	"github.com/biuren/hebe/internal/domain/comment"
+	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/gin-gonic/gin"
 )
@@ -50,7 +51,14 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 	}
 
 	// 验证 Entry 是否存在
-	entryData, err := ctrl.entryService.GetEntryByID(req.EntryID)
+	// 尝试获取用户自己的 Entry（包含草稿、回收站等状态）
+	entryData, err := ctrl.entryService.GetEntryByIDForUser(req.EntryID, loginUser.UserId)
+	if err != nil {
+		// 如果不是自己的 Entry，或者是自己的但未找到（理论上 GetEntryByIDForUser 已覆盖），
+		// 则尝试作为普通 Active Entry 获取（用于查看他人的公开日记）
+		entryData, err = ctrl.entryService.GetEntryByID(req.EntryID)
+	}
+
 	if err != nil {
 		ctrl.renderService.JSONError(c, errors.EntryNotFound)
 		return
@@ -156,7 +164,24 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 	req := middleware.MustGetValidatedRequest[GetCommentsRequest](c)
 
 	// 验证 Entry 是否存在
-	entryData, err := ctrl.entryService.GetEntryByID(req.EntryID)
+	// 尝试获取当前登录用户
+	loginUser, isAuth := ctrl.auth.GetCurrentUser(c)
+	var entryData *entry.Entry
+	var err error
+
+	if isAuth {
+		// 如果已登录，尝试获取用户自己的 Entry（包含草稿、回收站等状态）
+		entryData, err = ctrl.entryService.GetEntryByIDForUser(req.EntryID, loginUser.UserId)
+		if err != nil {
+			// 如果不是自己的 Entry，或者是自己的但未找到（理论上 GetEntryByIDForUser 已覆盖），
+			// 则尝试作为普通 Active Entry 获取（用于查看他人的公开日记）
+			entryData, err = ctrl.entryService.GetEntryByID(req.EntryID)
+		}
+	} else {
+		// 未登录，只获取 Active Entry
+		entryData, err = ctrl.entryService.GetEntryByID(req.EntryID)
+	}
+
 	if err != nil {
 		ctrl.renderService.JSONError(c, &errors.EntryNotFound)
 		return
@@ -210,7 +235,10 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 	}
 
 	// 获取日记作者ID，用于前端判断删除权限
-	entryOwnerID, _ := ctrl.commentService.GetEntryOwnerID(req.EntryID)
+	var entryOwnerID int64
+	if entry, err := ctrl.entryService.GetEntryByID(req.EntryID); err == nil && entry != nil {
+		entryOwnerID = entry.AddUserID
+	}
 
 	// 检查是否为HTMX请求
 	if c.GetHeader("HX-Request") == "true" {
@@ -266,6 +294,15 @@ func (ctrl *CommentController) GetCommentsByEntryIDFromPath(c *gin.Context) {
 	pageIndex := req.PageIndex
 	if pageIndex <= 0 {
 		pageIndex = 1
+	}
+
+	// 验证 Entry 是否存在且为 Active 状态
+	// 由于此接口可能公开访问，默认只允许访问 Active 状态的日记
+	// 如果需要访问非 Active 状态（如回收站），应使用 /api/comment/list 接口（带鉴权）
+	_, err := ctrl.entryService.GetEntryByID(req.EntryID)
+	if err != nil {
+		ctrl.renderService.JSONError(c, &errors.EntryNotFound)
+		return
 	}
 
 	// 调用服务层获取评论列表

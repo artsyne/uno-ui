@@ -28,7 +28,11 @@ func TestDataCleanup(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
 	
 	// We defer cleanup to ensure it runs at end of test as well (idempotent check)
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// Get database connection via context
 	db := ctx.GetDatabase().GetDB()

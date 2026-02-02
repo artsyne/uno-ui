@@ -16,6 +16,7 @@
 
         <div class="lg:col-start-9 lg:col-span-3">
             <div class="card border-none">
+                {{if not .Data.HideNav}}
                 <div class="flex justify-between mb-4">
                     {{if .Data.PreviousEntryID}}
                     <a href="/entry/{{.Data.PreviousEntryID}}" hx-get="/entry/{{.Data.PreviousEntryID}}"
@@ -40,6 +41,7 @@
                         <i class="mdi mdi-arrow-right"></i></a>
                     {{end}}
                 </div>
+                {{end}}
                 <div class="flex justify-between mb-4">
                     <p class="text-gray-600 dark:text-gray-400 text-sm">{{getMessage "common.authors" .Context.Lang}}
                     </p>

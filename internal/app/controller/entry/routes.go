@@ -41,8 +41,12 @@ func (ctrl *EntryController) RegisterRoutes(router *gin.Engine) {
 	authAPI := router.Group("/")
 	authAPI.Use(ctrl.auth.RequireAuth())
 	{
-		authAPI.POST("/entry", middleware.Validate[CreateEntryRequest](), ctrl.CreateEntry)
+		authAPI.GET("/drafts", ctrl.ShowDrafts)
+		authAPI.POST("/entry/auto-save", middleware.Validate[AutoSaveEntryRequest](), ctrl.AutoSaveEntry)
+		authAPI.POST("/entry/publish", middleware.Validate[PublishEntryRequest](), ctrl.PublishEntry)
 		authAPI.PUT("/entry/:id", middleware.Validate[UpdateEntryRequest](), ctrl.UpdateEntry)
+		authAPI.PUT("/entry/:id/recover", ctrl.RecoverEntry)
+		authAPI.DELETE("/entry/:id/hard", ctrl.HardDeleteEntry)
 	}
 
 	// 需要鉴权的日记删除路由

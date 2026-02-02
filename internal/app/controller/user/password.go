@@ -4,7 +4,6 @@ import (
 	"github.com/biuren/hebe/internal/app/middleware"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/errors"
-	pkg "github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
 
@@ -73,12 +72,10 @@ func (ctrl *UserController) ResetPassword(c *gin.Context) {
 	}
 
 	// 删除验证码
-	ctrl.service.DeleteValidCode(validCodeID)
+	if _, err := ctrl.service.DeleteValidCode(validCodeID); err != nil {
+		ctrl.renderService.JSONError(c, err)
+		return
+	}
 
 	ctrl.renderService.JSONSuccess(c, nil)
-}
-
-// validatePasswordFormat 验证密码格式
-func (ctrl *UserController) validatePasswordFormat(password string) bool {
-	return pkg.IsPwd(password)
 }

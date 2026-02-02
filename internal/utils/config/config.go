@@ -33,6 +33,10 @@ func InitConfig() error {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.SetEnvPrefix("IDIARY")
 
+	// 默认配置（可通过环境变量覆盖）
+	v.SetDefault("AUTO_SAVE_ENABLED", true)
+	v.SetDefault("AUTO_SAVE_INTERVAL", 60000)
+
 	// 解析JSON格式的环境变量
 	var supportLangs []SupportLang
 	supportLangsStr := v.GetString("SUPPORT_LANGS")
@@ -78,7 +82,7 @@ func InitConfig() error {
 		SummaryMax:           requireInt(v, "SUMMARY_MAX"),
 		Suffix:               requireString(v, "SUFFIX"),
 		PageSize:             requireInt(v, "PAGE_SIZE"),
-		MaxDiaryLimit:      requireInt(v, "MAX_DIARY_LIMIT"),
+		MaxDiaryLimit:        requireInt(v, "MAX_DIARY_LIMIT"),
 		MaxEntryLength:       requireInt(v, "MAX_ENTRY_LENGTH"),
 		MaxCommentLength:     requireInt(v, "MAX_COMMENT_LENGTH"),
 		MaxDescriptionLength: requireInt(v, "MAX_DESCRIPTION_LENGTH"),
@@ -87,23 +91,28 @@ func InitConfig() error {
 		DefaultLang:          requireString(v, "DEFAULT_LANG"),
 	}
 
+	globalConfig.AutoSave = AutoSaveConfig{
+		Enabled:  v.GetBool("AUTO_SAVE_ENABLED"),
+		Interval: v.GetInt("AUTO_SAVE_INTERVAL"),
+	}
+
 	// 用户配置
 	globalConfig.User = UserConfig{
-		DefaultGroup: int8(requireInt(v, "USER_DEFAULT_GROUP")),
-		PwdMaxLen:    requireInt(v, "PWD_MAX_LEN"),
-		PwdMinLen:    requireInt(v, "PWD_MIN_LEN"),
-		StatusDeleted:    int8(requireInt(v, "USER_STATUS_DEL")),
-		StatusOK:         int8(requireInt(v, "USER_STATUS_OK")),
-		StatusWaitActive: int8(requireInt(v, "USER_STATUS_WAIT_ACTIVE")),
+		DefaultGroup:       int8(requireInt(v, "USER_DEFAULT_GROUP")),
+		PwdMaxLen:          requireInt(v, "PWD_MAX_LEN"),
+		PwdMinLen:          requireInt(v, "PWD_MIN_LEN"),
+		StatusDeleted:      int8(requireInt(v, "USER_STATUS_DEL")),
+		StatusOK:           int8(requireInt(v, "USER_STATUS_OK")),
+		StatusWaitActive:   int8(requireInt(v, "USER_STATUS_WAIT_ACTIVE")),
 		HandleCooldownDays: requireInt(v, "HANDLE_COOLDOWN_DAYS"),
 	}
 
 	// 验证码相关配置
 	globalConfig.ValidCode = ValidCodeConfig{
-		TypeActiveUser:     int8(requireInt(v, "VALID_CODE_ACTIVE_USER")),
-		TypeResetPwd:       int8(requireInt(v, "VALID_CODE_RESET_PWD")),
-		ExpireMinutes:      requireInt(v, "VALID_CODE_EXPIRE_MINUTES"),
-		Length:             requireInt(v, "VALID_CODE_LEN"),
+		TypeActiveUser: int8(requireInt(v, "VALID_CODE_ACTIVE_USER")),
+		TypeResetPwd:   int8(requireInt(v, "VALID_CODE_RESET_PWD")),
+		ExpireMinutes:  requireInt(v, "VALID_CODE_EXPIRE_MINUTES"),
+		Length:         requireInt(v, "VALID_CODE_LEN"),
 	}
 
 	// Database配置

@@ -81,7 +81,11 @@ func setupTestData(t *testing.T, ctx *framework.TestContext) (*user.User, *diary
 
 func TestCommentService_AddComment(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	testUser, _, testEntry, commentService := setupTestData(t, ctx.(*framework.TestContext))
 
@@ -156,7 +160,11 @@ func TestCommentService_AddComment(t *testing.T) {
 
 func TestCommentService_GetCommentByID(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	testUser, _, testEntry, commentService := setupTestData(t, ctx.(*framework.TestContext))
 
@@ -209,7 +217,11 @@ func TestCommentService_GetCommentByID(t *testing.T) {
 
 func TestCommentService_ListCommentsByEntryID(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	testUser, _, testEntry, commentService := setupTestData(t, ctx.(*framework.TestContext))
 
@@ -261,7 +273,11 @@ func TestCommentService_ListCommentsByEntryID(t *testing.T) {
 
 func TestCommentService_DeleteComment(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	testUser, _, testEntry, commentService := setupTestData(t, ctx.(*framework.TestContext))
 
@@ -288,7 +304,11 @@ func TestCommentService_DeleteComment(t *testing.T) {
 
 func TestCommentService_GetCommentCountByEntryID(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	testUser, _, testEntry, commentService := setupTestData(t, ctx.(*framework.TestContext))
 

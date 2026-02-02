@@ -22,6 +22,7 @@ export default {
   'entry.create': 'New Entry',
   'entry.edit': 'Edit Entry',
   'entry.delete.confirm': 'Are you sure you want to delete this entry?',
+  'entry.drafts.confirm_hard_delete': 'Are you sure you want to permanently delete this draft? This action cannot be undone.',
   'entry.delete.success': 'Deleted successfully',
   'entry.delete.fail': 'Delete failed',
   'entry.delete.net_error': 'Network error, delete failed',

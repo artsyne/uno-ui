@@ -11,12 +11,19 @@ type RepositoryInterface interface {
 	//   - error: 插入失败时返回错误
 	Insert(comment *Comment) (int64, error)
 
-	// Delete 删除评论
+	// Delete 根据评论ID删除评论
 	// 参数:
 	//   - commentID: 评论ID
 	// 返回:
 	//   - error: 删除失败时返回错误
 	Delete(commentID int64) error
+
+	// DeleteByEntryID 根据日记ID删除该日记下的所有评论
+	// 参数:
+	//   - entryID: 日记ID
+	// 返回:
+	//   - error: 删除失败时返回错误
+	DeleteByEntryID(entryID int64) error
 
 	// GetByID 根据评论ID获取评论信息
 	// 参数:

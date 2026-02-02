@@ -12,7 +12,11 @@ import (
 // TestConfigIntegration 测试配置系统的集成功能
 func TestConfigIntegration(t *testing.T) {
 	ctx := framework.NewTestContext()
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("测试框架配置", func(t *testing.T) {
 		// 获取全局配置（通过测试框架）
@@ -78,7 +82,11 @@ func TestConfigIntegration(t *testing.T) {
 // TestConfigViper 测试Viper配置管理器
 func TestConfigViper(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("Viper实例", func(t *testing.T) {
 		// 测试框架已经初始化了配置，直接获取Viper实例
@@ -93,7 +101,11 @@ func TestConfigViper(t *testing.T) {
 // TestConfigComponents 测试配置各个组件
 func TestConfigComponents(t *testing.T) {
 	ctx := framework.NewTestContext()
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	cfg := framework.GetGlobalConfig()
 	assert.NotNil(t, cfg, "配置不应该为空")

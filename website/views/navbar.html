@@ -52,7 +52,7 @@
                 </button>
 
                 {{if not (isLogin .)}}
-                
+
                 <a class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200 mr-4"
                     href="/register" role="button">
                     {{getMessage "auth.button.register_free" .Context.Lang}}</a>
@@ -76,6 +76,9 @@
                         <li><a href="/u/{{getUserID .}}" class="tooltip-link"><i
                                     class="mdi mdi-home-variant-outline mr-2"></i> {{getMessage "user.label.my_home"
                                 .Context.Lang}}</a></li>
+                        <li><a href="/drafts" class="tooltip-link"><i
+                                    class="mdi mdi-file-document-edit-outline mr-2"></i>
+                                {{getMessage "user.label.drafts" .Context.Lang}}</a></li>
                         <li><a href="/u/settings" class="tooltip-link"><i class="mdi mdi-cogs mr-2"></i>
                                 {{getMessage "user.label.settings" .Context.Lang}}</a></li>
                         <li><a href="/loginout" class="tooltip-link"><i class="mdi mdi-logout mr-2"></i> {{getMessage

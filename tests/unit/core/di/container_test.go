@@ -38,9 +38,11 @@ func TestNewDI(t *testing.T) {
 	container := di.New()
 
 	// 测试瞬态服务
-	di.Bind[UserService](container, func() UserService {
+	if err := di.Bind[UserService](container, func() UserService {
 		return &userServiceImpl{name: "alice"}
-	})
+	}); err != nil {
+		t.Fatal(err)
+	}
 
 	user1 := di.Get[UserService](container)
 	user2 := di.Get[UserService](container)
@@ -54,9 +56,11 @@ func TestNewDI(t *testing.T) {
 	}
 
 	// 测试单例服务
-	di.Singleton[DatabaseService](container, func() DatabaseService {
+	if err := di.Singleton[DatabaseService](container, func() DatabaseService {
 		return &databaseServiceImpl{connected: true}
-	})
+	}); err != nil {
+		t.Fatal(err)
+	}
 
 	db1 := di.Get[DatabaseService](container)
 	db2 := di.Get[DatabaseService](container)
@@ -71,7 +75,9 @@ func TestNewDI(t *testing.T) {
 
 	// 测试实例注册
 	config := &userServiceImpl{name: "config"}
-	di.Value[*userServiceImpl](container, config)
+	if err := di.Value[*userServiceImpl](container, config); err != nil {
+		t.Fatal(err)
+	}
 
 	retrieved := di.Get[*userServiceImpl](container)
 	if retrieved != config {
@@ -93,15 +99,19 @@ func TestDependencyInjection(t *testing.T) {
 	container := di.New()
 
 	// 注册依赖
-	di.Singleton[DatabaseService](container, func() DatabaseService {
+	if err := di.Singleton[DatabaseService](container, func() DatabaseService {
 		return &databaseServiceImpl{connected: true}
-	})
+	}); err != nil {
+		t.Fatal(err)
+	}
 
 	// 注册依赖于DatabaseService的服务
-	di.Bind[UserService](container, func() UserService {
+	if err := di.Bind[UserService](container, func() UserService {
 		db := di.Get[DatabaseService](container)
 		return &userServiceImpl{name: "bob", db: db}
-	})
+	}); err != nil {
+		t.Fatal(err)
+	}
 
 	user := di.Get[UserService](container)
 	if user.GetName() != "bob" {
@@ -115,9 +125,11 @@ func BenchmarkBind(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		di.Bind[UserService](container, func() UserService {
+		if err := di.Bind[UserService](container, func() UserService {
 			return &userServiceImpl{name: "test"}
-		})
+		}); err != nil {
+			b.Fatal(err)
+		}
 		container.Clear()
 		container = di.New()
 	}
@@ -125,9 +137,11 @@ func BenchmarkBind(b *testing.B) {
 
 func BenchmarkGet(b *testing.B) {
 	container := di.New()
-	di.Bind[UserService](container, func() UserService {
+	if err := di.Bind[UserService](container, func() UserService {
 		return &userServiceImpl{name: "test"}
-	})
+	}); err != nil {
+		b.Fatal(err)
+	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -137,9 +151,11 @@ func BenchmarkGet(b *testing.B) {
 
 func BenchmarkGetSingleton(b *testing.B) {
 	container := di.New()
-	di.Singleton[UserService](container, func() UserService {
+	if err := di.Singleton[UserService](container, func() UserService {
 		return &userServiceImpl{name: "singleton"}
-	})
+	}); err != nil {
+		b.Fatal(err)
+	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -149,9 +165,11 @@ func BenchmarkGetSingleton(b *testing.B) {
 
 func BenchmarkHas(b *testing.B) {
 	container := di.New()
-	di.Bind[UserService](container, func() UserService {
+	if err := di.Bind[UserService](container, func() UserService {
 		return &userServiceImpl{name: "test"}
-	})
+	}); err != nil {
+		b.Fatal(err)
+	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

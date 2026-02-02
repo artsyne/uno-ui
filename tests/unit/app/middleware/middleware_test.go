@@ -17,7 +17,11 @@ func TestAuthRequiredMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestAuthRequiredMiddleware")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("未登录用户访问受保护资源", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -93,7 +97,11 @@ func TestSharedDataMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestSharedDataMiddleware")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("未登录用户的共享数据", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -187,7 +195,11 @@ func TestPanicRecoveryMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestPanicRecoveryMiddleware")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("panic 恢复测试", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -240,7 +252,11 @@ func TestAppErrorHandlerMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestAppErrorHandlerMiddleware")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("处理应用错误", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -250,7 +266,7 @@ func TestAppErrorHandlerMiddleware(t *testing.T) {
 		router.Use(appMiddleware.AppErrorHandler())
 		router.GET("/error", func(c *gin.Context) {
 			// 模拟添加错误到上下文
-			c.Error(errors.New("test error"))
+		_ = c.Error(errors.New("test error"))
 		})
 
 		// 创建请求
@@ -294,7 +310,11 @@ func TestMiddlewareChain(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestMiddlewareChain")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("中间件执行顺序", func(t *testing.T) {
 		w := httptest.NewRecorder()

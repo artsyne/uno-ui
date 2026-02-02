@@ -40,7 +40,6 @@ type TestContext struct {
 	http         HTTPTestHelperInterface
 	ctx          context.Context
 	cancel       context.CancelFunc
-	mu           sync.RWMutex
 }
 
 // DatabaseManager 数据库管理器实现

@@ -3,7 +3,9 @@ package templates
 import (
 	"html/template"
 	"strings"
+
 	"github.com/biuren/hebe/internal/contracts"
+	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/pkg"
 )
 
@@ -31,22 +33,40 @@ import (
 //   - getRandomVersion: 获取随机版本号
 func GetAuthFuncs() template.FuncMap {
 	return template.FuncMap{
-		"isLogin":       isLogin,
-		"authUser":      authUser,
-		"getLoginName":  getLoginName,
-		"getHandle":     getHandle,
-		"getEmail":      getEmail,
-		"getFaceUrl":    getFaceUrl,
-		"getUserAvatar": getUserAvatar,
-		"getUserID":     getUserID,
-		"getDisplayName": getDisplayName,
-		"getUserGroup":  getUserGroup,
-		"getTimeZone":   getTimeZone,
-		"getLang":       getLang,
-		"getStatus":     getStatus,
-		"getFirstCharOfName": getFirstCharOfName,
-		"getRandomVersion":   getRandomVersion,
+		"isLogin":             isLogin,
+		"authUser":            authUser,
+		"getLoginName":        getLoginName,
+		"getHandle":           getHandle,
+		"getEmail":            getEmail,
+		"getFaceUrl":          getFaceUrl,
+		"getUserAvatar":       getUserAvatar,
+		"getUserID":           getUserID,
+		"getDisplayName":      getDisplayName,
+		"getUserGroup":        getUserGroup,
+		"getTimeZone":         getTimeZone,
+		"getLang":             getLang,
+		"getStatus":           getStatus,
+		"getFirstCharOfName":  getFirstCharOfName,
+		"getRandomVersion":    getRandomVersion,
+		"getAutoSaveEnabled":  getAutoSaveEnabled,
+		"getAutoSaveInterval": getAutoSaveInterval,
 	}
+}
+
+func getAutoSaveEnabled(data *types.PageData[map[string]interface{}]) bool {
+	cfg := config.GetConfig()
+	if cfg == nil {
+		return true
+	}
+	return cfg.AutoSave.Enabled
+}
+
+func getAutoSaveInterval(data *types.PageData[map[string]interface{}]) int {
+	cfg := config.GetConfig()
+	if cfg == nil || cfg.AutoSave.Interval <= 0 {
+		return 60000
+	}
+	return cfg.AutoSave.Interval
 }
 
 // isLogin 检查用户是否已登录
@@ -248,9 +268,9 @@ func getStatus(data *types.PageData[map[string]interface{}]) int8 {
 //   - string: 用户姓名首字符的大写形式，优先使用显示名称，其次Handle，默认返回"I"
 //
 // 逻辑:
-//   1. 优先使用用户显示名称的首字符
-//   2. 如果显示名称为空，使用Handle的首字符
-//   3. 如果都为空或未登录，返回默认值"I"
+//  1. 优先使用用户显示名称的首字符
+//  2. 如果显示名称为空，使用Handle的首字符
+//  3. 如果都为空或未登录，返回默认值"I"
 func getFirstCharOfName(data *types.PageData[map[string]interface{}]) string {
 	if u := authUser(data); u != nil {
 		name := ""
@@ -278,5 +298,5 @@ func getFirstCharOfName(data *types.PageData[map[string]interface{}]) string {
 // 返回:
 //   - string: 32位小写字母组成的随机字符串
 func getRandomVersion(data *types.PageData[map[string]interface{}]) string {
-	return pkg.Rand(32,pkg.RAND_KIND_LOWER)
+	return pkg.Rand(32, pkg.RAND_KIND_LOWER)
 }

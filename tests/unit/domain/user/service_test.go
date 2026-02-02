@@ -20,7 +20,11 @@ func TestMain(m *testing.M) {
 // TestUserService_RegisterUser 测试用户注册功能
 func TestUserService_RegisterUser(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建真实的用户服务
 	userRepo := repository.NewUserRepository()
@@ -109,7 +113,11 @@ func TestUserService_RegisterUser(t *testing.T) {
 // TestUserService_UpdateUserHandle 测试用户Handle更新功能
 func TestUserService_UpdateUserHandle(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// Setup service
 	userRepo := repository.NewUserRepository()

@@ -98,7 +98,11 @@ func TestValidationInController(t *testing.T) {
 // TestValidationIntegration 测试验证器与其他模块的集成
 func TestValidationIntegration(t *testing.T) {
 	ctx := framework.NewTestContext("TestValidationIntegration")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 	// cfg := ctx.GetConfig()
 
 	// 模拟用户数据验证

@@ -125,8 +125,7 @@ func TestRegisterAllFuncs_FunctionCategories(t *testing.T) {
 	assert.NoError(t, err)
 
 	// 可以执行模板
-	var buf []byte
-	buf = make([]byte, 0, 100)
+	buf := make([]byte, 0, 100)
 	// 注意：这里不执行模板，因为我们主要测试注册过程
 	_ = buf
 	_ = testData

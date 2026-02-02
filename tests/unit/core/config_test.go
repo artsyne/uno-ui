@@ -41,7 +41,11 @@ func loadEnvLocal(t *testing.T) {
 func TestConfig_InitConfig(t *testing.T) {
 	// 使用测试框架初始化
 	ctx := framework.NewTestContext("TestConfig_InitConfig")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 加载本地环境变量
 	loadEnvLocal(t)
@@ -63,7 +67,11 @@ func TestConfig_InitConfig(t *testing.T) {
 
 func TestConfig_AppConfig(t *testing.T) {
 	ctx := framework.NewTestContext("TestConfig_AppConfig")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 	loadEnvLocal(t)
 
 	err := config.InitConfig()
@@ -91,7 +99,11 @@ func TestConfig_AppConfig(t *testing.T) {
 
 func TestConfig_DatabaseConfig(t *testing.T) {
 	ctx := framework.NewTestContext("TestConfig_DatabaseConfig")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 	loadEnvLocal(t)
 
 	err := config.InitConfig()
@@ -112,7 +124,11 @@ func TestConfig_DatabaseConfig(t *testing.T) {
 
 func TestConfig_RedisConfig(t *testing.T) {
 	ctx := framework.NewTestContext("TestConfig_RedisConfig")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 	loadEnvLocal(t)
 
 	err := config.InitConfig()
@@ -129,7 +145,11 @@ func TestConfig_RedisConfig(t *testing.T) {
 
 func TestConfig_EmailConfig(t *testing.T) {
 	ctx := framework.NewTestContext("TestConfig_EmailConfig")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 	loadEnvLocal(t)
 
 	err := config.InitConfig()
@@ -149,7 +169,11 @@ func TestConfig_EmailConfig(t *testing.T) {
 
 func TestConfig_CookieConfig(t *testing.T) {
 	ctx := framework.NewTestContext("TestConfig_CookieConfig")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 	loadEnvLocal(t)
 
 	err := config.InitConfig()
@@ -167,7 +191,11 @@ func TestConfig_CookieConfig(t *testing.T) {
 
 func TestConfig_UploadConfig(t *testing.T) {
 	ctx := framework.NewTestContext("TestConfig_UploadConfig")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 	loadEnvLocal(t)
 
 	err := config.InitConfig()
@@ -187,7 +215,11 @@ func TestConfig_UploadConfig(t *testing.T) {
 
 func TestConfig_LogConfig(t *testing.T) {
 	ctx := framework.NewTestContext("TestConfig_LogConfig")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 	loadEnvLocal(t)
 
 	err := config.InitConfig()
@@ -210,7 +242,11 @@ func TestConfig_LogConfig(t *testing.T) {
 
 func TestConfig_SupportLangs(t *testing.T) {
 	ctx := framework.NewTestContext("TestConfig_SupportLangs")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 	loadEnvLocal(t)
 
 	err := config.InitConfig()
@@ -227,7 +263,11 @@ func TestConfig_SupportLangs(t *testing.T) {
 
 func TestConfig_Timezones(t *testing.T) {
 	ctx := framework.NewTestContext("TestConfig_Timezones")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 	loadEnvLocal(t)
 
 	err := config.InitConfig()
@@ -244,7 +284,11 @@ func TestConfig_Timezones(t *testing.T) {
 
 func TestConfig_Params(t *testing.T) {
 	ctx := framework.NewTestContext("TestConfig_Params")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 	loadEnvLocal(t)
 
 	err := config.InitConfig()
@@ -260,7 +304,11 @@ func TestConfig_Params(t *testing.T) {
 
 func TestConfig_GetParams(t *testing.T) {
 	ctx := framework.NewTestContext("TestConfig_GetParams")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 	loadEnvLocal(t)
 
 	err := config.InitConfig()
@@ -274,7 +322,11 @@ func TestConfig_GetParams(t *testing.T) {
 
 func TestConfig_GetTimeZone(t *testing.T) {
 	ctx := framework.NewTestContext("TestConfig_GetTimeZone")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 	loadEnvLocal(t)
 
 	err := config.InitConfig()
@@ -288,7 +340,11 @@ func TestConfig_GetTimeZone(t *testing.T) {
 
 func TestConfig_GetSupportLangs(t *testing.T) {
 	ctx := framework.NewTestContext("TestConfig_GetSupportLangs")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 	loadEnvLocal(t)
 
 	err := config.InitConfig()
@@ -302,7 +358,11 @@ func TestConfig_GetSupportLangs(t *testing.T) {
 
 func TestConfig_MissingRequiredFields(t *testing.T) {
 	ctx := framework.NewTestContext("TestConfig_MissingRequiredFields")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 	loadEnvLocal(t)
 
 	err := config.InitConfig()
@@ -314,7 +374,11 @@ func TestConfig_MissingRequiredFields(t *testing.T) {
 
 func TestConfig_InvalidJSON(t *testing.T) {
 	ctx := framework.NewTestContext("TestConfig_InvalidJSON")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 	loadEnvLocal(t)
 
 	err := config.InitConfig()

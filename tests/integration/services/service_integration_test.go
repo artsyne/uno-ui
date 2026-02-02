@@ -19,7 +19,11 @@ import (
 // TestUserDiaryIntegration 测试用户和日记服务的集成
 func TestUserDiaryIntegration(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建真实的服务
 	userRepo := repository.NewUserRepository()
@@ -100,7 +104,11 @@ func TestUserDiaryIntegration(t *testing.T) {
 // TestUserEntryDiaryIntegration 测试用户、日记和文章服务的完整集成
 func TestUserEntryDiaryIntegration(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建真实的服务
 	userRepo := repository.NewUserRepository()
@@ -166,10 +174,10 @@ func TestUserEntryDiaryIntegration(t *testing.T) {
 		err = diaryService.IncrementEntryCount(diaryID)
 		require.NoError(t, err)
 
-		// 4. 验证文章计数
-		entryCount, err := entryService.GetEntryCountByUserID(testUser.UserId, diaryID)
+		// 验证文章计数
+		count, err := entryService.GetEntryCountByUserID(testUser.UserId, diaryID, 1) // 1 = Active
 		require.NoError(t, err)
-		assert.Equal(t, 1, entryCount)
+		assert.Equal(t, 1, count)
 
 		// 5. 验证日记本的文章计数已更新
 		updatedDiary, err := diaryService.GetDiaryByID(diaryID)
@@ -196,13 +204,13 @@ func TestUserEntryDiaryIntegration(t *testing.T) {
 		}
 
 		// 7. 验证分页获取文章
-		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, diaryID, 1, 2)
+		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, diaryID, 1, 1, 2)
 		require.NoError(t, err)
 		assert.Len(t, entries, 2) // 第一页2篇
 		assert.Equal(t, 3, total) // 总共3篇
 
 		// 8. 获取第二页
-		entries2, total2, err := entryService.ListEntriesByUserID(testUser.UserId, diaryID, 2, 2)
+		entries2, total2, err := entryService.ListEntriesByUserID(testUser.UserId, diaryID, 1, 2, 2)
 		require.NoError(t, err)
 		assert.Len(t, entries2, 1) // 第二页1篇
 		assert.Equal(t, 3, total2) // 总共还是3篇
@@ -231,7 +239,7 @@ func TestUserEntryDiaryIntegration(t *testing.T) {
 		assert.Nil(t, deletedEntry)
 
 		// 13. 验证文章计数已更新
-		finalCount, err := entryService.GetEntryCountByUserID(testUser.UserId, diaryID)
+		finalCount, err := entryService.GetEntryCountByUserID(testUser.UserId, diaryID, 1)
 		require.NoError(t, err)
 		assert.Equal(t, 2, finalCount) // 删除一篇后剩2篇
 	})
@@ -240,7 +248,11 @@ func TestUserEntryDiaryIntegration(t *testing.T) {
 // TestMultiUserScenario 测试多用户场景
 func TestMultiUserScenario(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建真实的服务
 	userRepo := repository.NewUserRepository()
@@ -345,13 +357,13 @@ func TestMultiUserScenario(t *testing.T) {
 		assert.Equal(t, "用户2的日记本", user2Diaries[0].Title)
 
 		// 验证用户1只能看到自己的文章
-		entries1, _, err := entryService.ListEntriesByUserID(user1.UserId, diary1ID, 1, 10)
+		entries1, _, err := entryService.ListEntriesByUserID(user1.UserId, diary1ID, 1, 1, 10)
 		require.NoError(t, err)
 		assert.Len(t, entries1, 1)
 		assert.Equal(t, entry1ID, entries1[0].EntryID)
 
 		// 验证用户2只能看到自己的文章
-		entries2, _, err := entryService.ListEntriesByUserID(user2.UserId, diary2ID, 1, 10)
+		entries2, _, err := entryService.ListEntriesByUserID(user2.UserId, diary2ID, 1, 1, 10)
 		require.NoError(t, err)
 		assert.Len(t, entries2, 1)
 		assert.Equal(t, entry2ID, entries2[0].EntryID)
@@ -368,7 +380,11 @@ func TestMultiUserScenario(t *testing.T) {
 // TestServiceErrorHandling 测试服务错误处理
 func TestServiceErrorHandling(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建真实的服务
 	userRepo := repository.NewUserRepository()
@@ -453,7 +469,11 @@ func TestServiceErrorHandling(t *testing.T) {
 // TestServicePerformance 测试服务性能
 func TestServicePerformance(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建真实的服务
 	userRepo := repository.NewUserRepository()
@@ -518,13 +538,13 @@ func TestServicePerformance(t *testing.T) {
 		}
 
 		// 验证分页查询性能
-		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, diaryID, 1, 5)
+		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, diaryID, 1, 1, 5)
 		require.NoError(t, err)
 		assert.Len(t, entries, 5)
 		assert.Equal(t, articleCount, total)
 
 		// 验证文章计数
-		count, err := entryService.GetEntryCountByUserID(testUser.UserId, diaryID)
+		count, err := entryService.GetEntryCountByUserID(testUser.UserId, diaryID, 1) // 1 = Active
 		require.NoError(t, err)
 		assert.Equal(t, articleCount, count)
 	})

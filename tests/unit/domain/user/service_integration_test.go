@@ -13,7 +13,11 @@ import (
 // 这种测试方式可以验证真实的数据库交互和业务逻辑
 func TestUserService_Integration_RegisterAndLogin(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 获取用户服务
 	userService := ctx.GetServices().GetUserService()
@@ -97,7 +101,11 @@ func TestUserService_Integration_RegisterAndLogin(t *testing.T) {
 // TestUserService_Integration_ErrorCases 测试各种错误情况
 func TestUserService_Integration_ErrorCases(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 获取用户服务
 	userService := ctx.GetServices().GetUserService()

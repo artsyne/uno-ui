@@ -129,7 +129,11 @@ func TestNewTaskRepository(t *testing.T) {
 	
 	// 使用测试框架提供的数据库连接
 	testCtx := framework.NewTestContext(framework.WithDatabase())
-	defer testCtx.Cleanup()
+	defer func() {
+		if err := testCtx.Cleanup(); err != nil {
+			t.Log(err)
+		}
+	}()
 	
 	// 测试使用全局数据库连接的构造函数
 	repo := repository.NewTaskRepository()

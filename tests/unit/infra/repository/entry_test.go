@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"database/sql"
 	"testing"
 	"time"
 
@@ -131,7 +130,7 @@ func TestEntryRepository_ListByUserID(t *testing.T) {
 	// 不过如果 Select 返回 empty，它可能不会调用 Count? 
 	// 看代码：Select 成功后调用 GetCountByUserID.
 
-	mock.ExpectQuery(`SELECT e.*, u.handle, u.display_name FROM br_entry e`).WithArgs(
+	mock.ExpectQuery(`SELECT e.*, COALESCE\(u.handle, ''\) as handle, COALESCE\(u.display_name, ''\) as display_name FROM br_entry e`).WithArgs(
 		diaryID, userID, entry.StatusActive, pageSize, 0,
 	).WillReturnRows(rows)
 
@@ -141,7 +140,7 @@ func TestEntryRepository_ListByUserID(t *testing.T) {
 		diaryID, userID, entry.StatusActive,
 	).WillReturnRows(countRows)
 
-	entries, total, err := repo.ListByUserID(userID, diaryID, pageIndex, pageSize)
+	entries, total, err := repo.ListByUserID(userID, diaryID, entry.StatusActive, pageIndex, pageSize)
 
 	assert.NoError(t, err)
 	assert.Len(t, entries, 2)
@@ -152,11 +151,13 @@ func TestEntryRepository_ListByUserID(t *testing.T) {
 func TestEntryRepository_ListByUserID_NoRows(t *testing.T) {
 	repo, mock := setupTestRepo(t)
 
-	mock.ExpectQuery(`SELECT e.*`).WillReturnError(sql.ErrNoRows)
+	// Mock empty result set (not error)
+	rows := sqlmock.NewRows([]string{"entry_id", "title", "handle", "display_name"})
+	mock.ExpectQuery(`SELECT e.*`).WillReturnRows(rows)
 
-	entries, total, err := repo.ListByUserID(1, 1, 1, 10)
+	entries, total, err := repo.ListByUserID(1, 1, entry.StatusActive, 1, 10)
 
 	assert.NoError(t, err)
-	assert.Nil(t, entries)
+	assert.Empty(t, entries)
 	assert.Equal(t, 0, total)
 }

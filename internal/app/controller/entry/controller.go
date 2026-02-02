@@ -2,6 +2,7 @@ package entry
 
 import (
 	"github.com/biuren/hebe/internal/app/view"
+	"github.com/biuren/hebe/internal/domain/comment"
 	"github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/domain/like"
@@ -21,13 +22,14 @@ import (
 //   - userService: 用户业务逻辑服务
 //   - likeService: 点赞业务逻辑服务
 type EntryController struct {
-	entryService  *entry.Service
-	diaryService  *diary.Service
-	auth          *user.AuthHelper
-	config        *config.Config
-	renderService *view.ViewService
-	userService   *user.Service
-	likeService   like.Service
+	entryService   *entry.Service
+	diaryService   *diary.Service
+	commentService *comment.Service
+	auth           *user.AuthHelper
+	config         *config.Config
+	renderService  *view.ViewService
+	userService    *user.Service
+	likeService    like.Service
 }
 
 // NewEntryController 创建新的日记控制器实例
@@ -44,11 +46,12 @@ type EntryController struct {
 //
 // 返回:
 //   - *EntryController: 初始化完成的日记控制器实例
-func NewEntryController(config *config.Config, entryService *entry.Service, diaryService *diary.Service, auth *user.AuthHelper, renderService *view.ViewService, userService *user.Service, likeService like.Service) *EntryController {
+func NewEntryController(config *config.Config, entryService *entry.Service, diaryService *diary.Service, commentService *comment.Service, auth *user.AuthHelper, renderService *view.ViewService, userService *user.Service, likeService like.Service) *EntryController {
 	return &EntryController{
 		config:        config,
 		entryService:  entryService,
 		diaryService:  diaryService,
+		commentService: commentService,
 		auth:          auth,
 		renderService: renderService,
 		userService:   userService,

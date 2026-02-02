@@ -244,7 +244,7 @@ func setupTestEnvironment() {
 	projectRoot := GetProjectRoot()
 	envLocalPath := filepath.Join(projectRoot, ".env.local")
 	if err := gotenv.Load(envLocalPath); err != nil {
-		// .env.local 文件不存在时不报错，这是预期的行为（在CI环境中可能不存在）
+		fmt.Printf("加载环境变量失败: %v\n", err)
 	}
 
 	// 基本环境配置
@@ -423,15 +423,6 @@ func getEnvBool(key string, defaultValue bool) bool {
 	if value := os.Getenv(key); value != "" {
 		if boolValue, err := strconv.ParseBool(value); err == nil {
 			return boolValue
-		}
-	}
-	return defaultValue
-}
-
-func getEnvFloat(key string, defaultValue float64) float64 {
-	if value := os.Getenv(key); value != "" {
-		if floatValue, err := strconv.ParseFloat(value, 64); err == nil {
-			return floatValue
 		}
 	}
 	return defaultValue

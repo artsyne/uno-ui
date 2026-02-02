@@ -83,6 +83,21 @@
     }
   },
   "entry": {
+    "drafts": {
+      "title": "Drafts Management",
+      "tab_drafts": "Drafts",
+      "tab_trash": "Trash",
+      "col_title": "Title",
+      "col_time": "Last Saved/Deleted",
+      "col_ops": "Operations",
+      "btn_edit": "Edit",
+      "btn_delete": "Delete",
+      "btn_recover": "Recover",
+      "btn_hard_delete": "Delete",
+      "confirm_hard_delete": "Delete permanently? This cannot be undone.",
+      "empty_drafts": "No drafts",
+      "empty_trash": "Trash is empty"
+    },
     "label": "Entry",
     "create": "New Entry",
     "edit": "Edit Entry",
@@ -161,7 +176,8 @@
     },
     "label": {
       "my_home": "My Home",
-      "settings": "Settings"
+      "settings": "Settings",
+      "drafts": "Drafts"
     },
     "profile": {
       "introduction": "Introduction",

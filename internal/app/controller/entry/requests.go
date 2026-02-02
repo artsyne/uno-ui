@@ -8,22 +8,14 @@ import (
 	"github.com/biuren/hebe/internal/utils/errors"
 )
 
-// CreateEntryRequest 创建日记请求
-// 用于创建新日记的请求数据结构
-//
-// 字段:
-//   - DiaryID: 所属日记本ID，必需且大于0
-//   - Title: 日记标题
-//   - InfoType: 信息类型，1-6之间的值
-//   - Body: 日记内容，必需且不能为空
-//   - IsTop: 是否置顶，0=否，1=是
-type CreateEntryRequest struct {
-	DiaryID  int64          `form:"diary_id" json:"diary_id" binding:"required,min=1"`
-	Title    string         `form:"info_title" json:"title"`
-	InfoType entry.InfoType `form:"info_type" json:"info_type" binding:"required,oneof=1 2 3 4 5 6"`
-	Body     string         `form:"info_body" json:"body" binding:"required,min=1"`
-	IsTop    int8           `form:"is_top" json:"is_top"`
-}
+// CreateEntryRequest 已被 AutoSaveEntryRequest 和 PublishEntryRequest 替代
+// type CreateEntryRequest struct {
+// 	DiaryID  int64          `form:"diary_id" json:"diary_id" binding:"required,min=1"`
+// 	Title    string         `form:"info_title" json:"title"`
+// 	InfoType entry.InfoType `form:"info_type" json:"info_type" binding:"required,oneof=1 2 3 4 5 6"`
+// 	Body     string         `form:"info_body" json:"body" binding:"required,min=1"`
+// 	IsTop    int8           `form:"is_top" json:"is_top"`
+// }
 
 // UpdateEntryRequest 更新日记请求
 // 用于更新现有日记的请求数据结构
@@ -40,6 +32,24 @@ type UpdateEntryRequest struct {
 	InfoType entry.InfoType `form:"info_type" json:"info_type" binding:"required,oneof=1 2 3 4 5 6"`
 	Body     string         `form:"info_body" json:"body" binding:"required,min=1"`
 	IsTop    int8           `form:"is_top" json:"is_top"`
+}
+
+// AutoSaveEntryRequest 自动保存草稿请求
+// 用于周期性保存草稿：entry_id 为空时创建草稿；entry_id 有值时更新草稿
+type AutoSaveEntryRequest struct {
+	EntryID int64  `form:"entry_id" json:"entry_id" binding:"omitempty,min=1"`
+	DiaryID int64  `form:"diary_id" json:"diary_id" binding:"required,min=1"`
+	Title   string `form:"info_title" json:"title"`
+	Body    string `form:"info_body" json:"body" binding:"required,min=1"`
+}
+
+// PublishEntryRequest 发布日记请求
+// entry_id 为空时直接发布新日记；entry_id 有值时将草稿发布为正常日记
+type PublishEntryRequest struct {
+	EntryID int64  `form:"entry_id" json:"entry_id" binding:"omitempty,min=1"`
+	DiaryID int64  `form:"diary_id" json:"diary_id" binding:"required,min=1"`
+	Title   string `form:"info_title" json:"title"`
+	Body    string `form:"info_body" json:"body" binding:"required,min=1"`
 }
 
 // DeleteEntryRequest 删除日记请求
@@ -74,16 +84,15 @@ type ListEntriesRequest struct {
 	Limit   int   `form:"limit" json:"limit"`
 }
 
-// ShowEntryDetailRequest 获取日记详情请求
-// 用于获取指定日记详情的请求数据结构
+// ShowEntryDetailRequest 显示日记详情请求
+// 用于获取单个日记的详细信息
 //
 // 字段:
-//   - EntryID: 日记ID，必需且大于0
-//
-// 路由:
-//   - /entry/:entryid
+//   - EntryID: 日记ID，从URL路径获取
+//   - IncludeDeleted: 是否包含已删除的日记 (仅作者可见)，URL参数
 type ShowEntryDetailRequest struct {
-	EntryID int64 `uri:"entryid" form:"entry_id" json:"entry_id" binding:"required,min=1"`
+	EntryID int64 `uri:"entryid" binding:"required,min=1"`
+	WithDel bool  `form:"with_del" json:"with_del"`
 }
 
 // GetEntriesStatsRequest 获取日记统计信息请求

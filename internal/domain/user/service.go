@@ -2,6 +2,7 @@ package user
 
 import (
 	"fmt"
+	"log/slog"
 	"math"
 	"strconv"
 	"strings"
@@ -58,7 +59,9 @@ func (s *Service) RegisterUser(user *User) error {
 	}
 
 	// 发送激活邮件
-	s.addActivateUserEmailTask(user)
+	if err := s.addActivateUserEmailTask(user); err != nil {
+		slog.Error("发送激活邮件任务失败", "error", err, "user_id", user.UserId)
+	}
 
 	return nil
 }
@@ -134,7 +137,10 @@ func (s *Service) recordLoginFailure(userID int64) {
 	// 使用Pipeline原子操作
 	pipe := s.redis.Pipeline()
 	incr := pipe.Incr(key)
-	pipe.Exec()
+	if _, err := pipe.Exec(); err != nil {
+		slog.Error("登录失败记录写入失败", "error", err, "user_id", userID)
+		return
+	}
 
 	// 如果是第一次失败（计数为1），设置过期时间
 	if incr.Val() == 1 {
@@ -557,8 +563,7 @@ func (s *Service) initUserRegInfo(user *User) {
 	// 使用统一的密码加密逻辑
 	hashedPwd, err := s.generatePasswordHash(user.Pwd)
 	if err != nil {
-		// 在这里处理错误，但由于原方法没有返回错误，我们暂时忽略
-		// 在实际应用中应该修改方法签名来处理错误
+		slog.Error("密码哈希生成失败", "error", err)
 	}
 	user.Pwd = hashedPwd
 

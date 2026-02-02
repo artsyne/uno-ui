@@ -18,7 +18,11 @@ func TestRecoveryMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestRecoveryMiddleware")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("panic恢复", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -71,7 +75,11 @@ func TestCustomErrorHandling(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestCustomErrorHandling")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 自定义错误处理中间件
 	errorHandlerMiddleware := func() gin.HandlerFunc {
@@ -99,7 +107,7 @@ func TestCustomErrorHandling(t *testing.T) {
 		// 设置会产生错误的处理器
 		router.GET("/error", func(c *gin.Context) {
 			// 模拟应用错误
-			c.Error(errors.New("test application error"))
+			_ = c.Error(errors.New("test application error"))
 		})
 
 		// 创建请求
@@ -145,7 +153,11 @@ func TestMiddlewareChain(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestMiddlewareChain")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("中间件执行顺序", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -224,7 +236,11 @@ func TestAuthenticationMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestAuthenticationMiddleware")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 模拟认证中间件
 	authMiddleware := func() gin.HandlerFunc {
@@ -329,7 +345,11 @@ func TestCORSMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestCORSMiddleware")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 模拟CORS中间件
 	corsMiddleware := func() gin.HandlerFunc {
@@ -396,7 +416,11 @@ func TestCORSMiddleware(t *testing.T) {
 // TestMiddlewareWithRealServices 测试中间件与真实服务的集成
 func TestMiddlewareWithRealServices(t *testing.T) {
 	ctx := framework.NewTestContext("TestMiddlewareWithRealServices")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建一个简化的测试套件组件
 	container := di.New()

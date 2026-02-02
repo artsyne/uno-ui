@@ -12,67 +12,74 @@ import (
 
 // Config 配置结构体
 type Config struct {
-	Env          string         `json:"env" mapstructure:"ENV" validate:"required,oneof=development production test"`
-	App          AppConfig      `json:"app" validate:"required"`
-	User            UserConfig     `json:"user" validate:"required"`
-    ValidCode       ValidCodeConfig `json:"valid_code" validate:"required"`
-	Database     DatabaseConfig `json:"database" validate:"required"`
-	Redis        RedisConfig    `json:"redis" validate:"required"`
-	RateLimit    RateLimitConfig `json:"rate_limit" validate:"required"`
+	Env          string           `json:"env" mapstructure:"ENV" validate:"required,oneof=development production test"`
+	App          AppConfig        `json:"app" validate:"required"`
+	AutoSave     AutoSaveConfig   `json:"auto_save"`
+	User         UserConfig       `json:"user" validate:"required"`
+	ValidCode    ValidCodeConfig  `json:"valid_code" validate:"required"`
+	Database     DatabaseConfig   `json:"database" validate:"required"`
+	Redis        RedisConfig      `json:"redis" validate:"required"`
+	RateLimit    RateLimitConfig  `json:"rate_limit" validate:"required"`
 	BruteForce   BruteForceConfig `json:"brute_force" validate:"required"`
-	Email        EmailConfig    `json:"email" validate:"required"`
-	Cookie       CookieConfig   `json:"cookie" validate:"required"`
-	Upload       UploadConfig   `json:"upload" validate:"required"`
-	SupportLangs []SupportLang  `json:"support_langs" validate:"required,dive"`
-	Timezones    []string       `json:"timezones" validate:"required,dive,timezone"`
-	Params       []Param        `json:"params" validate:"required,dive"`
-	Log          LogConfig      `json:"log" validate:"required"`
+	Email        EmailConfig      `json:"email" validate:"required"`
+	Cookie       CookieConfig     `json:"cookie" validate:"required"`
+	Upload       UploadConfig     `json:"upload" validate:"required"`
+	SupportLangs []SupportLang    `json:"support_langs" validate:"required,dive"`
+	Timezones    []string         `json:"timezones" validate:"required,dive,timezone"`
+	Params       []Param          `json:"params" validate:"required,dive"`
+	Log          LogConfig        `json:"log" validate:"required"`
 }
 
 // AppConfig 应用配置
 type AppConfig struct {
-	GinMode         string `json:"gin_mode" mapstructure:"GIN_MODE" validate:"required,oneof=debug release"`
-	Domain          string `json:"domain" mapstructure:"DOMAIN" validate:"required,url"`
-	Port            string `json:"port" mapstructure:"PORT" validate:"required,numeric"`
-	SummaryMax      int    `json:"summary_max" mapstructure:"SUMMARY_MAX" validate:"required,min=300,max=2048"`
-	Suffix          string `json:"suffix" mapstructure:"SUFFIX" validate:"required"`
+	GinMode              string `json:"gin_mode" mapstructure:"GIN_MODE" validate:"required,oneof=debug release"`
+	Domain               string `json:"domain" mapstructure:"DOMAIN" validate:"required,url"`
+	Port                 string `json:"port" mapstructure:"PORT" validate:"required,numeric"`
+	SummaryMax           int    `json:"summary_max" mapstructure:"SUMMARY_MAX" validate:"required,min=300,max=2048"`
+	Suffix               string `json:"suffix" mapstructure:"SUFFIX" validate:"required"`
 	PageSize             int    `json:"page_size" mapstructure:"PAGE_SIZE" validate:"required,min=1,max=200"`
-	MaxDiaryLimit      int    `json:"max_diary_limit" mapstructure:"MAX_DIARY_LIMIT" validate:"required,min=1"`
-	MaxEntryLength        int    `json:"max_entry_length" mapstructure:"MAX_ENTRY_LENGTH" validate:"required,min=1"`
+	MaxDiaryLimit        int    `json:"max_diary_limit" mapstructure:"MAX_DIARY_LIMIT" validate:"required,min=1"`
+	MaxEntryLength       int    `json:"max_entry_length" mapstructure:"MAX_ENTRY_LENGTH" validate:"required,min=1"`
 	MaxCommentLength     int    `json:"max_comment_length" mapstructure:"MAX_COMMENT_LENGTH" validate:"required,min=1"`
 	MaxDescriptionLength int    `json:"max_description_length" mapstructure:"MAX_DESCRIPTION_LENGTH" validate:"required,min=1"`
 	StaticDir            string `json:"static_dir" mapstructure:"STATIC_DIR" validate:"required"`
-	LocalesDir      string `json:"locales_dir" mapstructure:"LOCALES_DIR" validate:"required"`
-	DefaultLang     string `json:"default_lang" mapstructure:"DEFAULT_LANG" validate:"required"`
+	LocalesDir           string `json:"locales_dir" mapstructure:"LOCALES_DIR" validate:"required"`
+	DefaultLang          string `json:"default_lang" mapstructure:"DEFAULT_LANG" validate:"required"`
+}
+
+// AutoSaveConfig 自动保存配置
+type AutoSaveConfig struct {
+	Enabled  bool `json:"enabled" mapstructure:"AUTO_SAVE_ENABLED"`
+	Interval int  `json:"interval" mapstructure:"AUTO_SAVE_INTERVAL"`
 }
 
 // UserConfig 用户相关配置
 type UserConfig struct {
-    // 密码规则
-    PwdMinLen int `json:"pwd_min_len" mapstructure:"PWD_MIN_LEN" validate:"required,min=1,max=6"`
-    PwdMaxLen int `json:"pwd_max_len" mapstructure:"PWD_MAX_LEN" validate:"required,min=6,max=100"`
-    
-    // 用户状态
-    StatusOK         int8 `json:"status_ok" mapstructure:"USER_STATUS_OK" validate:"required"`
-    StatusWaitActive int8 `json:"status_wait_active" mapstructure:"USER_STATUS_WAIT_ACTIVE" validate:"required"`
-    StatusDeleted    int8 `json:"status_deleted" mapstructure:"USER_STATUS_DEL" validate:"gte=0"`
-    
-    // 用户分组
-    DefaultGroup int8 `json:"default_group" mapstructure:"DEFAULT_USER_GROUP" validate:"required"`
+	// 密码规则
+	PwdMinLen int `json:"pwd_min_len" mapstructure:"PWD_MIN_LEN" validate:"required,min=1,max=6"`
+	PwdMaxLen int `json:"pwd_max_len" mapstructure:"PWD_MAX_LEN" validate:"required,min=6,max=100"`
 
-    // Handle 修改冷却时间（天）
-    HandleCooldownDays int `json:"handle_cooldown_days" mapstructure:"HANDLE_COOLDOWN_DAYS" validate:"required,min=0"`
+	// 用户状态
+	StatusOK         int8 `json:"status_ok" mapstructure:"USER_STATUS_OK" validate:"required"`
+	StatusWaitActive int8 `json:"status_wait_active" mapstructure:"USER_STATUS_WAIT_ACTIVE" validate:"required"`
+	StatusDeleted    int8 `json:"status_deleted" mapstructure:"USER_STATUS_DEL" validate:"gte=0"`
+
+	// 用户分组
+	DefaultGroup int8 `json:"default_group" mapstructure:"DEFAULT_USER_GROUP" validate:"required"`
+
+	// Handle 修改冷却时间（天）
+	HandleCooldownDays int `json:"handle_cooldown_days" mapstructure:"HANDLE_COOLDOWN_DAYS" validate:"required,min=0"`
 }
 
 // ValidCodeConfig 验证码相关配置
 type ValidCodeConfig struct {
-    // 验证码长度
-    Length int `json:"length" mapstructure:"VALID_CODE_LEN" validate:"required,min=6,max=128"`
-    // 验证码类型
-    TypeActiveUser int8 `json:"type_active_user" mapstructure:"VALID_CODE_ACTIVE_USER" validate:"required"`
-    TypeResetPwd   int8 `json:"type_reset_pwd" mapstructure:"VALID_CODE_RESET_PWD" validate:"required"`
-    // 验证码过期分钟
-    ExpireMinutes int `json:"valid_code_expire_minutes" mapstructure:"VALID_CODE_EXPIRE_MINUTES" validate:"required"`
+	// 验证码长度
+	Length int `json:"length" mapstructure:"VALID_CODE_LEN" validate:"required,min=6,max=128"`
+	// 验证码类型
+	TypeActiveUser int8 `json:"type_active_user" mapstructure:"VALID_CODE_ACTIVE_USER" validate:"required"`
+	TypeResetPwd   int8 `json:"type_reset_pwd" mapstructure:"VALID_CODE_RESET_PWD" validate:"required"`
+	// 验证码过期分钟
+	ExpireMinutes int `json:"valid_code_expire_minutes" mapstructure:"VALID_CODE_EXPIRE_MINUTES" validate:"required"`
 }
 
 // DatabaseConfig 数据库配置
@@ -94,10 +101,10 @@ type RedisConfig struct {
 
 // RateLimitConfig 限流配置
 type RateLimitConfig struct {
-	GeneralLimit  float64 `json:"general_limit" mapstructure:"RATE_LIMIT_GENERAL" validate:"required,min=0.1"`
-	GeneralBurst  int     `json:"general_burst" mapstructure:"RATE_LIMIT_GENERAL_BURST" validate:"required,min=1"`
-	AuthLimit     float64 `json:"auth_limit" mapstructure:"RATE_LIMIT_AUTH" validate:"required,min=0.1"`
-	AuthBurst     int     `json:"auth_burst" mapstructure:"RATE_LIMIT_AUTH_BURST" validate:"required,min=1"`
+	GeneralLimit float64 `json:"general_limit" mapstructure:"RATE_LIMIT_GENERAL" validate:"required,min=0.1"`
+	GeneralBurst int     `json:"general_burst" mapstructure:"RATE_LIMIT_GENERAL_BURST" validate:"required,min=1"`
+	AuthLimit    float64 `json:"auth_limit" mapstructure:"RATE_LIMIT_AUTH" validate:"required,min=0.1"`
+	AuthBurst    int     `json:"auth_burst" mapstructure:"RATE_LIMIT_AUTH_BURST" validate:"required,min=1"`
 }
 
 // BruteForceConfig 暴力破解防护配置

@@ -14,7 +14,11 @@ import (
 
 func TestRedisManager(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	config := ctx.GetConfig().GetAppConfig()
 
@@ -27,7 +31,8 @@ func TestRedisManager(t *testing.T) {
 
 	_, err := client.Ping().Result()
 	if err != nil {
-		t.Skip("Redis not available, skipping cache tests")
+		t.Logf("Redis ping failed: %v", err)
+		// t.Skip("Redis not available, skipping cache tests")
 	}
 
 	manager := cache.NewManager(client)

@@ -70,6 +70,13 @@ func (r *CommentRepository) Delete(commentID int64) error {
 	return nil
 }
 
+// DeleteByEntryID 根据日记ID删除该日记下的所有评论
+func (r *CommentRepository) DeleteByEntryID(entryID int64) error {
+	sqlstr := `DELETE FROM br_comment WHERE entry_id = ?`
+	_, err := r.db.Exec(sqlstr, entryID)
+	return err
+}
+
 // GetByID 根据评论ID获取评论信息
 func (r *CommentRepository) GetByID(commentID int64) (*comment.Comment, error) {
 	var commentData comment.Comment

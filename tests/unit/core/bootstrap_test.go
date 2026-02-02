@@ -12,7 +12,11 @@ import (
 // TestInitializer 测试初始化器
 func TestInitializer(t *testing.T) {
 	ctx := framework.NewTestContext("TestInitializer")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("创建初始化器实例", func(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -41,7 +45,11 @@ func TestInitializer(t *testing.T) {
 // TestBootstrapProcess 测试完整的启动过程
 func TestBootstrapProcess(t *testing.T) {
 	ctx := framework.NewTestContext("TestBootstrapProcess")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("完整启动过程", func(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -65,7 +73,11 @@ func TestBootstrapProcess(t *testing.T) {
 // TestBootstrapWithDatabase 测试带数据库的启动过程
 func TestBootstrapWithDatabase(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("数据库初始化", func(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -85,7 +97,11 @@ func TestBootstrapWithDatabase(t *testing.T) {
 // TestInitializerComponents 测试初始化器组件
 func TestInitializerComponents(t *testing.T) {
 	ctx := framework.NewTestContext("TestInitializerComponents")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("组件初始化", func(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -121,7 +137,11 @@ func TestInitializerComponents(t *testing.T) {
 // TestInitializationOrder 测试初始化顺序
 func TestInitializationOrder(t *testing.T) {
 	ctx := framework.NewTestContext("TestInitializationOrder")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("正确的初始化顺序", func(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -162,7 +182,11 @@ func TestInitializationOrder(t *testing.T) {
 // TestConfigurationValidation 测试配置验证
 func TestConfigurationValidation(t *testing.T) {
 	ctx := framework.NewTestContext("TestConfigurationValidation")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("有效配置", func(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -189,7 +213,11 @@ func TestConfigurationValidation(t *testing.T) {
 // TestDependencyResolution 测试依赖解析
 func TestDependencyResolution(t *testing.T) {
 	ctx := framework.NewTestContext("TestDependencyResolution")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("依赖注入容器", func(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -206,7 +234,11 @@ func TestDependencyResolution(t *testing.T) {
 // TestEnvironmentSpecificBootstrap 测试环境特定的启动
 func TestEnvironmentSpecificBootstrap(t *testing.T) {
 	ctx := framework.NewTestContext("TestEnvironmentSpecificBootstrap")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("测试环境启动", func(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -224,7 +256,11 @@ func TestEnvironmentSpecificBootstrap(t *testing.T) {
 // TestErrorHandling 测试错误处理
 func TestErrorHandling(t *testing.T) {
 	ctx := framework.NewTestContext("TestErrorHandling")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("初始化错误处理", func(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -247,7 +283,11 @@ func TestErrorHandling(t *testing.T) {
 // TestPerformance 测试性能
 func TestPerformance(t *testing.T) {
 	ctx := framework.NewTestContext("TestPerformance")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("初始化性能", func(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -262,7 +302,11 @@ func TestPerformance(t *testing.T) {
 // TestComponentIntegration 测试组件集成
 func TestComponentIntegration(t *testing.T) {
 	ctx := framework.NewTestContext("TestComponentIntegration")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("组件集成测试", func(t *testing.T) {
 		config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置

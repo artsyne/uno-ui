@@ -162,7 +162,7 @@ func createDiaryController(container *di.Container) *diaryController.DiaryContro
 //   - *entryController.EntryController: 文章控制器实例
 func createEntryController(container *di.Container) *entryController.EntryController {
 	deps := getControllerDependencies(container)
-	return entryController.NewEntryController(deps.config, deps.entryService, deps.diaryService, deps.authHelper, deps.renderService, deps.userService, deps.likeService)
+	return entryController.NewEntryController(deps.config, deps.entryService, deps.diaryService, deps.commentService, deps.authHelper, deps.renderService, deps.userService, deps.likeService)
 }
 
 // createCommentController 通过DI容器创建CommentController

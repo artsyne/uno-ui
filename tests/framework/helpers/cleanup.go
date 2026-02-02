@@ -185,7 +185,6 @@ func (cm *CleanupManagerImpl) cleanupTableByPrefix(table string) (int, error) {
 		whereClause = fmt.Sprintf("body LIKE '%%%s%%'", cm.isolator.GetPrefix())
 	default:
 		// 通用清理逻辑，查找包含前缀的记录
-		whereClause = "1=0" // 默认不清理未知表
 		slog.Debug("未知表，跳过清理", "table", table)
 		return 0, nil
 	}

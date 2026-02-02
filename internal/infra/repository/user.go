@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/biuren/hebe/internal/core/database"
 	"github.com/biuren/hebe/internal/domain/user"
@@ -164,7 +163,6 @@ func (r *UserRepository) DeleteByUserId(id int64) (int64, error) {
 
 // IsExistHandle 判断用户名是否存在
 func (r *UserRepository) IsExistHandle(handle string) (bool, error) {
-	fmt.Println("DEBUG: IsExistHandle called with handle:", handle)
 	var total int
 	err := r.db.Get(&total, "SELECT count(*) as num FROM br_user WHERE handle = ?", handle)
 	if err != nil {

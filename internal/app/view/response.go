@@ -98,10 +98,7 @@ func (s *ViewService) logAppError(c *gin.Context, appErr *errors.AppError) {
 	)
 }
 
-// JSON 直接返回指定HTTP状态码和数据的JSON响应 (保留以兼容旧代码，建议逐步迁移)
-func (s *ViewService) JSON(c *gin.Context, code int, data interface{}) {
-	c.JSON(code, data)
-}
+
 
 // HTML 渲染HTML模板
 func (s *ViewService) HTML(c *gin.Context, name string, data interface{}) {

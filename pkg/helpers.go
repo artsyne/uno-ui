@@ -22,7 +22,9 @@ var (
 func init() {
 	// 使用加密安全的随机数作为种子
 	seedBytes := make([]byte, 8)
-	cryptorand.Read(seedBytes)
+	if _, err := cryptorand.Read(seedBytes); err != nil {
+		panic(err)
+	}
 	seed := int64(0)
 	for i, b := range seedBytes {
 		seed |= int64(b) << (i * 8)

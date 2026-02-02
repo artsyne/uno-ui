@@ -1415,6 +1415,9 @@
   .mr-6 {
     margin-right: calc(var(--spacing) * 6);
   }
+  .-mb-px {
+    margin-bottom: -1px;
+  }
   .mb-1 {
     margin-bottom: calc(var(--spacing) * 1);
   }
@@ -1543,6 +1546,9 @@
   }
   .min-h-\[200px\] {
     min-height: 200px;
+  }
+  .min-h-\[400px\] {
+    min-height: 400px;
   }
   .min-h-\[500px\] {
     min-height: 500px;
@@ -1842,6 +1848,9 @@
   .overflow-hidden {
     overflow: hidden;
   }
+  .overflow-x-auto {
+    overflow-x: auto;
+  }
   .overflow-y-auto {
     overflow-y: auto;
   }
@@ -1932,6 +1941,9 @@
   }
   .border-gray-300 {
     border-color: var(--color-gray-300);
+  }
+  .border-gray-600 {
+    border-color: var(--color-gray-600);
   }
   .border-gray-700 {
     border-color: var(--color-gray-700);
@@ -2240,10 +2252,6 @@
   .text-4xl {
     font-size: var(--text-4xl);
     line-height: var(--tw-leading, var(--text-4xl--line-height));
-  }
-  .text-6xl {
-    font-size: var(--text-6xl);
-    line-height: var(--tw-leading, var(--text-6xl--line-height));
   }
   .text-base {
     font-size: var(--text-base);
@@ -2587,6 +2595,13 @@
       }
     }
   }
+  .hover\:border-gray-300 {
+    &:hover {
+      @media (hover: hover) {
+        border-color: var(--color-gray-300);
+      }
+    }
+  }
   .hover\:bg-amber-600 {
     &:hover {
       @media (hover: hover) {
@@ -2832,6 +2847,13 @@
       }
     }
   }
+  .hover\:text-gray-600 {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--color-gray-600);
+      }
+    }
+  }
   .hover\:text-gray-900 {
     &:hover {
       @media (hover: hover) {
@@ -2895,18 +2917,6 @@
       @media (hover: hover) {
         --tw-ring-color: var(--color-gray-400);
       }
-    }
-  }
-  .focus\:not-sr-only {
-    &:focus {
-      position: static;
-      width: auto;
-      height: auto;
-      padding: 0;
-      margin: 0;
-      overflow: visible;
-      clip: auto;
-      white-space: normal;
     }
   }
   .focus\:border-blue-500 {
@@ -3224,6 +3234,11 @@
       border-color: var(--color-blue-800);
     }
   }
+  .dark\:border-gray-500 {
+    html.dark & {
+      border-color: var(--color-gray-500);
+    }
+  }
   .dark\:border-gray-600 {
     html.dark & {
       border-color: var(--color-gray-600);
@@ -3232,6 +3247,14 @@
   .dark\:border-gray-700 {
     html.dark & {
       border-color: var(--color-gray-700);
+    }
+  }
+  .dark\:border-gray-700\/50 {
+    html.dark & {
+      border-color: color-mix(in srgb, oklch(37.3% 0.034 259.733) 50%, transparent);
+      @supports (color: color-mix(in lab, red, red)) {
+        border-color: color-mix(in oklab, var(--color-gray-700) 50%, transparent);
+      }
     }
   }
   .dark\:border-gray-800 {
@@ -3684,6 +3707,15 @@
       }
     }
   }
+  .dark\:hover\:text-gray-300 {
+    html.dark & {
+      &:hover {
+        @media (hover: hover) {
+          color: var(--color-gray-300);
+        }
+      }
+    }
+  }
   .dark\:hover\:text-red-400 {
     html.dark & {
       &:hover {
@@ -3735,7 +3767,8 @@
     }
   }
 }
-a {
+a,button.btn-link {
+  cursor: pointer;
   color: var(--color-gray-600);
   &:hover {
     @media (hover: hover) {

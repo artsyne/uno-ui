@@ -61,9 +61,14 @@ func (s *Service) AddComment(comment *Comment) (int64, error) {
 	}
 
 	// 验证日记是否存在
-	entryData, err := s.entryService.GetEntryByID(comment.EntryID)
+	// 优先检查用户是否有权访问（支持软删除/草稿），如果是日记作者或所有者
+	entryData, err := s.entryService.GetEntryByIDForUser(comment.EntryID, comment.AddUserID)
 	if err != nil {
-		return 0, errors.EntryNotFound.WithDetails(map[string]interface{}{"reason": "entry_not_found"})
+		// 如果不是作者，尝试作为普通公开日记获取（仅Active）
+		entryData, err = s.entryService.GetEntryByID(comment.EntryID)
+		if err != nil {
+			return 0, errors.EntryNotFound.WithDetails(map[string]interface{}{"reason": "entry_not_found"})
+		}
 	}
 
 	// 验证日记本是否存在
@@ -105,10 +110,16 @@ func (s *Service) DeleteComment(commentID int64, userID int64) error {
 		return errors.CommentNotFound.WithDetails(map[string]interface{}{"reason": "comment_not_found"})
 	}
 
-	// 获取日记信息
-	entryData, err := s.entryService.GetEntryByID(comment.EntryID)
+	// 验证日记是否存在
+	// 优先检查用户是否有权访问（支持软删除/草稿），如果是日记作者或所有者
+	// 尝试作为所有者获取（支持所有状态）
+	entryData, err := s.entryService.GetEntryByIDForUser(comment.EntryID, userID)
 	if err != nil {
-		return errors.EntryNotFound.WithDetails(map[string]interface{}{"reason": "entry_not_found"})
+		// 如果不是作者，尝试作为普通公开日记获取（仅Active）
+		entryData, err = s.entryService.GetEntryByID(comment.EntryID)
+		if err != nil {
+			return errors.EntryNotFound.WithDetails(map[string]interface{}{"reason": "entry_not_found"})
+		}
 	}
 
 	// 获取日记本信息
@@ -137,6 +148,16 @@ func (s *Service) DeleteComment(commentID int64, userID int64) error {
 	return nil
 }
 
+// DeleteCommentsByEntryID 根据日记ID删除该日记下的所有评论
+// 参数:
+//   - entryID: 日记ID
+//
+// 返回:
+//   - error: 删除失败时返回错误
+func (s *Service) DeleteCommentsByEntryID(entryID int64) error {
+	return s.repo.DeleteByEntryID(entryID)
+}
+
 // GetCommentByID 根据评论ID获取评论信息
 // 参数:
 //   - commentID: 评论ID
@@ -148,20 +169,7 @@ func (s *Service) GetCommentByID(commentID int64) (*Comment, error) {
 	return s.repo.GetByID(commentID)
 }
 
-// GetEntryOwnerID 获取日记作者ID
-// 参数:
-//   - entryID: 日记ID
-//
-// 返回:
-//   - int64: 作者ID
-//   - error: 获取失败时返回错误
-func (s *Service) GetEntryOwnerID(entryID int64) (int64, error) {
-	entryData, err := s.entryService.GetEntryByID(entryID)
-	if err != nil {
-		return 0, err
-	}
-	return entryData.AddUserID, nil
-}
+
 
 // ListCommentsByEntryID 根据日记ID分页查询评论列表
 // 参数:
@@ -174,11 +182,9 @@ func (s *Service) GetEntryOwnerID(entryID int64) (int64, error) {
 //   - int: 总记录数
 //   - error: 查询失败时返回错误
 func (s *Service) ListCommentsByEntryID(entryID int64, pageIndex, pageSize int) ([]Comment, int, error) {
-	// 验证日记是否存在
-	_, err := s.entryService.GetEntryByID(entryID)
-	if err != nil {
-		return nil, 0, err
-	}
+	// 不再在此处验证日记是否存在或状态，因为调用方（如Controller）可能已经验证过
+	// 或者调用方需要获取非Active状态日记的评论（如回收站中的日记）
+	// 安全性由调用方保证
 
 	return s.repo.ListByEntryID(entryID, pageIndex, pageSize)
 }

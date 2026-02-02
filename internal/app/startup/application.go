@@ -166,7 +166,9 @@ func (a *Application) initApplicationLayer() error {
 func (a *Application) registerAppServices() error {
 	// 创建 I18nManager 实例
 	i18nManager := i18n.NewLocalizationManager(a.config)
-	di.Value(a.container, i18nManager)
+	if err := di.Value(a.container, i18nManager); err != nil {
+		return err
+	}
 
 	// 初始化 Redis 客户端
 	redisClient, err := cache.NewRedisClient(a.config.Redis)
@@ -176,7 +178,9 @@ func (a *Application) registerAppServices() error {
 	
 	// 创建 ViewService 实例
 	viewService := view.NewViewService(a.config, i18nManager)
-	di.Value(a.container, viewService)
+	if err := di.Value(a.container, viewService); err != nil {
+		return err
+	}
 	
 	// 创建仓储实例
 	userRepo := repository.NewUserRepository()
@@ -195,23 +199,49 @@ func (a *Application) registerAppServices() error {
 	likeService := like.NewLikeService(likeRepo)
 	
 	// 注册为预创建实例，避免循环依赖
-	di.Value(a.container, userRepo)
-	di.Value(a.container, taskRepo)
-	di.Value(a.container, diaryRepo)
-	di.Value(a.container, entryRepo)
-	di.Value(a.container, commentRepo)
-	di.Value(a.container, likeRepo)
-	di.Value(a.container, taskService)
-	di.Value(a.container, userService)
-	di.Value(a.container, diaryService)
-	di.Value(a.container, entryService)
-	di.Value(a.container, commentService)
-	di.Value(a.container, likeService)
+	if err := di.Value(a.container, userRepo); err != nil {
+		return err
+	}
+	if err := di.Value(a.container, taskRepo); err != nil {
+		return err
+	}
+	if err := di.Value(a.container, diaryRepo); err != nil {
+		return err
+	}
+	if err := di.Value(a.container, entryRepo); err != nil {
+		return err
+	}
+	if err := di.Value(a.container, commentRepo); err != nil {
+		return err
+	}
+	if err := di.Value(a.container, likeRepo); err != nil {
+		return err
+	}
+	if err := di.Value(a.container, taskService); err != nil {
+		return err
+	}
+	if err := di.Value(a.container, userService); err != nil {
+		return err
+	}
+	if err := di.Value(a.container, diaryService); err != nil {
+		return err
+	}
+	if err := di.Value(a.container, entryService); err != nil {
+		return err
+	}
+	if err := di.Value(a.container, commentService); err != nil {
+		return err
+	}
+	if err := di.Value(a.container, likeService); err != nil {
+		return err
+	}
 
 	// 注册 AuthHelper 为单例服务
-	di.Singleton(a.container, func() *user.AuthHelper {
+	if err := di.Singleton(a.container, func() *user.AuthHelper {
 		return user.NewAuthHelper(a.config)
-	})
+	}); err != nil {
+		return err
+	}
 
 	slog.Info("成功注册应用层服务")
 	return nil

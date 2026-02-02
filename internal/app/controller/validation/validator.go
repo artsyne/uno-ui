@@ -43,10 +43,14 @@ func init() {
 //   - 注册密码强度校验器
 func registerCustomValidators(v *validator.Validate) {
 	// 用户名格式校验
-	v.RegisterValidation("username", validateUsername)
+	if err := v.RegisterValidation("username", validateUsername); err != nil {
+		panic(err)
+	}
 
 	// 密码强度校验
-	v.RegisterValidation("password", validatePassword)
+	if err := v.RegisterValidation("password", validatePassword); err != nil {
+		panic(err)
+	}
 
 }
 

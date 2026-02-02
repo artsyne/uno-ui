@@ -74,7 +74,7 @@ func GeneratePagination(listOptions ListOptions) []PageLinks {
 	// 添加结束页码链接
 	if interval[1] < totalPages {
 		if interval[1] < totalPages-2 {
-			aryLinks = append(aryLinks, PageLinks{Text: "..."})
+			aryLinks = append(aryLinks, PageLinks{Text: "dots"})
 		}
 		for i := totalPages - 1; i <= totalPages; i++ {
 			if i > interval[1] {

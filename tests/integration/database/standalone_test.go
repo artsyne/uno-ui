@@ -9,7 +9,11 @@ import (
 // TestDatabaseOnly 仅使用数据库的测试示例
 func TestDatabaseOnly(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if err := ctx.Cleanup(); err != nil {
+			t.Log(err)
+		}
+	}()
 
 	// 获取数据库连接
 	db := ctx.GetDatabase().GetDB()
@@ -33,7 +37,11 @@ func TestDatabaseOnly(t *testing.T) {
 // TestTableStructure 测试表结构
 func TestTableStructure(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if err := ctx.Cleanup(); err != nil {
+			t.Log(err)
+		}
+	}()
 
 	// 获取数据库连接
 	db := ctx.GetDatabase().GetDB()
@@ -63,7 +71,11 @@ func TestTableStructure(t *testing.T) {
 // TestUserTableConstraints 测试用户表约束
 func TestUserTableConstraints(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if err := ctx.Cleanup(); err != nil {
+			t.Log(err)
+		}
+	}()
 
 	// 获取数据库连接
 	db := ctx.GetDatabase().GetDB()
@@ -73,7 +85,11 @@ func TestUserTableConstraints(t *testing.T) {
 	if err != nil {
 		t.Fatalf("开始事务失败: %v", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			t.Logf("事务回滚失败: %v", err)
+		}
+	}()
 
 	// 插入正常用户
 	_, err = tx.Exec(`
@@ -108,7 +124,11 @@ func TestUserTableConstraints(t *testing.T) {
 // TestTransactionIsolation 测试事务隔离
 func TestTransactionIsolation(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if err := ctx.Cleanup(); err != nil {
+			t.Log(err)
+		}
+	}()
 
 	// 获取数据库连接
 	db := ctx.GetDatabase().GetDB()
@@ -140,7 +160,9 @@ func TestTransactionIsolation(t *testing.T) {
 	}
 
 	// 回滚事务
-	tx.Rollback()
+	if err := tx.Rollback(); err != nil {
+		t.Fatalf("回滚事务失败: %v", err)
+	}
 
 	// 回滚后数据应该不存在
 	row = db.QueryRow("SELECT COUNT(*) FROM br_user WHERE handle = ?", "txuser")

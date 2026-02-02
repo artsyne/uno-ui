@@ -41,7 +41,10 @@ func (s *Service) StartScheduler() {
 	gocron.Clear()
 	
 	// 设置定时任务
-	gocron.Every(10).Seconds().Do(s.ProcessEmailTasks)
+	if err := gocron.Every(10).Seconds().Do(s.ProcessEmailTasks); err != nil {
+		slog.Error("定时任务注册失败", "error", err)
+		return
+	}
 
 	// 在后台启动定时任务，避免阻塞主线程
 	go func() {

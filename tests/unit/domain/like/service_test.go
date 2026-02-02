@@ -20,7 +20,11 @@ func TestLikeService_ToggleLike(t *testing.T) {
 	t.Run("成功点赞日记本", func(t *testing.T) {
 		// 使用新测试框架
 		ctx := framework.NewTestContext(framework.WithDatabase())
-		defer ctx.Cleanup()
+		defer func() {
+			if err := ctx.Cleanup(); err != nil {
+				t.Log(err)
+			}
+		}()
 
 		// 获取配置和服务
 		config := ctx.GetConfig().GetAppConfig()
@@ -72,7 +76,11 @@ func TestLikeService_ToggleLike(t *testing.T) {
 	t.Run("成功取消点赞日记本", func(t *testing.T) {
 		// 使用新测试框架
 		ctx := framework.NewTestContext(framework.WithDatabase())
-		defer ctx.Cleanup()
+		defer func() {
+			if err := ctx.Cleanup(); err != nil {
+				t.Log(err)
+			}
+		}()
 
 		// 获取配置和服务
 		config := ctx.GetConfig().GetAppConfig()
@@ -131,7 +139,11 @@ func TestLikeService_GetLikeStatus(t *testing.T) {
 	t.Run("获取未点赞状态", func(t *testing.T) {
 		// 使用新测试框架
 		ctx := framework.NewTestContext(framework.WithDatabase())
-		defer ctx.Cleanup()
+		defer func() {
+			if err := ctx.Cleanup(); err != nil {
+				t.Log(err)
+			}
+		}()
 
 		// 获取配置和服务
 		config := ctx.GetConfig().GetAppConfig()
@@ -178,7 +190,11 @@ func TestLikeService_GetLikeCount(t *testing.T) {
 	t.Run("获取零点赞数量", func(t *testing.T) {
 		// 使用新测试框架
 		ctx := framework.NewTestContext(framework.WithDatabase())
-		defer ctx.Cleanup()
+		defer func() {
+			if err := ctx.Cleanup(); err != nil {
+				t.Log(err)
+			}
+		}()
 
 		// 获取配置和服务
 		config := ctx.GetConfig().GetAppConfig()
@@ -221,7 +237,11 @@ func TestLikeService_GetLikeCount(t *testing.T) {
 	t.Run("多用户点赞统计", func(t *testing.T) {
 		// 使用新测试框架
 		ctx := framework.NewTestContext(framework.WithDatabase())
-		defer ctx.Cleanup()
+		defer func() {
+			if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+				t.Logf("Cleanup failed: %v", cleanupErr)
+			}
+		}()
 
 		// 获取配置和服务
 		config := ctx.GetConfig().GetAppConfig()

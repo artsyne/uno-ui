@@ -33,7 +33,9 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 
 	t.Run("数据隔离器功能测试", func(t *testing.T) {
 		ctx := NewTestContext()
-		defer ctx.Cleanup()
+		defer func() {
+			_ = ctx.Cleanup()
+		}()
 
 		isolator := ctx.GetIsolator()
 		assert.NotNil(t, isolator)
@@ -61,7 +63,9 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 
 	t.Run("数据生成器功能测试", func(t *testing.T) {
 		ctx := NewTestContext()
-		defer ctx.Cleanup()
+		defer func() {
+			_ = ctx.Cleanup()
+		}()
 
 		generator := ctx.GetDataGenerator()
 		assert.NotNil(t, generator)
@@ -93,7 +97,9 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 
 	t.Run("配置管理器功能测试", func(t *testing.T) {
 		ctx := NewTestContext()
-		defer ctx.Cleanup()
+		defer func() {
+			_ = ctx.Cleanup()
+		}()
 
 		config := ctx.GetConfig()
 		assert.NotNil(t, config)
@@ -121,7 +127,9 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 
 	t.Run("数据库管理器功能测试", func(t *testing.T) {
 		ctx := NewTestContext(WithDatabase())
-		defer ctx.Cleanup()
+		defer func() {
+			_ = ctx.Cleanup()
+		}()
 
 		dbManager := ctx.GetDatabase()
 		require.NotNil(t, dbManager)
@@ -167,7 +175,10 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 				}
 
 				// 清理
-				ctx.Cleanup()
+				if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+					results <- cleanupErr
+					return
+				}
 				results <- nil
 			}(i)
 		}
@@ -201,7 +212,7 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 			user := generator.CreateUser()
 			assert.NotNil(t, user)
 
-			ctx.Cleanup()
+			_ = ctx.Cleanup()
 		}
 
 		duration := time.Since(start)
@@ -221,7 +232,7 @@ func TestFrameworkErrorHandling(t *testing.T) {
 		// 如果允许空ID，应该生成默认ID
 		assert.NotNil(t, ctx)
 		assert.NotEmpty(t, ctx.GetTestID())
-		ctx.Cleanup()
+		_ = ctx.Cleanup()
 	})
 
 	t.Run("重复清理处理", func(t *testing.T) {
@@ -252,7 +263,9 @@ func TestDatabaseInitialization(t *testing.T) {
 		// 创建测试上下文，这会触发数据库初始化
 		ctx := NewTestContext(WithDatabase())
 		require.NotNil(t, ctx, "测试上下文创建失败")
-		defer ctx.Cleanup()
+		defer func() {
+			_ = ctx.Cleanup()
+		}()
 
 		// 获取数据库管理器
 		dbManager := ctx.GetDatabase()
@@ -299,7 +312,9 @@ func TestDatabaseInitialization(t *testing.T) {
 		defer slog.SetLogLoggerLevel(originalLevel)
 
 		ctx := NewTestContext(WithDatabase())
-		defer ctx.Cleanup()
+		defer func() {
+			_ = ctx.Cleanup()
+		}()
 
 		dbManager := ctx.GetDatabase()
 		require.NotNil(t, dbManager)

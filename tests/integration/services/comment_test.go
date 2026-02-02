@@ -21,7 +21,11 @@ import (
 // 测试评论服务与数据库、其他服务的完整集成
 func TestCommentServiceIntegration(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig()
@@ -227,7 +231,11 @@ func TestCommentServiceIntegration(t *testing.T) {
 // TestCommentServiceErrorHandling 评论服务错误处理集成测试
 func TestCommentServiceErrorHandling(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig()

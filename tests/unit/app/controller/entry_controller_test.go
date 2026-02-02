@@ -34,6 +34,7 @@ func TestNewEntryController(t *testing.T) {
 		cfg,
 		mockEntrySvc,
 		mockDiarySvc,
+		nil, // commentService
 		mockAuth,
 		mockViewSvc,
 		mockUserSvc,

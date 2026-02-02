@@ -3,6 +3,7 @@ package entry
 import (
 	"fmt"
 	"log/slog"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -37,7 +38,7 @@ func (ctrl *EntryController) ShowEntryForm(c *gin.Context) {
 			return
 		}
 		//获取日记信息
-		entryData, err = ctrl.entryService.GetEntryByID(req.EntryID)
+		entryData, err = ctrl.entryService.GetEntryByIDForUser(req.EntryID, loginUser.UserId)
 		if err != nil {
 			ctrl.renderService.JSONError(c, errors.EntryNotFound)
 			return
@@ -54,6 +55,69 @@ func (ctrl *EntryController) ShowEntryForm(c *gin.Context) {
 	data.Data["DiaryID"] = c.Query("diary_id")
 
 	ctrl.renderService.HTML(c, "form/entry", data)
+}
+
+// ShowDrafts 显示草稿箱页面
+// 路由: GET /drafts
+func (ctrl *EntryController) ShowDrafts(c *gin.Context) {
+	loginUser := ctrl.auth.MustGetCurrentUser(c)
+	if loginUser == nil {
+		c.Redirect(http.StatusFound, "/login")
+		return
+	}
+
+	// 获取分页参数
+	pageIndex, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if pageIndex < 1 {
+		pageIndex = 1
+	}
+	pageSize := ctrl.config.App.PageSize
+
+	// 获取状态参数，默认为草稿
+	statusStr := c.DefaultQuery("status", "2") // 2=Draft
+	statusInt, _ := strconv.Atoi(statusStr)
+	status := int8(statusInt)
+
+	// 获取列表
+	entries, total, err := ctrl.entryService.ListAllEntriesByUserID(loginUser.UserId, status, pageIndex, pageSize)
+	if err != nil {
+		ctrl.renderErrorPage(c, "系统错误", "获取草稿列表失败")
+		return
+	}
+
+	// 构建分页信息
+	listOptions := pkg.ListOptions{
+		PageIndex: pageIndex,
+		PageSize:  pageSize,
+		Total:     total,
+		URL:       fmt.Sprintf("/drafts?status=%d&page=%%d", status),
+		PagePrev:  "<<",
+		PageNext:  ">>",
+	}
+	pageLinks := pkg.GeneratePagination(listOptions)
+
+	// 准备渲染数据
+	data := ctrl.renderService.CreatePageData(c, "entry.drafts.title")
+	data.Data["Entries"] = entries
+	data.Data["Total"] = total
+	data.Data["CurrentPage"] = pageIndex
+	data.Data["PageSize"] = pageSize
+	data.Data["Status"] = status
+	data.Data["PageLinks"] = pageLinks
+	data.Data["Tab"] = "drafts" // 用于前端高亮
+
+	if status == entry.StatusDeleted {
+		data.Data["Tab"] = "trash"
+	}
+
+	// HTMX 请求：如果是请求列表部分，只渲染列表片段
+	if c.GetHeader("HX-Request") == "true" && c.GetHeader("HX-Target") == "drafts-list" {
+		ctrl.renderService.HTML(c, "diary/drafts_list", data)
+		return
+	}
+
+	// 完整页面渲染
+	ctrl.renderService.HTML(c, "diary/drafts", data)
 }
 
 // ShowDiaryIndex 显示日记本列表页面
@@ -91,7 +155,7 @@ func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 	pageSize := ctrl.config.App.PageSize
 
 	// 获取日记列表
-	entries, entryNum, err := ctrl.entryService.ListEntriesByUserID(diaryInfo.AddUserID, diaryID, pageIndex, pageSize)
+	entries, entryNum, err := ctrl.entryService.ListEntriesByUserID(diaryInfo.AddUserID, diaryID, entry.StatusActive, pageIndex, pageSize)
 	if err != nil {
 		ctrl.renderErrorPage(c, "日记信息错误", "获取日记列表失败")
 		return
@@ -170,10 +234,25 @@ func (ctrl *EntryController) ShowEntry(c *gin.Context) {
 	isAjax := c.GetHeader("HX-Request") == "true"
 
 	// 获取日记信息 - 调用entry模块
-	entryInfo, err := ctrl.entryService.GetEntryByID(req.EntryID)
-	if err != nil || entryInfo == nil {
-		ctrl.renderErrorPage(c, "日记不存在", "未找到指定的日记")
-		return
+	loginUser, isAuth := ctrl.auth.GetCurrentUser(c)
+	var err error
+	var entryInfo *entry.Entry
+	if req.WithDel {
+		if !isAuth || loginUser == nil {
+			ctrl.renderErrorPage(c, "无权限", "仅日记作者可查看已删除内容")
+			return
+		}
+		entryInfo, err = ctrl.entryService.GetEntryByIDForUser(req.EntryID, loginUser.UserId)
+		if err != nil || entryInfo == nil {
+			ctrl.renderErrorPage(c, "日记不存在", "未找到指定的日记")
+			return
+		}
+	} else {
+		entryInfo, err = ctrl.entryService.GetEntryByID(req.EntryID)
+		if err != nil || entryInfo == nil {
+			ctrl.renderErrorPage(c, "日记不存在", "未找到指定的日记")
+			return
+		}
 	}
 
 	// 获取日记本信息 - 调用 diary 模块
@@ -185,7 +264,7 @@ func (ctrl *EntryController) ShowEntry(c *gin.Context) {
 
 	// 获取用户点赞状态
 	isLiked := false
-	if loginUser, exists := ctrl.auth.GetCurrentUser(c); exists && loginUser != nil {
+	if loginUser != nil {
 		status, err := ctrl.likeService.GetLikeStatus(loginUser.UserId, entryInfo.EntryID, like.LikeTypeEntry)
 		if err == nil {
 			isLiked = status.IsLiked
@@ -204,18 +283,24 @@ func (ctrl *EntryController) ShowEntry(c *gin.Context) {
 		return
 	}
 
-	// 获取上一篇日记ID
-	previousEntryID, err := ctrl.entryService.GetPreviousEntryByDiaryID(entryInfo.EntryID, entryInfo.DiaryID)
-	if err != nil {
-		// 记录错误但不中断页面渲染
-		previousEntryID = 0
-	}
+	var previousEntryID int64
+	var nextEntryID int64
 
-	// 获取下一篇日记ID
-	nextEntryID, err := ctrl.entryService.GetNextEntryByDiaryID(entryInfo.EntryID, entryInfo.DiaryID)
-	if err != nil {
-		// 记录错误但不中断页面渲染
-		nextEntryID = 0
+	// 如果包含已删除内容（回收站/草稿模式），不显示上一篇/下一篇
+	if !req.WithDel {
+		// 获取上一篇日记ID
+		previousEntryID, err = ctrl.entryService.GetPreviousEntryByDiaryID(entryInfo.EntryID, entryInfo.DiaryID)
+		if err != nil {
+			// 记录错误但不中断页面渲染
+			previousEntryID = 0
+		}
+
+		// 获取下一篇日记ID
+		nextEntryID, err = ctrl.entryService.GetNextEntryByDiaryID(entryInfo.EntryID, entryInfo.DiaryID)
+		if err != nil {
+			// 记录错误但不中断页面渲染
+			nextEntryID = 0
+		}
 	}
 
 	// 构建页面数据
@@ -227,6 +312,7 @@ func (ctrl *EntryController) ShowEntry(c *gin.Context) {
 	data.Data["IsLiked"] = isLiked
 	data.Data["PreviousEntryID"] = previousEntryID
 	data.Data["NextEntryID"] = nextEntryID
+	data.Data["HideNav"] = req.WithDel // 传递 HideNav 标志
 	// 渲染 Markdown 内容为 HTML
 	data.Data["BodyHTML"] = pkg.RenderMarkdown(entryInfo.Body)
 

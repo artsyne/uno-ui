@@ -15,7 +15,11 @@ import (
 func TestSecurityMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	ctx := framework.NewTestContext("TestSecurityMiddleware")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	t.Run("RateLimit", func(t *testing.T) {
 		// 测试限流: 1 req/sec

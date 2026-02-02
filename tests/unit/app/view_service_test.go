@@ -16,7 +16,11 @@ import (
 // TestViewService_Creation 测试视图服务创建
 func TestViewService_Creation(t *testing.T) {
 	ctx := framework.NewTestContext("TestViewService_Creation")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 获取全局配置
 	cfg := framework.GetGlobalConfig()
@@ -37,7 +41,11 @@ func TestViewService_PageData(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestViewService_PageData")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 获取全局配置
 	cfg := framework.GetGlobalConfig()
@@ -70,7 +78,11 @@ func TestViewService_JSONResponse(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestViewService_JSONResponse")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 获取全局配置
 	cfg := framework.GetGlobalConfig()
@@ -93,7 +105,7 @@ func TestViewService_JSONResponse(t *testing.T) {
 		"status":  "success",
 	}
 
-	viewService.JSON(c, http.StatusOK, testData)
+	viewService.JSONSuccess(c, testData)
 
 	// 验证响应
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -108,7 +120,11 @@ func TestViewService_Redirect(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestViewService_Redirect")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 获取全局配置
 	cfg := framework.GetGlobalConfig()
@@ -139,7 +155,11 @@ func TestViewService_I18n(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestViewService_I18n")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 获取全局配置
 	cfg := framework.GetGlobalConfig()
@@ -203,7 +223,11 @@ func TestViewService_WithRealDatabase(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 获取全局配置
 	cfg := framework.GetGlobalConfig()
@@ -239,7 +263,7 @@ func TestViewService_WithRealDatabase(t *testing.T) {
 	c2, _ := gin.CreateTestContext(w2)
 	c2.Request = req
 
-	viewService.JSON(c2, http.StatusOK, testData)
+	viewService.JSONSuccess(c2, testData)
 
 	// 验证响应
 	assert.Equal(t, http.StatusOK, w2.Code)

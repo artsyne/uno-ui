@@ -76,7 +76,9 @@ func CSRF(cfg *config.Config) gin.HandlerFunc {
 				reason,
 				reqID,
 			)
-			json.NewEncoder(w).Encode(response)
+			if err := json.NewEncoder(w).Encode(response); err != nil {
+				slog.Error("csrf response encode failed", "error", err, "request_id", reqID)
+			}
 		})),
 	)
 

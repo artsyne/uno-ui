@@ -108,6 +108,7 @@ func (s *ViewService) BuildRenderContext(c *gin.Context) *contracts.RenderContex
 		IsLogin:   isLogin,
 		AuthUser:  authUser,
 		Lang:      lang,
+		Source:    c.Query("source"),
 		CsrfToken: csrfToken,
 	}
 }

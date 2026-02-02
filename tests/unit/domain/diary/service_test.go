@@ -22,7 +22,11 @@ func TestMain(m *testing.M) {
 // TestDiaryService_AddDiary 测试添加日记本
 func TestDiaryService_AddDiary(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if err := ctx.Cleanup(); err != nil {
+			t.Log(err)
+		}
+	}()
 
 	// 准备服务
 	diaryRepo := repository.NewDiaryRepository()
@@ -93,7 +97,11 @@ func TestDiaryService_AddDiary(t *testing.T) {
 // TestDiaryService_UpdateDiary 测试更新日记本
 func TestDiaryService_UpdateDiary(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if err := ctx.Cleanup(); err != nil {
+			t.Log(err)
+		}
+	}()
 
 	// 准备服务
 	diaryRepo := repository.NewDiaryRepository()
@@ -143,7 +151,11 @@ func TestDiaryService_UpdateDiary(t *testing.T) {
 // TestDiaryService_DeleteDiary 测试删除日记本
 func TestDiaryService_DeleteDiary(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if err := ctx.Cleanup(); err != nil {
+			t.Log(err)
+		}
+	}()
 
 	// 准备服务
 	diaryRepo := repository.NewDiaryRepository()
@@ -209,7 +221,11 @@ func TestDiaryService_DeleteDiary(t *testing.T) {
 // TestDiaryService_IncrementEntryCount 测试增加日记数量
 func TestDiaryService_IncrementEntryCount(t *testing.T) {
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if err := ctx.Cleanup(); err != nil {
+			t.Log(err)
+		}
+	}()
 
 	// 准备服务
 	diaryRepo := repository.NewDiaryRepository()

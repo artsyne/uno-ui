@@ -11,7 +11,7 @@ import (
 	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/utils/i18n"
 	framework "github.com/biuren/hebe/tests/framework"
-	
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -54,7 +54,11 @@ func setupTestUserAndDiary(t *testing.T, ctx *framework.TestContext, userService
 func TestEntryService_AddEntry(t *testing.T) {
 	// 使用新测试框架
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -123,7 +127,11 @@ func TestEntryService_AddEntry(t *testing.T) {
 func TestEntryService_GetEntryByID(t *testing.T) {
 	// 使用新测试框架
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -176,7 +184,11 @@ func TestEntryService_GetEntryByID(t *testing.T) {
 func TestEntryService_UpdateEntry(t *testing.T) {
 	// 使用新测试框架
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -270,7 +282,11 @@ func TestEntryService_UpdateEntry(t *testing.T) {
 func TestEntryService_ListEntriesByUserID(t *testing.T) {
 	// 使用新测试框架
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -345,7 +361,7 @@ func TestEntryService_ListEntriesByUserID(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("第一页，每页3篇", func(t *testing.T) {
-		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, testDiary.DiaryID, 1, 3)
+		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, testDiary.DiaryID, entry.StatusActive, 1, 3)
 		require.NoError(t, err)
 		assert.Len(t, entries, 3)
 		assert.Equal(t, 5, total)
@@ -358,21 +374,21 @@ func TestEntryService_ListEntriesByUserID(t *testing.T) {
 	})
 
 	t.Run("第二页，每页3篇", func(t *testing.T) {
-		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, testDiary.DiaryID, 2, 3)
+		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, testDiary.DiaryID, entry.StatusActive, 2, 3)
 		require.NoError(t, err)
 		assert.Len(t, entries, 2) // 剩余2篇
 		assert.Equal(t, 5, total)
 	})
 
 	t.Run("获取所有文章", func(t *testing.T) {
-		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, testDiary.DiaryID, 1, 10)
+		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, testDiary.DiaryID, entry.StatusActive, 1, 10)
 		require.NoError(t, err)
 		assert.Len(t, entries, 5)
 		assert.Equal(t, 5, total)
 	})
 
 	t.Run("获取其他用户的文章", func(t *testing.T) {
-		entries, total, err := entryService.ListEntriesByUserID(otherUser.UserId, otherDiaryID, 1, 10)
+		entries, total, err := entryService.ListEntriesByUserID(otherUser.UserId, otherDiaryID, entry.StatusActive, 1, 10)
 		require.NoError(t, err)
 		assert.Len(t, entries, 1)
 		assert.Equal(t, 1, total)
@@ -380,14 +396,14 @@ func TestEntryService_ListEntriesByUserID(t *testing.T) {
 	})
 
 	t.Run("不存在的用户", func(t *testing.T) {
-		entries, total, err := entryService.ListEntriesByUserID(99999, testDiary.DiaryID, 1, 10)
+		entries, total, err := entryService.ListEntriesByUserID(99999, testDiary.DiaryID, entry.StatusActive, 1, 10)
 		assert.NoError(t, err) // 应该返回空列表而不是错误
 		assert.Len(t, entries, 0)
 		assert.Equal(t, 0, total)
 	})
 
 	t.Run("不存在的日记本", func(t *testing.T) {
-		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, 99999, 1, 10)
+		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, 99999, entry.StatusActive, 1, 10)
 		assert.NoError(t, err) // 应该返回空列表而不是错误
 		assert.Len(t, entries, 0)
 		assert.Equal(t, 0, total)
@@ -398,7 +414,11 @@ func TestEntryService_ListEntriesByUserID(t *testing.T) {
 func TestEntryService_GetEntryCountByUserID(t *testing.T) {
 	// 使用新测试框架
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -416,7 +436,7 @@ func TestEntryService_GetEntryCountByUserID(t *testing.T) {
 		testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
 
 	t.Run("初始文章数量为0", func(t *testing.T) {
-		count, err := entryService.GetEntryCountByUserID(testUser.UserId, testDiary.DiaryID)
+		count, err := entryService.GetEntryCountByUserID(testUser.UserId, testDiary.DiaryID, entry.StatusActive)
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 	})
@@ -437,19 +457,19 @@ func TestEntryService_GetEntryCountByUserID(t *testing.T) {
 	}
 
 	t.Run("添加文章后的数量", func(t *testing.T) {
-		count, err := entryService.GetEntryCountByUserID(testUser.UserId, testDiary.DiaryID)
+		count, err := entryService.GetEntryCountByUserID(testUser.UserId, testDiary.DiaryID, entry.StatusActive)
 		require.NoError(t, err)
 		assert.Equal(t, 3, count)
 	})
 
 	t.Run("不存在的用户", func(t *testing.T) {
-		count, err := entryService.GetEntryCountByUserID(99999, testDiary.DiaryID)
+		count, err := entryService.GetEntryCountByUserID(99999, testDiary.DiaryID, entry.StatusActive)
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 	})
 
 	t.Run("不存在的日记本", func(t *testing.T) {
-		count, err := entryService.GetEntryCountByUserID(testUser.UserId, 99999)
+		count, err := entryService.GetEntryCountByUserID(testUser.UserId, 99999, entry.StatusActive)
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 	})
@@ -459,7 +479,11 @@ func TestEntryService_GetEntryCountByUserID(t *testing.T) {
 func TestEntryService_UpdateEntryByID(t *testing.T) {
 	// 使用新测试框架
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -536,7 +560,11 @@ func TestEntryService_UpdateEntryByID(t *testing.T) {
 func TestEntryService_DeleteEntryByID(t *testing.T) {
 	// 使用新测试框架
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig() // 通过测试上下文获取配置
@@ -600,7 +628,11 @@ func TestEntryService_DeleteEntryByID(t *testing.T) {
 func TestEntryService_GetEntriesStats(t *testing.T) {
 	// 使用新测试框架
 	ctx := framework.NewTestContext(framework.WithDatabase())
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 创建真实的服务
 	config := ctx.GetConfig().GetAppConfig()

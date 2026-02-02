@@ -22,7 +22,9 @@ type DataGeneratorImpl struct {
 // NewDataGenerator 创建数据生成器
 func NewDataGenerator(isolator DataIsolatorInterface) *DataGeneratorImpl {
 	randomBytes := make([]byte, 4)
-	rand.Read(randomBytes)
+	if _, err := rand.Read(randomBytes); err != nil {
+		panic(err)
+	}
 
 	return &DataGeneratorImpl{
 		isolator: isolator,

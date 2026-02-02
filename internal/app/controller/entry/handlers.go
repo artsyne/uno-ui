@@ -1,11 +1,13 @@
 package entry
 
 import (
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/biuren/hebe/internal/app/middleware"
+	types "github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/domain/like"
 	"github.com/biuren/hebe/internal/utils/errors"
@@ -13,46 +15,167 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// CreateEntry 处理创建新日记的请求
-// 绑定JSON或表单数据到CreateEntryRequest，并调用服务层创建日记
-//
-// 路由: POST /entry
-func (ctrl *EntryController) CreateEntry(c *gin.Context) {
-	// 获取当前登录用户信息
+// CreateEntry 已被 PublishEntry 替代，此函数应被删除或保留作为兼容。
+// 目前已从路由中移除。
+
+// AutoSaveEntry 自动保存草稿（创建/更新）
+// 路由: POST /entry/auto-save
+func (ctrl *EntryController) AutoSaveEntry(c *gin.Context) {
 	loginUser := ctrl.auth.MustGetCurrentUser(c)
+	req := middleware.MustGetValidatedRequest[AutoSaveEntryRequest](c)
 
-	// 获取已验证的请求数据
-	req := middleware.MustGetValidatedRequest[CreateEntryRequest](c)
-
-	// 校验日记内容长度
 	if len(req.Body) > ctrl.config.App.MaxEntryLength {
 		ctrl.renderService.JSONError(c, errors.ValidationError)
 		return
 	}
 
 	nowTime := pkg.GetNowTimeUnixMilli()
+	if req.EntryID <= 0 {
+		entryData := &entry.Entry{
+			DiaryID:            req.DiaryID,
+			Title:              req.Title,
+			Body:               req.Body,
+			Summary:            pkg.TruncateString(req.Body, ctrl.config.App.SummaryMax, ctrl.config.App.Suffix),
+			IsTop:              0,
+			InfoType:           entry.InfoTypeText,
+			AddUTCTime:         nowTime,
+			AddUserID:          loginUser.UserId,
+			AddUserHandle:      loginUser.Handle,
+			AddUserDisplayName: loginUser.DisplayName,
+			AddUserIP:          c.ClientIP(),
+			UpdateUTCTime:      nowTime,
+			Status:             entry.StatusDraft,
+		}
 
-	// 构建新日记对象，设置所有必要字段
+		entryID, err := ctrl.entryService.AddEntry(entryData)
+		if err != nil {
+			ctrl.renderService.JSONError(c, err)
+			return
+		}
+
+		ctrl.renderService.JSONSuccess(c, gin.H{"entry_id": entryID, "saved_at": nowTime})
+		return
+	}
+
+	originalEntry, err := ctrl.entryService.GetEntryByIDForUser(req.EntryID, loginUser.UserId)
+	if err != nil {
+		ctrl.renderService.JSONError(c, err)
+		return
+	}
+	if originalEntry.DiaryID != req.DiaryID {
+		ctrl.renderService.JSONError(c, errors.InvalidParams.WithDetails(map[string]interface{}{"reason": "diary_id_mismatch"}))
+		return
+	}
+	// 允许已发布的日记进行自动保存（实时更新）
+	if originalEntry.Status != entry.StatusDraft && originalEntry.Status != entry.StatusActive {
+		ctrl.renderService.JSONError(c, errors.OperationNotAllowed.WithDetails(map[string]interface{}{"reason": "only_draft_or_active_can_auto_save"}))
+		return
+	}
+
+	// double check ownership (though GetEntryByIDForUser implies it)
+	if originalEntry.AddUserID != loginUser.UserId {
+		ctrl.renderService.JSONError(c, errors.PermissionDenied)
+		return
+	}
+
+	// 使用结构体字面量构建更新后的日记对象
 	entryData := &entry.Entry{
-		DiaryID:       req.DiaryID,
+		EntryID:       originalEntry.EntryID,
+		DiaryID:       originalEntry.DiaryID,
 		Title:         req.Title,
 		Body:          req.Body,
 		Summary:       pkg.TruncateString(req.Body, ctrl.config.App.SummaryMax, ctrl.config.App.Suffix),
-		IsTop:         0,
-		InfoType:      entry.InfoTypeText, // 默认为文本类型
-		AddUTCTime:    nowTime,
-		AddUserID:     loginUser.UserId,
-		AddUserHandle: loginUser.Handle,
-		AddUserDisplayName: loginUser.DisplayName,
-		AddUserIP:     c.ClientIP(),
 		UpdateUTCTime: nowTime,
-		Status:        1, // 默认状态为正常
-		ViewNum:       0,
-		LikeNum:       0,
-		CommentNum:    0,
+		ViewNum:       originalEntry.ViewNum,
+		LikeNum:       originalEntry.LikeNum,
+		CommentNum:    originalEntry.CommentNum,
+		IsTop:         originalEntry.IsTop,
+		InfoType:      originalEntry.InfoType,
+		Status:        originalEntry.Status, // 保持原有状态
+	}
+	if err := ctrl.entryService.UpdateEntry(entryData); err != nil {
+		ctrl.renderService.JSONError(c, err)
+		return
 	}
 
-	// 调用服务层创建日记
+	ctrl.renderService.JSONSuccess(c, gin.H{"entry_id": originalEntry.EntryID, "saved_at": nowTime})
+}
+
+// PublishEntry 发布日记（新建/发布草稿）
+// 路由: POST /entry/publish
+func (ctrl *EntryController) PublishEntry(c *gin.Context) {
+	loginUser := ctrl.auth.MustGetCurrentUser(c)
+	req := middleware.MustGetValidatedRequest[PublishEntryRequest](c)
+
+	if len(req.Body) > ctrl.config.App.MaxEntryLength {
+		ctrl.renderService.JSONError(c, errors.ValidationError)
+		return
+	}
+
+	nowTime := pkg.GetNowTimeUnixMilli()
+	if req.EntryID > 0 {
+		originalEntry, err := ctrl.entryService.GetEntryByIDForUser(req.EntryID, loginUser.UserId)
+		if err != nil {
+			ctrl.renderService.JSONError(c, err)
+			return
+		}
+		if originalEntry.DiaryID != req.DiaryID {
+			ctrl.renderService.JSONError(c, errors.InvalidParams.WithDetails(map[string]interface{}{"reason": "diary_id_mismatch"}))
+			return
+		}
+		if originalEntry.Status != entry.StatusDraft {
+			ctrl.renderService.JSONError(c, errors.OperationNotAllowed.WithDetails(map[string]interface{}{"reason": "only_draft_can_publish"}))
+			return
+		}
+
+		entryData := &entry.Entry{
+			EntryID:            originalEntry.EntryID,
+			DiaryID:            originalEntry.DiaryID,
+			Title:              req.Title,
+			Body:               req.Body,
+			Summary:            pkg.TruncateString(req.Body, ctrl.config.App.SummaryMax, ctrl.config.App.Suffix),
+			UpdateUTCTime:      nowTime,
+			ViewNum:            originalEntry.ViewNum,
+			LikeNum:            originalEntry.LikeNum,
+			CommentNum:         originalEntry.CommentNum,
+			IsTop:              originalEntry.IsTop,
+			InfoType:           originalEntry.InfoType,
+			Status:             entry.StatusActive,
+			AddUserID:          originalEntry.AddUserID,
+			AddUserHandle:      originalEntry.AddUserHandle,
+			AddUserDisplayName: originalEntry.AddUserDisplayName,
+		}
+		if err := ctrl.entryService.UpdateEntry(entryData); err != nil {
+			ctrl.renderService.JSONError(c, err)
+			return
+		}
+
+		if err := ctrl.diaryService.IncrementEntryCount(entryData.DiaryID); err != nil {
+			slog.Error("Failed to increment entry count", "error", err, "diary_id", entryData.DiaryID)
+		}
+
+		ctrl.renderPublishedEntryResponse(c, loginUser, entryData)
+		return
+	}
+
+	entryData := &entry.Entry{
+		DiaryID:            req.DiaryID,
+		Title:              req.Title,
+		Body:               req.Body,
+		Summary:            pkg.TruncateString(req.Body, ctrl.config.App.SummaryMax, ctrl.config.App.Suffix),
+		IsTop:              0,
+		InfoType:           entry.InfoTypeText,
+		AddUTCTime:         nowTime,
+		AddUserID:          loginUser.UserId,
+		AddUserHandle:      loginUser.Handle,
+		AddUserDisplayName: loginUser.DisplayName,
+		AddUserIP:          c.ClientIP(),
+		UpdateUTCTime:      nowTime,
+		Status:             entry.StatusActive,
+		ViewNum:            0,
+		LikeNum:            0,
+		CommentNum:         0,
+	}
 	entryID, err := ctrl.entryService.AddEntry(entryData)
 	if err != nil {
 		ctrl.renderService.JSONError(c, err)
@@ -60,20 +183,28 @@ func (ctrl *EntryController) CreateEntry(c *gin.Context) {
 	}
 	entryData.EntryID = entryID
 
-	// 日记本信息数量加一 - 在controller层处理跨模块调用
-	err = ctrl.diaryService.IncrementEntryCount(entryData.DiaryID)
-	if err != nil {
-		// 如果更新日记本数量失败，记录错误但不影响日记创建的成功响应
+	if err := ctrl.diaryService.IncrementEntryCount(entryData.DiaryID); err != nil {
 		slog.Error("Failed to increment entry count", "error", err, "diary_id", entryData.DiaryID)
 	}
 
-	// HTMX Support
-	if c.GetHeader("HX-Request") == "true" {
-		c.Header("HX-Trigger", `{"showToast": {"type": "success", "message": "common.save_success"}, "closeEntryModal": true}`)
+	ctrl.renderPublishedEntryResponse(c, loginUser, entryData)
+}
 
-		// 获取日记本信息以获取社交设置
+func (ctrl *EntryController) renderPublishedEntryResponse(c *gin.Context, loginUser *types.AuthUser, entryData *entry.Entry) {
+	if c.GetHeader("HX-Request") == "true" {
+		trigger := map[string]interface{}{
+			"showToast":       map[string]string{"type": "success", "message": "common.save_success"},
+			"closeEntryModal": true,
+		}
+		if c.Query("source") == "drafts" {
+			trigger["refresh-drafts"] = true
+		}
+		if triggerJSON, err := json.Marshal(trigger); err == nil {
+			c.Header("HX-Trigger", string(triggerJSON))
+		}
+
 		diaryData, _ := ctrl.diaryService.GetDiaryByID(entryData.DiaryID)
-		socialSetting := 1 // 默认开启
+		socialSetting := 1
 		if diaryData != nil {
 			socialSetting = int(diaryData.SocialSetting)
 		}
@@ -91,7 +222,6 @@ func (ctrl *EntryController) CreateEntry(c *gin.Context) {
 		return
 	}
 
-	// 返回成功响应
 	ctrl.renderService.JSONSuccess(c, entryData)
 }
 
@@ -115,13 +245,13 @@ func (ctrl *EntryController) UpdateEntry(c *gin.Context) {
 	entryID := req.EntryID
 
 	// 验证日记所有权
-	// 获取日记信息
-	originalEntry, err := ctrl.entryService.GetEntryByID(entryID)
+	// 使用 GetEntryByIDForUser 以支持修改草稿状态的日记
+	originalEntry, err := ctrl.entryService.GetEntryByIDForUser(entryID, loginUser.UserId)
 	if err != nil {
 		ctrl.renderService.JSONError(c, errors.EntryNotFound)
 		return
 	}
-	// 判断是否有权限修改
+	// double check ownership (though GetEntryByIDForUser implies it)
 	if originalEntry.AddUserID != loginUser.UserId {
 		ctrl.renderService.JSONError(c, errors.PermissionDenied)
 		return
@@ -141,7 +271,7 @@ func (ctrl *EntryController) UpdateEntry(c *gin.Context) {
 		CommentNum: originalEntry.CommentNum,
 		IsTop:      originalEntry.IsTop,
 		InfoType:   originalEntry.InfoType,
-		Status:     originalEntry.Status,
+		Status:     entry.StatusActive, // 强制更新为Active状态（即发布）
 	}
 
 	// 调用服务层更新日记
@@ -150,9 +280,25 @@ func (ctrl *EntryController) UpdateEntry(c *gin.Context) {
 		return
 	}
 
+	// 如果是从草稿状态发布，需要增加日记本的日记计数
+	if originalEntry.Status == entry.StatusDraft {
+		if err := ctrl.diaryService.IncrementEntryCount(entryData.DiaryID); err != nil {
+			slog.Error("Failed to increment entry count", "error", err, "diary_id", entryData.DiaryID)
+		}
+	}
+
 	// HTMX Support
 	if c.GetHeader("HX-Request") == "true" {
-		c.Header("HX-Trigger", `{"showToast": {"type": "success", "message": "common.save_success"}, "closeEntryModal": true}`)
+		trigger := map[string]interface{}{
+			"showToast":       map[string]string{"type": "success", "message": "common.save_success"},
+			"closeEntryModal": true,
+		}
+		if c.Query("source") == "drafts" {
+			trigger["refreshDrafts"] = true
+		}
+		if triggerJSON, err := json.Marshal(trigger); err == nil {
+			c.Header("HX-Trigger", string(triggerJSON))
+		}
 
 		// Get Like Status
 		isLiked := false
@@ -217,6 +363,79 @@ func (ctrl *EntryController) DeleteEntry(c *gin.Context) {
 		return
 	}
 
+	ctrl.renderService.JSONSuccess(c, nil)
+}
+
+// RecoverEntry 恢复已删除的日记
+// 路由: PUT /entry/:id/recover
+func (ctrl *EntryController) RecoverEntry(c *gin.Context) {
+	// 获取当前登录用户信息
+	loginUser := ctrl.auth.MustGetCurrentUser(c)
+
+	// 获取参数
+	entryID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		ctrl.renderService.JSONError(c, errors.InvalidParams)
+		return
+	}
+
+	// 调用服务层恢复日记
+	if err := ctrl.entryService.RecoverEntryByID(entryID, loginUser.UserId); err != nil {
+		ctrl.renderService.JSONError(c, err)
+		return
+	}
+
+	// HTMX Support
+	if c.GetHeader("HX-Request") == "true" {
+		c.Header("HX-Trigger", `{"showToast": {"type": "success", "message": "common.recover_success"}}`)
+		// 如果在列表中，移除该行
+		c.Status(http.StatusOK)
+		return
+	}
+
+	// 返回成功响应
+	ctrl.renderService.JSONSuccess(c, nil)
+}
+
+// HardDeleteEntry 物理删除日记
+// 路由: DELETE /entry/:id/hard
+func (ctrl *EntryController) HardDeleteEntry(c *gin.Context) {
+	// 获取当前登录用户信息
+	loginUser := ctrl.auth.MustGetCurrentUser(c)
+
+	// 获取参数
+	entryID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		ctrl.renderService.JSONError(c, errors.InvalidParams)
+		return
+	}
+
+	// 调用服务层物理删除日记
+	if err := ctrl.entryService.HardDeleteEntryByID(entryID, loginUser.UserId); err != nil {
+		if c.GetHeader("HX-Request") == "true" {
+			c.Header("HX-Trigger", `{"showToast": {"type": "error", "message": "common.operation_failed"}}`)
+			c.Status(http.StatusOK)
+			return
+		}
+		ctrl.renderService.JSONError(c, err)
+		return
+	}
+
+	// 物理删除日记相关的评论
+	if err := ctrl.commentService.DeleteCommentsByEntryID(entryID); err != nil {
+		// 记录错误但中断流程，因为日记已经删除
+		slog.Error("Failed to delete comments for hard deleted entry", "error", err, "entry_id", entryID)
+	}
+
+	// HTMX Support
+	if c.GetHeader("HX-Request") == "true" {
+		c.Header("HX-Trigger", `{"showToast": {"type": "success", "message": "common.delete_success"}}`)
+		// 移除该行
+		c.Status(http.StatusOK)
+		return
+	}
+
+	// 返回成功响应
 	ctrl.renderService.JSONSuccess(c, nil)
 }
 

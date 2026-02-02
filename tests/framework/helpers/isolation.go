@@ -41,7 +41,9 @@ func generatePrefix(testID string, config IsolationConfig) string {
 
 	// 生成随机字符串
 	randomBytes := make([]byte, 3)
-	rand.Read(randomBytes)
+	if _, err := rand.Read(randomBytes); err != nil {
+		panic(err)
+	}
 	random := hex.EncodeToString(randomBytes)
 
 	// 根据配置格式生成前缀

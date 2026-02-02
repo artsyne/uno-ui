@@ -7,6 +7,7 @@ import { initAuth, initValidationCallbacks } from '../modules/auth.js';
 import { initFormHandlers } from '../modules/form.js';
 import { User } from '../modules/user.js';
 import { Settings } from '../modules/settings.js';
+import Drafts from '../modules/drafts.js';
 
 /**
  * Application Initialization
@@ -49,7 +50,10 @@ window.Uno.setConfig({
 });
 
 // 2. Global Helper Functions
-window.getUno = () => window.Alpine.store('uno');
+window.getUno = () =>
+  window.Alpine && typeof window.Alpine.store === 'function'
+    ? window.Alpine.store('uno')
+    : null;
 window.getUnoNotify = () => window.getUno()?.notify;
 window.getUnoBox = () => window.getUno()?.box;
 window.getUnoValid = () => window.getUno()?.valid;
@@ -147,6 +151,7 @@ document.addEventListener('alpine:init', () => {
   Alpine.data('CommentsMixin', CommentsMixin);
   Alpine.data('user', () => User);
   Alpine.data('settings', Settings);
+  Alpine.data('drafts', Drafts);
 
   // Register Stores
   Alpine.store('theme', themeStore);

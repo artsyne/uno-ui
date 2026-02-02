@@ -67,25 +67,3 @@ func (s *ViewService) generateTitle(c *gin.Context, titleKey string) string {
 
 	return fmt.Sprintf("%s - %s", title, siteName)
 }
-
-// generateDescription 生成页面描述
-// 根据标题键和当前语言环境生成页面描述信息
-//
-// 参数:
-//   - c: Gin上下文对象，用于获取语言环境
-//   - titleKey: 标题的国际化键名，描述键为titleKey + ".desc"
-//
-// 返回:
-//   - string: 页面描述文本，如果找不到对应描述则返回默认描述
-func (s *ViewService) generateDescription(c *gin.Context, titleKey string) string {
-	locale := s.i18nManager.GetLocaleFromContext(c)
-	descKey := titleKey + ".desc"
-	desc := s.i18nManager.GetMessage(descKey, locale)
-
-	// 如果没有找到对应的描述，使用通用默认描述
-	if desc == descKey {
-		return s.i18nManager.GetMessage("common.default_page_desc", locale)
-	}
-
-	return desc
-}

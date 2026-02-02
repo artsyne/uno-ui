@@ -245,7 +245,6 @@ func (m *LocalizationManager) GetMessage(key, locale string) string {
 	if normalizedLocale != defaultLang {
 		defaultCacheKey := BuildCacheKey(defaultLang, key)
 		if defaultMessage, exists := GetMessage(defaultCacheKey); exists {
-			slog.Debug("使用默认语言消息", "key", key, "requested_locale", locale, "default_locale", defaultLang)
 			return defaultMessage
 		}
 	}
@@ -326,14 +325,12 @@ func (m *LocalizationManager) GetLocaleFromContext(c *gin.Context) string {
 	// 检查 idiary-lang cookie
 	if cookieLocale, err := c.Cookie("idiary-lang"); err == nil && cookieLocale != "" {
 		if m.IsLanguageSupported(cookieLocale) {
-			slog.Debug("从 idiary-lang Cookie 获取语言", "locale", cookieLocale)
 			return cookieLocale
 		}
 	}
 
 	// 默认使用 en
 	defaultLocale := m.GetDefaultLanguage()
-	slog.Debug("使用系统默认语言", "locale", defaultLocale)
 	return defaultLocale
 }
 

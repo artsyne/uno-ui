@@ -9,8 +9,8 @@
 
 /* Markdown 样式已移至 markdown.css 文件 */
 
-a {
-  @apply text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300;
+a,button.btn-link {
+  @apply cursor-pointer text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300;
 }
 
 .main {

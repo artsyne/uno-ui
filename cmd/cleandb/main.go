@@ -64,7 +64,9 @@ func main() {
 			dbName := dbManager.GetDatabaseName()
 			fmt.Printf("警告：这将清理数据库 '%s' 中的所有测试数据！是否继续？(y/N): ", dbName)
 			var response string
-			fmt.Scanln(&response)
+			if _, scanErr := fmt.Scanln(&response); scanErr != nil {
+				log.Fatalf("读取输入失败: %v", scanErr)
+			}
 			if response != "y" && response != "Y" && response != "yes" && response != "YES" {
 				fmt.Println("操作已取消")
 				return

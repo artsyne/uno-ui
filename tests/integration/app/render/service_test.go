@@ -18,7 +18,11 @@ func TestRenderService_Integration(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestRenderService_Integration")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 获取全局配置
 	cfg := framework.GetGlobalConfig()
@@ -110,7 +114,11 @@ func TestRenderService_PageDataWithDifferentLanguages(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestRenderService_PageDataWithDifferentLanguages")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 获取全局配置
 	cfg := framework.GetGlobalConfig()
@@ -179,7 +187,11 @@ func TestRenderService_BreadcrumbGeneration(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctx := framework.NewTestContext("TestRenderService_BreadcrumbGeneration")
-	defer ctx.Cleanup()
+	defer func() {
+		if cleanupErr := ctx.Cleanup(); cleanupErr != nil {
+			t.Logf("Cleanup failed: %v", cleanupErr)
+		}
+	}()
 
 	// 获取全局配置
 	cfg := framework.GetGlobalConfig()

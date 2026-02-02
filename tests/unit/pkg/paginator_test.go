@@ -37,7 +37,7 @@ func TestGeneratePagination(t *testing.T) {
 				{URL: "/test?page=5", Text: "5", PageIndex: 5, IsCurrentPage: false},
 				{URL: "/test?page=6", Text: "6", PageIndex: 6, IsCurrentPage: false},
 				{URL: "/test?page=7", Text: "7", PageIndex: 7, IsCurrentPage: false},
-				{URL: "", Text: "...", PageIndex: 0, IsCurrentPage: false},
+				{URL: "", Text: "dots", PageIndex: 0, IsCurrentPage: false},
 				{URL: "/test?page=9", Text: "9", PageIndex: 9, IsCurrentPage: false},
 				{URL: "/test?page=10", Text: "10", PageIndex: 10, IsCurrentPage: false},
 				{URL: "/test?page=2", Text: "下一页", PageIndex: 2, IsCurrentPage: false},

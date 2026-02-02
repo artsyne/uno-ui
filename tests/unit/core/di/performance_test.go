@@ -39,9 +39,11 @@ func BenchmarkGenericContainer_Register(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		di.Singleton(container, func() *PerformanceService {
+		if err := di.Singleton(container, func() *PerformanceService {
 			return &PerformanceService{Name: "test", ID: i}
-		})
+		}); err != nil {
+			b.Fatal(err)
+		}
 		container.Clear()
 		container = di.New()
 	}
@@ -49,9 +51,11 @@ func BenchmarkGenericContainer_Register(b *testing.B) {
 
 func BenchmarkGenericContainer_Resolve(b *testing.B) {
 	container := di.New()
-	di.Singleton(container, func() *PerformanceService {
+	if err := di.Singleton(container, func() *PerformanceService {
 		return &PerformanceService{Name: "test", ID: 123}
-	})
+	}); err != nil {
+		b.Fatal(err)
+	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -90,9 +94,11 @@ func BenchmarkGenericContainer_MemoryAllocation(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		di.Singleton(container, func() *PerformanceService {
+		if err := di.Singleton(container, func() *PerformanceService {
 			return &PerformanceService{Name: "test", ID: i}
-		})
+		}); err != nil {
+			b.Fatal(err)
+		}
 		_ = di.Get[*PerformanceService](container)
 		container.Clear()
 		container = di.New()
@@ -115,9 +121,11 @@ func BenchmarkReflectionContainer_MemoryAllocation(b *testing.B) {
 // 并发性能测试
 func BenchmarkGenericContainer_Concurrent(b *testing.B) {
 	container := di.New()
-	di.Singleton(container, func() *PerformanceService {
+	if err := di.Singleton(container, func() *PerformanceService {
 		return &PerformanceService{Name: "concurrent", ID: 999}
-	})
+	}); err != nil {
+		b.Fatal(err)
+	}
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
