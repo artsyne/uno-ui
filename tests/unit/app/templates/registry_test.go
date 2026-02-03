@@ -4,14 +4,15 @@ import (
 	"html/template"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/biuren/hebe/internal/app/templates"
+	app_templates "github.com/biuren/hebe/internal/app/templates"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestRegisterAllFuncs 测试注册所有模板函数
 func TestRegisterAllFuncs(t *testing.T) {
 	// 获取所有模板函数
-	funcMap := templates.RegisterAllFuncs()
+	funcMap := app_templates.RegisterAllFuncs()
 	assert.NotNil(t, funcMap)
 
 	// 验证返回的函数映射不为空
@@ -21,18 +22,18 @@ func TestRegisterAllFuncs(t *testing.T) {
 	assert.Greater(t, len(funcMap), 0, "应该注册一些模板函数")
 }
 
-// TestRegisterAllFuncs_ReturnType 测试返回类型
-func TestRegisterAllFuncs_ReturnType(t *testing.T) {
+// TestRegisterAllFuncsReturnType 测试返回类型
+func TestRegisterAllFuncsReturnType(t *testing.T) {
 	// 测试返回类型是否正确
-	result := templates.RegisterAllFuncs()
+	result := app_templates.RegisterAllFuncs()
 	assert.NotNil(t, result)
 	assert.IsType(t, template.FuncMap{}, result)
 }
 
-// TestRegisterAllFuncs_FunctionAvailability 测试函数可用性
-func TestRegisterAllFuncs_FunctionAvailability(t *testing.T) {
+// TestRegisterAllFuncsFunctionAvailability 测试函数可用性
+func TestRegisterAllFuncsFunctionAvailability(t *testing.T) {
 	// 获取所有模板函数
-	funcMap := templates.RegisterAllFuncs()
+	funcMap := app_templates.RegisterAllFuncs()
 	assert.NotNil(t, funcMap)
 
 	// 创建模板并应用函数
@@ -41,18 +42,18 @@ func TestRegisterAllFuncs_FunctionAvailability(t *testing.T) {
 
 	// 尝试解析一个使用模板函数的简单模板
 	testTemplates := []struct {
-		name string
-		template string
+		name        string
+		template    string
 		expectError bool
 	}{
 		{
-			name: "basic template without functions",
-			template: "Hello {{.Name}}",
+			name:        "basic template without functions",
+			template:    "Hello {{.Name}}",
 			expectError: false,
 		},
 		{
-			name: "template with potential custom function",
-			template: "Hello {{.Name}}", // 使用基本语法，避免依赖具体函数
+			name:        "template with potential custom function",
+			template:    "Hello {{.Name}}", // 使用基本语法，避免依赖具体函数
 			expectError: false,
 		},
 	}
@@ -69,14 +70,14 @@ func TestRegisterAllFuncs_FunctionAvailability(t *testing.T) {
 	}
 }
 
-// TestRegisterAllFuncs_MultipleRegistrations 测试多次注册
-func TestRegisterAllFuncs_MultipleRegistrations(t *testing.T) {
+// TestRegisterAllFuncsMultipleRegistrations 测试多次注册
+func TestRegisterAllFuncsMultipleRegistrations(t *testing.T) {
 	// 第一次获取函数映射
-	funcMap1 := templates.RegisterAllFuncs()
+	funcMap1 := app_templates.RegisterAllFuncs()
 	assert.NotNil(t, funcMap1)
 
 	// 第二次获取函数映射（应该不会出错）
-	funcMap2 := templates.RegisterAllFuncs()
+	funcMap2 := app_templates.RegisterAllFuncs()
 	assert.NotNil(t, funcMap2)
 
 	// 验证两次获取的函数映射长度相同
@@ -86,10 +87,10 @@ func TestRegisterAllFuncs_MultipleRegistrations(t *testing.T) {
 	assert.IsType(t, funcMap1, funcMap2)
 }
 
-// TestRegisterAllFuncs_TemplateChaining 测试模板链式调用
-func TestRegisterAllFuncs_TemplateChaining(t *testing.T) {
+// TestRegisterAllFuncsTemplateChaining 测试模板链式调用
+func TestRegisterAllFuncsTemplateChaining(t *testing.T) {
 	// 获取函数映射并创建模板
-	funcMap := templates.RegisterAllFuncs()
+	funcMap := app_templates.RegisterAllFuncs()
 	tmpl := template.New("test").Funcs(funcMap)
 
 	// 验证可以继续链式调用其他模板方法
@@ -101,7 +102,7 @@ func TestRegisterAllFuncs_TemplateChaining(t *testing.T) {
 }
 
 // TestRegisterAllFuncs_FunctionCategories 测试函数分类注册
-func TestRegisterAllFuncs_FunctionCategories(t *testing.T) {
+func TestRegisterAllFuncsFunctionCategories(t *testing.T) {
 	// 根据 registry.go 中的注释，应该注册以下类别的函数：
 	// - 本地化函数 (localization functions)
 	// - 认证函数 (authentication functions)
@@ -132,7 +133,7 @@ func TestRegisterAllFuncs_FunctionCategories(t *testing.T) {
 }
 
 // TestRegisterAllFuncs_EmptyTemplateName 测试空模板名称
-func TestRegisterAllFuncs_EmptyTemplateName(t *testing.T) {
+func TestRegisterAllFuncsEmptyTemplateName(t *testing.T) {
 	// 获取函数映射并创建一个没有名称的模板
 	funcMap := templates.RegisterAllFuncs()
 	tmpl := template.New("").Funcs(funcMap)
@@ -144,7 +145,7 @@ func TestRegisterAllFuncs_EmptyTemplateName(t *testing.T) {
 }
 
 // TestRegisterAllFuncs_TemplateWithExistingFuncs 测试已有函数的模板
-func TestRegisterAllFuncs_TemplateWithExistingFuncs(t *testing.T) {
+func TestRegisterAllFuncsTemplateWithExistingFuncs(t *testing.T) {
 	// 获取注册的函数映射
 	registeredFuncs := templates.RegisterAllFuncs()
 	assert.NotNil(t, registeredFuncs)
@@ -170,7 +171,7 @@ func TestRegisterAllFuncs_TemplateWithExistingFuncs(t *testing.T) {
 }
 
 // TestRegisterAllFuncs_Idempotency 测试幂等性
-func TestRegisterAllFuncs_Idempotency(t *testing.T) {
+func TestRegisterAllFuncsIdempotency(t *testing.T) {
 	// 测试多次调用 RegisterAllFuncs 是否是幂等的
 
 	// 多次获取函数映射
@@ -188,7 +189,7 @@ func TestRegisterAllFuncs_Idempotency(t *testing.T) {
 }
 
 // TestRegisterAllFuncs_Performance 测试性能
-func TestRegisterAllFuncs_Performance(t *testing.T) {
+func TestRegisterAllFuncsPerformance(t *testing.T) {
 	// 简单的性能测试，确保函数注册不会太慢
 	for i := 0; i < 100; i++ {
 		result := templates.RegisterAllFuncs()

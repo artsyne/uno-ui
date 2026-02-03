@@ -1,4 +1,4 @@
-package pkg
+package pkg_test
 
 import (
 	"fmt"
@@ -7,8 +7,8 @@ import (
 	"github.com/biuren/hebe/pkg"
 )
 
-// ExampleMarkdownUsage 演示如何使用 Markdown 处理器
-func ExampleMarkdownUsage() {
+// ExampleRenderMarkdown_usage 演示如何使用 Markdown 处理器
+func ExampleRenderMarkdown_usage() {
 	// 示例 Markdown 文本
 	markdownText := `# Markdown 功能演示
 
@@ -88,8 +88,8 @@ func ExampleMarkdownUsage() {
 	fmt.Printf("渲染结果长度: %d 字节\n", len(bytes))
 }
 
-// ExampleSimpleMarkdown 简单的 Markdown 渲染示例
-func ExampleSimpleMarkdown() {
+// ExampleRenderMarkdown_simple 简单的 Markdown 渲染示例
+func ExampleRenderMarkdown_simple() {
 	// 简单的 Markdown 文本
 	simpleText := "**Hello** _World_!"
 
@@ -104,19 +104,19 @@ func ExampleSimpleMarkdown() {
 	fmt.Printf("输出: %s\n", html)
 }
 
-// ExampleMarkdownFeatures 演示各种 Markdown 功能
-func ExampleMarkdownFeatures() {
+// ExampleRenderMarkdown_features 演示 Markdown 支持的特性
+func ExampleRenderMarkdown_features() {
 	features := map[string]string{
-		"斜体":   "*italic* 和 _italic_",
-		"粗体":   "**bold** 和 __bold__",
-		"组合":   "**bold and _italic_**",
-		"删除线":  "~~strikethrough~~",
-		"代码":   "`inline code`",
-		"链接":   "[GitHub](https://github.com)",
-		"标题":   "# H1\n## H2\n### H3",
-		"列表":   "- Item 1\n- Item 2",
-		"引用":   "> This is a quote",
-		"分隔线":  "---",
+		"斜体":  "*italic* 和 _italic_",
+		"粗体":  "**bold** 和 __bold__",
+		"组合":  "**bold and _italic_**",
+		"删除线": "~~strikethrough~~",
+		"代码":  "`inline code`",
+		"链接":  "[GitHub](https://github.com)",
+		"标题":  "# H1\n## H2\n### H3",
+		"列表":  "- Item 1\n- Item 2",
+		"引用":  "> This is a quote",
+		"分隔线": "---",
 	}
 
 	processor := pkg.NewMarkdownProcessor()
@@ -124,13 +124,13 @@ func ExampleMarkdownFeatures() {
 	for name, markdown := range features {
 		fmt.Printf("\n=== %s ===\n", name)
 		fmt.Printf("Markdown: %s\n", markdown)
-		
+
 		html, err := processor.RenderToHTML(markdown)
 		if err != nil {
 			log.Printf("渲染 %s 失败: %v", name, err)
 			continue
 		}
-		
+
 		fmt.Printf("HTML: %s\n", html)
 	}
 }

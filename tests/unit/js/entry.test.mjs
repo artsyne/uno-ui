@@ -12,9 +12,10 @@ describe('EntryMixin', () => {
     // Reset mocks
     mockUno = {
       box: {
-        dialog: jest.fn(() => ({ id: 'box-123' })),
+        dialog: jest.fn(() => ({ id: 'box-123', close: jest.fn() })),
         confirm: jest.fn(() => Promise.resolve(true)),
         close: jest.fn(),
+        get: jest.fn(() => ({ close: jest.fn() })),
       },
       notify: {
         success: jest.fn(),
@@ -156,7 +157,7 @@ describe('EntryMixin', () => {
       expect(document.body.addEventListener).toHaveBeenCalledWith(
         'closeEntryModal',
         expect.any(Function),
-        true
+        true,
       );
     });
 
@@ -167,9 +168,11 @@ describe('EntryMixin', () => {
       const generatedBoxId = config.boxId;
 
       const handler = document.body.addEventListener.mock.calls[0][1];
-      handler();
+      handler({ detail: { boxId: generatedBoxId } });
 
-      expect(mockUno.box.close).toHaveBeenCalledWith(generatedBoxId);
+      // Verify boxInstance.close() was called (primary path)
+      const boxInstance = mockUno.box.dialog.mock.results[0].value;
+      expect(boxInstance.close).toHaveBeenCalled();
     });
   });
 

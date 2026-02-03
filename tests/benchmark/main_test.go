@@ -1,4 +1,4 @@
-package benchmark
+package benchmark_test
 
 import (
 	"testing"

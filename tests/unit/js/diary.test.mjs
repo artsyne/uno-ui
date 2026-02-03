@@ -238,7 +238,10 @@ describe('Diary Modules', () => {
       // Mock window.location
       const originalLocation = window.location;
       delete window.location;
-      window.location = { href: 'http://localhost/' };
+      window.location = { 
+        href: 'http://localhost/',
+        origin: 'http://localhost' 
+      };
 
       // Mock history.pushState
       const pushStateSpy = jest.spyOn(window.history, 'pushState');

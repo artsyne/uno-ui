@@ -1,4 +1,4 @@
-package bootstrap
+package initializer_test
 
 import (
 	"testing"

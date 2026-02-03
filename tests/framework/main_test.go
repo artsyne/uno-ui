@@ -1,4 +1,4 @@
-package framework
+package framework_test
 
 import (
 	"testing"

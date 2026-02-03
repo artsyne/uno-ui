@@ -1,4 +1,4 @@
-package infra
+package infra_test
 
 import (
 	"database/sql"
