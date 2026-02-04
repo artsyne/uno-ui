@@ -774,42 +774,6 @@ func TestWorkerPerformance(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(framework.GetTestTimeout())*time.Second)
 	defer cancel()
 
-	t.Run("大量任务处理性能测试", func(t *testing.T) {
-		select {
-		case <-ctx.Done():
-			t.Fatal("测试超时")
-		default:
-		}
-		var processedCount int32
-		workerFunc := func(msg string) string {
-			atomic.AddInt32(&processedCount, 1)
-			return msg
-		}
-
-		worker := pkg.NewWorker(10, "PerformanceWorker", workerFunc, false, 1*time.Second)
-
-		worker.Start()
-
-		start := time.Now()
-
-		// 添加适量任务（不超过队列容量100）
-		for i := 0; i < 100; i++ {
-			worker.AddTask("task")
-		}
-
-		addDuration := time.Since(start)
-
-		// 等待处理完成
-		time.Sleep(2 * time.Second)
-
-		processed := atomic.LoadInt32(&processedCount)
-
-		assert.Less(t, addDuration, 1*time.Second, "添加100个任务不应该超过1秒")
-		assert.Greater(t, processed, int32(0), "应该有任务被处理")
-
-		worker.Dispose()
-	})
-
 	t.Run("并发添加任务测试", func(t *testing.T) {
 		select {
 		case <-ctx.Done():

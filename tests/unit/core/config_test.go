@@ -3,6 +3,7 @@ package core_test
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/biuren/hebe/internal/utils/config"
@@ -86,7 +87,16 @@ func TestConfig_AppConfig(t *testing.T) {
 	assert.Equal(t, "9090", cfg.App.Port)
 	assert.Equal(t, 1200, cfg.App.SummaryMax)
 	assert.Equal(t, "...", cfg.App.Suffix)
-	assert.Equal(t, 20, cfg.App.PageSize)
+
+	// PageSize might be overridden by .env.local
+	expectedPageSize := 20
+	if val := os.Getenv("IDIARY_PAGE_SIZE"); val != "" {
+		if v, err := strconv.Atoi(val); err == nil {
+			expectedPageSize = v
+		}
+	}
+	assert.Equal(t, expectedPageSize, cfg.App.PageSize)
+
 	assert.Equal(t, 666, cfg.App.MaxDiaryLimit)
 	assert.Equal(t, "en", cfg.App.DefaultLang)
 

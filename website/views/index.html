@@ -5,8 +5,7 @@
 <div class="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
 
     <!-- Hero Section -->
-    <div class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden" x-data="{ show: false }"
-        x-init="setTimeout(() => show = true, 100)">
+    <div class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden" x-data="heroAnimation">
         <div class="container mx-auto px-4 relative z-10 text-center">
 
             <h1 style="display: none;" x-show="show" x-transition:enter="transition ease-out duration-1000 transform"

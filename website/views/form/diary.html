@@ -1,12 +1,9 @@
 {{define "form/diary"}}
 
-<div class="px-4" x-data="{ 
-    theme: {{if .Data.Diary}}{{.Data.Diary.ThemeID}}{{else}}16{{end}} 
-}">
+<div class="px-4" x-data="diaryForm({{if .Data.Diary}}{{.Data.Diary.ThemeID}}{{else}}16{{end}})">
     <form id="diary_editor_form" class="relative" x-uno-valid {{if .Data.Diary}} hx-put="/diary/{{.Data.Diary.DiaryID}}"
         hx-swap="none" {{else}} hx-post="/diary" hx-target="#diary_list" hx-swap="afterbegin" {{end}}
-        hx-trigger="validated"
-        @submit.prevent="if(await $store.uno.valid.validateForm($el)) $el.dispatchEvent(new CustomEvent('validated', { bubbles: true }))">
+        hx-trigger="validated" @submit.prevent="validateAndTrigger($el)">
         <div class="form-mask">
             <div class="loading-spinner"></div>
         </div>
@@ -65,37 +62,37 @@
             <div class="d-theme flex flex-wrap gap-3 py-2">
                 <div class="dtf16 h-8 w-8 rounded cursor-pointer"
                     :class="theme == 16 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
-                    @click="theme = 16"></div>
+                    @click="setTheme(16)"></div>
                 <div class="dtf15 h-8 w-8 rounded cursor-pointer"
                     :class="theme == 15 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
-                    @click="theme = 15"></div>
+                    @click="setTheme(15)"></div>
                 <div class="dtf14 h-8 w-8 rounded cursor-pointer"
                     :class="theme == 14 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
-                    @click="theme = 14"></div>
+                    @click="setTheme(14)"></div>
                 <div class="dtf13 h-8 w-8 rounded cursor-pointer"
                     :class="theme == 13 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
-                    @click="theme = 13"></div>
+                    @click="setTheme(13)"></div>
                 <div class="dtf12 h-8 w-8 rounded cursor-pointer"
                     :class="theme == 12 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
-                    @click="theme = 12"></div>
+                    @click="setTheme(12)"></div>
                 <div class="dtf11 h-8 w-8 rounded cursor-pointer"
                     :class="theme == 11 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
-                    @click="theme = 11"></div>
+                    @click="setTheme(11)"></div>
                 <div class="dtf10 h-8 w-8 rounded cursor-pointer"
                     :class="theme == 10 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
-                    @click="theme = 10"></div>
+                    @click="setTheme(10)"></div>
                 <div class="dtf9 h-8 w-8 rounded cursor-pointer"
                     :class="theme == 9 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
-                    @click="theme = 9"></div>
+                    @click="setTheme(9)"></div>
                 <div class="dtf8 h-8 w-8 rounded cursor-pointer"
                     :class="theme == 8 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
-                    @click="theme = 8"></div>
+                    @click="setTheme(8)"></div>
                 <div class="dtf7 h-8 w-8 rounded cursor-pointer"
                     :class="theme == 7 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
-                    @click="theme = 7"></div>
+                    @click="setTheme(7)"></div>
                 <div class="dtf6 h-8 w-8 rounded cursor-pointer"
                     :class="theme == 6 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
-                    @click="theme = 6"></div>
+                    @click="setTheme(6)"></div>
                 <div class="dtf5 h-8 w-8 rounded cursor-pointer"
                     :class="theme == 5 ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-gray-800' : 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-300'"
                     @click="theme = 5"></div>

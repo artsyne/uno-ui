@@ -15,18 +15,10 @@
 	<link href="/public/dist/css/idiary.min.css?v={{getRandomVersion .}}" rel="stylesheet">
 	<link href="/public/dist/css/materialdesignicons.min.css?v=6.5.95" rel="stylesheet">
 	<script>
-		(function () {
-			const t = document.cookie.match(/[; ]?idiary-theme=([^;]*)/);
-			const theme = t ? t[1] : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-			if (theme === 'dark') {
-				document.documentElement.classList.add('dark');
-			} else {
-				document.documentElement.classList.remove('dark');
-			}
-		})();
+		(function () { const t = document.cookie.match(/[; ]?idiary-theme=([^;]*)/); const h = t ? t[1] : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); document.documentElement.classList.toggle('dark', h === 'dark'); })();
 	</script>
 </head>
 
-<body class="bg-white dark:bg-gray-900 transition-colors duration-200" x-data="{ csrfToken: '{{.Context.CsrfToken}}' }">
+<body class="bg-white dark:bg-gray-900 transition-colors duration-200">
 	<div id="app" class="flex flex-col mt-14 text-zinc-500 bg-white dark:bg-gray-900 transition-colors duration-200">
 		{{end}}

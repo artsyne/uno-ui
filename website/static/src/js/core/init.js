@@ -4,9 +4,11 @@ import { Navbar, Footer } from '../modules/layout.js';
 import DiaryDetail from '../modules/diary-detail.js';
 import { LikeButton, CommentsMixin } from '../modules/social.js';
 import { initAuth, initValidationCallbacks } from '../modules/auth.js';
-import { initFormHandlers } from '../modules/form.js';
+import { initFormHandlers, validateAndTrigger } from '../modules/form.js';
 import { User } from '../modules/user.js';
-import { Settings } from '../modules/settings.js';
+import { Settings, HandleSettings } from '../modules/settings.js';
+import { DiaryForm } from '../modules/diary-form.js';
+import { HeroAnimation } from '../modules/home.js';
 import Drafts from '../modules/drafts.js';
 
 /**
@@ -59,7 +61,10 @@ window.getUnoBox = () => window.getUno()?.box;
 window.getUnoValid = () => window.getUno()?.valid;
 window.getUnoTooltip = () => window.getUno()?.tooltip;
 
-// 2.0.1 Helper to get CSRF Token
+// 2.0.1 Form Validation Helper
+window.validateAndTrigger = validateAndTrigger;
+
+// 2.0.2 Helper to get CSRF Token
 window.getCsrfToken = () => {
   return document
     .querySelector('meta[name="csrf-token"]')
@@ -151,6 +156,9 @@ document.addEventListener('alpine:init', () => {
   Alpine.data('CommentsMixin', CommentsMixin);
   Alpine.data('user', () => User);
   Alpine.data('settings', Settings);
+  Alpine.data('handleSettings', HandleSettings);
+  Alpine.data('diaryForm', DiaryForm);
+  Alpine.data('heroAnimation', HeroAnimation);
   Alpine.data('drafts', Drafts);
 
   // Register Stores

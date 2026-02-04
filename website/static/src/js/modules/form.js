@@ -43,3 +43,14 @@ export function initFormHandlers() {
     setFormLoading(form, false);
   });
 }
+
+/**
+ * Validates form and triggers 'validated' event if successful
+ * @param {HTMLFormElement} form
+ */
+export async function validateAndTrigger(form) {
+  const valid = window.getUnoValid();
+  if (valid && (await valid.validateForm(form))) {
+    form.dispatchEvent(new CustomEvent('validated', { bubbles: true }));
+  }
+}

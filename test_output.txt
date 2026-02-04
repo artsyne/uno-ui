@@ -1,0 +1,115 @@
+ok  	github.com/biuren/hebe/tests/benchmark	0.436s
+ok  	github.com/biuren/hebe/tests/framework	0.661s
+?   	github.com/biuren/hebe/tests/framework/core	[no test files]
+ok  	github.com/biuren/hebe/tests/framework/examples	1.324s
+?   	github.com/biuren/hebe/tests/framework/helpers	[no test files]
+?   	github.com/biuren/hebe/tests/framework/http	[no test files]
+?   	github.com/biuren/hebe/tests/framework/types	[no test files]
+ok  	github.com/biuren/hebe/tests/integration/app	(cached)
+ok  	github.com/biuren/hebe/tests/integration/app/render	1.027s
+ok  	github.com/biuren/hebe/tests/integration/config	1.208s
+ok  	github.com/biuren/hebe/tests/integration/database	1.602s
+ok  	github.com/biuren/hebe/tests/integration/infra	1.551s
+ok  	github.com/biuren/hebe/tests/integration/services	2.862s
+ok  	github.com/biuren/hebe/tests/unit/app	1.932s
+ok  	github.com/biuren/hebe/tests/unit/app/controller	2.051s
+ok  	github.com/biuren/hebe/tests/unit/app/middleware	2.217s
+ok  	github.com/biuren/hebe/tests/unit/app/startup	(cached)
+ok  	github.com/biuren/hebe/tests/unit/app/templates	2.170s
+ok  	github.com/biuren/hebe/tests/unit/app/view	(cached)
+ok  	github.com/biuren/hebe/tests/unit/contracts	(cached)
+2026/02/04 08:35:36 INFO 数据库连接成功
+2026/02/04 08:35:36 INFO 成功初始化DI容器并注册配置
+2026/02/04 08:35:36 INFO 数据库连接成功
+2026/02/04 08:35:36 INFO 成功初始化DI容器并注册配置
+Warning: .env.local file not found: open .env.local: no such file or directory
+2026/02/04 08:35:36 INFO 本地化管理器初始化完成 默认语言=en 支持语言数=2 消息数量=428 全局消息缓存大小=428
+2026/02/04 08:35:36 INFO 数据库连接成功
+2026/02/04 08:35:36 INFO 成功初始化DI容器并注册配置
+2026/02/04 08:35:36 ERROR 清理表失败 table=br_diary_member error="执行清理失败: Error 1146 (42S02): Table 'cd.br_diary_member' doesn't exist"
+2026/02/04 08:35:36 INFO 数据库连接成功
+2026/02/04 08:35:36 INFO 成功初始化DI容器并注册配置
+2026/02/04 08:35:36 INFO 数据库连接成功
+2026/02/04 08:35:36 INFO 成功初始化DI容器并注册配置
+2026/02/04 08:35:36 INFO 数据库连接成功
+2026/02/04 08:35:36 INFO 成功初始化DI容器并注册配置
+2026/02/04 08:35:36 INFO 数据库连接成功
+2026/02/04 08:35:36 INFO 成功初始化DI容器并注册配置
+2026/02/04 08:35:36 INFO 数据库连接成功
+2026/02/04 08:35:36 INFO 成功初始化DI容器并注册配置
+2026/02/04 08:35:36 INFO 数据库连接成功
+2026/02/04 08:35:36 INFO 成功初始化DI容器并注册配置
+2026/02/04 08:35:36 INFO 数据库连接成功
+2026/02/04 08:35:36 INFO 成功初始化DI容器并注册配置
+2026/02/04 08:35:36 INFO 数据库连接成功
+2026/02/04 08:35:36 INFO 成功初始化DI容器并注册配置
+2026/02/04 08:35:36 INFO 数据库连接成功
+2026/02/04 08:35:36 INFO 成功初始化DI容器并注册配置
+2026/02/04 08:35:36 INFO 数据库连接成功
+2026/02/04 08:35:36 INFO 成功初始化DI容器并注册配置
+2026/02/04 08:35:36 INFO 数据库连接成功
+2026/02/04 08:35:36 INFO 成功初始化DI容器并注册配置
+2026/02/04 08:35:36 INFO 数据库连接成功
+2026/02/04 08:35:36 INFO 成功初始化DI容器并注册配置
+Warning: .env.local file not found: open .env.local: no such file or directory
+Warning: .env.local file not found: open .env.local: no such file or directory
+--- FAIL: TestConfig_AppConfig (0.02s)
+    config_test.go:89: 
+        	Error Trace:	/Users/yasong.cy/go/src/idiary.ai/hebe/tests/unit/core/config_test.go:89
+        	Error:      	Not equal: 
+        	            	expected: 20
+        	            	actual  : 3
+        	Test:       	TestConfig_AppConfig
+Warning: .env.local file not found: open .env.local: no such file or directory
+Warning: .env.local file not found: open .env.local: no such file or directory
+Warning: .env.local file not found: open .env.local: no such file or directory
+Warning: .env.local file not found: open .env.local: no such file or directory
+Warning: .env.local file not found: open .env.local: no such file or directory
+Warning: .env.local file not found: open .env.local: no such file or directory
+Warning: .env.local file not found: open .env.local: no such file or directory
+Warning: .env.local file not found: open .env.local: no such file or directory
+Warning: .env.local file not found: open .env.local: no such file or directory
+Warning: .env.local file not found: open .env.local: no such file or directory
+Warning: .env.local file not found: open .env.local: no such file or directory
+Warning: .env.local file not found: open .env.local: no such file or directory
+Warning: .env.local file not found: open .env.local: no such file or directory
+Warning: .env.local file not found: open .env.local: no such file or directory
+
+
+[31m2026/02/04 08:35:36 [Recovery] 2026/02/04 - 08:35:36 panic recovered:
+intentional panic for testing
+/Users/yasong.cy/go/src/idiary.ai/hebe/tests/unit/core/middleware_test.go:35 (0x104a4b4cb)
+	TestRecoveryMiddleware.func2.1: panic("intentional panic for testing")
+/Users/yasong.cy/go/pkg/mod/github.com/gin-gonic/gin@v1.10.1/context.go:185 (0x104a1eb27)
+	(*Context).Next: c.handlers[c.index](c)
+/Users/yasong.cy/go/pkg/mod/github.com/gin-gonic/gin@v1.10.1/recovery.go:102 (0x104a1eb10)
+	CustomRecoveryWithWriter.func1: c.Next()
+/Users/yasong.cy/go/pkg/mod/github.com/gin-gonic/gin@v1.10.1/context.go:185 (0x104a1db03)
+	(*Context).Next: c.handlers[c.index](c)
+/Users/yasong.cy/go/pkg/mod/github.com/gin-gonic/gin@v1.10.1/gin.go:644 (0x104a1d644)
+	(*Engine).handleHTTPRequest: c.Next()
+/Users/yasong.cy/go/pkg/mod/github.com/gin-gonic/gin@v1.10.1/gin.go:600 (0x104a1d3d3)
+	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+/Users/yasong.cy/go/src/idiary.ai/hebe/tests/unit/core/middleware_test.go:43 (0x104a4b43b)
+	TestRecoveryMiddleware.func2: router.ServeHTTP(w, req)
+/Users/yasong.cy/sdk/go1.25.0/src/testing/testing.go:1934 (0x1047dddd7)
+	tRunner: fn(t)
+/Users/yasong.cy/sdk/go1.25.0/src/runtime/asm_arm64.s:1268 (0x10474d183)
+	goexit: MOVD	R0, R0	// NOP
+[0m
+FAIL
+FAIL	github.com/biuren/hebe/tests/unit/core	2.545s
+ok  	github.com/biuren/hebe/tests/unit/core/database	(cached)
+ok  	github.com/biuren/hebe/tests/unit/core/di	(cached)
+ok  	github.com/biuren/hebe/tests/unit/core/initializer	(cached)
+ok  	github.com/biuren/hebe/tests/unit/domain/comment	2.681s
+ok  	github.com/biuren/hebe/tests/unit/domain/diary	2.418s
+ok  	github.com/biuren/hebe/tests/unit/domain/entry	2.991s
+ok  	github.com/biuren/hebe/tests/unit/domain/like	2.630s
+ok  	github.com/biuren/hebe/tests/unit/domain/task	2.340s
+ok  	github.com/biuren/hebe/tests/unit/domain/user	2.904s
+ok  	github.com/biuren/hebe/tests/unit/infra/cache	(cached)
+ok  	github.com/biuren/hebe/tests/unit/infra/repository	1.844s
+ok  	github.com/biuren/hebe/tests/unit/pkg	27.694s
+ok  	github.com/biuren/hebe/tests/unit/utils	2.139s
+FAIL

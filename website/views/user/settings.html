@@ -22,10 +22,10 @@
 
     <section class="mx-auto lg:w-2/3">
         <!-- Profile Card -->
-        <div class="mb-8" x-data="{ loading: false }">
+        <div class="mb-8">
             <div class="card-title">{{getMessage "user.settings.profile_card_title" .Context.Lang}}</div>
             <form id="profile-form" class="relative" x-uno-valid hx-post="/u/settings/profile" hx-swap="none"
-                @htmx:before-request="loading = true" @htmx:after-request="loading = false" novalidate>
+                novalidate>
                 <div class="form-mask">
                     <div class="loading-spinner"></div>
                 </div>
@@ -96,29 +96,11 @@
         </div>
 
         <!-- Handle Card -->
-        <div class="mb-8" x-data="{ 
-            loading: false,
-            modifiedTime: {{.Data.User.ModifiedUTCTime}},
-            cooldownDays: {{.Data.HandleCooldownDays}},
-            originalHandle: '{{.Data.User.Handle}}',
-            currentHandle: '{{.Data.User.Handle}}',
-            get remainingDays() {
-                const now = new Date().getTime();
-                const cooldownMs = this.cooldownDays * 24 * 60 * 60 * 1000;
-                const passedMs = now - this.modifiedTime;
-                if (passedMs < cooldownMs) {
-                     return Math.ceil((cooldownMs - passedMs) / (24 * 60 * 60 * 1000));
-                }
-                return 0;
-            },
-            get isChanged() {
-                return this.currentHandle !== this.originalHandle;
-            }
-        }">
+        <div class="mb-8"
+            x-data="handleSettings({{.Data.User.ModifiedUTCTime}}, {{.Data.HandleCooldownDays}}, '{{.Data.User.Handle}}')">
             <div class="card-title">{{getMessage "user.settings.username_label" .Context.Lang}}</div>
             <form id="handle-form" class="relative" x-uno-valid hx-post="/u/settings/handle" hx-swap="none"
-                @htmx:before-request="if(remainingDays > 0 || !isChanged) { $event.preventDefault(); return; } loading = true"
-                @htmx:after-request="loading = false; if($event.detail.successful) { modifiedTime = new Date().getTime(); originalHandle = currentHandle; }"
+                @htmx:before-request="handleBeforeRequest($event)" @htmx:after-request="handleAfterRequest($event)"
                 novalidate>
                 <div class="form-mask">
                     <div class="loading-spinner"></div>
@@ -132,8 +114,8 @@
                             x-uno-valid="['required','validname', { type: 'validator', name: 'checkHandle', debounce: 500 }]" />
 
                         <p class="form-info" x-show="remainingDays > 0" x-cloak>
-                                {{getMessage "user.settings.username_cooldown_msg" .Context.Lang}} <span
-                                    x-text="remainingDays"></span> {{getMessage "common.days" .Context.Lang}}
+                            {{getMessage "user.settings.username_cooldown_msg" .Context.Lang}} <span
+                                x-text="remainingDays"></span> {{getMessage "common.days" .Context.Lang}}
                         </p>
                         <p class="form-info" x-show="remainingDays <= 0">
                             {{getMessage "user.settings.username_note" .Context.Lang}}
@@ -152,9 +134,7 @@
         <!-- Email Card -->
         <div class="mb-8">
             <div class="card-title">{{getMessage "user.settings.email_card_title" .Context.Lang}}</div>
-            <form id="email-form" class="relative" x-data="{ loading: false }" hx-post="/u/settings/email"
-                hx-swap="none" @htmx:before-request="loading = true" @htmx:after-request="loading = false" x-uno-valid
-                novalidate>
+            <form id="email-form" class="relative" hx-post="/u/settings/email" hx-swap="none" x-uno-valid novalidate>
                 <div class="form-mask">
                     <div class="loading-spinner">
                     </div>
@@ -184,10 +164,10 @@
         </div>
 
         <!-- Password Card -->
-        <div x-data="{ loading: false }">
+        <div>
             <div class="card-title">{{getMessage "user.settings.update_password_card_title" .Context.Lang}}</div>
             <form id="password-form" class="relative" x-uno-valid hx-post="/u/settings/password" hx-swap="none"
-                @htmx:before-request="loading = true" @htmx:after-request="loading = false" novalidate>
+                novalidate>
                 <div class="form-mask">
                     <div class="loading-spinner">
                     </div>
