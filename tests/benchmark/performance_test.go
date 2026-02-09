@@ -52,7 +52,7 @@ func initBenchmarkEnv() {
 		})
 
 		userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
-		diaryService := diary.NewService(config, diaryRepo)
+		diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 		entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 		benchServices = &benchmarkServices{

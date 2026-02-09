@@ -342,6 +342,11 @@ func (s *Service) GetUserByUserId(userId int64) (*User, error) {
 	return s.repo.GetUserByUserId(userId)
 }
 
+// GetUserByHandle 根据Handle获取用户信息
+func (s *Service) GetUserByHandle(handle string) (*User, error) {
+	return s.repo.GetUserByHandle(handle)
+}
+
 // GetUserTimeZone 获取用户时区
 func (s *Service) GetUserTimeZone(userId int64) (string, error) {
 	return s.repo.GetUserTimeZone(userId)

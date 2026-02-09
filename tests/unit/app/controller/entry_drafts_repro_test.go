@@ -42,6 +42,13 @@ func (m *MockRepoRepro) GetByID(id int64) (*domainEntry.Entry, error) {
 	}
 	return args.Get(0).(*domainEntry.Entry), args.Error(1)
 }
+func (m *MockRepoRepro) GetByIDRaw(id int64) (*domainEntry.Entry, error) {
+	args := m.Called(id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domainEntry.Entry), args.Error(1)
+}
 func (m *MockRepoRepro) DeleteByID(id int64) error {
 	args := m.Called(id)
 	return args.Error(0)
@@ -71,6 +78,14 @@ func (m *MockRepoRepro) ListAllByUserID(userID int64, status int8, page, size in
 }
 func (m *MockRepoRepro) GetCountByUserID(userID, diaryID int64, status int8) (int, error) {
 	args := m.Called(userID, diaryID, status)
+	return args.Int(0), args.Error(1)
+}
+func (m *MockRepoRepro) ListByDiaryID(diaryID int64, status int8, pageIndex, pageSize int) ([]domainEntry.Entry, int, error) {
+	args := m.Called(diaryID, status, pageIndex, pageSize)
+	return args.Get(0).([]domainEntry.Entry), args.Int(1), args.Error(2)
+}
+func (m *MockRepoRepro) GetCountByDiaryID(diaryID int64, status int8) (int, error) {
+	args := m.Called(diaryID, status)
 	return args.Int(0), args.Error(1)
 }
 func (m *MockRepoRepro) IncrementViewNum(id int64) error {
@@ -178,8 +193,9 @@ func TestShowDrafts_Reproduction_WithRealTemplates(t *testing.T) {
 	cfg := config.GetConfig()
 	if cfg == nil {
 		cfg = &config.Config{}
-		cfg.App.PageSize = 10
 	}
+	// Force PageSize to 10 for this test
+	cfg.App.PageSize = 10
 
 	// 2. Setup Context
 	gin.SetMode(gin.TestMode)

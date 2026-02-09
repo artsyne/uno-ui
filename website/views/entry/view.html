@@ -4,11 +4,14 @@
 
 <main class="main dt{{.Data.Diary.ThemeID}}" data-social-setting="{{.Data.Diary.SocialSetting}}">
     <!-- 面包屑导航 -->
-    <section class="flex justify-between mb-10">
+    <section class="mb-10">
         <div id="page-nav">
-            <ul class="flex text-lg text-gray-700 dark:text-gray-300">
-                <li><a href="/u/{{.Data.Entry.AddUserID}}">{{ or .Data.Entry.AddUserDisplayName .Data.Entry.AddUserHandle }}</a>
-                    <i class="mdi mdi-slash-forward mx-3 text-gray-500 dark:text-gray-400"></i>
+            <ul class="flex text-lg">
+                <li>
+                    <a href="/u/{{.Data.Entry.AddUserID}}">{{ showUserName .Data.Entry }}</a>
+                </li>
+                <li class="mx-2">
+                    <span class="mdi mdi-slash-forward"></span>
                 </li>
                 <li>
                     <a href="/diary/{{.Data.Entry.DiaryID}}">{{.Data.Diary.Title}}</a>

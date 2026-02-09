@@ -34,7 +34,7 @@ func TestEntryService_DraftsAndTrash(t *testing.T) {
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	testUser, testDiary := setupTestUserAndDiary(t, ctx.(*framework.TestContext), userService, diaryService)
@@ -58,7 +58,7 @@ func TestEntryService_DraftsAndTrash(t *testing.T) {
 		// But let's force update to be sure.
 		saved.Status = entry.StatusDeleted
 		saved.UpdateUTCTime++ // Ensure row is updated
-		err = entryService.UpdateEntry(saved)
+		err = entryService.UpdateEntry(saved, testUser.UserId)
 		require.NoError(t, err)
 
 		// Get Diary Count

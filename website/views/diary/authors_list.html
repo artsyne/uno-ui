@@ -1,0 +1,94 @@
+{{define "diary/authors_list"}}
+{{if .Authors}}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    {{range .Authors}}
+    <div class="card flex items-center space-x-4 p-6">
+        <!-- Avatar -->
+        <div class="flex-shrink-0">
+            <a href="/u/{{.Handle}}">
+                {{if .Avatar}}
+                <img class="!h-16 !w-16 rounded-full object-cover border border-gray-200 dark:border-gray-600"
+                    src="{{.Avatar}}" alt="{{.DisplayName}}">
+                {{else}}
+                <div class="avatar !h-16 !w-16 text-2xl">
+                    {{or .DisplayName .Handle | getInitial}}
+                </div>
+                {{end}}
+            </a>
+        </div>
+
+        <!-- Info -->
+        <div class="flex-1 min-w-0">
+            <a href="/u/{{.Handle}}"
+                class="text-sm font-medium text-gray-900 dark:text-white hover:underline truncate block mb-2">
+                {{.DisplayName}}
+            </a>
+            <p class="text-xs text-gray-500 dark:text-gray-400 truncate mb-2">@{{.Handle}}</p>
+            <div class="mt-1 flex items-center space-x-2">
+                <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium 
+                    {{if eq .Role 1}}bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                    {{else if eq .Role 2}}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
+                    {{else}}bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300{{end}}">
+                    {{if eq .Role 1}}{{getMessage "diary.author.owner" $.Lang}}
+                    {{else if eq .Role 2}}{{getMessage "diary.author.admin" $.Lang}}
+                    {{else}}{{getMessage "diary.author.member" $.Lang}}{{end}}
+                </span>
+
+                {{if eq .Status 2}}
+                <span
+                    class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                    {{getMessage "diary.author.status_pending" $.Lang}}
+                </span>
+                {{end}}
+            </div>
+        </div>
+
+        <!-- Actions -->
+        {{if $.CanManage}}
+        <div class="relative">
+            {{if ne .Role 1}} <!-- Cannot manage owner -->
+            <button x-uno-tooltip="{ content: '#menu-{{.UserID}}', trigger: 'click', placement: 'bottom' }"
+                class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                <i class="mdi mdi-dots-vertical text-xl"></i>
+            </button>
+
+            <!-- Tooltip Menu Template -->
+            <template id="menu-{{.UserID}}">
+                <div class="py-1 min-w-[120px]" role="menu" aria-orientation="vertical">
+                    <!-- Update Role (Admin/Member) - Hide if Pending -->
+                    {{if ne .Status 2}}
+                    {{if eq .Role 3}}
+                    <button @click="toggleAdmin({{$.DiaryID}}, {{.UserID}}, false)"
+                        class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
+                        role="menuitem">
+                        Set as Admin
+                    </button>
+                    {{else if eq .Role 2}}
+                    <button @click="toggleAdmin({{$.DiaryID}}, {{.UserID}}, true)"
+                        class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
+                        role="menuitem">
+                        Set as Member
+                    </button>
+                    {{end}}
+                    {{end}}
+
+                    <!-- Remove Author -->
+                    <button @click="removeAuthor({{$.DiaryID}}, {{.UserID}})"
+                        class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-600"
+                        role="menuitem">
+                        {{getMessage "common.delete" $.Lang}}
+                    </button>
+                </div>
+            </template>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
+    {{end}}
+</div>
+{{else}}
+<div class="empty-placeholder">
+    <i class="mdi mdi-inbox-outline"></i>
+</div>
+{{end}}
+{{end}}

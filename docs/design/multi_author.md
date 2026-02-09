@@ -1,9 +1,11 @@
 # 多作者日记本功能设计方案
 
 ## 1. 概述 (Overview)
+
 本设计旨在实现日记本的多作者（共创）功能。该功能允许日记本所有者邀请其他用户（作者）加入并贡献日记内容。受邀用户可以接受邀请，并在加入的日记本中管理自己创作的日记。
 
 ## 2. 数据库结构 (Database Schema)
+
 基于现有的 `br_diary_author` 表结构（已确认 `sql/schema.sql`）：
 
 ```sql
@@ -20,14 +22,14 @@ CREATE TABLE `br_diary_author` (
 
 ### 2.1 字段说明
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `diary_id` | bigint unsigned | 日记本ID，外键关联 `br_diary.diary_id` |
-| `user_id` | bigint unsigned | 用户ID，外键关联 `br_user.user_id` |
-| `is_admin` | tinyint unsigned | 是否为管理员：0=普通作者，1=管理员 |
-| `join_utc_time` | bigint unsigned | 加入时间（UTC时间戳，毫秒） |
-| `post_num` | int unsigned | 该作者在该日记本中发表的日记数量 |
-| `status` | tinyint unsigned | 状态：1=活跃（已加入），2=待确认（已邀请） |
+| 字段            | 类型             | 说明                                       |
+| --------------- | ---------------- | ------------------------------------------ |
+| `diary_id`      | bigint unsigned  | 日记本ID，外键关联 `br_diary.diary_id`     |
+| `user_id`       | bigint unsigned  | 用户ID，外键关联 `br_user.user_id`         |
+| `is_admin`      | tinyint unsigned | 是否为管理员：0=普通作者，1=管理员         |
+| `join_utc_time` | bigint unsigned  | 加入时间（UTC时间戳，毫秒）                |
+| `post_num`      | int unsigned     | 该作者在该日记本中发表的日记数量           |
+| `status`        | tinyint unsigned | 状态：1=活跃（已加入），2=待确认（已邀请） |
 
 ### 2.2 索引说明
 
@@ -52,7 +54,7 @@ type Author struct {
     JoinUTCTime int64  `json:"join_utc_time" db:"join_utc_time"` // 加入时间
     PostNum     int    `json:"post_num" db:"post_num"`           // 发表文章数
     Status      int8   `json:"status" db:"status"`               // 状态 (1:Active, 2:Pending)
-    
+
     // Joined fields from br_user
     Handle      string `json:"handle" db:"handle"`               // 用户Handle (Join查询)
     DisplayName string `json:"display_name" db:"display_name"`   // 用户显示名称 (Join查询)
@@ -104,43 +106,43 @@ type RepositoryInterface interface {
     // ... 原有方法 ...
 
     // ===================== Author 相关方法 =====================
-    
+
     // InsertAuthor 新增日记本作者
     InsertAuthor(author *Author) error
-    
+
     // UpdateAuthorStatus 更新作者状态
     UpdateAuthorStatus(diaryID, userID int64, status int8) error
-    
+
     // UpdateAuthorAdmin 更新作者管理员权限
     UpdateAuthorAdmin(diaryID, userID int64, isAdmin int8) error
-    
+
     // DeleteAuthor 删除作者
     DeleteAuthor(diaryID, userID int64) error
-    
+
     // ListAuthorsByDiaryID 获取日记本的所有作者
     ListAuthorsByDiaryID(diaryID int64) ([]Author, error)
-    
+
     // ListJoinedDiariesByUserID 获取用户参与的日记本列表（状态为Active）
     ListJoinedDiariesByUserID(userID int64) ([]Diary, error)
-    
+
     // ListJoinedDiariesByUserIDPaged 获取用户参与的分页日记本列表
     ListJoinedDiariesByUserIDPaged(userID int64, pageIndex, pageSize int) ([]Diary, int, error)
-    
+
     // GetJoinedDiariesCountByUserID 获取用户参与的日记本数量
     GetJoinedDiariesCountByUserID(userID int64) (int, error)
-    
+
     // GetDiaryAuthor 获取指定作者信息
     GetDiaryAuthor(diaryID, userID int64) (*Author, error)
-    
+
     // IsDiaryAuthor 检查用户是否为活跃作者
     IsDiaryAuthor(diaryID, userID int64) (bool, error)
-    
+
     // ListPendingInvitationsByUserID 获取用户的待确认邀请列表
     ListPendingInvitationsByUserID(userID int64) ([]Diary, error)
-    
+
     // IncrementAuthorPostNum 增加作者的发表数量
     IncrementAuthorPostNum(diaryID, userID int64) error
-    
+
     // DecrementAuthorPostNum 减少作者的发表数量
     DecrementAuthorPostNum(diaryID, userID int64) error
 }
@@ -159,7 +161,7 @@ func (s *Service) InviteAuthor(diaryID, ownerID int64, inviteeIdentity string, o
     if !isOwner {
         return errors.PermissionDenied.WithDetails(map[string]interface{}{"reason": "not_diary_owner"})
     }
-    
+
     // 2. 解析被邀请用户（Handle 或 Email）
     var inviteeID int64
     var user *user.User
@@ -173,12 +175,12 @@ func (s *Service) InviteAuthor(diaryID, ownerID int64, inviteeIdentity string, o
             user, err = s.userService.GetUserByHandle(inviteeIdentity)
         }
     }
-    
+
     if err != nil {
         return errors.UserNotFound.WithDetails(map[string]interface{}{"identity": inviteeIdentity})
     }
     inviteeID = user.UserId
-    
+
     // 3. 检查是否已经是作者或已邀请
     existingAuthor, err := s.repo.GetDiaryAuthor(diaryID, inviteeID)
     if err != nil && err != sql.ErrNoRows {
@@ -190,13 +192,13 @@ func (s *Service) InviteAuthor(diaryID, ownerID int64, inviteeIdentity string, o
         }
         return errors.InvalidParams.WithDetails(map[string]interface{}{"reason": "already_invited"})
     }
-    
+
     // 4. 获取日记本信息（用于邮件）
     diary, err := s.repo.GetByDiaryID(diaryID)
     if err != nil {
         return err
     }
-    
+
     // 5. 创建邀请记录
     author := &Author{
         DiaryID:     diaryID,
@@ -206,18 +208,18 @@ func (s *Service) InviteAuthor(diaryID, ownerID int64, inviteeIdentity string, o
         PostNum:     0,
         Status:      AuthorStatusPending,
     }
-    
+
     err = s.repo.InsertAuthor(author)
     if err != nil {
         return err
     }
-    
+
     // 6. 发送邀请邮件
     if err := s.sendInvitationEmail(diary, user, ownerLang); err != nil {
         slog.Error("发送邀请邮件失败", "error", err, "diary_id", diaryID, "user_id", inviteeID)
         // 邮件发送失败不影响邀请记录的创建
     }
-    
+
     return nil
 }
 
@@ -229,16 +231,16 @@ func (s *Service) sendInvitationEmail(diary *Diary, invitee *user.User, ownerLan
     if userLang == "" {
         userLang = ownerLang
     }
-    
+
     // 规范化语言代码
     normalizedLang := "en"
     if userLang == "zh-cn" || userLang == "zh" {
         normalizedLang = "zh-cn"
     }
-    
+
     // 使用被邀请用户的语言获取邮件内容
     subject := s.i18nService.GetMessage("email.diary_invitation.subject", normalizedLang)
-    
+
     // 构建邮件正文（支持 HTML）
     params := map[string]string{
         "diary_title": diary.Title,
@@ -248,9 +250,9 @@ func (s *Service) sendInvitationEmail(diary *Diary, invitee *user.User, ownerLan
         "accept_url":   fmt.Sprintf("%s/diary/%d/join", s.config.App.Domain, diary.DiaryID),
         "domain":       s.config.App.Domain,
     }
-    
+
     body := s.i18nService.GetMessageWithParams("email.diary_invitation.body", normalizedLang, params)
-    
+
     // 发送邮件任务
     return s.taskService.CreateEmailTask(invitee.Email, subject, body)
 }
@@ -285,24 +287,24 @@ func (s *Service) SetAuthorAdmin(diaryID, ownerID, targetUserID int64, isAdmin b
     if !isOwner {
         return errors.PermissionDenied.WithDetails(map[string]interface{}{"reason": "not_diary_owner"})
     }
-    
+
     // 2. 不能设置拥有者为管理员
     if targetUserID == ownerID {
         return errors.InvalidParams.WithDetails(map[string]interface{}{"reason": "cannot_set_owner"})
     }
-    
+
     // 3. 检查目标用户是否为作者
     author, err := s.repo.GetDiaryAuthor(diaryID, targetUserID)
     if err != nil {
         return errors.AuthorNotFound
     }
-    
+
     // 4. 更新管理员状态
     var adminStatus int8 = AuthorIsAdminNo
     if isAdmin {
         adminStatus = AuthorIsAdminYes
     }
-    
+
     return s.repo.UpdateAuthorAdmin(diaryID, targetUserID, adminStatus)
 }
 
@@ -313,12 +315,12 @@ func (s *Service) AcceptInvitation(diaryID, userID int64) error {
     if err != nil {
         return errors.InvitationNotFound
     }
-    
+
     // 2. 检查邀请状态
     if author.Status != AuthorStatusPending {
         return errors.InvalidParams.WithDetails(map[string]interface{}{"reason": "not_pending_invitation"})
     }
-    
+
     // 3. 更新状态为活跃
     return s.repo.UpdateAuthorStatus(diaryID, userID, AuthorStatusActive)
 }
@@ -330,12 +332,12 @@ func (s *Service) DeclineInvitation(diaryID, userID int64) error {
     if err != nil {
         return errors.InvitationNotFound
     }
-    
+
     // 2. 检查邀请状态
     if author.Status != AuthorStatusPending {
         return errors.InvalidParams.WithDetails(map[string]interface{}{"reason": "not_pending_invitation"})
     }
-    
+
     // 3. 删除邀请记录
     return s.repo.DeleteAuthor(diaryID, userID)
 }
@@ -347,7 +349,7 @@ func (s *Service) QuitDiary(diaryID, userID int64) error {
     if err != nil {
         return errors.AuthorNotFound
     }
-    
+
     // 2. 拥有者不能退出自己的日记本
     diary, err := s.repo.GetByDiaryID(diaryID)
     if err != nil {
@@ -356,7 +358,7 @@ func (s *Service) QuitDiary(diaryID, userID int64) error {
     if diary.AddUserID == userID {
         return errors.InvalidParams.WithDetails(map[string]interface{}{"reason": "owner_cannot_quit"})
     }
-    
+
     // 3. 删除作者记录
     return s.repo.DeleteAuthor(diaryID, userID)
 }
@@ -371,18 +373,18 @@ func (s *Service) RemoveAuthor(diaryID, ownerID, targetUserID int64) error {
     if !isOwner {
         return errors.PermissionDenied.WithDetails(map[string]interface{}{"reason": "not_diary_owner"})
     }
-    
+
     // 2. 不能移除拥有者
     if targetUserID == ownerID {
         return errors.InvalidParams.WithDetails(map[string]interface{}{"reason": "cannot_remove_owner"})
     }
-    
+
     // 3. 检查目标用户是否为作者
     _, err = s.repo.GetDiaryAuthor(diaryID, targetUserID)
     if err != nil {
         return errors.AuthorNotFound
     }
-    
+
     // 4. 删除作者记录
     return s.repo.DeleteAuthor(diaryID, targetUserID)
 }
@@ -394,23 +396,23 @@ func (s *Service) ListAuthors(diaryID, requestUserID int64) ([]Author, *Diary, b
     if err != nil {
         return nil, nil, false, err
     }
-    
+
     // 2. 验证查看权限
     isOwner := (diary.AddUserID == requestUserID)
     isAuthor, _ := s.repo.IsDiaryAuthor(diaryID, requestUserID)
-    
+
     if diary.ViewSetting == 2 { // 私有日记本
         if !isOwner && !isAuthor {
             return nil, nil, false, errors.PermissionDenied
         }
     }
-    
+
     // 3. 获取作者列表
     authors, err := s.repo.ListAuthorsByDiaryID(diaryID)
     if err != nil {
         return nil, nil, false, err
     }
-    
+
     return authors, diary, isOwner, nil
 }
 
@@ -432,16 +434,16 @@ func (s *Service) ListDiariesForWrite(userID int64) ([]Diary, error) {
     if err != nil {
         return nil, err
     }
-    
+
     // 2. 获取加入的日记本
     joinedDiaries, err := s.repo.ListJoinedDiariesByUserID(userID)
     if err != nil {
         return nil, err
     }
-    
+
     // 3. 合并列表
     allDiaries := append(ownedDiaries, joinedDiaries...)
-    
+
     // 4. 按 diary_id 去重（如果有重叠）
     uniqueDiaries := make([]Diary, 0)
     seen := make(map[int64]bool)
@@ -451,7 +453,7 @@ func (s *Service) ListDiariesForWrite(userID int64) ([]Diary, error) {
             uniqueDiaries = append(uniqueDiaries, d)
         }
     }
-    
+
     return uniqueDiaries, nil
 }
 ```
@@ -468,25 +470,25 @@ func (s *Service) checkWritePermission(diaryID, userID int64) (bool, error) {
     if err != nil {
         return false, err
     }
-    
+
     // 2. 拥有者有权限
     if diary.AddUserID == userID {
         return true, nil
     }
-    
+
     // 3. 活跃作者有权限
     isAuthor, err := s.diaryService.IsDiaryAuthor(diaryID, userID)
     if err != nil {
         return false, err
     }
-    
+
     return isAuthor, nil
 }
 
 // AddEntry 增加新的日记（更新权限验证）
 func (s *Service) AddEntry(entry *Entry) (int64, error) {
     // ... 原有验证逻辑 ...
-    
+
     // 验证用户是否有写权限
     hasPermission, err := s.checkWritePermission(entry.DiaryID, entry.AddUserID)
     if err != nil {
@@ -495,7 +497,7 @@ func (s *Service) AddEntry(entry *Entry) (int64, error) {
     if !hasPermission {
         return 0, errors.PermissionDenied.WithDetails(map[string]interface{}{"reason": "no_write_permission"})
     }
-    
+
     // ... 插入逻辑 ...
 }
 
@@ -509,18 +511,18 @@ func (s *Service) checkDeletePermission(entryID, userID int64) (bool, error) {
     if entryData == nil {
         return false, errors.EntryNotFound
     }
-    
+
     // 2. 获取日记本信息
     diary, err := s.diaryService.GetDiaryByID(entryData.DiaryID)
     if err != nil {
         return false, err
     }
-    
+
     // 3. 日记本拥有者可以删除所有日记
     if diary.AddUserID == userID {
         return true, nil
     }
-    
+
     // 4. 确保拥有者可以删除所有日记（包括管理员的日记）
     author, err := s.diaryService.GetDiaryAuthor(entryData.DiaryID, userID)
     if err != nil {
@@ -530,12 +532,12 @@ func (s *Service) checkDeletePermission(entryID, userID int64) (bool, error) {
         // 管理员可以删除所有日记
         return true, nil
     }
-    
+
     // 5. 普通作者只能删除自己的日记
     if entryData.AddUserID == userID {
         return true, nil
     }
-    
+
     return false, errors.PermissionDenied
 }
 
@@ -549,7 +551,7 @@ func (s *Service) DeleteEntryByID(entryID int64, userID int64, actionTime int64)
     if !hasPermission {
         return errors.PermissionDenied
     }
-    
+
     // 2. 获取日记信息（用于减少统计数）
     entry, err := s.repo.GetByIDForUser(entryID, userID)
     if err != nil {
@@ -558,27 +560,27 @@ func (s *Service) DeleteEntryByID(entryID int64, userID int64, actionTime int64)
     if entry == nil {
         return errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": entryID})
     }
-    
+
     // 3. 执行软删除
     err = s.repo.DeleteByID(entryID)
     if err != nil {
         return err
     }
-    
+
     // 4. 减少日记统计数（如果原状态是Active）
     if entry.Status == StatusActive {
         err = s.diaryService.DecrementEntryCount(entry.DiaryID)
         if err != nil {
             slog.Error("减少日记统计失败", "error", err, "entry_id", entryID, "diary_id", entry.DiaryID)
         }
-        
+
         // 5. 减少作者的发表数量
         err = s.diaryService.DecrementAuthorPostNum(entry.DiaryID, entry.AddUserID)
         if err != nil {
             slog.Error("减少作者发表数量失败", "error", err, "entry_id", entryID, "author_id", entry.AddUserID)
         }
     }
-    
+
     return nil
 }
 ```
@@ -591,13 +593,13 @@ func (s *Service) DeleteEntryByID(entryID int64, userID int64, actionTime int64)
 var (
     // AuthorNotFound 作者未找到
     AuthorNotFound = NewAppError(10001, "AUTHOR_NOT_FOUND", "Author not found", http.StatusNotFound)
-    
+
     // InvitationNotFound 邀请未找到
     InvitationNotFound = NewAppError(10002, "INVITATION_NOT_FOUND", "Invitation not found", http.StatusNotFound)
-    
+
     // AlreadyAuthor 已经是作者
     AlreadyAuthor = NewAppError(10003, "ALREADY_AUTHOR", "User is already an author", http.StatusBadRequest)
-    
+
     // AlreadyInvited 已经被邀请
     AlreadyInvited = NewAppError(10004, "ALREADY_INVITED", "User is already invited", http.StatusBadRequest)
 )
@@ -606,12 +608,12 @@ var (
 
 ### 3.4 权限矩阵 (Permissions)
 
-| 角色 | 定义 | is_admin |
-|------|------|----------|
-| **拥有者 (Owner)** | 日记本的创建者，拥有最高权限 | N/A (AddUserID) |
-| **管理员 (Admin)** | 拥有者授权的管理者，可管理日记内容 | 1 |
-| **普通作者 (Author)** | 被邀请的参与者，可创建和管理自己的日记 | 0 |
-| **访客 (Guest)** | 未登录或未加入的用户 | N/A |
+| 角色                  | 定义                                   | is_admin        |
+| --------------------- | -------------------------------------- | --------------- |
+| **拥有者 (Owner)**    | 日记本的创建者，拥有最高权限           | N/A (AddUserID) |
+| **管理员 (Admin)**    | 拥有者授权的管理者，可管理日记内容     | 1               |
+| **普通作者 (Author)** | 被邀请的参与者，可创建和管理自己的日记 | 0               |
+| **访客 (Guest)**      | 未登录或未加入的用户                   | N/A             |
 
 **权限说明：**
 
@@ -686,13 +688,13 @@ type ListAuthorsRequest struct {
 func (ctrl *DiaryController) ListAuthors(c *gin.Context) {
     loginUser := ctrl.auth.MustGetCurrentUser(c)
     req := middleware.MustGetValidatedRequest[ListAuthorsRequest](c)
-    
+
     authors, diary, isOwner, err := ctrl.diaryService.ListAuthors(req.DiaryID, loginUser.UserId)
     if err != nil {
         ctrl.renderService.JSONError(c, err)
         return
     }
-    
+
     if c.GetHeader("HX-Request") == "true" {
         data := map[string]interface{}{
             "Diary":    diary,
@@ -705,7 +707,7 @@ func (ctrl *DiaryController) ListAuthors(c *gin.Context) {
         c.HTML(http.StatusOK, "diary/authors_list", data)
         return
     }
-    
+
     ctrl.renderService.JSONSuccess(c, map[string]interface{}{
         "authors":  authors,
         "diary":    diary,
@@ -717,25 +719,25 @@ func (ctrl *DiaryController) ListAuthors(c *gin.Context) {
 func (ctrl *DiaryController) InviteAuthor(c *gin.Context) {
     loginUser := ctrl.auth.MustGetCurrentUser(c)
     req := middleware.MustGetValidatedRequest[InviteAuthorRequest](c)
-    
+
     // 获取用户语言设置（用于邮件）
     userLang := loginUser.Lang
     if userLang == "" {
         userLang = "en"
     }
-    
+
     err := ctrl.diaryService.InviteAuthor(req.DiaryID, loginUser.UserId, req.InviteeIdentity, userLang)
     if err != nil {
         ctrl.renderService.JSONError(c, err)
         return
     }
-    
+
     if c.GetHeader("HX-Request") == "true" {
         c.Header("HX-Trigger", `{"showToast": {"type": "success", "message": "diary.invitation_sent"}}`)
         ctrl.ListAuthors(c)
         return
     }
-    
+
     ctrl.renderService.JSONSuccess(c, nil)
 }
 
@@ -743,19 +745,19 @@ func (ctrl *DiaryController) InviteAuthor(c *gin.Context) {
 func (ctrl *DiaryController) SetAuthorAdmin(c *gin.Context) {
     loginUser := ctrl.auth.MustGetCurrentUser(c)
     req := middleware.MustGetValidatedRequest[SetAuthorAdminRequest](c)
-    
+
     err := ctrl.diaryService.SetAuthorAdmin(req.DiaryID, loginUser.UserId, req.UserID, req.IsAdmin)
     if err != nil {
         ctrl.renderService.JSONError(c, err)
         return
     }
-    
+
     if c.GetHeader("HX-Request") == "true" {
         c.Header("HX-Trigger", `{"showToast": {"type": "success", "message": "diary.admin_updated"}}`)
         ctrl.ListAuthors(c)
         return
     }
-    
+
     ctrl.renderService.JSONSuccess(c, nil)
 }
 
@@ -763,19 +765,19 @@ func (ctrl *DiaryController) SetAuthorAdmin(c *gin.Context) {
 func (ctrl *DiaryController) AcceptInvitation(c *gin.Context) {
     loginUser := ctrl.auth.MustGetCurrentUser(c)
     req := middleware.MustGetValidatedRequest[AcceptInvitationRequest](c)
-    
+
     err := ctrl.diaryService.AcceptInvitation(req.DiaryID, loginUser.UserId)
     if err != nil {
         ctrl.renderService.JSONError(c, err)
         return
     }
-    
+
     if c.GetHeader("HX-Request") == "true" {
         c.Header("HX-Trigger", `{"showToast": {"type": "success", "message": "diary.joined_successfully"}, "refreshInvitations": true}`)
         c.Status(http.StatusOK)
         return
     }
-    
+
     ctrl.renderService.JSONSuccess(c, nil)
 }
 
@@ -783,19 +785,19 @@ func (ctrl *DiaryController) AcceptInvitation(c *gin.Context) {
 func (ctrl *DiaryController) DeclineInvitation(c *gin.Context) {
     loginUser := ctrl.auth.MustGetCurrentUser(c)
     req := middleware.MustGetValidatedRequest[DeclineInvitationRequest](c)
-    
+
     err := ctrl.diaryService.DeclineInvitation(req.DiaryID, loginUser.UserId)
     if err != nil {
         ctrl.renderService.JSONError(c, err)
         return
     }
-    
+
     if c.GetHeader("HX-Request") == "true" {
         c.Header("HX-Trigger", `{"showToast": {"type": "success", "message": "diary.invitation_declined"}, "refreshInvitations": true}`)
         c.Status(http.StatusOK)
         return
     }
-    
+
     ctrl.renderService.JSONSuccess(c, nil)
 }
 
@@ -803,19 +805,19 @@ func (ctrl *DiaryController) DeclineInvitation(c *gin.Context) {
 func (ctrl *DiaryController) QuitDiary(c *gin.Context) {
     loginUser := ctrl.auth.MustGetCurrentUser(c)
     req := middleware.MustGetValidatedRequest[QuitDiaryRequest](c)
-    
+
     err := ctrl.diaryService.QuitDiary(req.DiaryID, loginUser.UserId)
     if err != nil {
         ctrl.renderService.JSONError(c, err)
         return
     }
-    
+
     if c.GetHeader("HX-Request") == "true" {
         c.Header("HX-Trigger", `{"showToast": {"type": "success", "message": "diary.quit_successfully"}, "refreshJoinedDiaries": true}`)
         c.Status(http.StatusOK)
         return
     }
-    
+
     ctrl.renderService.JSONSuccess(c, nil)
 }
 
@@ -823,26 +825,26 @@ func (ctrl *DiaryController) QuitDiary(c *gin.Context) {
 func (ctrl *DiaryController) RemoveAuthor(c *gin.Context) {
     loginUser := ctrl.auth.MustGetCurrentUser(c)
     req := middleware.MustGetValidatedRequest[RemoveAuthorRequest](c)
-    
+
     err := ctrl.diaryService.RemoveAuthor(req.DiaryID, loginUser.UserId, req.UserID)
     if err != nil {
         ctrl.renderService.JSONError(c, err)
         return
     }
-    
+
     if c.GetHeader("HX-Request") == "true" {
         c.Header("HX-Trigger", `{"showToast": {"type": "success", "message": "diary.author_removed"}}`)
         ctrl.ListAuthors(c)
         return
     }
-    
+
     ctrl.renderService.JSONSuccess(c, nil)
 }
 
 // ListJoinedDiaries 获取用户参与的日记本列表
 func (ctrl *DiaryController) ListJoinedDiaries(c *gin.Context) {
     loginUser := ctrl.auth.MustGetCurrentUser(c)
-    
+
     pageIndex := 0
     pageSize := 20
     if pageStr := c.Query("page"); pageStr != "" {
@@ -850,13 +852,13 @@ func (ctrl *DiaryController) ListJoinedDiaries(c *gin.Context) {
             pageIndex = page - 1
         }
     }
-    
+
     diaries, total, err := ctrl.diaryService.ListJoinedDiaries(loginUser.UserId, pageIndex, pageSize)
     if err != nil {
         ctrl.renderService.JSONError(c, err)
         return
     }
-    
+
     if c.GetHeader("HX-Request") == "true" {
         data := map[string]interface{}{
             "Diaries":    diaries,
@@ -871,7 +873,7 @@ func (ctrl *DiaryController) ListJoinedDiaries(c *gin.Context) {
         c.HTML(http.StatusOK, "user/joined_diaries_list", data)
         return
     }
-    
+
     ctrl.renderService.JSONSuccess(c, map[string]interface{}{
         "diaries":  diaries,
         "total":    total,
@@ -883,13 +885,13 @@ func (ctrl *DiaryController) ListJoinedDiaries(c *gin.Context) {
 // ListPendingInvitations 获取用户的待确认邀请列表
 func (ctrl *DiaryController) ListPendingInvitations(c *gin.Context) {
     loginUser := ctrl.auth.MustGetCurrentUser(c)
-    
+
     invitations, err := ctrl.diaryService.ListPendingInvitations(loginUser.UserId)
     if err != nil {
         ctrl.renderService.JSONError(c, err)
         return
     }
-    
+
     if c.GetHeader("HX-Request") == "true" {
         data := map[string]interface{}{
             "Invitations": invitations,
@@ -900,7 +902,7 @@ func (ctrl *DiaryController) ListPendingInvitations(c *gin.Context) {
         c.HTML(http.StatusOK, "user/invitations_list", data)
         return
     }
-    
+
     ctrl.renderService.JSONSuccess(c, map[string]interface{}{
         "invitations": invitations,
     })
@@ -913,26 +915,26 @@ func (ctrl *DiaryController) ListPendingInvitations(c *gin.Context) {
 // RegisterRoutes 注册日记本相关路由
 func (ctrl *DiaryController) RegisterRoutes(router *gin.Engine) {
     // ... 原有路由 ...
-    
+
     // ===================== 作者管理路由 =====================
-    
+
     // 作者列表
     authAPI.GET("/diary/:id/authors", middleware.Validate[ListAuthorsRequest](), ctrl.ListAuthors)
     authAPI.POST("/diary/:id/authors", middleware.Validate[InviteAuthorRequest](), ctrl.InviteAuthor)
     authAPI.PUT("/diary/:id/authors/:user_id/admin", middleware.Validate[SetAuthorAdminRequest](), ctrl.SetAuthorAdmin)
     authAPI.DELETE("/diary/:id/authors/:user_id", middleware.Validate[RemoveAuthorRequest](), ctrl.RemoveAuthor)
     authAPI.POST("/diary/:id/authors/quit", middleware.Validate[QuitDiaryRequest](), ctrl.QuitDiary)
-    
+
     // 邀请操作
     authAPI.POST("/diary/:id/join", middleware.Validate[AcceptInvitationRequest](), ctrl.AcceptInvitation)
     authAPI.POST("/diary/:id/decline", middleware.Validate[DeclineInvitationRequest](), ctrl.DeclineInvitation)
-    
+
     // ===================== 用户主页相关路由 =====================
-    
+
     // 用户个人主页（公开访问）
     router.GET("/u/:uid", ctrl.ShowUserProfile)
     router.GET("/u/:uid/:pageindex", ctrl.ShowUserProfile)
-    
+
     // 加入的日记本列表
     homeAPI := router.Group("/home").Use(ctrl.auth.RequireAuth())
     {
@@ -992,9 +994,19 @@ document.body.addEventListener('htmx:configRequest', (evt) => {
 
 ```html
 <!-- 示例：用户设置表单 -->
-<form id="profile-form" class="relative" x-uno-valid hx-post="/u/settings/profile" hx-swap="none">
-  <input type="text" id="display_name" name="display_name"
-    x-uno-valid="[{ type: 'length', max: 30 }]" />
+<form
+  id="profile-form"
+  class="relative"
+  x-uno-valid
+  hx-post="/u/settings/profile"
+  hx-swap="none"
+>
+  <input
+    type="text"
+    id="display_name"
+    name="display_name"
+    x-uno-valid="[{ type: 'length', max: 30 }]"
+  />
 </form>
 ```
 
@@ -1042,10 +1054,11 @@ export default function Authors() {
     openInviteAuthorBox(diaryId) {
       const uno = window.getUno();
       if (!uno) return;
-      
+
       let closeHandler;
-      const boxId = 'box-invite-author-' + Math.random().toString(36).slice(2, 10);
-      
+      const boxId =
+        'box-invite-author-' + Math.random().toString(36).slice(2, 10);
+
       uno.box.dialog({
         boxId: boxId,
         title: this.$store.i18n.t('diary.authors.invite_title'),
@@ -1065,11 +1078,15 @@ export default function Authors() {
         },
         onClose: () => {
           if (closeHandler) {
-            document.body.removeEventListener('closeInviteAuthorBox', closeHandler, true);
+            document.body.removeEventListener(
+              'closeInviteAuthorBox',
+              closeHandler,
+              true,
+            );
           }
         },
       });
-      
+
       closeHandler = (evt) => {
         const eventBoxId = evt?.target?.dataset?.boxId;
         if (eventBoxId && eventBoxId !== boxId) {
@@ -1077,88 +1094,98 @@ export default function Authors() {
         }
         uno.box.close(boxId);
       };
-      
-      document.body.addEventListener('closeInviteAuthorBox', closeHandler, true);
+
+      document.body.addEventListener(
+        'closeInviteAuthorBox',
+        closeHandler,
+        true,
+      );
     },
-    
+
     // 刷新作者列表
     refreshAuthorsList(diaryId) {
       htmx.ajax('GET', `/diary/${diaryId}/authors`, {
         target: '#authorsList',
-        swap: 'innerHTML'
+        swap: 'innerHTML',
       });
     },
-    
+
     // 切换管理员权限
     toggleAdmin(diaryId, userId, isAdmin) {
       const uno = window.getUno();
       const newIsAdmin = !isAdmin;
-      const confirmMsg = newIsAdmin 
+      const confirmMsg = newIsAdmin
         ? this.$store.i18n.t('diary.authors.confirm_grant_admin')
         : this.$store.i18n.t('diary.authors.confirm_revoke_admin');
-      
-      uno.box.confirm(confirmMsg, {
-        title: this.$store.i18n.t('diary.authors.admin_toggle_title'),
-        okText: this.$store.i18n.t('common.confirm'),
-        cancelText: this.$store.i18n.t('common.cancel'),
-        okButtonClass: 'btn',
-        cancelButtonClass: 'btn',
-      }).then((confirmed) => {
-        if (confirmed) {
-          // CSRF Token 自动通过 fetch 拦截器注入
-          fetch(`/diary/${diaryId}/authors/${userId}/admin`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ is_admin: newIsAdmin })
-          }).then(() => {
-            this.refreshAuthorsList(diaryId);
-          });
-        }
-      });
+
+      uno.box
+        .confirm(confirmMsg, {
+          title: this.$store.i18n.t('diary.authors.admin_toggle_title'),
+          okText: this.$store.i18n.t('common.confirm'),
+          cancelText: this.$store.i18n.t('common.cancel'),
+          okButtonClass: 'btn',
+          cancelButtonClass: 'btn',
+        })
+        .then((confirmed) => {
+          if (confirmed) {
+            // CSRF Token 自动通过 fetch 拦截器注入
+            fetch(`/diary/${diaryId}/authors/${userId}/admin`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ is_admin: newIsAdmin }),
+            }).then(() => {
+              this.refreshAuthorsList(diaryId);
+            });
+          }
+        });
     },
-    
+
     // 移除作者
     removeAuthor(diaryId, userId) {
       const uno = window.getUno();
-      
-      uno.box.confirm(this.$store.i18n.t('diary.authors.confirm_remove'), {
-        title: this.$store.i18n.t('diary.authors.remove_title'),
-        okText: this.$store.i18n.t('common.confirm'),
-        cancelText: this.$store.i18n.t('common.cancel'),
-        okButtonClass: 'btn btn-danger',
-        cancelButtonClass: 'btn',
-      }).then((confirmed) => {
-        if (confirmed) {
-          // CSRF Token 自动通过 fetch 拦截器注入
-          fetch(`/diary/${diaryId}/authors/${userId}`, {
-            method: 'DELETE'
-          }).then(() => {
-            this.refreshAuthorsList(diaryId);
-          });
-        }
-      });
+
+      uno.box
+        .confirm(this.$store.i18n.t('diary.authors.confirm_remove'), {
+          title: this.$store.i18n.t('diary.authors.remove_title'),
+          okText: this.$store.i18n.t('common.confirm'),
+          cancelText: this.$store.i18n.t('common.cancel'),
+          okButtonClass: 'btn btn-danger',
+          cancelButtonClass: 'btn',
+        })
+        .then((confirmed) => {
+          if (confirmed) {
+            // CSRF Token 自动通过 fetch 拦截器注入
+            fetch(`/diary/${diaryId}/authors/${userId}`, {
+              method: 'DELETE',
+            }).then(() => {
+              this.refreshAuthorsList(diaryId);
+            });
+          }
+        });
     },
-    
+
     // 退出日记本
     quitDiary(diaryId) {
       const uno = window.getUno();
-      
-      uno.box.confirm(this.$store.i18n.t('diary.authors.confirm_quit'), {
-        title: this.$store.i18n.t('diary.authors.quit_title'),
-        okText: this.$store.i18n.t('common.confirm'),
-        cancelText: this.$store.i18n.t('common.cancel'),
-        okButtonClass: 'btn',
-        cancelButtonClass: 'btn',
-      }).then((confirmed) => {
-        if (confirmed) {
-          // CSRF Token 自动通过 fetch 拦截器注入
-          fetch(`/diary/${diaryId}/authors/quit`, {
-            method: 'POST'
-          }).then(() => {
-            window.location.href = '/home';
-          });
-        }
-      });
+
+      uno.box
+        .confirm(this.$store.i18n.t('diary.authors.confirm_quit'), {
+          title: this.$store.i18n.t('diary.authors.quit_title'),
+          okText: this.$store.i18n.t('common.confirm'),
+          cancelText: this.$store.i18n.t('common.cancel'),
+          okButtonClass: 'btn',
+          cancelButtonClass: 'btn',
+        })
+        .then((confirmed) => {
+          if (confirmed) {
+            // CSRF Token 自动通过 fetch 拦截器注入
+            fetch(`/diary/${diaryId}/authors/quit`, {
+              method: 'POST',
+            }).then(() => {
+              window.location.href = '/home';
+            });
+          }
+        });
     },
   };
 }
@@ -1168,35 +1195,34 @@ export default function Authors() {
 
 ```html
 {{define "diary/box_invite_author"}}
-<form 
-  id="inviteAuthorForm" 
+<form
+  id="inviteAuthorForm"
   class="relative"
-  x-uno-valid 
+  x-uno-valid
   hx-post="/diary/{{.DiaryID}}/authors"
   hx-target="#authorsList"
   hx-swap="outerHTML"
-  @htmx:after-request="uno?.box?.close(document.querySelector('[data-box-id]')?.dataset.boxId)">
-  
+  @htmx:after-request="uno?.box?.close(document.querySelector('[data-box-id]')?.dataset.boxId)"
+>
   <div class="form-mask">
     <div class="loading-spinner"></div>
   </div>
-  
+
   <div>
     <div class="mb-4">
       <label class="form-title" for="invitee_identity">
         {{getMessage "diary.authors.invite_label" .Lang}}
       </label>
-      <input 
-        type="text" 
-        id="invitee_identity" 
+      <input
+        type="text"
+        id="invitee_identity"
         name="invitee_identity"
         class="form-control"
         placeholder='{{getMessage "diary.authors.invite_placeholder" .Lang}}'
         x-uno-valid="['required']"
-        autofocus>
-      <p class="form-info">
-        {{getMessage "diary.authors.invite_help" .Lang}}
-      </p>
+        autofocus
+      />
+      <p class="form-info">{{getMessage "diary.authors.invite_help" .Lang}}</p>
     </div>
   </div>
 </form>
@@ -1213,22 +1239,23 @@ export default function Authors() {
       <i class="mdi mdi-account-group mr-2"></i>
       {{getMessage "diary.label_info.authors_list" .Lang}}
     </h2>
-    
+
     {{if .Data.IsOwner}}
-    <button 
+    <button
       class="btn"
       hx-get="/form/diary?action=diary.invite_author&diary_id={{.Data.Diary.DiaryID}}"
       hx-target="#invited-author-box"
-      hx-swap="none">
+      hx-swap="none"
+    >
       <i class="mdi mdi-plus mr-1"></i>
       {{getMessage "diary.authors.invite" .Lang}}
     </button>
     {{end}}
   </div>
-  
+
   <!-- Box 容器 -->
   <div id="invited-author-box" class="hidden"></div>
-  
+
   {{if not .Data.Authors}}
   <div class="text-center py-8 text-gray-500">
     <i class="mdi mdi-account-off text-4xl mb-2"></i>
@@ -1243,19 +1270,21 @@ export default function Authors() {
       <div class="relative">
         <!-- 右上角拥有者标识 -->
         <div class="absolute top-2 right-2">
-          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+          <span
+            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
+          >
             <i class="mdi mdi-crown mr-1"></i>
             {{getMessage "diary.authors.owner" $.Lang}}
           </span>
         </div>
-        
+
         <div class="text-center py-6">
-          <div class="avatar-lg inline-flex items-center justify-center relative mx-auto">
+          <div
+            class="avatar-lg inline-flex items-center justify-center relative mx-auto"
+          >
             {{getFirstCharOfName .}}
           </div>
-          <h3 class="font-medium mt-3">
-            {{or .DisplayName .Handle}}
-          </h3>
+          <h3 class="font-medium mt-3">{{or .DisplayName .Handle}}</h3>
           <p class="text-sm text-gray-500">
             {{.PostNum}} {{getMessage "diary.authors.posts" $.Lang}}
           </p>
@@ -1268,20 +1297,25 @@ export default function Authors() {
       <div class="relative">
         <!-- 右上角功能菜单按钮 -->
         <div class="absolute top-2 right-2">
-          <a href="javascript:void(0)"
-              x-uno-tooltip="{ content: '#author-menu-{{.UserID}}', trigger: 'click', placement: 'bottom' }">
+          <a
+            href="javascript:void(0)"
+            x-uno-tooltip="{ content: '#author-menu-{{.UserID}}', trigger: 'click', placement: 'bottom' }"
+          >
             <i class="mdi mdi-dots-horizontal"></i>
           </a>
         </div>
-        
+
         <div class="text-center py-6">
-          <div class="avatar-lg inline-flex items-center justify-center relative mx-auto">
+          <div
+            class="avatar-lg inline-flex items-center justify-center relative mx-auto"
+          >
             {{getFirstCharOfName .}}
           </div>
           <h3 class="font-medium mt-3">
-            {{or .DisplayName .Handle}}
-            {{if eq .IsAdmin 1}}
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 ml-2">
+            {{or .DisplayName .Handle}} {{if eq .IsAdmin 1}}
+            <span
+              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 ml-2"
+            >
               <i class="mdi mdi-shield-account mr-1"></i>
               {{getMessage "diary.authors.admin" $.Lang}}
             </span>
@@ -1293,46 +1327,47 @@ export default function Authors() {
         </div>
       </div>
     </div>
-    {{end}}
-    {{end}}
+    {{end}} {{end}}
   </div>
 
   <!-- 分页组件（只有多页时显示） -->
   {{if gt .Data.TotalPages 1}}
-  <div class="flex justify-center mt-6">
-    {{template "pagination" .}}
-  </div>
-  {{end}}
-  {{end}}
+  <div class="flex justify-center mt-6">{{template "pagination" .}}</div>
+  {{end}} {{end}}
 </div>
 
 <!-- 功能菜单模板（隐藏） -->
-{{range .Data.Authors}}
-{{if ne .UserID .Data.Diary.AddUserID}}
+{{range .Data.Authors}} {{if ne .UserID .Data.Diary.AddUserID}}
 <div id="author-menu-{{.UserID}}" class="hidden">
   <ul class="text-left">
     {{if .Data.IsOwner}}
     <li class="py-1">
-      <button 
+      <button
         class="block w-full text-left hover:text-blue-500"
-        @click="authorsMixin.toggleAdmin({{$.Data.Diary.DiaryID}}, {{.UserID}}, {{eq .IsAdmin 1}}); $store.uno?.tooltip?.hide()">
-        <i class="mdi mdi-shield{{if eq .IsAdmin 1}}{{else}}-outline{{end}} mr-2"></i>
-        {{if eq .IsAdmin 1}}{{getMessage "diary.authors.revoke_admin" $.Lang}}{{else}}{{getMessage "diary.authors.grant_admin" $.Lang}}{{end}}
+        @click="authorsMixin.toggleAdmin({{$.Data.Diary.DiaryID}}, {{.UserID}}, {{eq .IsAdmin 1}}); $store.uno?.tooltip?.hide()"
+      >
+        <i
+          class="mdi mdi-shield{{if eq .IsAdmin 1}}{{else}}-outline{{end}} mr-2"
+        ></i>
+        {{if eq .IsAdmin 1}}{{getMessage "diary.authors.revoke_admin"
+        $.Lang}}{{else}}{{getMessage "diary.authors.grant_admin" $.Lang}}{{end}}
       </button>
     </li>
     <li class="py-1">
-      <button 
+      <button
         class="block w-full text-left hover:text-red-500"
-        @click="authorsMixin.removeAuthor({{$.Data.Diary.DiaryID}}, {{.UserID}}); $store.uno?.tooltip?.hide()">
+        @click="authorsMixin.removeAuthor({{$.Data.Diary.DiaryID}}, {{.UserID}}); $store.uno?.tooltip?.hide()"
+      >
         <i class="mdi mdi-delete mr-2"></i>
         {{getMessage "diary.authors.remove" $.Lang}}
       </button>
     </li>
     {{else if eq .UserID .Data.UserID}}
     <li class="py-1">
-      <button 
+      <button
         class="block w-full text-left hover:text-red-500"
-        @click="authorsMixin.quitDiary({{$.Data.Diary.DiaryID}}); $store.uno?.tooltip?.hide()">
+        @click="authorsMixin.quitDiary({{$.Data.Diary.DiaryID}}); $store.uno?.tooltip?.hide()"
+      >
         <i class="mdi mdi-logout mr-2"></i>
         {{getMessage "diary.authors.quit" $.Lang}}
       </button>
@@ -1340,348 +1375,238 @@ export default function Authors() {
     {{end}}
   </ul>
 </div>
-{{end}}
-{{end}}
-{{end}}
-```
-
-### 5.2 邀请作者表单 (`website/views/diary/box_invite_author.html`)
-
-```html
-{{define "diary/box_invite_author"}}
-<div class="invite-author-form">
-  <form id="inviteAuthorForm" class="space-y-4">
-    <div class="form-group">
-      <label for="invitee_identity" class="form-label">
-        {{getMessage "diary.authors.invite_label" .Lang}}
-      </label>
-      <input 
-        type="text" 
-        id="invitee_identity" 
-        name="invitee_identity"
-        class="form-input"
-        placeholder="@handle 或 email@example.com"
-        required
-        autofocus>
-      <small class="form-text text-gray-500">
-        {{getMessage "diary.authors.invite_help" .Lang}}
-      </small>
-    </div>
-    
-    <div class="form-error text-red-500 text-sm hidden"></div>
-  </form>
-</div>
-{{end}}
-```
-
-### 5.3 作者列表组件 (`website/views/diary/authors_list.html`)
-
-```html
-{{define "diary/authors_list"}}
-<div class="authors-container mb-6">
-  <div class="flex items-center justify-between mb-4">
-    <h2 class="text-xl font-semibold">
-      <i class="mdi mdi-account-group mr-2"></i>
-      {{getMessage "diary.label_info.authors_list" .Lang}}
-    </h2>
-    
-    {{if .Data.IsOwner}}
-    <button 
-      class="btn"
-      onclick="window.authorsMixin.openInviteAuthorBox({{.Data.Diary.DiaryID}})">
-      <i class="mdi mdi-plus mr-1"></i>
-      {{getMessage "diary.authors.invite" .Lang}}
-    </button>
-    {{end}}
-  </div>
-  
-  {{if not .Data.Authors}}
-  <div class="text-center py-8 text-gray-500">
-    <i class="mdi mdi-account-off text-4xl mb-2"></i>
-    <p>{{getMessage "diary.authors.empty" .Lang}}</p>
-  </div>
-  {{else}}
-  <div class="space-y-3">
-    {{range .Data.Authors}}
-    <div class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm" data-user-id="{{.UserID}}">
-      <div class="flex items-center space-x-3">
-        <img 
-          src="{{.Avatar}}" 
-          alt="{{.DisplayName}}"
-          class="w-10 h-10 rounded-full"
-          onerror="this.src='/static/images/default-avatar.png'">
-        
-        <div>
-          <div class="font-medium">
-            {{.DisplayName}}
-            {{if eq .IsAdmin 1}}
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 ml-2">
-              <i class="mdi mdi-shield-account mr-1"></i>
-              {{getMessage "diary.authors.admin" $.Lang}}
-            </span>
-            {{end}}
-          </div>
-          <div class="text-sm text-gray-500">
-            @{{.Handle}}
-          </div>
-          <div class="text-xs text-gray-400">
-            {{.PostNum}} {{getMessage "diary.authors.posts" $.Lang}}
-          </div>
-        </div>
-      </div>
-      
-      {{if .Data.IsOwner}}
-      <div class="flex items-center space-x-2">
-        {{if ne .UserID .Data.UserID}}
-        <!-- 管理员切换按钮 -->
-        <button 
-          class="btn btn-icon {{if eq .IsAdmin 1}}text-blue-600{{else}}text-gray-400{{end}}"
-          onclick="window.authorsMixin.toggleAdmin({{$.Data.Diary.DiaryID}}, {{.UserID}}, {{eq .IsAdmin 1}})"
-          title="{{getMessage "diary.authors.toggle_admin" $.Lang}}">
-          <i class="mdi {{if eq .IsAdmin 1}}mdi-shield{{else}}mdi-shield-outline{{end}}"></i>
-        </button>
-        
-        <!-- 移除按钮 -->
-        <button 
-          class="btn btn-icon text-red-500"
-          onclick="window.authorsMixin.removeAuthor({{$.Data.Diary.DiaryID}}, {{.UserID}})"
-          title="{{getMessage "diary.authors.remove" $.Lang}}">
-          <i class="mdi mdi-delete"></i>
-        </button>
-        {{end}}
-      </div>
-      {{else if eq .UserID .Data.UserID}}
-      <!-- 自己：退出按钮 -->
-      <button 
-        class="btn btn-sm btn-secondary"
-        onclick="window.authorsMixin.quitDiary({{$.Data.Diary.DiaryID}})">
-        {{getMessage "diary.authors.quit" $.Lang}}
-      </button>
-      {{end}}
-    </div>
-    {{end}}
-  </div>
-  {{end}}
-</div>
-{{end}}
+{{end}} {{end}} {{end}}
 ```
 
 ### 5.4 日记本首页更新 (`website/views/diary/index.html`)
 
 ```html
-{{define "diary/index"}}
-{{template "header" .}}
-{{template "navbar" .}}
+{{define "diary/index"}} {{template "header" .}} {{template "navbar" .}}
 
-<main class="main dt{{.Data.Diary.ThemeID}} transition-colors duration-200"
-    data-social-setting="{{.Data.Diary.SocialSetting}}" 
-    data-is-owner="{{.Data.IsOwner}}" 
-    data-diary-id="{{.Data.Diary.DiaryID}}"
-    x-data="diaryDetail">
-    
-    <section class="flex justify-between mb-10">
-        <div id="page-nav">
-            <ul class="flex text-lg">
-                <li><a href="/u/{{.Data.Diary.AddUserID}}"
-                        class="hover:text-red-500 dark:hover:text-red-400">{{ or .Data.Diary.AddUserDisplayName .Data.Diary.AddUserHandle }}</a>
-                    <i class="mdi mdi-slash-forward mx-3"></i>
-                </li>
-                <li>
-                    <a href="/diary/{{.Data.Diary.DiaryID}}" id="diary_title"
-                        class="hover:text-red-500 dark:hover:text-red-400">{{.Data.Diary.Title}}{{if eq
-                        .Data.Diary.ViewSetting 2}}<i class="mdi mdi-lock-outline mx-3"></i>{{end}}
-                    </a>
-                </li>
-            </ul>
+<main
+  class="main dt{{.Data.Diary.ThemeID}} transition-colors duration-200"
+  data-social-setting="{{.Data.Diary.SocialSetting}}"
+  data-is-owner="{{.Data.IsOwner}}"
+  data-diary-id="{{.Data.Diary.DiaryID}}"
+  x-data="diaryDetail"
+>
+  <section class="flex justify-between mb-10">
+    <div id="page-nav">
+      <ul class="flex text-lg">
+        <li>
+          <a
+            href="/u/{{.Data.Diary.AddUserID}}"
+            class="hover:text-red-500 dark:hover:text-red-400"
+            >{{ or .Data.Diary.AddUserDisplayName .Data.Diary.AddUserHandle
+            }}</a
+          >
+          <i class="mdi mdi-slash-forward mx-3"></i>
+        </li>
+        <li>
+          <a
+            href="/diary/{{.Data.Diary.DiaryID}}"
+            id="diary_title"
+            class="hover:text-red-500 dark:hover:text-red-400"
+            >{{.Data.Diary.Title}}{{if eq .Data.Diary.ViewSetting 2}}<i
+              class="mdi mdi-lock-outline mx-3"
+            ></i
+            >{{end}}
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      {{if .Data.IsOwner}}
+      <button
+        class="mr-3 btn"
+        @click="openDiarySettings({{.Data.Diary.DiaryID}})"
+      >
+        <i class="mdi mdi-cogs"></i> {{getMessage "diary.settings"
+        .Context.Lang}}
+      </button>
+      {{end}}
+      <!-- 日记本点赞按钮容器 -->
+      {{if eq .Data.Diary.SocialSetting 1}}
+      <span id="diary-like-wrapper" data-diary-id="{{.Data.Diary.DiaryID}}">
+        <button class="btn" @click="toggleDiaryLike({{.Data.Diary.DiaryID}})">
+          <i
+            class="mdi mr-1"
+            :class="diaryLike.liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"
+          ></i>
+          <span x-text="diaryLike.count"></span>
+        </button>
+      </span>
+      {{end}}
+    </div>
+  </section>
+
+  <section class="mb-10">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div>
+        <h1 class="card-title">
+          {{getMessage "diary.label_info.introduction" .Context.Lang}}
+        </h1>
+        <div class="text-sm">
+          <p id="diary_remark">{{.Data.Diary.Remark}}</p>
         </div>
+      </div>
+      <div>
+        <h1 class="card-title">{{getMessage "common.menu" .Context.Lang}}</h1>
         <div>
-            {{if .Data.IsOwner}}
-            <button class="mr-3 btn" @click="openDiarySettings({{.Data.Diary.DiaryID}})"><i class="mdi mdi-cogs"></i>
-                {{getMessage "diary.settings" .Context.Lang}}</button>
-            {{end}}
-            <!-- 日记本点赞按钮容器 -->
-            {{if eq .Data.Diary.SocialSetting 1}}
-            <span id="diary-like-wrapper" data-diary-id="{{.Data.Diary.DiaryID}}">
-                <button class="btn" @click="toggleDiaryLike({{.Data.Diary.DiaryID}})">
-                    <i class="mdi mr-1" :class="diaryLike.liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
-                    <span x-text="diaryLike.count"></span>
-                </button>
-            </span>
-            {{end}}
+          <ul>
+            <li class="py-1">
+              <a
+                href="/diary/{{.Data.Diary.DiaryID}}/authors"
+                class="hover:text-red-500 dark:hover:text-red-400"
+              >
+                <i class="mdi mdi-account-group"></i>
+                <span
+                  >{{getMessage "diary.label_info.authors_list"
+                  .Context.Lang}}</span
+                >
+              </a>
+            </li>
+            <li class="py-1">
+              <a href="#" class="hover:text-red-500 dark:hover:text-red-400">
+                <i class="mdi mdi-delete-outline"></i>
+                <span
+                  >{{getMessage "diary.label_info.liked_users_list"
+                  .Context.Lang}}</span
+                >
+              </a>
+            </li>
+          </ul>
         </div>
-    </section>
+      </div>
+    </div>
+  </section>
 
-    <section class="mb-10">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div>
-                <h1 class="card-title">{{getMessage "diary.label_info.introduction" .Context.Lang}}</h1>
-                <div class="text-sm">
-                    <p id="diary_remark">{{.Data.Diary.Remark}}</p>
-                </div>
-            </div>
-            <div>
-                <h1 class="card-title">{{getMessage "common.menu" .Context.Lang}}</h1>
-                <div>
-                    <ul>
-                        <li class="py-1">
-                            <a href="#authors" class="hover:text-red-500 dark:hover:text-red-400">
-                                <i class="mdi mdi-account-group"></i>
-                                <span>{{getMessage "diary.label_info.authors_list" .Context.Lang}}</span>
-                            </a>
-                        </li>
-                        <li class="py-1"><a href="#" class="hover:text-red-500 dark:hover:text-red-400">
-                                <i class="mdi mdi-delete-outline"></i>
-                                <span>{{getMessage "diary.label_info.liked_users_list" .Context.Lang}}</span>
-                            </a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- 作者列表区域 -->
-    <section class="mb-10" id="authors">
-        <div id="authorsList">
-            {{template "diary/authors_list" .}}
-        </div>
-    </section>
-
-    <section>
-        {{ template "diary/list" . }}
-    </section>
+  <section>{{ template "diary/list" . }}</section>
 </main>
 
-{{template "footer" .}}
-{{end}}
+{{template "footer" .}} {{end}}
 ```
 
-### 5.5 用户主页更新 (`website/views/user/index.html`)
+### 5.5 作者列表页面 (`website/views/diary/authors.html`)
 
 ```html
-{{ define "user/index" }}
-{{ template "header" . }}
-{{ template "navbar" . }}
+{{define "diary/authors"}} {{template "header" .}} {{template "navbar" .}}
+
+<main class="main dt{{.Data.Diary.ThemeID}} transition-colors duration-200">
+  <section class="mb-10">
+    <div id="page-nav">
+      <ul class="flex text-lg">
+        <li>
+          <a
+            href="/u/{{.Data.Diary.AddUserID}}"
+            class="hover:text-red-500 dark:hover:text-red-400"
+            >{{ or .Data.Diary.AddUserDisplayName .Data.Diary.AddUserHandle
+            }}</a
+          >
+          <i class="mdi mdi-slash-forward mx-3"></i>
+        </li>
+        <li>
+          <a
+            href="/diary/{{.Data.Diary.DiaryID}}"
+            id="diary_title"
+            class="hover:text-red-500 dark:hover:text-red-400"
+            >{{.Data.Diary.Title}}</a
+          >
+          <i class="mdi mdi-slash-forward mx-3"></i>
+        </li>
+        <li>
+          <a href="/diary/{{.Data.Diary.DiaryID}}/authors">
+            {{getMessage "diary.label_info.authors_list" .Lang}}
+          </a>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <div id="authorsList">{{template "diary/authors_list" .}}</div>
+</main>
+
+{{template "footer" .}} {{end}}
+```
+
+### 5.6 用户主页更新 (`website/views/user/index.html`)
+
+```html
+{{ define "user/index" }} {{ template "header" . }} {{ template "navbar" . }}
 
 <main class="main" x-data="user">
-    <section class="mb-10 flex justify-between">
-        <div id="page-nav">
-            <ul class="flex text-lg">
-                <li>
-                    <a href="/u/{{ .Data.User.UserId }}">{{ or .Data.User.DisplayName .Data.User.Handle }}</a>
-                </li>
-            </ul>
-        </div>
-    </section>
-
-    <section class="mb-10">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div>
-                <h1 class="card-title">{{getMessage "user.profile.introduction" .Context.Lang}}</h1>
-                <div>{{ .Data.User.Remark }}</div>
-            </div>
-            <div>
-                <h1 class="card-title">{{getMessage "user.profile.menu" .Context.Lang}}</h1>
-                <div>
-                    <ul class="text-gray-900 dark:text-gray-100">
-                        <li class="py-1">
-                            <a href="#">
-                                <i class="mdi mdi-book-outline"></i>
-                                <span>{{getMessage "user.profile.latest_public_diary" .Context.Lang}}</span>
-                            </a>
-                        </li>
-                        <li class="py-1">
-                            <a href="#joined-diaries">
-                                <i class="mdi mdi-book-multiple"></i>
-                                <span>{{getMessage "user.profile.joined_diaries" .Context.Lang}}</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="flex justify-between mb-10">
-        <div class="text-lg">{{getMessage "diary.list.title" .Context.Lang}}</div>
-        <div>
-            {{if .Data.IsOwner}}
-            <button class="btn" @click="openCreateDiary()">
-                <i class="mdi mdi-plus"></i> {{getMessage "diary.create" .Context.Lang}}
-            </button>
-            {{end}}
-        </div>
-    </section>
-
-    <section>
-        {{ template "user/list" . }}
-    </section>
-
-    <!-- 加入的日记本和邀请区域 -->
-    <section class="mt-10" id="joined-diaries">
-        <!-- 待确认邀请 -->
-        <div id="invitationsList" class="mb-8">
-            {{template "user/invitations_list" .}}
-        </div>
-
-        <!-- 已加入的日记本 -->
-        <div id="joinedDiariesList">
-            {{template "user/joined_diaries_list" .}}
-        </div>
-    </section>
-</main>
-{{ template "footer" . }}
-{{ end }}
-```
-
-### 5.6 邀请列表组件 (`website/views/user/invitations_list.html`)
-
-```html
-{{define "user/invitations_list"}}
-{{if .Data.Invitations}}
-<div class="invitations-section mb-8">
-    <h2 class="text-xl font-semibold mb-4">
-        <i class="mdi mdi-email-alert mr-2"></i>
-        {{getMessage "user.invitations.pending" .Lang}}
-    </h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {{range .Data.Invitations}}
-        <div class="invitation-card p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-            <div class="flex items-start space-x-3">
-                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                    {{substr .Title 0 1}}
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-medium">{{.Title}}</h3>
-                    <p class="text-sm text-gray-500">
-                        {{getMessage "diary.by" .Lang}} {{.AddUserDisplayName}} (@{{.AddUserHandle}})
-                    </p>
-                </div>
-            </div>
-            <div class="flex space-x-2 mt-4">
-                <button 
-                    class="btn btn-sm flex-1"
-                    hx-post="/diary/{{.DiaryID}}/join"
-                    hx-target="#invitationsList"
-                    hx-swap="outerHTML">
-                    {{getMessage "common.accept" .Lang}}
-                </button>
-                <button 
-                    class="btn btn-sm btn-secondary flex-1"
-                    hx-post="/diary/{{.DiaryID}}/decline"
-                    hx-target="#invitationsList"
-                    hx-swap="outerHTML">
-                    {{getMessage "common.decline" .Lang}}
-                </button>
-            </div>
-        </div>
-        {{end}}
+  <section class="mb-10 flex justify-between">
+    <div id="page-nav">
+      <ul class="flex text-lg">
+        <li>
+          <a href="/u/{{ .Data.User.UserId }}"
+            >{{ or .Data.User.DisplayName .Data.User.Handle }}</a
+          >
+        </li>
+      </ul>
     </div>
-</div>
-{{end}}
-{{end}}
+  </section>
+
+  <section class="mb-10">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div>
+        <h1 class="card-title">
+          {{getMessage "user.profile.introduction" .Context.Lang}}
+        </h1>
+        <div>{{ .Data.User.Remark }}</div>
+      </div>
+      <div>
+        <h1 class="card-title">
+          {{getMessage "user.profile.menu" .Context.Lang}}
+        </h1>
+        <div>
+          <ul class="text-gray-900 dark:text-gray-100">
+            <li class="py-1">
+              <a href="#">
+                <i class="mdi mdi-book-outline"></i>
+                <span
+                  >{{getMessage "user.profile.latest_public_diary"
+                  .Context.Lang}}</span
+                >
+              </a>
+            </li>
+            <li class="py-1">
+              <a href="#joined-diaries">
+                <i class="mdi mdi-book-multiple"></i>
+                <span
+                  >{{getMessage "user.profile.joined_diaries"
+                  .Context.Lang}}</span
+                >
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="flex justify-between mb-10">
+    <div class="text-lg">{{getMessage "diary.list.title" .Context.Lang}}</div>
+    <div>
+      {{if .Data.IsOwner}}
+      <button class="btn" @click="openCreateDiary()">
+        <i class="mdi mdi-plus"></i> {{getMessage "diary.create" .Context.Lang}}
+      </button>
+      {{end}}
+    </div>
+  </section>
+
+  <section>{{ template "user/list" . }}</section>
+
+  <!-- 加入的日记本区域（包含待确认邀请） -->
+  <section class="mt-10" id="joined-diaries">
+    <div id="joinedDiariesList">{{template "user/joined_diaries_list" .}}</div>
+  </section>
+</main>
+{{ template "footer" . }} {{ end }}
 ```
 
-### 5.7 已加入日记本列表组件 (`website/views/user/joined_diaries_list.html`)
+### 5.7 已加入日记本列表组件（融合邀请和已加入）(`website/views/user/joined_diaries_list.html`)
 
 ```html
 {{define "user/joined_diaries_list"}}
@@ -1689,19 +1614,39 @@ export default function Authors() {
 <div class="joined-diaries-section">
     <h2 class="text-xl font-semibold mb-4">
         <i class="mdi mdi-book-multiple mr-2"></i>
-        {{getMessage "user.joined_diaries.active" .Lang}}
+        {{getMessage "user.joined_diaries.title" .Lang}}
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {{range .Data.Diaries}}
         <div class="diary-card p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
             {{template "user/diary_card" dict "Diary" . "UserID" $.Data.UserID "Lang" $.Data.Lang "TimeZone" $.Data.TimeZone}}
-            
+
             <div class="flex space-x-2 mt-4">
                 <a href="/diary/{{.DiaryID}}" class="btn btn-sm flex-1">
                     {{getMessage "diary.view" .Lang}}
                 </a>
-                <button 
-                    class="btn btn-sm btn-secondary"
+                {{if eq .Status 2}}
+                <!-- 待确认邀请 -->
+                <div class="flex space-x-2 flex-1">
+                    <button
+                        class="btn btn-sm flex-1"
+                        hx-post="/diary/{{.DiaryID}}/join"
+                        hx-target="#joinedDiariesList"
+                        hx-swap="outerHTML">
+                        {{getMessage "common.accept" .Lang}}
+                    </button>
+                    <button
+                        class="btn btn-sm btn-secondary flex-1"
+                        hx-post="/diary/{{.DiaryID}}/decline"
+                        hx-target="#joinedDiariesList"
+                        hx-swap="outerHTML">
+                        {{getMessage "common.decline" .Lang}}
+                    </button>
+                </div>
+                {{else}}
+                <!-- 已加入的日记本 -->
+                <button
+                    class="btn btn-sm btn-secondary flex-1"
                     hx-post="/diary/{{.DiaryID}}/authors/quit"
                     hx-vals='{"diary_id": {{.DiaryID}}}'
                     hx-confirm="{{getMessage "diary.authors.confirm_quit" .Lang}}"
@@ -1709,99 +1654,254 @@ export default function Authors() {
                     hx-swap="outerHTML">
                     {{getMessage "diary.authors.quit" .Lang}}
                 </button>
+                {{end}}
             </div>
         </div>
         {{end}}
     </div>
-    
-    <!-- 分页 -->
-    {{if gt .Data.TotalPages 1}}
-    <div class="pagination mt-6 flex justify-center items-center space-x-2">
-        {{if gt .Data.PageIndex 1}}
-        <a 
-            href="/home/joined-diaries?page={{subtract .Data.PageIndex 1}}"
-            class="btn btn-sm"
-            hx-get="/home/joined-diaries?page={{subtract .Data.PageIndex 1}}"
-            hx-target="#joinedDiariesList"
-            hx-push-url="true">
-            <i class="mdi mdi-chevron-left"></i>
+
+    <!-- 更多链接 -->
+    {{if .Data.ShowMoreLink}}
+    <div class="text-center mt-4">
+        <a href="/home/joined-diaries" class="text-blue-500 hover:text-blue-600">
+            {{getMessage "user.joined_diaries.view_more" .Lang}}
         </a>
-        {{end}}
-        
-        <span class="px-3 py-1 text-sm">
-            {{getMessage "common.page_info" .Lang}} {{.Data.PageIndex}} / {{.Data.TotalPages}}
-        </span>
-        
-        {{if lt .Data.PageIndex .Data.TotalPages}}
-        <a 
-            href="/home/joined-diaries?page={{add .Data.PageIndex 1}}"
-            class="btn btn-sm"
-            hx-get="/home/joined-diaries?page={{add .Data.PageIndex 1}}"
-            hx-target="#joinedDiariesList"
-            hx-push-url="true">
-            <i class="mdi mdi-chevron-right"></i>
-        </a>
-        {{end}}
     </div>
     {{end}}
 </div>
-{{else if not .Data.Invitations}}
+{{else}}
 <div class="text-center py-8 text-gray-500">
     <i class="mdi mdi-book-open-variant-outline text-4xl mb-2"></i>
     <p>{{getMessage "user.joined_diaries.empty" .Lang}}</p>
 </div>
 {{end}}
 {{end}}
-{{end}}
 ```
 
-### 5.5 多语言文件更新
+### 5.8 已加入日记本列表完整页面（分页）(`website/views/user/joined_diaries_full.html`)
+
+```html
+{{define "user/joined_diaries_full"}} {{template "header" .}} {{template
+"navbar" .}}
+
+<main class="main">
+  <section class="mb-10">
+    <div id="page-nav">
+      <ul class="flex text-lg">
+        <li>
+          <a href="/u/{{ .Data.User.UserId }}"
+            >{{ or .Data.User.DisplayName .Data.User.Handle }}</a
+          >
+        </li>
+        <li class="mx-2">
+          <span class="mdi mdi-slash-forward"></span>
+        </li>
+        <li>
+          <a href="#"
+            >{{getMessage "user.joined_diaries.title" .Context.Lang}}</a
+          >
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <div id="joinedDiariesList">{{template "user/joined_diaries_list" .}}</div>
+
+  <!-- 分页组件（只有多页时显示） -->
+  {{if gt .Data.TotalPages 1}}
+  <div class="flex justify-center mt-6">{{template "pagination" .}}</div>
+  {{end}}
+</main>
+
+{{template "footer" .}} {{end}}
+```
+
+### 5.9 环境配置项
+
+需要在 `.env.local` 中增加配置项：
+
+```bash
+# 用户主页显示的加入日记本数量（包含待确认邀请）
+IDIARY_USER_JOINED_DIARIES_LIMIT=5
+```
+
+### 5.10 服务端逻辑更新
+
+#### 5.9.1 Service 层更新
+
+```go
+// ListJoinedDiariesWithInvitations 获取用户的加入日记本列表（包含待确认邀请）
+// 排序规则：status desc（待确认优先），join_utc_time desc（最新优先）
+// limit: 限制返回数量（用于用户主页展示），<= 0 表示返回全部（用于完整列表页）
+func (s *Service) ListJoinedDiariesWithInvitations(userID int64, limit int) ([]Diary, bool, error) {
+    diaries, err := s.repo.ListJoinedDiariesWithInvitations(userID, limit)
+    if err != nil {
+        return nil, false, err
+    }
+
+    // 计算是否有更多（用于显示"更多"链接）
+    total, err := s.repo.GetJoinedDiariesCountByUserID(userID)
+    if err != nil {
+        return nil, false, err
+    }
+
+    showMore := (limit > 0 && total > limit)
+
+    return diaries, showMore, nil
+}
+
+// ListJoinedDiariesWithInvitationsPaged 获取用户的加入日记本分页列表
+func (s *Service) ListJoinedDiariesWithInvitationsPaged(userID int64, pageIndex, pageSize int) ([]Diary, int, int, error) {
+    diaries, total, err := s.repo.ListJoinedDiariesWithInvitationsPaged(userID, pageIndex, pageSize)
+    if err != nil {
+        return nil, 0, 0, err
+    }
+
+    totalPages := (total + pageSize - 1) / pageSize
+
+    return diaries, total, totalPages, nil
+}
+```
+
+#### 5.9.2 Repository 层更新
+
+```go
+// ListJoinedDiariesWithInvitations 获取用户的加入日记本列表（包含待确认邀请）
+// 排序规则：status desc（待确认优先），join_utc_time desc（最新优先）
+func (r *Repository) ListJoinedDiariesWithInvitations(userID int64, limit int) ([]Diary, error) {
+    query := `
+        SELECT d.*, da.status, da.join_utc_time
+        FROM br_diary d
+        INNER JOIN br_diary_author da ON d.diary_id = da.diary_id
+        WHERE da.user_id = ? AND da.status IN (1, 2)
+        ORDER BY da.status DESC, da.join_utc_time DESC
+    `
+
+    if limit > 0 {
+        query += fmt.Sprintf(" LIMIT %d", limit)
+    }
+
+    rows, err := r.db.Query(query, userID)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var diaries []Diary
+    for rows.Next() {
+        var d Diary
+        // ... 扫描字段 ...
+        diaries = append(diaries, d)
+    }
+
+    return diaries, nil
+}
+
+// ListJoinedDiariesWithInvitationsPaged 获取用户的加入日记本分页列表
+func (r *Repository) ListJoinedDiariesWithInvitationsPaged(userID int64, pageIndex, pageSize int) ([]Diary, int, error) {
+    offset := pageIndex * pageSize
+
+    // 查询分页数据
+    query := `
+        SELECT d.*, da.status, da.join_utc_time
+        FROM br_diary d
+        INNER JOIN br_diary_author da ON d.diary_id = da.diary_id
+        WHERE da.user_id = ? AND da.status IN (1, 2)
+        ORDER BY da.status DESC, da.join_utc_time DESC
+        LIMIT ? OFFSET ?
+    `
+
+    rows, err := r.db.Query(query, userID, pageSize, offset)
+    if err != nil {
+        return nil, 0, err
+    }
+    defer rows.Close()
+
+    var diaries []Diary
+    for rows.Next() {
+        var d Diary
+        // ... 扫描字段 ...
+        diaries = append(diaries, d)
+    }
+
+    // 查询总数
+    countQuery := `
+        SELECT COUNT(*)
+        FROM br_diary d
+        INNER JOIN br_diary_author da ON d.diary_id = da.diary_id
+        WHERE da.user_id = ? AND da.status IN (1, 2)
+    `
+
+    var total int
+    err = r.db.QueryRow(countQuery, userID).Scan(&total)
+    if err != nil {
+        return nil, 0, err
+    }
+
+    return diaries, total, nil
+}
+
+// GetJoinedDiariesCountByUserID 获取用户参与的日记本数量
+func (r *Repository) GetJoinedDiariesCountByUserID(userID int64) (int, error) {
+    query := `
+        SELECT COUNT(*)
+        FROM br_diary d
+        INNER JOIN br_diary_author da ON d.diary_id = da.diary_id
+        WHERE da.user_id = ? AND da.status IN (1, 2)
+    `
+
+    var count int
+    err := r.db.QueryRow(query, userID).Scan(&count)
+    if err != nil {
+        return 0, err
+    }
+
+    return count, nil
+}
+```
+
+### 5.11 多语言文件更新
+
+**原则说明：**
+
+- **模板多语言**：用于模型显示、静态文本（如按钮标签、表单标签、标题等）
+- **JavaScript 多语言**：用于前端交互（如确认对话框、操作提示、错误消息等）
 
 #### 模板多语言 - `website/locales/zh-cn.json`
 
 ```json
 {
   "diary": {
+    "label_info": {
+      "authors_list": "作者列表"
+    },
     "authors": {
       "invite": "邀请作者",
       "invite_title": "邀请新作者",
       "invite_label": "用户标识",
+      "invite_placeholder": "@handle 或 email@example.com",
       "invite_help": "输入用户的 @handle 或邮箱地址",
       "invite_send": "发送邀请",
       "owner": "拥有者",
       "admin": "管理员",
-      "grant_admin": "设为管理员",
-      "revoke_admin": "取消管理员",
-      "remove": "移除作者",
-      "remove_title": "移除作者",
-      "confirm_grant_admin": "确定要授予该用户管理员权限吗？",
-      "confirm_revoke_admin": "确定要撤销该用户的管理员权限吗？",
-      "admin_toggle_title": "权限设置",
-      "confirm_remove": "确定要移除该作者吗？",
-      "quit": "退出日记本",
-      "quit_title": "退出日记本",
-      "confirm_quit": "确定要退出此日记本吗？",
       "posts": "篇日记",
-      "empty": "暂无作者",
-      "invitation_sent": "邀请已发送",
-      "admin_updated": "权限已更新",
-      "author_removed": "作者已移除",
-      "joined_successfully": "已成功加入日记本",
-      "invitation_declined": "已拒绝邀请",
-      "quit_successfully": "已成功退出日记本"
-    }
+      "empty": "暂无作者"
+    },
+    "view": "查看"
   },
   "user": {
-    "invitations": {
-      "pending": "待确认邀请"
+    "profile": {
+      "joined_diaries": "加入的日记本"
     },
     "joined_diaries": {
-      "active": "已加入的日记本",
+      "title": "加入的日记本",
+      "view_more": "查看更多",
       "empty": "您还没有加入任何日记本"
     }
   },
   "common": {
-    "confirm": "确认"
+    "accept": "接受",
+    "decline": "拒绝"
   },
   "email": {
     "diary_invitation": {
@@ -1817,46 +1917,36 @@ export default function Authors() {
 ```json
 {
   "diary": {
+    "label_info": {
+      "authors_list": "Authors List"
+    },
     "authors": {
       "invite": "Invite Author",
       "invite_title": "Invite New Author",
       "invite_label": "User Identity",
+      "invite_placeholder": "@handle or email@example.com",
       "invite_help": "Enter user's @handle or email address",
       "invite_send": "Send Invitation",
       "owner": "Owner",
       "admin": "Admin",
-      "grant_admin": "Grant Admin",
-      "revoke_admin": "Revoke Admin",
-      "remove": "Remove Author",
-      "remove_title": "Remove Author",
-      "confirm_grant_admin": "Are you sure you want to grant admin permission to this user?",
-      "confirm_revoke_admin": "Are you sure you want to revoke admin permission from this user?",
-      "admin_toggle_title": "Permission Settings",
-      "confirm_remove": "Are you sure you want to remove this author?",
-      "quit": "Quit Diary",
-      "quit_title": "Quit Diary",
-      "confirm_quit": "Are you sure you want to quit this diary?",
       "posts": "posts",
-      "empty": "No authors yet",
-      "invitation_sent": "Invitation sent",
-      "admin_updated": "Permission updated",
-      "author_removed": "Author removed",
-      "joined_successfully": "Successfully joined the diary",
-      "invitation_declined": "Invitation declined",
-      "quit_successfully": "Successfully quit the diary"
-    }
+      "empty": "No authors yet"
+    },
+    "view": "View"
   },
   "user": {
-    "invitations": {
-      "pending": "Pending Invitations"
+    "profile": {
+      "joined_diaries": "Joined Diaries"
     },
     "joined_diaries": {
-      "active": "Joined Diaries",
+      "title": "Joined Diaries",
+      "view_more": "View More",
       "empty": "You haven't joined any diaries yet"
     }
   },
   "common": {
-    "confirm": "Confirm"
+    "accept": "Accept",
+    "decline": "Decline"
   },
   "email": {
     "diary_invitation": {
@@ -1890,38 +1980,24 @@ export default {
   'diary.create': '新建日记本',
   'diary.settings': '日记本设置',
 
-  // Diary Authors
-  'diary.authors.invite': '邀请作者',
+  // Diary Authors (前端交互相关)
   'diary.authors.invite_title': '邀请新作者',
-  'diary.authors.invite_label': '用户标识',
-  'diary.authors.invite_help': '输入用户的 @handle 或邮箱地址',
   'diary.authors.invite_send': '发送邀请',
-  'diary.authors.owner': '拥有者',
-  'diary.authors.admin': '管理员',
   'diary.authors.grant_admin': '设为管理员',
   'diary.authors.revoke_admin': '取消管理员',
-  'diary.authors.remove': '移除作者',
   'diary.authors.remove_title': '移除作者',
   'diary.authors.confirm_grant_admin': '确定要授予该用户管理员权限吗？',
   'diary.authors.confirm_revoke_admin': '确定要撤销该用户的管理员权限吗？',
   'diary.authors.admin_toggle_title': '权限设置',
   'diary.authors.confirm_remove': '确定要移除该作者吗？',
-  'diary.authors.quit': '退出日记本',
   'diary.authors.quit_title': '退出日记本',
   'diary.authors.confirm_quit': '确定要退出此日记本吗？',
-  'diary.authors.posts': '篇日记',
-  'diary.authors.empty': '暂无作者',
   'diary.authors.invitation_sent': '邀请已发送',
   'diary.authors.admin_updated': '权限已更新',
   'diary.authors.author_removed': '作者已移除',
   'diary.authors.joined_successfully': '已成功加入日记本',
   'diary.authors.invitation_declined': '已拒绝邀请',
   'diary.authors.quit_successfully': '已成功退出日记本',
-
-  // User
-  'user.invitations.pending': '待确认邀请',
-  'user.joined_diaries.active': '已加入的日记本',
-  'user.joined_diaries.empty': '您还没有加入任何日记本',
 
   // Backend Error Keys (Synced with internal/utils/errors/errors.go)
   // ... 其他错误键 ...
@@ -1951,27 +2027,21 @@ export default {
   'diary.create': 'New Diary',
   'diary.settings': 'Diary Settings',
 
-  // Diary Authors
-  'diary.authors.invite': 'Invite Author',
+  // Diary Authors (前端交互相关)
   'diary.authors.invite_title': 'Invite New Author',
-  'diary.authors.invite_label': 'User Identity',
-  'diary.authors.invite_help': "Enter user's @handle or email address",
   'diary.authors.invite_send': 'Send Invitation',
-  'diary.authors.owner': 'Owner',
-  'diary.authors.admin': 'Admin',
   'diary.authors.grant_admin': 'Grant Admin',
   'diary.authors.revoke_admin': 'Revoke Admin',
-  'diary.authors.remove': 'Remove Author',
   'diary.authors.remove_title': 'Remove Author',
-  'diary.authors.confirm_grant_admin': 'Are you sure you want to grant admin permission to this user?',
-  'diary.authors.confirm_revoke_admin': 'Are you sure you want to revoke admin permission from this user?',
+  'diary.authors.confirm_grant_admin':
+    'Are you sure you want to grant admin permission to this user?',
+  'diary.authors.confirm_revoke_admin':
+    'Are you sure you want to revoke admin permission from this user?',
   'diary.authors.admin_toggle_title': 'Permission Settings',
-  'diary.authors.confirm_remove': 'Are you sure you want to remove this author?',
-  'diary.authors.quit': 'Quit Diary',
+  'diary.authors.confirm_remove':
+    'Are you sure you want to remove this author?',
   'diary.authors.quit_title': 'Quit Diary',
   'diary.authors.confirm_quit': 'Are you sure you want to quit this diary?',
-  'diary.authors.posts': 'posts',
-  'diary.authors.empty': 'No authors yet',
   'diary.authors.invitation_sent': 'Invitation sent',
   'diary.authors.admin_updated': 'Permission updated',
   'diary.authors.author_removed': 'Author removed',
@@ -1979,17 +2049,12 @@ export default {
   'diary.authors.invitation_declined': 'Invitation declined',
   'diary.authors.quit_successfully': 'Successfully quit the diary',
 
-  // User
-  'user.invitations.pending': 'Pending Invitations',
-  'user.joined_diaries.active': 'Joined Diaries',
-  'user.joined_diaries.empty': 'You haven\'t joined any diaries yet',
-
   // Backend Error Keys (Synced with internal/utils/errors/errors.go)
   // ... 其他错误键 ...
 };
 ```
 
-### 5.9 日记本模块更新 (`website/static/src/js/modules/diary-detail.js`)
+### 5.12 日记本模块更新 (`website/static/src/js/modules/diary-detail.js`)
 
 ```javascript
 import { SocialMixin } from './social.js';
@@ -2021,7 +2086,7 @@ export default function DiaryDetail() {
 
       window.openDiarySettings = (diaryId) => this.openDiarySettings(diaryId);
       window.toggleDiaryLike = (diaryId) => this.toggleDiaryLike(diaryId);
-      
+
       // Expose authors methods
       window.authorsMixin = this;
 
@@ -2045,8 +2110,9 @@ export default function DiaryDetail() {
       const t = (key) => this.$store.i18n.t(key);
 
       let closeHandler;
-      const boxId = 'box-diary-settings-' + Math.random().toString(36).slice(2, 10);
-      
+      const boxId =
+        'box-diary-settings-' + Math.random().toString(36).slice(2, 10);
+
       uno.box.dialog({
         boxId: boxId,
         title: t('diary.settings'),
@@ -2078,7 +2144,11 @@ export default function DiaryDetail() {
         },
         onClose: () => {
           if (closeHandler)
-            document.body.removeEventListener('closeDiaryModal', closeHandler, true);
+            document.body.removeEventListener(
+              'closeDiaryModal',
+              closeHandler,
+              true,
+            );
         },
       });
 
@@ -2206,80 +2276,95 @@ hebe 项目中存在三套多语言系统：
 
 ### 6.4 邮件参数说明
 
-| 参数 | 说明 | 示例 |
-|------|------|------|
-| `diary_title` | 日记本标题 | "我的旅行日记" |
-| `owner_name` | 邀请人显示名称 | "张三" |
-| `owner_handle` | 邀请人 handle | @zhangsan |
-| `invitee_name` | 被邀请人显示名称 | "李四" |
-| `accept_url` | 接受邀请的链接 | https://idiary.ai/diary/123/join |
-| `domain` | 应用域名 | idiary.ai |
+| 参数           | 说明             | 示例                             |
+| -------------- | ---------------- | -------------------------------- |
+| `diary_title`  | 日记本标题       | "我的旅行日记"                   |
+| `owner_name`   | 邀请人显示名称   | "张三"                           |
+| `owner_handle` | 邀请人 handle    | @zhangsan                        |
+| `invitee_name` | 被邀请人显示名称 | "李四"                           |
+| `accept_url`   | 接受邀请的链接   | https://idiary.ai/diary/123/join |
+| `domain`       | 应用域名         | idiary.ai                        |
 
 ## 7. 实施计划
 
 ### 7.1 阶段划分
 
 #### 阶段 1: 后端基础
-- [ ] 实现 `diary/types.go` 中的 `Author` 结构体
-- [ ] 实现 `diary/repository.go` 中的作者相关方法
-- [ ] 实现 `diary/service.go` 中的作者管理业务逻辑
-- [ ] 实现邮件发送方法 `sendInvitationEmail`
-- [ ] 实现语言规范化方法 `normalizeLanguage`
-- [ ] 编写单元测试
+
+- [x] 实现 `diary/types.go` 中的 `Author` 结构体
+- [x] 实现 `diary/repository.go` 中的作者相关方法
+- [x] 实现 `diary/service.go` 中的作者管理业务逻辑
+- [x] 实现邮件发送方法 `sendInvitationEmail`
+- [x] 实现语言规范化方法 `normalizeLanguage`
+- [x] 编写单元测试（types、repository、service）
 
 #### 阶段 2: 邮件多语言
-- [ ] 添加邮件多语言配置到 `website/locales/zh-cn.json`
-- [ ] 添加邮件多语言配置到 `website/locales/en.json`
-- [ ] 测试邮件发送功能（中英文）
+
+- [x] 添加邮件多语言配置到 `website/locales/zh-cn.json`
+- [x] 添加邮件多语言配置到 `website/locales/en.json`
+- [x] 测试邮件发送功能（中英文）
 
 #### 阶段 3: 权限集成
-- [ ] 更新 `entry/service.go` 中的权限验证逻辑（确保私有日记本的所有作者都能访问）
-- [ ] 编写集成测试
+
+- [x] 更新 `entry/service.go` 中的权限验证逻辑（确保私有日记本的所有作者都能访问）
+- [x] 编写集成测试
+- [x] 编写单元测试
 
 #### 阶段 4: 控制器和路由
-- [ ] 实现 `diary/requests.go`
-- [ ] 实现 `diary/handlers.go`（使用 `middleware.Validate` 中间件）
-- [ ] 更新 `diary/routes.go`
+
+- [x] 实现 `diary/requests.go`
+- [x] 实现 `diary/handlers.go`（使用 `middleware.Validate` 中间件）
+- [x] 更新 `diary/routes.go`
+- [x] 编写单元测试
 
 #### 阶段 5: 前端开发
-- [ ] 创建 `website/static/src/js/modules/authors.js`（使用项目统一的 CSRF 安全机制）
-- [ ] 更新 `website/static/src/js/locales/zh-cn.js`（添加作者相关键值）
-- [ ] 更新 `website/static/src/js/locales/en.js`（添加作者相关键值）
-- [ ] 创建 `website/views/diary/box_invite_author.html`（使用 `x-uno-valid` 验证）
-- [ ] 创建 `website/views/diary/authors_list.html`（Card 显示方式 + uno tooltip 菜单）
-- [ ] 更新 `website/views/diary/index.html`
-- [ ] 创建 `website/views/user/invitations_list.html`
-- [ ] 创建 `website/views/user/joined_diaries_list.html`
-- [ ] 更新 `website/views/user/index.html`
+
+- [x] 创建 `website/static/src/js/modules/authors.js`（使用项目统一的 CSRF 安全机制）
+- [x] 更新 `website/static/src/js/locales/zh-cn.js`（添加作者相关键值）
+- [x] 更新 `website/static/src/js/locales/en.js`（添加作者相关键值）
+- [x] 创建 `website/views/diary/box_invite_author.html`（使用 `x-uno-valid` 验证）
+- [x] 创建 `website/views/diary/authors.html`（作者列表独立页面）
+- [x] 更新 `website/views/diary/index.html`（Authors 链接指向独立页面）
+- [x] 创建 `website/views/user/joined_diaries_list.html`（融合邀请和已加入）
+- [x] 创建 `website/views/user/joined_diaries_full.html`（完整列表页）
+- [x] 更新 `website/views/user/index.html`
 - [ ] 更新 `website/static/src/js/modules/diary-detail.js`
 
 #### 阶段 6: 模板多语言
+
 - [ ] 更新 `website/locales/zh-cn.json`
 - [ ] 更新 `website/locales/en.json`
 
-#### 阶段 7: 测试和联调
+#### 阶段 7: 配置更新
+
+- [ ] 在 `.env.local` 中添加 `IDIARY_USER_JOINED_DIARIES_LIMIT` 配置项
+- [ ] 更新 `internal/core/config` 配置结构体以支持新配置
+
+#### 阶段 8: 测试和联调
+
 - [ ] 前后端联调
 - [ ] 测试 CSRF Token 注入（fetch 和 HTMX）
 - [ ] 测试邮件发送功能（中英文）
 - [ ] 测试私有日记本权限
-- [ ] E2E 测试
+- [ ] 测试作者列表分页功能
+- [ ] 测试加入日记本列表排序和分页
 
 ### 7.2 优先级
 
-| 优先级 | 功能 | 说明 |
-|--------|------|------|
-| P0 | 邀请作者 | 核心功能，必须实现 |
-| P0 | 邮件通知 | 核心功能，必须实现 |
-| P0 | 接受/拒绝邀请 | 核心功能，必须实现 |
-| P0 | 作者写日记 | 核心功能，必须实现 |
-| P0 | 权限验证 | 核心功能，必须实现（包括私有日记本权限） |
-| P0 | CSRF 安全 | 核心功能，必须实现（使用项目统一方案） |
-| P1 | 设置管理员 | 重要功能，应该实现 |
-| P1 | 移除作者 | 重要功能，应该实现 |
-| P1 | 退出日记本 | 重要功能，应该实现 |
-| P2 | 作者列表展示（Card） | 改进功能，可以延后 |
-| P2 | 加入的日记本列表 | 改进功能，可以延后 |
-| P3 | 通知系统 | 未来功能，可以延后 |
+| 优先级 | 功能                 | 说明                                     |
+| ------ | -------------------- | ---------------------------------------- |
+| P0     | 邀请作者             | 核心功能，必须实现                       |
+| P0     | 邮件通知             | 核心功能，必须实现                       |
+| P0     | 接受/拒绝邀请        | 核心功能，必须实现                       |
+| P0     | 作者写日记           | 核心功能，必须实现                       |
+| P0     | 权限验证             | 核心功能，必须实现（包括私有日记本权限） |
+| P0     | CSRF 安全            | 核心功能，必须实现（使用项目统一方案）   |
+| P1     | 设置管理员           | 重要功能，应该实现                       |
+| P1     | 移除作者             | 重要功能，应该实现                       |
+| P1     | 退出日记本           | 重要功能，应该实现                       |
+| P2     | 作者列表展示（Card） | 改进功能，可以延后                       |
+| P2     | 加入的日记本列表     | 改进功能，可以延后                       |
+| P3     | 通知系统             | 未来功能，可以延后                       |
 
 ## 8. 边界情况和错误处理
 
@@ -2301,19 +2386,19 @@ hebe 项目中存在三套多语言系统：
 
 ### 8.2 错误处理
 
-| 错误场景 | 错误代码 | HTTP 状态码 | 用户提示 |
-|----------|----------|-------------|----------|
-| 用户不存在 | USER_NOT_FOUND | 404 | "用户不存在" |
-| 不是日记本拥有者 | PERMISSION_DENIED | 403 | "只有拥有者可以执行此操作" |
-| 已经是作者 | ALREADY_AUTHOR | 400 | "该用户已经是作者" |
-| 已经被邀请 | ALREADY_INVITED | 400 | "该用户已被邀请" |
-| 邀请不存在 | INVITATION_NOT_FOUND | 404 | "邀请不存在" |
-| 不是待确认状态 | INVALID_PARAMS | 400 | "不是待确认的邀请" |
-| 拥有者不能退出 | INVALID_PARAMS | 400 | "拥有者不能退出自己的日记本" |
-| 不能移除拥有者 | INVALID_PARAMS | 400 | "不能移除拥有者" |
-| 不能设置拥有者 | INVALID_PARAMS | 400 | "不能设置拥有者为管理员" |
-| 邮件发送失败 | EMAIL_SEND_FAILED | 500 | "邀请已发送成功，但邮件通知发送失败" |
-| CSRF Token 无效 | CSRF_TOKEN_INVALID | 403 | "CSRF Token 无效" |
+| 错误场景         | 错误代码             | HTTP 状态码 | 用户提示                             |
+| ---------------- | -------------------- | ----------- | ------------------------------------ |
+| 用户不存在       | USER_NOT_FOUND       | 404         | "用户不存在"                         |
+| 不是日记本拥有者 | PERMISSION_DENIED    | 403         | "只有拥有者可以执行此操作"           |
+| 已经是作者       | ALREADY_AUTHOR       | 400         | "该用户已经是作者"                   |
+| 已经被邀请       | ALREADY_INVITED      | 400         | "该用户已被邀请"                     |
+| 邀请不存在       | INVITATION_NOT_FOUND | 404         | "邀请不存在"                         |
+| 不是待确认状态   | INVALID_PARAMS       | 400         | "不是待确认的邀请"                   |
+| 拥有者不能退出   | INVALID_PARAMS       | 400         | "拥有者不能退出自己的日记本"         |
+| 不能移除拥有者   | INVALID_PARAMS       | 400         | "不能移除拥有者"                     |
+| 不能设置拥有者   | INVALID_PARAMS       | 400         | "不能设置拥有者为管理员"             |
+| 邮件发送失败     | EMAIL_SEND_FAILED    | 500         | "邀请已发送成功，但邮件通知发送失败" |
+| CSRF Token 无效  | CSRF_TOKEN_INVALID   | 403         | "CSRF Token 无效"                    |
 
 ## 9. 性能优化建议
 

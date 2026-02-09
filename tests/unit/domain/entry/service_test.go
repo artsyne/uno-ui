@@ -70,7 +70,7 @@ func TestEntryService_AddEntry(t *testing.T) {
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
@@ -143,7 +143,7 @@ func TestEntryService_GetEntryByID(t *testing.T) {
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
@@ -200,7 +200,7 @@ func TestEntryService_UpdateEntry(t *testing.T) {
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据
@@ -234,7 +234,7 @@ func TestEntryService_UpdateEntry(t *testing.T) {
 			Status:        1,
 		}
 
-		err := entryService.UpdateEntry(updatedEntry)
+		err := entryService.UpdateEntry(updatedEntry, testUser.UserId)
 		assert.NoError(t, err)
 
 		// 验证更新是否成功
@@ -257,7 +257,7 @@ func TestEntryService_UpdateEntry(t *testing.T) {
 			Status:      1,
 		}
 
-		err := entryService.UpdateEntry(nonExistentEntry)
+		err := entryService.UpdateEntry(nonExistentEntry, testUser.UserId)
 		assert.Error(t, err)
 	})
 
@@ -273,7 +273,7 @@ func TestEntryService_UpdateEntry(t *testing.T) {
 			Status:      1,
 		}
 
-		err := entryService.UpdateEntry(invalidEntry)
+		err := entryService.UpdateEntry(invalidEntry, testUser.UserId)
 		assert.Error(t, err)
 	})
 }
@@ -296,7 +296,7 @@ func TestEntryService_ListEntriesByUserID(t *testing.T) {
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	diaryRepo := repository.NewDiaryRepository()
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryRepo := repository.NewEntryRepository()
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
@@ -428,7 +428,7 @@ func TestEntryService_GetEntryCountByUserID(t *testing.T) {
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	diaryRepo := repository.NewDiaryRepository()
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryRepo := repository.NewEntryRepository()
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
@@ -493,7 +493,7 @@ func TestEntryService_UpdateEntryByID(t *testing.T) {
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	diaryRepo := repository.NewDiaryRepository()
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryRepo := repository.NewEntryRepository()
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
@@ -528,7 +528,7 @@ func TestEntryService_UpdateEntryByID(t *testing.T) {
 			Status:        1,
 		}
 
-		err := entryService.UpdateEntryByID(updatedEntry)
+		err := entryService.UpdateEntryByID(updatedEntry, testUser.UserId)
 		assert.NoError(t, err)
 
 		// 验证更新是否成功
@@ -551,7 +551,7 @@ func TestEntryService_UpdateEntryByID(t *testing.T) {
 			Status:      1,
 		}
 
-		err := entryService.UpdateEntryByID(nonExistentEntry)
+		err := entryService.UpdateEntryByID(nonExistentEntry, testUser.UserId)
 		assert.Error(t, err)
 	})
 }
@@ -574,7 +574,7 @@ func TestEntryService_DeleteEntryByID(t *testing.T) {
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
 	diaryRepo := repository.NewDiaryRepository()
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryRepo := repository.NewEntryRepository()
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
@@ -599,6 +599,11 @@ func TestEntryService_DeleteEntryByID(t *testing.T) {
 	retrievedEntry, err := entryService.GetEntryByID(entryID)
 	require.NoError(t, err)
 	assert.NotNil(t, retrievedEntry)
+
+	// 手动增加日记计数，避免删除时出现 BIGINT UNSIGNED out of range 错误
+	// 因为 Service 层的 AddEntry 不会自动增加计数，但 DeleteEntryByID 会减少计数
+	err = diaryService.IncrementEntryCount(testDiary.DiaryID)
+	require.NoError(t, err)
 
 	t.Run("成功删除文章", func(t *testing.T) {
 		currentTime := int64(1642680300)
@@ -644,7 +649,7 @@ func TestEntryService_GetEntriesStats(t *testing.T) {
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	// 设置测试数据

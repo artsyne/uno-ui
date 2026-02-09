@@ -31,6 +31,18 @@ type RepositoryInterface interface {
 	//   - error: 查询失败时返回错误
 	ListByUserID(userID int64, diaryID int64, status int8, pageIndex, pageSize int) ([]Entry, int, error)
 
+	// ListByDiaryID 根据日记本ID分页查询日记信息（所有作者）
+	// 参数:
+	//   - diaryID: 日记本ID
+	//   - status: 日记状态
+	//   - pageIndex: 页码（从0开始）
+	//   - pageSize: 每页大小
+	// 返回:
+	//   - []Entry: 日记列表
+	//   - int: 总记录数
+	//   - error: 查询失败时返回错误
+	ListByDiaryID(diaryID int64, status int8, pageIndex, pageSize int) ([]Entry, int, error)
+
 	// GetCountByUserID 根据用户ID和日记本ID统计信息数量
 	// 参数:
 	//   - userID: 用户ID
@@ -40,6 +52,15 @@ type RepositoryInterface interface {
 	//   - int: 日记数量
 	//   - error: 查询失败时返回错误
 	GetCountByUserID(userID int64, diaryID int64, status int8) (int, error)
+
+	// GetCountByDiaryID 根据日记本ID统计信息数量
+	// 参数:
+	//   - diaryID: 日记本ID
+	//   - status: 日记状态
+	// 返回:
+	//   - int: 日记数量
+	//   - error: 查询失败时返回错误
+	GetCountByDiaryID(diaryID int64, status int8) (int, error)
 
 	// ListAllByUserID 根据用户ID分页查询日记信息（跨日记本）
 	// 参数:
@@ -70,6 +91,15 @@ type RepositoryInterface interface {
 	//   - *Entry: 日记对象
 	//   - error: 查询失败时返回错误
 	GetByIDForUser(entryID int64, userID int64) (*Entry, error)
+
+	// GetByIDRaw 根据日记ID获取日记信息（忽略状态和用户限制）
+	// 用于权限检查等需要获取原始日记数据的场景
+	// 参数:
+	//   - entryID: 日记ID
+	// 返回:
+	//   - *Entry: 日记对象，未找到时返回nil
+	//   - error: 查询失败时返回错误
+	GetByIDRaw(entryID int64) (*Entry, error)
 
 	// UpdateByID 根据日记ID更新日记信息
 	// 参数:

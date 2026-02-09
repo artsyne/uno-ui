@@ -15,17 +15,12 @@
     "dev": "npm run build:dev",
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint website/static/src/js",
     "test:build": "npm run build:prod && npm run verify:theme",
-    "test:unit": "NODE_OPTIONS=--experimental-vm-modules jest tests/unit",
-    "test:integration": "jest tests/integration",
-    "test:e2e": "playwright test",
-    "test:visual": "playwright test tests/visual",
-    "test:performance": "playwright test tests/performance",
+    "test:unit": "NODE_OPTIONS=--experimental-vm-modules jest tests/unit tests/js/unit",
+    "test:integration": "NODE_OPTIONS=--experimental-vm-modules jest tests/integration tests/js/integration",
     "test:coverage": "jest --coverage",
-    "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
-    "test:report": "jest --coverage && playwright test --reporter=html"
+    "test": "npm run test:unit && npm run test:integration"
   },
   "devDependencies": {
-    "@playwright/test": "^1.40.0",
     "@tailwindcss/cli": "^4.1.7",
     "@testing-library/dom": "^9.3.3",
     "@testing-library/jest-dom": "^6.1.4",

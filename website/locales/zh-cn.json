@@ -23,10 +23,31 @@
     "op_fail": "操作失败",
     "op_success": "操作成功",
     "load_fail": "加载失败",
-    "days": "天"
+    "days": "天",
+    "view_all": "查看全部",
+    "by": "来自",
+    "owner": "拥有者",
+    "accept": "接受",
+    "reject": "拒绝",
+    "quit_diary": "退出日记本",
+    "confirm_quit_diary": "确定要退出该日记本吗？",
+    "pending_join_confirmation": "待确认加入",
+    "invited_by": "邀请人",
+    "back_home": "返回首页"
   },
   "operation": {
     "success": "操作成功"
+  },
+  "email": {
+    "invitation": {
+      "subject": "邀请加入日记本：{{diary_title}}",
+      "greeting": "你好 {{name}}，",
+      "body": "你已被邀请成为日记本 \"{{diary_title}}\" 的作者。",
+      "role_desc": "作为作者，你可以与其他作者一起在该日记本中撰写和发布日记。",
+      "action_btn": "查看邀请",
+      "alt_link_desc": "如果按钮无效，请将此链接复制并粘贴到浏览器中：",
+      "ignore_desc": "如果你未曾期待此邀请，请忽略此邮件。"
+    }
   },
   "social": {
     "like": {
@@ -76,8 +97,49 @@
     },
     "label_info": {
       "introduction": "简介",
-      "authors_list": "作者",
+      "authors_list": "作者列表",
       "liked_users_list": "点赞用户"
+    },
+    "invitation": {
+      "title": "日记本邀请",
+      "message": "您受邀加入日记本 \"{{diary_title}}\"。",
+      "accept": "接受",
+      "reject": "拒绝",
+      "pending": "待处理邀请",
+      "confirm_reject": "确定要拒绝此邀请吗？"
+    },
+    "author": {
+      "list_title": "作者列表",
+      "invite": "邀请作者",
+      "invite_desc": "邀请朋友加入此日记本",
+      "invite_note": "注：被邀请的作者需要同意后才能加入，系统也会发送邮件通知。",
+      "identity_label": "用户名或邮箱",
+      "identity_placeholder": "请输入对方的用户名或邮箱",
+      "owner": "拥有者",
+      "admin": "管理员",
+      "member": "成员",
+      "manage": "管理",
+      "joined_at": "加入时间",
+      "role": "角色",
+      "status": "状态",
+      "status_pending": "待加入",
+      "remove": "移除",
+      "quit": "退出",
+      "grant_admin": "设为管理员",
+      "revoke_admin": "移除管理员",
+      "confirm_grant_admin": "确定要将此用户设为管理员吗？",
+      "confirm_revoke_admin": "确定要移除此用户的管理员权限吗？",
+      "admin_toggle_title": "修改权限",
+      "remove_author_title": "移除作者",
+      "confirm_remove_author": "您确定要移除该作者吗？",
+      "confirm_quit_diary": "确定要退出此日记本吗？",
+      "quit_diary_title": "退出日记本",
+      "invite_success": "邀请已发送"
+    },
+    "joined_list": {
+      "title": "加入的日记本",
+      "no_diaries": "暂无加入的日记本",
+      "invites_title": "待处理邀请"
     }
   },
   "entry": {

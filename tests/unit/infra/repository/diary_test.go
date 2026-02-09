@@ -6,159 +6,51 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/biuren/hebe/internal/domain/diary"
+	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-// MockDiaryRepository 模拟日记本仓储实现
-type MockDiaryRepository struct {
-	db *sqlx.DB
-}
-
-// NewMockDiaryRepository 创建模拟日记本仓储实例
-func NewMockDiaryRepository(t *testing.T) (*MockDiaryRepository, sqlmock.Sqlmock) {
+func newTestDiaryRepository(t *testing.T) (diary.RepositoryInterface, sqlmock.Sqlmock) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
 
 	sqlxDB := sqlx.NewDb(db, "sqlmock")
-	return &MockDiaryRepository{db: sqlxDB}, mock
+	repo := repository.NewDiaryRepositoryWithDB(sqlxDB)
+	return repo, mock
 }
-
-// 实现 diary.RepositoryInterface 接口的所有方法
-
-func (r *MockDiaryRepository) Insert(diary *diary.Diary) (int64, error) {
-	sqlQuery := `
-		INSERT INTO br_diary (
-			add_user_id,
-			title,
-			remark,
-			info_num,
-			add_utc_time,
-			status
-		) VALUES (?, ?, ?, ?, ?, ?)
-	`
-
-	res, err := r.db.Exec(sqlQuery,
-		diary.AddUserID,
-		diary.Title,
-		diary.Remark,
-		diary.InfoNum,
-		diary.AddUTCTime,
-		diary.Status)
-
-	if err != nil {
-		return 0, err
-	}
-	id, err := res.LastInsertId()
-	return id, err
-}
-
-func (r *MockDiaryRepository) Update(diary *diary.Diary) (int64, error) {
-	sqlQuery := `
-		UPDATE br_diary
-		SET
-			add_user_id = ?,
-			title = ?,
-			remark = ?,
-			info_num = ?,
-			add_utc_time = ?,
-			status = ?
-		WHERE diary_id = ?
-	`
-
-	res, err := r.db.Exec(sqlQuery,
-		diary.AddUserID,
-		diary.Title,
-		diary.Remark,
-		diary.InfoNum,
-		diary.AddUTCTime,
-		diary.Status,
-		diary.DiaryID)
-
-	if err != nil {
-		return 0, err
-	}
-
-	rows, err := res.RowsAffected()
-	return rows, err
-}
-
-func (r *MockDiaryRepository) Delete(diaryId int64) (int64, error) {
-	sqlQuery := "UPDATE br_diary SET status = 0 WHERE diary_id = ?"
-	res, err := r.db.Exec(sqlQuery, diaryId)
-	if err != nil {
-		return 0, err
-	}
-	rows, err := res.RowsAffected()
-	return rows, err
-}
-
-func (r *MockDiaryRepository) GetById(diaryId int64) (*diary.Diary, error) {
-	sqlQuery := "SELECT * FROM br_diary WHERE diary_id = ?"
-	diary := &diary.Diary{}
-	err := r.db.Get(diary, sqlQuery, diaryId)
-	if err == sql.ErrNoRows {
-		return nil, err
-	}
-	return diary, err
-}
-
-func (r *MockDiaryRepository) GetListByUserId(userId int64, offset, limit int) ([]*diary.Diary, error) {
-	sqlQuery := "SELECT * FROM br_diary WHERE add_user_id = ? AND status = 1 ORDER BY add_utc_time DESC LIMIT ? OFFSET ?"
-	var diaries []*diary.Diary
-	err := r.db.Select(&diaries, sqlQuery, userId, limit, offset)
-	return diaries, err
-}
-
-func (r *MockDiaryRepository) GetCountByUserId(userId int64) (int64, error) {
-	var count int64
-	sqlQuery := "SELECT COUNT(*) FROM br_diary WHERE add_user_id = ? AND status = 1"
-	err := r.db.Get(&count, sqlQuery, userId)
-	return count, err
-}
-
-func (r *MockDiaryRepository) IncrementEntryNum(diaryID int64) error {
-	sqlQuery := `
-		UPDATE br_diary SET info_num = info_num + 1
-		WHERE diary_id = ?
-	`
-	_, err := r.db.Exec(sqlQuery, diaryID)
-	return err
-}
-
-func (r *MockDiaryRepository) DecrementEntryNum(diaryID int64) error {
-	sqlQuery := `
-		UPDATE br_diary SET info_num = info_num - 1
-		WHERE diary_id = ?
-	`
-	_, err := r.db.Exec(sqlQuery, diaryID)
-	return err
-}
-
-// 测试用例
 
 func TestDiaryRepository_Insert(t *testing.T) {
-	repo, mock := NewMockDiaryRepository(t)
-	defer repo.db.Close()
+	repo, mock := newTestDiaryRepository(t)
 
 	testDiary := &diary.Diary{
-		AddUserID:      123,
-		Title:          "测试日记本",
-		Remark:         "这是一个测试日记本",
-		InfoNum:        0,
-		AddUTCTime:     1640995200,
-		Status:         1,
+		Title:         "测试日记本",
+		Remark:        "这是一个测试日记本",
+		AccessURL:     "test-url",
+		CoverURL:      "cover.jpg",
+		CoverMidURL:   "cover_mid.jpg",
+		LikeNum:       0,
+		MemberNum:     1,
+		ViewNum:       0,
+		ViewSetting:   1,
+		AccessPwd:     "",
+		SocialSetting: 1,
+		AddUTCTime:    1640995200,
+		AddUserID:     123,
+		Status:        1,
+		InfoNum:       0,
+		ThemeID:       1,
 	}
 
-	// 模拟成功插入
 	mock.ExpectExec(`INSERT INTO br_diary`).WithArgs(
-		testDiary.AddUserID,
-		testDiary.Title,
-		testDiary.Remark,
-		testDiary.InfoNum,
+		testDiary.Title, testDiary.Remark, testDiary.AccessURL,
+		testDiary.CoverURL, testDiary.CoverMidURL, testDiary.LikeNum,
+		testDiary.MemberNum, testDiary.ViewNum,
+		testDiary.ViewSetting, testDiary.AccessPwd, testDiary.SocialSetting,
 		testDiary.AddUTCTime,
-		testDiary.Status,
+		testDiary.AddUserID, testDiary.Status, testDiary.InfoNum,
+		testDiary.ThemeID,
 	).WillReturnResult(sqlmock.NewResult(456, 1))
 
 	id, err := repo.Insert(testDiary)
@@ -168,54 +60,72 @@ func TestDiaryRepository_Insert(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestDiaryRepository_Update(t *testing.T) {
-	repo, mock := NewMockDiaryRepository(t)
-	defer repo.db.Close()
+func TestDiaryRepository_UpdateAuthorStatus(t *testing.T) {
+	repo, mock := newTestDiaryRepository(t)
 
-	testDiary := &diary.Diary{
-		DiaryID:        456,
-		AddUserID:      123,
-		Title:          "更新的日记本",
-		Remark:         "这是一个更新的日记本",
-		InfoNum:        5,
-		AddUTCTime:     1640995200,
-		Status:         1,
-	}
+	diaryID := int64(1001)
+	userID := int64(2001)
+	status := int8(2)
 
-	// 模拟成功更新
-	mock.ExpectExec(`UPDATE br_diary`).WithArgs(
-		testDiary.AddUserID,
-		testDiary.Title,
-		testDiary.Remark,
-		testDiary.InfoNum,
-		testDiary.AddUTCTime,
-		testDiary.Status,
-		testDiary.DiaryID,
-	).WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectExec(`UPDATE br_diary_author SET status = \? WHERE diary_id = \? AND user_id = \?`).
+		WithArgs(status, diaryID, userID).
+		WillReturnResult(sqlmock.NewResult(0, 1))
 
-	rows, err := repo.Update(testDiary)
+	err := repo.UpdateAuthorStatus(diaryID, userID, status)
 
 	assert.NoError(t, err)
-	assert.Equal(t, int64(1), rows)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestDiaryRepository_GetById(t *testing.T) {
-	repo, mock := NewMockDiaryRepository(t)
-	defer repo.db.Close()
+func TestDiaryRepository_UpdateAuthorAdmin(t *testing.T) {
+	repo, mock := newTestDiaryRepository(t)
+
+	diaryID := int64(1001)
+	userID := int64(2001)
+	isAdmin := int8(1)
+
+	mock.ExpectExec(`UPDATE br_diary_author SET is_admin = \? WHERE diary_id = \? AND user_id = \?`).
+		WithArgs(isAdmin, diaryID, userID).
+		WillReturnResult(sqlmock.NewResult(0, 1))
+
+	err := repo.UpdateAuthorAdmin(diaryID, userID, isAdmin)
+
+	assert.NoError(t, err)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestDiaryRepository_DeleteAuthor(t *testing.T) {
+	repo, mock := newTestDiaryRepository(t)
+
+	diaryID := int64(1001)
+	userID := int64(2001)
+
+	mock.ExpectExec(`DELETE FROM br_diary_author WHERE diary_id = \? AND user_id = \?`).
+		WithArgs(diaryID, userID).
+		WillReturnResult(sqlmock.NewResult(0, 1))
+
+	err := repo.DeleteAuthor(diaryID, userID)
+
+	assert.NoError(t, err)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestDiaryRepository_GetByDiaryID(t *testing.T) {
+	repo, mock := newTestDiaryRepository(t)
 
 	diaryID := int64(456)
-
-	// 模拟查询结果
 	rows := sqlmock.NewRows([]string{
-		"diary_id", "add_user_id", "title", "remark", "info_num", "add_utc_time", "status",
+		"diary_id", "title", "remark", "add_user_id", "status", "handle", "display_name",
 	}).AddRow(
-		456, 123, "测试日记本", "这是一个测试日记本", 0, 1640995200, 1,
+		diaryID, "测试日记本", "备注", 123, 1, "testuser", "Test User",
 	)
 
-	mock.ExpectQuery(`SELECT \* FROM br_diary WHERE diary_id = \?`).WithArgs(diaryID).WillReturnRows(rows)
+	// SQL select includes join with br_user
+	mock.ExpectQuery(`SELECT d\.\*, u1\.handle, u1\.display_name FROM br_diary d`).
+		WithArgs(diaryID, 1). // 1 is StatusActive
+		WillReturnRows(rows)
 
-	result, err := repo.GetById(diaryID)
+	result, err := repo.GetByDiaryID(diaryID)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
@@ -224,142 +134,113 @@ func TestDiaryRepository_GetById(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestDiaryRepository_GetById_NotFound(t *testing.T) {
-	repo, mock := NewMockDiaryRepository(t)
-	defer repo.db.Close()
+func TestDiaryRepository_InsertAuthor(t *testing.T) {
+	repo, mock := newTestDiaryRepository(t)
 
-	diaryID := int64(999)
+	author := &diary.Author{
+		DiaryID:     1001,
+		UserID:      2001,
+		IsAdmin:     1,
+		JoinUTCTime: 1640995200,
+		PostNum:     0,
+		Status:      1,
+	}
 
-	// 模拟没有找到日记本
-	mock.ExpectQuery(`SELECT \* FROM br_diary WHERE diary_id = \?`).WithArgs(diaryID).WillReturnError(sql.ErrNoRows)
+	mock.ExpectExec(`INSERT INTO br_diary_author`).WithArgs(
+		author.DiaryID, author.UserID, author.IsAdmin,
+		author.JoinUTCTime, author.PostNum, author.Status,
+	).WillReturnResult(sqlmock.NewResult(0, 1))
 
-	result, err := repo.GetById(diaryID)
+	err := repo.InsertAuthor(author)
 
-	assert.Error(t, err)
-	assert.Nil(t, result)
-	assert.Equal(t, sql.ErrNoRows, err)
+	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestDiaryRepository_GetListByUserId(t *testing.T) {
-	repo, mock := NewMockDiaryRepository(t)
-	defer repo.db.Close()
+func TestDiaryRepository_GetDiaryAuthor(t *testing.T) {
+	repo, mock := newTestDiaryRepository(t)
 
-	userID := int64(123)
-	offset := 0
-	limit := 10
+	diaryID := int64(1001)
+	userID := int64(2001)
 
-	// 模拟查询结果
 	rows := sqlmock.NewRows([]string{
-		"diary_id", "add_user_id", "title", "remark", "info_num", "add_utc_time", "status",
+		"diary_id", "user_id", "is_admin", "status",
 	}).AddRow(
-		456, 123, "日记本1", "描述1", 5, 1640995200, 1,
-	).AddRow(
-		457, 123, "日记本2", "描述2", 3, 1640995100, 1,
+		diaryID, userID, 1, 1,
 	)
 
-	mock.ExpectQuery(`SELECT \* FROM br_diary WHERE add_user_id = \? AND status = 1 ORDER BY add_utc_time DESC LIMIT \? OFFSET \?`).WithArgs(userID, limit, offset).WillReturnRows(rows)
+	mock.ExpectQuery(`SELECT \* FROM br_diary_author WHERE diary_id = \? AND user_id = \?`).
+		WithArgs(diaryID, userID).
+		WillReturnRows(rows)
 
-	result, err := repo.GetListByUserId(userID, offset, limit)
+	author, err := repo.GetDiaryAuthor(diaryID, userID)
 
 	assert.NoError(t, err)
-	assert.Len(t, result, 2)
-	assert.Equal(t, "日记本1", result[0].Title)
-	assert.Equal(t, "日记本2", result[1].Title)
+	assert.NotNil(t, author)
+	assert.Equal(t, diaryID, author.DiaryID)
+	assert.Equal(t, userID, author.UserID)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestDiaryRepository_GetCountByUserId(t *testing.T) {
-	repo, mock := NewMockDiaryRepository(t)
-	defer repo.db.Close()
+func TestDiaryRepository_ListAuthorsByDiaryID(t *testing.T) {
+	repo, mock := newTestDiaryRepository(t)
 
-	userID := int64(123)
+	diaryID := int64(1001)
 
-	// 模拟计数结果
-	rows := sqlmock.NewRows([]string{"count"}).AddRow(5)
-	mock.ExpectQuery(`SELECT COUNT\(\*\) FROM br_diary WHERE add_user_id = \? AND status = 1`).WithArgs(userID).WillReturnRows(rows)
+	rows := sqlmock.NewRows([]string{
+		"diary_id", "user_id", "is_admin", "status", "handle", "display_name", "face_url",
+	}).AddRow(
+		diaryID, 2001, 1, 1, "owner", "Owner", "face1.jpg",
+	).AddRow(
+		diaryID, 2002, 0, 1, "member", "Member", "face2.jpg",
+	)
 
-	count, err := repo.GetCountByUserId(userID)
+	mock.ExpectQuery(`SELECT da\.\*, u\.handle, u\.display_name, u\.face_url FROM br_diary_author da`).
+		WithArgs(diaryID).
+		WillReturnRows(rows)
+
+	authors, err := repo.ListAuthorsByDiaryID(diaryID)
 
 	assert.NoError(t, err)
-	assert.Equal(t, int64(5), count)
+	assert.Len(t, authors, 2)
+	assert.Equal(t, int64(2001), authors[0].UserID)
+	assert.Equal(t, int64(2002), authors[1].UserID)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestDiaryRepository_IncrementEntryNum(t *testing.T) {
-	repo, mock := NewMockDiaryRepository(t)
-	defer repo.db.Close()
+func TestDiaryRepository_IsDiaryOwner(t *testing.T) {
+	repo, mock := newTestDiaryRepository(t)
 
-	diaryID := int64(456)
+	diaryID := int64(1001)
+	userID := int64(2001)
 
-	// 模拟成功增加
-	mock.ExpectExec(`UPDATE br_diary SET info_num = info_num \+ 1\s*WHERE diary_id = \?`).WithArgs(diaryID).WillReturnResult(sqlmock.NewResult(0, 1))
+	// Case 1: Is Owner
+	rows := sqlmock.NewRows([]string{"add_user_id"}).AddRow(userID)
+	mock.ExpectQuery(`SELECT add_user_id FROM br_diary`).
+		WithArgs(diaryID, 1). // 1 is StatusActive
+		WillReturnRows(rows)
 
-	err := repo.IncrementEntryNum(diaryID)
-
+	isOwner, err := repo.IsDiaryOwner(diaryID, userID)
 	assert.NoError(t, err)
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
+	assert.True(t, isOwner)
 
-func TestDiaryRepository_DecrementEntryNum(t *testing.T) {
-	repo, mock := NewMockDiaryRepository(t)
-	defer repo.db.Close()
+	// Case 2: Not Owner
+	rows2 := sqlmock.NewRows([]string{"add_user_id"}).AddRow(userID + 1)
+	mock.ExpectQuery(`SELECT add_user_id FROM br_diary`).
+		WithArgs(diaryID, 1).
+		WillReturnRows(rows2)
 
-	diaryID := int64(456)
-
-	// 模拟成功减少
-	mock.ExpectExec(`UPDATE br_diary SET info_num = info_num - 1\s*WHERE diary_id = \?`).WithArgs(diaryID).WillReturnResult(sqlmock.NewResult(0, 1))
-
-	err := repo.DecrementEntryNum(diaryID)
-
+	isOwner, err = repo.IsDiaryOwner(diaryID, userID)
 	assert.NoError(t, err)
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
+	assert.False(t, isOwner)
 
-func TestDiaryRepository_IncrementEntryNum_DatabaseError(t *testing.T) {
-	repo, mock := NewMockDiaryRepository(t)
-	defer repo.db.Close()
+	// Case 3: Diary Not Found (or deleted)
+	mock.ExpectQuery(`SELECT add_user_id FROM br_diary`).
+		WithArgs(diaryID, 1).
+		WillReturnError(sql.ErrNoRows)
 
-	diaryID := int64(456)
-
-	// 模拟数据库错误
-	mock.ExpectExec(`UPDATE br_diary SET info_num = info_num \+ 1\s*WHERE diary_id = \?`).WithArgs(diaryID).WillReturnError(sql.ErrConnDone)
-
-	err := repo.IncrementEntryNum(diaryID)
-
+	_, err = repo.IsDiaryOwner(diaryID, userID)
 	assert.Error(t, err)
-	assert.Equal(t, sql.ErrConnDone, err)
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
 
-func TestDiaryRepository_DecrementEntryNum_DatabaseError(t *testing.T) {
-	repo, mock := NewMockDiaryRepository(t)
-	defer repo.db.Close()
-
-	diaryID := int64(456)
-
-	// 模拟数据库错误
-	mock.ExpectExec(`UPDATE br_diary SET info_num = info_num - 1\s*WHERE diary_id = \?`).WithArgs(diaryID).WillReturnError(sql.ErrConnDone)
-
-	err := repo.DecrementEntryNum(diaryID)
-
-	assert.Error(t, err)
-	assert.Equal(t, sql.ErrConnDone, err)
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-
-func TestDiaryRepository_Delete(t *testing.T) {
-	repo, mock := NewMockDiaryRepository(t)
-	defer repo.db.Close()
-
-	diaryID := int64(456)
-
-	// 模拟成功删除（软删除，设置status=0）
-	mock.ExpectExec(`UPDATE br_diary SET status = 0 WHERE diary_id = \?`).WithArgs(diaryID).WillReturnResult(sqlmock.NewResult(0, 1))
-
-	rows, err := repo.Delete(diaryID)
-
-	assert.NoError(t, err)
-	assert.Equal(t, int64(1), rows)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }

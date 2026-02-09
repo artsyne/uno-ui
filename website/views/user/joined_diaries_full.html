@@ -1,0 +1,31 @@
+{{ define "user/joined_diaries_full" }}
+{{ template "header" . }}
+{{ template "navbar" . }}
+
+<main class="main">
+    <section class="mb-10">
+        <div id="page-nav">
+            <ul class="flex text-lg">
+                <li>
+                    <a href="/u/{{.Data.User.UserId}}">{{ showUserName .Data.User }}</a>
+                </li>
+                <li class="mx-2">
+                    <span class="mdi mdi-slash-forward"></span>
+                </li>
+                <li>
+                    <span>{{getMessage "user.profile.joined_diaries" .Context.Lang}}</span>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-lg">{{getMessage "user.profile.joined_diaries" .Context.Lang}}</h1>
+    </div>
+
+    {{ template "user/joined_diaries_content" . }}
+    </section>
+</main>
+
+{{ template "footer" . }}
+{{ end }}

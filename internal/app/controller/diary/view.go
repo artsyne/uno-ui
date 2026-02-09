@@ -101,6 +101,22 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 		isOwner = (data.GetAuthUser().UserId == uid)
 	}
 
+	if isOwner {
+		// 获取加入的日记本（包括待确认和已加入，按状态和时间排序）
+		// 使用 limit + 1 的方式来判断是否还有更多，避免 COUNT 查询
+		limit := ctrl.config.App.UserJoinedDiariesLimit
+		joinedDiaries, _ := ctrl.diaryService.ListJoinedDiariesByUserIDWithLimit(uid, limit+1)
+
+		hasMore := false
+		if len(joinedDiaries) > limit {
+			hasMore = true
+			joinedDiaries = joinedDiaries[:limit]
+		}
+
+		data.Data["JoinedDiaries"] = joinedDiaries
+		data.Data["HasMoreJoinedDiaries"] = hasMore
+	}
+
 	// 获取URL中的pageIndex
 	pageIndexStr := c.Param("pageindex")
 	pageIndex := 1
@@ -121,7 +137,7 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 		PageIndex: pageIndex,
 		PageSize:  pageSize,
 		Total:     diariesNum,
-		URL:       fmt.Sprintf("/u/%d/%%d", uid),
+		URL:       fmt.Sprintf("/u/%d/p/%%d", uid),
 		PagePrev:  "<<",
 		PageNext:  ">>",
 	}
@@ -143,6 +159,7 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 	data.Data["PageSize"] = pageSize
 	data.Data["PageIndex"] = pageIndex
 	data.Data["PageLinks"] = pageLinks
+	data.Data["HxTarget"] = "#diary-container"
 
 	// 检查是否为HTMX请求
 	if c.GetHeader("HX-Request") == "true" {
@@ -151,4 +168,72 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 	}
 
 	ctrl.renderService.HTML(c, "user/index", data)
+}
+
+// ShowJoinedDiaries 显示用户加入的日记本列表（完整版）
+// 显示用户参与的所有日记本，支持分页
+//
+// 参数:
+//   - c: Gin上下文对象
+//
+// URL格式:
+//   - /u/{uid}/joined - 显示第一页
+//   - /u/{uid}/joined/{pageindex} - 显示指定页
+func (ctrl *DiaryController) ShowJoinedDiaries(c *gin.Context) {
+	uid, err := validation.ParseID(c.Param("uid"))
+	if err != nil {
+		ctrl.renderService.Redirect(c, "/")
+		return
+	}
+
+	data := ctrl.renderService.CreatePageData(c, "user.joined_diaries.title")
+
+	// 必须是本人
+	if !data.IsAuthenticated() || data.GetAuthUser().UserId != uid {
+		ctrl.renderService.Redirect(c, fmt.Sprintf("/u/%d", uid))
+		return
+	}
+
+	pageIndexStr := c.Param("pageindex")
+	pageIndex := 1
+	if pageIndexStr != "" {
+		if idx, _ := strconv.Atoi(strings.TrimSpace(pageIndexStr)); idx > 0 {
+			pageIndex = idx
+		}
+	}
+
+	pageSize := ctrl.config.App.PageSize
+	diaries, count, _ := ctrl.diaryService.ListJoinedDiariesByUserIDPaged(uid, pageIndex, pageSize)
+
+	listOptions := pkg.ListOptions{
+		PageIndex: pageIndex,
+		PageSize:  pageSize,
+		Total:     count,
+		URL:       fmt.Sprintf("/u/%d/joined/p/%%d", uid),
+		PagePrev:  "<<",
+		PageNext:  ">>",
+	}
+	pageLinks := pkg.GeneratePagination(listOptions)
+
+	data.Data["Diaries"] = diaries
+	data.Data["DiariesNum"] = count
+	data.Data["PageLinks"] = pageLinks
+	data.Data["IsJoinedList"] = true
+	data.Data["HxTarget"] = "#joined-diaries-content"
+	data.Data["IsJoinedDiariesPage"] = true
+
+	// Get User info for header/navigation if not present
+	if data.Data["User"] == nil {
+		user, err := ctrl.userService.GetUserByUserId(uid)
+		if err == nil {
+			data.Data["User"] = user
+		}
+	}
+
+	if c.GetHeader("HX-Request") == "true" {
+		ctrl.renderService.HTML(c, "user/joined_diaries_content", data)
+		return
+	}
+
+	ctrl.renderService.HTML(c, "user/joined_diaries_full", data)
 }

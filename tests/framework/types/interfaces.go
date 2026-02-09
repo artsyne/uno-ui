@@ -65,6 +65,8 @@ type DataGeneratorInterface interface {
 	CreateEntry(userID, diaryID int64, options ...EntryOption) *entry.Entry
 	GenerateUniqueString(prefix string) string
 	GenerateUniqueEmail(prefix string) string
+	GenerateUniqueHandle(prefix string) string
+	GenerateUniqueTitle(prefix string) string
 }
 
 // ServiceRegistryInterface 服务注册表接口

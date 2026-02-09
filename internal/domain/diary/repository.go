@@ -96,4 +96,51 @@ type RepositoryInterface interface {
 	// 返回:
 	//   - error: 操作失败时返回错误
 	DecrementLikeNum(diaryID int64) error
+
+	// ===================== Author 相关方法 =====================
+
+	// InsertAuthor 新增日记本作者
+	InsertAuthor(author *Author) error
+
+	// UpdateAuthorStatus 更新作者状态
+	UpdateAuthorStatus(diaryID, userID int64, status int8) error
+
+	// UpdateAuthorAdmin 更新作者管理员权限
+	UpdateAuthorAdmin(diaryID, userID int64, isAdmin int8) error
+
+	// DeleteAuthor 删除作者
+	DeleteAuthor(diaryID, userID int64) error
+
+	// ListAuthorsByDiaryID 获取日记本的所有作者
+	ListAuthorsByDiaryID(diaryID int64) ([]Author, error)
+
+	// ListJoinedDiariesByUserID 获取用户参与的日记本列表（状态为Active）
+	ListJoinedDiariesByUserID(userID int64) ([]Diary, error)
+
+	// ListJoinedDiariesByUserIDWithLimit 获取用户参与的日记本列表（带限制，无 Count）
+	ListJoinedDiariesByUserIDWithLimit(userID int64, limit int) ([]Diary, error)
+
+	// ListJoinedDiariesByUserIDPaged 获取用户参与的分页日记本列表
+	ListJoinedDiariesByUserIDPaged(userID int64, pageIndex, pageSize int) ([]Diary, int, error)
+
+	// GetJoinedDiariesCountByUserID 获取用户参与的日记本数量
+	GetJoinedDiariesCountByUserID(userID int64) (int, error)
+
+	// GetActiveJoinedDiariesCountByUserID 获取用户参与的活跃日记本数量（不包含待确认）
+	GetActiveJoinedDiariesCountByUserID(userID int64) (int, error)
+
+	// GetDiaryAuthor 获取指定作者信息
+	GetDiaryAuthor(diaryID, userID int64) (*Author, error)
+
+	// IsDiaryAuthor 检查用户是否为活跃作者
+	IsDiaryAuthor(diaryID, userID int64) (bool, error)
+
+	// ListPendingInvitationsByUserID 获取用户的待确认邀请列表
+	ListPendingInvitationsByUserID(userID int64) ([]Diary, error)
+
+	// IncrementAuthorPostNum 增加作者的发表数量
+	IncrementAuthorPostNum(diaryID, userID int64) error
+
+	// DecrementAuthorPostNum 减少作者的发表数量
+	DecrementAuthorPostNum(diaryID, userID int64) error
 }

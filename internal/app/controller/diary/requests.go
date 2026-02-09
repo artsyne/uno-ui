@@ -72,3 +72,44 @@ type GetLikeStatusRequest struct {
 type DeleteDiaryRequest struct {
 	DiaryID int64 `uri:"id" binding:"required"`
 }
+
+// InviteAuthorRequest 邀请作者请求
+type InviteAuthorRequest struct {
+	DiaryID         int64  `uri:"id" binding:"required"`
+	InviteeIdentity string `form:"invitee_identity" json:"invitee_identity" binding:"required"`
+}
+
+// GetAuthorsRequest 获取作者列表请求
+type GetAuthorsRequest struct {
+	DiaryID   int64 `uri:"id" binding:"required"`
+	PageIndex int   `form:"page" json:"page"`
+	PageSize  int   `form:"page_size" json:"page_size"`
+}
+
+// RemoveAuthorRequest 移除作者请求
+type RemoveAuthorRequest struct {
+	DiaryID      int64 `uri:"id" binding:"required"`
+	TargetUserID int64 `uri:"user_id" binding:"required"`
+}
+
+// UpdateAuthorRequest 更新作者权限请求
+type UpdateAuthorRequest struct {
+	DiaryID      int64 `uri:"id" binding:"required"`
+	TargetUserID int64 `uri:"user_id" binding:"required"`
+	IsAdmin      int8  `form:"is_admin" json:"is_admin" binding:"oneof=0 1"`
+}
+
+// HandleInvitationRequest 处理邀请请求（接受/拒绝）
+type HandleInvitationRequest struct {
+	DiaryID int64 `form:"diary_id" json:"diary_id" binding:"required"`
+}
+
+// QuitDiaryRequest 退出日记本请求
+type QuitDiaryRequest struct {
+	DiaryID int64 `uri:"id" binding:"required"`
+}
+
+// GetInvitationRequest 获取邀请页面请求
+type GetInvitationRequest struct {
+	DiaryID int64 `form:"diary_id" json:"diary_id" binding:"required"`
+}

@@ -45,7 +45,7 @@ func TestCommentServiceIntegration(t *testing.T) {
 	})
 	
 	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 	commentService := comment.NewService(config, commentRepo, userService, entryService, diaryService)
 
@@ -255,7 +255,7 @@ func TestCommentServiceErrorHandling(t *testing.T) {
 	})
 	
 	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 	commentService := comment.NewService(config, commentRepo, userService, entryService, diaryService)
 

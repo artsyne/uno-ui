@@ -27,9 +27,24 @@
 - **Checks**: Must pass golangci-lint / ESLint. Zero TODOs.
 - **Refactoring**: Optimize structure/naming only. Strictly forbidden to modify business logic/API contracts.
 
-## 4. Red Lines (Critical)
+## 5. Verification Protocol (Strict)
 
-- 🚫 Do not commit code that fails to compile or exposes secrets.
-- 🚫 Do not introduce new dependencies arbitrarily.
-- ✅ Maintain API backward compatibility.
-- ✅ Incremental commits, small steps.
+Before concluding any coding session or task, the following **Mandatory Checklist** must be verified:
+
+1.  **Test Suite Execution**:
+    -   Run ALL unit and integration tests (`go test ./...`).
+    -   **Requirement**: 100% Pass Rate. No skipped tests without valid reason.
+2.  **Build Verification**:
+    -   Execute full project build/compile (`go build ./...`).
+    -   **Requirement**: Zero compile errors.
+3.  **Code Coverage**:
+    -   Ensure critical paths (especially new logic) have sufficient test coverage.
+4.  **Technical Debt Check**:
+    -   Confirm no new linting errors (golangci-lint).
+    -   Verify no temporary hacks or "TODO" comments left behind.
+
+**Command Reference**:
+```bash
+go test ./... && go build ./...
+```
+

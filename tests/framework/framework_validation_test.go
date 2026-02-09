@@ -52,9 +52,9 @@ func TestFrameworkBasicFunctionality(t *testing.T) {
 		assert.NotEqual(t, "user@test.com", email)
 
 		// 测试用户名隔离
-		username := isolator.IsolateHandle("testuser")
-		assert.Contains(t, username, "testuser")
-		assert.True(t, len(username) <= 90) // 验证长度限制
+		username := isolator.IsolateHandle("user")
+		assert.Contains(t, username, "user")
+		assert.True(t, len(username) <= 16) // 验证长度限制
 
 		// 测试标题隔离
 		title := isolator.IsolateTitle("test title")

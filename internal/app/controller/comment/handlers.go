@@ -1,6 +1,7 @@
 package comment
 
 import (
+	"fmt"
 	"log/slog"
 	"strconv"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/biuren/hebe/internal/domain/comment"
 	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/utils/errors"
+	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
 )
 
@@ -215,14 +217,6 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 
 	// 计算总页数
 	totalPages := (total + req.PageSize - 1) / req.PageSize
-	nextPage := 0
-	if req.PageIndex < totalPages {
-		nextPage = req.PageIndex + 1
-	}
-	prevPage := 0
-	if req.PageIndex > 1 {
-		prevPage = req.PageIndex - 1
-	}
 
 	// 获取用户时区（未登录则为UTC）
 	var currentUserID int64
@@ -242,13 +236,20 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 
 	// 检查是否为HTMX请求
 	if c.GetHeader("HX-Request") == "true" {
+		lang := ctrl.renderService.GetLocaleFromContext(c)
+		pageLinks := pkg.GeneratePagination(pkg.ListOptions{
+			PageIndex: req.PageIndex,
+			PageSize:  req.PageSize,
+			Total:     total,
+			URL:       fmt.Sprintf("/api/comment/list?entry_id=%d&page_index=%%d", req.EntryID),
+			PagePrev:  ctrl.renderService.GetMessage("common.previous", lang),
+			PageNext:  ctrl.renderService.GetMessage("common.next", lang),
+		})
+
 		data := gin.H{
-			"comments": comments,
-			"pagination": gin.H{
-				"total_pages": totalPages,
-				"prev_page":   prevPage,
-				"next_page":   nextPage,
-			},
+			"comments":      comments,
+			"PageLinks":     pageLinks,
+			"HxTarget":      "#comments-list-container",
 			"time_zone":     tz,
 			"CurrentUserID": currentUserID,
 			"EntryID":       req.EntryID,

@@ -193,7 +193,7 @@ func (a *Application) registerAppServices() error {
 	// 创建服务实例
 	taskService := task.NewService(a.config, taskRepo)
 	userService := user.NewService(a.config, userRepo, taskService, i18nManager, redisClient)
-	diaryService := diary.NewService(a.config, diaryRepo)
+	diaryService := diary.NewService(a.config, diaryRepo, userService, taskService, i18nManager)
 	entryService := entry.NewService(a.config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 	commentService := comment.NewService(a.config, commentRepo, userService, entryService, diaryService)
 	likeService := like.NewLikeService(likeRepo)

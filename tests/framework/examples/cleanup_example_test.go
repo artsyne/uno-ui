@@ -46,7 +46,7 @@ func TestDatabaseCleanupExample(t *testing.T) {
 	})
 	
 	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 		// 创建一些测试数据
@@ -100,7 +100,7 @@ func TestDatabaseCleanupExample(t *testing.T) {
 	})
 	
 	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
-		diaryService := diary.NewService(config, diaryRepo)
+		diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 
 		// 创建一些测试数据
 		generator := ctx.GetDataGenerator()

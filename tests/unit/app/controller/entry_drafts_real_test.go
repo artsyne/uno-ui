@@ -31,7 +31,13 @@ func (m *MockRepoReal) Update(entry *domainEntry.Entry) error          { return 
 func (m *MockRepoReal) ListByUserID(userID int64, diaryID int64, status int8, pageIndex, pageSize int) ([]domainEntry.Entry, int, error) {
 	return nil, 0, nil
 }
+func (m *MockRepoReal) ListByDiaryID(diaryID int64, status int8, pageIndex, pageSize int) ([]domainEntry.Entry, int, error) {
+	return nil, 0, nil
+}
 func (m *MockRepoReal) GetCountByUserID(userID int64, diaryID int64, status int8) (int, error) {
+	return 0, nil
+}
+func (m *MockRepoReal) GetCountByDiaryID(diaryID int64, status int8) (int, error) {
 	return 0, nil
 }
 func (m *MockRepoReal) ListAllByUserID(userID int64, status int8, pageIndex, pageSize int) ([]domainEntry.Entry, int, error) {
@@ -41,6 +47,7 @@ func (m *MockRepoReal) ListAllByUserID(userID int64, status int8, pageIndex, pag
 	return nil, 0, nil
 }
 func (m *MockRepoReal) GetByID(entryID int64) (*domainEntry.Entry, error) { return nil, nil }
+func (m *MockRepoReal) GetByIDRaw(entryID int64) (*domainEntry.Entry, error) { return nil, nil }
 func (m *MockRepoReal) GetByIDForUser(entryID int64, userID int64) (*domainEntry.Entry, error) {
 	return nil, nil
 }

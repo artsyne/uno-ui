@@ -231,11 +231,19 @@ func (di *DataIsolator) IsolateEmail(email string) string {
 }
 
 func (di *DataIsolator) IsolateHandle(handle string) string {
-	return fmt.Sprintf("%s_%s", di.prefix, handle)
+	isolated := fmt.Sprintf("%s_%s", di.prefix, handle)
+	if len(isolated) > 16 {
+		return isolated[:16]
+	}
+	return isolated
 }
 
 func (di *DataIsolator) IsolateTitle(title string) string {
-	return fmt.Sprintf("%s_%s", di.prefix, title)
+	isolated := fmt.Sprintf("%s_%s", di.prefix, title)
+	if len(isolated) > 180 {
+		return isolated[:180]
+	}
+	return isolated
 }
 
 func (di *DataIsolator) TrackCreated(table string, id interface{}) {
@@ -319,7 +327,7 @@ func (sr *ServiceRegistry) InitializeServices(db *sqlx.DB, testConfig TestConfig
 	// 创建一个简单的i18n管理器用于测试
 	i18nManager := i18n.NewLocalizationManager(appConfig)
 	sr.userService = user.NewService(appConfig, userRepo, taskService, i18nManager, nil)
-	sr.diaryService = diary.NewService(appConfig, diaryRepo)
+	sr.diaryService = diary.NewService(appConfig, diaryRepo, sr.userService, taskService, i18nManager)
 	sr.entryService = entry.NewService(appConfig, sr.userService, taskService, diaryRepo, entryRepo, i18nManager)
 	
 	return nil
@@ -389,7 +397,10 @@ func generateTestID() string {
 }
 
 func generatePrefix(testID string) string {
-	return fmt.Sprintf("t_%d_%s", time.Now().Unix()%10000, testID[len(testID)-4:])
+	// Shorten prefix to fit in handle (max 16 chars)
+	// t + 4 digits + 4 chars = 9 chars. 
+	// handle = prefix + "_" + user (max 6) = 16 chars.
+	return fmt.Sprintf("t%d%s", time.Now().Unix()%10000, testID[len(testID)-4:])
 }
 
 // getDefaultTestConfig 返回默认测试配置
@@ -506,6 +517,16 @@ func (dg *DataGenerator) GenerateUniqueString(prefix string) string {
 // GenerateUniqueEmail 生成唯一邮箱
 func (dg *DataGenerator) GenerateUniqueEmail(prefix string) string {
 	return dg.isolator.IsolateEmail(prefix + "@example.com")
+}
+
+// GenerateUniqueHandle 生成唯一Handle
+func (dg *DataGenerator) GenerateUniqueHandle(prefix string) string {
+	return dg.isolator.IsolateHandle(prefix)
+}
+
+// GenerateUniqueTitle 生成唯一标题
+func (dg *DataGenerator) GenerateUniqueTitle(prefix string) string {
+	return dg.isolator.IsolateTitle(prefix)
 }
 
 // GetTestFlags 获取测试标志 - 使用 core 包中的实现

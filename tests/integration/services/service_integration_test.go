@@ -43,7 +43,7 @@ func TestUserDiaryIntegration(t *testing.T) {
 	redisClient.FlushDB()
 	
 	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 
 	t.Run("用户创建和日记本操作流程", func(t *testing.T) {
 		// 1. 创建用户 - 使用随机数据
@@ -127,7 +127,7 @@ func TestUserEntryDiaryIntegration(t *testing.T) {
 	})
 	
 	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	t.Run("完整的内容创建流程", func(t *testing.T) {
@@ -220,7 +220,7 @@ func TestUserEntryDiaryIntegration(t *testing.T) {
 		firstEntry.Title = "更新后的标题"
 		firstEntry.Body = "更新后的内容"
 		firstEntry.UpdateUTCTime = 1642680300
-		err = entryService.UpdateEntry(firstEntry)
+		err = entryService.UpdateEntry(firstEntry, testUser.UserId)
 		assert.NoError(t, err)
 
 		// 10. 验证文章更新
@@ -271,7 +271,7 @@ func TestMultiUserScenario(t *testing.T) {
 	})
 	
 	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	t.Run("多用户数据隔离", func(t *testing.T) {
@@ -403,7 +403,7 @@ func TestServiceErrorHandling(t *testing.T) {
 	})
 	
 	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	t.Run("服务间错误传播", func(t *testing.T) {
@@ -492,7 +492,7 @@ func TestServicePerformance(t *testing.T) {
 	})
 	
 	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 
 	t.Run("批量操作性能", func(t *testing.T) {

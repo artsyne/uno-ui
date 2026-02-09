@@ -112,12 +112,52 @@ func (r *EntryRepository) ListByUserID(userID int64, diaryID int64, status int8,
 	return infoArray, totalRecords, err
 }
 
+// ListByDiaryID 根据日记本ID分页查询日记信息（所有作者）
+func (r *EntryRepository) ListByDiaryID(diaryID int64, status int8, pageIndex, pageSize int) ([]entry.Entry, int, error) {
+	infoArray := []entry.Entry{}
+	totalRecords := 0
+
+	offset := (pageIndex - 1) * pageSize
+
+	// JOIN br_user to get handle and display_name
+	sqlstr := `SELECT e.*, COALESCE(u.handle, '') as handle, COALESCE(u.display_name, '') as display_name 
+		FROM br_entry e 
+		LEFT JOIN br_user u ON e.add_user_id = u.user_id
+		WHERE e.diary_id = ? 
+		and e.status = ? ORDER BY e.entry_id DESC LIMIT ? offset ?`
+
+	err := r.db.Select(&infoArray, sqlstr, diaryID, status, pageSize, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	if len(infoArray) == 0 {
+		return []entry.Entry{}, 0, nil
+	}
+
+	//获取总记录数
+	totalRecords, err = r.GetCountByDiaryID(diaryID, status)
+
+	return infoArray, totalRecords, err
+}
+
 // GetCountByUserID 根据用户ID和日记本ID统计信息数量
 func (r *EntryRepository) GetCountByUserID(userID int64, diaryID int64, status int8) (int, error) {
 	var count int
 	sqlstr := "SELECT COUNT(*) FROM br_entry WHERE diary_id = ? AND add_user_id = ? and  status = ? "
 
 	err := r.db.Get(&count, sqlstr, diaryID, userID, status)
+	if err == sql.ErrNoRows {
+		return 0, nil
+	}
+	return count, err
+}
+
+// GetCountByDiaryID 根据日记本ID统计信息数量
+func (r *EntryRepository) GetCountByDiaryID(diaryID int64, status int8) (int, error) {
+	var count int
+	sqlstr := "SELECT COUNT(*) FROM br_entry WHERE diary_id = ? and status = ? "
+
+	err := r.db.Get(&count, sqlstr, diaryID, status)
 	if err == sql.ErrNoRows {
 		return 0, nil
 	}
@@ -179,6 +219,21 @@ func (r *EntryRepository) GetByIDForUser(entryID int64, userID int64) (*entry.En
 
 	e := &entry.Entry{}
 	err := r.db.Get(e, sqlstr, entryID, userID)
+	if err == sql.ErrNoRows {
+		return nil, errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": entryID})
+	}
+	return e, err
+}
+
+// GetByIDRaw 根据日记ID获取日记信息（忽略状态和用户限制）
+func (r *EntryRepository) GetByIDRaw(entryID int64) (*entry.Entry, error) {
+	sqlstr := `SELECT e.*, COALESCE(u.handle, '') as handle, COALESCE(u.display_name, '') as display_name
+		FROM br_entry e 
+		LEFT JOIN br_user u ON e.add_user_id = u.user_id
+		WHERE e.entry_id = ?`
+
+	e := &entry.Entry{}
+	err := r.db.Get(e, sqlstr, entryID)
 	if err == sql.ErrNoRows {
 		return nil, errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": entryID})
 	}

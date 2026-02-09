@@ -1,10 +1,12 @@
 import { SocialMixin } from './social.js';
 import { EntryMixin } from './entry.js';
+import { AuthorList } from './authors.js';
 
 export default function DiaryDetail() {
   return {
     ...SocialMixin(),
     ...EntryMixin,
+    ...AuthorList(),
 
     init() {
       // Initialize social features

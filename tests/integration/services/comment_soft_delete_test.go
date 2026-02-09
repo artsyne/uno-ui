@@ -44,7 +44,7 @@ func TestCommentOnSoftDeletedEntry(t *testing.T) {
 	})
 
 	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
-	diaryService := diary.NewService(config, diaryRepo)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 	entryService := entry.NewService(config, userService, taskService, diaryRepo, entryRepo, i18nManager)
 	commentService := comment.NewService(config, commentRepo, userService, entryService, diaryService)
 
@@ -136,6 +136,7 @@ func TestCommentOnSoftDeletedEntry(t *testing.T) {
 		}
 		trashID, err := entryService.AddEntry(trashEntry)
 		require.NoError(t, err)
+		_ = diaryService.IncrementEntryCount(testDiary.DiaryID)
 
 		// 软删除
 		err = entryService.DeleteEntryByID(trashID, user1.UserId, time.Now().Unix())

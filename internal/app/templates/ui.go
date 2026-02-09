@@ -25,7 +25,17 @@ func GetUIFuncs() template.FuncMap {
 	return template.FuncMap{
 		"renderBreadcrumb": renderBreadcrumb,
 		"dict":             dict,
+		"getInitial":       getInitial,
 	}
+}
+
+// getInitial 获取字符串首字符
+// 获取字符串的首个字符（支持UTF-8），并转换为大写
+func getInitial(s string) string {
+	for _, r := range s {
+		return strings.ToUpper(string(r))
+	}
+	return ""
 }
 
 // dict 创建键值对映射

@@ -1,7 +1,8 @@
 {{define "diary/list"}}
 <div id="diary-content">
-    <div class="lg:columns-3 md:columns-2 gap-6" id="diary_entry_container">
-        {{if .Data.IsOwner}}
+    <div class="lg:columns-3 md:columns-2 gap-6" id="diary_entry_container"
+        hx-on:htmx:after-swap="if(this.querySelectorAll('.card:not(#write-entry-card)').length > 0) { this.querySelectorAll('.empty-placeholder').forEach(el => el.remove()) }">
+        {{if .Data.CanWrite}}
         <div class="card p-6 mb-6 break-inside-avoid" id="write-entry-card">
             <div class="flex items-center justify-center h-32 hover:cursor-pointer hover:text-red-500"
                 @click="openCreateEntry({{.Data.Diary.DiaryID}})">
@@ -17,7 +18,10 @@
         $timezone := .Data.TimeZone
         }}
         {{
-        $isOwner := .Data.IsOwner
+        $isDiaryOwner := .Data.IsOwner
+        }}
+        {{
+        $currentUserID := .Data.CurrentUserID
         }}
         {{
         $diaryID := .Data.Diary.DiaryID
@@ -25,8 +29,17 @@
         {{
         $socialSetting := .Data.Diary.SocialSetting
         }}
+
+        {{if .Data.Entries}}
         {{range .Data.Entries}}
-        {{ template "diary/entry_card" dict "Entry" . "IsOwner" $isOwner "DiaryID" $diaryID "Lang" $lang "TimeZone" $timezone "IsLiked" false "SocialSetting" $socialSetting }}
+        {{ $canManage := or $isDiaryOwner (eq .AddUserID $currentUserID) }}
+        {{ template "diary/entry_card" dict "Entry" . "IsOwner" $canManage "DiaryID" $diaryID "Lang" $lang "TimeZone"
+        $timezone "IsLiked" false "SocialSetting" $socialSetting }}
+        {{end}}
+        {{else}}
+        <div class="empty-placeholder" style="column-span: all;">
+            <i class="mdi mdi-inbox-outline"></i>
+        </div>
         {{end}}
     </div>
 

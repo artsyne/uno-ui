@@ -3,6 +3,7 @@ export default {
   'common.save': 'Save',
   'common.edit': 'Edit',
   'common.cancel': 'Cancel',
+  'common.confirm': 'Confirm',
   'common.delete': 'Delete',
   'common.op_fail': 'Operation failed',
   'common.op_success': 'Operation successful',
@@ -17,12 +18,45 @@ export default {
   // Diary
   'diary.create': 'New Diary',
   'diary.settings': 'Diary Settings',
+  'diary.view': 'View Diary',
+
+  // Diary Author
+  'diary.author.invite': 'Invite Author',
+  'diary.author.invite_desc': 'Invite friends to join this diary',
+  'diary.author.identity_label': 'Username or Email',
+  'diary.author.identity_placeholder': 'Enter username or email',
+  'diary.author.role': 'Role',
+  'diary.author.admin': 'Admin',
+  'diary.author.member': 'Member',
+  'diary.author.owner': 'Owner',
+  'diary.author.status_active': 'Active',
+  'diary.author.status_pending': 'Pending',
+  'diary.author.invite_success': 'Invitation sent successfully',
+  'diary.author.remove_confirm':
+    'Are you sure you want to remove author {name}?',
+  'diary.author.remove_title': 'Remove Author',
+  'diary.author.remove_author_title': 'Remove Author',
+  'diary.author.confirm_remove_author':
+    'Are you sure you want to remove this author?',
+  'diary.author.quit_confirm': 'Are you sure you want to quit this diary?',
+  'diary.author.quit_title': 'Quit Diary',
+  'diary.author.remove_success': 'Removed successfully',
+  'diary.author.quit_success': 'Quit successfully',
+  'diary.author.update_success': 'Permission updated successfully',
+  'diary.author.list_title': 'Authors',
+  'diary.author.manage': 'Manage Authors',
+  'diary.author.confirm_grant_admin':
+    'Are you sure you want to grant admin access to this member?',
+  'diary.author.confirm_revoke_admin':
+    'Are you sure you want to revoke admin access from this member?',
+  'diary.author.admin_toggle_title': 'Change Permission',
 
   // Entry
   'entry.create': 'New Entry',
   'entry.edit': 'Edit Entry',
   'entry.delete.confirm': 'Are you sure you want to delete this entry?',
-  'entry.drafts.confirm_hard_delete': 'Are you sure you want to permanently delete this draft? This action cannot be undone.',
+  'entry.drafts.confirm_hard_delete':
+    'Are you sure you want to permanently delete this draft? This action cannot be undone.',
   'entry.delete.success': 'Deleted successfully',
   'entry.delete.fail': 'Delete failed',
   'entry.delete.net_error': 'Network error, delete failed',

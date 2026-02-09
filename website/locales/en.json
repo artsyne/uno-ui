@@ -25,10 +25,31 @@
     "load_fail": "Load failed",
     "views": "Views",
     "comments": "Comments",
-    "days": "days"
+    "days": "days",
+    "view_all": "View All",
+    "by": "By",
+    "owner": "Owner",
+    "accept": "Accept",
+    "reject": "Reject",
+    "quit_diary": "Quit Diary",
+    "confirm_quit_diary": "Are you sure you want to quit this diary?",
+    "pending_join_confirmation": "Pending Confirmation",
+    "invited_by": "Invited by",
+    "back_home": "Back to Home"
   },
   "operation": {
     "success": "Operation successful"
+  },
+  "email": {
+    "invitation": {
+      "subject": "Invitation to join diary: {{diary_title}}",
+      "greeting": "Hello {{name}},",
+      "body": "You have been invited to become an author of the diary \"{{diary_title}}\".",
+      "role_desc": "As an author, you can write and publish entries in this diary together with other authors.",
+      "action_btn": "View Invitation",
+      "alt_link_desc": "If the button doesn't work, copy and paste this link into your browser:",
+      "ignore_desc": "If you did not expect this invitation, you can simply ignore this email."
+    }
   },
   "social": {
     "like": {
@@ -80,6 +101,47 @@
       "introduction": "Introduction",
       "authors_list": "Authors",
       "liked_users_list": "Liked Users"
+    },
+    "invitation": {
+      "title": "Diary Invitation",
+      "message": "You have been invited to join the diary \"{{diary_title}}\".",
+      "accept": "Accept",
+      "reject": "Reject",
+      "pending": "Pending Invitations",
+      "confirm_reject": "Are you sure you want to reject this invitation?"
+    },
+    "author": {
+      "list_title": "Authors",
+      "invite": "Invite Author",
+      "invite_desc": "Invite friends to join this diary",
+      "invite_note": "Note: The invited author needs to accept the invitation. An email notification will also be sent.",
+      "identity_label": "Username or Email",
+      "identity_placeholder": "Enter username or email",
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member",
+      "manage": "Manage",
+      "joined_at": "Joined At",
+      "role": "Role",
+      "status": "Status",
+      "status_pending": "Pending",
+      "remove": "Remove",
+      "quit": "Quit",
+      "grant_admin": "Grant Admin",
+      "revoke_admin": "Revoke Admin",
+      "confirm_grant_admin": "Are you sure you want to grant admin rights to this user?",
+      "confirm_revoke_admin": "Are you sure you want to revoke admin rights from this user?",
+      "admin_toggle_title": "Change Permission",
+      "remove_author_title": "Remove Author",
+      "confirm_remove_author": "Are you sure you want to remove this author?",
+      "confirm_quit_diary": "Are you sure you want to quit this diary?",
+      "quit_diary_title": "Quit Diary",
+      "invite_success": "Invitation sent"
+    },
+    "joined_list": {
+      "title": "Joined Diaries",
+      "no_diaries": "No joined diaries",
+      "invites_title": "Pending Invitations"
     }
   },
   "entry": {

@@ -10,6 +10,11 @@ import { Settings, HandleSettings } from '../modules/settings.js';
 import { DiaryForm } from '../modules/diary-form.js';
 import { HeroAnimation } from '../modules/home.js';
 import Drafts from '../modules/drafts.js';
+import {
+  InviteAuthorModal,
+  AuthorList,
+  initAuthorListeners,
+} from '../modules/authors.js';
 
 /**
  * Application Initialization
@@ -105,6 +110,7 @@ window.fetch = function (input, init) {
 // 3. Initialize Auth (HTMX Config)
 initAuth();
 initFormHandlers();
+initAuthorListeners();
 
 // 4. Global Event Listeners
 document.body.addEventListener('htmx:configRequest', (evt) => {
@@ -160,6 +166,7 @@ document.addEventListener('alpine:init', () => {
   Alpine.data('diaryForm', DiaryForm);
   Alpine.data('heroAnimation', HeroAnimation);
   Alpine.data('drafts', Drafts);
+  Alpine.data('authorList', AuthorList);
 
   // Register Stores
   Alpine.store('theme', themeStore);

@@ -80,9 +80,9 @@ func (di *DataIsolatorImpl) IsolateEmail(email string) string {
 // 确保Handle的唯一性和格式正确性
 func (di *DataIsolatorImpl) IsolateHandle(handle string) string {
 	isolated := di.IsolateString(handle)
-	// 确保Handle长度不超过数据库限制（通常100字符）
-	if len(isolated) > 90 { // 留出一些余量
-		isolated = isolated[:90]
+	// 确保Handle长度不超过限制 (16字符)
+	if len(isolated) > 16 {
+		isolated = isolated[:16]
 	}
 	return isolated
 }

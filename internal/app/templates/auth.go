@@ -2,9 +2,10 @@ package templates
 
 import (
 	"html/template"
+	"reflect"
 	"strings"
 
-	"github.com/biuren/hebe/internal/contracts"
+	types "github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/pkg"
 )
@@ -50,7 +51,78 @@ func GetAuthFuncs() template.FuncMap {
 		"getRandomVersion":    getRandomVersion,
 		"getAutoSaveEnabled":  getAutoSaveEnabled,
 		"getAutoSaveInterval": getAutoSaveInterval,
+		"showUserName":        showUserName,
 	}
+}
+
+// showUserName 获取用户显示名称
+// 优先显示 DisplayName，如果为空则显示 Handle
+// 支持 User, AuthUser, Entry (AddUser...) 等结构体
+func showUserName(v interface{}) string {
+	if v == nil {
+		return ""
+	}
+
+	val := reflect.ValueOf(v)
+	if val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			return ""
+		}
+		val = val.Elem()
+	}
+
+	if val.Kind() != reflect.Struct {
+		return ""
+	}
+
+	// Helper to get string field value
+	getString := func(name string) string {
+		f := val.FieldByName(name)
+		if f.IsValid() && f.Kind() == reflect.String {
+			return f.String()
+		}
+		return ""
+	}
+
+	// 1. Try DisplayName / Handle
+	dn := getString("DisplayName")
+	h := getString("Handle")
+	if dn != "" {
+		return dn
+	}
+	if h != "" {
+		return h
+	}
+
+	// 2. Try AddUserDisplayName / AddUserHandle (e.g. Entry)
+	adn := getString("AddUserDisplayName")
+	ah := getString("AddUserHandle")
+	if adn != "" {
+		return adn
+	}
+	if ah != "" {
+		return ah
+	}
+
+	// 3. Try Context.AuthUser (PageData)
+	ctxField := val.FieldByName("Context")
+	if ctxField.IsValid() {
+		ctxVal := ctxField
+		if ctxVal.Kind() == reflect.Ptr {
+			if ctxVal.IsNil() {
+				return ""
+			}
+			ctxVal = ctxVal.Elem()
+		}
+		if ctxVal.Kind() == reflect.Struct {
+			authUserField := ctxVal.FieldByName("AuthUser")
+			if authUserField.IsValid() && !authUserField.IsNil() {
+				return showUserName(authUserField.Interface())
+			}
+		}
+	}
+
+	return ""
 }
 
 func getAutoSaveEnabled(data *types.PageData[map[string]interface{}]) bool {

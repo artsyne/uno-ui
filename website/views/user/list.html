@@ -1,10 +1,16 @@
 {{define "user/list"}}
 <div id="diary-container">
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8" id="diary_list">
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8" id="diary_list" hx-on:htmx:after-swap="if(this.children.length > 1) { this.querySelectorAll('.empty-placeholder').forEach(el => el.remove()) }">
+        {{ if .Data.Diaries }}
         {{ $timeZone := .Data.TimeZone }}
         {{ $lang := .Context.Lang }}
         {{ range .Data.Diaries }}
         {{ template "user/diary_card" dict "Diary" . "Lang" $lang "TimeZone" $timeZone }}
+        {{ end }}
+        {{ else }}
+        <div class="empty-placeholder col-span-full">
+            <i class="mdi mdi-inbox-outline"></i>
+        </div>
         {{ end }}
     </div>
 

@@ -50,6 +50,16 @@ func (def AppError) Error() string {
 	return fmt.Sprintf("[%d] %s", def.code, def.key)
 }
 
+// Is 实现 errors.Is 接口，用于错误比较
+// 忽略 details 字段，只比较 code
+func (def AppError) Is(target error) bool {
+	t, ok := target.(AppError)
+	if !ok {
+		return false
+	}
+	return def.code == t.code
+}
+
 // WithDetails 返回带详细信息的新错误实例
 func (def AppError) WithDetails(details interface{}) AppError {
 	// 返回一个新的 AppError 值，确保不可变性
@@ -163,4 +173,21 @@ var (
 
 	// 9999: 通用内部错误 (500)
 	InternalError = NewAppError(9999, "internal_error", 500)
+
+	// ===================== 多作者相关错误 (10000+) =====================
+	
+	// AuthorNotFound 作者未找到
+	AuthorNotFound = NewAppError(10001, "AUTHOR_NOT_FOUND", 404)
+	
+	// InvitationNotFound 邀请未找到
+	InvitationNotFound = NewAppError(10002, "INVITATION_NOT_FOUND", 404)
+	
+	// AlreadyAuthor 已经是作者
+	AlreadyAuthor = NewAppError(10003, "ALREADY_AUTHOR", 400)
+	
+	// AlreadyInvited 已经被邀请
+	AlreadyInvited = NewAppError(10004, "ALREADY_INVITED", 400)
+
+	// JoinedDiariesLimitExceeded 加入日记本数量超过限制
+	JoinedDiariesLimitExceeded = NewAppError(10005, "JOINED_DIARIES_LIMIT_EXCEEDED", 400)
 )

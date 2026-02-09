@@ -138,7 +138,7 @@ func (cm *CleanupManagerImpl) getTablesInCleanupOrder() []string {
 		"br_follow",       // 关注表（关联表）
 		"br_job_history",  // 任务历史表
 		"br_job_queue",    // 任务队列表
-		"br_diary_member", // 日记成员表（依赖日记和用户）
+		"br_diary_author", // 日记成员表（依赖日记和用户）
 		"br_entry",        // 文章表（依赖日记和用户）
 		"br_diary",        // 日记表（依赖用户）
 		"br_user_stat",    // 用户统计表（依赖用户）
@@ -177,7 +177,7 @@ func (cm *CleanupManagerImpl) cleanupTableByPrefix(table string) (int, error) {
 		// Clean follows by users with prefix
 		whereClause = fmt.Sprintf("user_id IN (SELECT user_id FROM br_user WHERE handle LIKE '%s%%')",
 			cm.isolator.GetPrefix())
-	case "br_diary_member":
+	case "br_diary_author":
 		// Clean members by users with prefix
 		whereClause = fmt.Sprintf("user_id IN (SELECT user_id FROM br_user WHERE handle LIKE '%s%%')",
 			cm.isolator.GetPrefix())

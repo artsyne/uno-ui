@@ -27,6 +27,13 @@ func NewDiaryRepository() diary.RepositoryInterface {
 	}
 }
 
+// NewDiaryRepositoryWithDB 创建带有指定DB连接的日记本仓储实例（用于测试）
+func NewDiaryRepositoryWithDB(db *sqlx.DB) diary.RepositoryInterface {
+	return &DiaryRepository{
+		db: db,
+	}
+}
+
 // Insert 新增日记本到数据库
 // 参数: diary - 要插入的日记本对象
 // 返回: 新创建的日记本ID和可能的错误

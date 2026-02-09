@@ -1,0 +1,20 @@
+{{define "user/joined_diaries_content"}}
+<div id="joined-diaries-content">
+    {{ if .Data.Diaries }}
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        {{ $lang := .Context.Lang }}
+        {{ range .Data.Diaries }}
+        {{ template "user/joined_diary_card" dict "Diary" . "Lang" $lang }}
+        {{ end }}
+    </div>
+
+    <div class="mt-10 flex justify-center" hx-boost="true" hx-target="#joined-diaries-content" hx-swap="outerHTML">
+        {{ template "pagination" . }}
+    </div>
+    {{ else }}
+    <div class="empty-placeholder">
+        <i class="mdi mdi-inbox-outline"></i>
+    </div>
+    {{ end }}
+</div>
+{{end}}

@@ -1,0 +1,13 @@
+{{define "diary/authors_content"}}
+<div id="authors-content">
+    <section class="mb-10">
+        {{ template "diary/authors_list" dict "Authors" .Data.Authors "Lang" .Context.Lang "CanManage" .Data.CanManage "DiaryID" .Data.DiaryID }}
+    </section>
+
+    {{if gt .Data.TotalPages 1}}
+    <section class="flex justify-center mb-10" hx-boost="true" hx-target="#authors-content" hx-swap="outerHTML">
+        {{template "pagination" .}}
+    </section>
+    {{end}}
+</div>
+{{end}}

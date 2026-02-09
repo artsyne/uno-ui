@@ -15,6 +15,7 @@ type Diary struct {
 	ViewSetting   int8   `form:"view_setting" json:"view_setting" db:"view_setting"`       // 查看权限设置
 	AccessPwd     string `form:"access_pwd" json:"access_pwd" db:"access_pwd"`             // 访问密码
 	SocialSetting int8   `form:"social_setting" json:"social_setting" db:"social_setting"` // 社交功能设置
+	JoinUTCTime   int64  `form:"join_utc_time" json:"join_utc_time" db:"join_utc_time"`    // 加入时间 (仅在查询参与日记本时填充)
 	AddUTCTime    int64  `form:"add_utc_time" json:"add_utc_time" db:"add_utc_time"`       // 创建时间（UTC时间戳）
 	AddUserID     int64  `form:"add_user_id" json:"add_user_id" db:"add_user_id"`          // 创建者用户ID
 	Status        int8   `form:"status" json:"status" db:"status"`                         // 日记本状态（0:删除 1:正常）
@@ -24,7 +25,36 @@ type Diary struct {
 	// Joined fields (aliased in query)
 	AddUserHandle      string `json:"add_user_handle" db:"handle"`             // 创建者Handle
 	AddUserDisplayName string `json:"add_user_display_name" db:"display_name"` // 创建者显示名称
+	AuthorStatus       int8   `json:"author_status" db:"author_status"`        // 作者状态 (1:Active, 2:Pending)
 }
+
+// Author 日记本作者结构体
+// 对应数据库 br_diary_author 表
+type Author struct {
+	DiaryID     int64  `json:"diary_id" db:"diary_id"`           // 日记本ID
+	UserID      int64  `json:"user_id" db:"user_id"`             // 用户ID
+	IsAdmin     int8   `json:"is_admin" db:"is_admin"`           // 是否管理员 (0:否, 1:是)
+	JoinUTCTime int64  `json:"join_utc_time" db:"join_utc_time"` // 加入时间
+	PostNum     int    `json:"post_num" db:"post_num"`           // 发表文章数
+	Status      int8   `json:"status" db:"status"`               // 状态 (1:Active, 2:Pending)
+
+	// Joined fields from br_user
+	Handle      string `json:"handle" db:"handle"`             // 用户Handle (Join查询)
+	DisplayName string `json:"display_name" db:"display_name"` // 用户显示名称 (Join查询)
+	Avatar      string `json:"avatar" db:"face_url"`           // 用户头像 (Join查询)
+}
+
+// AuthorStatus 作者状态常量
+const (
+	AuthorStatusActive  int8 = 1 // 活跃/已加入
+	AuthorStatusPending int8 = 2 // 待确认/已邀请
+)
+
+// AuthorAdminStatus 管理员状态常量
+const (
+	AuthorIsAdminNo  int8 = 0 // 普通作者
+	AuthorIsAdminYes int8 = 1 // 管理员
+)
 
 const (
 	StatusDeleted int8 = 0 // 删除

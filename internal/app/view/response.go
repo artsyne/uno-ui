@@ -107,16 +107,16 @@ func (s *ViewService) HTML(c *gin.Context, name string, data interface{}) {
 
 // HTMLError 渲染错误页面
 func (s *ViewService) HTMLError(c *gin.Context, title, message string) {
-	errorData := gin.H{
-		"Title":   title,
-		"Message": message,
-	}
-	c.HTML(http.StatusInternalServerError, "error", errorData)
+	pageData := s.CreatePageData(c, "error.title")
+	pageData.Data["Title"] = title
+	pageData.Data["Message"] = message
+	c.HTML(http.StatusInternalServerError, "error", pageData)
 }
 
 // HTMLErrorDefault 渲染默认错误页面
 func (s *ViewService) HTMLErrorDefault(c *gin.Context) {
-	c.HTML(http.StatusInternalServerError, "error", nil)
+	pageData := s.CreatePageData(c, "error.title")
+	c.HTML(http.StatusInternalServerError, "error", pageData)
 }
 
 // Redirect 重定向响应

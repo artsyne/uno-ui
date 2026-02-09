@@ -43,11 +43,8 @@ func (ctrl *EntryController) ShowEntryForm(c *gin.Context) {
 			ctrl.renderService.JSONError(c, errors.EntryNotFound)
 			return
 		}
-		// 检查日记是否属于当前用户，检查权限
-		if entryData.AddUserID != loginUser.UserId {
-			ctrl.renderService.JSONError(c, errors.PermissionDenied)
-			return
-		}
+		// 权限检查已在 GetEntryByIDForUser 中处理 (Owner/Admin/Author 均可访问)
+
 	}
 	// 初始化页面数据
 	data := ctrl.renderService.CreatePageData(c, "entry.form.title")
@@ -105,6 +102,7 @@ func (ctrl *EntryController) ShowDrafts(c *gin.Context) {
 	data.Data["Status"] = status
 	data.Data["PageLinks"] = pageLinks
 	data.Data["Tab"] = "drafts" // 用于前端高亮
+	data.Data["HxTarget"] = "#drafts-list"
 
 	if status == entry.StatusDeleted {
 		data.Data["Tab"] = "trash"
@@ -124,11 +122,11 @@ func (ctrl *EntryController) ShowDrafts(c *gin.Context) {
 // 显示指定日记本下的日记列表，支持分页显示
 //
 // URL格式:
-//   - /diary/{diaryid} - 显示第一页
-//   - /diary/{diaryid}/{pageindex} - 显示指定页
+//   - /diary/{id} - 显示第一页
+//   - /diary/{id}/{pageindex} - 显示指定页
 func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 	// 解析日记本ID
-	diaryIDStr := c.Param("diaryid")
+	diaryIDStr := c.Param("id")
 	diaryID, err := validation.ParseID(diaryIDStr)
 	if err != nil {
 		ctrl.renderErrorPage(c, "日记本ID格式错误", "请检查URL中的日记本ID是否正确")
@@ -166,7 +164,7 @@ func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 		PageIndex: pageIndex,
 		PageSize:  pageSize,
 		Total:     entryNum,
-		URL:       fmt.Sprintf("/diary/%d/%%d", diaryID),
+		URL:       fmt.Sprintf("/diary/%d/p/%%d", diaryID),
 		PagePrev:  "<<",
 		PageNext:  ">>",
 	}
@@ -175,6 +173,20 @@ func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 	// 判断当前用户是否为日记本所有者
 	isAuth, loginUser := ctrl.auth.IsAuthenticated(c)
 	isOwner := isAuth && loginUser.UserId == diaryInfo.AddUserID
+
+	// 判断是否有写入权限（Owner 或 Active Author）
+	canWrite := isOwner
+	var currentUserID int64
+	if isAuth {
+		currentUserID = loginUser.UserId
+		if !canWrite {
+			// 检查是否为活跃作者
+			isAuthor, _ := ctrl.diaryService.IsActiveAuthor(diaryID, loginUser.UserId)
+			if isAuthor {
+				canWrite = true
+			}
+		}
+	}
 
 	// 获取用户时区
 	timeZone, err := ctrl.userService.GetUserTimeZone(diaryInfo.AddUserID)
@@ -193,6 +205,9 @@ func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 	data.Data["PageSize"] = pageSize
 	data.Data["TimeZone"] = timeZone
 	data.Data["IsOwner"] = isOwner
+	data.Data["CanWrite"] = canWrite
+	data.Data["CurrentUserID"] = currentUserID
+	data.Data["HxTarget"] = "#diary-content"
 
 	// 检查是否为HTMX请求
 	if c.GetHeader("HX-Request") == "true" {

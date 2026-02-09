@@ -1,4 +1,5 @@
 {{define "diary/drafts_list"}}
+<div id="drafts-list" class="min-h-[400px]">
 <div class="relative overflow-x-auto">
     <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -60,11 +61,9 @@
             {{else}}
             <tr>
                 <td colspan="3" class="px-6 py-4 text-center">
-                    {{if eq .Data.Status 2}}
-                    {{getMessage "entry.drafts.empty_drafts" .Context.Lang}}
-                    {{else}}
-                    {{getMessage "entry.drafts.empty_trash" .Context.Lang}}
-                    {{end}}
+                    <div class="empty-placeholder">
+                        <i class="mdi mdi-inbox-outline"></i>
+                    </div>
                 </td>
             </tr>
             {{end}}

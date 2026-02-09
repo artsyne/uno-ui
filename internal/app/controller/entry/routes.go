@@ -23,8 +23,8 @@ func (ctrl *EntryController) RegisterRoutes(router *gin.Engine) {
 	// 显示日记本下的日记列表
 	diary := router.Group("/diary")
 	{
-		diary.GET("/:diaryid", ctrl.ShowDiaryIndex)
-		diary.GET("/:diaryid/:pageindex", ctrl.ShowDiaryIndex)
+		diary.GET("/:id", ctrl.ShowDiaryIndex)
+		diary.GET("/:id/p/:pageindex", ctrl.ShowDiaryIndex)
 	}
 
 	// 显示单个日记详情页面

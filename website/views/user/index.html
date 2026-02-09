@@ -3,11 +3,11 @@
 {{ template "navbar" . }}
 
 <main class="main">
-    <section class="mb-10 flex justify-between">
+    <section class="mb-10">
         <div id="page-nav">
             <ul class="flex text-lg">
                 <li>
-                    <a href="/u/{{ .Data.User.UserId }}">{{ or .Data.User.DisplayName .Data.User.Handle }}</a>
+                    <a href="/u/{{ .Data.User.UserId }}">{{ showUserName .Data.User }}</a>
                 </li>
             </ul>
         </div>
@@ -29,12 +29,14 @@
                                 <span>{{getMessage "user.profile.latest_public_diary" .Context.Lang}}</span>
                             </a>
                         </li>
+                        {{if .Data.IsOwner}}
                         <li class="py-1">
-                            <a href="#">
+                            <a href="/u/{{.Data.User.UserId}}/joined">
                                 <i class="mdi mdi-book-multiple"></i>
                                 <span>{{getMessage "user.profile.joined_diaries" .Context.Lang}}</span>
                             </a>
                         </li>
+                        {{end}}
                     </ul>
                 </div>
             </div>
@@ -54,6 +56,11 @@
 
     <section>
         {{ template "user/list" . }}
+    </section>
+
+    <!-- Joined Diaries Section -->
+    <section>
+        {{ template "user/joined_diaries_list" . }}
     </section>
 </main>
 {{ template "footer" . }}

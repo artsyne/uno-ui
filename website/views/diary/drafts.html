@@ -28,7 +28,7 @@
                 <li class="mr-2">
                     <a id="tab-drafts" href="/drafts?status=2"
                         x-uno-tab="{ name: 'drafts', group: 'drafts', hash: false }" hx-get="/drafts?status=2"
-                        hx-target="#drafts-list" hx-swap="innerHTML" hx-push-url="true"
+                        hx-target="#drafts-list" hx-swap="outerHTML" hx-push-url="true"
                         class="inline-block p-4 rounded-t-lg border-b-2"
                         :class="$store.uno.tab.isActive('drafts', 'drafts') ? 'border-gray-600 text-gray-600 active dark:text-gray-500 dark:border-gray-500' : 'border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'">
                         {{getMessage "entry.drafts.tab_drafts" .Context.Lang}}
@@ -37,7 +37,7 @@
                 <li class="mr-2">
                     <a id="tab-trash" href="/drafts?status=0"
                         x-uno-tab="{ name: 'trash', group: 'drafts', hash: false }" hx-get="/drafts?status=0"
-                        hx-target="#drafts-list" hx-swap="innerHTML" hx-push-url="true"
+                        hx-target="#drafts-list" hx-swap="outerHTML" hx-push-url="true"
                         class="inline-block p-4 rounded-t-lg border-b-2"
                         :class="$store.uno.tab.isActive('trash', 'drafts') ? 'border-gray-600 text-gray-600 active dark:text-gray-500 dark:border-gray-500' : 'border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'">
                         {{getMessage "entry.drafts.tab_trash" .Context.Lang}}

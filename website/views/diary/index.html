@@ -7,8 +7,8 @@
     <section class="flex justify-between mb-10">
         <div id="page-nav">
             <ul class="flex text-lg">
-                <li><a href="/u/{{.Data.Diary.AddUserID}}"
-                        class="hover:text-red-500 dark:hover:text-red-400">{{ or .Data.Diary.AddUserDisplayName .Data.Diary.AddUserHandle }}</a>
+                <li><a href="/u/{{.Data.Diary.AddUserID}}" class="hover:text-red-500 dark:hover:text-red-400">{{ or
+                        .Data.Diary.AddUserDisplayName .Data.Diary.AddUserHandle }}</a>
                     <i class="mdi mdi-slash-forward mx-3"></i>
                 </li>
                 <li>
@@ -50,7 +50,8 @@
                 <div>
                     <ul>
                         <li class="py-1">
-                            <a href="#" class="hover:text-red-500 dark:hover:text-red-400">
+                            <a href="/diary/{{.Data.Diary.DiaryID}}/authors"
+                                class="hover:text-red-500 dark:hover:text-red-400">
                                 <i class="mdi mdi-account-group"></i>
                                 <span>{{getMessage "diary.label_info.authors_list" .Context.Lang}}</span>
                             </a>

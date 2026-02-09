@@ -1,11 +1,13 @@
 package templates
 
 import (
+	"fmt"
 	"html/template"
 	"log/slog"
+	"strings"
 
-	"github.com/biuren/hebe/internal/utils/i18n"
 	"github.com/biuren/hebe/internal/utils/config"
+	"github.com/biuren/hebe/internal/utils/i18n"
 )
 
 // 全局本地化管理器实例（用于需要manager方法的函数）
@@ -46,21 +48,40 @@ func GetLocalizationFuncs() template.FuncMap {
 }
 
 // getMessage 获取本地化消息（核心函数）
-// 根据消息键和语言环境获取对应的本地化消息
+// 根据消息键和语言环境获取对应的本地化消息，支持参数替换
 //
 // 参数:
 //   - key: 消息键，用于标识特定的消息
 //   - locale: 语言环境代码（如"en", "zh-CN"等）
+//   - args: 可选参数，通常是一个map[string]interface{}（通过dict函数生成），用于替换消息中的占位符 {{key}}
 //
 // 返回:
 //   - string: 本地化消息内容，如果未找到则返回原始键作为降级处理
-func getMessage(key, locale string) string {
+func getMessage(key, locale string, args ...interface{}) string {
 	cacheKey := i18n.BuildCacheKey(locale, key)
-	if message, exists := i18n.GetMessage(cacheKey); exists {
-		return message
+	var message string
+	var exists bool
+
+	if message, exists = i18n.GetMessage(cacheKey); !exists {
+		slog.Warn("getMessage: 消息未找到", "key", key, "locale", locale, "cacheKey", cacheKey)
+		message = key // 降级处理：返回原始key
 	}
-	slog.Warn("getMessage: 消息未找到", "key", key, "locale", locale, "cacheKey", cacheKey)
-	return key // 降级处理：返回原始key
+
+	// 处理参数替换
+	if len(args) > 0 {
+		if params, ok := args[0].(map[string]interface{}); ok {
+			for k, v := range params {
+				val := fmt.Sprint(v)
+				message = strings.ReplaceAll(message, "{{"+k+"}}", val)
+			}
+		} else if params, ok := args[0].(map[string]string); ok {
+			for k, v := range params {
+				message = strings.ReplaceAll(message, "{{"+k+"}}", v)
+			}
+		}
+	}
+
+	return message
 }
 
 // getMessageWithDefault 带默认值的消息获取

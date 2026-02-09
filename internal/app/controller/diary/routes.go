@@ -26,7 +26,10 @@ func (ctrl *DiaryController) RegisterRoutes(router *gin.Engine) {
 
 	// 用户个人主页路由（公开访问，显示用户的日记本列表）
 	router.GET("/u/:uid", ctrl.ShowUserProfile)
-	router.GET("/u/:uid/:pageindex", ctrl.ShowUserProfile)
+	router.GET("/u/:uid/p/:pageindex", ctrl.ShowUserProfile)
+	// 用户加入的日记本列表（需登录且为本人）
+	router.GET("/u/:uid/joined", ctrl.ShowJoinedDiaries)
+	router.GET("/u/:uid/joined/p/:pageindex", ctrl.ShowJoinedDiaries)
 
 	// 需要鉴权的日记本表单路由
 	authForm := router.Group("/form")
@@ -42,6 +45,19 @@ func (ctrl *DiaryController) RegisterRoutes(router *gin.Engine) {
 		authAPI.POST("/diary", middleware.Validate[CreateDiaryRequest](), ctrl.CreateDiary)
 		authAPI.PUT("/diary/:id", middleware.Validate[UpdateDiaryRequest](), ctrl.UpdateDiary)
 		authAPI.DELETE("/diary/:id", middleware.Validate[DeleteDiaryRequest](), ctrl.DeleteDiary)
+
+		// 多人协作 - 作者管理
+		authAPI.POST("/diary/:id/authors", middleware.Validate[InviteAuthorRequest](), ctrl.InviteAuthor)
+		authAPI.GET("/diary/:id/authors", middleware.Validate[GetAuthorsRequest](), ctrl.ShowAuthors)
+		authAPI.GET("/diary/:id/authors/invite", middleware.Validate[GetAuthorsRequest](), ctrl.ShowInviteForm)
+		authAPI.DELETE("/diary/:id/authors/self", middleware.Validate[QuitDiaryRequest](), ctrl.QuitDiary)
+		authAPI.DELETE("/diary/:id/authors/:user_id", middleware.Validate[RemoveAuthorRequest](), ctrl.RemoveAuthor)
+		authAPI.PUT("/diary/:id/authors/:user_id", middleware.Validate[UpdateAuthorRequest](), ctrl.UpdateAuthor)
+
+		// 多人协作 - 邀请处理
+		authAPI.GET("/invitations/diary", middleware.Validate[GetInvitationRequest](), ctrl.ShowInvitation)
+		authAPI.POST("/invitations/diary/accept", middleware.Validate[HandleInvitationRequest](), ctrl.AcceptInvitation)
+		authAPI.POST("/invitations/diary/reject", middleware.Validate[HandleInvitationRequest](), ctrl.RejectInvitation)
 	}
 
 	// 点赞相关API路由

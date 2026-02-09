@@ -93,7 +93,7 @@ func (ctrl *EntryController) AutoSaveEntry(c *gin.Context) {
 		InfoType:      originalEntry.InfoType,
 		Status:        originalEntry.Status, // 保持原有状态
 	}
-	if err := ctrl.entryService.UpdateEntry(entryData); err != nil {
+	if err := ctrl.entryService.UpdateEntry(entryData, loginUser.UserId); err != nil {
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
@@ -145,7 +145,7 @@ func (ctrl *EntryController) PublishEntry(c *gin.Context) {
 			AddUserHandle:      originalEntry.AddUserHandle,
 			AddUserDisplayName: originalEntry.AddUserDisplayName,
 		}
-		if err := ctrl.entryService.UpdateEntry(entryData); err != nil {
+		if err := ctrl.entryService.UpdateEntry(entryData, loginUser.UserId); err != nil {
 			ctrl.renderService.JSONError(c, err)
 			return
 		}
@@ -246,16 +246,14 @@ func (ctrl *EntryController) UpdateEntry(c *gin.Context) {
 
 	// 验证日记所有权
 	// 使用 GetEntryByIDForUser 以支持修改草稿状态的日记
+	// GetEntryByIDForUser 内部已经包含了基于角色的权限检查 (Owner/Admin/Author)
 	originalEntry, err := ctrl.entryService.GetEntryByIDForUser(entryID, loginUser.UserId)
 	if err != nil {
 		ctrl.renderService.JSONError(c, errors.EntryNotFound)
 		return
 	}
-	// double check ownership (though GetEntryByIDForUser implies it)
-	if originalEntry.AddUserID != loginUser.UserId {
-		ctrl.renderService.JSONError(c, errors.PermissionDenied)
-		return
-	}
+	// 移除 Controller 层的硬编码所有权检查，完全依赖 Service 层
+
 
 	// 使用结构体字面量构建更新后的日记对象
 	entryData := &entry.Entry{
@@ -274,8 +272,8 @@ func (ctrl *EntryController) UpdateEntry(c *gin.Context) {
 		Status:     entry.StatusActive, // 强制更新为Active状态（即发布）
 	}
 
-	// 调用服务层更新日记
-	if err := ctrl.entryService.UpdateEntry(entryData); err != nil {
+	// 调用服务层更新
+	if err := ctrl.entryService.UpdateEntry(entryData, loginUser.UserId); err != nil {
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
@@ -338,17 +336,9 @@ func (ctrl *EntryController) DeleteEntry(c *gin.Context) {
 		return
 	}
 
-	// 验证日记所有权
-	entryData, entryErr := ctrl.entryService.GetEntryByID(req.EntryID)
-	if entryErr != nil {
-		ctrl.renderService.JSONError(c, &errors.EntryNotFound)
-		return
-	}
-	if entryData.AddUserID != userData.UserId {
-		ctrl.renderService.JSONError(c, &errors.PermissionDenied)
-		return
-	}
-
+	// 验证日记所有权 - 交由 Service 层处理
+	// DeleteEntryByID 内部会调用 CanUpdateEntry 检查权限 (Owner/Admin/Author)
+	
 	// 执行删除操作
 	currentTime := pkg.GetNowTimeUnixMilli()
 	deleteErr := ctrl.entryService.DeleteEntryByID(req.EntryID, userData.UserId, currentTime)

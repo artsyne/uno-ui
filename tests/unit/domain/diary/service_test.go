@@ -10,7 +10,7 @@ import (
 	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/utils/i18n"
 	framework "github.com/biuren/hebe/tests/framework"
-	
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -31,13 +31,13 @@ func TestDiaryService_AddDiary(t *testing.T) {
 	// 准备服务
 	diaryRepo := repository.NewDiaryRepository()
 	config := ctx.GetConfig().GetAppConfig()
-	diaryService := diary.NewService(config, diaryRepo)
 	
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 
 	// 先注册一个用户
 	newUser := &user.User{
@@ -106,13 +106,13 @@ func TestDiaryService_UpdateDiary(t *testing.T) {
 	// 准备服务
 	diaryRepo := repository.NewDiaryRepository()
 	config := ctx.GetConfig().GetAppConfig()
-	diaryService := diary.NewService(config, diaryRepo)
 	
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 
 	// 先注册一个用户
 	newUser := &user.User{
@@ -160,13 +160,13 @@ func TestDiaryService_DeleteDiary(t *testing.T) {
 	// 准备服务
 	diaryRepo := repository.NewDiaryRepository()
 	config := ctx.GetConfig().GetAppConfig()
-	diaryService := diary.NewService(config, diaryRepo)
 	
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 
 	// 先注册一个用户
 	newUser := &user.User{
@@ -230,13 +230,13 @@ func TestDiaryService_IncrementEntryCount(t *testing.T) {
 	// 准备服务
 	diaryRepo := repository.NewDiaryRepository()
 	config := ctx.GetConfig().GetAppConfig()
-	diaryService := diary.NewService(config, diaryRepo)
 	
 	userRepo := repository.NewUserRepository()
 	taskRepo := repository.NewTaskRepository()
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
 	userService := user.NewService(config, userRepo, taskService, i18nManager, nil)
+	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 
 	// 先注册一个用户
 	newUser := &user.User{

@@ -43,7 +43,7 @@ func TestLikeService_ToggleLike(t *testing.T) {
 
 		// 创建测试日记本
 		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(config, diaryRepo)
+		diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 		testDiary := &diary.Diary{
 			Title:         "测试日记本",
 			Remark:        "测试备注",
@@ -99,7 +99,7 @@ func TestLikeService_ToggleLike(t *testing.T) {
 
 		// 创建测试日记本
 		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(config, diaryRepo)
+		diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 		testDiary := &diary.Diary{
 			Title:         "测试日记本",
 			Remark:        "测试备注",
@@ -162,7 +162,7 @@ func TestLikeService_GetLikeStatus(t *testing.T) {
 
 		// 创建测试日记本
 		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(config, diaryRepo)
+		diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 		testDiary := &diary.Diary{
 			Title:         "测试日记本",
 			Remark:        "测试备注",
@@ -213,7 +213,7 @@ func TestLikeService_GetLikeCount(t *testing.T) {
 
 		// 创建测试日记本
 		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(config, diaryRepo)
+		diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 		testDiary := &diary.Diary{
 			Title:         "测试日记本",
 			Remark:        "测试备注",
@@ -270,7 +270,7 @@ func TestLikeService_GetLikeCount(t *testing.T) {
 
 		// 创建测试日记本
 		diaryRepo := repository.NewDiaryRepository()
-		diaryService := diary.NewService(config, diaryRepo)
+		diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
 		testDiary := &diary.Diary{
 			Title:         "测试日记本",
 			Remark:        "测试备注",

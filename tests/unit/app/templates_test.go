@@ -40,14 +40,14 @@ func TestTemplateLocalizationFunctions(t *testing.T) {
 		require.True(t, exists, "getMessage 函数应该存在")
 
 		// 测试存在的消息
-		result := getMessageFunc.(func(string, string) string)("common.save", "zh-cn")
+		result := getMessageFunc.(func(string, string, ...interface{}) string)("common.save", "zh-cn")
 		assert.Equal(t, "保存", result, "应该返回正确的中文翻译")
 
-		result = getMessageFunc.(func(string, string) string)("common.save", "en")
+		result = getMessageFunc.(func(string, string, ...interface{}) string)("common.save", "en")
 		assert.Equal(t, "Save", result, "应该返回正确的英文翻译")
 
 		// 测试不存在的消息
-		result = getMessageFunc.(func(string, string) string)("non.existent.key", "zh-cn")
+		result = getMessageFunc.(func(string, string, ...interface{}) string)("non.existent.key", "zh-cn")
 		assert.Equal(t, "non.existent.key", result, "不存在的键应该返回原始键名")
 	})
 
@@ -238,14 +238,14 @@ func TestTemplateErrorHandling(t *testing.T) {
 	// 测试空键处理
 	t.Run("空键处理", func(t *testing.T) {
 		getMessageFunc := funcMap["getMessage"]
-		result := getMessageFunc.(func(string, string) string)("", "zh-cn")
+		result := getMessageFunc.(func(string, string, ...interface{}) string)("", "zh-cn")
 		assert.Equal(t, "", result, "空键应该返回空字符串")
 	})
 
 	// 测试空语言处理
 	t.Run("空语言处理", func(t *testing.T) {
 		getMessageFunc := funcMap["getMessage"]
-		result := getMessageFunc.(func(string, string) string)("common.save", "")
+		result := getMessageFunc.(func(string, string, ...interface{}) string)("common.save", "")
 		// 应该返回键名或者有合理的降级处理
 		assert.NotEmpty(t, result, "空语言时应该有降级处理")
 	})
@@ -286,12 +286,12 @@ func TestTemplatePerformance(t *testing.T) {
 		
 		// 预热
 		for i := 0; i < 100; i++ {
-			getMessageFunc.(func(string, string) string)("common.save", "zh-cn")
+			getMessageFunc.(func(string, string, ...interface{}) string)("common.save", "zh-cn")
 		}
 
 		// 性能测试
 		for i := 0; i < 1000; i++ {
-			result := getMessageFunc.(func(string, string) string)("common.save", "zh-cn")
+			result := getMessageFunc.(func(string, string, ...interface{}) string)("common.save", "zh-cn")
 			assert.Equal(t, "保存", result, "性能测试中消息应该正确")
 		}
 	})
