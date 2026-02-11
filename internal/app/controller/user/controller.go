@@ -2,6 +2,7 @@ package user
 
 import (
 	"github.com/biuren/hebe/internal/app/view"
+	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/config"
 )
@@ -12,11 +13,13 @@ import (
 // 字段:
 //   - config: 应用配置信息
 //   - service: 用户业务逻辑服务
+//   - entryService: 日记业务逻辑服务
 //   - auth: 用户认证辅助工具
 //   - renderService: 视图渲染服务
 type UserController struct {
 	config        *config.Config
 	service       *user.Service
+	entryService  *entry.Service
 	auth          *user.AuthHelper
 	renderService *view.ViewService
 }
@@ -27,15 +30,17 @@ type UserController struct {
 // 参数:
 //   - config: 应用配置信息
 //   - service: 用户业务逻辑服务
+//   - entryService: 日记业务逻辑服务
 //   - renderService: 视图渲染服务
 //   - auth: 用户认证辅助工具
 //
 // 返回:
 //   - *UserController: 初始化完成的用户控制器实例
-func NewUserController(config *config.Config, service *user.Service, renderService *view.ViewService, auth *user.AuthHelper) *UserController {
+func NewUserController(config *config.Config, service *user.Service, entryService *entry.Service, renderService *view.ViewService, auth *user.AuthHelper) *UserController {
 	return &UserController{
 		config:        config,
 		service:       service,
+		entryService:  entryService,
 		renderService: renderService,
 		auth:          auth,
 	}

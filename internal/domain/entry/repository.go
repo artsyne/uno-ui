@@ -18,6 +18,15 @@ type RepositoryInterface interface {
 	//   - error: 更新失败时返回错误
 	Update(entry *Entry) error
 
+	// ListLatestPublicEntriesByUserID 查询用户最新公开日记
+	// 参数:
+	//   - userID: 用户ID
+	//   - limit: 数量限制
+	// 返回:
+	//   - []Entry: 日记列表
+	//   - error: 查询失败时返回错误
+	ListLatestPublicEntriesByUserID(userID int64, limit int) ([]Entry, error)
+
 	// ListByUserID 根据用户ID和日记本ID分页查询日记信息
 	// 参数:
 	//   - userID: 用户ID

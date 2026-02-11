@@ -43,15 +43,28 @@
                 </div>
                 {{end}}
                 <div class="flex justify-between mb-4">
-                    <p class="text-gray-600 dark:text-gray-400 text-sm">{{getMessage "common.authors" .Context.Lang}}
+                    <p class="text-gray-600 dark:text-gray-400 text-sm flex items-center">
+                        <i class="mdi mdi-book-outline mr-2 text-lg"></i>
+                        {{getMessage "common.diary" .Context.Lang}}
+                    </p>
+                    <p><a href="/diary/{{.Data.Diary.DiaryID}}"
+                            class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors duration-200">{{.Data.Diary.Title}}</a>
+                    </p>
+                </div>
+                <div class="flex justify-between mb-4">
+                    <p class="text-gray-600 dark:text-gray-400 text-sm flex items-center">
+                        <i class="mdi mdi-account-outline mr-2 text-lg"></i>
+                        {{getMessage "common.authors" .Context.Lang}}
                     </p>
                     <p><a href="/u/{{.Data.Entry.AddUserID}}"
                             class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors duration-200">{{ or .Data.Entry.AddUserDisplayName .Data.Entry.AddUserHandle }}</a>
                     </p>
                 </div>
                 <div class="flex justify-between mb-4">
-                    <p class="text-gray-600 dark:text-gray-400 text-sm">{{getMessage "common.pub_time"
-                        .Context.Lang}}</p>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm flex items-center">
+                        <i class="mdi mdi-clock-outline mr-2 text-lg"></i>
+                        {{getMessage "common.pub_time" .Context.Lang}}
+                    </p>
                     <p>{{formatLocalTime .Data.Entry.AddUTCTime .Data.TimeZone}}</p>
                 </div>
 

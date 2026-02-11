@@ -84,6 +84,7 @@ func InitConfig() error {
 		PageSize:             requireInt(v, "PAGE_SIZE"),
 		MaxDiaryLimit:        requireInt(v, "MAX_DIARY_LIMIT"),
 		UserJoinedDiariesLimit: requireInt(v, "USER_JOINED_DIARIES_LIMIT"),
+		UserLatestPublicEntriesLimit: requireInt(v, "USER_LATEST_PUBLIC_ENTRIES_LIMIT"),
 		MaxEntryLength:       requireInt(v, "MAX_ENTRY_LENGTH"),
 		MaxCommentLength:     requireInt(v, "MAX_COMMENT_LENGTH"),
 		MaxDescriptionLength: requireInt(v, "MAX_DESCRIPTION_LENGTH"),

@@ -1,0 +1,32 @@
+{{define "user/latest_public_entries"}}
+<div id="latest-public-entries" class="mb-10">
+    <div class="flex justify-between items-center mb-4">
+        <div class="text-lg flex items-center">
+            {{getMessage "user.profile.latest_public_diary" .Context.Lang}}
+        </div>
+    </div>
+
+    <div class="lg:columns-3 md:columns-2 gap-6 space-y-6">
+        {{if .Data.LatestPublicEntries}}
+        {{ $lang := .Context.Lang }}
+        {{ $timezone := .Data.TimeZone }}
+        {{ $currentUserID := .Data.CurrentUserID }}
+        {{ $isProfileOwner := .Data.IsOwner }}
+
+        {{range .Data.LatestPublicEntries}}
+        {{/* Determine if current viewer can manage this entry */}}
+        {{/* Rule: Account Owner (Profile Owner) can manage entries. */}}
+        {{ $canManage := $isProfileOwner }}
+
+        {{/* Use entry_card template */}}
+        {{ template "diary/entry_card" dict "Entry" . "IsOwner" $canManage "DiaryID" .DiaryID "Lang" $lang "TimeZone"
+        $timezone "IsLiked" false "SocialSetting" .SocialSetting "ShowDiaryInfo" true "CurrentUserID" $currentUserID }}
+        {{end}}
+        {{else}}
+        <div class="empty-placeholder col-span-full break-inside-avoid">
+            <i class="mdi mdi-inbox-outline"></i>
+        </div>
+        {{end}}
+    </div>
+</div>
+{{end}}

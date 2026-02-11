@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/biuren/hebe/internal/app/controller/validation"
+	"github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
@@ -115,6 +117,8 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 
 		data.Data["JoinedDiaries"] = joinedDiaries
 		data.Data["HasMoreJoinedDiaries"] = hasMore
+		data.Data["IsJoinedList"] = false
+		data.Data["HxTarget"] = "#joined-diaries-section"
 	}
 
 	// 获取URL中的pageIndex
@@ -149,8 +153,15 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 		ctrl.renderService.Redirect(c, "/")
 		return
 	}
+	// 用户配置的时区
+	if pageUser.TimeZone != "" {
+		loc, err := time.LoadLocation(pageUser.TimeZone)
+		if err == nil {
+			// 在模板中显示时间时需要使用
+			data.Data["Location"] = loc
+		}
+	}
 
-	// 组织业务数据
 	data.Data["IsOwner"] = isOwner
 	data.Data["User"] = pageUser              //被访问用户
 	data.Data["TimeZone"] = pageUser.TimeZone // 被访问用户时区
@@ -168,6 +179,50 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 	}
 
 	ctrl.renderService.HTML(c, "user/index", data)
+}
+
+// ShowLatestPublicEntries 显示用户最新公开日记页面
+//
+// URL格式:
+//   - /u/{uid}/latest
+func (ctrl *DiaryController) ShowLatestPublicEntries(c *gin.Context) {
+	uid, err := validation.ParseID(c.Param("uid"))
+	if err != nil {
+		ctrl.renderService.Redirect(c, "/")
+		return
+	}
+
+	data := ctrl.renderService.CreatePageData(c, "user.profile.latest_public_diary")
+
+	// 根据uid 获取用户信息
+	pageUser, err := ctrl.userService.GetUserByUserId(uid)
+	if err != nil || pageUser == nil {
+		ctrl.renderService.Redirect(c, "/")
+		return
+	}
+	data.Data["User"] = pageUser
+	data.Data["TimeZone"] = pageUser.TimeZone // 被访问用户时区
+
+	// Calculate IsOwner
+	isOwner := false
+	if data.IsAuthenticated() {
+		authUser := data.GetAuthUser()
+		data.Data["CurrentUserID"] = authUser.UserId
+		if authUser.UserId == pageUser.UserId {
+			isOwner = true
+		}
+	}
+	data.Data["IsOwner"] = isOwner
+
+	// 获取最新公开日记
+	latestEntriesLimit := ctrl.config.App.UserLatestPublicEntriesLimit
+	latestEntries, err := ctrl.entryService.GetLatestPublicEntries(uid, latestEntriesLimit)
+	if err != nil {
+		latestEntries = []entry.Entry{}
+	}
+	data.Data["LatestPublicEntries"] = latestEntries
+
+	ctrl.renderService.HTML(c, "user/latest_public_entries_page", data)
 }
 
 // ShowJoinedDiaries 显示用户加入的日记本列表（完整版）

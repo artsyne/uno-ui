@@ -18,18 +18,29 @@ import (
 	"github.com/biuren/hebe/internal/utils/i18n"
 	"github.com/biuren/hebe/tests/framework"
 	"github.com/biuren/hebe/tests/framework/helpers"
+	testTypes "github.com/biuren/hebe/tests/framework/types"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPagination_Integration(t *testing.T) {
 	// 1. Setup Environment
-	ctx := framework.NewTestContext(framework.WithDatabase())
+	// Define a custom option to modify config before services are initialized
+	withCustomConfig := func(tc *framework.TestContext) {
+		if cfg, ok := tc.GetConfig().(*testTypes.TestConfig); ok {
+			cfg.App.PageSize = 2
+			cfg.App.UserJoinedDiariesLimit = 100
+		}
+	}
+
+	// Pass custom config option BEFORE WithDatabase to ensure services use the modified config
+	ctx := framework.NewTestContext(
+		func(tc *framework.TestContext) { withCustomConfig(tc) },
+		framework.WithDatabase(),
+	)
 	defer ctx.Cleanup()
 
 	config := ctx.GetConfig().GetAppConfig()
-	// Set small page size to test pagination easily
-	config.App.PageSize = 2
 
 	// Get Services
 	userService := ctx.GetServices().GetUserService()
@@ -50,7 +61,7 @@ func TestPagination_Integration(t *testing.T) {
 	renderService := view.NewViewService(config, i18nManager)
 
 	// Initialize Controllers
-	diaryCtrl := diary.NewDiaryController(config, diaryService, userService, likeService, authHelper, renderService)
+	diaryCtrl := diary.NewDiaryController(config, diaryService, entryService, userService, likeService, authHelper, renderService)
 	entryCtrl := entry.NewEntryController(config, entryService, diaryService, commentService, authHelper, renderService, userService, likeService)
 
 	// 2. Prepare Data
@@ -152,9 +163,9 @@ func TestPagination_Integration(t *testing.T) {
 	// 3. Setup Router
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	loadTestTemplates(router) // Reuse helper from diary_route_test.go
+	helpers.LoadTestTemplates(router) // Reuse helper from diary_route_test.go
 
-	router.Use(MockAuthMiddleware(users))
+	router.Use(helpers.MockAuthMiddleware(users))
 	diaryCtrl.RegisterRoutes(router)
 	entryCtrl.RegisterRoutes(router)
 

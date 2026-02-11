@@ -1,4 +1,8 @@
+import { EntryMixin } from './entry.js';
+
 export const User = {
+  ...EntryMixin,
+
   openCreateDiary() {
     const uno = window.getUno();
     if (!uno) return;

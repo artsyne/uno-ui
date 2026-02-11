@@ -92,6 +92,14 @@ func (s *Service) AddEntry(entry *Entry) (int64, error) {
 	return entry.EntryID, nil
 }
 
+// GetLatestPublicEntries 获取用户最新公开日记
+func (s *Service) GetLatestPublicEntries(userID int64, limit int) ([]Entry, error) {
+	if limit <= 0 {
+		limit = 10
+	}
+	return s.repo.ListLatestPublicEntriesByUserID(userID, limit)
+}
+
 // checkWritePermission 检查是否有写权限
 func (s *Service) checkWritePermission(diary *diary.Diary, userID int64) (bool, error) {
 	// 1. 拥有者有权限

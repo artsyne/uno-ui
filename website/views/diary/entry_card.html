@@ -1,5 +1,6 @@
 {{define "diary/entry_card"}}
-<div class="card mb-6 break-inside-avoid" id="entry-card-{{.Entry.EntryID}}" data-entry-id="{{.Entry.EntryID}}">
+<div class="card mb-6 break-inside-avoid" id="entry-card-{{.Entry.EntryID}}" data-entry-id="{{.Entry.EntryID}}"
+    x-data="{ socialSetting: {{.SocialSetting}} }">
     {{if .IsOwner}}
     <div class="entry-edit">
         <a href="javascript:void(0)"
@@ -10,10 +11,12 @@
     <!-- Hidden Menu Content for Tooltip -->
     <div id="entry-menu-{{.Entry.EntryID}}" class="hidden">
         <ul class="text-left">
+            {{if eq .CurrentUserID .Entry.AddUserID}}
             <li class="py-1"><a href="#" class="block hover:text-blue-500"
                     @click.prevent="openEditEntry({{.DiaryID}}, {{.Entry.EntryID}}); $store.uno?.tooltip?.hide()">
                     <i class="mdi mdi-pencil-outline mr-2"></i> {{getMessage "common.edit" .Lang}}</a>
             </li>
+            {{end}}
             <li class="py-1"><button class="block w-full text-left hover:text-red-500"
                     @click="deleteEntry({{.DiaryID}}, {{.Entry.EntryID}}); $store.uno?.tooltip?.hide()">
                     <i class="mdi mdi-delete-outline mr-2"></i> {{getMessage "common.delete" .Lang}}</button>
@@ -22,6 +25,17 @@
     </div>
     {{end}}
     <div class="mb-4">
+        {{if .ShowDiaryInfo}}
+        <div class="text-sm text-gray-500 mb-2 flex items-center gap-2">
+            <a href="/diary/{{.Entry.DiaryID}}" class="hover:underline font-medium text-gray-700 dark:text-gray-300">
+                <i class="mdi mdi-book-outline mr-1"></i>{{.Entry.DiaryTitle}}
+            </a>
+            <span class="text-gray-300">|</span>
+            <a href="/u/{{.Entry.AddUserID}}" class="hover:underline flex items-center">
+                <i class="mdi mdi-account-outline mr-1"></i>{{or .Entry.AddUserDisplayName .Entry.AddUserHandle "User"}}
+            </a>
+        </div>
+        {{end}}
         {{if .Entry.Title}}
         <h1 class="entry-title">{{.Entry.Title}}</h1>
         {{end}}
@@ -39,6 +53,7 @@
             </span>
         </div>
         <!-- Alpine-based Stats Container -->
+        {{if eq .SocialSetting 1}}
         <div class="flex items-center" x-show="socialSetting === 1 && stats[{{.Entry.EntryID}}]" style="display: none;"
             x-effect="if (!stats[{{.Entry.EntryID}}]) stats[{{.Entry.EntryID}}] = { view_num: {{.Entry.ViewNum}}, comment_num: {{.Entry.CommentNum}}, like_num: {{.Entry.LikeNum}}, liked: {{.IsLiked}} }">
             <button class="btn-social mr-2" title='{{getMessage "common.views" .Lang}}'>
@@ -54,6 +69,7 @@
                 <span x-text="getStats({{.Entry.EntryID}}).like_num"></span>
             </button>
         </div>
+        {{end}}
     </div>
 </div>
 {{end}}

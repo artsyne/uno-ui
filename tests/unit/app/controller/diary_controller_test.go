@@ -15,6 +15,7 @@ import (
 	"github.com/biuren/hebe/internal/app/view"
 	types "github.com/biuren/hebe/internal/contracts"
 	diaryDomain "github.com/biuren/hebe/internal/domain/diary"
+	entryDomain "github.com/biuren/hebe/internal/domain/entry"
 	likeDomain "github.com/biuren/hebe/internal/domain/like"
 	userDomain "github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/config"
@@ -56,6 +57,7 @@ func TestDiaryController_Basic(t *testing.T) {
 
 	// 创建基本服务（使用nil，因为我们只测试控制器结构）
 	var diaryService *diaryDomain.Service
+	var entryService *entryDomain.Service
 	var userService *userDomain.Service
 	var authHelper *userDomain.AuthHelper
 	
@@ -80,6 +82,7 @@ func TestDiaryController_Basic(t *testing.T) {
 		controller := diary.NewDiaryController(
 			cfg,
 			diaryService,
+			entryService,
 			userService,
 			likeService,
 			authHelper,

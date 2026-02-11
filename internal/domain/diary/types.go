@@ -31,12 +31,12 @@ type Diary struct {
 // Author 日记本作者结构体
 // 对应数据库 br_diary_author 表
 type Author struct {
-	DiaryID     int64  `json:"diary_id" db:"diary_id"`           // 日记本ID
-	UserID      int64  `json:"user_id" db:"user_id"`             // 用户ID
-	IsAdmin     int8   `json:"is_admin" db:"is_admin"`           // 是否管理员 (0:否, 1:是)
-	JoinUTCTime int64  `json:"join_utc_time" db:"join_utc_time"` // 加入时间
-	PostNum     int    `json:"post_num" db:"post_num"`           // 发表文章数
-	Status      int8   `json:"status" db:"status"`               // 状态 (1:Active, 2:Pending)
+	DiaryID     int64 `json:"diary_id" db:"diary_id"`           // 日记本ID
+	UserID      int64 `json:"user_id" db:"user_id"`             // 用户ID
+	IsAdmin     int8  `json:"is_admin" db:"is_admin"`           // 是否管理员 (0:否, 1:是)
+	JoinUTCTime int64 `json:"join_utc_time" db:"join_utc_time"` // 加入时间
+	PostNum     int   `json:"post_num" db:"post_num"`           // 发表文章数
+	Status      int8  `json:"status" db:"status"`               // 状态 (1:Active, 2:Pending)
 
 	// Joined fields from br_user
 	Handle      string `json:"handle" db:"handle"`             // 用户Handle (Join查询)
@@ -59,4 +59,10 @@ const (
 const (
 	StatusDeleted int8 = 0 // 删除
 	StatusActive  int8 = 1 // 正常
+)
+
+// SocialSetting 社交功能设置常量
+const (
+	SocialSettingEnabled  int8 = 1 // 开启社交功能
+	SocialSettingDisabled int8 = 2 // 关闭社交功能
 )

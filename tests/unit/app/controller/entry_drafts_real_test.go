@@ -46,6 +46,9 @@ func (m *MockRepoReal) ListAllByUserID(userID int64, status int8, pageIndex, pag
 	}
 	return nil, 0, nil
 }
+func (m *MockRepoReal) ListLatestPublicEntriesByUserID(userID int64, limit int) ([]domainEntry.Entry, error) {
+	return nil, nil
+}
 func (m *MockRepoReal) GetByID(entryID int64) (*domainEntry.Entry, error) { return nil, nil }
 func (m *MockRepoReal) GetByIDRaw(entryID int64) (*domainEntry.Entry, error) { return nil, nil }
 func (m *MockRepoReal) GetByIDForUser(entryID int64, userID int64) (*domainEntry.Entry, error) {

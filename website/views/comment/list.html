@@ -26,9 +26,21 @@
     {{end}}
 
     <!-- Pagination -->
-    <div class="mt-6 flex justify-center" hx-boost="true" hx-target="#comments-list-container" hx-swap="outerHTML">
-        {{template "pagination" .}}
+    {{if gt .Data.pagination.total_pages 1}}
+    <div id="comments-pagination" class="text-center mt-6 flex justify-center gap-4">
+        {{if .Data.pagination.prev_page}}
+        <button type="button" class="btn" @click="loadComments({{.Data.pagination.prev_page}})">
+            {{getMessage "common.previous" $.Context.Lang}}
+        </button>
+        {{end}}
+
+        {{if .Data.pagination.next_page}}
+        <button type="button" class="btn" @click="loadComments({{.Data.pagination.next_page}})">
+            {{getMessage "common.next" $.Context.Lang}}
+        </button>
+        {{end}}
     </div>
+    {{end}}
     {{else}}
     <div class="empty-placeholder">
         <i class="mdi mdi-inbox-outline"></i>

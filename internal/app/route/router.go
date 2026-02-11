@@ -136,7 +136,7 @@ func createIndexController(container *di.Container) *controller.IndexController 
 //   - *userController.UserController: 用户控制器实例
 func createUserController(container *di.Container) *userController.UserController {
 	deps := getControllerDependencies(container)
-	return userController.NewUserController(deps.config, deps.userService, deps.renderService, deps.authHelper)
+	return userController.NewUserController(deps.config, deps.userService, deps.entryService, deps.renderService, deps.authHelper)
 }
 
 // createDiaryController 通过DI容器创建DiaryController
@@ -149,7 +149,7 @@ func createUserController(container *di.Container) *userController.UserControlle
 //   - *diaryController.DiaryController: 日记控制器实例
 func createDiaryController(container *di.Container) *diaryController.DiaryController {
 	deps := getControllerDependencies(container)
-	return diaryController.NewDiaryController(deps.config, deps.diaryService, deps.userService, deps.likeService, deps.authHelper, deps.renderService)
+	return diaryController.NewDiaryController(deps.config, deps.diaryService, deps.entryService, deps.userService, deps.likeService, deps.authHelper, deps.renderService)
 }
 
 // createEntryController 通过DI容器创建EntryController

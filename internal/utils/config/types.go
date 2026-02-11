@@ -40,6 +40,7 @@ type AppConfig struct {
 	PageSize             int    `json:"page_size" mapstructure:"PAGE_SIZE" validate:"required,min=1,max=200"`
 	MaxDiaryLimit        int    `json:"max_diary_limit" mapstructure:"MAX_DIARY_LIMIT" validate:"required,min=1"`
 	UserJoinedDiariesLimit int    `json:"user_joined_diaries_limit" mapstructure:"USER_JOINED_DIARIES_LIMIT" validate:"required,min=1"`
+	UserLatestPublicEntriesLimit int `json:"user_latest_public_entries_limit" mapstructure:"USER_LATEST_PUBLIC_ENTRIES_LIMIT" validate:"required,min=1"`
 	MaxEntryLength       int    `json:"max_entry_length" mapstructure:"MAX_ENTRY_LENGTH" validate:"required,min=1"`
 	MaxCommentLength     int    `json:"max_comment_length" mapstructure:"MAX_COMMENT_LENGTH" validate:"required,min=1"`
 	MaxDescriptionLength int    `json:"max_description_length" mapstructure:"MAX_DESCRIPTION_LENGTH" validate:"required,min=1"`

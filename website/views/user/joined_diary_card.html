@@ -43,7 +43,8 @@
             {{ if eq .Diary.AuthorStatus 2 }}
             <div class="mt-2">
                 <div class="text-sm text-yellow-600 mb-6">{{getMessage "common.invited_by" .Lang}}:
-                    {{.Diary.AddUserDisplayName}}</div>
+                    <a href="/u/{{.Diary.AddUserID}}" class="hover:underline">{{.Diary.AddUserDisplayName}}</a>
+                </div>
                 <button class="btn btn-sm btn-primary" hx-post="/invitations/diary/accept"
                     hx-vals='{"diary_id": "{{.Diary.DiaryID}}"}' hx-target="#diary-card-{{ .Diary.DiaryID }}"
                     hx-swap="outerHTML">
@@ -52,7 +53,7 @@
             </div>
             {{ else }}
             <div class="text-xs text-gray-400 mt-2">
-                {{getMessage "common.owner" .Lang}}: {{.Diary.AddUserDisplayName}}
+                {{getMessage "common.owner" .Lang}}: <a href="/u/{{.Diary.AddUserID}}" class="hover:underline">{{.Diary.AddUserDisplayName}}</a>
             </div>
             {{ end }}
         </div>

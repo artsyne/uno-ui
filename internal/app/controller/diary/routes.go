@@ -27,6 +27,8 @@ func (ctrl *DiaryController) RegisterRoutes(router *gin.Engine) {
 	// 用户个人主页路由（公开访问，显示用户的日记本列表）
 	router.GET("/u/:uid", ctrl.ShowUserProfile)
 	router.GET("/u/:uid/p/:pageindex", ctrl.ShowUserProfile)
+	// 用户最新公开日记
+	router.GET("/u/:uid/latest", ctrl.ShowLatestPublicEntries)
 	// 用户加入的日记本列表（需登录且为本人）
 	router.GET("/u/:uid/joined", ctrl.ShowJoinedDiaries)
 	router.GET("/u/:uid/joined/p/:pageindex", ctrl.ShowJoinedDiaries)

@@ -135,7 +135,7 @@ button.btn-social {
 }
 
 .entry-title {
-  @apply break-words mb-2;
+  @apply break-words mb-2 font-bold text-lg;
 }
 
 /* Liked state styles */

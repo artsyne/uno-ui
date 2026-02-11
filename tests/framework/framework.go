@@ -310,10 +310,10 @@ func (sr *ServiceRegistry) InitializeServices(db *sqlx.DB, testConfig TestConfig
 	sr.mu.Lock()
 	defer sr.mu.Unlock()
 	
-	// 获取全局配置而不是测试配置
-	appConfig := config.GetConfig()
+	// Use config from test context instead of global singleton
+	appConfig := testConfig.GetAppConfig()
 	if appConfig == nil {
-		return fmt.Errorf("全局配置未初始化")
+		return fmt.Errorf("App configuration not initialized")
 	}
 	
 	// 创建 repository 实例

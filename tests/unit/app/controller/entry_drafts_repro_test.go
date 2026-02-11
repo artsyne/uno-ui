@@ -76,6 +76,13 @@ func (m *MockRepoRepro) ListAllByUserID(userID int64, status int8, page, size in
 	args := m.Called(userID, status, page, size)
 	return args.Get(0).([]domainEntry.Entry), args.Int(1), args.Error(2)
 }
+func (m *MockRepoRepro) ListLatestPublicEntriesByUserID(userID int64, limit int) ([]domainEntry.Entry, error) {
+	args := m.Called(userID, limit)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]domainEntry.Entry), args.Error(1)
+}
 func (m *MockRepoRepro) GetCountByUserID(userID, diaryID int64, status int8) (int, error) {
 	args := m.Called(userID, diaryID, status)
 	return args.Int(0), args.Error(1)

@@ -246,6 +246,15 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 			PageNext:  ctrl.renderService.GetMessage("common.next", lang),
 		})
 
+		// Calculate pagination for manual template rendering
+		var prevPage, nextPage int
+		if req.PageIndex > 1 {
+			prevPage = req.PageIndex - 1
+		}
+		if req.PageIndex < totalPages {
+			nextPage = req.PageIndex + 1
+		}
+
 		data := gin.H{
 			"comments":      comments,
 			"PageLinks":     pageLinks,
@@ -255,6 +264,12 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 			"EntryID":       req.EntryID,
 			"EntryOwnerID":  entryOwnerID,
 			"TotalCount":    total,
+			"pagination": gin.H{
+				"total_pages":  totalPages,
+				"current_page": req.PageIndex,
+				"prev_page":    prevPage,
+				"next_page":    nextPage,
+			},
 		}
 
 		// 设置总数 Header，供前端 JS 更新 UI

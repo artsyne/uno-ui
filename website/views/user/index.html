@@ -24,7 +24,7 @@
                 <div>
                     <ul class="text-gray-900 dark:text-gray-100">
                         <li class="py-1">
-                            <a href="#">
+                            <a href="/u/{{.Data.User.UserId}}/latest">
                                 <i class="mdi mdi-book-outline"></i>
                                 <span>{{getMessage "user.profile.latest_public_diary" .Context.Lang}}</span>
                             </a>
@@ -43,6 +43,12 @@
         </div>
     </section>
 
+
+    <!-- Joined Diaries Section -->
+    <section class="mb-10">
+        {{ template "user/joined_diaries_list" . }}
+    </section>
+
     <section class="flex justify-between mb-10" x-data="user">
         <div class="text-lg">{{getMessage "diary.list.title" .Context.Lang}}</div>
         <div>
@@ -56,11 +62,6 @@
 
     <section>
         {{ template "user/list" . }}
-    </section>
-
-    <!-- Joined Diaries Section -->
-    <section>
-        {{ template "user/joined_diaries_list" . }}
     </section>
 </main>
 {{ template "footer" . }}

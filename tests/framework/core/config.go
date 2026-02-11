@@ -93,6 +93,7 @@ func loadGlobalConfig() *config.Config {
 			PageSize:             getEnvInt("IDIARY_PAGE_SIZE", 20),
 			MaxDiaryLimit:        getEnvInt("IDIARY_MAX_DIARY_LIMIT", 500),
 			UserJoinedDiariesLimit: getEnvInt("IDIARY_USER_JOINED_DIARIES_LIMIT", 500),
+			UserLatestPublicEntriesLimit: getEnvInt("IDIARY_USER_LATEST_PUBLIC_ENTRIES_LIMIT", 6),
 			MaxEntryLength:       getEnvInt("IDIARY_MAX_ENTRY_LENGTH", 20000),
 			MaxCommentLength:     getEnvInt("IDIARY_MAX_COMMENT_LENGTH", 1000),
 			MaxDescriptionLength: getEnvInt("IDIARY_MAX_DESCRIPTION_LENGTH", 500),
@@ -260,6 +261,8 @@ func setupTestEnvironment() {
 	setEnvIfNotExists("IDIARY_SUFFIX", "...")
 	setEnvIfNotExists("IDIARY_PAGE_SIZE", "20")
 	setEnvIfNotExists("IDIARY_MAX_DIARY_LIMIT", "500")
+	setEnvIfNotExists("IDIARY_USER_JOINED_DIARIES_LIMIT", "500")
+	setEnvIfNotExists("IDIARY_USER_LATEST_PUBLIC_ENTRIES_LIMIT", "6")
 	setEnvIfNotExists("IDIARY_MAX_ENTRY_LENGTH", "20000")
 	setEnvIfNotExists("IDIARY_MAX_COMMENT_LENGTH", "1000")
 	setEnvIfNotExists("IDIARY_MAX_DESCRIPTION_LENGTH", "500")

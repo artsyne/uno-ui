@@ -1,0 +1,28 @@
+{{ define "user/latest_public_entries_page" }}
+{{ template "header" . }}
+{{ template "navbar" . }}
+
+<main class="main" x-data="diaryDetail" data-is-owner="{{.Data.IsOwner}}">
+    <section class="mb-10">
+        <div id="page-nav">
+            <ul class="flex text-lg">
+                <li>
+                    <a href="/u/{{ .Data.User.UserId }}">{{ showUserName .Data.User }}</a>
+                </li>
+                <li class="mx-2">
+                    <span class="mdi mdi-slash-forward"></span>
+                </li>
+                <li>
+                    <span>{{getMessage "user.profile.latest_public_diary" .Context.Lang}}</span>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="mb-10">
+        {{ template "user/latest_public_entries" . }}
+    </section>
+
+</main>
+{{ template "footer" . }}
+{{ end }}

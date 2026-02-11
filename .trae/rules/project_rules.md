@@ -23,6 +23,7 @@
 ## 3. Quality Standards (Quality)
 
 - **Build & Test**: Must compile and pass all unit tests.
+- **Strict No-Skip Policy**: All tests must run and pass. `t.Skip()` is strictly prohibited unless authorized for specific platform limitations.
 - **Limits**: Functions ≤60 lines, Args ≤5. Cyclomatic complexity ≤10.
 - **Checks**: Must pass golangci-lint / ESLint. Zero TODOs.
 - **Refactoring**: Optimize structure/naming only. Strictly forbidden to modify business logic/API contracts.

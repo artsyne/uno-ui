@@ -4,17 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	htmlTemplate "html/template"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
-	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/biuren/hebe/internal/app/controller/diary"
-	"github.com/biuren/hebe/internal/app/templates"
 	"github.com/biuren/hebe/internal/app/view"
 	types "github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/internal/domain/like"
@@ -27,63 +22,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func loadTestTemplates(router *gin.Engine) {
-	// Determine path to views
-	// Try multiple levels up to find website/views
-	basePath := "website/views"
-	for i := 0; i < 5; i++ {
-		if _, err := os.Stat(basePath); err == nil {
-			break
-		}
-		basePath = "../" + basePath
-	}
-
-	if _, err := os.Stat(basePath); os.IsNotExist(err) {
-		// Fallback for direct execution from root
-		basePath = "website/views"
-	}
-
-	tmpl := htmlTemplate.New("").Funcs(templates.RegisterAllFuncs())
-
-	err := filepath.Walk(basePath, func(path string, f os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !f.IsDir() && strings.HasSuffix(f.Name(), ".html") {
-			relPath, err := filepath.Rel(basePath, path)
-			if err != nil {
-				return err
-			}
-			content, err := os.ReadFile(path)
-			if err != nil {
-				return err
-			}
-			_, err = tmpl.New(relPath).Parse(string(content))
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		panic(err)
-	}
-	router.SetHTMLTemplate(tmpl)
-}
-
-// Mock Auth Middleware to inject user into context
-func MockAuthMiddleware(userMap map[string]*types.AuthUser) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		uid := c.GetHeader("X-Test-User-ID")
-		if uid != "" {
-			if user, ok := userMap[uid]; ok {
-				c.Set("IsLogin", true)
-				c.Set("AuthUser", user)
-			}
-		}
-		c.Next()
-	}
-}
 
 func TestDiaryRoutes_Integration(t *testing.T) {
 	// 1. Setup Environment
@@ -95,7 +33,7 @@ func TestDiaryRoutes_Integration(t *testing.T) {
 	// Get Services from Registry
 	userService := ctx.GetServices().GetUserService()
 	diaryService := ctx.GetServices().GetDiaryService()
-	// entryService := ctx.GetServices().GetEntryService() // Not needed for this test
+	entryService := ctx.GetServices().GetEntryService()
 
 	// Manually create LikeService (not in registry yet)
 	likeRepo := repository.NewLikeRepository()
@@ -107,7 +45,7 @@ func TestDiaryRoutes_Integration(t *testing.T) {
 	renderService := view.NewViewService(config, i18nManager)
 
 	// Initialize Controller
-	diaryCtrl := diary.NewDiaryController(config, diaryService, userService, likeService, authHelper, renderService)
+	diaryCtrl := diary.NewDiaryController(config, diaryService, entryService, userService, likeService, authHelper, renderService)
 
 	// 2. Prepare Data
 	dataGen := ctx.GetDataGenerator()
@@ -169,9 +107,9 @@ func TestDiaryRoutes_Integration(t *testing.T) {
 	// 3. Setup Router
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	loadTestTemplates(router)
+	helpers.LoadTestTemplates(router)
 
-	router.Use(MockAuthMiddleware(users))
+	router.Use(helpers.MockAuthMiddleware(users))
 	diaryCtrl.RegisterRoutes(router)
 
 	// 4. Test Cases

@@ -305,13 +305,22 @@ func (ctrl *EntryController) UpdateEntry(c *gin.Context) {
 			isLiked = likeStatus.IsLiked
 		}
 
+		// Get Diary Info for SocialSetting
+		diaryData, _ := ctrl.diaryService.GetDiaryByID(entryData.DiaryID)
+		socialSetting := 1
+		if diaryData != nil {
+			socialSetting = int(diaryData.SocialSetting)
+		}
+
 		data := map[string]interface{}{
-			"Entry":    entryData,
-			"IsOwner":  true, // User must be owner to update
-			"DiaryID":  entryData.DiaryID,
-			"Lang":     loginUser.Lang,
-			"TimeZone": loginUser.TimeZone,
-			"IsLiked":  isLiked,
+			"Entry":         entryData,
+			"IsOwner":       true, // User must be owner to update
+			"DiaryID":       entryData.DiaryID,
+			"Lang":          loginUser.Lang,
+			"TimeZone":      loginUser.TimeZone,
+			"IsLiked":       isLiked,
+			"SocialSetting": socialSetting,
+			"CurrentUserID": loginUser.UserId,
 		}
 		c.HTML(http.StatusOK, "diary/entry_card", data)
 		return

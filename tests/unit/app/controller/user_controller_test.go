@@ -5,6 +5,7 @@ import (
 
 	"github.com/biuren/hebe/internal/app/controller/user"
 	"github.com/biuren/hebe/internal/app/view"
+	domainEntry "github.com/biuren/hebe/internal/domain/entry"
 	domainUser "github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/stretchr/testify/assert"
@@ -16,6 +17,7 @@ func TestNewUserController(t *testing.T) {
 
 	// 创建真实的服务对象用于测试
 	mockUserSvc := &domainUser.Service{}
+	mockEntrySvc := &domainEntry.Service{}
 	mockAuth := &domainUser.AuthHelper{}
 	mockViewSvc := &view.ViewService{}
 
@@ -23,6 +25,7 @@ func TestNewUserController(t *testing.T) {
 	controller := user.NewUserController(
 		cfg,
 		mockUserSvc,
+		mockEntrySvc,
 		mockViewSvc,
 		mockAuth,
 	)
@@ -37,11 +40,12 @@ func TestUserController_BasicFunctionality(t *testing.T) {
 
 	// 创建真实的服务对象
 	userSvc := &domainUser.Service{}
+	entrySvc := &domainEntry.Service{}
 	auth := &domainUser.AuthHelper{}
 	viewSvc := &view.ViewService{}
 
 	// 创建控制器
-	controller := user.NewUserController(cfg, userSvc, viewSvc, auth)
+	controller := user.NewUserController(cfg, userSvc, entrySvc, viewSvc, auth)
 
 	// 验证控制器不为空
 	assert.NotNil(t, controller)
@@ -53,6 +57,7 @@ func TestUserController_ControllerCreation(t *testing.T) {
 		name        string
 		config      *config.Config
 		userService *domainUser.Service
+		entryService *domainEntry.Service
 		auth        *domainUser.AuthHelper
 		viewService *view.ViewService
 		expectNil   bool
@@ -61,6 +66,7 @@ func TestUserController_ControllerCreation(t *testing.T) {
 			name:        "valid controller creation",
 			config:      &config.Config{},
 			userService: &domainUser.Service{},
+			entryService: &domainEntry.Service{},
 			auth:        &domainUser.AuthHelper{},
 			viewService: &view.ViewService{},
 			expectNil:   false,
@@ -72,6 +78,7 @@ func TestUserController_ControllerCreation(t *testing.T) {
 			controller := user.NewUserController(
 				tt.config,
 				tt.userService,
+				tt.entryService,
 				tt.viewService,
 				tt.auth,
 			)

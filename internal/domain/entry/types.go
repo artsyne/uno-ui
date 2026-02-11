@@ -32,6 +32,11 @@ type Entry struct {
 	// Joined fields from br_user
 	AddUserHandle      string `json:"add_user_handle" db:"handle"`             // 创建者Handle
 	AddUserDisplayName string `json:"add_user_display_name" db:"display_name"` // 创建者显示名称
+
+	// Joined fields from br_diary
+	DiaryTitle    string `json:"diary_title" db:"diary_title"`       // 日记本标题
+	DiaryOwnerID  int64  `json:"diary_owner_id" db:"diary_owner_id"` // 日记本所有者ID
+	SocialSetting int8   `json:"social_setting" db:"social_setting"` // 社交设置 (1:开启 2:关闭)
 }
 
 // InfoType 信息类型

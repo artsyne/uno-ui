@@ -112,6 +112,32 @@ func (r *EntryRepository) ListByUserID(userID int64, diaryID int64, status int8,
 	return infoArray, totalRecords, err
 }
 
+// ListLatestPublicEntriesByUserID 查询用户最新公开日记
+func (r *EntryRepository) ListLatestPublicEntriesByUserID(userID int64, limit int) ([]entry.Entry, error) {
+	entries := []entry.Entry{}
+	sqlstr := `SELECT e.*, 
+		COALESCE(u.handle, '') as handle, 
+		COALESCE(u.display_name, '') as display_name,
+		d.title as diary_title,
+		d.add_user_id as diary_owner_id,
+		d.social_setting
+		FROM br_entry e
+		JOIN br_diary d ON e.diary_id = d.diary_id
+		LEFT JOIN br_user u ON e.add_user_id = u.user_id
+		WHERE d.add_user_id = ? 
+		AND e.status = 1 
+		AND d.status = 1 
+		AND d.view_setting = 1 
+		ORDER BY e.entry_id DESC 
+		LIMIT ?`
+
+	err := r.db.Select(&entries, sqlstr, userID, limit)
+	if err != nil {
+		return nil, err
+	}
+	return entries, nil
+}
+
 // ListByDiaryID 根据日记本ID分页查询日记信息（所有作者）
 func (r *EntryRepository) ListByDiaryID(diaryID int64, status int8, pageIndex, pageSize int) ([]entry.Entry, int, error) {
 	infoArray := []entry.Entry{}

@@ -33,6 +33,7 @@ func TestDiaryInviteAuthor_InvalidUser_NoPanic(t *testing.T) {
 	// Get Services from Registry
 	userService := ctx.GetServices().GetUserService()
 	diaryService := ctx.GetServices().GetDiaryService()
+	entryService := ctx.GetServices().GetEntryService()
 
 	// Manually create LikeService (not in registry yet)
 	likeRepo := repository.NewLikeRepository()
@@ -44,7 +45,7 @@ func TestDiaryInviteAuthor_InvalidUser_NoPanic(t *testing.T) {
 	renderService := view.NewViewService(config, i18nManager)
 
 	// Initialize Controller
-	diaryCtrl := diary.NewDiaryController(config, diaryService, userService, likeService, authHelper, renderService)
+	diaryCtrl := diary.NewDiaryController(config, diaryService, entryService, userService, likeService, authHelper, renderService)
 
 	// 2. Prepare Data
 	dataGen := ctx.GetDataGenerator()
@@ -76,8 +77,9 @@ func TestDiaryInviteAuthor_InvalidUser_NoPanic(t *testing.T) {
 	// Setup Router
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
+	helpers.LoadTestTemplates(router)
 	router.Use(gin.Recovery())
-	router.Use(MockAuthMiddleware(userMap))
+	router.Use(helpers.MockAuthMiddleware(userMap))
 	
 	// Register Routes
 	diaryCtrl.RegisterRoutes(router)

@@ -500,6 +500,7 @@ func (s *Service) RejectInvitation(diaryID, inviteeID int64) error {
 // GetDiaryAuthors 获取日记本的所有作者
 // 参数:
 //   - diaryID: 日记本ID
+//
 // 返回:
 //   - []Author: 作者列表
 //   - error: 查询失败时返回错误
@@ -511,6 +512,7 @@ func (s *Service) GetDiaryAuthors(diaryID int64) ([]Author, error) {
 // 参数:
 //   - diaryID: 日记本ID
 //   - userID: 用户ID
+//
 // 返回:
 //   - bool: 是否为活跃作者
 //   - error: 查询失败时返回错误
@@ -522,6 +524,7 @@ func (s *Service) IsAuthor(diaryID, userID int64) (bool, error) {
 // 参数:
 //   - diaryID: 日记本ID
 //   - userID: 用户ID
+//
 // 返回:
 //   - int8: 角色 (1:Owner, 2:Admin, 3:Member)
 //   - error: 查询失败时返回错误（如非作者）
@@ -708,6 +711,9 @@ func (s *Service) CheckJoinedDiariesLimit(userID int64) error {
 	if err != nil {
 		return &errors.InvalidParams
 	}
+
+	// DEBUG: Print count and limit
+	// fmt.Printf("DEBUG: CheckJoinedDiariesLimit userID=%d count=%d limit=%d\n", userID, count, s.config.App.UserJoinedDiariesLimit)
 
 	if count >= s.config.App.UserJoinedDiariesLimit {
 		return &errors.JoinedDiariesLimitExceeded
