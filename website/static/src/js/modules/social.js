@@ -1,5 +1,13 @@
 import { handleApiError } from '../utils/error-handler.js';
 
+// 全局事件名称常量
+const EVENTS = {
+  BATCH_STATS_LOADED: 'batch-stats-loaded',
+  BATCH_LIKE_STATUS_LOADED: 'batch-like-status-loaded',
+  ENTRY_LIKED: 'entry-liked',
+  ENTRY_COMMENT_UPDATED: 'entry-comment-updated',
+};
+
 const isJsonResponse = (response) => {
   const contentType = response.headers.get('content-type') || '';
   return contentType.includes('application/json');
@@ -15,6 +23,126 @@ const safeJson = async (response) => {
     return null;
   }
 };
+
+// 批量统计信息管理器
+const batchStatsManager = {
+  pendingEntryIds: new Set(),
+  loadedEntryIds: new Set(),
+  timer: null,
+  loading: false,
+
+  // 添加待加载的 entryId
+  addEntryId(entryId) {
+    const idStr = String(entryId);
+
+    // 去重检查
+    if (this.loadedEntryIds.has(idStr) || this.pendingEntryIds.has(idStr)) {
+      return;
+    }
+
+    // 添加到待加载队列
+    this.pendingEntryIds.add(idStr);
+
+    // 防抖处理（100ms）
+    if (this.timer) clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.loadBatchStats(), 100);
+  },
+
+  // 批量加载统计信息
+  async loadBatchStats() {
+    // 状态检查
+    if (this.loading || this.pendingEntryIds.size === 0) return;
+
+    // 锁定状态
+    this.loading = true;
+    const entryIds = Array.from(this.pendingEntryIds);
+    this.pendingEntryIds.clear();
+
+    try {
+      // 并行请求（stats + like status）
+      const [statsResponse, likeResponse] = await Promise.all([
+        fetch('/api/entry/stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entryids: entryIds.join(',') }),
+        }),
+        fetch('/api/entry/like/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entryids: entryIds.join(',') }),
+        }),
+      ]);
+
+      // 处理统计信息响应
+      const statsMap = {};
+      const statsResult = await safeJson(statsResponse);
+      if (statsResult?.success && statsResult.data?.stats) {
+        statsResult.data.stats.forEach((stat) => {
+          statsMap[stat.entry_id] = {
+            view_num: stat.view_num || 0,
+            comment_num: stat.comment_num || 0,
+            like_num: stat.like_num || 0,
+          };
+        });
+      }
+
+      // 处理点赞状态响应
+      const statusMap = {};
+      const likeResult = await safeJson(likeResponse);
+      if (likeResult?.success && likeResult.data?.status) {
+        likeResult.data.status.forEach((status) => {
+          statusMap[status.entry_id] = status.liked;
+        });
+      }
+
+      // 派发全局事件
+      window.dispatchEvent(
+        new CustomEvent(EVENTS.BATCH_STATS_LOADED, {
+          detail: { stats: statsMap },
+        }),
+      );
+
+      window.dispatchEvent(
+        new CustomEvent(EVENTS.BATCH_LIKE_STATUS_LOADED, {
+          detail: { statuses: statusMap },
+        }),
+      );
+
+      // 记录已加载
+      entryIds.forEach((id) => this.loadedEntryIds.add(String(id)));
+    } catch (error) {
+      console.error('批量加载统计信息失败:', error);
+    } finally {
+      // 解锁状态
+      this.loading = false;
+    }
+  },
+
+  // 清理状态（用于社交功能切换）
+  clear() {
+    this.pendingEntryIds.clear();
+    this.loadedEntryIds.clear();
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+  },
+};
+
+// 导出 BatchStatsManager 获取函数
+export function getBatchStatsManager() {
+  return batchStatsManager;
+}
+
+// 导出 BatchStatsManager 到 window 对象
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'batchStatsManager', {
+    value: batchStatsManager,
+    writable: false,
+    configurable: false,
+    enumerable: true,
+  });
+}
 
 export function SocialMixin() {
   return {
@@ -465,6 +593,205 @@ export function CommentsMixin(entryId) {
         const { localizedMessage } = handleApiError(null);
         notify.error(localizedMessage);
       }
+    },
+  };
+}
+
+// EntryStats 组件 - 用于单个日记卡片的统计信息管理
+export function entryStats(entryId) {
+  return {
+    entryId: entryId,
+    stats: {
+      loaded: false,
+      loading: false,
+      view_num: 0,
+      comment_num: 0,
+      like_num: 0,
+      liked: false,
+    },
+    observer: null,
+
+    // 初始化统计信息
+    async initStats() {
+      // 判断环境（box vs 列表）
+      const isInBox =
+        this.$el.closest('.uno-box') !== null ||
+        this.$root.closest('.uno-box') !== null;
+
+      if (isInBox) {
+        await this.loadSingleStats();
+      } else {
+        await this.loadWhenVisible();
+      }
+
+      // 绑定全局事件
+      this._bindGlobalEvents();
+    },
+
+    // 懒加载 - 使用 IntersectionObserver
+    async loadWhenVisible() {
+      if (this.stats.loaded || this.stats.loading) return;
+
+      this.observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && !this.stats.loaded) {
+              batchStatsManager.addEntryId(this.entryId);
+              this.stats.loading = true;
+              this.observer?.unobserve(entry.target);
+            }
+          });
+        },
+        { rootMargin: '100px' },
+      );
+
+      const el = this.$el;
+      if (el) {
+        this.observer.observe(el);
+      }
+    },
+
+    // 加载单个日记的统计信息（用于 box 中）
+    async loadSingleStats() {
+      if (this.stats.loading || this.stats.loaded) return;
+      this.stats.loading = true;
+
+      try {
+        const [statsResponse, likeResponse] = await Promise.all([
+          fetch('/api/entry/stats', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ entryids: String(this.entryId) }),
+          }),
+          fetch('/api/entry/like/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ entryids: String(this.entryId) }),
+          }),
+        ]);
+
+        // 处理统计信息
+        const statsResult = await safeJson(statsResponse);
+        if (statsResult?.success && statsResult.data?.stats?.[0]) {
+          const stat = statsResult.data.stats[0];
+          this.stats.view_num = stat.view_num || 0;
+          this.stats.comment_num = stat.comment_num || 0;
+          this.stats.like_num = stat.like_num || 0;
+        }
+
+        // 处理点赞状态
+        const likeResult = await safeJson(likeResponse);
+        if (likeResult?.success && likeResult.data?.status?.[0]) {
+          const status = likeResult.data.status[0];
+          this.stats.liked = status.liked;
+        }
+
+        this.stats.loaded = true;
+      } catch (error) {
+        console.error('加载统计信息失败:', error);
+        this.stats.loaded = true;
+      } finally {
+        this.stats.loading = false;
+      }
+    },
+
+    // 点赞切换
+    async toggleLike() {
+      if (this.stats.loading) return;
+
+      // 乐观更新
+      const oldLiked = this.stats.liked;
+      const oldCount = this.stats.like_num;
+      this.stats.liked = !oldLiked;
+      this.stats.like_num = oldLiked ? oldCount - 1 : oldCount + 1;
+
+      try {
+        const response = await fetch('/api/entry/like', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entry_id: parseInt(this.entryId) }),
+        });
+
+        const result = await response.json();
+        if (result.success && result.data) {
+          this.stats.liked = result.data.is_liked;
+          this.stats.like_num = result.data.like_count;
+
+          // 派发全局事件
+          window.dispatchEvent(
+            new CustomEvent(EVENTS.ENTRY_LIKED, {
+              detail: {
+                entryId: parseInt(this.entryId),
+                liked: this.stats.liked,
+                count: this.stats.like_num,
+              },
+            }),
+          );
+        } else {
+          // 回滚
+          this.stats.liked = oldLiked;
+          this.stats.like_num = oldCount;
+        }
+      } catch (error) {
+        // 回滚
+        this.stats.liked = oldLiked;
+        this.stats.like_num = oldCount;
+      }
+    },
+
+    // 绑定全局事件
+    _bindGlobalEvents() {
+      // 监听批量统计加载完成事件
+      this._onBatchStatsLoaded = (evt) => {
+        const { stats } = evt.detail;
+        if (stats[this.entryId]) {
+          const data = stats[this.entryId];
+          this.stats.view_num = data.view_num;
+          this.stats.comment_num = data.comment_num;
+          this.stats.like_num = data.like_num;
+          this.stats.loaded = true;
+          this.stats.loading = false;
+        }
+      };
+
+      // 监听批量点赞状态加载完成事件
+      this._onBatchLikeStatusLoaded = (evt) => {
+        const { statuses } = evt.detail;
+        if (statuses[this.entryId] !== undefined) {
+          this.stats.liked = statuses[this.entryId];
+        }
+      };
+
+      // 监听单个点赞事件
+      this._onEntryLiked = (evt) => {
+        const { entryId, liked, count } = evt.detail;
+        if (parseInt(this.entryId) === entryId) {
+          this.stats.liked = liked;
+          this.stats.like_num = count;
+        }
+      };
+
+      // 监听评论更新事件
+      this._onCommentUpdated = (evt) => {
+        const { entryId, count } = evt.detail;
+        if (parseInt(this.entryId) === entryId) {
+          this.stats.comment_num = count;
+        }
+      };
+
+      window.addEventListener(EVENTS.BATCH_STATS_LOADED, this._onBatchStatsLoaded);
+      window.addEventListener(EVENTS.BATCH_LIKE_STATUS_LOADED, this._onBatchLikeStatusLoaded);
+      window.addEventListener(EVENTS.ENTRY_LIKED, this._onEntryLiked);
+      window.addEventListener(EVENTS.ENTRY_COMMENT_UPDATED, this._onCommentUpdated);
+    },
+
+    // 清理资源
+    destroy() {
+      this.observer?.disconnect();
+      window.removeEventListener(EVENTS.BATCH_STATS_LOADED, this._onBatchStatsLoaded);
+      window.removeEventListener(EVENTS.BATCH_LIKE_STATUS_LOADED, this._onBatchLikeStatusLoaded);
+      window.removeEventListener(EVENTS.ENTRY_LIKED, this._onEntryLiked);
+      window.removeEventListener(EVENTS.ENTRY_COMMENT_UPDATED, this._onCommentUpdated);
     },
   };
 }
