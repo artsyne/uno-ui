@@ -1,6 +1,5 @@
 {{define "diary/entry_card"}}
-<div class="card mb-6 break-inside-avoid" id="entry-card-{{.Entry.EntryID}}" data-entry-id="{{.Entry.EntryID}}"
-    x-data="{ socialSetting: {{.SocialSetting}} }">
+<div class="card mb-6 break-inside-avoid" id="entry-card-{{.Entry.EntryID}}" data-entry-id="{{.Entry.EntryID}}">
     {{if .IsOwner}}
     <div class="entry-edit">
         <a href="javascript:void(0)"
@@ -52,21 +51,27 @@
                 {{ formatLocalTime .Entry.AddUTCTime .TimeZone}}
             </span>
         </div>
-        <!-- Alpine-based Stats Container -->
+        <!-- EntryStats 组件 - 社交统计信息 -->
         {{if eq .SocialSetting 1}}
-        <div class="flex items-center" x-show="socialSetting === 1 && stats[{{.Entry.EntryID}}]" style="display: none;"
-            x-effect="if (!stats[{{.Entry.EntryID}}]) stats[{{.Entry.EntryID}}] = { view_num: {{.Entry.ViewNum}}, comment_num: {{.Entry.CommentNum}}, like_num: {{.Entry.LikeNum}}, liked: {{.IsLiked}} }">
-            <button class="btn-social mr-2" title='{{getMessage "common.views" .Lang}}'>
-                <i class="mdi mdi-eye mr-1"></i> <span x-text="getStats({{.Entry.EntryID}}).view_num"></span>
-            </button>
-            <button class="btn-social mr-2" title='{{getMessage "common.comments" .Lang}}'>
-                <i class="mdi mdi-comment-text-outline mr-1"></i> <span
-                    x-text="getStats({{.Entry.EntryID}}).comment_num"></span>
-            </button>
-            <button class="btn-social" @click="toggleLike({{.Entry.EntryID}})">
-                <i class="mdi mr-1"
-                    :class="getStats({{.Entry.EntryID}}).liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
-                <span x-text="getStats({{.Entry.EntryID}}).like_num"></span>
+        <div class="flex items-center" x-data="entryStats({{.Entry.EntryID}})" x-init="initStats()">
+            <!-- 浏览量 -->
+            <span class="mr-4 flex items-center text-gray-600 dark:text-gray-400 text-sm" title='{{getMessage "common.views" .Lang}}'>
+                <i class="mdi mdi-eye mr-1"></i>
+                <span x-show="stats.loaded" x-text="stats.view_num">-</span>
+                <span x-show="!stats.loaded" class="animate-pulse">-</span>
+            </span>
+            <!-- 评论数 -->
+            <span class="mr-4 flex items-center text-gray-600 dark:text-gray-400 text-sm" title='{{getMessage "common.comments" .Lang}}'>
+                <i class="mdi mdi-comment-text-outline mr-1"></i>
+                <span x-show="stats.loaded" x-text="stats.comment_num">-</span>
+                <span x-show="!stats.loaded" class="animate-pulse">-</span>
+            </span>
+            <!-- 点赞按钮 -->
+            <button class="flex items-center text-gray-600 dark:text-gray-400 text-sm hover:text-blue-500 transition-colors focus:outline-none"
+                    @click="toggleLike()" :disabled="stats.loading">
+                <i class="mdi mr-1" :class="stats.liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
+                <span x-show="stats.loaded" x-text="stats.like_num">-</span>
+                <span x-show="!stats.loaded" class="animate-pulse">-</span>
             </button>
         </div>
         {{end}}

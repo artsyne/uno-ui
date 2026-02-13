@@ -69,23 +69,31 @@
                 </div>
 
                 {{if eq .Data.Diary.SocialSetting 1}}
+                <!-- EntryStats 组件 - 社交统计信息 -->
                 <div
-                    class="flex items-center text-gray-600 dark:text-gray-400 text-sm mt-4 border-t border-gray-100 dark:border-gray-700 pt-4">
+                    class="flex items-center text-gray-600 dark:text-gray-400 text-sm mt-4 border-t border-gray-100 dark:border-gray-700 pt-4"
+                    x-data="entryStats({{.Data.Entry.EntryID}})"
+                    x-init="initStats()">
+                    <!-- 浏览量 -->
                     <span class="mr-6 flex items-center" title="Views">
-                        <i class="mdi mdi-eye mr-1 text-lg"></i> {{.Data.Entry.ViewNum}}
+                        <i class="mdi mdi-eye mr-1 text-lg"></i>
+                        <span x-show="stats.loaded" x-text="stats.view_num">-</span>
+                        <span x-show="!stats.loaded" class="animate-pulse">-</span>
                     </span>
+                    <!-- 评论数 -->
                     <span id="entry-comment-count" class="mr-6 flex items-center" title="Comments">
-                        <i class="mdi mdi-comment-text-outline mr-1 text-lg"></i> {{.Data.Entry.CommentNum}}
+                        <i class="mdi mdi-comment-text-outline mr-1 text-lg"></i>
+                        <span x-show="stats.loaded" x-text="stats.comment_num">-</span>
+                        <span x-show="!stats.loaded" class="animate-pulse">-</span>
                     </span>
-                    <div x-data="likeButton({{.Data.Entry.LikeNum}}, {{.Data.IsLiked}}, {{.Data.Entry.EntryID}})"
-                        class="inline-block">
-                        <button @click="toggle"
-                            class="flex items-center hover:text-blue-500 transition-colors focus:outline-none"
-                            :disabled="loading">
-                            <i class="mdi mr-1 text-lg" :class="liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
-                            <span x-text="count"></span>
-                        </button>
-                    </div>
+                    <!-- 点赞按钮 -->
+                    <button @click="toggleLike()"
+                        class="flex items-center hover:text-blue-500 transition-colors focus:outline-none"
+                        :disabled="stats.loading">
+                        <i class="mdi mr-1 text-lg" :class="stats.liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
+                        <span x-show="stats.loaded" x-text="stats.like_num">-</span>
+                        <span x-show="!stats.loaded" class="animate-pulse">-</span>
+                    </button>
                 </div>
                 {{end}}
             </div>

@@ -2,7 +2,7 @@ import themeStore from '../stores/theme.js';
 import i18nStore from '../stores/i18n.js';
 import { Navbar, Footer } from '../modules/layout.js';
 import DiaryDetail from '../modules/diary-detail.js';
-import { LikeButton, CommentsMixin } from '../modules/social.js';
+import { LikeButton, CommentsMixin, entryStats, getBatchStatsManager } from '../modules/social.js';
 import { initAuth, initValidationCallbacks } from '../modules/auth.js';
 import { initFormHandlers, validateAndTrigger } from '../modules/form.js';
 import { User } from '../modules/user.js';
@@ -153,22 +153,49 @@ document.body.addEventListener('htmx:afterSwap', (evt) => {
 });
 
 // 5. Alpine Initialization
+
 document.addEventListener('alpine:init', () => {
+
   // Register Components
+
   Alpine.data('navbar', Navbar);
+
   Alpine.data('footer', Footer);
+
   Alpine.data('diaryDetail', DiaryDetail);
+
   Alpine.data('likeButton', LikeButton);
+
+  Alpine.data('entryStats', entryStats);
+
   Alpine.data('CommentsMixin', CommentsMixin);
+
   Alpine.data('user', () => User);
+
   Alpine.data('settings', Settings);
+
   Alpine.data('handleSettings', HandleSettings);
+
   Alpine.data('diaryForm', DiaryForm);
+
   Alpine.data('heroAnimation', HeroAnimation);
+
   Alpine.data('drafts', Drafts);
+
   Alpine.data('authorList', AuthorList);
 
+
+
+  // Export batchStatsManager to window for other modules to access
+
+  window.batchStatsManager = getBatchStatsManager();
+
+
+
+
+
   // Register Stores
+
   Alpine.store('theme', themeStore);
 
   // Merge i18n Store (Preserve Uno messages if present)
