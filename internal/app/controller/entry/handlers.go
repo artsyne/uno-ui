@@ -287,15 +287,27 @@ func (ctrl *EntryController) UpdateEntry(c *gin.Context) {
 
 	// HTMX Support
 	if c.GetHeader("HX-Request") == "true" {
+		source := c.Query("source")
+
 		trigger := map[string]interface{}{
 			"showToast":       map[string]string{"type": "success", "message": "common.save_success"},
 			"closeEntryModal": true,
 		}
-		if c.Query("source") == "drafts" {
+		if source == "drafts" {
 			trigger["refreshDrafts"] = true
+		}
+		if source == "box" {
+			// 在 box 中编辑，只返回 entryUpdated 事件，前端会更新标题和摘要
+			trigger["entryUpdated"] = entryData
 		}
 		if triggerJSON, err := json.Marshal(trigger); err == nil {
 			c.Header("HX-Trigger", string(triggerJSON))
+		}
+
+		// 如果是 box 或 drafts，不返回 HTML
+		if source == "box" || source == "drafts" {
+			c.Status(http.StatusNoContent)
+			return
 		}
 
 		// Get Like Status

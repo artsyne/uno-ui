@@ -328,6 +328,10 @@ func (ctrl *EntryController) ShowEntry(c *gin.Context) {
 	data.Data["PreviousEntryID"] = previousEntryID
 	data.Data["NextEntryID"] = nextEntryID
 	data.Data["HideNav"] = req.WithDel // 传递 HideNav 标志
+	// 添加 CurrentUserID 用于判断是否显示编辑按钮
+	if loginUser != nil {
+		data.Data["CurrentUserID"] = loginUser.UserId
+	}
 	// 渲染 Markdown 内容为 HTML
 	data.Data["BodyHTML"] = pkg.RenderMarkdown(entryInfo.Body)
 

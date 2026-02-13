@@ -138,6 +138,33 @@ export default function DiaryDetail() {
         mainEl.dataset.socialSetting = diary.social_setting;
       }
 
+      // 检测社交功能开关，处理边界情况
+      if (this.socialSetting !== diary.social_setting) {
+        if (diary.social_setting === 0) {
+          // 社交功能关闭：清理批量加载状态
+          const batchStatsManager = window.batchStatsManager;
+          if (batchStatsManager) {
+            batchStatsManager.clear();
+          }
+          // 重置所有 entryStats 组件的状态
+          document.querySelectorAll('[x-data*="entryStats"]').forEach((el) => {
+            const component = el.__x;
+            if (component && component.stats) {
+              component.stats.loaded = false;
+              component.stats.loading = false;
+            }
+          });
+        } else {
+          // 社交功能开启：重新初始化所有 entryStats 组件
+          document.querySelectorAll('[x-data*="entryStats"]').forEach((el) => {
+            const component = el.__x;
+            if (component && component.initStats) {
+              component.initStats();
+            }
+          });
+        }
+      }
+
       this.socialSetting = diary.social_setting;
 
       // Update Social Button
@@ -162,12 +189,29 @@ export default function DiaryDetail() {
             }
           }
         }
-        this.loadStats();
         this.loadDiaryLike();
       } else {
         if (socialWrapper) socialWrapper.remove();
-        this.stats = {};
       }
+    },
+
+    // 初始化社交功能
+    initSocial() {
+      this.socialSetting = parseInt(
+        document.querySelector('main')?.dataset.socialSetting || '2',
+      );
+
+      if (this.socialSetting === 1) {
+        this.loadDiaryLike();
+      }
+
+      // 监听日记更新事件
+      document.body.addEventListener('diaryUpdated', (evt) => {
+        const diary = evt.detail.diaryUpdated || evt.detail.value || evt.detail;
+        if (diary && typeof diary === 'object' && diary.diary_id) {
+          this._updateDiaryUI(diary);
+        }
+      });
     },
   };
 }
