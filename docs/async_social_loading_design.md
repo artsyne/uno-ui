@@ -102,11 +102,6 @@
     - 使用 `loadedEntryIds` 和 `pendingEntryIds` Set 进行去重，确保每个 entryId 只加载一次。
     - **收益**: 只加载用户可见或即将可见的卡片统计信息，减少 API 请求量。
 
-3.  **Layout Stability (CLS 预防)**:
-    - 确保 `EntryStats` 的占位符/骨架屏 (`skeleton`) 高度与最终加载的内容高度严格一致。
-    - 使用 `min-height` 或固定高度容器，防止数据加载完成后导致页面布局跳动 (Cumulative Layout Shift)。
-    - **收益**: 提升视觉稳定性，符合 Google Core Web Vitals 标准。
-
 ---
 
 ## 3. 总体架构设计 (Overall Architecture Design)
@@ -814,7 +809,6 @@ this.observer.observe(el);
 
 - [ ] **3.3 性能调优**:
   - [ ] 调整 `IntersectionObserver` 的 `rootMargin` (默认 100px)
-  - [ ] 验证 `CLS` (Cumulative Layout Shift) 为 0
   - [ ] 测试快速滚动场景
 
 #### 验证检查点
@@ -823,7 +817,6 @@ this.observer.observe(el);
 - [ ] box 中上下篇导航，统计信息重新加载
 - [ ] 点赞操作有乐观更新效果
 - [ ] 编辑后上下文保持正常
-- [ ] CLS 指标为 0
 
 ---
 
@@ -976,7 +969,6 @@ sequenceDiagram
 
 - **API Latency**: `/stats` P99 ≤ 200ms (50 IDs batch).
 - **Frontend**: TTI (Time to Interactive) 无显著增加。
-- **CLS**: 0 (骨架屏高度严格匹配真实内容)。
 
 ### 9.3 错误率
 
