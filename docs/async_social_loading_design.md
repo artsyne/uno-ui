@@ -67,7 +67,7 @@
 - `loadDiaryLike()` 方法
 
 **需要新增**:
-- `BatchStatsManager`: 批量加载管理器（去重、防抖、分片）
+- `BatchStatsManager`: 批量加载管理器（去重、防抖）
 - `entryStats(entryId)` 函数: Alpine.js 组件（懒加载、事件监听）
 - `getBatchStatsManager()` 函数: 导出管理器供其他模块使用
 - 全局事件常量定义
@@ -95,20 +95,17 @@
     - 若 API 请求失败，则静默回滚状态，并可选提示用户。
     - **收益**: 消除网络延迟感，操作响应如本地应用般丝滑。
 
-2.  **Batch Slicing (批量分片)**:
-    - 虽然 `BatchStatsManager` 进行了去重和防抖，但在快速滚动场景下可能积压大量 ID。
-    - 为了防止 URL 过长（GET请求限制）或后端压力过大，将批量请求进行分片处理（例如每 50 个 ID 一组）。
-    - **收益**: 增强系统的健壮性和请求成功率。
+2.  **Lazy Loading (懒加载)**:
+    - 使用 `IntersectionObserver` 监听卡片是否进入视口。
+    - 设置 `rootMargin: '100px'` 提前触发加载，减少用户感知的加载时间。
+    - 触发加载后立即 `unobserve`，避免重复触发。
+    - 使用 `loadedEntryIds` 和 `pendingEntryIds` Set 进行去重，确保每个 entryId 只加载一次。
+    - **收益**: 只加载用户可见或即将可见的卡片统计信息，减少 API 请求量。
 
 3.  **Layout Stability (CLS 预防)**:
     - 确保 `EntryStats` 的占位符/骨架屏 (`skeleton`) 高度与最终加载的内容高度严格一致。
     - 使用 `min-height` 或固定高度容器，防止数据加载完成后导致页面布局跳动 (Cumulative Layout Shift)。
     - **收益**: 提升视觉稳定性，符合 Google Core Web Vitals 标准。
-
-4.  **Pre-loading Strategy (预加载策略)**:
-    - 在 `IntersectionObserver` 中设置 `rootMargin: '100px'`。
-    - 在卡片进入视口前 100px 即开始触发加载，使用户滚动到卡片时数据可能已准备就绪。
-    - **收益**: 减少用户感知到的加载过程。
 
 ---
 
@@ -128,7 +125,7 @@
 | 分层 (Layer)                  | 模块 (Module)                          | 职责 (Responsibility)                    | 交互规范 (Interaction)                                    |
 | :---------------------------- | :------------------------------------- | :--------------------------------------- | :-------------------------------------------------------- |
 | **表现层 (Presentation)**     | `website/views/**`, `entry_card.html`  | 负责 UI 渲染、骨架屏展示、用户交互捕获。 | 使用 `x-data` 绑定状态，通过 `CustomEvent` 与业务层通信。 |
-| **客户端业务层 (Client Biz)** | `social.js` (BatchManager, EntryStats) | 负责防抖、分片、缓存管理、乐观更新逻辑。 | 调用后端 JSON API，分发全局事件更新 UI。                  |
+| **客户端业务层 (Client Biz)** | `social.js` (BatchManager, EntryStats) | 负责防抖、缓存管理、懒加载、乐观更新逻辑。 | 调用后端 JSON API，分发全局事件更新 UI。                  |
 | **服务端业务层 (Server Biz)** | `internal/app/controller/entry`        | 负责请求校验、聚合数据、权限检查。       | 接收 JSON 请求，返回标准化 `APIResponse`。                |
 | **数据层 (Data Access)**      | `internal/infra/repository/entry`      | 负责高效 SQL 查询 (JOIN优化)。           | 执行 SQL，返回 Domain Model。                             |
 
@@ -838,7 +835,7 @@ this.observer.observe(el);
   - **Repository**: 使用 `testcontainers` 或 Mock DB 验证 SQL。
   - **Controller**: 使用 `httptest` 验证 API 响应格式。
 - **Frontend (JS)**: 使用 `Jest` (或模拟环境)。
-  - **BatchManager**: Mock `fetch`，验证防抖和分片逻辑。
+  - **BatchManager**: Mock `fetch`，验证防抖和去重逻辑。
   - **EntryStats**: 验证组件状态转换和事件监听。
 
 ### 5.2 覆盖率标准
@@ -851,13 +848,15 @@ this.observer.observe(el);
 
 | 模块                | 测试场景 | 输入             | 预期输出                          | 类型  |
 | :------------------ | :------- | :--------------- | :-------------------------------- | :---- |
-| `BatchStatsManager` | 正常批量 | Add 100 IDs      | Fetch called 2 times (50/chunk)   | Unit  |
+| `BatchStatsManager` | 正常批量 | Add 100 IDs      | Fetch called with all IDs         | Unit  |
 | `BatchStatsManager` | 重复添加 | Add ID "1" twice | Pending queue size = 1            | Unit  |
 | `BatchStatsManager` | 清理状态 | clear()          | pending & loaded 均为空          | Unit  |
 | `EntryStats`        | 乐观点赞 | Click Like       | `liked`=true, `num`+1 immediately | Unit  |
 | `EntryStats`        | 懒加载   | Scroll into view | addEntryId called once            | Unit  |
+| `EntryStats`        | 社交开关关闭 | SocialSetting=0 | stats.loaded=false, loading=false | Unit  |
+| `EntryStats`        | 社交开关开启 | SocialSetting=1 | initStats() called                | Unit  |
 | `API`               | 空列表   | `ids: []`        | `200 OK`, `data: {}`              | Integ |
-| `API`               | 批量请求 | 50 IDs           | P99 ≤ 200ms                       | Perf  |
+| `API`               | 批量请求 | 100 IDs         | P99 ≤ 200ms                       | Perf  |
 
 ---
 
@@ -961,7 +960,6 @@ sequenceDiagram
 
 | 配置项       | Dev               | Staging | Prod |
 | :----------- | :---------------- | :------ | :--- |
-| `BatchSize`  | 10 (方便测试分片) | 50      | 50   |
 | `DebounceMs` | 500 (方便观察)    | 100     | 100  |
 | `LogLevel`   | Debug             | Info    | Warn |
 
