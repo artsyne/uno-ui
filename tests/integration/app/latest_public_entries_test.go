@@ -135,9 +135,10 @@ func TestLatestPublicEntries_Integration(t *testing.T) {
 		require.Contains(t, body, "entry-edit", "Should show edit button for owner")
 
 		// Verify Social Setting Logic
-		// Check that we have both enabled (1) and disabled (2) settings rendered
-		require.Contains(t, body, "socialSetting: 1", "Should render socialSetting: 1 for enabled diary")
-		require.Contains(t, body, "socialSetting: 2", "Should render socialSetting: 2 for disabled diary")
+		// With new entryStats component, social setting is controlled by {{if eq .SocialSetting 1}}
+		// Check for entryStats component initialization for enabled diary
+		require.Contains(t, body, `x-data="entryStats(`, "Should render entryStats component for entries with social enabled")
+		require.Contains(t, body, "x-init=\"initStats()\"", "Should call initStats() for entryStats component")
 
 		// Verify entries are present
 		require.Contains(t, body, "Public Entry")

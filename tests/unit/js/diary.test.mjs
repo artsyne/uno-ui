@@ -96,64 +96,73 @@ describe('Diary Modules', () => {
   };
 
   describe('DiaryDetail', () => {
-    test('should initialize and load stats', () => {
+    test('should initialize and expose global functions', () => {
       const diaryDetail = createDiaryDetail();
 
       // Mock document.querySelector for main
-      const mockMain = { dataset: { socialSetting: '1' } };
+      const mockMain = { dataset: { socialSetting: '1', isOwner: 'true' } };
       const mockQuerySelector = jest.fn().mockReturnValue(mockMain);
       Object.defineProperty(document, 'querySelector', {
         value: mockQuerySelector,
         writable: true,
       });
 
-      // Mock document.querySelectorAll
-      const mockQuerySelectorAll = jest.fn();
-      Object.defineProperty(document, 'querySelectorAll', {
-        value: mockQuerySelectorAll,
+      // Mock document.body.addEventListener for event binding
+      const mockAddEventListener = jest.fn();
+      Object.defineProperty(document.body, 'addEventListener', {
+        value: mockAddEventListener,
         writable: true,
       });
 
-      const mockElements = [
-        { dataset: { entryId: '1' } },
-        { dataset: { entryId: '2' } },
-      ];
-      mockQuerySelectorAll.mockReturnValue(mockElements);
-
-      // Mock getElementById for loadDiaryLike which is also called
-      jest
-        .spyOn(document, 'getElementById')
-        .mockReturnValue({ dataset: { diaryId: '1' } });
-
-      // Mock fetch responses
-      global.fetch.mockResolvedValue({
-        ok: true,
-        headers: {
-          get: (name) => (name === 'content-type' ? 'application/json' : ''),
+      // Mock window.getUno
+      window.getUno = jest.fn().mockReturnValue({
+        box: {
+          dialog: jest.fn(),
         },
-        json: async () => ({
-          code: 0,
-          data: {
-            stats: [
-              { entry_id: '1', view_num: 10, like_num: 5 },
-              { entry_id: '2', view_num: 20, like_num: 8 },
-            ],
-          },
-        }),
+        box: {
+          dialog: jest.fn(),
+        },
       });
 
+      // Mock global functions
+      window.BoxConfirm = jest.fn();
+
       diaryDetail.init();
-      expect(mockQuerySelectorAll).toHaveBeenCalledWith('[data-entry-id]');
+
+      // Verify that global functions are exposed
+      expect(window.openCreateEntry).toBeInstanceOf(Function);
+      expect(window.openEditEntry).toBeInstanceOf(Function);
+      expect(window.deleteEntry).toBeInstanceOf(Function);
+      expect(window.openEntryModal).toBeInstanceOf(Function);
+      expect(window.openDiarySettings).toBeInstanceOf(Function);
+      expect(window.toggleDiaryLike).toBeInstanceOf(Function);
+
+      // Verify event listener is bound for diary updates
+      expect(mockAddEventListener).toHaveBeenCalledWith('diaryUpdated', expect.any(Function));
+
+      // Verify isOwner is set from DOM
+      expect(diaryDetail.isOwner).toBe(true);
     });
 
     test('deleteEntry should confirm and call fetch', async () => {
       const diaryDetail = createDiaryDetail();
+      
+      // Ensure mockBoxConfirm returns true (user confirms)
       mockBoxConfirm.mockResolvedValueOnce(true);
 
       // Mock window.htmx
       window.htmx = {
         ajax: jest.fn().mockResolvedValue({}),
       };
+
+      // Mock window.getUno to return the mock uno object
+      window.getUno = () => ({
+        box: {
+          confirm: mockBoxConfirm,
+          dialog: mockBoxDialog,
+        },
+        notify: { success: mockNotifySuccess },
+      });
 
       await diaryDetail.deleteEntry(1, 100);
 
@@ -222,6 +231,15 @@ describe('Diary Modules', () => {
       const mockBoxId = 'box-123';
       mockBoxDialog.mockReturnValue(mockBoxId);
 
+      // Mock window.getUno to return the mock uno object
+      window.getUno = () => ({
+        box: {
+          confirm: mockBoxConfirm,
+          dialog: mockBoxDialog,
+        },
+        notify: { success: mockNotifySuccess },
+      });
+
       diaryDetail.openCreateEntry(1);
 
       expect(mockBoxDialog).toHaveBeenCalledWith(
@@ -234,6 +252,15 @@ describe('Diary Modules', () => {
 
     test('openEntryModal should call Box.dialog with ajaxUrl', () => {
       const diaryDetail = createDiaryDetail();
+
+      // Mock window.getUno to return the mock uno object
+      window.getUno = () => ({
+        box: {
+          confirm: mockBoxConfirm,
+          dialog: mockBoxDialog,
+        },
+        notify: { success: mockNotifySuccess },
+      });
 
       // Mock window.location
       const originalLocation = window.location;

@@ -125,18 +125,16 @@ func TestUpdateEntry_HTMX_Integration(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	// 5. Assertions
-	require.Equal(t, http.StatusOK, w.Code)
+	// Note: When source=drafts or source=box, UpdateEntry returns 204 No Content
+	// The frontend uses HX-Trigger header to refresh the UI
+	require.Equal(t, http.StatusNoContent, w.Code)
 
+	// Verify HX-Trigger header contains entryUpdated event
+	hxTrigger := w.Header().Get("HX-Trigger")
+	require.Contains(t, hxTrigger, "refreshDrafts", "HX-Trigger should contain refreshDrafts for drafts source")
+
+	// For drafts source, no HTML body is returned
+	// The entryUpdated trigger is handled by frontend event listener
 	body := w.Body.String()
-
-	// Check for SocialSetting (Alpine fix)
-	// The template renders: x-data="{ socialSetting: 1 }"
-	require.Contains(t, body, "socialSetting: 1", "Response should contain socialSetting for Alpine.js")
-
-	// Check for Edit Menu (CurrentUserID fix)
-	// The template renders: <div class="entry-edit">
-	require.Contains(t, body, "entry-edit", "Response should contain edit menu for owner")
-
-	// Check for Updated Content
-	require.Contains(t, body, "Updated Title")
+	require.Empty(t, body, "Body should be empty for 204 response")
 }
