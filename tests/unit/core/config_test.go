@@ -85,7 +85,7 @@ func TestConfig_AppConfig(t *testing.T) {
 	assert.Equal(t, "debug", cfg.App.GinMode)
 	assert.Equal(t, "http://127.0.0.1:9090", cfg.App.Domain)
 	assert.Equal(t, "9090", cfg.App.Port)
-	assert.Equal(t, 1200, cfg.App.SummaryMax)
+	assert.Equal(t, 1000, cfg.App.SummaryMax)
 	assert.Equal(t, "...", cfg.App.Suffix)
 
 	// PageSize might be overridden by .env.local

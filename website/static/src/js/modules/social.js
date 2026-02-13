@@ -167,7 +167,6 @@ export function SocialMixin() {
       );
 
       if (this.socialSetting === 1) {
-        this.loadStats();
         this.loadDiaryLike();
       }
 
@@ -177,7 +176,8 @@ export function SocialMixin() {
           evt.detail.target.id === 'diary-content' &&
           this.socialSetting === 1
         ) {
-          this.loadStats();
+          // Note: Stats loading is now handled by entryStats components
+          // This listener is kept for diary-level features only
         }
       });
 

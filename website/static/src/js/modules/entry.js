@@ -130,6 +130,29 @@ export const EntryMixin = {
       }
     };
     document.body.addEventListener('closeEntryModal', closeHandler, true);
+
+    // Listen for entry update events to refresh title and summary in box
+    if (source === 'box' && entryId) {
+      const updateHandler = (evt) => {
+        const detail = evt.detail;
+        if (detail && detail.entryUpdated) {
+          const entry = detail.entryUpdated;
+          // Update title in box
+          const titleEl = document.querySelector('#entry-detail-container h1');
+          if (titleEl && entry.Title) {
+            titleEl.textContent = entry.Title;
+          }
+          // Update summary in box (body content)
+          const bodyEl = document.querySelector('#entry-detail-container .prose');
+          if (bodyEl && entry.Body) {
+            // Check if markdown renderer is available
+            const markdown = window.markdown?.render || ((text) => text);
+            bodyEl.innerHTML = markdown(entry.Body);
+          }
+        }
+      };
+      document.body.addEventListener('entryUpdated', updateHandler);
+    }
   },
 
   confirmDelete(entryId, el) {
