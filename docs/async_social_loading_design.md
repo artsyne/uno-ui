@@ -34,6 +34,7 @@
 3. **数据一致性**: 后端渲染的统计数据可能不是最新的。
 4. **状态同步缺失**: 在日记本列表页面，修改日记本社交开关（on/off）时，日记卡片的统计信息区域没有实时更新（增加或移除）。
 5. **上下文丢失**: 在日记本列表页面修改日记保存后，日记卡片的操作菜单中"编辑"选项消失（仅剩删除），提示可能存在上下文（CurrentUserID）丢失或DOM更新异常。
+6. **卡片样式不统一**: 日记卡片在不同页面显示的内容不一致。在用户最新公开日记页面显示日记本标题和作者，但在日记本列表页面（diary/list.html）不显示这些信息。需要统一所有页面的日记卡片样式，都显示日记本标题和作者。
 
 ### 1.3 当前实现现状 (Current Implementation Status)
 
@@ -224,7 +225,17 @@ const EVENTS = {
 
 7. **`internal/app/controller/entry/handlers.go`**
    - **修改**: UpdateEntry() 方法处理 source=box 时的 entryUpdated 事件
+   - **新增**: renderPublishedEntryResponse() 添加 ShowDiaryInfo=true
+   - **新增**: UpdateEntry() 添加 ShowDiaryInfo=true
    - **依赖**: 无
+
+8. **`internal/infra/repository/entry.go`**
+   - **修改**: ListByDiaryID() 方法添加 JOIN br_diary 获取 diary_title
+   - **依赖**: 无
+
+9. **`website/views/diary/list.html`**
+   - **修改**: 添加 ShowDiaryInfo=true 到 entry_card 模板调用
+   - **依赖**: 步骤8完成
 
 #### 可以并行修改的文件
 - 测试文件可以并行编写

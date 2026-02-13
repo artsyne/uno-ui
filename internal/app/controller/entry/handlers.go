@@ -217,6 +217,7 @@ func (ctrl *EntryController) renderPublishedEntryResponse(c *gin.Context, loginU
 			"TimeZone":      loginUser.TimeZone,
 			"IsLiked":       false,
 			"SocialSetting": socialSetting,
+			"ShowDiaryInfo": true,
 		}
 		c.HTML(http.StatusOK, "diary/entry_card", data)
 		return
@@ -333,6 +334,7 @@ func (ctrl *EntryController) UpdateEntry(c *gin.Context) {
 			"IsLiked":       isLiked,
 			"SocialSetting": socialSetting,
 			"CurrentUserID": loginUser.UserId,
+			"ShowDiaryInfo": true,
 		}
 		c.HTML(http.StatusOK, "diary/entry_card", data)
 		return

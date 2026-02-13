@@ -34,7 +34,7 @@
         {{range .Data.Entries}}
         {{ $canManage := or $isDiaryOwner (eq .AddUserID $currentUserID) }}
         {{ template "diary/entry_card" dict "Entry" . "IsOwner" $canManage "DiaryID" $diaryID "Lang" $lang "TimeZone"
-        $timezone "IsLiked" false "SocialSetting" $socialSetting "CurrentUserID" $currentUserID }}
+        $timezone "IsLiked" false "SocialSetting" $socialSetting "ShowDiaryInfo" true "CurrentUserID" $currentUserID }}
         {{end}}
         {{else}}
         <div class="empty-placeholder" style="column-span: all;">

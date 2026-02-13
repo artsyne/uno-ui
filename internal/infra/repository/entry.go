@@ -145,10 +145,14 @@ func (r *EntryRepository) ListByDiaryID(diaryID int64, status int8, pageIndex, p
 
 	offset := (pageIndex - 1) * pageSize
 
-	// JOIN br_user to get handle and display_name
-	sqlstr := `SELECT e.*, COALESCE(u.handle, '') as handle, COALESCE(u.display_name, '') as display_name 
+	// JOIN br_user to get handle and display_name, JOIN br_diary to get diary_title
+	sqlstr := `SELECT e.*, 
+		COALESCE(u.handle, '') as handle, 
+		COALESCE(u.display_name, '') as display_name,
+		d.title as diary_title
 		FROM br_entry e 
 		LEFT JOIN br_user u ON e.add_user_id = u.user_id
+		JOIN br_diary d ON e.diary_id = d.diary_id
 		WHERE e.diary_id = ? 
 		and e.status = ? ORDER BY e.entry_id DESC LIMIT ? offset ?`
 
