@@ -72,7 +72,7 @@
                 <!-- EntryStats 组件 - 社交统计信息 -->
                 <div
                     class="flex items-center text-gray-600 dark:text-gray-400 text-sm mt-4 border-t border-gray-100 dark:border-gray-700 pt-4"
-                    x-data="entryStats({{.Data.Entry.EntryID}})"
+                    x-data="entryStats({{.Data.Entry.EntryID}}, {{.Data.Diary.SocialSetting}})"
                     x-init="initStats()">
                     <!-- 浏览量 -->
                     <span class="mr-6 flex items-center" title="Views">

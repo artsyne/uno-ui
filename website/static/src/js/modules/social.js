@@ -598,9 +598,10 @@ export function CommentsMixin(entryId) {
 }
 
 // EntryStats 组件 - 用于单个日记卡片的统计信息管理
-export function entryStats(entryId) {
+export function entryStats(entryId, socialSetting = null) {
   return {
     entryId: entryId,
+    socialSetting: socialSetting, // 社交设置 (1:开启 2:关闭)
     stats: {
       loaded: false,
       loading: false,
@@ -613,6 +614,11 @@ export function entryStats(entryId) {
 
     // 初始化统计信息
     async initStats() {
+      // 如果社交功能关闭，不加载统计信息
+      if (this.socialSetting !== 1) {
+        return;
+      }
+
       // 判断环境（box vs 列表）
       const isInBox =
         this.$el.closest('.uno-box') !== null ||
@@ -741,6 +747,20 @@ export function entryStats(entryId) {
 
     // 绑定全局事件
     _bindGlobalEvents() {
+      // 先移除旧的事件监听器（如果已存在），避免重复绑定
+      if (this._onBatchStatsLoaded) {
+        window.removeEventListener(EVENTS.BATCH_STATS_LOADED, this._onBatchStatsLoaded);
+      }
+      if (this._onBatchLikeStatusLoaded) {
+        window.removeEventListener(EVENTS.BATCH_LIKE_STATUS_LOADED, this._onBatchLikeStatusLoaded);
+      }
+      if (this._onEntryLiked) {
+        window.removeEventListener(EVENTS.ENTRY_LIKED, this._onEntryLiked);
+      }
+      if (this._onCommentUpdated) {
+        window.removeEventListener(EVENTS.ENTRY_COMMENT_UPDATED, this._onCommentUpdated);
+      }
+
       // 监听批量统计加载完成事件
       this._onBatchStatsLoaded = (evt) => {
         const { stats } = evt.detail;

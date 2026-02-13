@@ -52,8 +52,10 @@
             </span>
         </div>
         <!-- EntryStats 组件 - 社交统计信息 -->
-        {{if eq .SocialSetting 1}}
-        <div class="flex items-center" x-data="entryStats({{.Entry.EntryID}})" x-init="initStats()">
+        <div class="flex items-center" 
+             x-data="entryStats({{.Entry.EntryID}}, {{.Entry.SocialSetting}})" 
+             x-init="initStats()"
+             x-show="socialSetting === 1">
             <!-- 浏览量 -->
             <span class="mr-4 flex items-center text-gray-600 dark:text-gray-400 text-sm" title='{{getMessage "common.views" .Lang}}'>
                 <i class="mdi mdi-eye mr-1"></i>
@@ -74,7 +76,6 @@
                 <span x-show="!stats.loaded" class="animate-pulse">-</span>
             </button>
         </div>
-        {{end}}
     </div>
 </div>
 {{end}}

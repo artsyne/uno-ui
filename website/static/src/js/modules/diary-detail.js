@@ -146,20 +146,26 @@ export default function DiaryDetail() {
           if (batchStatsManager) {
             batchStatsManager.clear();
           }
-          // 重置所有 entryStats 组件的状态
+          // 更新所有 entryStats 组件的 socialSetting 并重置状态
           document.querySelectorAll('[x-data*="entryStats"]').forEach((el) => {
             const component = el.__x;
-            if (component && component.stats) {
-              component.stats.loaded = false;
-              component.stats.loading = false;
+            if (component) {
+              component.socialSetting = 0; // 更新社交设置
+              if (component.stats) {
+                component.stats.loaded = false;
+                component.stats.loading = false;
+              }
             }
           });
         } else {
-          // 社交功能开启：重新初始化所有 entryStats 组件
+          // 社交功能开启：更新所有 entryStats 组件的 socialSetting 并重新初始化
           document.querySelectorAll('[x-data*="entryStats"]').forEach((el) => {
             const component = el.__x;
-            if (component && component.initStats) {
-              component.initStats();
+            if (component) {
+              component.socialSetting = 1; // 更新社交设置
+              if (component.initStats) {
+                component.initStats();
+              }
             }
           });
         }
