@@ -149,22 +149,22 @@ func TestEntryService_Permissions(t *testing.T) {
 
 	t.Run("ListEntriesByDiaryID_Private", func(t *testing.T) {
 		// 1. Owner can list
-		entries, _, err := entryService.ListEntriesByDiaryID(diaryID, owner.UserId, entry.StatusActive, 1, 10)
+		_, entries, _, err := entryService.ListEntriesByDiaryID(diaryID, owner.UserId, entry.StatusActive, 1, 10)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, entries)
 
 		// 2. Author can list
-		entries, _, err = entryService.ListEntriesByDiaryID(diaryID, author.UserId, entry.StatusActive, 1, 10)
+		_, entries, _, err = entryService.ListEntriesByDiaryID(diaryID, author.UserId, entry.StatusActive, 1, 10)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, entries)
 
 		// 3. Admin can list
-		entries, _, err = entryService.ListEntriesByDiaryID(diaryID, admin.UserId, entry.StatusActive, 1, 10)
+		_, entries, _, err = entryService.ListEntriesByDiaryID(diaryID, admin.UserId, entry.StatusActive, 1, 10)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, entries)
 
 		// 4. Outsider cannot list
-		entries, _, err = entryService.ListEntriesByDiaryID(diaryID, outsider.UserId, entry.StatusActive, 1, 10)
+		_, entries, _, err = entryService.ListEntriesByDiaryID(diaryID, outsider.UserId, entry.StatusActive, 1, 10)
 		assert.Error(t, err)
 		var appErr errors.AppError
 		if std_errors.As(err, &appErr) {
@@ -198,7 +198,7 @@ func TestEntryService_Permissions(t *testing.T) {
 		require.NoError(t, err)
 
 		// Outsider can list
-		entries, _, err := entryService.ListEntriesByDiaryID(pubID, outsider.UserId, entry.StatusActive, 1, 10)
+		_, entries, _, err := entryService.ListEntriesByDiaryID(pubID, outsider.UserId, entry.StatusActive, 1, 10)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, entries)
 	})

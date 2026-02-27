@@ -1,6 +1,7 @@
 package entry
 
 import (
+	stdErrors "errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -133,13 +134,6 @@ func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 		return
 	}
 
-	// 获取日记本信息 - 调用diary模块
-	diaryInfo, err := ctrl.diaryService.GetDiaryByID(diaryID)
-	if err != nil || diaryInfo == nil {
-		ctrl.renderErrorPage(c, "日记本不存在", "未找到指定的日记本")
-		return
-	}
-
 	// 获取页码参数
 	pageIndexStr := c.Param("pageindex")
 	pageIndex := 1
@@ -152,9 +146,26 @@ func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 	// 获取分页配置
 	pageSize := ctrl.config.App.PageSize
 
-	// 获取日记列表
-	entries, entryNum, err := ctrl.entryService.ListEntriesByUserID(diaryInfo.AddUserID, diaryID, entry.StatusActive, pageIndex, pageSize)
+	// 获取当前登录用户ID（用于权限检查）
+	var currentUserID int64
+	isAuth, loginUser := ctrl.auth.IsAuthenticated(c)
+	if isAuth {
+		currentUserID = loginUser.UserId
+	}
+
+	// 获取日记列表（使用ListEntriesByDiaryID以支持多人日记）
+	// 同时返回日记本信息
+	diaryInfo, entries, entryNum, err := ctrl.entryService.ListEntriesByDiaryID(diaryID, currentUserID, entry.StatusActive, pageIndex, pageSize)
 	if err != nil {
+		if stdErrors.Is(err, errors.DiaryNotFound) {
+			ctrl.renderErrorPage(c, "日记本不存在", "未找到指定的日记本")
+			return
+		}
+		// 如果是权限错误，返回403
+		if stdErrors.Is(err, errors.PermissionDenied) {
+			ctrl.renderErrorPage(c, "无权访问", "您没有权限查看此日记本")
+			return
+		}
 		ctrl.renderErrorPage(c, "日记信息错误", "获取日记列表失败")
 		return
 	}
@@ -171,14 +182,11 @@ func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 	pageLinks := pkg.GeneratePagination(listOptions)
 
 	// 判断当前用户是否为日记本所有者
-	isAuth, loginUser := ctrl.auth.IsAuthenticated(c)
 	isOwner := isAuth && loginUser.UserId == diaryInfo.AddUserID
 
 	// 判断是否有写入权限（Owner 或 Active Author）
 	canWrite := isOwner
-	var currentUserID int64
 	if isAuth {
-		currentUserID = loginUser.UserId
 		if !canWrite {
 			// 检查是否为活跃作者
 			isAuthor, _ := ctrl.diaryService.IsActiveAuthor(diaryID, loginUser.UserId)

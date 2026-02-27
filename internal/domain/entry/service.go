@@ -259,14 +259,14 @@ func (s *Service) ListEntriesByUserID(userID int64, diaryID int64, status int8, 
 // 权限校验：
 // - 私有日记本：仅成员（拥有者、管理员、活跃作者）可见
 // - 公开/密码日记本：通常可见（密码校验通常在Controller层处理或通过Session状态，此处暂不强制校验密码，仅校验成员资格用于私有日记本）
-func (s *Service) ListEntriesByDiaryID(diaryID int64, userID int64, status int8, pageIndex, pageSize int) ([]Entry, int, error) {
+func (s *Service) ListEntriesByDiaryID(diaryID int64, userID int64, status int8, pageIndex, pageSize int) (*diary.Diary, []Entry, int, error) {
 	// 1. 获取日记本信息
 	diaryData, err := s.diaryService.GetDiaryByID(diaryID)
 	if err != nil {
-		return nil, 0, err
+		return nil, nil, 0, err
 	}
 	if diaryData == nil {
-		return nil, 0, errors.DiaryNotFound
+		return nil, nil, 0, errors.DiaryNotFound
 	}
 
 	// 2. 权限检查
@@ -279,16 +279,17 @@ func (s *Service) ListEntriesByDiaryID(diaryID int64, userID int64, status int8,
 			// 检查是否为活跃作者
 			isAuthor, err := s.diaryService.IsActiveAuthor(diaryID, userID)
 			if err != nil {
-				return nil, 0, err
+				return nil, nil, 0, err
 			}
 			if !isAuthor {
-				return nil, 0, errors.PermissionDenied.WithDetails(map[string]interface{}{"reason": "private_diary_access_denied"})
+				return nil, nil, 0, errors.PermissionDenied.WithDetails(map[string]interface{}{"reason": "private_diary_access_denied"})
 			}
 		}
 	}
 
 	// 3. 查询
-	return s.repo.ListByDiaryID(diaryID, status, pageIndex, pageSize)
+	entries, count, err := s.repo.ListByDiaryID(diaryID, status, pageIndex, pageSize)
+	return diaryData, entries, count, err
 }
 
 // GetEntryCountByUserID 根据用户ID和日记本ID统计信息数量
