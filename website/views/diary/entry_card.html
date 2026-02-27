@@ -4,21 +4,21 @@
     <div class="entry-edit">
         <a href="javascript:void(0)"
             x-uno-tooltip="{ content: '#entry-menu-{{.Entry.EntryID}}', trigger: 'click', placement: 'bottom' }">
-            <i class="mdi mdi-dots-horizontal"></i>
+            <i class="mdi mdi-dots-vertical"></i>
         </a>
     </div>
     <!-- Hidden Menu Content for Tooltip -->
     <div id="entry-menu-{{.Entry.EntryID}}" class="hidden">
         <ul class="text-left">
             {{if eq .CurrentUserID .Entry.AddUserID}}
-            <li class="py-1"><a href="#" class="block hover:text-blue-500"
+            <li class="py-1"><a href="#"
                     @click.prevent="openEditEntry({{.DiaryID}}, {{.Entry.EntryID}}); $store.uno?.tooltip?.hide()">
                     <i class="mdi mdi-pencil-outline mr-2"></i> {{getMessage "common.edit" .Lang}}</a>
             </li>
             {{end}}
-            <li class="py-1"><button class="block w-full text-left hover:text-red-500"
-                    @click="deleteEntry({{.DiaryID}}, {{.Entry.EntryID}}); $store.uno?.tooltip?.hide()">
-                    <i class="mdi mdi-delete-outline mr-2"></i> {{getMessage "common.delete" .Lang}}</button>
+            <li class="py-1"><a 
+                    @click.prevent="deleteEntry({{.DiaryID}}, {{.Entry.EntryID}}); $store.uno?.tooltip?.hide()">
+                    <i class="mdi mdi-delete-outline mr-2"></i> {{getMessage "common.delete" .Lang}}</a>
             </li>
         </ul>
     </div>
@@ -26,11 +26,11 @@
     <div class="mb-4">
         {{if .ShowDiaryInfo}}
         <div class="text-sm text-gray-500 mb-2 flex items-center gap-2">
-            <a href="/diary/{{.Entry.DiaryID}}" class="hover:underline font-medium text-gray-700 dark:text-gray-300">
+            <a href="/diary/{{.Entry.DiaryID}}" >
                 <i class="mdi mdi-book-outline mr-1"></i>{{.Entry.DiaryTitle}}
             </a>
             <span class="text-gray-300">|</span>
-            <a href="/u/{{.Entry.AddUserID}}" class="hover:underline flex items-center">
+            <a href="/u/{{.Entry.AddUserID}}">
                 <i class="mdi mdi-account-outline mr-1"></i>{{or .Entry.AddUserDisplayName .Entry.AddUserHandle "User"}}
             </a>
         </div>

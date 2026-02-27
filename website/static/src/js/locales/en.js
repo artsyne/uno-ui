@@ -4,6 +4,7 @@ export default {
   'common.edit': 'Edit',
   'common.cancel': 'Cancel',
   'common.confirm': 'Confirm',
+  'common.exit': 'Exit',
   'common.delete': 'Delete',
   'common.op_fail': 'Operation failed',
   'common.op_success': 'Operation successful',
@@ -38,8 +39,9 @@ export default {
   'diary.author.remove_author_title': 'Remove Author',
   'diary.author.confirm_remove_author':
     'Are you sure you want to remove this author?',
-  'diary.author.quit_confirm': 'Are you sure you want to quit this diary?',
-  'diary.author.quit_title': 'Quit Diary',
+  'diary.author.confirm_quit_diary':
+    'Are you sure you want to quit this diary?',
+  'diary.author.quit_diary_title': 'Quit Diary',
   'diary.author.remove_success': 'Removed successfully',
   'diary.author.quit_success': 'Quit successfully',
   'diary.author.update_success': 'Permission updated successfully',

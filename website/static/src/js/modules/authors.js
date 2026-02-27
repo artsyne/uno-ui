@@ -181,7 +181,7 @@ export function AuthorList() {
       return uno.box
         .confirm(i18n.t('diary.author.confirm_quit_diary'), {
           title: i18n.t('diary.author.quit_diary_title'),
-          okText: i18n.t('common.confirm'),
+          okText: i18n.t('common.exit'),
           cancelText: i18n.t('common.cancel'),
           okButtonClass: 'btn btn-error',
           cancelButtonClass: 'btn',

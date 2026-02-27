@@ -2,7 +2,7 @@
 {{if .Authors}}
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
     {{range .Authors}}
-    <div class="card flex items-center space-x-4 p-6">
+    <div class="card relative flex items-center space-x-4 p-6">
         <!-- Avatar -->
         <div class="flex-shrink-0">
             <a href="/u/{{.Handle}}">
@@ -45,39 +45,20 @@
 
         <!-- Actions -->
         {{if $.CanManage}}
-        <div class="relative">
+        <div class="absolute top-4 right-4">
             {{if ne .Role 1}} <!-- Cannot manage owner -->
-            <button x-uno-tooltip="{ content: '#menu-{{.UserID}}', trigger: 'click', placement: 'bottom' }"
-                class="text-gray-400 hover:text-gray-500 focus:outline-none">
-                <i class="mdi mdi-dots-vertical text-xl"></i>
+            <button x-uno-tooltip="{ content: '#menu-{{.UserID}}', trigger: 'click', placement: 'bottom' }">
+                <i class="mdi mdi-dots-vertical"></i>
             </button>
 
             <!-- Tooltip Menu Template -->
             <template id="menu-{{.UserID}}">
-                <div class="py-1 min-w-[120px]" role="menu" aria-orientation="vertical">
-                    <!-- Update Role (Admin/Member) - Hide if Pending -->
-                    {{if ne .Status 2}}
-                    {{if eq .Role 3}}
-                    <button @click="toggleAdmin({{$.DiaryID}}, {{.UserID}}, false)"
-                        class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
-                        role="menuitem">
-                        Set as Admin
-                    </button>
-                    {{else if eq .Role 2}}
-                    <button @click="toggleAdmin({{$.DiaryID}}, {{.UserID}}, true)"
-                        class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
-                        role="menuitem">
-                        Set as Member
-                    </button>
-                    {{end}}
-                    {{end}}
-
+                <div class="py-1" role="menu" aria-orientation="vertical">
                     <!-- Remove Author -->
-                    <button @click="removeAuthor({{$.DiaryID}}, {{.UserID}})"
-                        class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-600"
+                    <a @click.prevent="removeAuthor({{$.DiaryID}}, {{.UserID}})"
                         role="menuitem">
                         {{getMessage "common.delete" $.Lang}}
-                    </button>
+                    </a>
                 </div>
             </template>
             {{end}}

@@ -32,11 +32,6 @@
                 <i class="mdi mdi-account-plus mr-1"></i>
                 {{getMessage "diary.author.invite" .Context.Lang}}
             </button>
-            {{else if .Data.CanQuit}}
-            <button class="btn btn-danger" @click="quitDiary({{.Data.Diary.DiaryID}})">
-                <i class="mdi mdi-exit-to-app mr-1"></i>
-                {{getMessage "common.exit" .Context.Lang}}
-            </button>
             {{end}}
         </div>
     </section>
