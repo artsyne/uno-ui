@@ -120,9 +120,9 @@ func TestEntryRepository_ListByUserID(t *testing.T) {
 	pageSize := 10
 
 	// 模拟查询列表
-	rows := sqlmock.NewRows([]string{"entry_id", "title", "handle", "display_name", "diary_title"}).
-		AddRow(1, "Title 1", "user1", "User One", "Diary Title").
-		AddRow(2, "Title 2", "user1", "User One", "Diary Title")
+	rows := sqlmock.NewRows([]string{"entry_id", "title", "handle", "display_name", "diary_title", "social_setting"}).
+		AddRow(1, "Title 1", "user1", "User One", "Diary Title", 1).
+		AddRow(2, "Title 2", "user1", "User One", "Diary Title", 1)
 
 	// 注意：ListByUserID 中有两个查询，一个是 Select，一个是 GetCountByUserID
 	// 这里只模拟 Select，因为 GetCountByUserID 在 Select 之后调用
@@ -130,7 +130,7 @@ func TestEntryRepository_ListByUserID(t *testing.T) {
 	// 不过如果 Select 返回 empty，它可能不会调用 Count? 
 	// 看代码：Select 成功后调用 GetCountByUserID.
 
-	mock.ExpectQuery(`SELECT e\.\*, COALESCE\(u\.handle, ''\) as handle, COALESCE\(u\.display_name, ''\) as display_name, d\.title as diary_title FROM br_entry e LEFT JOIN br_user u ON e\.add_user_id = u\.user_id JOIN br_diary d ON e\.diary_id = d\.diary_id WHERE e\.diary_id = \? AND e\.add_user_id = \? and e\.status = \? ORDER BY e\.entry_id DESC LIMIT \? offset \?`).WithArgs(
+	mock.ExpectQuery(`SELECT e\.\*, COALESCE\(u\.handle, ''\) as handle, COALESCE\(u\.display_name, ''\) as display_name, d\.title as diary_title, d\.social_setting FROM br_entry e LEFT JOIN br_user u ON e\.add_user_id = u\.user_id JOIN br_diary d ON e\.diary_id = d\.diary_id WHERE e\.diary_id = \? AND e\.add_user_id = \? and e\.status = \? ORDER BY e\.entry_id DESC LIMIT \? offset \?`).WithArgs(
 		diaryID, userID, entry.StatusActive, pageSize, 0,
 	).WillReturnRows(rows)
 

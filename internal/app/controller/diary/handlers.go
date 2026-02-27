@@ -220,8 +220,8 @@ func (ctrl *DiaryController) LikeDiary(c *gin.Context) {
 
 	// 返回结果
 	ctrl.renderService.JSONSuccess(c, gin.H{
-		"liked": status.IsLiked,
-		"count": status.LikeCount,
+		"is_liked":   status.IsLiked,
+		"like_count": status.LikeCount,
 	})
 }
 

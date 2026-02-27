@@ -88,10 +88,74 @@ export const EntryMixin = {
           autoSaveStopper = this._setupAutoSaveDraft(form);
         }
       },
-      onOk: () => {
+      onOk: async () => {
         const form = document.getElementById('entry_editor_form');
         if (form) {
           if (autoSaveStopper) autoSaveStopper();
+
+          const action = form.querySelector('#action')?.value;
+          // Check if it's an edit action (and not from drafts page where we might want different behavior)
+          // Actually, standard edit should update DOM.
+          // We check if target card exists to decide if we do manual update.
+          const entryId = form.querySelector('#entry_id')?.value;
+          const card = entryId ? document.getElementById(`entry-card-${entryId}`) : null;
+
+          if (action === 'entry.edit' && card) {
+            // Manual Fetch Update to avoid card reload
+            if (!(await uno.valid.validateForm(form))) {
+              return false;
+            }
+
+            try {
+              const formData = new FormData(form);
+              const searchParams = new URLSearchParams(formData);
+              // Ensure we don't trigger HTMX by not sending HX-Request
+              // Backend UpdateEntry returns JSON if no HX-Request header
+              
+              const response = await fetch(`/entry/${entryId}`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: searchParams,
+              });
+
+              const result = await response.json();
+              
+              if (result.success && result.data) {
+                const entry = result.data;
+                
+                // Update Card Title
+                const titleEl = card.querySelector('.entry-title');
+                if (titleEl) titleEl.textContent = entry.title;
+                
+                // Update Card Summary
+                // Template: <p class="text-relaxed cursor-pointer"><a ...>{{.Entry.Summary}}</a></p>
+                const summaryEl = card.querySelector('.text-relaxed a') || card.querySelector('.text-relaxed');
+                if (summaryEl) summaryEl.textContent = entry.summary;
+                
+                // Update Time? Maybe not needed for simple edit.
+                
+                // Dispatch event for other components
+                window.dispatchEvent(new CustomEvent('entryUpdated', {
+                  detail: { entryUpdated: entry }
+                }));
+                
+                uno.notify.success(this.$store.i18n.t('common.save_success'));
+                return true; // Close dialog
+              } else {
+                 // Try to handle error
+                 const msg = result.message || 'Error';
+                 uno.notify.error(msg);
+                 return false;
+              }
+            } catch (e) {
+               console.error(e);
+               uno.notify.error('Network Error');
+               return false;
+            }
+          }
+
           form.requestSubmit();
         }
         return false;

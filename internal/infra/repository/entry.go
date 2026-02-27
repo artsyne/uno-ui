@@ -91,11 +91,12 @@ func (r *EntryRepository) ListByUserID(userID int64, diaryID int64, status int8,
 	// 计算偏移量，注意：页码通常从1开始，所以需要减1
 	offset := (pageIndex - 1) * pageSize
 
-	// JOIN br_user to get handle and display_name, JOIN br_diary to get diary_title
+	// JOIN br_user to get handle and display_name, JOIN br_diary to get diary_title and social_setting
 	sqlstr := `SELECT e.*, 
 		COALESCE(u.handle, '') as handle, 
 		COALESCE(u.display_name, '') as display_name,
-		d.title as diary_title
+		d.title as diary_title,
+		d.social_setting
 		FROM br_entry e 
 		LEFT JOIN br_user u ON e.add_user_id = u.user_id
 		JOIN br_diary d ON e.diary_id = d.diary_id
@@ -149,11 +150,12 @@ func (r *EntryRepository) ListByDiaryID(diaryID int64, status int8, pageIndex, p
 
 	offset := (pageIndex - 1) * pageSize
 
-	// JOIN br_user to get handle and display_name, JOIN br_diary to get diary_title
+	// JOIN br_user to get handle and display_name, JOIN br_diary to get diary_title and social_setting
 	sqlstr := `SELECT e.*, 
 		COALESCE(u.handle, '') as handle, 
 		COALESCE(u.display_name, '') as display_name,
-		d.title as diary_title
+		d.title as diary_title,
+		d.social_setting
 		FROM br_entry e 
 		LEFT JOIN br_user u ON e.add_user_id = u.user_id
 		JOIN br_diary d ON e.diary_id = d.diary_id
@@ -208,7 +210,8 @@ func (r *EntryRepository) ListAllByUserID(userID int64, status int8, pageIndex, 
 	sqlstr := `SELECT e.*, 
 		COALESCE(u.handle, '') as handle, 
 		COALESCE(u.display_name, '') as display_name,
-		d.title as diary_title
+		d.title as diary_title,
+		d.social_setting
 		FROM br_entry e 
 		LEFT JOIN br_user u ON e.add_user_id = u.user_id
 		JOIN br_diary d ON e.diary_id = d.diary_id

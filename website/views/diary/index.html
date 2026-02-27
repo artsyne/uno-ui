@@ -26,14 +26,13 @@
                 "diary.settings" .Context.Lang}}</button>
             {{end}}
             <!-- 日记本点赞按钮容器 -->
-            {{if eq .Data.Diary.SocialSetting 1}}
-            <span id="diary-like-wrapper" data-diary-id="{{.Data.Diary.DiaryID}}">
+            <span id="diary-like-wrapper" data-diary-id="{{.Data.Diary.DiaryID}}" x-show="socialSetting === 1"
+                {{if ne .Data.Diary.SocialSetting 1}}style="display: none;"{{end}}>
                 <button class="btn" @click="toggleDiaryLike({{.Data.Diary.DiaryID}})">
                     <i class="mdi mr-1" :class="diaryLike.liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
                     <span x-text="diaryLike.count"></span>
                 </button>
             </span>
-            {{end}}
         </div>
     </section>
 

@@ -140,64 +140,34 @@ export default function DiaryDetail() {
 
       // 检测社交功能开关，处理边界情况
       if (this.socialSetting !== diary.social_setting) {
+        this.socialSetting = diary.social_setting;
+
+        // Dispatch global event for entryStats components
+        window.dispatchEvent(
+          new CustomEvent('social-setting-changed', {
+            detail: { setting: diary.social_setting },
+          }),
+        );
+
         if (diary.social_setting === 0) {
           // 社交功能关闭：清理批量加载状态
           const batchStatsManager = window.batchStatsManager;
           if (batchStatsManager) {
             batchStatsManager.clear();
           }
-          // 更新所有 entryStats 组件的 socialSetting 并重置状态
-          document.querySelectorAll('[x-data*="entryStats"]').forEach((el) => {
-            const component = el.__x;
-            if (component) {
-              component.socialSetting = 0; // 更新社交设置
-              if (component.stats) {
-                component.stats.loaded = false;
-                component.stats.loading = false;
-              }
-            }
-          });
-        } else {
-          // 社交功能开启：更新所有 entryStats 组件的 socialSetting 并重新初始化
-          document.querySelectorAll('[x-data*="entryStats"]').forEach((el) => {
-            const component = el.__x;
-            if (component) {
-              component.socialSetting = 1; // 更新社交设置
-              if (component.initStats) {
-                component.initStats();
-              }
-            }
-          });
+        } else if (diary.social_setting === 1) {
+          // 社交功能开启：加载日记本点赞状态
+          this.loadDiaryLike();
         }
       }
 
       this.socialSetting = diary.social_setting;
 
       // Update Social Button
-      const socialWrapper = document.getElementById('diary-like-wrapper');
+      // The wrapper is now always in DOM, controlled by x-show="socialSetting === 1"
+      // So we just need to ensure data is loaded if setting is 1
       if (diary.social_setting === 1) {
-        if (!socialWrapper) {
-          const pageNav = document.getElementById('page-nav');
-          if (pageNav && pageNav.nextElementSibling) {
-            const btnContainer = pageNav.nextElementSibling;
-            const span = document.createElement('span');
-            span.id = 'diary-like-wrapper';
-            span.dataset.diaryId = diary.diary_id;
-            span.innerHTML = `
-                <button class="btn" @click="toggleDiaryLike(${diary.diary_id})" :disabled="diaryLike.loading">
-                    <i class="mdi mr-1"
-                        :class="diaryLike.liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
-                    <span x-text="diaryLike.count"></span>
-                </button>`;
-            btnContainer.appendChild(span);
-            if (window.Alpine) {
-              window.Alpine.initTree(span);
-            }
-          }
-        }
         this.loadDiaryLike();
-      } else {
-        if (socialWrapper) socialWrapper.remove();
       }
     },
 

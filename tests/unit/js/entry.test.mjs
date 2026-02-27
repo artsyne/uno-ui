@@ -137,14 +137,17 @@ describe('EntryMixin', () => {
       );
     });
 
-    test('onOk triggers requestSubmit', () => {
-      const mockForm = { requestSubmit: jest.fn() };
+    test('onOk triggers requestSubmit', async () => {
+      const mockForm = {
+        requestSubmit: jest.fn(),
+        querySelector: jest.fn().mockReturnValue({ value: 'entry.create' }),
+      };
       document.getElementById.mockReturnValue(mockForm);
 
       mockContext.openCreateEntry(1);
       const config = mockUno.box.dialog.mock.calls[0][0];
 
-      const result = config.onOk();
+      const result = await config.onOk();
 
       expect(document.getElementById).toHaveBeenCalledWith('entry_editor_form');
       expect(mockForm.requestSubmit).toHaveBeenCalled();

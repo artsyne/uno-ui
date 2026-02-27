@@ -53,7 +53,7 @@
         </div>
         <!-- EntryStats 组件 - 社交统计信息 -->
         <div class="flex items-center" 
-             x-data="entryStats({{.Entry.EntryID}}, {{.Entry.SocialSetting}})" 
+             x-data="entryStats({{.Entry.EntryID}}, {{.SocialSetting}})" 
              x-init="initStats()"
              x-show="socialSetting === 1">
             <!-- 浏览量 -->

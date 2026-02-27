@@ -187,6 +187,12 @@ func (ctrl *EntryController) PublishEntry(c *gin.Context) {
 		slog.Error("Failed to increment entry count", "error", err, "diary_id", entryData.DiaryID)
 	}
 
+	// Fetch diary info to get title
+	diaryData, _ := ctrl.diaryService.GetDiaryByID(entryData.DiaryID)
+	if diaryData != nil {
+		entryData.DiaryTitle = diaryData.Title
+	}
+
 	ctrl.renderPublishedEntryResponse(c, loginUser, entryData)
 }
 
@@ -215,6 +221,7 @@ func (ctrl *EntryController) renderPublishedEntryResponse(c *gin.Context, loginU
 			"DiaryID":       entryData.DiaryID,
 			"Lang":          loginUser.Lang,
 			"TimeZone":      loginUser.TimeZone,
+			"CurrentUserID": loginUser.UserId,
 			"IsLiked":       false,
 			"SocialSetting": socialSetting,
 			"ShowDiaryInfo": true,

@@ -275,7 +275,7 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 		// 设置总数 Header，供前端 JS 更新 UI
 		c.Header("X-Total-Count", strconv.Itoa(total))
 
-		pageData := ctrl.renderService.CreatePageDataWithData(c, "comments.title", data)
+		pageData := ctrl.renderService.CreatePageDataWithData(c, "comment.title", data)
 		c.HTML(200, "comment/list", pageData)
 		return
 	}
