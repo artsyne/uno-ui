@@ -1,7 +1,7 @@
 /* Markdown 样式 - 支持 GFM 和 light/dark 主题 */
 .prose {
   /* 基础样式 */
-  @apply max-w-none text-gray-900 dark:text-gray-100 leading-relaxed;
+  @apply max-w-none leading-relaxed;
   
   /* 标题样式 - 渐进式大小和间距 */
   & h1 {

@@ -4,11 +4,11 @@
         <div class="lg:col-start-2  lg:col-span-7 flex min-h-[500px]">
             <div class="w-full card">
                 {{if .Data.Entry.Title}}
-                <h1 class="text-2xl font-bold text-center text-gray-800 dark:text-gray-200 mb-6">
+                <h1 class="text-lg text-center mb-6">
                     {{.Data.Entry.Title}}
                 </h1>
                 {{end}}
-                <div class="prose max-w-none text-gray-700 dark:text-gray-300 text-relaxed">
+                <div class="prose max-w-none text-relaxed">
                     {{.Data.BodyHTML}}
                 </div>
             </div>
@@ -101,7 +101,7 @@
             <!-- 评论区域容器 -->
             {{if eq .Data.Diary.SocialSetting 1}}
             <div id="comments-section" class="mt-6 pt-4" x-data="CommentsMixin('{{.Data.Entry.EntryID}}')">
-                <h3 class="text-lg font-bold mb-4 text-gray-800 dark:text-gray-200">{{getMessage "comment.title"
+                <h3 class="text-lg mb-4 text-gray-800 dark:text-gray-200">{{getMessage "comment.title"
                     .Context.Lang}}</h3>
 
                 <div id="comments-list-wrapper">

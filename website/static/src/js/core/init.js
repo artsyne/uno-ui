@@ -156,6 +156,9 @@ document.body.addEventListener('htmx:afterSwap', (evt) => {
 
 document.addEventListener('alpine:init', () => {
 
+  // Register Validation Callbacks
+  initValidationCallbacks();
+
   // Register Components
 
   Alpine.data('navbar', Navbar);
