@@ -61,7 +61,12 @@
   "error": {
     "title": "Error Occurred",
     "message": "An unexpected error has occurred. Please try again later.",
-    "contact_admin": "Contact administrator for more information."
+    "contact_admin": "Contact administrator for more information.",
+    "permission_denied": "Permission Denied",
+    "diary_not_found": "Diary Not Found",
+    "entry_not_found": "Entry Not Found",
+    "invalid_params": "Invalid Parameters",
+    "internal_error": "Internal Server Error"
   },
   "page": {
     "title": {

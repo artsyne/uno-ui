@@ -143,5 +143,6 @@ This setup ensures that if a user visits `page#users`, the "Users" tab activates
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| v0.8.0 | 2026-02-28 | Added `bindNotifyToHtmx()` method to HTMX integration for automatic notifications. |
 | v0.7.0 | 2026-01-20 | **Lazy Listener**: Hash change listener now starts only after first tab usage. |
 | v0.6.0 | 2025-12-18 | Initial stable release. |

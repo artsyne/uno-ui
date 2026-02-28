@@ -253,5 +253,6 @@ Alpine.store('uno').box.open({
 
 | Version | Date       | Changes                                                                  |
 | :------ | :--------- | :----------------------------------------------------------------------- |
+| v0.8.0  | 2026-02-28 | Added `bindNotifyToHtmx()` method to HTMX integration for automatic notifications. |
 | v0.7.0  | 2026-01-20 | Refactored for **Lazy Initialization** (DOM elements created on demand). |
 | v0.6.0  | 2025-12-18 | Initial stable release.                                                  |

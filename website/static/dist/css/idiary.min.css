@@ -652,9 +652,6 @@
   .min-h-\[40px\] {
     min-height: 40px;
   }
-  .min-h-\[60vh\] {
-    min-height: 60vh;
-  }
   .min-h-\[160px\] {
     min-height: 160px;
   }
@@ -1117,9 +1114,6 @@
   .bg-amber-600 {
     background-color: var(--color-amber-600);
   }
-  .bg-black {
-    background-color: var(--color-black);
-  }
   .bg-blue-50 {
     background-color: var(--color-blue-50);
   }
@@ -1336,6 +1330,9 @@
   .py-24 {
     padding-block: calc(var(--spacing) * 24);
   }
+  .py-25 {
+    padding-block: calc(var(--spacing) * 25);
+  }
   .pt-0\.5 {
     padding-top: calc(var(--spacing) * 0.5);
   }
@@ -1402,9 +1399,9 @@
     font-size: var(--text-4xl);
     line-height: var(--tw-leading, var(--text-4xl--line-height));
   }
-  .text-6xl {
-    font-size: var(--text-6xl);
-    line-height: var(--tw-leading, var(--text-6xl--line-height));
+  .text-8xl {
+    font-size: var(--text-8xl);
+    line-height: var(--tw-leading, var(--text-8xl--line-height));
   }
   .text-base {
     font-size: var(--text-base);
@@ -1605,6 +1602,9 @@
   }
   .opacity-75 {
     opacity: 75%;
+  }
+  .opacity-80 {
+    opacity: 80%;
   }
   .opacity-100 {
     opacity: 100%;
@@ -2055,13 +2055,6 @@
       }
     }
   }
-  .hover\:opacity-80 {
-    &:hover {
-      @media (hover: hover) {
-        opacity: 80%;
-      }
-    }
-  }
   .hover\:shadow {
     &:hover {
       @media (hover: hover) {
@@ -2285,6 +2278,12 @@
   .md\:text-left {
     @media (width >= 48rem) {
       text-align: left;
+    }
+  }
+  .md\:text-5xl {
+    @media (width >= 48rem) {
+      font-size: var(--text-5xl);
+      line-height: var(--tw-leading, var(--text-5xl--line-height));
     }
   }
   .md\:text-6xl {
@@ -2576,11 +2575,6 @@
       }
     }
   }
-  .dark\:bg-white {
-    html.dark & {
-      background-color: var(--color-white);
-    }
-  }
   .dark\:bg-yellow-900 {
     html.dark & {
       background-color: var(--color-yellow-900);
@@ -2612,11 +2606,6 @@
     html.dark & {
       --tw-gradient-to: transparent;
       --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
-    }
-  }
-  .dark\:text-black {
-    html.dark & {
-      color: var(--color-black);
     }
   }
   .dark\:text-blue-200 {
@@ -2989,6 +2978,11 @@ a, button.btn-link {
   flex: 1;
   padding-inline: calc(var(--spacing) * 3);
   padding-top: calc(var(--spacing) * 10);
+  transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
+  transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+  transition-duration: var(--tw-duration, var(--default-transition-duration));
+  --tw-duration: 300ms;
+  transition-duration: 300ms;
 }
 .tooltip {
   position: absolute;

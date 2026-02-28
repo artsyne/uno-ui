@@ -61,7 +61,12 @@
   "error": {
     "title": "错误发生",
     "message": "发生未知错误，请稍后重试。",
-    "contact_admin": "联系管理员获取更多信息。"
+    "contact_admin": "联系管理员获取更多信息。",
+    "permission_denied": "无权访问",
+    "diary_not_found": "日记本不存在",
+    "entry_not_found": "日记不存在",
+    "invalid_params": "参数错误",
+    "internal_error": "系统内部错误"
   },
   "page": {
     "title": {

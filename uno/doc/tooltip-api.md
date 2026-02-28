@@ -92,6 +92,29 @@ Force recalculates the tooltip position. Useful if the anchor element moves or r
 - **Parameters**: None.
 - **Returns**: `void`
 
+### `cancelHide()`
+
+Cancels a scheduled hide operation. Use this when you want to prevent the tooltip from hiding after `scheduleHide()` was called.
+
+- **Parameters**: None.
+- **Returns**: `void`
+- **Example**:
+  ```javascript
+  Alpine.store('uno').tooltip.cancelHide()
+  ```
+
+### `scheduleHide(delay = 300)`
+
+Schedules the tooltip to hide after a delay. This is useful for creating a delay before hiding when the mouse leaves the trigger.
+
+- **Parameters**:
+  - `delay` (Number, default: `300`) - Delay in milliseconds before hiding.
+- **Returns**: `void`
+- **Example**:
+  ```javascript
+  Alpine.store('uno').tooltip.scheduleHide(500) // Hide after 500ms
+  ```
+
 ## Examples
 
 ### HTMX Loaded Tooltip
@@ -147,5 +170,6 @@ Fetch user details when hovering over a username.
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| v0.8.0 | 2026-02-28 | Added `bindNotifyToHtmx()` method to HTMX integration for automatic notifications. |
 | v0.7.0 | 2026-01-20 | Refactored for **Lazy Initialization**. |
 | v0.6.0 | 2025-12-18 | Initial stable release. |

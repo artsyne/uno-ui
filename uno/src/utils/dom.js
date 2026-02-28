@@ -7,6 +7,14 @@
 import { log } from './log'
 
 const onceMarks = new WeakMap()
+let onceVersion = 0
+
+/**
+ * Reset once marks (useful for testing)
+ */
+export function resetOnceMarks() {
+  onceVersion++
+}
 
 /**
  * Ensure a function/action is only performed once per element.
@@ -42,13 +50,14 @@ const onceMarks = new WeakMap()
 export function once(target, key) {
   if (!target) return false
   const k = String(key)
+  const versionedKey = `${onceVersion}:${k}`
   let set = onceMarks.get(target)
   if (!set) {
     set = new Set()
     onceMarks.set(target, set)
   }
-  if (set.has(k)) return false
-  set.add(k)
+  if (set.has(versionedKey)) return false
+  set.add(versionedKey)
   return true
 }
 

@@ -1,7 +1,7 @@
 /**
  * Type definitions for Uno UI
  *
- * @version 0.6.0
+ * @version 0.8.0
  * @license MIT
  */
 
@@ -323,8 +323,15 @@ declare module 'uno-ui' {
 
     /**
      * Bind notify component to HTMX events
+     * @param options - Configuration options
      */
-    bindNotifyToHtmx(): void
+    bindNotifyToHtmx(options?: {
+      showSuccess?: boolean
+      showError?: boolean
+      showProgress?: boolean
+      successMessage?: string
+      errorMessage?: string
+    }): void
   }
 
   // ============================================================

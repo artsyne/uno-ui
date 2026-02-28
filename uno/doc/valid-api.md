@@ -378,9 +378,107 @@ For simple pattern matching without registering a global function, use the `patt
 | **Validation runs on typing**      | Default trigger is `input`.                                           | Add `trigger: 'blur'` to the rule object.                                |
 | **Custom Error not showing**       | Validator returns `false` but no `msg` provided.                      | Return a string from validator or set `msg` property in rule.            |
 
+## Methods
+
+除了声明式指令，你还可以通过 Store API 编程式地控制验证：
+
+```js
+const valid = Alpine.store('uno').valid
+```
+
+### `addRules(fieldName, config, instanceOpts = {})`
+
+添加或更新字段的验证规则。
+
+| Parameter | Type | Description |
+| :-------- | :--- | :---------- |
+| `fieldName` | `string` | 字段唯一标识符 (name 或 id) |
+| `config` | `Array\|Object\|string` | 验证配置 |
+| `instanceOpts` | `Object` | 实例级全局选项 (可选) |
+
+```js
+valid.addRules('email', ['required', 'email'])
+valid.addRules('password', { type: 'minLength', min: 8 })
+```
+
+### `validate(fieldName, value, eventType = 'input')`
+
+验证单个字段。
+
+| Parameter | Type | Description |
+| :-------- | :--- | :---------- |
+| `fieldName` | `string` | 字段标识符 |
+| `value` | `string\|number` | 要验证的值 |
+| `eventType` | `string` | 触发验证的事件类型 ('input', 'blur', 'submit') |
+
+```js
+const isValid = await valid.validate('email', 'test@example.com', 'blur')
+```
+
+### `showError(fieldName, message)`
+
+手动显示字段错误。
+
+| Parameter | Type | Description |
+| :-------- | :--- | :---------- |
+| `fieldName` | `string` | 字段标识符 |
+| `message` | `string` | 错误消息 |
+
+```js
+valid.showError('email', 'Invalid email format')
+```
+
+### `hideError(fieldName)`
+
+手动隐藏字段错误。
+
+```js
+valid.hideError('email')
+```
+
+### `clearErrors()`
+
+清除所有字段错误。
+
+```js
+valid.clearErrors()
+```
+
+### `showErrors(errorsObj)`
+
+批量显示多个字段错误。
+
+| Parameter | Type | Description |
+| :-------- | :--- | :---------- |
+| `errorsObj` | `Object` | 字段名到错误消息的映射对象 |
+
+```js
+valid.showErrors({
+  email: 'Invalid email',
+  password: 'Password too weak'
+})
+```
+
+### `registerValidator(name, validatorFn)`
+
+注册自定义验证器。
+
+| Parameter | Type | Description |
+| :-------- | :--- | :---------- |
+| `name` | `string` | 验证器名称 |
+| `validatorFn` | `Function` | 验证函数 |
+
+```js
+valid.registerValidator('customRule', ({ value, rule }) => {
+  // 自定义验证逻辑
+  return value.length > rule.min
+})
+```
+
 ## Version History
 
 | Version | Date       | Changes                                                                                                        |
 | :------ | :--------- | :------------------------------------------------------------------------------------------------------------- |
+| v0.8.1  | 2026-02-28 | Added programmatic Store API documentation (addRules, validate, showError, hideError, clearErrors, showErrors). |
 | v0.8.0  | 2026-01-22 | **Breaking**: Removed HTML5 attribute support. Added `debounce`, `emptyQuit`, and `type: 'validator'` support. |
 | v0.7.0  | 2026-01-20 | Initial release.                                                                                               |

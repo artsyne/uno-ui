@@ -146,6 +146,145 @@ export class UnoInstance {
         document.addEventListener('htmx:timeout', end)
 
         document.addEventListener('htmx:xhr:progress', (event) => callEach('progress', event))
+      },
+
+      /**
+       * Bind notify component to HTMX events.
+       * Automatically shows notifications for HTMX requests:
+       * - Shows progress bar during active requests
+       * - Shows success notification after successful requests
+       * - Shows error notification on failed requests
+       *
+       * @param {Object} [options={}] - Configuration options
+       * @param {boolean} [options.showSuccess=true] - Show success notification after successful requests
+       * @param {boolean} [options.showError=true] - Show error notification on failed requests
+       * @param {boolean} [options.showProgress=true] - Show progress bar during requests
+       * @param {string} [options.successMessage='Operation completed'] - Success message template
+       * @param {string} [options.errorMessage='Operation failed'] - Error message template
+       */
+      bindNotifyToHtmx: (options = {}) => {
+        const {
+          showSuccess = true,
+          showError = true,
+          showProgress = true,
+          successMessage = 'Operation completed',
+          errorMessage = 'Operation failed'
+        } = options
+
+        // 'this' here refers to the UnoInstance because htmx object methods
+        // are defined using arrow function syntax in the constructor,
+        // which binds 'this' to the instance
+        const self = this
+
+        // Ensure document is available
+        if (typeof document === 'undefined') {
+          log.warn('bindNotifyToHtmx: document is not available')
+          return
+        }
+
+        // Check if HTMX is available
+        if (!self.htmx.available()) {
+          log.warn('bindNotifyToHtmx: HTMX is not available')
+          return
+        }
+
+        // Get notify store
+        const getNotifyStore = () => {
+          if (typeof window !== 'undefined' && window.Alpine) {
+            return window.Alpine.store('uno')?.notify
+          }
+          return null
+        }
+
+        // Track active requests for progress bar
+        let activeRequests = 0
+
+        // Handle request start
+        const handleRequestStart = (event) => {
+          activeRequests++
+          if (showProgress) {
+            const notify = getNotifyStore()
+            if (notify && typeof notify.startProgress === 'function') {
+              notify.startProgress()
+            }
+          }
+        }
+
+        // Handle request end (success)
+        const handleRequestSuccess = (event) => {
+          activeRequests = Math.max(0, activeRequests - 1)
+          if (showProgress && activeRequests === 0) {
+            const notify = getNotifyStore()
+            if (notify && typeof notify.stopProgress === 'function') {
+              notify.stopProgress()
+            }
+          }
+
+          if (showSuccess) {
+            // Check for server-sent success indicator in headers
+            const xhr = event?.detail?.xhr
+            const isError = xhr?.status >= 400
+
+            if (!isError) {
+              const notify = getNotifyStore()
+              if (notify && typeof notify.success === 'function') {
+                // Check for X-Notify-Message header
+                let message = successMessage
+                if (xhr && xhr.getResponseHeader) {
+                  const customMessage = xhr.getResponseHeader('X-Notify-Message')
+                  if (customMessage) {
+                    message = customMessage
+                  }
+                }
+                // Only show if not suppressed
+                const suppress = xhr?.getResponseHeader?.('X-Notify-Suppress')
+                if (!suppress) {
+                  notify.success(message)
+                }
+              }
+            }
+          }
+        }
+
+        // Handle request error
+        const handleRequestError = (event) => {
+          activeRequests = Math.max(0, activeRequests - 1)
+          if (showProgress && activeRequests === 0) {
+            const notify = getNotifyStore()
+            if (notify && typeof notify.stopProgress === 'function') {
+              notify.stopProgress()
+            }
+          }
+
+          if (showError) {
+            const notify = getNotifyStore()
+            if (notify && typeof notify.error === 'function') {
+              // Check for server-sent error message
+              const xhr = event?.detail?.xhr
+              let message = errorMessage
+              if (xhr && xhr.getResponseHeader) {
+                const customMessage = xhr.getResponseHeader('X-Notify-Error')
+                if (customMessage) {
+                  message = customMessage
+                }
+              }
+              notify.error(message)
+            }
+          }
+        }
+
+        // Register event listeners (only once)
+        if (!once(document, 'uno:htmx:bind-notify')) {
+          return
+        }
+
+        document.addEventListener('htmx:beforeRequest', handleRequestStart)
+        document.addEventListener('htmx:afterRequest', handleRequestSuccess)
+        document.addEventListener('htmx:responseError', handleRequestError)
+        document.addEventListener('htmx:sendError', handleRequestError)
+        document.addEventListener('htmx:timeout', handleRequestError)
+
+        log.debug('bindNotifyToHtmx: HTMX events bound to notify')
       }
     }
     const base = 'rounded-lg shadow-md border border-gray-200 dark:border-gray-700'

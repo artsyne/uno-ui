@@ -59,16 +59,6 @@ The following options can be passed to `show()` or used in the `x-uno-notify` co
 - `center-left`, `center`, `center-right`
 - `bottom-left`, `bottom-center`, `bottom-right`
 
-## Events
-
-The Notify component integrates with HTMX global events to manage the progress bar.
-
-| Event                | Trigger Timing                 | Behavior                                             |
-| :------------------- | :----------------------------- | :--------------------------------------------------- |
-| `htmx:beforeRequest` | Start of an HTMX request.      | Starts the global progress bar animation.            |
-| `htmx:afterRequest`  | Completion of an HTMX request. | Stops/Completes the progress bar.                    |
-| `htmx:responseError` | Server returns 4xx/5xx error.  | Stops progress bar and optionally shows error toast. |
-
 ## Methods
 
 Accessed via `Alpine.store('uno').notify`.
@@ -135,6 +125,72 @@ Manually stops the global progress bar (fills to 100% then fades).
 - **Parameters**: None.
 - **Returns**: `void`
 
+### `bindNotifyToHtmx(options)`
+
+Binds the Notify component to HTMX events for automatic notification display during HTMX requests. This provides a seamless integration where success/error notifications and progress bar are automatically shown based on HTMX request lifecycle.
+
+- **Parameters**:
+  - `options` (Object, optional) - Configuration options:
+    - `showSuccess` (Boolean, default: `true`) - Show success notification after successful requests.
+    - `showError` (Boolean, default: `true`) - Show error notification on failed requests.
+    - `showProgress` (Boolean, default: `true`) - Show progress bar during active requests.
+    - `successMessage` (String, default: `'Operation completed'`) - Default success message.
+    - `errorMessage` (String, default: `'Operation failed'`) - Default error message.
+- **Returns**: `void`
+- **Example**:
+  ```javascript
+  // Initialize with defaults
+  Alpine.store('uno').htmx.bindNotifyToHtmx()
+
+  // Custom messages
+  Alpine.store('uno').htmx.bindNotifyToHtmx({
+    showSuccess: true,
+    showError: true,
+    showProgress: true,
+    successMessage: 'Saved successfully!',
+    errorMessage: 'Something went wrong'
+  })
+
+  // Only show progress bar, disable notifications
+  Alpine.store('uno').htmx.bindNotifyToHtmx({
+    showSuccess: false,
+    showError: false,
+    showProgress: true
+  })
+  ```
+
+## HTMX Integration
+
+### Automatic Setup
+
+The `bindNotifyToHtmx()` method binds to the following HTMX events:
+
+| Event                | Trigger Timing                 | Behavior                                             |
+| :------------------- | :----------------------------- | :--------------------------------------------------- |
+| `htmx:beforeRequest` | Start of an HTMX request.      | Starts the global progress bar animation.            |
+| `htmx:afterRequest`  | Completion of an HTMX request. | Stops/Completes the progress bar, shows success toast if response is OK. |
+| `htmx:responseError` | Server returns 4xx/5xx error.  | Stops progress bar and shows error toast.            |
+| `htmx:sendError`     | HTMX request failed to send.   | Stops progress bar and shows error toast.            |
+| `htmx:timeout`       | HTMX request timed out.        | Stops progress bar and shows error toast.            |
+
+### Server-Sent Custom Messages
+
+The integration supports custom messages sent from the server via response headers:
+
+| Header                  | Description                                          |
+| :---------------------- | :--------------------------------------------------- |
+| `X-Notify-Message`     | Custom success message (overrides default).        |
+| `X-Notify-Error`       | Custom error message (overrides default).           |
+| `X-Notify-Suppress`    | Set to `'true'` to suppress success notification.   |
+
+Example server response (any language):
+```python
+# Python/Flask example
+return jsonify({'result': 'ok'}, headers={
+    'X-Notify-Message': 'Item saved successfully!'
+})
+```
+
 ## Examples
 
 ### Sticky Notification
@@ -181,5 +237,6 @@ const loadData = async () => {
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| v0.8.0 | 2026-02-28 | Added `bindNotifyToHtmx()` method for automatic HTMX integration with progress bar, success/error notifications, and server-sent custom messages support via headers. |
 | v0.7.0 | 2026-01-20 | Refactored for **Lazy Initialization**. Containers injected on first usage. |
 | v0.6.0 | 2025-12-18 | Initial stable release. |

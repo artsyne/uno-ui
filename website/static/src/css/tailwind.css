@@ -15,7 +15,7 @@ button.btn-link {
 }
 
 .main {
-  @apply min-h-[80vh] flex-1 container px-3 pt-10 mx-auto;
+  @apply min-h-[80vh] flex-1 container px-3 pt-10 mx-auto transition-colors duration-300;
 }
 
 /* tooltips css*/
