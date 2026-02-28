@@ -208,7 +208,9 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 	if err != nil {
 		slog.Error("ListCommentsByEntryID failed", "error", err, "entry_id", req.EntryID)
 		if c.GetHeader("HX-Request") == "true" || c.GetHeader("X-Requested-With") == "XMLHttpRequest" {
-			c.String(200, `<div class="text-center text-red-500 py-8">Failed to load comments</div>`)
+			lang := ctrl.renderService.GetLocaleFromContext(c)
+			msg := ctrl.renderService.GetMessage("common.load_fail", lang)
+			c.String(200, fmt.Sprintf(`<div class="text-center text-red-500 py-8">%s</div>`, msg))
 			return
 		}
 		ctrl.renderService.JSONError(c, err)

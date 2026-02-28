@@ -47,20 +47,20 @@ func (ctrl *DiaryController) ShowDiaryForm(c *gin.Context) {
 		// 获取请求diary_id
 		req := &ShowDiaryRequest{}
 		if err := c.ShouldBindQuery(req); err != nil {
-			ctrl.renderService.JSONError(c, errors.InvalidParams)
+			ctrl.renderService.RenderErrorPage(c, errors.InvalidParams)
 			return
 		}
 
 		// 编辑模式：获取并验证日记本数据
 		diaryData, err := ctrl.diaryService.GetDiaryByID(req.DiaryID)
 		if err != nil {
-			ctrl.renderService.JSONError(c, errors.DiaryNotFound)
+			ctrl.renderService.RenderErrorPage(c, errors.DiaryNotFound)
 			return
 		}
 
 		// 检查日记是否属于当前用户
 		if diaryData.AddUserID != loginUser.UserId {
-			ctrl.renderService.JSONError(c, errors.PermissionDenied)
+			ctrl.renderService.RenderErrorPage(c, errors.PermissionDenied)
 			return
 		}
 

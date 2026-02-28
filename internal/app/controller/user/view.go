@@ -2,6 +2,8 @@ package user
 
 import (
 	"github.com/gin-gonic/gin"
+
+	"github.com/biuren/hebe/internal/utils/errors"
 )
 
 // ShowLoginPage 显示登录页面
@@ -98,29 +100,20 @@ func (ctrl *UserController) ShowPasswordResetForm(c *gin.Context) {
 	sign := c.Query("sign")
 
 	if uid == "" || sign == "" {
-		data := ctrl.renderService.CreatePageData(c, "error")
-		data.Data["title"] = "参数错误"
-		data.Data["message"] = "缺少必要参数"
-		ctrl.renderService.HTML(c, "error", data)
+		ctrl.renderService.RenderErrorPage(c, errors.MissingRequiredField)
 		return
 	}
 
 	// 解析用户ID
 	userID, err := ctrl.service.ParseUserID(uid)
 	if err != nil {
-		data := ctrl.renderService.CreatePageData(c, "error")
-		data.Data["title"] = "参数错误"
-		data.Data["message"] = "用户ID格式错误"
-		ctrl.renderService.HTML(c, "error", data)
+		ctrl.renderService.RenderErrorPage(c, errors.InvalidParams)
 		return
 	}
 
 	// 检查验证码
 	if valid, _ := ctrl.service.CheckValidCode(userID, sign, ctrl.config.ValidCode.TypeResetPwd); !valid {
-		data := ctrl.renderService.CreatePageData(c, "error")
-		data.Data["title"] = "验证码无效"
-		data.Data["message"] = "验证码已过期或无效"
-		ctrl.renderService.HTML(c, "error.html", data)
+		ctrl.renderService.RenderErrorPage(c, errors.InvalidToken)
 		return
 	}
 
@@ -149,21 +142,18 @@ func (ctrl *UserController) ShowUserActivationPage(c *gin.Context) {
 	sign := c.Query("sign")
 
 	if uid == "" || sign == "" {
-		data := ctrl.renderService.CreatePageData(c, "error")
-		data.Data["title"] = "参数错误"
-		data.Data["message"] = "缺少必要参数"
-		ctrl.renderService.HTML(c, "error", data)
+		ctrl.renderService.RenderErrorPage(c, errors.MissingRequiredField)
 		return
 	}
 
 	// 激活用户
 	if err := ctrl.service.ActivateUser(uid, sign); err != nil {
 		data := ctrl.renderService.CreatePageData(c, "user.activate.failed.title")
-		data.Data["message"] = "激活链接无效或已过期"
+		data.Data["message"] = ctrl.renderService.GetMessage("auth.message.activation_failed", ctrl.renderService.GetLocaleFromContext(c))
 		ctrl.renderService.HTML(c, "passport/activate_failed", data)
 	} else {
 		data := ctrl.renderService.CreatePageData(c, "user.activate.success.title")
-		data.Data["message"] = "账户激活成功，请登录"
+		data.Data["message"] = ctrl.renderService.GetMessage("auth.message.activation_success", ctrl.renderService.GetLocaleFromContext(c))
 		ctrl.renderService.HTML(c, "passport/activate_success", data)
 	}
 }
@@ -189,21 +179,18 @@ func (ctrl *UserController) ShowUserSettingsPage(c *gin.Context) {
 	// 获取用户设置信息
 	userInfo, err := ctrl.service.GetUserByUserId(authUser.UserId)
 	if err != nil {
-		data := ctrl.renderService.CreatePageData(c, "error")
-		data.Data["title"] = "错误"
-		data.Data["message"] = "获取用户信息失败"
-		ctrl.renderService.HTML(c, "error", data)
+		ctrl.renderService.RenderErrorPage(c, err)
 		return
 	}
 
 	data := ctrl.renderService.CreatePageData(c, "user.settings.title")
 	data.Data["User"] = userInfo
 	data.Data["HandleCooldownDays"] = ctrl.config.User.HandleCooldownDays
-	
+
 	// 添加支持的语言和时区列表
 	supportLangs := ctrl.renderService.GetSupportLangs()
 	data.Data["SupportLangs"] = supportLangs
 	data.Data["TimeZones"] = ctrl.renderService.GetTimeZones()
-	
+
 	ctrl.renderService.HTML(c, "user/settings", data)
 }

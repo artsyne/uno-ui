@@ -294,7 +294,7 @@ func (ctrl *DiaryController) ShowAuthors(c *gin.Context) {
 	}
 
 	if !canView {
-		ctrl.renderService.HTMLError(c, "", "Permission Denied")
+		ctrl.renderService.RenderErrorPage(c, errors.PermissionDenied)
 		return
 	}
 
@@ -402,11 +402,15 @@ func (ctrl *DiaryController) ShowInviteForm(c *gin.Context) {
 	// 这里可以调用 Service 检查
 	role, err := ctrl.diaryService.GetAuthorRole(req.DiaryID, loginUser.UserId)
 	if err != nil {
-		ctrl.renderService.JSONError(c, err)
+		lang := ctrl.renderService.GetLocaleFromContext(c)
+		msg := ctrl.renderService.GetMessage("error.message", lang)
+		c.String(http.StatusOK, fmt.Sprintf(`<div class="text-center text-red-500 py-8">%s</div>`, msg))
 		return
 	}
 	if role != 1 && role != 2 { // 1: Owner, 2: Admin
-		ctrl.renderService.JSONError(c, &errors.PermissionDenied)
+		lang := ctrl.renderService.GetLocaleFromContext(c)
+		msg := ctrl.renderService.GetMessage("error.permission_denied", lang)
+		c.String(http.StatusOK, fmt.Sprintf(`<div class="text-center text-red-500 py-8">%s</div>`, msg))
 		return
 	}
 
@@ -516,7 +520,7 @@ func (ctrl *DiaryController) ShowInvitation(c *gin.Context) {
 	diary, err := ctrl.diaryService.GetDiaryByID(req.DiaryID)
 	if err != nil {
 		// 处理日记本不存在的情况
-		c.String(http.StatusNotFound, "Diary not found")
+		ctrl.renderService.RenderErrorPage(c, errors.DiaryNotFound)
 		return
 	}
 

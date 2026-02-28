@@ -35,13 +35,13 @@ func (ctrl *EntryController) ShowEntryForm(c *gin.Context) {
 		var req ShowEntryFormRequest
 		var err error
 		if err = c.ShouldBindQuery(&req); err != nil {
-			ctrl.renderService.JSONError(c, errors.ValidationError)
+			ctrl.renderService.RenderErrorPage(c, errors.ValidationError)
 			return
 		}
 		//获取日记信息
 		entryData, err = ctrl.entryService.GetEntryByIDForUser(req.EntryID, loginUser.UserId)
 		if err != nil {
-			ctrl.renderService.JSONError(c, errors.EntryNotFound)
+			ctrl.renderService.RenderErrorPage(c, errors.EntryNotFound)
 			return
 		}
 		// 权限检查已在 GetEntryByIDForUser 中处理 (Owner/Admin/Author 均可访问)
@@ -79,7 +79,7 @@ func (ctrl *EntryController) ShowDrafts(c *gin.Context) {
 	// 获取列表
 	entries, total, err := ctrl.entryService.ListAllEntriesByUserID(loginUser.UserId, status, pageIndex, pageSize)
 	if err != nil {
-		ctrl.renderErrorPage(c, errors.InternalError)
+		ctrl.renderService.RenderErrorPage(c, errors.InternalError)
 		return
 	}
 
@@ -130,7 +130,7 @@ func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 	diaryIDStr := c.Param("id")
 	diaryID, err := validation.ParseID(diaryIDStr)
 	if err != nil {
-		ctrl.renderErrorPage(c, errors.InvalidParams)
+		ctrl.renderService.RenderErrorPage(c, errors.InvalidParams)
 		return
 	}
 
@@ -158,15 +158,15 @@ func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 	diaryInfo, entries, entryNum, err := ctrl.entryService.ListEntriesByDiaryID(diaryID, currentUserID, entry.StatusActive, pageIndex, pageSize)
 	if err != nil {
 		if stdErrors.Is(err, errors.DiaryNotFound) {
-			ctrl.renderErrorPage(c, errors.DiaryNotFound)
+			ctrl.renderService.RenderErrorPage(c, errors.DiaryNotFound)
 			return
 		}
 		// 如果是权限错误，返回403
 		if stdErrors.Is(err, errors.PermissionDenied) {
-			ctrl.renderErrorPage(c, errors.PermissionDenied)
+			ctrl.renderService.RenderErrorPage(c, errors.PermissionDenied)
 			return
 		}
-		ctrl.renderErrorPage(c, errors.InternalError)
+		ctrl.renderService.RenderErrorPage(c, errors.InternalError)
 		return
 	}
 
@@ -199,7 +199,7 @@ func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 	// 获取用户时区
 	timeZone, err := ctrl.userService.GetUserTimeZone(diaryInfo.AddUserID)
 	if err != nil {
-		ctrl.renderErrorPage(c, errors.InternalError)
+		ctrl.renderService.RenderErrorPage(c, errors.InternalError)
 		return
 	}
 
@@ -244,12 +244,12 @@ func (ctrl *EntryController) ShowEntry(c *gin.Context) {
 	var req ShowEntryDetailRequest
 	// 绑定 uri
 	if err := c.ShouldBindUri(&req); err != nil {
-		ctrl.renderErrorPage(c, errors.InvalidParams)
+		ctrl.renderService.RenderErrorPage(c, errors.InvalidParams)
 		return
 	}
 	// 绑定 query
 	if err := c.ShouldBindQuery(&req); err != nil {
-		ctrl.renderErrorPage(c, errors.InvalidParams)
+		ctrl.renderService.RenderErrorPage(c, errors.InvalidParams)
 		return
 	}
 
@@ -262,18 +262,18 @@ func (ctrl *EntryController) ShowEntry(c *gin.Context) {
 	var entryInfo *entry.Entry
 	if req.WithDel {
 		if !isAuth || loginUser == nil {
-			ctrl.renderErrorPage(c, errors.PermissionDenied)
+			ctrl.renderService.RenderErrorPage(c, errors.PermissionDenied)
 			return
 		}
 		entryInfo, err = ctrl.entryService.GetEntryByIDForUser(req.EntryID, loginUser.UserId)
 		if err != nil || entryInfo == nil {
-			ctrl.renderErrorPage(c, errors.EntryNotFound)
+			ctrl.renderService.RenderErrorPage(c, errors.EntryNotFound)
 			return
 		}
 	} else {
 		entryInfo, err = ctrl.entryService.GetEntryByID(req.EntryID)
 		if err != nil || entryInfo == nil {
-			ctrl.renderErrorPage(c, errors.EntryNotFound)
+			ctrl.renderService.RenderErrorPage(c, errors.EntryNotFound)
 			return
 		}
 	}
@@ -281,7 +281,7 @@ func (ctrl *EntryController) ShowEntry(c *gin.Context) {
 	// 获取日记本信息 - 调用 diary 模块
 	diaryInfo, err := ctrl.diaryService.GetDiaryByID(entryInfo.DiaryID)
 	if err != nil || diaryInfo == nil {
-		ctrl.renderErrorPage(c, errors.DiaryNotFound)
+		ctrl.renderService.RenderErrorPage(c, errors.DiaryNotFound)
 		return
 	}
 
@@ -302,7 +302,7 @@ func (ctrl *EntryController) ShowEntry(c *gin.Context) {
 	// 获取用户时区
 	timeZone, err := ctrl.userService.GetUserTimeZone(diaryInfo.AddUserID)
 	if err != nil {
-		ctrl.renderErrorPage(c, errors.InternalError)
+		ctrl.renderService.RenderErrorPage(c, errors.InternalError)
 		return
 	}
 
@@ -349,42 +349,4 @@ func (ctrl *EntryController) ShowEntry(c *gin.Context) {
 		viewPath = "entry/detail"
 	}
 	ctrl.renderService.HTML(c, viewPath, data)
-}
-
-// renderErrorPage 渲染错误页面
-// 当发生错误时显示用户友好的错误信息，统一错误页面的展示格式
-//
-// 参数:
-//   - c: Gin上下文对象
-//   - title: 错误标题
-//   - message: 错误详细信息
-//
-// 功能:
-//   - 创建错误页面数据结构
-//   - 设置错误标题和消息
-//   - 渲染统一的错误页面模板
-func (ctrl *EntryController) renderErrorPage(c *gin.Context, err error) {
-	lang := ctrl.renderService.GetLocaleFromContext(c)
-
-	var appErr errors.AppError
-	if !stdErrors.As(err, &appErr) {
-		appErr = errors.InternalError
-	}
-
-	title := ctrl.renderService.GetMessage("error.title", lang)
-	messageKey := "error." + appErr.Key()
-	message := ctrl.renderService.GetMessage(messageKey, lang)
-
-	// Fallback if translation missing
-	if message == messageKey {
-		message = ctrl.renderService.GetMessage("error.message", lang)
-	}
-
-	// Use "error.title" to avoid warning about missing "error" key
-	data := ctrl.renderService.CreatePageData(c, "error.title")
-	// Template uses .Data.Title and .Data.Message (Capitalized keys)
-	data.Data["Title"] = title
-	data.Data["Message"] = message
-	
-	c.HTML(appErr.HttpCode(), "error", data)
 }

@@ -1,6 +1,7 @@
 package view
 
 import (
+	stdErrors "errors"
 	"log/slog"
 	"net/http"
 
@@ -98,8 +99,6 @@ func (s *ViewService) logAppError(c *gin.Context, appErr *errors.AppError) {
 	)
 }
 
-
-
 // HTML 渲染HTML模板
 func (s *ViewService) HTML(c *gin.Context, name string, data interface{}) {
 	c.HTML(http.StatusOK, name, data)
@@ -111,6 +110,45 @@ func (s *ViewService) HTMLError(c *gin.Context, title, message string) {
 	pageData.Data["Title"] = title
 	pageData.Data["Message"] = message
 	c.HTML(http.StatusInternalServerError, "error", pageData)
+}
+
+// RenderErrorPage 渲染统一的错误页面
+// 当发生错误时显示用户友好的错误信息，统一错误页面的展示格式
+//
+// 参数:
+//   - c: Gin上下文对象
+//   - err: 错误对象（优先处理 AppError）
+func (s *ViewService) RenderErrorPage(c *gin.Context, err error) {
+	lang := s.GetLocaleFromContext(c)
+
+	var appErr errors.AppError
+	if !stdErrors.As(err, &appErr) {
+		// 如果不是 AppError，回退到 InternalError
+		slog.Warn("Error is not an AppError, falling back to InternalError", "error", err)
+		appErr = errors.InternalError
+	}
+
+	title := s.GetMessage("error.title", lang)
+	messageKey := "error." + appErr.Key()
+	message := s.GetMessage(messageKey, lang)
+
+	// Fallback if translation missing
+	if message == messageKey {
+		// 尝试只用 Key 查找，有些 Key 可能没有 error. 前缀
+		message = s.GetMessage(appErr.Key(), lang)
+		if message == appErr.Key() {
+			slog.Warn("Translation missing, using default message", "key", messageKey)
+			message = s.GetMessage("error.message", lang)
+		}
+	}
+
+	// Use "error.title" to avoid warning about missing "error" key
+	data := s.CreatePageData(c, "error.title")
+	// Template uses .Data.Title and .Data.Message (Capitalized keys)
+	data.Data["Title"] = title
+	data.Data["Message"] = message
+
+	c.HTML(appErr.HttpCode(), "error", data)
 }
 
 // HTMLErrorDefault 渲染默认错误页面
