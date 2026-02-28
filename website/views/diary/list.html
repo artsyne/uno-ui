@@ -4,7 +4,7 @@
         hx-on:htmx:after-swap="if(this.querySelectorAll('.card:not(#write-entry-card)').length > 0) { this.querySelectorAll('.empty-placeholder').forEach(el => el.remove()) }">
         {{if .Data.CanWrite}}
         <div class="card p-6 mb-6 break-inside-avoid" id="write-entry-card">
-            <div class="flex items-center justify-center h-32 hover:cursor-pointer hover:text-red-500"
+            <div class="flex items-center justify-center h-32 hover:cursor-pointer"
                 @click="openCreateEntry({{.Data.Diary.DiaryID}})">
                 <a><i class="mdi mdi-plus text-xl"></i>
                     {{getMessage "entry.button.create" .Context.Lang}}</a>

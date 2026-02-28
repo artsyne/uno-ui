@@ -7,13 +7,12 @@
     <section class="flex justify-between mb-10">
         <div id="page-nav">
             <ul class="flex text-lg">
-                <li><a href="/u/{{.Data.Diary.AddUserID}}" class="hover:text-red-500 dark:hover:text-red-400">{{ or
+                <li><a href="/u/{{.Data.Diary.AddUserID}}">{{ or
                         .Data.Diary.AddUserDisplayName .Data.Diary.AddUserHandle }}</a>
                     <i class="mdi mdi-slash-forward mx-3"></i>
                 </li>
                 <li>
-                    <a href="/diary/{{.Data.Diary.DiaryID}}" id="diary_title"
-                        class="hover:text-red-500 dark:hover:text-red-400">{{.Data.Diary.Title}}{{if eq
+                    <a href="/diary/{{.Data.Diary.DiaryID}}" id="diary_title">{{.Data.Diary.Title}}{{if eq
                         .Data.Diary.ViewSetting 2}}<i class="mdi mdi-lock-outline mx-3"></i>{{end}}
                     </a>
                 </li>
@@ -26,8 +25,8 @@
                 "diary.settings" .Context.Lang}}</button>
             {{end}}
             <!-- 日记本点赞按钮容器 -->
-            <span id="diary-like-wrapper" data-diary-id="{{.Data.Diary.DiaryID}}" x-show="socialSetting === 1"
-                {{if ne .Data.Diary.SocialSetting 1}}style="display: none;"{{end}}>
+            <span id="diary-like-wrapper" data-diary-id="{{.Data.Diary.DiaryID}}" x-show="socialSetting === 1" {{if ne
+                .Data.Diary.SocialSetting 1}}style="display: none;" {{end}}>
                 <button class="btn" @click="toggleDiaryLike({{.Data.Diary.DiaryID}})">
                     <i class="mdi mr-1" :class="diaryLike.liked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"></i>
                     <span x-text="diaryLike.count"></span>
@@ -49,8 +48,7 @@
                 <div>
                     <ul>
                         <li class="py-1">
-                            <a href="/diary/{{.Data.Diary.DiaryID}}/authors"
-                                class="hover:text-red-500 dark:hover:text-red-400">
+                            <a href="/diary/{{.Data.Diary.DiaryID}}/authors">
                                 <i class="mdi mdi-account-group"></i>
                                 <span>{{getMessage "diary.label_info.authors_list" .Context.Lang}}</span>
                             </a>

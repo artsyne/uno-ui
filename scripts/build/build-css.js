@@ -40,18 +40,18 @@ if (!fs.existsSync(CSS_DIST_DIR)) {
 }
 
 try {
-  // Step 1: 合并所有源CSS文件
-  console.log('Step 1: Combining source CSS files...');
+  // Step 1: 合并源CSS文件 (Tailwind + Markdown)
+  // 注意：Theme CSS 不在此处合并，而是待 Tailwind 生成后再追加，以确保最高优先级
+  console.log('Step 1: Combining source CSS files (Tailwind + Markdown)...');
   const themeContent = fs.readFileSync(THEME_CSS, 'utf8');
   const markdownContent = fs.readFileSync(MARKDOWN_CSS, 'utf8');
   const tailwindContent = fs.readFileSync(TAILWIND_SRC, 'utf8');
-  fs.writeFileSync(
-    COMBINED_CSS,
-    themeContent + '\n' + markdownContent + '\n' + tailwindContent,
-  );
 
-  // Step 2: 生成Tailwind CSS（支持主题系统）
-  console.log('Step 2: Generating tailwind.css with theme support...');
+  // 仅合并 Tailwind 和 Markdown 供 CLI 处理
+  fs.writeFileSync(COMBINED_CSS, tailwindContent + '\n' + markdownContent);
+
+  // Step 2: 生成Tailwind CSS
+  console.log('Step 2: Generating tailwind.css...');
   const contentPaths = [
     './website/views/**/*.html',
     './website/static/src/js/**/*.js',
@@ -65,6 +65,12 @@ try {
     : `npx @tailwindcss/cli -i "${COMBINED_CSS}" -o "${TAILWIND_OUTPUT}" ${contentFlags} --minify`;
 
   execSync(tailwindCmd, { stdio: 'inherit', shell: true });
+
+  // Step 2.5: 追加 Theme CSS
+  // 强制将 Theme CSS 追加到 Tailwind 生成结果的末尾，物理上保证优先级
+  console.log('Step 2.5: Appending Theme CSS to ensure highest priority...');
+  const generatedTailwind = fs.readFileSync(TAILWIND_OUTPUT, 'utf8');
+  fs.writeFileSync(TAILWIND_OUTPUT, generatedTailwind + '\n' + themeContent);
 
   // Step 3: 处理和压缩CSS
   console.log('Step 3: Processing CSS with PostCSS...');

@@ -57,7 +57,7 @@
                     <!-- Remove Author -->
                     <a @click.prevent="removeAuthor({{$.DiaryID}}, {{.UserID}})"
                         role="menuitem">
-                        {{getMessage "common.delete" $.Lang}}
+                       <i class="mdi mdi-delete-outline mr-2"></i> {{getMessage "common.delete" $.Lang}}
                     </a>
                 </div>
             </template>
