@@ -178,7 +178,7 @@ func TestMultiAuthorIntegration(t *testing.T) {
 		require.NoError(t, err)
 
 		// 获取列表
-		authors, err := diaryService.ListAuthors(id)
+		authors, err := diaryService.ListAuthors(id, true)
 		require.NoError(t, err)
 		assert.Len(t, authors, 3) // Owner + Invitee + Stranger
 

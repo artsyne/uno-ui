@@ -83,7 +83,6 @@ type InviteAuthorRequest struct {
 type GetAuthorsRequest struct {
 	DiaryID   int64 `uri:"id" binding:"required"`
 	PageIndex int   `form:"page" json:"page"`
-	PageSize  int   `form:"page_size" json:"page_size"`
 }
 
 // RemoveAuthorRequest 移除作者请求

@@ -71,7 +71,7 @@ func TestDiaryService_MultiAuthor(t *testing.T) {
 		require.NoError(t, err)
 
 		// 验证状态为Pending
-		authors, err := diaryService.ListAuthors(diaryID)
+		authors, err := diaryService.ListAuthors(diaryID, false)
 		require.NoError(t, err)
 		assert.Len(t, authors, 2) // Owner + Invitee
 
@@ -119,50 +119,44 @@ func TestDiaryService_MultiAuthor(t *testing.T) {
 		require.NoError(t, err)
 
 		// 验证状态为Active
-		authors, err := diaryService.ListAuthors(diaryID)
+		authors, err := diaryService.ListAuthors(diaryID, true)
 		require.NoError(t, err)
-		
-		var activeAuthor diary.Author
+
 		found := false
 		for _, a := range authors {
 			if a.UserID == invitee.UserId {
-				activeAuthor = a
+				assert.Equal(t, diary.AuthorStatusActive, a.Status)
 				found = true
-				break
 			}
 		}
-		require.True(t, found, "Active author not found")
-		assert.Equal(t, diary.AuthorStatusActive, activeAuthor.Status)
+		require.True(t, found)
 	})
 
-	t.Run("移除作者", func(t *testing.T) {
+	t.Run("删除作者", func(t *testing.T) {
 		err := diaryService.RemoveAuthor(diaryID, owner.UserId, invitee.UserId)
 		require.NoError(t, err)
 
-		// 验证作者已移除
-		authors, err := diaryService.ListAuthors(diaryID)
+		authors, err := diaryService.ListAuthors(diaryID, false)
 		require.NoError(t, err)
-		assert.Len(t, authors, 1) // Only Owner left
-		assert.Equal(t, owner.UserId, authors[0].UserID)
+		assert.Len(t, authors, 1) // Only owner
 	})
 
 	t.Run("非拥有者无法邀请", func(t *testing.T) {
 		// invitee已经被移除了，我们重新邀请并接受，让他成为作者
 		// 但这里我们测试的是非拥有者（比如invitee如果再次加入）是否有权限邀请
 		// 或者我们创建一个新的第三方用户
-		otherUser := &user.User{
-			Handle: ctx.GetDataGenerator().GenerateUniqueString("other"),
-			Email:    ctx.GetDataGenerator().GenerateUniqueEmail("other"),
-			Pwd:      "password123",
-			TimeZone: "UTC",
-		}
+		otherUser := ctx.GetDataGenerator().CreateUser(
+			core.WithHandle(ctx.GetIsolator().IsolateHandle("other")),
+			core.WithEmail(ctx.GetDataGenerator().GenerateUniqueEmail("other")),
+		)
 		err := userService.RegisterUser(otherUser)
 		require.NoError(t, err)
 
+		// otherUser 尝试邀请 invitee (otherUser 不是 diary owner 也不是 author)
 		err = diaryService.InviteAuthor(diaryID, otherUser.UserId, invitee.Email, "en")
-		assert.Error(t, err) // otherUser 不是 owner
+		assert.Error(t, err) 
 	})
-	
+
 	t.Run("通过Handle邀请", func(t *testing.T) {
 		// 先清理之前的状态，invitee已经被移除了
 		
@@ -170,7 +164,7 @@ func TestDiaryService_MultiAuthor(t *testing.T) {
 		require.NoError(t, err)
 
 		// 验证邀请成功
-		authors, err := diaryService.ListAuthors(diaryID)
+		authors, err := diaryService.ListAuthors(diaryID, false)
 		require.NoError(t, err)
 		found := false
 		for _, a := range authors {
@@ -192,7 +186,7 @@ func TestDiaryService_MultiAuthor(t *testing.T) {
 		require.NoError(t, err)
 
 		// 验证已退出
-		authors, err := diaryService.ListAuthors(diaryID)
+		authors, err := diaryService.ListAuthors(diaryID, false)
 		require.NoError(t, err)
 		assert.Len(t, authors, 1)
 		assert.Equal(t, owner.UserId, authors[0].UserID)

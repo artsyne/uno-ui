@@ -1,5 +1,5 @@
 {{define "diary/authors_content"}}
-<div id="authors-content">
+<div id="authors-content" hx-get="/diary/{{.Data.DiaryID}}/authors" hx-trigger="reloadAuthorList from:body" hx-swap="outerHTML">
     <section class="mb-10">
         {{ template "diary/authors_list" dict "Authors" .Data.Authors "Lang" .Context.Lang "CanManage" .Data.CanManage "DiaryID" .Data.DiaryID }}
     </section>

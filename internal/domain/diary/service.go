@@ -382,12 +382,14 @@ func (s *Service) RemoveAuthor(diaryID, ownerID, targetUserID int64) error {
 // ListAuthors 获取日记本的所有作者
 // 参数:
 //   - diaryID: 日记本ID
+//   - onlyActive: 是否只获取活跃作者
 //
 // 返回:
 //   - []Author: 作者列表
 //   - error: 查询失败时返回错误
-func (s *Service) ListAuthors(diaryID int64) ([]Author, error) {
-	return s.repo.ListAuthorsByDiaryID(diaryID)
+func (s *Service) ListAuthors(diaryID int64, onlyActive bool) ([]Author, error) {
+	authors, _, err := s.repo.ListAuthorsByDiaryID(diaryID, onlyActive, 0, 0)
+	return authors, err
 }
 
 // GetAuthor 获取指定作者信息
@@ -497,15 +499,19 @@ func (s *Service) RejectInvitation(diaryID, inviteeID int64) error {
 	return s.repo.DeleteAuthor(diaryID, inviteeID)
 }
 
-// GetDiaryAuthors 获取日记本的所有作者
+// GetDiaryAuthors 获取日记本的所有作者(支持分页)
 // 参数:
 //   - diaryID: 日记本ID
+//   - onlyActive: 是否只获取活跃作者
+//   - pageIndex, pageSize: 分页参数
 //
 // 返回:
 //   - []Author: 作者列表
+//   - int64: 总数
 //   - error: 查询失败时返回错误
-func (s *Service) GetDiaryAuthors(diaryID int64) ([]Author, error) {
-	return s.repo.ListAuthorsByDiaryID(diaryID)
+func (s *Service) GetDiaryAuthors(diaryID int64, onlyActive bool, pageIndex, pageSize int) ([]Author, int64, error) {
+	authors, count, err := s.repo.ListAuthorsByDiaryID(diaryID, onlyActive, pageIndex, pageSize)
+	return authors, int64(count), err
 }
 
 // IsAuthor 检查用户是否为活跃作者

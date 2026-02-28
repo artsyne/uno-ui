@@ -40,19 +40,52 @@ func (r *DiaryRepository) DeleteAuthor(diaryID, userID int64) error {
 }
 
 // ListAuthorsByDiaryID 获取日记本的所有作者
-func (r *DiaryRepository) ListAuthorsByDiaryID(diaryID int64) ([]diary.Author, error) {
+// onlyActive: true=仅获取活跃作者, false=获取所有状态
+// pageIndex, pageSize: 分页参数，如果 pageSize <= 0 则返回所有
+func (r *DiaryRepository) ListAuthorsByDiaryID(diaryID int64, onlyActive bool, pageIndex, pageSize int) ([]diary.Author, int, error) {
 	var authors []diary.Author
-	sqlstr := `
-		SELECT da.*, u.handle, u.display_name, u.face_url 
-		FROM br_diary_author da
-		JOIN br_user u ON da.user_id = u.user_id
-		WHERE da.diary_id = ?
-	`
-	err := r.db.Select(&authors, sqlstr, diaryID)
-	if err == sql.ErrNoRows {
-		return []diary.Author{}, nil
+	var err error
+	var args []interface{}
+
+	// Base query
+	baseQuery := `
+			FROM br_diary_author da
+			JOIN br_user u ON da.user_id = u.user_id
+			WHERE da.diary_id = ?
+		`
+	args = append(args, diaryID)
+
+	if onlyActive {
+		baseQuery += ` AND da.status = ?`
+		args = append(args, diary.AuthorStatusActive)
 	}
-	return authors, err
+
+	// Count query
+	var count int
+	countQuery := `SELECT count(*) ` + baseQuery
+	err = r.db.Get(&count, countQuery, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Data query
+	dataQuery := `SELECT da.*, u.handle, u.display_name, u.face_url ` + baseQuery
+
+	// Pagination
+	if pageSize > 0 {
+		if pageIndex < 1 {
+			pageIndex = 1
+		}
+		offset := (pageIndex - 1) * pageSize
+		dataQuery += ` LIMIT ? OFFSET ?`
+		args = append(args, pageSize, offset)
+	}
+
+	err = r.db.Select(&authors, dataQuery, args...)
+	if err == sql.ErrNoRows {
+		return []diary.Author{}, 0, nil
+	}
+	return authors, count, err
 }
 
 // ListJoinedDiariesByUserID 获取用户参与的日记本列表（状态为Active）

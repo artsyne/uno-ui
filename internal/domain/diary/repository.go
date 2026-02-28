@@ -112,7 +112,8 @@ type RepositoryInterface interface {
 	DeleteAuthor(diaryID, userID int64) error
 
 	// ListAuthorsByDiaryID 获取日记本的所有作者
-	ListAuthorsByDiaryID(diaryID int64) ([]Author, error)
+	// onlyActive: true=仅获取活跃作者(Status=1), false=获取所有状态(Active/Pending)
+	ListAuthorsByDiaryID(diaryID int64, onlyActive bool, pageIndex, pageSize int) ([]Author, int, error)
 
 	// ListJoinedDiariesByUserID 获取用户参与的日记本列表（状态为Active）
 	ListJoinedDiariesByUserID(userID int64) ([]Diary, error)

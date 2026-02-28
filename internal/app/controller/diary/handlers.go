@@ -298,48 +298,32 @@ func (ctrl *DiaryController) ShowAuthors(c *gin.Context) {
 		return
 	}
 
-	allAuthors, err := ctrl.diaryService.GetDiaryAuthors(req.DiaryID)
-	if err != nil {
-		ctrl.renderService.JSONError(c, err)
-		return
-	}
-
 	// Pagination Logic
 	pageIndex := req.PageIndex
 	if pageIndex <= 0 {
 		pageIndex = 1
 	}
-	pageSize := req.PageSize
-	if pageSize <= 0 {
-		pageSize = ctrl.config.App.PageSize
-	}
-	if pageSize <= 0 {
-		pageSize = 20
+	// pageSize strictly from config, ignore frontend input
+	pageSize := ctrl.config.App.PageSize
+
+	allAuthors, totalCount, err := ctrl.diaryService.GetDiaryAuthors(req.DiaryID, !isOwner, pageIndex, pageSize)
+	if err != nil {
+		ctrl.renderService.JSONError(c, err)
+		return
 	}
 
-	totalAuthors := len(allAuthors)
-	start := (pageIndex - 1) * pageSize
-	end := start + pageSize
-	if start > totalAuthors {
-		start = totalAuthors
-	}
-	if end > totalAuthors {
-		end = totalAuthors
-	}
-
-	authors := allAuthors[start:end]
-	totalPages := (totalAuthors + pageSize - 1) / pageSize
+	totalPages := int((totalCount + int64(pageSize) - 1) / int64(pageSize))
 
 	canQuit := !isOwner
 
 	// 转换为视图模型并计算角色
-	authorViewModels := make([]AuthorViewModel, len(authors))
+	authorViewModels := make([]AuthorViewModel, len(allAuthors))
 	currentUserRole := 0
 	if isOwner {
-		currentUserRole = 1 // 默认为Owner，如果列表中有记录会被覆盖（理论上也是1）
+		currentUserRole = 1 // 默认为Owner
 	}
 
-	for i, a := range authors {
+	for i, a := range allAuthors {
 		role := 3 // Default Member
 		if a.UserID == diaryObj.AddUserID {
 			role = 1 // Owner
@@ -376,7 +360,7 @@ func (ctrl *DiaryController) ShowAuthors(c *gin.Context) {
 		pageData.Data["PageLinks"] = pkg.GeneratePagination(pkg.ListOptions{
 			PageIndex: pageIndex,
 			PageSize:  pageSize,
-			Total:     totalAuthors,
+			Total:     int(totalCount),
 			URL:       fmt.Sprintf("/diary/%d/authors?page=%%d", req.DiaryID),
 			PagePrev:  "<",
 			PageNext:  ">",
@@ -438,6 +422,7 @@ func (ctrl *DiaryController) InviteAuthor(c *gin.Context) {
 	if c.GetHeader("HX-Request") == "true" {
 		triggerData := map[string]interface{}{
 			"closeAuthorInviteModal": true,
+			"reloadAuthorList":       true,
 			"showToast": map[string]string{
 				"type":    "success",
 				"message": "diary.author.invite_success",

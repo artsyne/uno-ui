@@ -195,16 +195,49 @@ func TestDiaryRepository_ListAuthorsByDiaryID(t *testing.T) {
 		diaryID, 2002, 0, 1, "member", "Member", "face2.jpg",
 	)
 
+	mock.ExpectQuery(`SELECT count\(\*\) FROM br_diary_author da`).
+		WithArgs(diaryID).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(2))
+
 	mock.ExpectQuery(`SELECT da\.\*, u\.handle, u\.display_name, u\.face_url FROM br_diary_author da`).
 		WithArgs(diaryID).
 		WillReturnRows(rows)
 
-	authors, err := repo.ListAuthorsByDiaryID(diaryID)
+	authors, count, err := repo.ListAuthorsByDiaryID(diaryID, false, 0, 0)
 
 	assert.NoError(t, err)
+	assert.Equal(t, 2, count)
 	assert.Len(t, authors, 2)
 	assert.Equal(t, int64(2001), authors[0].UserID)
 	assert.Equal(t, int64(2002), authors[1].UserID)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestDiaryRepository_ListAuthorsByDiaryID_OnlyActive(t *testing.T) {
+	repo, mock := newTestDiaryRepository(t)
+
+	diaryID := int64(1001)
+
+	rows := sqlmock.NewRows([]string{
+		"diary_id", "user_id", "is_admin", "status", "handle", "display_name", "face_url",
+	}).AddRow(
+		diaryID, 2001, 1, 1, "owner", "Owner", "face1.jpg",
+	)
+
+	mock.ExpectQuery(`SELECT count\(\*\) FROM br_diary_author da`).
+		WithArgs(diaryID, 1).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+	mock.ExpectQuery(`SELECT da\.\*, u\.handle, u\.display_name, u\.face_url FROM br_diary_author da`).
+		WithArgs(diaryID, 1).
+		WillReturnRows(rows)
+
+	authors, count, err := repo.ListAuthorsByDiaryID(diaryID, true, 0, 0)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, count)
+	assert.Len(t, authors, 1)
+	assert.Equal(t, int64(2001), authors[0].UserID)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
