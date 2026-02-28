@@ -234,7 +234,7 @@ export const EntryMixin = {
       entryId,
       el,
       true,
-      'entry.drafts.confirm_hard_delete',
+      'entry.delete.hard_confirm',
       `/entry/${entryId}/hard`,
     );
   },

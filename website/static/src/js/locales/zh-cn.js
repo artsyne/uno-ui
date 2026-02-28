@@ -6,6 +6,7 @@ export default {
   'common.confirm': '确定',
   'common.exit': '退出',
   'common.delete': '删除',
+  'common.delete_success': '删除成功',
   'common.op_fail': '操作失败',
   'common.op_success': '操作成功',
   'common.loading': '加载中...',
@@ -52,8 +53,7 @@ export default {
   'entry.create': '写日记',
   'entry.edit': '编辑日记',
   'entry.delete.confirm': '确定要删除这篇日记吗？',
-  'entry.drafts.confirm_hard_delete':
-    '确定要彻底删除这篇草稿吗？此操作无法撤销。',
+  'entry.delete.hard_confirm': '确定要彻底删除吗？此操作无法撤销。',
   'entry.delete.success': '删除成功',
   'entry.delete.fail': '删除失败',
   'entry.delete.net_error': '网络错误，删除失败',
