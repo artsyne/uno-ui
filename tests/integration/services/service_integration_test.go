@@ -71,7 +71,7 @@ func TestUserDiaryIntegration(t *testing.T) {
 			AddUserID:     testUser.UserId,
 			AddUTCTime:    1642680000,
 			Status:        1,
-			ViewSetting:   1,
+			ViewSetting:   diary.ViewSettingPublic,
 			SocialSetting: 1,
 			ThemeID:       1,
 		}

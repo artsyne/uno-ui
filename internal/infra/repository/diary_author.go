@@ -108,18 +108,40 @@ func (r *DiaryRepository) ListJoinedDiariesByUserID(userID int64) ([]diary.Diary
 
 // ListJoinedDiariesByUserIDWithLimit 获取用户参与的日记本列表（带限制，不查询总数）
 // 包含 Pending (Status=2) 并按 Status DESC 排序
-func (r *DiaryRepository) ListJoinedDiariesByUserIDWithLimit(userID int64, limit int) ([]diary.Diary, error) {
+func (r *DiaryRepository) ListJoinedDiariesByUserIDWithLimit(userID int64, includePrivate bool, limit int) ([]diary.Diary, error) {
 	var diaries []diary.Diary
-	sqlstr := `
+	baseSQL := `
 		SELECT d.*, u.handle, u.display_name, da.status as author_status
 		FROM br_diary d
 		JOIN br_diary_author da ON d.diary_id = da.diary_id
 		LEFT JOIN br_user u ON d.add_user_id = u.user_id
-		WHERE da.user_id = ? AND da.status IN (?, ?) AND d.status = ? AND d.add_user_id != ?
-		ORDER BY da.status DESC, da.join_utc_time DESC, d.diary_id DESC
-		LIMIT ?
-	`
-	err := r.db.Select(&diaries, sqlstr, userID, diary.AuthorStatusActive, diary.AuthorStatusPending, diary.StatusActive, userID, limit)
+		WHERE da.user_id = ?`
+
+	var args []interface{}
+	args = append(args, userID)
+
+	if includePrivate {
+		// Owner can see Active and Pending
+		baseSQL += " AND da.status IN (?, ?)"
+		args = append(args, diary.AuthorStatusActive, diary.AuthorStatusPending)
+	} else {
+		// Others only see Active
+		baseSQL += " AND da.status = ?"
+		args = append(args, diary.AuthorStatusActive)
+	}
+
+	baseSQL += " AND d.status = ? AND d.add_user_id != ?"
+	args = append(args, diary.StatusActive, userID)
+
+	if !includePrivate {
+		baseSQL += " AND d.view_setting = ?"
+		args = append(args, diary.ViewSettingPublic)
+	}
+
+	baseSQL += ` ORDER BY da.status DESC, da.join_utc_time DESC, d.diary_id DESC LIMIT ?`
+	args = append(args, limit)
+
+	err := r.db.Select(&diaries, baseSQL, args...)
 	if err == sql.ErrNoRows {
 		return []diary.Diary{}, nil
 	}
@@ -131,20 +153,40 @@ func (r *DiaryRepository) ListJoinedDiariesByUserIDWithLimit(userID int64, limit
 
 // ListJoinedDiariesByUserIDPaged 获取用户参与的分页日记本列表
 // Modified to include Pending (Status=2) and sort by Status DESC (Pending first)
-func (r *DiaryRepository) ListJoinedDiariesByUserIDPaged(userID int64, pageIndex, pageSize int) ([]diary.Diary, int, error) {
+func (r *DiaryRepository) ListJoinedDiariesByUserIDPaged(userID int64, includePrivate bool, pageIndex, pageSize int) ([]diary.Diary, int, error) {
 	var diaries []diary.Diary
 	offset := (pageIndex - 1) * pageSize
 
-	sqlstr := `
+	baseSQL := `
 		SELECT d.*, u.handle, u.display_name, da.status as author_status
 		FROM br_diary d
 		JOIN br_diary_author da ON d.diary_id = da.diary_id
 		LEFT JOIN br_user u ON d.add_user_id = u.user_id
-		WHERE da.user_id = ? AND da.status IN (?, ?) AND d.status = ? AND d.add_user_id != ?
-		ORDER BY da.status DESC, da.join_utc_time DESC, d.diary_id DESC
-		LIMIT ? OFFSET ?
-	`
-	err := r.db.Select(&diaries, sqlstr, userID, diary.AuthorStatusActive, diary.AuthorStatusPending, diary.StatusActive, userID, pageSize, offset)
+		WHERE da.user_id = ?`
+
+	var args []interface{}
+	args = append(args, userID)
+
+	if includePrivate {
+		baseSQL += " AND da.status IN (?, ?)"
+		args = append(args, diary.AuthorStatusActive, diary.AuthorStatusPending)
+	} else {
+		baseSQL += " AND da.status = ?"
+		args = append(args, diary.AuthorStatusActive)
+	}
+
+	baseSQL += " AND d.status = ? AND d.add_user_id != ?"
+	args = append(args, diary.StatusActive, userID)
+
+	if !includePrivate {
+		baseSQL += " AND d.view_setting = ?"
+		args = append(args, diary.ViewSettingPublic)
+	}
+
+	baseSQL += ` ORDER BY da.status DESC, da.join_utc_time DESC, d.diary_id DESC LIMIT ? OFFSET ?`
+	args = append(args, pageSize, offset)
+
+	err := r.db.Select(&diaries, baseSQL, args...)
 	if err == sql.ErrNoRows {
 		return []diary.Diary{}, 0, nil
 	}
@@ -152,7 +194,7 @@ func (r *DiaryRepository) ListJoinedDiariesByUserIDPaged(userID int64, pageIndex
 		return nil, 0, err
 	}
 
-	count, err := r.GetJoinedDiariesCountByUserID(userID)
+	count, err := r.GetJoinedDiariesCountByUserID(userID, includePrivate)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -161,15 +203,34 @@ func (r *DiaryRepository) ListJoinedDiariesByUserIDPaged(userID int64, pageIndex
 }
 
 // GetJoinedDiariesCountByUserID 获取用户参与的日记本数量 (Active + Pending)
-func (r *DiaryRepository) GetJoinedDiariesCountByUserID(userID int64) (int, error) {
+func (r *DiaryRepository) GetJoinedDiariesCountByUserID(userID int64, includePrivate bool) (int, error) {
 	var count int
-	sqlstr := `
+	baseSQL := `
 		SELECT COUNT(*)
 		FROM br_diary_author da
 		JOIN br_diary d ON da.diary_id = d.diary_id
-		WHERE da.user_id = ? AND da.status IN (?, ?) AND d.status = ? AND d.add_user_id != ?
-	`
-	err := r.db.Get(&count, sqlstr, userID, diary.AuthorStatusActive, diary.AuthorStatusPending, diary.StatusActive, userID)
+		WHERE da.user_id = ?`
+
+	var args []interface{}
+	args = append(args, userID)
+
+	if includePrivate {
+		baseSQL += " AND da.status IN (?, ?)"
+		args = append(args, diary.AuthorStatusActive, diary.AuthorStatusPending)
+	} else {
+		baseSQL += " AND da.status = ?"
+		args = append(args, diary.AuthorStatusActive)
+	}
+
+	baseSQL += " AND d.status = ? AND d.add_user_id != ?"
+	args = append(args, diary.StatusActive, userID)
+
+	if !includePrivate {
+		baseSQL += " AND d.view_setting = ?"
+		args = append(args, diary.ViewSettingPublic)
+	}
+
+	err := r.db.Get(&count, baseSQL, args...)
 	if err == sql.ErrNoRows {
 		return 0, nil
 	}

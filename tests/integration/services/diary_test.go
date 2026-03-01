@@ -64,7 +64,7 @@ func TestMultiAuthorIntegration(t *testing.T) {
 			AddUserID:     owner.UserId,
 			AddUTCTime:    time.Now().Unix(),
 			Status:        1,
-			ViewSetting:   1, // Public
+			ViewSetting:   diary.ViewSettingPublic, // Public
 			SocialSetting: 1, // Enabled
 			ThemeID:       1,
 		}
@@ -143,13 +143,13 @@ func TestMultiAuthorIntegration(t *testing.T) {
 		}
 
 		// 分页测试: 第1页，每页10条
-		list, count, err := diaryService.ListJoinedDiariesByUserIDPaged(invitee.UserId, 1, 10)
+		list, count, err := diaryService.ListJoinedDiariesByUserIDPaged(invitee.UserId, true, 1, 10)
 		require.NoError(t, err)
 		assert.Len(t, list, 10)
 		assert.True(t, count >= totalDiaries) // 可能会有上一个测试用例残留的 joined diary
 
 		// 分页测试: 第2页，每页10条
-		list2, count2, err := diaryService.ListJoinedDiariesByUserIDPaged(invitee.UserId, 2, 10)
+		list2, count2, err := diaryService.ListJoinedDiariesByUserIDPaged(invitee.UserId, true, 2, 10)
 		require.NoError(t, err)
 		assert.Len(t, list2, count2-10) // 剩余的数量
 		assert.Equal(t, count, count2)

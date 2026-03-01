@@ -58,21 +58,23 @@ type RepositoryInterface interface {
 	// ListByUserID 根据特定用户ID检索分页的日记本列表
 	// 参数:
 	//   - userID: 用户ID
+	//   - includePrivate: 是否包含私有日记本
 	//   - pageIndex: 页码（从0开始）
 	//   - pageSize: 每页大小
 	// 返回:
 	//   - []Diary: 日记本列表
 	//   - int: 总记录数
 	//   - error: 查询失败时返回错误
-	ListByUserID(userID int64, pageIndex, pageSize int) ([]Diary, int, error)
+	ListByUserID(userID int64, includePrivate bool, pageIndex, pageSize int) ([]Diary, int, error)
 
 	// GetCountByUserID 获取用户的日记本数量
 	// 参数:
 	//   - userID: 用户ID
+	//   - includePrivate: 是否包含私有日记本
 	// 返回:
 	//   - int: 日记本数量
 	//   - error: 查询失败时返回错误
-	GetCountByUserID(userID int64) (int, error)
+	GetCountByUserID(userID int64, includePrivate bool) (int, error)
 
 	// IsDiaryOwner 验证用户是否是日记本的拥有者
 	// 参数:
@@ -119,13 +121,16 @@ type RepositoryInterface interface {
 	ListJoinedDiariesByUserID(userID int64) ([]Diary, error)
 
 	// ListJoinedDiariesByUserIDWithLimit 获取用户参与的日记本列表（带限制，无 Count）
-	ListJoinedDiariesByUserIDWithLimit(userID int64, limit int) ([]Diary, error)
+	// includePrivate: 是否包含私有日记本
+	ListJoinedDiariesByUserIDWithLimit(userID int64, includePrivate bool, limit int) ([]Diary, error)
 
 	// ListJoinedDiariesByUserIDPaged 获取用户参与的分页日记本列表
-	ListJoinedDiariesByUserIDPaged(userID int64, pageIndex, pageSize int) ([]Diary, int, error)
+	// includePrivate: 是否包含私有日记本
+	ListJoinedDiariesByUserIDPaged(userID int64, includePrivate bool, pageIndex, pageSize int) ([]Diary, int, error)
 
 	// GetJoinedDiariesCountByUserID 获取用户参与的日记本数量
-	GetJoinedDiariesCountByUserID(userID int64) (int, error)
+	// includePrivate: 是否包含私有日记本
+	GetJoinedDiariesCountByUserID(userID int64, includePrivate bool) (int, error)
 
 	// GetActiveJoinedDiariesCountByUserID 获取用户参与的活跃日记本数量（不包含待确认）
 	GetActiveJoinedDiariesCountByUserID(userID int64) (int, error)

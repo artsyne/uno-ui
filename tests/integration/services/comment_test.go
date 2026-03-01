@@ -64,7 +64,7 @@ func TestCommentServiceIntegration(t *testing.T) {
 	testDiary := &diary.Diary{
 		Title:         "集成测试日记本",
 		Remark:        "用于评论集成测试",
-		ViewSetting:   1, // 公开
+		ViewSetting:   diary.ViewSettingPublic, // 公开
 		SocialSetting: 1, // 允许社交
 		ThemeID:       1,
 		AddUserID:     testUser.UserId,

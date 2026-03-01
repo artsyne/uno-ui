@@ -12,7 +12,7 @@ type Diary struct {
 	LikeNum       int32  `form:"like_num" json:"like_num" db:"like_num"`                   // 点赞数量
 	MemberNum     int32  `form:"member_num" json:"member_num" db:"member_num"`             // 成员数量
 	ViewNum       int32  `form:"view_num" json:"view_num" db:"view_num"`                   // 浏览次数
-	ViewSetting   int8   `form:"view_setting" json:"view_setting" db:"view_setting"`       // 查看权限设置
+	ViewSetting   int8   `form:"view_setting" json:"view_setting" db:"view_setting"`       // 查看权限设置 (1:公开 2:私密)
 	AccessPwd     string `form:"access_pwd" json:"access_pwd" db:"access_pwd"`             // 访问密码
 	SocialSetting int8   `form:"social_setting" json:"social_setting" db:"social_setting"` // 社交功能设置
 	JoinUTCTime   int64  `form:"join_utc_time" json:"join_utc_time" db:"join_utc_time"`    // 加入时间 (仅在查询参与日记本时填充)
@@ -27,6 +27,12 @@ type Diary struct {
 	AddUserDisplayName string `json:"add_user_display_name" db:"display_name"` // 创建者显示名称
 	AuthorStatus       int8   `json:"author_status" db:"author_status"`        // 作者状态 (1:Active, 2:Pending)
 }
+
+// ViewSetting constants
+const (
+	ViewSettingPublic  int8 = 1 // 公开
+	ViewSettingPrivate int8 = 2 // 私密
+)
 
 // Author 日记本作者结构体
 // 对应数据库 br_diary_author 表

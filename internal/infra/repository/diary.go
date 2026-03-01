@@ -191,17 +191,28 @@ func (r *DiaryRepository) ListForWriteByUserID(userID int64) ([]diary.Diary, err
 // ListByUserID 根据特定用户ID检索分页的日记本列表
 // 参数: userID - 用户ID, pageIndex - 页索引, pageSize - 每页大小
 // 返回: 日记本列表、总数和可能的错误
-func (r *DiaryRepository) ListByUserID(userID int64, pageIndex, pageSize int) ([]diary.Diary, int, error) {
+func (r *DiaryRepository) ListByUserID(userID int64, includePrivate bool, pageIndex, pageSize int) ([]diary.Diary, int, error) {
 	diaryArray := []diary.Diary{}
 	offset := (pageIndex - 1) * pageSize
 	// JOIN br_user
-	sqlstr := `SELECT d.*, 
+	baseSQL := `SELECT d.*, 
 	           u1.handle, u1.display_name
 	           FROM br_diary d
 	           LEFT JOIN br_user u1 ON d.add_user_id = u1.user_id
-	           WHERE d.add_user_id = ?
-	           ORDER BY d.diary_id DESC LIMIT ? OFFSET ?`
-	err := r.db.Select(&diaryArray, sqlstr, userID, pageSize, offset)
+	           WHERE d.add_user_id = ?`
+
+	var args []interface{}
+	args = append(args, userID)
+
+	if !includePrivate {
+		baseSQL += " AND d.view_setting = ?"
+		args = append(args, diary.ViewSettingPublic)
+	}
+
+	baseSQL += ` ORDER BY d.diary_id DESC LIMIT ? OFFSET ?`
+	args = append(args, pageSize, offset)
+
+	err := r.db.Select(&diaryArray, baseSQL, args...)
 	if err == sql.ErrNoRows {
 		return []diary.Diary{}, 0, nil
 	}
@@ -209,7 +220,7 @@ func (r *DiaryRepository) ListByUserID(userID int64, pageIndex, pageSize int) ([
 		return nil, 0, err
 	}
 
-	count, err := r.GetCountByUserID(userID)
+	count, err := r.GetCountByUserID(userID, includePrivate)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -220,10 +231,17 @@ func (r *DiaryRepository) ListByUserID(userID int64, pageIndex, pageSize int) ([
 // GetCountByUserID 获取用户的日记本数量
 // 参数: userID - 用户ID
 // 返回: 日记本数量和可能的错误
-func (r *DiaryRepository) GetCountByUserID(userID int64) (int, error) {
+func (r *DiaryRepository) GetCountByUserID(userID int64, includePrivate bool) (int, error) {
 	var count int
 	sqlstr := "SELECT count(*) FROM br_diary WHERE add_user_id = ?"
-	err := r.db.Get(&count, sqlstr, userID)
+	args := []interface{}{userID}
+
+	if !includePrivate {
+		sqlstr += " AND view_setting = ?"
+		args = append(args, diary.ViewSettingPublic)
+	}
+
+	err := r.db.Get(&count, sqlstr, args...)
 	if err == sql.ErrNoRows {
 		return 0, nil
 	}

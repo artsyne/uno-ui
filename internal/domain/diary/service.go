@@ -208,6 +208,7 @@ func (s *Service) ListDiariesForWrite(userID int64) ([]Diary, error) {
 // ListDiariesByUser 获取用户的分页日记本列表
 // 参数:
 //   - userID: 用户ID
+//   - includePrivate: 是否包含私有日记本
 //   - pageIndex: 页索引（从0开始）
 //   - pageSize: 每页大小
 //
@@ -215,8 +216,8 @@ func (s *Service) ListDiariesForWrite(userID int64) ([]Diary, error) {
 //   - []Diary: 日记本列表
 //   - int: 总记录数
 //   - error: 查询失败时返回错误
-func (s *Service) ListDiariesByUser(userID int64, pageIndex, pageSize int) ([]Diary, int, error) {
-	diaries, _, err := s.repo.ListByUserID(userID, pageIndex, pageSize)
+func (s *Service) ListDiariesByUser(userID int64, includePrivate bool, pageIndex, pageSize int) ([]Diary, int, error) {
+	diaries, _, err := s.repo.ListByUserID(userID, includePrivate, pageIndex, pageSize)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -225,7 +226,7 @@ func (s *Service) ListDiariesByUser(userID int64, pageIndex, pageSize int) ([]Di
 		return []Diary{}, 0, nil
 	}
 
-	count, err := s.repo.GetCountByUserID(userID)
+	count, err := s.repo.GetCountByUserID(userID, includePrivate)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -594,13 +595,13 @@ func (s *Service) ListJoinedDiariesByUserID(userID int64) ([]Diary, error) {
 }
 
 // ListJoinedDiariesByUserIDWithLimit 获取用户参与的日记本列表（带限制）
-func (s *Service) ListJoinedDiariesByUserIDWithLimit(userID int64, limit int) ([]Diary, error) {
-	return s.repo.ListJoinedDiariesByUserIDWithLimit(userID, limit)
+func (s *Service) ListJoinedDiariesByUserIDWithLimit(userID int64, includePrivate bool, limit int) ([]Diary, error) {
+	return s.repo.ListJoinedDiariesByUserIDWithLimit(userID, includePrivate, limit)
 }
 
 // ListJoinedDiariesByUserIDPaged 获取用户参与的分页日记本列表
-func (s *Service) ListJoinedDiariesByUserIDPaged(userID int64, pageIndex, pageSize int) ([]Diary, int, error) {
-	diaries, _, err := s.repo.ListJoinedDiariesByUserIDPaged(userID, pageIndex, pageSize)
+func (s *Service) ListJoinedDiariesByUserIDPaged(userID int64, includePrivate bool, pageIndex, pageSize int) ([]Diary, int, error) {
+	diaries, _, err := s.repo.ListJoinedDiariesByUserIDPaged(userID, includePrivate, pageIndex, pageSize)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -609,7 +610,7 @@ func (s *Service) ListJoinedDiariesByUserIDPaged(userID int64, pageIndex, pageSi
 		return []Diary{}, 0, nil
 	}
 
-	count, err := s.repo.GetJoinedDiariesCountByUserID(userID)
+	count, err := s.repo.GetJoinedDiariesCountByUserID(userID, includePrivate)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -694,7 +695,7 @@ func (s *Service) normalizeLanguage(lang string) string {
 // 返回:
 //   - error: 超过限制时返回错误
 func (s *Service) CheckDiaryLimit(userID int64) error {
-	daybookNum, err := s.repo.GetCountByUserID(userID)
+	daybookNum, err := s.repo.GetCountByUserID(userID, true)
 	if err != nil {
 		return &errors.InvalidParams
 	}

@@ -103,18 +103,19 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 		isOwner = (data.GetAuthUser().UserId == uid)
 	}
 
-	if isOwner {
-		// 获取加入的日记本（包括待确认和已加入，按状态和时间排序）
-		// 使用 limit + 1 的方式来判断是否还有更多，避免 COUNT 查询
-		limit := ctrl.config.App.UserJoinedDiariesLimit
-		joinedDiaries, _ := ctrl.diaryService.ListJoinedDiariesByUserIDWithLimit(uid, limit+1)
+	// 获取加入的日记本（包括待确认和已加入，按状态和时间排序）
+	// 使用 limit + 1 的方式来判断是否还有更多，避免 COUNT 查询
+	limit := ctrl.config.App.UserJoinedDiariesLimit
+	// 如果是Owner，包含私有日记本和Pending状态；否则只包含公开日记本且Active状态
+	joinedDiaries, _ := ctrl.diaryService.ListJoinedDiariesByUserIDWithLimit(uid, isOwner, limit+1)
 
-		hasMore := false
-		if len(joinedDiaries) > limit {
-			hasMore = true
-			joinedDiaries = joinedDiaries[:limit]
-		}
+	hasMore := false
+	if len(joinedDiaries) > limit {
+		hasMore = true
+		joinedDiaries = joinedDiaries[:limit]
+	}
 
+	if len(joinedDiaries) > 0 {
 		data.Data["JoinedDiaries"] = joinedDiaries
 		data.Data["HasMoreJoinedDiaries"] = hasMore
 		data.Data["IsJoinedList"] = false
@@ -134,7 +135,7 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 	pageSize := ctrl.config.App.PageSize
 
 	// 获取用户的日记本列表
-	diaries, diariesNum, _ := ctrl.diaryService.ListDiariesByUser(uid, pageIndex, pageSize)
+	diaries, diariesNum, _ := ctrl.diaryService.ListDiariesByUser(uid, isOwner, pageIndex, pageSize)
 
 	// 初始化分页信息
 	listOptions := pkg.ListOptions{
@@ -243,10 +244,10 @@ func (ctrl *DiaryController) ShowJoinedDiaries(c *gin.Context) {
 
 	data := ctrl.renderService.CreatePageData(c, "user.joined_diaries.title")
 
-	// 必须是本人
-	if !data.IsAuthenticated() || data.GetAuthUser().UserId != uid {
-		ctrl.renderService.Redirect(c, fmt.Sprintf("/u/%d", uid))
-		return
+	// 判断是否为页面所有者
+	isOwner := false
+	if data.IsAuthenticated() {
+		isOwner = (data.GetAuthUser().UserId == uid)
 	}
 
 	pageIndexStr := c.Param("pageindex")
@@ -258,7 +259,7 @@ func (ctrl *DiaryController) ShowJoinedDiaries(c *gin.Context) {
 	}
 
 	pageSize := ctrl.config.App.PageSize
-	diaries, count, _ := ctrl.diaryService.ListJoinedDiariesByUserIDPaged(uid, pageIndex, pageSize)
+	diaries, count, _ := ctrl.diaryService.ListJoinedDiariesByUserIDPaged(uid, isOwner, pageIndex, pageSize)
 
 	listOptions := pkg.ListOptions{
 		PageIndex: pageIndex,
