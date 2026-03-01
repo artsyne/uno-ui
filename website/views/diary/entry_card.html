@@ -56,12 +56,6 @@
              x-data="entryStats({{.Entry.EntryID}}, {{.SocialSetting}})" 
              x-init="initStats()"
              x-show="socialSetting === 1">
-            <!-- 浏览量 -->
-            <span class="mr-4 flex items-center text-gray-600 dark:text-gray-400 text-sm" title='{{getMessage "common.views" .Lang}}'>
-                <i class="mdi mdi-eye mr-1"></i>
-                <span x-show="stats.loaded" x-text="stats.view_num">-</span>
-                <span x-show="!stats.loaded" class="animate-pulse">-</span>
-            </span>
             <!-- 评论数 -->
             <span class="mr-4 flex items-center text-gray-600 dark:text-gray-400 text-sm" title='{{getMessage "common.comments" .Lang}}'>
                 <i class="mdi mdi-comment-text-outline mr-1"></i>

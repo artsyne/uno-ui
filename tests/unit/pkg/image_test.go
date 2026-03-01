@@ -347,7 +347,7 @@ func TestCreateUploadPathFileName(t *testing.T) {
 			}
 
 			// 验证路径格式（应该包含日期目录结构）
-			now := time.Now()
+			now := time.Now().UTC()
 			expectedDatePath := fmt.Sprintf("%d/%02d/%02d", now.Year(), now.Month(), now.Day())
 			assert.Contains(t, result, expectedDatePath, "应该包含日期目录结构")
 

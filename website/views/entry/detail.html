@@ -57,7 +57,8 @@
                         {{getMessage "common.authors" .Context.Lang}}
                     </p>
                     <p><a href="/u/{{.Data.Entry.AddUserID}}"
-                            class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors duration-200">{{ or .Data.Entry.AddUserDisplayName .Data.Entry.AddUserHandle }}</a>
+                            class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors duration-200">{{
+                            or .Data.Entry.AddUserDisplayName .Data.Entry.AddUserHandle }}</a>
                     </p>
                 </div>
                 <div class="flex justify-between mb-4">
@@ -70,16 +71,8 @@
 
                 {{if eq .Data.Diary.SocialSetting 1}}
                 <!-- EntryStats 组件 - 社交统计信息 -->
-                <div
-                    class="flex items-center text-gray-600 dark:text-gray-400 text-sm mt-4 border-t border-gray-100 dark:border-gray-700 pt-4"
-                    x-data="entryStats({{.Data.Entry.EntryID}}, {{.Data.Diary.SocialSetting}})"
-                    x-init="initStats()">
-                    <!-- 浏览量 -->
-                    <span class="mr-6 flex items-center" title="Views">
-                        <i class="mdi mdi-eye mr-1 text-lg"></i>
-                        <span x-show="stats.loaded" x-text="stats.view_num">-</span>
-                        <span x-show="!stats.loaded" class="animate-pulse">-</span>
-                    </span>
+                <div class="flex items-center text-gray-600 dark:text-gray-400 text-sm mt-4 border-t border-gray-100 dark:border-gray-700 pt-4"
+                    x-data="entryStats({{.Data.Entry.EntryID}}, {{.Data.Diary.SocialSetting}})" x-init="initStats()">
                     <!-- 评论数 -->
                     <span id="entry-comment-count" class="mr-6 flex items-center" title="Comments">
                         <i class="mdi mdi-comment-text-outline mr-1 text-lg"></i>
