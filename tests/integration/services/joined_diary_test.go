@@ -58,7 +58,7 @@ func TestJoinedDiariesExclusion(t *testing.T) {
 			Remark:     "Remark 1",
 			AddUserID:  me.UserId,
 			AddUTCTime: time.Now().Unix(),
-			Status:     1,
+			Status:     diary.StatusActive,
 		}
 		_, err := diaryService.AddDiary(diary1)
 		require.NoError(t, err)
@@ -68,7 +68,7 @@ func TestJoinedDiariesExclusion(t *testing.T) {
 			Remark:     "Remark 2",
 			AddUserID:  me.UserId,
 			AddUTCTime: time.Now().Unix(),
-			Status:     1,
+			Status:     diary.StatusActive,
 		}
 		_, err = diaryService.AddDiary(diary2)
 		require.NoError(t, err)
@@ -79,7 +79,7 @@ func TestJoinedDiariesExclusion(t *testing.T) {
 			Remark:     "Remark Other",
 			AddUserID:  other.UserId,
 			AddUTCTime: time.Now().Unix(),
-			Status:     1,
+			Status:     diary.StatusActive,
 		}
 		idOther, err := diaryService.AddDiary(diaryOther)
 		require.NoError(t, err)
@@ -153,7 +153,7 @@ func TestDiaryVisibility(t *testing.T) {
 			Title:       "Alice Public",
 			AddUserID:   alice.UserId,
 			AddUTCTime:  time.Now().Unix(),
-			Status:      1,
+			Status:      diary.StatusActive,
 			ViewSetting: diary.ViewSettingPublic, // Public
 		}
 		_, err := diaryService.AddDiary(publicDiary)
@@ -164,7 +164,7 @@ func TestDiaryVisibility(t *testing.T) {
 			Title:       "Alice Private",
 			AddUserID:   alice.UserId,
 			AddUTCTime:  time.Now().Unix(),
-			Status:      1,
+			Status:      diary.StatusActive,
 			ViewSetting: diary.ViewSettingPrivate, // Private
 		}
 		_, err = diaryService.AddDiary(privateDiary)
@@ -188,23 +188,23 @@ func TestDiaryVisibility(t *testing.T) {
 		// Create a 3rd user "Charlie" who creates diaries for Alice to join
 		charlie := createTestUser(t, ctx, userService, "charlie_v")
 
-		// Charlie creates a Public Diary (ViewSetting=1)
+		// Charlie creates a Public Diary (ViewSetting=diary.ViewSettingPublic)
 		publicJoinedDiary := &diary.Diary{
 			Title:       "Charlie Public",
 			AddUserID:   charlie.UserId,
 			AddUTCTime:  time.Now().Unix(),
-			Status:      1,
+			Status:      diary.StatusActive,
 			ViewSetting: diary.ViewSettingPublic,
 		}
 		idPublic, err := diaryService.AddDiary(publicJoinedDiary)
 		require.NoError(t, err)
 
-		// Charlie creates a Private Diary (ViewSetting=2)
+		// Charlie creates a Private Diary (ViewSetting=diary.ViewSettingPrivate)
 		privateJoinedDiary := &diary.Diary{
 			Title:       "Charlie Private",
 			AddUserID:   charlie.UserId,
 			AddUTCTime:  time.Now().Unix(),
-			Status:      1,
+			Status:      diary.StatusActive,
 			ViewSetting: diary.ViewSettingPrivate,
 		}
 		idPrivate, err := diaryService.AddDiary(privateJoinedDiary)

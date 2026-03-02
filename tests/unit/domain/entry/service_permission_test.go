@@ -60,7 +60,7 @@ func TestEntryService_Permissions(t *testing.T) {
 	// Create Private Diary
 	privateDiary := &diary.Diary{
 		Title:         "Private Diary",
-		ViewSetting:   2, // Private
+		ViewSetting:   diary.ViewSettingPrivate, // Private
 		SocialSetting: 1,
 		ThemeID:       1,
 		AddUserID:     owner.UserId,
@@ -176,7 +176,7 @@ func TestEntryService_Permissions(t *testing.T) {
 	t.Run("ListEntriesByDiaryID_Public", func(t *testing.T) {
 		publicDiary := &diary.Diary{
 			Title:         "Public Diary",
-			ViewSetting:   1, // Public
+			ViewSetting:   diary.ViewSettingPublic, // Public
 			SocialSetting: 1,
 			ThemeID:       1,
 			AddUserID:     owner.UserId,

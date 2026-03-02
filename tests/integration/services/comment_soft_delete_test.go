@@ -74,7 +74,7 @@ func TestCommentOnSoftDeletedEntry(t *testing.T) {
 	testDiary := &diary.Diary{
 		Title:         "Soft Delete Test Diary",
 		Remark:        "For testing comments on soft deleted entries",
-		ViewSetting:   1, // 公开
+		ViewSetting:   diary.ViewSettingPublic, // 公开
 		SocialSetting: 1, // 允许社交
 		ThemeID:       1,
 		AddUserID:     user1.UserId,

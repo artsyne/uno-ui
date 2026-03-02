@@ -54,7 +54,7 @@ func TestDiaryService_EmailI18n(t *testing.T) {
 	myDiary := &diary.Diary{
 		Title:         "Global Diary",
 		AddUserID:     owner.UserId,
-		ViewSetting:   1,
+		ViewSetting:   diary.ViewSettingPublic,
 		SocialSetting: 1,
 		ThemeID:       1,
 		AddUTCTime:    time.Now().Unix(),

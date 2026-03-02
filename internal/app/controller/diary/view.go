@@ -104,22 +104,25 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 	}
 
 	// 获取加入的日记本（包括待确认和已加入，按状态和时间排序）
-	// 使用 limit + 1 的方式来判断是否还有更多，避免 COUNT 查询
-	limit := ctrl.config.App.UserJoinedDiariesLimit
-	// 如果是Owner，包含私有日记本和Pending状态；否则只包含公开日记本且Active状态
-	joinedDiaries, _ := ctrl.diaryService.ListJoinedDiariesByUserIDWithLimit(uid, isOwner, limit+1)
+	// 性能优化：只有 Owner 才会显示加入的日记本，避免多余查询
+	if isOwner {
+		// 使用 limit + 1 的方式来判断是否还有更多，避免 COUNT 查询
+		limit := ctrl.config.App.UserJoinedDiariesLimit
+		// 如果是Owner，包含私有日记本和Pending状态；否则只包含公开日记本且Active状态
+		joinedDiaries, _ := ctrl.diaryService.ListJoinedDiariesByUserIDWithLimit(uid, isOwner, limit+1)
 
-	hasMore := false
-	if len(joinedDiaries) > limit {
-		hasMore = true
-		joinedDiaries = joinedDiaries[:limit]
-	}
+		hasMore := false
+		if len(joinedDiaries) > limit {
+			hasMore = true
+			joinedDiaries = joinedDiaries[:limit]
+		}
 
-	if len(joinedDiaries) > 0 {
-		data.Data["JoinedDiaries"] = joinedDiaries
-		data.Data["HasMoreJoinedDiaries"] = hasMore
-		data.Data["IsJoinedList"] = false
-		data.Data["HxTarget"] = "#joined-diaries-section"
+		if len(joinedDiaries) > 0 {
+			data.Data["JoinedDiaries"] = joinedDiaries
+			data.Data["HasMoreJoinedDiaries"] = hasMore
+			data.Data["IsJoinedList"] = false
+			data.Data["HxTarget"] = "#joined-diaries-section"
+		}
 	}
 
 	// 获取URL中的pageIndex

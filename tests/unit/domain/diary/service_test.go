@@ -53,7 +53,7 @@ func TestDiaryService_AddDiary(t *testing.T) {
 		newDiary := &diary.Diary{
 			Title:         "My Diary",
 			AddUserID:     newUser.UserId,
-			ViewSetting:   1,
+			ViewSetting:   diary.ViewSettingPublic,
 			SocialSetting: 1,
 			ThemeID:       1,
 			AddUTCTime:    time.Now().Unix(),
@@ -69,7 +69,7 @@ func TestDiaryService_AddDiary(t *testing.T) {
 		invalidDiary := &diary.Diary{
 			Title:         "",
 			AddUserID:     newUser.UserId,
-			ViewSetting:   1,
+			ViewSetting:   diary.ViewSettingPublic,
 			SocialSetting: 1,
 			ThemeID:       1,
 		}
@@ -83,7 +83,7 @@ func TestDiaryService_AddDiary(t *testing.T) {
 		invalidDiary := &diary.Diary{
 			Title:         "My Diary",
 			AddUserID:     0,
-			ViewSetting:   1,
+			ViewSetting:   diary.ViewSettingPublic,
 			SocialSetting: 1,
 			ThemeID:       1,
 		}
@@ -128,7 +128,7 @@ func TestDiaryService_UpdateDiary(t *testing.T) {
 	newDiary := &diary.Diary{
 		Title:         "Original Title",
 		AddUserID:     newUser.UserId,
-		ViewSetting:   1,
+		ViewSetting:   diary.ViewSettingPublic,
 		SocialSetting: 1,
 		ThemeID:       1,
 		AddUTCTime:    time.Now().Unix(),
@@ -182,7 +182,7 @@ func TestDiaryService_DeleteDiary(t *testing.T) {
 	newDiary := &diary.Diary{
 		Title:         "To Delete",
 		AddUserID:     newUser.UserId,
-		ViewSetting:   1,
+		ViewSetting:   diary.ViewSettingPublic,
 		SocialSetting: 1,
 		ThemeID:       1,
 		AddUTCTime:    time.Now().Unix(),
@@ -203,9 +203,9 @@ func TestDiaryService_DeleteDiary(t *testing.T) {
 		// 再添加一个日记本
 		anotherDiary := &diary.Diary{
 			Title:         "Another Diary",
-			AddUserID:     newUser.UserId,
-			ViewSetting:   1,
-			SocialSetting: 1,
+		AddUserID:     newUser.UserId,
+		ViewSetting:   diary.ViewSettingPublic,
+		SocialSetting: 1,
 			ThemeID:       1,
 			AddUTCTime:    time.Now().Unix(),
 		}
@@ -252,7 +252,7 @@ func TestDiaryService_IncrementEntryCount(t *testing.T) {
 	newDiary := &diary.Diary{
 		Title:         "Diary For Counts",
 		AddUserID:     newUser.UserId,
-		ViewSetting:   1,
+		ViewSetting:   diary.ViewSettingPublic,
 		SocialSetting: 1,
 		ThemeID:       1,
 		AddUTCTime:    time.Now().Unix(),

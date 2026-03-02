@@ -457,7 +457,7 @@ func (dg *DataGenerator) CreateDiary(userID int64, options ...DiaryOption) *diar
 	opts := &DiaryOptions{
 		Title:         dg.isolator.IsolateTitle("Test Diary"),
 		Description:   "Test diary description",
-		ViewSetting:   1,
+		ViewSetting:   int(diary.ViewSettingPublic),
 		SocialSetting: 1,
 		ThemeID:       1,
 	}

@@ -51,8 +51,8 @@ func (ctrl *DiaryController) CreateDiary(c *gin.Context) {
 		LikeNum:       0,
 		MemberNum:     0,
 		ViewNum:       0,
-		InfoNum:       0, // 日记数量初始为0
-		Status:        1, // 默认状态为正常
+		InfoNum:       0,                  // 日记数量初始为0
+		Status:        diary.StatusActive, // 默认状态为正常
 		AddUTCTime:    nowTime,
 		AddUserID:     loginUser.UserId,
 		AddUserHandle: loginUser.Handle,
@@ -272,11 +272,11 @@ func (ctrl *DiaryController) ShowAuthors(c *gin.Context) {
 	}
 
 	// 检查权限：
-	// 1. 如果是公开日记 (ViewSetting == 1)，所有人可见
+	// 1. 如果是公开日记 (ViewSetting == diary.ViewSettingPublic)，所有人可见
 	// 2. 如果是私有日记，只有拥有者或活跃作者可见
 	isOwner := diaryObj.AddUserID == loginUser.UserId
 	canView := false
-	if diaryObj.ViewSetting == 1 {
+	if diaryObj.ViewSetting == diary.ViewSettingPublic {
 		canView = true
 	} else {
 		if isOwner {

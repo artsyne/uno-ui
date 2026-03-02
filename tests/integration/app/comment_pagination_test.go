@@ -87,7 +87,7 @@ func TestGetComments_Pagination_Button_Integration(t *testing.T) {
 		AddUserID:     u.UserId,
 		Title:         isolator.IsolateTitle("Pagination Diary"),
 		Remark:        "Test Pagination",
-		ViewSetting:   1, // Public
+		ViewSetting:   diary.ViewSettingPublic, // Public
 		SocialSetting: 1, // Enable social (comments)
 		Status:        1,
 	}

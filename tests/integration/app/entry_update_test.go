@@ -13,6 +13,8 @@ import (
 	"github.com/biuren/hebe/internal/app/view"
 	types "github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/internal/domain/comment"
+	diary "github.com/biuren/hebe/internal/domain/diary"
+	entryDomain "github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/domain/like"
 	userDomain "github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
@@ -65,9 +67,9 @@ func TestUpdateEntry_HTMX_Integration(t *testing.T) {
 	// Create Diary for u1 (Public)
 	d := dataGen.CreateDiary(u1.UserId)
 	d.Title = "Public Diary"
-	d.ViewSetting = 1
-	d.Status = 1
-	d.SocialSetting = 1 // Enabled
+	d.ViewSetting = diary.ViewSettingPublic
+	d.Status = diary.StatusActive
+	d.SocialSetting = diary.SocialSettingEnabled // Enabled
 	diaryID, err := diaryService.AddDiary(d)
 	require.NoError(t, err)
 
@@ -75,7 +77,7 @@ func TestUpdateEntry_HTMX_Integration(t *testing.T) {
 	e := dataGen.CreateEntry(u1.UserId, diaryID)
 	e.Title = "Original Title"
 	e.Body = "Original Body"
-	e.Status = 1
+	e.Status = diary.StatusActive
 	entryID, err := entryService.AddEntry(e)
 	require.NoError(t, err)
 
@@ -104,7 +106,7 @@ func TestUpdateEntry_HTMX_Integration(t *testing.T) {
 	// Simulate HTMX request to Update Entry
 	updateReq := map[string]interface{}{
 		"title":     "Updated Title",
-		"info_type": 1, // Required field
+		"info_type": entryDomain.InfoTypeText, // Required field
 		"body":      "Updated Body",
 		"diaryID":   diaryID,
 		"entryID":   entryID,

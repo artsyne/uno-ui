@@ -58,7 +58,7 @@ func TestDiaryService_MultiAuthor(t *testing.T) {
 	myDiary := &diary.Diary{
 		Title:         "Shared Diary",
 		AddUserID:     owner.UserId,
-		ViewSetting:   1,
+		ViewSetting:   diary.ViewSettingPublic,
 		SocialSetting: 1,
 		ThemeID:       1,
 		AddUTCTime:    time.Now().Unix(),

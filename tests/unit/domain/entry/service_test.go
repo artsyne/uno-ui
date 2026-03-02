@@ -36,7 +36,7 @@ func setupTestUserAndDiary(t *testing.T, ctx *framework.TestContext, userService
 	testDiary := &diary.Diary{
 		Title:         "测试日记本",
 		Remark:        "用于文章测试",
-		ViewSetting:   1, // 必需字段：1-公开，2-私有
+		ViewSetting:   diary.ViewSettingPublic, // 必需字段：1-公开，2-私有
 		SocialSetting: 1, // 必需字段：1-允许社交，2-不允许社交
 		ThemeID:       1, // 必需字段：主题ID，范围1-16
 		AddUserID:     testUser.UserId,
@@ -321,7 +321,7 @@ func TestEntryService_ListEntriesByUserID(t *testing.T) {
 		AddUserID:     otherUser.UserId,
 		AddUserHandle: otherUser.Handle,
 		Status:        1,
-		ViewSetting:   1,
+		ViewSetting:   diary.ViewSettingPublic,
 		SocialSetting: 1,
 		ThemeID:       1,
 	}

@@ -51,7 +51,7 @@ func setupTestData(t *testing.T, ctx *framework.TestContext) (*user.User, *diary
 	testDiary := &diary.Diary{
 		Title:         "测试日记本",
 		Remark:        "用于评论测试",
-		ViewSetting:   1, // 公开
+		ViewSetting:   diary.ViewSettingPublic, // 公开
 		SocialSetting: 1, // 允许社交
 		ThemeID:       1,
 		AddUserID:     testUser.UserId,

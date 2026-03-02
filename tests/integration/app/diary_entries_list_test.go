@@ -11,6 +11,7 @@ import (
 	"github.com/biuren/hebe/internal/app/controller/entry"
 	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/domain/comment"
+	diary "github.com/biuren/hebe/internal/domain/diary"
 	entryDomain "github.com/biuren/hebe/internal/domain/entry"
 	"github.com/biuren/hebe/internal/domain/like"
 	userDomain "github.com/biuren/hebe/internal/domain/user"
@@ -72,7 +73,7 @@ func TestDiaryEntriesList_MultipleAuthors(t *testing.T) {
 
 	// Create Diary
 	diaryObj := dataGen.CreateDiary(owner.UserId)
-	diaryObj.ViewSetting = 1 // Public
+	diaryObj.ViewSetting = diary.ViewSettingPublic // Public
 	diaryID, err := diaryService.AddDiary(diaryObj)
 	require.NoError(t, err)
 

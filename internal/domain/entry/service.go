@@ -182,7 +182,7 @@ func (s *Service) GetEntryByIDForUser(entryID int64, userID int64) (*Entry, erro
 	// 3.3 Active状态检查日记本权限
 	// 私有日记本：需要是成员（拥有者/管理员/活跃作者）
 	// 公开/密码日记本：成员始终可见
-	if diaryData.ViewSetting == 2 { // Private
+	if diaryData.ViewSetting == diary.ViewSettingPrivate { // Private
 		isMember, err := s.diaryService.IsActiveAuthor(diaryData.DiaryID, userID)
 		if err != nil {
 			return nil, err
@@ -271,7 +271,7 @@ func (s *Service) ListEntriesByDiaryID(diaryID int64, userID int64, status int8,
 
 	// 2. 权限检查
 	// 如果是私有日记本，必须是成员
-	if diaryData.ViewSetting == 2 { // Private
+	if diaryData.ViewSetting == diary.ViewSettingPrivate { // Private
 		// 检查是否为拥有者
 		if diaryData.AddUserID == userID {
 			// 拥有者有权限

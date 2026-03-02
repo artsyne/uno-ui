@@ -188,7 +188,7 @@ func (s *Service) CheckSocialEnabled(diaryID int64) (*Diary, error) {
 	if err != nil {
 		return nil, &errors.DiaryNotFound
 	}
-	if diary.SocialSetting == 2 {
+	if diary.SocialSetting == SocialSettingDisabled {
 		return nil, &errors.PermissionDenied
 	}
 	return diary, nil
@@ -803,7 +803,7 @@ func (s *Service) validateDiary(diary *Diary) error {
 	if len(diary.Title) < 1 {
 		return &errors.InvalidParams
 	}
-	if diary.ViewSetting != 1 && diary.ViewSetting != 2 {
+	if diary.ViewSetting != ViewSettingPublic && diary.ViewSetting != ViewSettingPrivate {
 		return &errors.InvalidParams
 	}
 	if diary.SocialSetting != 1 && diary.SocialSetting != 2 {

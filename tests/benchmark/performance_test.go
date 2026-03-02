@@ -117,7 +117,7 @@ func BenchmarkDiaryCreation(b *testing.B) {
 			AddUserHandle: testUser.Handle,
 			AddUTCTime:    time.Now().Unix(),
 			Status:        1,
-			ViewSetting:   1,
+			ViewSetting:   diary.ViewSettingPublic,
 			SocialSetting: 1,
 			ThemeID:       1,
 		}
@@ -155,7 +155,7 @@ func BenchmarkEntryCreation(b *testing.B) {
 		AddUserHandle: testUser.Handle,
 		AddUTCTime:    time.Now().Unix(),
 		Status:        1,
-		ViewSetting:   1,
+		ViewSetting:   diary.ViewSettingPublic,
 		SocialSetting: 1,
 		ThemeID:       1,
 	}

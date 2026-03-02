@@ -106,7 +106,7 @@ func TestDiaryController_RequestHandling(t *testing.T) {
 		requestBody := map[string]interface{}{
 			"title":          "测试日记本",
 			"remark":         "测试描述",
-			"view_setting":   1,
+			"view_setting":   diaryDomain.ViewSettingPublic,
 			"social_setting": 1,
 			"theme_id":       1,
 		}
@@ -137,7 +137,7 @@ func TestDiaryController_DataStructures(t *testing.T) {
 			AddUserID:     1,
 			Title:         "测试日记本",
 			Remark:        "测试描述",
-			ViewSetting:   1,
+			ViewSetting:   diaryDomain.ViewSettingPublic,
 			SocialSetting: 1,
 			ThemeID:       1,
 			AddUTCTime:    time.Now().Unix(),

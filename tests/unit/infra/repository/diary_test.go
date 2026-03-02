@@ -33,7 +33,7 @@ func TestDiaryRepository_Insert(t *testing.T) {
 		LikeNum:       0,
 		MemberNum:     1,
 		ViewNum:       0,
-		ViewSetting:   1,
+		ViewSetting:   diary.ViewSettingPublic,
 		AccessPwd:     "",
 		SocialSetting: 1,
 		AddUTCTime:    1640995200,

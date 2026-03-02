@@ -150,7 +150,7 @@ func TestUserEntryDiaryIntegration(t *testing.T) {
 			AddUserID:     testUser.UserId,
 			AddUTCTime:    1642680000,
 			Status:        1,
-			ViewSetting:   1,
+			ViewSetting:   diary.ViewSettingPublic,
 			SocialSetting: 1,
 			ThemeID:       1,
 		}
@@ -301,7 +301,7 @@ func TestMultiUserScenario(t *testing.T) {
 			AddUserID:     user1.UserId,
 			AddUTCTime:    1642680000,
 			Status:        1,
-			ViewSetting:   1,
+			ViewSetting:   diary.ViewSettingPublic,
 			SocialSetting: 1,
 			ThemeID:       1,
 		}
@@ -314,7 +314,7 @@ func TestMultiUserScenario(t *testing.T) {
 			AddUserID:     user2.UserId,
 			AddUTCTime:    1642680000,
 			Status:        1,
-			ViewSetting:   1,
+			ViewSetting:   diary.ViewSettingPublic,
 			SocialSetting: 1,
 			ThemeID:       1,
 		}
@@ -414,7 +414,7 @@ func TestServiceErrorHandling(t *testing.T) {
 			AddUserID:     99999, // 不存在的用户ID
 			AddUTCTime:    1642680000,
 			Status:        1,
-			ViewSetting:   1,
+			ViewSetting:   diary.ViewSettingPublic,
 			SocialSetting: 1,
 			ThemeID:       1,
 		}
@@ -514,7 +514,7 @@ func TestServicePerformance(t *testing.T) {
 			AddUserID:     testUser.UserId,
 			AddUTCTime:    1642680000,
 			Status:        1,
-			ViewSetting:   1,
+			ViewSetting:   diary.ViewSettingPublic,
 			SocialSetting: 1,
 			ThemeID:       1,
 		}

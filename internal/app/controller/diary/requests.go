@@ -5,8 +5,8 @@ package diary
 // 字段:
 //   - Title: 日记本标题，必需
 //   - Remark: 日记本备注
-//   - ViewSetting: 查看权限设置，0=公开，1=私有，2=密码保护
-//   - SocialSetting: 社交设置，0=不允许，1=允许
+//   - ViewSetting: 查看权限设置，1=公开，2=私密
+//   - SocialSetting: 社交设置，1=允许，2=不允许
 //   - ThemeID: 主题ID
 //   - AccessPwd: 访问密码，当ViewSetting为2时使用
 type CreateDiaryRequest struct {
@@ -24,8 +24,8 @@ type CreateDiaryRequest struct {
 //   - DiaryID: 日记本ID，必需
 //   - Title: 日记本标题，必需
 //   - Remark: 日记本备注
-//   - ViewSetting: 查看权限设置，0=公开，1=私有，2=密码保护
-//   - SocialSetting: 社交设置，0=不允许，1=允许
+//   - ViewSetting: 查看权限设置，1=公开，2=私密
+//   - SocialSetting: 社交设置，1=允许，2=不允许
 //   - ThemeID: 主题ID
 //   - AccessPwd: 访问密码，当ViewSetting为2时使用
 type UpdateDiaryRequest struct {

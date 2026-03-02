@@ -68,7 +68,7 @@ func (dg *DataGeneratorImpl) CreateDiary(userID int64, options ...DiaryOption) *
 	opts := &DiaryOptions{
 		Title:         dg.isolator.IsolateTitle("diary"),
 		Description:   "Test diary description",
-		ViewSetting:   1, // 公开
+		ViewSetting:   int(diary.ViewSettingPublic), // 公开
 		SocialSetting: 1, // 允许社交
 		ThemeID:       1, // 默认主题
 	}

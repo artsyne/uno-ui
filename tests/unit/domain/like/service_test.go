@@ -47,7 +47,7 @@ func TestLikeService_ToggleLike(t *testing.T) {
 		testDiary := &diary.Diary{
 			Title:         "测试日记本",
 			Remark:        "测试备注",
-			ViewSetting:   1,
+			ViewSetting:   diary.ViewSettingPublic,
 			SocialSetting: 1,
 			ThemeID:       1,
 			AddUserID:     testUser.UserId,
@@ -103,7 +103,7 @@ func TestLikeService_ToggleLike(t *testing.T) {
 		testDiary := &diary.Diary{
 			Title:         "测试日记本",
 			Remark:        "测试备注",
-			ViewSetting:   1,
+			ViewSetting:   diary.ViewSettingPublic,
 			SocialSetting: 1,
 			ThemeID:       1,
 			AddUserID:     testUser.UserId,
@@ -166,7 +166,7 @@ func TestLikeService_GetLikeStatus(t *testing.T) {
 		testDiary := &diary.Diary{
 			Title:         "测试日记本",
 			Remark:        "测试备注",
-			ViewSetting:   1,
+			ViewSetting:   diary.ViewSettingPublic,
 			SocialSetting: 1,
 			ThemeID:       1,
 			AddUserID:     testUser.UserId,
@@ -217,7 +217,7 @@ func TestLikeService_GetLikeCount(t *testing.T) {
 		testDiary := &diary.Diary{
 			Title:         "测试日记本",
 			Remark:        "测试备注",
-			ViewSetting:   1,
+			ViewSetting:   diary.ViewSettingPublic,
 			SocialSetting: 1,
 			ThemeID:       1,
 			AddUserID:     testUser.UserId,
@@ -274,7 +274,7 @@ func TestLikeService_GetLikeCount(t *testing.T) {
 		testDiary := &diary.Diary{
 			Title:         "测试日记本",
 			Remark:        "测试备注",
-			ViewSetting:   1,
+			ViewSetting:   diary.ViewSettingPublic,
 			SocialSetting: 1,
 			ThemeID:       1,
 			AddUserID:     testUser1.UserId,

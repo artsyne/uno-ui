@@ -11,6 +11,7 @@ import (
 	"github.com/biuren/hebe/internal/app/view"
 	types "github.com/biuren/hebe/internal/contracts"
 	"github.com/biuren/hebe/internal/domain/comment"
+	diaryDomain "github.com/biuren/hebe/internal/domain/diary"
 	"github.com/biuren/hebe/internal/domain/like"
 	userDomain "github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/infra/repository"
@@ -64,15 +65,15 @@ func TestLatestPublicEntries_Integration(t *testing.T) {
 	// Create Diary for u1 (Public)
 	d := dataGen.CreateDiary(u1.UserId)
 	d.Title = "Public Diary"
-	d.ViewSetting = 1 // Public (matches repository filter)
-	d.Status = 1      // Active
+	d.ViewSetting = diaryDomain.ViewSettingPublic // Public (matches repository filter)
+	d.Status = diaryDomain.StatusActive      // Active
 	diaryID, err := diaryService.AddDiary(d)
 	require.NoError(t, err)
 
 	// Create Public Entry
 	e := dataGen.CreateEntry(u1.UserId, diaryID)
 	e.Title = "Public Entry"
-	e.Status = 1 // Active
+	e.Status = diaryDomain.StatusActive // Active
 	entryID1, err := entryService.AddEntry(e)
 	require.NoError(t, err)
 	e.EntryID = entryID1
@@ -80,16 +81,16 @@ func TestLatestPublicEntries_Integration(t *testing.T) {
 	// Create another Diary for u1 (Public but Social Disabled)
 	d2 := dataGen.CreateDiary(u1.UserId)
 	d2.Title = "Social Disabled Diary"
-	d2.ViewSetting = 1   // Public
-	d2.Status = 1        // Active
-	d2.SocialSetting = 2 // Disabled
+	d2.ViewSetting = diaryDomain.ViewSettingPublic   // Public
+	d2.Status = diaryDomain.StatusActive        // Active
+	d2.SocialSetting = diaryDomain.SocialSettingDisabled // Disabled
 	diaryID2, err := diaryService.AddDiary(d2)
 	require.NoError(t, err)
 
 	// Create Entry in Social Disabled Diary
 	e2 := dataGen.CreateEntry(u1.UserId, diaryID2)
 	e2.Title = "Social Disabled Entry"
-	e2.Status = 1
+	e2.Status = diaryDomain.StatusActive
 	entryID2, err := entryService.AddEntry(e2)
 	require.NoError(t, err)
 	e2.EntryID = entryID2
@@ -170,13 +171,13 @@ func TestLatestPublicEntries_Integration(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create a diary and entry for u3
-		d3 := dataGen.CreateDiary(u3.UserId, helpers.WithViewSetting(1)) // Public
-		d3.Status = 1
+		d3 := dataGen.CreateDiary(u3.UserId, helpers.WithViewSetting(int(diaryDomain.ViewSettingPublic))) // Public
+		d3.Status = diaryDomain.StatusActive
 		diaryID, err := diaryService.AddDiary(d3)
 		require.NoError(t, err)
 		
 		e3 := dataGen.CreateEntry(u3.UserId, diaryID)
-		e3.Status = 1
+		e3.Status = diaryDomain.StatusActive
 		_, err = entryService.AddEntry(e3)
 		require.NoError(t, err)
 
