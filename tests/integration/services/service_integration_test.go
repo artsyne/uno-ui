@@ -204,16 +204,16 @@ func TestUserEntryDiaryIntegration(t *testing.T) {
 		}
 
 		// 7. 验证分页获取文章
-		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, diaryID, 1, 1, 2)
+		entries, hasMore, err := entryService.ListEntriesByUserID(testUser.UserId, diaryID, 1, 1, 2)
 		require.NoError(t, err)
 		assert.Len(t, entries, 2) // 第一页2篇
-		assert.Equal(t, 3, total) // 总共3篇
+		assert.True(t, hasMore)   // 3篇日记，每页2篇，第一页后还有数据
 
 		// 8. 获取第二页
-		entries2, total2, err := entryService.ListEntriesByUserID(testUser.UserId, diaryID, 1, 2, 2)
+		entries2, hasMore2, err := entryService.ListEntriesByUserID(testUser.UserId, diaryID, 1, 2, 2)
 		require.NoError(t, err)
 		assert.Len(t, entries2, 1) // 第二页1篇
-		assert.Equal(t, 3, total2) // 总共还是3篇
+		assert.False(t, hasMore2)  // 3篇日记，每页2篇，第二页是最后一页
 
 		// 9. 更新文章
 		firstEntry := &entries[0]
@@ -538,10 +538,10 @@ func TestServicePerformance(t *testing.T) {
 		}
 
 		// 验证分页查询性能
-		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, diaryID, 1, 1, 5)
+		entries, hasMore, err := entryService.ListEntriesByUserID(testUser.UserId, diaryID, 1, 1, 5)
 		require.NoError(t, err)
 		assert.Len(t, entries, 5)
-		assert.Equal(t, articleCount, total)
+		assert.True(t, hasMore) // 10篇文章，每页5篇，第一页后还有数据
 
 		// 验证文章计数
 		count, err := entryService.GetEntryCountByUserID(testUser.UserId, diaryID, 1) // 1 = Active

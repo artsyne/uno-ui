@@ -12,6 +12,7 @@ import (
 	diaryController "github.com/biuren/hebe/internal/app/controller/diary"
 	entryController "github.com/biuren/hebe/internal/app/controller/entry"
 	userController "github.com/biuren/hebe/internal/app/controller/user"
+	"github.com/biuren/hebe/internal/app/middleware"
 	"github.com/biuren/hebe/internal/app/templates"
 	"github.com/biuren/hebe/internal/app/view"
 	"github.com/biuren/hebe/internal/core/di"
@@ -265,9 +266,14 @@ func loadTemplates(tmpl *template.Template, basePath string) error {
 //   - 配置favicon.ico文件访问
 //   - 支持静态资源的HTTP访问
 func setStaticFs(server *gin.Engine, staticPath string) {
-	//初始化静态文件
-	//better use nginx to serve assets (Cache-Control, Etag, fast gzip, etc)
-	server.StaticFS("/public", http.Dir(staticPath))
-	server.StaticFS("/static", http.Dir(staticPath))
+	// 为静态文件路由添加缓存头中间件
+	publicGroup := server.Group("/public")
+	publicGroup.Use(middleware.StaticCache())
+	publicGroup.StaticFS("", http.Dir(staticPath))
+
+	staticGroup := server.Group("/static")
+	staticGroup.Use(middleware.StaticCache())
+	staticGroup.StaticFS("", http.Dir(staticPath))
+
 	server.StaticFile("/favicon.ico", "./public/favicon.ico")
 }

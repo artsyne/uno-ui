@@ -306,14 +306,13 @@ func (ctrl *DiaryController) ShowAuthors(c *gin.Context) {
 	// pageSize strictly from config, ignore frontend input
 	pageSize := ctrl.config.App.PageSize
 
-	allAuthors, totalCount, err := ctrl.diaryService.GetDiaryAuthors(req.DiaryID, !isOwner, pageIndex, pageSize)
+	allAuthors, hasMore, err := ctrl.diaryService.GetDiaryAuthors(req.DiaryID, !isOwner, pageIndex, pageSize)
 	if err != nil {
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
 
-	totalPages := int((totalCount + int64(pageSize) - 1) / int64(pageSize))
-
+	// 使用 hasMore 模式：只判断是否有下一页，不计算总页数
 	canQuit := !isOwner
 
 	// 转换为视图模型并计算角色
@@ -353,19 +352,16 @@ func (ctrl *DiaryController) ShowAuthors(c *gin.Context) {
 	pageData.Data["Lang"] = loginUser.Lang
 	pageData.Data["DiaryID"] = diaryObj.DiaryID
 
-	// Pagination Data
-	pageData.Data["TotalPages"] = totalPages
+	// Pagination Data - 使用 hasMore 模式
 	pageData.Data["HxTarget"] = "#authors-content"
-	if totalPages > 1 {
-		pageData.Data["PageLinks"] = pkg.GeneratePagination(pkg.ListOptions{
-			PageIndex: pageIndex,
-			PageSize:  pageSize,
-			Total:     int(totalCount),
-			URL:       fmt.Sprintf("/diary/%d/authors?page=%%d", req.DiaryID),
-			PagePrev:  "<",
-			PageNext:  ">",
-		})
-	}
+	pageData.Data["PageLinks"] = pkg.GeneratePagination(pkg.ListOptions{
+		PageIndex: pageIndex,
+		PageSize:  pageSize,
+		HasMore:   hasMore,
+		URL:       fmt.Sprintf("/diary/%d/authors?page=%%d", req.DiaryID),
+		PagePrev:  "<<",
+		PageNext:  ">>",
+	})
 
 	if c.GetHeader("HX-Request") == "true" {
 		ctrl.renderService.HTML(c, "diary/authors_content", pageData)

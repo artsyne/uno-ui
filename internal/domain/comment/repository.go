@@ -40,9 +40,9 @@ type RepositoryInterface interface {
 	//   - pageSize: 每页大小
 	// 返回:
 	//   - []Comment: 评论列表
-	//   - int: 总记录数
+	//   - bool: 是否有更多数据
 	//   - error: 查询失败时返回错误
-	ListByEntryID(entryID int64, pageIndex, pageSize int) ([]Comment, int, error)
+	ListByEntryID(entryID int64, pageIndex, pageSize int) ([]Comment, bool, error)
 
 	// GetCountByEntryID 根据日记ID统计评论数量
 	// 参数:

@@ -36,9 +36,9 @@ type RepositoryInterface interface {
 	//   - pageSize: 每页大小
 	// 返回:
 	//   - []Entry: 日记列表
-	//   - int: 总记录数
+	//   - bool: 是否有更多数据
 	//   - error: 查询失败时返回错误
-	ListByUserID(userID int64, diaryID int64, status int8, pageIndex, pageSize int) ([]Entry, int, error)
+	ListByUserID(userID int64, diaryID int64, status int8, pageIndex, pageSize int) ([]Entry, bool, error)
 
 	// ListByDiaryID 根据日记本ID分页查询日记信息（所有作者）
 	// 参数:
@@ -48,9 +48,9 @@ type RepositoryInterface interface {
 	//   - pageSize: 每页大小
 	// 返回:
 	//   - []Entry: 日记列表
-	//   - int: 总记录数
+	//   - bool: 是否有更多数据
 	//   - error: 查询失败时返回错误
-	ListByDiaryID(diaryID int64, status int8, pageIndex, pageSize int) ([]Entry, int, error)
+	ListByDiaryID(diaryID int64, status int8, pageIndex, pageSize int) ([]Entry, bool, error)
 
 	// GetCountByUserID 根据用户ID和日记本ID统计信息数量
 	// 参数:
@@ -71,7 +71,7 @@ type RepositoryInterface interface {
 	//   - error: 查询失败时返回错误
 	GetCountByDiaryID(diaryID int64, status int8) (int, error)
 
-	// ListAllByUserID 根据用户ID分页查询日记信息（跨日记本）
+	// ListAllByUserID 根据用户ID分页查询日记信息（跨日记本），使用 limit+1 模式
 	// 参数:
 	//   - userID: 用户ID
 	//   - status: 日记状态
@@ -79,9 +79,9 @@ type RepositoryInterface interface {
 	//   - pageSize: 每页大小
 	// 返回:
 	//   - []Entry: 日记列表
-	//   - int: 总记录数
+	//   - bool: 是否还有更多数据
 	//   - error: 查询失败时返回错误
-	ListAllByUserID(userID int64, status int8, pageIndex, pageSize int) ([]Entry, int, error)
+	ListAllByUserID(userID int64, status int8, pageIndex, pageSize int) ([]Entry, bool, error)
 
 	// GetByID 根据日记ID获取日记信息
 	// 参数:

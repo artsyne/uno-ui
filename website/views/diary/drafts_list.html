@@ -71,8 +71,8 @@
         </table>
     </div>
 
-    <!-- 分页 -->
-    {{if gt .Data.Total .Data.PageSize}}
+    <!-- 分页 - 只使用 hasMore 模式 -->
+    {{if .Data.PageLinks}}
     <div class="mt-4 flex justify-center" hx-boost="true" hx-target="#drafts-list" hx-swap="innerHTML"
         hx-push-url="true">
         {{template "pagination" .}}

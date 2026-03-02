@@ -249,9 +249,9 @@ func (s *Service) UpdateEntry(entry *Entry, operatorID int64) error {
 //
 // 返回:
 //   - []Entry: 日记列表
-//   - int: 总记录数
+//   - bool: 是否有更多数据
 //   - error: 查询失败时返回错误
-func (s *Service) ListEntriesByUserID(userID int64, diaryID int64, status int8, pageIndex, pageSize int) ([]Entry, int, error) {
+func (s *Service) ListEntriesByUserID(userID int64, diaryID int64, status int8, pageIndex, pageSize int) ([]Entry, bool, error) {
 	return s.repo.ListByUserID(userID, diaryID, status, pageIndex, pageSize)
 }
 
@@ -259,14 +259,14 @@ func (s *Service) ListEntriesByUserID(userID int64, diaryID int64, status int8, 
 // 权限校验：
 // - 私有日记本：仅成员（拥有者、管理员、活跃作者）可见
 // - 公开/密码日记本：通常可见（密码校验通常在Controller层处理或通过Session状态，此处暂不强制校验密码，仅校验成员资格用于私有日记本）
-func (s *Service) ListEntriesByDiaryID(diaryID int64, userID int64, status int8, pageIndex, pageSize int) (*diary.Diary, []Entry, int, error) {
+func (s *Service) ListEntriesByDiaryID(diaryID int64, userID int64, status int8, pageIndex, pageSize int) (*diary.Diary, []Entry, bool, error) {
 	// 1. 获取日记本信息
 	diaryData, err := s.diaryService.GetDiaryByID(diaryID)
 	if err != nil {
-		return nil, nil, 0, err
+		return nil, nil, false, err
 	}
 	if diaryData == nil {
-		return nil, nil, 0, errors.DiaryNotFound
+		return nil, nil, false, errors.DiaryNotFound
 	}
 
 	// 2. 权限检查
@@ -279,17 +279,17 @@ func (s *Service) ListEntriesByDiaryID(diaryID int64, userID int64, status int8,
 			// 检查是否为活跃作者
 			isAuthor, err := s.diaryService.IsActiveAuthor(diaryID, userID)
 			if err != nil {
-				return nil, nil, 0, err
+				return nil, nil, false, err
 			}
 			if !isAuthor {
-				return nil, nil, 0, errors.PermissionDenied.WithDetails(map[string]interface{}{"reason": "private_diary_access_denied"})
+				return nil, nil, false, errors.PermissionDenied.WithDetails(map[string]interface{}{"reason": "private_diary_access_denied"})
 			}
 		}
 	}
 
 	// 3. 查询
-	entries, count, err := s.repo.ListByDiaryID(diaryID, status, pageIndex, pageSize)
-	return diaryData, entries, count, err
+	entries, hasMore, err := s.repo.ListByDiaryID(diaryID, status, pageIndex, pageSize)
+	return diaryData, entries, hasMore, err
 }
 
 // GetEntryCountByUserID 根据用户ID和日记本ID统计信息数量
@@ -314,9 +314,9 @@ func (s *Service) GetEntryCountByUserID(userID int64, diaryID int64, status int8
 //
 // 返回:
 //   - []Entry: 日记列表
-//   - int: 总记录数
+//   - bool: 是否有更多数据
 //   - error: 查询失败时返回错误
-func (s *Service) ListAllEntriesByUserID(userID int64, status int8, pageIndex, pageSize int) ([]Entry, int, error) {
+func (s *Service) ListAllEntriesByUserID(userID int64, status int8, pageIndex, pageSize int) ([]Entry, bool, error) {
 	return s.repo.ListAllByUserID(userID, status, pageIndex, pageSize)
 }
 

@@ -97,9 +97,14 @@ func (r *CommentRepository) GetByID(commentID int64) (*comment.Comment, error) {
 }
 
 // ListByEntryID 根据日记ID分页查询评论信息
-func (r *CommentRepository) ListByEntryID(entryID int64, pageIndex, pageSize int) ([]comment.Comment, int, error) {
+// 返回: 评论列表、是否有更多数据和可能的错误
+func (r *CommentRepository) ListByEntryID(entryID int64, pageIndex, pageSize int) ([]comment.Comment, bool, error) {
 	commentArray := []comment.Comment{}
 	offset := (pageIndex - 1) * pageSize
+
+	// limit+1 模式：查询 pageSize+1 条来判断是否有下一页
+	limit := pageSize + 1
+
 	// JOIN br_user to get handle and display_name
 	sqlstr := `SELECT c.comment_id, c.entry_id, c.content, c.add_utc_time, c.add_user_id, c.add_user_ip,
 	           u.handle, u.display_name
@@ -107,20 +112,21 @@ func (r *CommentRepository) ListByEntryID(entryID int64, pageIndex, pageSize int
                LEFT JOIN br_user u ON c.add_user_id = u.user_id
                WHERE c.entry_id = ?
                ORDER BY c.comment_id DESC LIMIT ? OFFSET ?`
-	err := r.db.Select(&commentArray, sqlstr, entryID, pageSize, offset)
+	err := r.db.Select(&commentArray, sqlstr, entryID, limit, offset)
 	if err == sql.ErrNoRows {
-		return []comment.Comment{}, 0, nil
+		return []comment.Comment{}, false, nil
 	}
 	if err != nil {
-		return nil, 0, err
+		return nil, false, err
 	}
 
-	count, err := r.GetCountByEntryID(entryID)
-	if err != nil {
-		return nil, 0, err
+	// 判断是否还有更多数据
+	hasMore := len(commentArray) > pageSize
+	if hasMore {
+		commentArray = commentArray[:pageSize] // 截取实际需要的 pageSize 条
 	}
 
-	return commentArray, count, nil
+	return commentArray, hasMore, nil
 }
 
 // GetCountByEntryID 根据日记ID统计评论数量

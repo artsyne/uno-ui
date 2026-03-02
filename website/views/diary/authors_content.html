@@ -4,7 +4,7 @@
         {{ template "diary/authors_list" dict "Authors" .Data.Authors "Lang" .Context.Lang "CanManage" .Data.CanManage "DiaryID" .Data.DiaryID }}
     </section>
 
-    {{if gt .Data.TotalPages 1}}
+    {{if .Data.PageLinks}}
     <section class="flex justify-center mb-10" hx-boost="true" hx-target="#authors-content" hx-swap="outerHTML">
         {{template "pagination" .}}
     </section>

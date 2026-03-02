@@ -1,15 +1,8 @@
 {{define "pagination"}}
-{{if gt (len .Data.PageLinks) 1}}
+{{/* hasMore 模式：只显示 prev/next 导航 */}}
+{{if .Data.PageLinks}}
 <div class="flex space-x-2">
     {{range .Data.PageLinks}}
-    {{if eq .Text "dots"}}
-    <a class="py-2 px-3 text-gray-600 dark:text-gray-400" href="javascript:void(0)"><span
-            class="mdi mdi-dots-horizontal"></span></a>
-    {{else}}
-    {{if .IsCurrentPage}}
-    <a class="bg-gray-200 dark:bg-gray-700 py-2 px-3 text-gray-900 dark:text-gray-100"
-        href="javascript:void(0)">{{.Text}}</a>
-    {{else}}
     {{if $.Data.HxTarget}}
     <a class="border py-2 px-3 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
         href="{{.URL}}" hx-get="{{.URL}}" hx-target="{{$.Data.HxTarget}}" hx-push-url="true" hx-swap="outerHTML">
@@ -18,8 +11,6 @@
     {{else}}
     <a class="border py-2 px-3 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
         href="{{.URL}}">{{.Text}}</a>
-    {{end}}
-    {{end}}
     {{end}}
     {{end}}
 </div>

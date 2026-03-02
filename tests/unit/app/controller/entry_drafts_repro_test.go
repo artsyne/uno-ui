@@ -68,13 +68,13 @@ func (m *MockRepoRepro) GetByIDForUser(entryID, userID int64) (*domainEntry.Entr
 	}
 	return args.Get(0).(*domainEntry.Entry), args.Error(1)
 }
-func (m *MockRepoRepro) ListByUserID(userID, diaryID int64, status int8, page, size int) ([]domainEntry.Entry, int, error) {
+func (m *MockRepoRepro) ListByUserID(userID, diaryID int64, status int8, page, size int) ([]domainEntry.Entry, bool, error) {
 	args := m.Called(userID, diaryID, status, page, size)
-	return args.Get(0).([]domainEntry.Entry), args.Int(1), args.Error(2)
+	return args.Get(0).([]domainEntry.Entry), args.Bool(1), args.Error(2)
 }
-func (m *MockRepoRepro) ListAllByUserID(userID int64, status int8, page, size int) ([]domainEntry.Entry, int, error) {
+func (m *MockRepoRepro) ListAllByUserID(userID int64, status int8, page, size int) ([]domainEntry.Entry, bool, error) {
 	args := m.Called(userID, status, page, size)
-	return args.Get(0).([]domainEntry.Entry), args.Int(1), args.Error(2)
+	return args.Get(0).([]domainEntry.Entry), args.Bool(1), args.Error(2)
 }
 func (m *MockRepoRepro) ListLatestPublicEntriesByUserID(userID int64, limit int) ([]domainEntry.Entry, error) {
 	args := m.Called(userID, limit)
@@ -87,9 +87,9 @@ func (m *MockRepoRepro) GetCountByUserID(userID, diaryID int64, status int8) (in
 	args := m.Called(userID, diaryID, status)
 	return args.Int(0), args.Error(1)
 }
-func (m *MockRepoRepro) ListByDiaryID(diaryID int64, status int8, pageIndex, pageSize int) ([]domainEntry.Entry, int, error) {
+func (m *MockRepoRepro) ListByDiaryID(diaryID int64, status int8, pageIndex, pageSize int) ([]domainEntry.Entry, bool, error) {
 	args := m.Called(diaryID, status, pageIndex, pageSize)
-	return args.Get(0).([]domainEntry.Entry), args.Int(1), args.Error(2)
+	return args.Get(0).([]domainEntry.Entry), args.Bool(1), args.Error(2)
 }
 func (m *MockRepoRepro) GetCountByDiaryID(diaryID int64, status int8) (int, error) {
 	args := m.Called(diaryID, status)
@@ -216,7 +216,8 @@ func TestShowDrafts_Reproduction_WithRealTemplates(t *testing.T) {
 		{EntryID: 100, DiaryID: 1, Title: "Draft 1", UpdateUTCTime: 1672531200000, Status: 2},
 		{EntryID: 101, DiaryID: 1, Title: "Draft 2", UpdateUTCTime: 1672531200000, Status: 2},
 	}
-	mockRepo.On("ListAllByUserID", int64(123), int8(2), 1, 10).Return(entries, 20, nil)
+	// hasMore=true 表示还有更多数据（总共超过 pageSize 条）
+	mockRepo.On("ListAllByUserID", int64(123), int8(2), 1, 10).Return(entries, true, nil)
 
 	// 4. Load Real Templates
 	tmpl := template.New("")

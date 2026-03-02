@@ -84,12 +84,15 @@ func (r *EntryRepository) Update(e *entry.Entry) error {
 }
 
 // ListByUserID 根据用户ID和日记本ID分页查询日记信息
-func (r *EntryRepository) ListByUserID(userID int64, diaryID int64, status int8, pageIndex, pageSize int) ([]entry.Entry, int, error) {
+// 返回: 日记列表、是否有更多数据和可能的错误
+func (r *EntryRepository) ListByUserID(userID int64, diaryID int64, status int8, pageIndex, pageSize int) ([]entry.Entry, bool, error) {
 	infoArray := []entry.Entry{}
-	totalRecords := 0
 
 	// 计算偏移量，注意：页码通常从1开始，所以需要减1
 	offset := (pageIndex - 1) * pageSize
+
+	// limit+1 模式：查询 pageSize+1 条来判断是否有下一页
+	limit := pageSize + 1
 
 	// JOIN br_user to get handle and display_name, JOIN br_diary to get diary_title and social_setting
 	sqlstr := `SELECT e.*, 
@@ -103,18 +106,21 @@ func (r *EntryRepository) ListByUserID(userID int64, diaryID int64, status int8,
 		WHERE e.diary_id = ? AND e.add_user_id = ? 
 		and e.status = ? ORDER BY e.entry_id DESC LIMIT ? offset ?`
 
-	err := r.db.Select(&infoArray, sqlstr, diaryID, userID, status, pageSize, offset)
+	err := r.db.Select(&infoArray, sqlstr, diaryID, userID, status, limit, offset)
 	if err != nil {
-		return nil, 0, err
+		return nil, false, err
 	}
 	if len(infoArray) == 0 {
-		return []entry.Entry{}, 0, nil
+		return []entry.Entry{}, false, nil
 	}
 
-	//获取总记录数
-	totalRecords, err = r.GetCountByUserID(userID, diaryID, status)
+	// 判断是否还有更多数据
+	hasMore := len(infoArray) > pageSize
+	if hasMore {
+		infoArray = infoArray[:pageSize] // 截取实际需要的 pageSize 条
+	}
 
-	return infoArray, totalRecords, err
+	return infoArray, hasMore, nil
 }
 
 // ListLatestPublicEntriesByUserID 查询用户最新公开日记
@@ -144,11 +150,14 @@ func (r *EntryRepository) ListLatestPublicEntriesByUserID(userID int64, limit in
 }
 
 // ListByDiaryID 根据日记本ID分页查询日记信息（所有作者）
-func (r *EntryRepository) ListByDiaryID(diaryID int64, status int8, pageIndex, pageSize int) ([]entry.Entry, int, error) {
+// 返回: 日记列表、是否有更多数据和可能的错误
+func (r *EntryRepository) ListByDiaryID(diaryID int64, status int8, pageIndex, pageSize int) ([]entry.Entry, bool, error) {
 	infoArray := []entry.Entry{}
-	totalRecords := 0
 
 	offset := (pageIndex - 1) * pageSize
+
+	// limit+1 模式：查询 pageSize+1 条来判断是否有下一页
+	limit := pageSize + 1
 
 	// JOIN br_user to get handle and display_name, JOIN br_diary to get diary_title and social_setting
 	sqlstr := `SELECT e.*, 
@@ -162,18 +171,21 @@ func (r *EntryRepository) ListByDiaryID(diaryID int64, status int8, pageIndex, p
 		WHERE e.diary_id = ? 
 		and e.status = ? ORDER BY e.entry_id DESC LIMIT ? offset ?`
 
-	err := r.db.Select(&infoArray, sqlstr, diaryID, status, pageSize, offset)
+	err := r.db.Select(&infoArray, sqlstr, diaryID, status, limit, offset)
 	if err != nil {
-		return nil, 0, err
+		return nil, false, err
 	}
 	if len(infoArray) == 0 {
-		return []entry.Entry{}, 0, nil
+		return []entry.Entry{}, false, nil
 	}
 
-	//获取总记录数
-	totalRecords, err = r.GetCountByDiaryID(diaryID, status)
+	// 判断是否还有更多数据
+	hasMore := len(infoArray) > pageSize
+	if hasMore {
+		infoArray = infoArray[:pageSize] // 截取实际需要的 pageSize 条
+	}
 
-	return infoArray, totalRecords, err
+	return infoArray, hasMore, nil
 }
 
 // GetCountByUserID 根据用户ID和日记本ID统计信息数量
@@ -201,11 +213,13 @@ func (r *EntryRepository) GetCountByDiaryID(diaryID int64, status int8) (int, er
 }
 
 // ListAllByUserID 根据用户ID分页查询日记信息（跨日记本）
-func (r *EntryRepository) ListAllByUserID(userID int64, status int8, pageIndex, pageSize int) ([]entry.Entry, int, error) {
+func (r *EntryRepository) ListAllByUserID(userID int64, status int8, pageIndex, pageSize int) ([]entry.Entry, bool, error) {
 	infoArray := []entry.Entry{}
-	totalRecords := 0
 
 	offset := (pageIndex - 1) * pageSize
+
+	// limit+1 模式：查询 pageSize+1 条来判断是否有下一页
+	limit := pageSize + 1
 
 	sqlstr := `SELECT e.*, 
 		COALESCE(u.handle, '') as handle, 
@@ -218,22 +232,21 @@ func (r *EntryRepository) ListAllByUserID(userID int64, status int8, pageIndex, 
 		WHERE e.add_user_id = ? 
 		and e.status = ? ORDER BY e.update_utc_time DESC LIMIT ? offset ?`
 
-	err := r.db.Select(&infoArray, sqlstr, userID, status, pageSize, offset)
+	err := r.db.Select(&infoArray, sqlstr, userID, status, limit, offset)
 	if err != nil {
-		return nil, 0, err
+		return nil, false, err
 	}
 	if len(infoArray) == 0 {
-		return []entry.Entry{}, 0, nil
+		return []entry.Entry{}, false, nil
 	}
 
-	// 获取总记录数
-	countSql := "SELECT COUNT(*) FROM br_entry WHERE add_user_id = ? and status = ?"
-	err = r.db.Get(&totalRecords, countSql, userID, status)
-	if err == sql.ErrNoRows {
-		totalRecords = 0
+	// 判断是否还有更多数据
+	hasMore := len(infoArray) > pageSize
+	if hasMore {
+		infoArray = infoArray[:pageSize] // 截取实际需要的 pageSize 条
 	}
 
-	return infoArray, totalRecords, err
+	return infoArray, hasMore, nil
 }
 
 // GetByID 根据日记ID获取日记信息（只返回未删除的日记）

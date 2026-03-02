@@ -204,7 +204,7 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 	req.PageSize = ctrl.config.App.PageSize
 
 	// 调用服务层获取评论列表
-	comments, total, err := ctrl.commentService.ListCommentsByEntryID(req.EntryID, req.PageIndex, req.PageSize)
+	comments, hasMore, err := ctrl.commentService.ListCommentsByEntryID(req.EntryID, req.PageIndex, req.PageSize)
 	if err != nil {
 		slog.Error("ListCommentsByEntryID failed", "error", err, "entry_id", req.EntryID)
 		if c.GetHeader("HX-Request") == "true" || c.GetHeader("X-Requested-With") == "XMLHttpRequest" {
@@ -216,9 +216,6 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
-
-	// 计算总页数
-	totalPages := (total + req.PageSize - 1) / req.PageSize
 
 	// 获取用户时区（未登录则为UTC）
 	var currentUserID int64
@@ -238,14 +235,13 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 
 	// 检查是否为HTMX请求
 	if c.GetHeader("HX-Request") == "true" {
-		lang := ctrl.renderService.GetLocaleFromContext(c)
 		pageLinks := pkg.GeneratePagination(pkg.ListOptions{
 			PageIndex: req.PageIndex,
 			PageSize:  req.PageSize,
-			Total:     total,
+			HasMore:   hasMore,
 			URL:       fmt.Sprintf("/api/comment/list?entry_id=%d&page_index=%%d", req.EntryID),
-			PagePrev:  ctrl.renderService.GetMessage("common.previous", lang),
-			PageNext:  ctrl.renderService.GetMessage("common.next", lang),
+			PagePrev:  "<<",
+			PageNext:  ">>",	
 		})
 
 		// Calculate pagination for manual template rendering
@@ -253,7 +249,7 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 		if req.PageIndex > 1 {
 			prevPage = req.PageIndex - 1
 		}
-		if req.PageIndex < totalPages {
+		if hasMore {
 			nextPage = req.PageIndex + 1
 		}
 
@@ -265,9 +261,9 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 			"CurrentUserID": currentUserID,
 			"EntryID":       req.EntryID,
 			"EntryOwnerID":  entryOwnerID,
-			"TotalCount":    total,
+			"TotalCount":    len(comments), // 使用返回的评论数作为参考
 			"pagination": gin.H{
-				"total_pages":  totalPages,
+				"total_pages":  0, // hasMore 模式下不计算总页数
 				"current_page": req.PageIndex,
 				"prev_page":    prevPage,
 				"next_page":    nextPage,
@@ -275,21 +271,20 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 		}
 
 		// 设置总数 Header，供前端 JS 更新 UI
-		c.Header("X-Total-Count", strconv.Itoa(total))
+		c.Header("X-Total-Count", strconv.Itoa(len(comments)))
 
 		pageData := ctrl.renderService.CreatePageDataWithData(c, "comment.title", data)
 		c.HTML(200, "comment/list", pageData)
 		return
 	}
 
-	// 返回评论列表响应
+	// 返回评论列表响应 - 使用 hasMore 模式
 	ctrl.renderService.JSONSuccess(c, gin.H{
 		"comments": comments,
 		"pagination": gin.H{
-			"total":       total,
 			"page_index":  req.PageIndex,
 			"page_size":   req.PageSize,
-			"total_pages": totalPages,
+			"total_pages": 0, // hasMore 模式下不计算总页数
 		},
 		"time_zone": tz,
 	})
@@ -324,17 +319,16 @@ func (ctrl *CommentController) GetCommentsByEntryIDFromPath(c *gin.Context) {
 	}
 
 	// 调用服务层获取评论列表
-	comments, total, err := ctrl.commentService.ListCommentsByEntryID(req.EntryID, pageIndex, pageSize)
+	comments, hasMore, err := ctrl.commentService.ListCommentsByEntryID(req.EntryID, pageIndex, pageSize)
 	if err != nil {
 		slog.Error("ListCommentsByEntryID failed", "error", err, "entry_id", req.EntryID)
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
 
-	// 计算总页数
-	totalPages := (total + pageSize - 1) / pageSize
+	// 使用 hasMore 模式
 	nextPage := 0
-	if pageIndex < totalPages {
+	if hasMore {
 		nextPage = pageIndex + 1
 	}
 	prevPage := 0
@@ -357,7 +351,7 @@ func (ctrl *CommentController) GetCommentsByEntryIDFromPath(c *gin.Context) {
 		data := ctrl.renderService.CreatePageData(c, "")
 		data.Data["comments"] = comments
 		data.Data["pagination"] = gin.H{
-			"total_pages":  totalPages,
+			"total_pages":  0, // hasMore 模式下不计算总页数
 			"next_page":    nextPage,
 			"prev_page":    prevPage,
 			"current_page": pageIndex,
@@ -365,17 +359,17 @@ func (ctrl *CommentController) GetCommentsByEntryIDFromPath(c *gin.Context) {
 		data.Data["time_zone"] = tz
 		data.Data["CurrentUserID"] = currentUserID
 		data.Data["EntryID"] = req.EntryID
-		data.Data["TotalCount"] = total
+		data.Data["TotalCount"] = len(comments)
 
 		ctrl.renderService.HTML(c, "comment/list", data)
 		return
 	}
 
-	// 返回成功响应（包含分页和时区）
+	// 返回成功响应（包含分页和时区）- 使用 hasMore 模式
 	ctrl.renderService.JSONSuccess(c, gin.H{
 		"comments": comments,
 		"pagination": gin.H{
-			"total_pages": totalPages,
+			"total_pages": 0, // hasMore 模式下不计算总页数
 			"next_page":   nextPage,
 		},
 		"time_zone": tz,

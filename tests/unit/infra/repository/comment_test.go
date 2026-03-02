@@ -100,19 +100,16 @@ func TestCommentRepository_ListByEntryID(t *testing.T) {
 		AddRow(10, entryID, "Content 1", 1234567890, 100, "127.0.0.1", "user1", "User One").
 		AddRow(11, entryID, "Content 2", 1234567891, 101, "127.0.0.1", "user2", "User Two")
 
+	// limit+1 模式：pageSize=10, 查询 10+1=11 条
 	mock.ExpectQuery(`SELECT .* FROM br_comment c .* WHERE c.entry_id = \? ORDER BY c.comment_id DESC LIMIT \? OFFSET \?`).
-		WithArgs(entryID, 10, 0).
+		WithArgs(entryID, 11, 0). // pageSize+1=11
 		WillReturnRows(rows)
 
-	// Expect Count Query
-	mock.ExpectQuery(`SELECT COUNT\(\*\) FROM br_comment WHERE entry_id = \?`).
-		WithArgs(entryID).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(2))
-
-	list, count, err := repo.ListByEntryID(entryID, 1, 10)
+	// 不再需要 COUNT 查询
+	list, hasMore, err := repo.ListByEntryID(entryID, 1, 10)
 	assert.NoError(t, err)
 	assert.Len(t, list, 2)
-	assert.Equal(t, 2, count)
+	assert.False(t, hasMore) // 只有 2 条，返回 2 条，len=2 <= pageSize=10，所以 hasMore=false
 
 	assert.NoError(t, mock.ExpectationsWereMet())
 }

@@ -124,27 +124,17 @@ func TestEntryRepository_ListByUserID(t *testing.T) {
 		AddRow(1, "Title 1", "user1", "User One", "Diary Title", 1).
 		AddRow(2, "Title 2", "user1", "User One", "Diary Title", 1)
 
-	// 注意：ListByUserID 中有两个查询，一个是 Select，一个是 GetCountByUserID
-	// 这里只模拟 Select，因为 GetCountByUserID 在 Select 之后调用
-	// 但是 repo.ListByUserID 内部会调用 GetCountByUserID，所以也需要模拟它
-	// 不过如果 Select 返回 empty，它可能不会调用 Count? 
-	// 看代码：Select 成功后调用 GetCountByUserID.
-
+	// limit+1 模式：pageSize=10, 查询 10+1=11 条
 	mock.ExpectQuery(`SELECT e\.\*, COALESCE\(u\.handle, ''\) as handle, COALESCE\(u\.display_name, ''\) as display_name, d\.title as diary_title, d\.social_setting FROM br_entry e LEFT JOIN br_user u ON e\.add_user_id = u\.user_id JOIN br_diary d ON e\.diary_id = d\.diary_id WHERE e\.diary_id = \? AND e\.add_user_id = \? and e\.status = \? ORDER BY e\.entry_id DESC LIMIT \? offset \?`).WithArgs(
-		diaryID, userID, entry.StatusActive, pageSize, 0,
+		diaryID, userID, entry.StatusActive, 11, 0, // pageSize+1=11
 	).WillReturnRows(rows)
 
-	// 模拟 Count 查询
-	countRows := sqlmock.NewRows([]string{"count"}).AddRow(2)
-	mock.ExpectQuery(`SELECT COUNT\(\*\) FROM br_entry WHERE diary_id = \? AND add_user_id = \? and status = \?`).WithArgs(
-		diaryID, userID, entry.StatusActive,
-	).WillReturnRows(countRows)
-
-	entries, total, err := repo.ListByUserID(userID, diaryID, entry.StatusActive, pageIndex, pageSize)
+	// 不再需要 COUNT 查询
+	entries, hasMore, err := repo.ListByUserID(userID, diaryID, entry.StatusActive, pageIndex, pageSize)
 
 	assert.NoError(t, err)
 	assert.Len(t, entries, 2)
-	assert.Equal(t, 2, total)
+	assert.False(t, hasMore) // 只有 2 条，返回 2 条，len=2 <= pageSize=10，所以 hasMore=false
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
@@ -155,9 +145,9 @@ func TestEntryRepository_ListByUserID_NoRows(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"entry_id", "title", "handle", "display_name"})
 	mock.ExpectQuery(`SELECT e.*`).WillReturnRows(rows)
 
-	entries, total, err := repo.ListByUserID(1, 1, entry.StatusActive, 1, 10)
+	entries, hasMore, err := repo.ListByUserID(1, 1, entry.StatusActive, 1, 10)
 
 	assert.NoError(t, err)
 	assert.Empty(t, entries)
-	assert.Equal(t, 0, total)
+	assert.False(t, hasMore)
 }

@@ -187,6 +187,7 @@ func TestDiaryRepository_ListAuthorsByDiaryID(t *testing.T) {
 
 	diaryID := int64(1001)
 
+	// 构造返回 2 条记录的 mock 结果
 	rows := sqlmock.NewRows([]string{
 		"diary_id", "user_id", "is_admin", "status", "handle", "display_name", "face_url",
 	}).AddRow(
@@ -195,18 +196,16 @@ func TestDiaryRepository_ListAuthorsByDiaryID(t *testing.T) {
 		diaryID, 2002, 0, 1, "member", "Member", "face2.jpg",
 	)
 
-	mock.ExpectQuery(`SELECT count\(\*\) FROM br_diary_author da`).
-		WithArgs(diaryID).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(2))
-
+	// pageSize=0 时，不添加 LIMIT，直接返回所有
 	mock.ExpectQuery(`SELECT da\.\*, u\.handle, u\.display_name, u\.face_url FROM br_diary_author da`).
 		WithArgs(diaryID).
 		WillReturnRows(rows)
 
-	authors, count, err := repo.ListAuthorsByDiaryID(diaryID, false, 0, 0)
+	// pageSize=0 表示获取所有，不需要 limit
+	authors, hasMore, err := repo.ListAuthorsByDiaryID(diaryID, false, 0, 0)
 
 	assert.NoError(t, err)
-	assert.Equal(t, 2, count)
+	assert.False(t, hasMore) // pageSize=0 时 hasMore 应为 false
 	assert.Len(t, authors, 2)
 	assert.Equal(t, int64(2001), authors[0].UserID)
 	assert.Equal(t, int64(2002), authors[1].UserID)
@@ -224,18 +223,15 @@ func TestDiaryRepository_ListAuthorsByDiaryID_OnlyActive(t *testing.T) {
 		diaryID, 2001, 1, 1, "owner", "Owner", "face1.jpg",
 	)
 
-	mock.ExpectQuery(`SELECT count\(\*\) FROM br_diary_author da`).
-		WithArgs(diaryID, 1).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
-
+	// limit+1 模式：pageSize=2, 查询 2+1=3 条
 	mock.ExpectQuery(`SELECT da\.\*, u\.handle, u\.display_name, u\.face_url FROM br_diary_author da`).
-		WithArgs(diaryID, 1).
+		WithArgs(diaryID, 1, 3, 0). // diaryID, onlyActive=1, limit=3, offset=0
 		WillReturnRows(rows)
 
-	authors, count, err := repo.ListAuthorsByDiaryID(diaryID, true, 0, 0)
+	authors, hasMore, err := repo.ListAuthorsByDiaryID(diaryID, true, 1, 2) // pageIndex=1, pageSize=2
 
 	assert.NoError(t, err)
-	assert.Equal(t, 1, count)
+	assert.False(t, hasMore) // 只有 1 条记录，返回 1 条，len=1 <= pageSize=2，所以 hasMore=false
 	assert.Len(t, authors, 1)
 	assert.Equal(t, int64(2001), authors[0].UserID)
 	assert.NoError(t, mock.ExpectationsWereMet())

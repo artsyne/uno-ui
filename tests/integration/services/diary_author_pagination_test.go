@@ -78,29 +78,29 @@ func TestDiaryAuthorPagination(t *testing.T) {
 
 	t.Run("Owner should see all authors with pagination", func(t *testing.T) {
 		// Page 1, Size 5 -> Should get 5 authors
-		authors, total, err := diaryService.GetDiaryAuthors(diaryID, false, 1, 5)
+		authors, hasMore, err := diaryService.GetDiaryAuthors(diaryID, false, 1, 5)
 		require.NoError(t, err)
-		assert.Equal(t, int64(9), total)
+		assert.True(t, hasMore)  // 9个作者，每页5条，还有更多
 		assert.Len(t, authors, 5)
 
 		// Page 2, Size 5 -> Should get remaining 4 authors
-		authors, total, err = diaryService.GetDiaryAuthors(diaryID, false, 2, 5)
+		authors, hasMore, err = diaryService.GetDiaryAuthors(diaryID, false, 2, 5)
 		require.NoError(t, err)
-		assert.Equal(t, int64(9), total)
+		assert.False(t, hasMore) // 9个作者，每页5条，第二页是最后一页
 		assert.Len(t, authors, 4)
 	})
 
 	t.Run("Non-Owner should see only active authors with pagination", func(t *testing.T) {
 		// Page 1, Size 5 -> Should get 5 active authors (Owner + 4 others)
-		authors, total, err := diaryService.GetDiaryAuthors(diaryID, true, 1, 5)
+		authors, hasMore, err := diaryService.GetDiaryAuthors(diaryID, true, 1, 5)
 		require.NoError(t, err)
-		assert.Equal(t, int64(6), total) // 1 Owner + 5 Active
+		assert.True(t, hasMore) // 6个活跃作者，每页5条，还有更多
 		assert.Len(t, authors, 5)
 
 		// Page 2, Size 5 -> Should get remaining 1 active author
-		authors, total, err = diaryService.GetDiaryAuthors(diaryID, true, 2, 5)
+		authors, hasMore, err = diaryService.GetDiaryAuthors(diaryID, true, 2, 5)
 		require.NoError(t, err)
-		assert.Equal(t, int64(6), total)
+		assert.False(t, hasMore) // 6个活跃作者，每页5条，第二页是最后一页
 		assert.Len(t, authors, 1)
 
 		// Verify that none of the authors are pending
@@ -110,9 +110,9 @@ func TestDiaryAuthorPagination(t *testing.T) {
 	})
 
 	t.Run("Invalid Page Index should default to 1", func(t *testing.T) {
-		authors, total, err := diaryService.GetDiaryAuthors(diaryID, true, -1, 5)
+		authors, hasMore, err := diaryService.GetDiaryAuthors(diaryID, true, -1, 5)
 		require.NoError(t, err)
-		assert.Equal(t, int64(6), total)
+		assert.True(t, hasMore) // 6个活跃作者，第一页后还有数据
 		assert.Len(t, authors, 5)
 	})
 }

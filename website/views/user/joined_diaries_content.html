@@ -8,9 +8,11 @@
         {{ end }}
     </div>
 
+    {{ if .Data.PageLinks }}
     <div class="mt-10 flex justify-center" hx-boost="true" hx-target="#joined-diaries-content" hx-swap="outerHTML">
         {{ template "pagination" . }}
     </div>
+    {{ end }}
     {{ else }}
     <div class="empty-placeholder">
         <i class="mdi mdi-inbox-outline"></i>

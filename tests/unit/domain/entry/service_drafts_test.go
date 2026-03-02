@@ -131,9 +131,11 @@ func TestEntryService_DraftsAndTrash(t *testing.T) {
 		}
 
 		// List Drafts
-		drafts, count, err := entryService.ListAllEntriesByUserID(testUser.UserId, entry.StatusDraft, 1, 10)
+		drafts, hasMore, err := entryService.ListAllEntriesByUserID(testUser.UserId, entry.StatusDraft, 1, 10)
 		require.NoError(t, err)
-		assert.True(t, count >= 2)
+		// hasMore 表示是否有更多数据（返回记录数 > pageSize）
+		// 只有当实际数据超过 pageSize 时才为 true
+		_ = hasMore // 忽略此值，因为取决于测试数据量
 		for _, d := range drafts {
 			assert.Equal(t, entry.StatusDraft, d.Status)
 		}

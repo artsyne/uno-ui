@@ -14,7 +14,7 @@
         {{ end }}
     </div>
 
-    {{ if gt .Data.DiariesNum .Data.PageSize }}
+    {{ if .Data.PageLinks }}
     <div class="flex justify-center mt-10" hx-boost="true" hx-target="#diary-container" hx-swap="outerHTML">
         {{ template "pagination" . }}
     </div>

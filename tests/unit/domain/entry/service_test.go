@@ -361,10 +361,10 @@ func TestEntryService_ListEntriesByUserID(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("第一页，每页3篇", func(t *testing.T) {
-		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, testDiary.DiaryID, entry.StatusActive, 1, 3)
+		entries, hasMore, err := entryService.ListEntriesByUserID(testUser.UserId, testDiary.DiaryID, entry.StatusActive, 1, 3)
 		require.NoError(t, err)
 		assert.Len(t, entries, 3)
-		assert.Equal(t, 5, total)
+		assert.True(t, hasMore) // 还有更多数据
 
 		// 验证返回的都是指定用户和日记本的文章
 		for _, p := range entries {
@@ -374,39 +374,39 @@ func TestEntryService_ListEntriesByUserID(t *testing.T) {
 	})
 
 	t.Run("第二页，每页3篇", func(t *testing.T) {
-		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, testDiary.DiaryID, entry.StatusActive, 2, 3)
+		entries, hasMore, err := entryService.ListEntriesByUserID(testUser.UserId, testDiary.DiaryID, entry.StatusActive, 2, 3)
 		require.NoError(t, err)
 		assert.Len(t, entries, 2) // 剩余2篇
-		assert.Equal(t, 5, total)
+		assert.False(t, hasMore) // 没有更多数据
 	})
 
 	t.Run("获取所有文章", func(t *testing.T) {
-		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, testDiary.DiaryID, entry.StatusActive, 1, 10)
+		entries, hasMore, err := entryService.ListEntriesByUserID(testUser.UserId, testDiary.DiaryID, entry.StatusActive, 1, 10)
 		require.NoError(t, err)
 		assert.Len(t, entries, 5)
-		assert.Equal(t, 5, total)
+		assert.False(t, hasMore) // 没有更多数据
 	})
 
 	t.Run("获取其他用户的文章", func(t *testing.T) {
-		entries, total, err := entryService.ListEntriesByUserID(otherUser.UserId, otherDiaryID, entry.StatusActive, 1, 10)
+		entries, hasMore, err := entryService.ListEntriesByUserID(otherUser.UserId, otherDiaryID, entry.StatusActive, 1, 10)
 		require.NoError(t, err)
 		assert.Len(t, entries, 1)
-		assert.Equal(t, 1, total)
+		assert.False(t, hasMore) // 没有更多数据
 		assert.Equal(t, "其他用户的文章", entries[0].Title)
 	})
 
 	t.Run("不存在的用户", func(t *testing.T) {
-		entries, total, err := entryService.ListEntriesByUserID(99999, testDiary.DiaryID, entry.StatusActive, 1, 10)
+		entries, hasMore, err := entryService.ListEntriesByUserID(99999, testDiary.DiaryID, entry.StatusActive, 1, 10)
 		assert.NoError(t, err) // 应该返回空列表而不是错误
 		assert.Len(t, entries, 0)
-		assert.Equal(t, 0, total)
+		assert.False(t, hasMore)
 	})
 
 	t.Run("不存在的日记本", func(t *testing.T) {
-		entries, total, err := entryService.ListEntriesByUserID(testUser.UserId, 99999, entry.StatusActive, 1, 10)
+		entries, hasMore, err := entryService.ListEntriesByUserID(testUser.UserId, 99999, entry.StatusActive, 1, 10)
 		assert.NoError(t, err) // 应该返回空列表而不是错误
 		assert.Len(t, entries, 0)
-		assert.Equal(t, 0, total)
+		assert.False(t, hasMore)
 	})
 }
 

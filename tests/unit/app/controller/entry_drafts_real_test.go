@@ -23,16 +23,16 @@ import (
 
 // MockRepo for Real Test
 type MockRepoReal struct {
-	ListAllEntriesByUserIDFunc func(userID int64, status int8, pageIndex, pageSize int) ([]domainEntry.Entry, int, error)
+	ListAllEntriesByUserIDFunc func(userID int64, status int8, pageIndex, pageSize int) ([]domainEntry.Entry, bool, error)
 }
 
 func (m *MockRepoReal) Insert(entry *domainEntry.Entry) (int64, error) { return 0, nil }
 func (m *MockRepoReal) Update(entry *domainEntry.Entry) error          { return nil }
-func (m *MockRepoReal) ListByUserID(userID int64, diaryID int64, status int8, pageIndex, pageSize int) ([]domainEntry.Entry, int, error) {
-	return nil, 0, nil
+func (m *MockRepoReal) ListByUserID(userID int64, diaryID int64, status int8, pageIndex, pageSize int) ([]domainEntry.Entry, bool, error) {
+	return nil, false, nil
 }
-func (m *MockRepoReal) ListByDiaryID(diaryID int64, status int8, pageIndex, pageSize int) ([]domainEntry.Entry, int, error) {
-	return nil, 0, nil
+func (m *MockRepoReal) ListByDiaryID(diaryID int64, status int8, pageIndex, pageSize int) ([]domainEntry.Entry, bool, error) {
+	return nil, false, nil
 }
 func (m *MockRepoReal) GetCountByUserID(userID int64, diaryID int64, status int8) (int, error) {
 	return 0, nil
@@ -40,11 +40,11 @@ func (m *MockRepoReal) GetCountByUserID(userID int64, diaryID int64, status int8
 func (m *MockRepoReal) GetCountByDiaryID(diaryID int64, status int8) (int, error) {
 	return 0, nil
 }
-func (m *MockRepoReal) ListAllByUserID(userID int64, status int8, pageIndex, pageSize int) ([]domainEntry.Entry, int, error) {
+func (m *MockRepoReal) ListAllByUserID(userID int64, status int8, pageIndex, pageSize int) ([]domainEntry.Entry, bool, error) {
 	if m.ListAllEntriesByUserIDFunc != nil {
 		return m.ListAllEntriesByUserIDFunc(userID, status, pageIndex, pageSize)
 	}
-	return nil, 0, nil
+	return nil, false, nil
 }
 func (m *MockRepoReal) ListLatestPublicEntriesByUserID(userID int64, limit int) ([]domainEntry.Entry, error) {
 	return nil, nil
@@ -94,7 +94,7 @@ func TestShowDrafts_PanicReproduction(t *testing.T) {
 
 	// 4. Setup Service with Mock Repo
 	mockRepo := &MockRepoReal{
-		ListAllEntriesByUserIDFunc: func(userID int64, status int8, pageIndex, pageSize int) ([]domainEntry.Entry, int, error) {
+		ListAllEntriesByUserIDFunc: func(userID int64, status int8, pageIndex, pageSize int) ([]domainEntry.Entry, bool, error) {
 			entries := []domainEntry.Entry{
 				{
 					EntryID:       1,
@@ -104,7 +104,7 @@ func TestShowDrafts_PanicReproduction(t *testing.T) {
 					UpdateUTCTime: 1678888888000,
 				},
 			}
-			return entries, 1, nil
+			return entries, false, nil
 		},
 	}
 	entrySvc := domainEntry.NewService(cfg, nil, nil, nil, mockRepo, i18nManager)

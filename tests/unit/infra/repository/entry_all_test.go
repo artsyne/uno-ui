@@ -16,7 +16,7 @@ func TestEntryRepository_ListAllByUserID(t *testing.T) {
 	pageSize := 10
 	status := entry.StatusDraft
 
-	// Mock rows for Select
+	// Mock rows for Select - limit+1 模式，查询 pageSize+1 = 11 条
 	rows := sqlmock.NewRows([]string{
 		"entry_id", "diary_id", "is_top", "title", "summary", "body", 
 		"view_num", "like_num", "comment_num", "add_user_id", "add_user_ip", 
@@ -29,19 +29,15 @@ func TestEntryRepository_ListAllByUserID(t *testing.T) {
 		"userhandle", "User Name",
 	)
 
+	// limit+1 模式：参数为 pageSize+1 = 11
 	mock.ExpectQuery(`SELECT e.*, COALESCE\(u.handle, ''\) as handle, COALESCE\(u.display_name, ''\) as display_name`).WithArgs(
-		userID, status, pageSize, 0,
+		userID, status, pageSize+1, 0, // limit = pageSize + 1
 	).WillReturnRows(rows)
 
-	// Mock row for Count
-	mock.ExpectQuery(`SELECT COUNT\(\*\) FROM br_entry`).WithArgs(
-		userID, status,
-	).WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
-
-	entries, total, err := repo.ListAllByUserID(userID, status, pageIndex, pageSize)
+	entries, hasMore, err := repo.ListAllByUserID(userID, status, pageIndex, pageSize)
 
 	assert.NoError(t, err)
 	assert.Len(t, entries, 1)
-	assert.Equal(t, 1, total)
+	assert.Equal(t, false, hasMore) // 只有1条记录，不超过 pageSize，所以 hasMore = false
 	assert.Equal(t, "Draft Title", entries[0].Title)
 }

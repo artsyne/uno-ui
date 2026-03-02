@@ -65,7 +65,7 @@ type RepositoryInterface interface {
 	//   - []Diary: 日记本列表
 	//   - int: 总记录数
 	//   - error: 查询失败时返回错误
-	ListByUserID(userID int64, includePrivate bool, pageIndex, pageSize int) ([]Diary, int, error)
+	ListByUserID(userID int64, includePrivate bool, pageIndex, pageSize int) ([]Diary, bool, error)
 
 	// GetCountByUserID 获取用户的日记本数量
 	// 参数:
@@ -115,7 +115,8 @@ type RepositoryInterface interface {
 
 	// ListAuthorsByDiaryID 获取日记本的所有作者
 	// onlyActive: true=仅获取活跃作者(Status=1), false=获取所有状态(Active/Pending)
-	ListAuthorsByDiaryID(diaryID int64, onlyActive bool, pageIndex, pageSize int) ([]Author, int, error)
+	// 返回: 作者列表、是否有更多数据、错误
+	ListAuthorsByDiaryID(diaryID int64, onlyActive bool, pageIndex, pageSize int) ([]Author, bool, error)
 
 	// ListJoinedDiariesByUserID 获取用户参与的日记本列表（状态为Active）
 	ListJoinedDiariesByUserID(userID int64) ([]Diary, error)
@@ -124,9 +125,9 @@ type RepositoryInterface interface {
 	// includePrivate: 是否包含私有日记本
 	ListJoinedDiariesByUserIDWithLimit(userID int64, includePrivate bool, limit int) ([]Diary, error)
 
-	// ListJoinedDiariesByUserIDPaged 获取用户参与的分页日记本列表
+	// ListJoinedDiariesByUserIDPaged 获取用户参与的分页日记本列表（limit+1 模式）
 	// includePrivate: 是否包含私有日记本
-	ListJoinedDiariesByUserIDPaged(userID int64, includePrivate bool, pageIndex, pageSize int) ([]Diary, int, error)
+	ListJoinedDiariesByUserIDPaged(userID int64, includePrivate bool, pageIndex, pageSize int) ([]Diary, bool, error)
 
 	// GetJoinedDiariesCountByUserID 获取用户参与的日记本数量
 	// includePrivate: 是否包含私有日记本

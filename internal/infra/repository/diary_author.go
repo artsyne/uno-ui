@@ -42,7 +42,8 @@ func (r *DiaryRepository) DeleteAuthor(diaryID, userID int64) error {
 // ListAuthorsByDiaryID 获取日记本的所有作者
 // onlyActive: true=仅获取活跃作者, false=获取所有状态
 // pageIndex, pageSize: 分页参数，如果 pageSize <= 0 则返回所有
-func (r *DiaryRepository) ListAuthorsByDiaryID(diaryID int64, onlyActive bool, pageIndex, pageSize int) ([]diary.Author, int, error) {
+// 返回: 作者列表、是否有更多数据和可能的错误
+func (r *DiaryRepository) ListAuthorsByDiaryID(diaryID int64, onlyActive bool, pageIndex, pageSize int) ([]diary.Author, bool, error) {
 	var authors []diary.Author
 	var err error
 	var args []interface{}
@@ -60,13 +61,7 @@ func (r *DiaryRepository) ListAuthorsByDiaryID(diaryID int64, onlyActive bool, p
 		args = append(args, diary.AuthorStatusActive)
 	}
 
-	// Count query
-	var count int
-	countQuery := `SELECT count(*) ` + baseQuery
-	err = r.db.Get(&count, countQuery, args...)
-	if err != nil {
-		return nil, 0, err
-	}
+	// 不再执行 COUNT 查询，直接使用 limit+1 模式
 
 	// Data query
 	dataQuery := `SELECT da.*, u.handle, u.display_name, u.face_url ` + baseQuery
@@ -77,15 +72,26 @@ func (r *DiaryRepository) ListAuthorsByDiaryID(diaryID int64, onlyActive bool, p
 			pageIndex = 1
 		}
 		offset := (pageIndex - 1) * pageSize
+
+		// limit+1 模式：查询 pageSize+1 条来判断是否有下一页
+		limit := pageSize + 1
 		dataQuery += ` LIMIT ? OFFSET ?`
-		args = append(args, pageSize, offset)
+		args = append(args, limit, offset)
 	}
 
 	err = r.db.Select(&authors, dataQuery, args...)
 	if err == sql.ErrNoRows {
-		return []diary.Author{}, 0, nil
+		return []diary.Author{}, false, nil
 	}
-	return authors, count, err
+
+	// 判断是否还有更多数据
+	hasMore := false
+	if pageSize > 0 && len(authors) > pageSize {
+		hasMore = true
+		authors = authors[:pageSize] // 截取实际需要的 pageSize 条
+	}
+
+	return authors, hasMore, err
 }
 
 // ListJoinedDiariesByUserID 获取用户参与的日记本列表（状态为Active）
@@ -153,9 +159,12 @@ func (r *DiaryRepository) ListJoinedDiariesByUserIDWithLimit(userID int64, inclu
 
 // ListJoinedDiariesByUserIDPaged 获取用户参与的分页日记本列表
 // Modified to include Pending (Status=2) and sort by Status DESC (Pending first)
-func (r *DiaryRepository) ListJoinedDiariesByUserIDPaged(userID int64, includePrivate bool, pageIndex, pageSize int) ([]diary.Diary, int, error) {
+func (r *DiaryRepository) ListJoinedDiariesByUserIDPaged(userID int64, includePrivate bool, pageIndex, pageSize int) ([]diary.Diary, bool, error) {
 	var diaries []diary.Diary
 	offset := (pageIndex - 1) * pageSize
+
+	// limit+1 模式：查询 pageSize+1 条来判断是否有下一页
+	limit := pageSize + 1
 
 	baseSQL := `
 		SELECT d.*, u.handle, u.display_name, da.status as author_status
@@ -184,22 +193,23 @@ func (r *DiaryRepository) ListJoinedDiariesByUserIDPaged(userID int64, includePr
 	}
 
 	baseSQL += ` ORDER BY da.status DESC, da.join_utc_time DESC, d.diary_id DESC LIMIT ? OFFSET ?`
-	args = append(args, pageSize, offset)
+	args = append(args, limit, offset)
 
 	err := r.db.Select(&diaries, baseSQL, args...)
 	if err == sql.ErrNoRows {
-		return []diary.Diary{}, 0, nil
+		return []diary.Diary{}, false, nil
 	}
 	if err != nil {
-		return nil, 0, err
+		return nil, false, err
 	}
 
-	count, err := r.GetJoinedDiariesCountByUserID(userID, includePrivate)
-	if err != nil {
-		return nil, 0, err
+	// 判断是否还有更多数据
+	hasMore := len(diaries) > pageSize
+	if hasMore {
+		diaries = diaries[:pageSize] // 截取实际需要的 pageSize 条
 	}
 
-	return diaries, count, nil
+	return diaries, hasMore, nil
 }
 
 // GetJoinedDiariesCountByUserID 获取用户参与的日记本数量 (Active + Pending)

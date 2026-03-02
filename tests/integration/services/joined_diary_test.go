@@ -103,10 +103,10 @@ func TestJoinedDiariesExclusion(t *testing.T) {
 		}
 
 		// 5. Verify Paged
-		joinedPaged, count, err := diaryService.ListJoinedDiariesByUserIDPaged(me.UserId, true, 1, 10)
+		joinedPaged, hasMore, err := diaryService.ListJoinedDiariesByUserIDPaged(me.UserId, true, 1, 10)
 		require.NoError(t, err)
 		assert.Equal(t, 1, len(joinedPaged))
-		assert.Equal(t, 1, count)
+		assert.False(t, hasMore) // 只有1条，没有更多
 		if len(joinedPaged) > 0 {
 			assert.Equal(t, idOther, joinedPaged[0].DiaryID)
 		}
@@ -171,15 +171,15 @@ func TestDiaryVisibility(t *testing.T) {
 		require.NoError(t, err)
 
 		// 1. Alice viewing her own profile (includePrivate=true)
-		list, count, err := diaryService.ListDiariesByUser(alice.UserId, true, 1, 10)
+		list, hasMore, err := diaryService.ListDiariesByUser(alice.UserId, true, 1, 10)
 		require.NoError(t, err)
-		assert.Equal(t, 2, count)
+		assert.False(t, hasMore) // 只有2条日记，没有更多数据
 		assert.Len(t, list, 2)
 
 		// 2. Bob viewing Alice's profile (includePrivate=false)
-		list, count, err = diaryService.ListDiariesByUser(alice.UserId, false, 1, 10)
+		list, hasMore, err = diaryService.ListDiariesByUser(alice.UserId, false, 1, 10)
 		require.NoError(t, err)
-		assert.Equal(t, 1, count)
+		assert.False(t, hasMore) // 只有1条公开日记，没有更多数据
 		assert.Len(t, list, 1)
 		assert.Equal(t, "Alice Public", list[0].Title)
 	})
@@ -225,18 +225,18 @@ func TestDiaryVisibility(t *testing.T) {
 
 		// 1. Alice viewing her own joined diaries (includePrivate=true)
 		// Should see BOTH (active)
-		list, count, err := diaryService.ListJoinedDiariesByUserIDPaged(alice.UserId, true, 1, 10)
+		list, hasMore, err := diaryService.ListJoinedDiariesByUserIDPaged(alice.UserId, true, 1, 10)
 		require.NoError(t, err)
 		// Note: ListJoinedDiariesByUserIDPaged returns Active and Pending for owner.
 		// Both are Active here.
-		assert.Equal(t, 2, count)
+		assert.False(t, hasMore) // 只有2条，没有更多
 		assert.Len(t, list, 2)
 
 		// 2. Bob viewing Alice's joined diaries (includePrivate=false)
 		// Should see ONLY Public one
-		list, count, err = diaryService.ListJoinedDiariesByUserIDPaged(alice.UserId, false, 1, 10)
+		list, hasMore, err = diaryService.ListJoinedDiariesByUserIDPaged(alice.UserId, false, 1, 10)
 		require.NoError(t, err)
-		assert.Equal(t, 1, count)
+		assert.False(t, hasMore) // 只有1条，没有更多
 		assert.Len(t, list, 1)
 		assert.Equal(t, "Charlie Public", list[0].Title)
 	})

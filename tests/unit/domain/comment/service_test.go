@@ -259,15 +259,15 @@ func TestCommentService_ListCommentsByEntryID(t *testing.T) {
 	}
 
 	// 测试分页获取评论
-	commentList, total, err := commentService.ListCommentsByEntryID(testEntry.EntryID, 1, 2)
+	commentList, hasMore, err := commentService.ListCommentsByEntryID(testEntry.EntryID, 1, 2)
 	assert.NoError(t, err)
-	assert.Equal(t, 3, total)
+	assert.True(t, hasMore) // 第一页有更多数据
 	assert.Len(t, commentList, 2)
 
 	// 测试获取第二页
-	commentList, total, err = commentService.ListCommentsByEntryID(testEntry.EntryID, 2, 2)
+	commentList, hasMore, err = commentService.ListCommentsByEntryID(testEntry.EntryID, 2, 2)
 	assert.NoError(t, err)
-	assert.Equal(t, 3, total)
+	assert.False(t, hasMore) // 第二页没有更多数据
 	assert.Len(t, commentList, 1)
 }
 

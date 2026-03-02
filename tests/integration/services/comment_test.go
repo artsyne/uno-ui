@@ -112,9 +112,9 @@ func TestCommentServiceIntegration(t *testing.T) {
 		assert.Equal(t, 1, count)
 
 		// 4. 获取评论列表
-		commentList, total, err := commentService.ListCommentsByEntryID(testEntry.EntryID, 1, 10)
+		commentList, hasMore, err := commentService.ListCommentsByEntryID(testEntry.EntryID, 1, 10)
 		assert.NoError(t, err)
-		assert.Equal(t, 1, total)
+		assert.False(t, hasMore) // 只有1条评论，没有更多数据
 		assert.Len(t, commentList, 1)
 		assert.Equal(t, commentID, commentList[0].CommentID)
 
@@ -169,9 +169,9 @@ func TestCommentServiceIntegration(t *testing.T) {
 		assert.Equal(t, 2, count)
 
 		// 获取评论列表
-		commentList, total, err := commentService.ListCommentsByEntryID(testEntry.EntryID, 1, 10)
+		commentList, hasMore, err := commentService.ListCommentsByEntryID(testEntry.EntryID, 1, 10)
 		assert.NoError(t, err)
-		assert.Equal(t, 2, total)
+		assert.False(t, hasMore) // 只有2条评论，没有更多数据
 		assert.Len(t, commentList, 2)
 
 		// 用户1删除自己的评论
@@ -203,21 +203,21 @@ func TestCommentServiceIntegration(t *testing.T) {
 		}
 
 		// 测试第一页（每页2条）
-		commentList, total, err := commentService.ListCommentsByEntryID(testEntry.EntryID, 1, 2)
+		commentList, hasMore, err := commentService.ListCommentsByEntryID(testEntry.EntryID, 1, 2)
 		assert.NoError(t, err)
-		assert.Equal(t, 5, total)
+		assert.True(t, hasMore)  // 5条数据，每页2条，第一页后还有数据
 		assert.Len(t, commentList, 2)
 
 		// 测试第二页
-		commentList, total, err = commentService.ListCommentsByEntryID(testEntry.EntryID, 2, 2)
+		commentList, hasMore, err = commentService.ListCommentsByEntryID(testEntry.EntryID, 2, 2)
 		assert.NoError(t, err)
-		assert.Equal(t, 5, total)
+		assert.True(t, hasMore)  // 5条数据，每页2条，第二页后还有数据
 		assert.Len(t, commentList, 2)
 
 		// 测试第三页（最后一页，只有1条）
-		commentList, total, err = commentService.ListCommentsByEntryID(testEntry.EntryID, 3, 2)
+		commentList, hasMore, err = commentService.ListCommentsByEntryID(testEntry.EntryID, 3, 2)
 		assert.NoError(t, err)
-		assert.Equal(t, 5, total)
+		assert.False(t, hasMore) // 5条数据，每页2条，第三页是最后一页
 		assert.Len(t, commentList, 1)
 
 		// 清理测试数据

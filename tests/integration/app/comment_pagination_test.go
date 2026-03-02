@@ -138,14 +138,16 @@ func TestGetComments_Pagination_Button_Integration(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w1.Code)
 	body1 := w1.Body.String()
 
-	// Verify "Next" button exists and uses loadComments
-	assert.Contains(t, body1, "loadComments(2)")
-	assert.Contains(t, body1, "Next")
+	// Verify ">>" button exists with HTMX pagination
+	assert.Contains(t, body1, "page_index=2")
+	assert.Contains(t, body1, "hx-get=\"/api/comment/list")
+	assert.Contains(t, body1, "hx-target=\"#comments-list-container\"")
+	assert.Contains(t, body1, "&gt;&gt;")
 
-	// Verify "Previous" button does NOT exist
-	assert.NotContains(t, body1, "loadComments(0)")
+	// Verify "<<" button does NOT exist on first page
+	assert.NotContains(t, body1, "page_index=0")
 
-	// Case 2: Second page, should have "Previous" button
+	// Case 2: Second page, should have "<<" button
 	req2 := httptest.NewRequest("GET", fmt.Sprintf("/api/comment/list?entry_id=%d&page_index=2", e.EntryID), nil)
 	req2.Header.Set("HX-Request", "true")
 	w2 := httptest.NewRecorder()
@@ -154,10 +156,12 @@ func TestGetComments_Pagination_Button_Integration(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w2.Code)
 	body2 := w2.Body.String()
 
-	// Verify "Previous" button exists and uses loadComments
-	assert.Contains(t, body2, "loadComments(1)")
-	assert.Contains(t, body2, "Previous")
+	// Verify "<<" button exists with HTMX pagination
+	assert.Contains(t, body2, "page_index=1")
+	assert.Contains(t, body2, "hx-get=\"/api/comment/list")
+	assert.Contains(t, body2, "hx-target=\"#comments-list-container\"")
+	assert.Contains(t, body2, "&lt;&lt;")
 
-	// Verify "Next" button does NOT exist (since we only have pageSize + 1 comments)
-	assert.NotContains(t, body2, "loadComments(3)")
+	// Verify ">>" button does NOT exist on last page
+	assert.NotContains(t, body2, "page_index=3")
 }

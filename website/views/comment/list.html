@@ -25,20 +25,10 @@
     </div>
     {{end}}
 
-    <!-- Pagination -->
-    {{if gt .Data.pagination.total_pages 1}}
-    <div id="comments-pagination" class="text-center mt-6 flex justify-center gap-4">
-        {{if .Data.pagination.prev_page}}
-        <button type="button" class="btn" @click="loadComments({{.Data.pagination.prev_page}})">
-            {{getMessage "common.previous" $.Context.Lang}}
-        </button>
-        {{end}}
-
-        {{if .Data.pagination.next_page}}
-        <button type="button" class="btn" @click="loadComments({{.Data.pagination.next_page}})">
-            {{getMessage "common.next" $.Context.Lang}}
-        </button>
-        {{end}}
+    <!-- Pagination: 使用 hx-boost 实现 HTMX 分页 -->
+    {{if .Data.PageLinks}}
+    <div class="flex justify-center mt-6" hx-boost="true" hx-target="#comments-list-container" hx-swap="outerHTML" hx-push-url="true">
+        {{template "pagination" .}}
     </div>
     {{end}}
     {{else}}

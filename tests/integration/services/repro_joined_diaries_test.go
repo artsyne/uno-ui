@@ -123,17 +123,17 @@ func TestJoinedDiariesVisibilityRepro(t *testing.T) {
 
 	// 8. Verify Pagination (ListJoinedDiariesByUserIDPaged)
 	// Visitor Paged
-	pagedList, count, err := diaryService.ListJoinedDiariesByUserIDPaged(alice.UserId, false, 1, 10)
+	pagedList, hasMore, err := diaryService.ListJoinedDiariesByUserIDPaged(alice.UserId, false, 1, 10)
 	require.NoError(t, err)
-	assert.Equal(t, 1, count, "Paged Count should be 1")
+	assert.False(t, hasMore, "Paged should have no more")
 	assert.Len(t, pagedList, 1, "Paged List should be 1")
 	if len(pagedList) > 0 {
 		assert.Equal(t, publicDiary.DiaryID, pagedList[0].DiaryID)
 	}
 
 	// Owner Paged
-	pagedListOwner, countOwner, err := diaryService.ListJoinedDiariesByUserIDPaged(alice.UserId, true, 1, 10)
+	pagedListOwner, hasMoreOwner, err := diaryService.ListJoinedDiariesByUserIDPaged(alice.UserId, true, 1, 10)
 	require.NoError(t, err)
-	assert.Equal(t, 2, countOwner, "Owner Paged Count should be 2")
+	assert.False(t, hasMoreOwner, "Owner Paged should have no more")
 	assert.Len(t, pagedListOwner, 2, "Owner Paged List should be 2")
 }

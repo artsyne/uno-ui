@@ -179,9 +179,9 @@ func (s *Service) GetCommentByID(commentID int64) (*Comment, error) {
 //
 // 返回:
 //   - []Comment: 评论列表
-//   - int: 总记录数
+//   - bool: 是否有更多数据
 //   - error: 查询失败时返回错误
-func (s *Service) ListCommentsByEntryID(entryID int64, pageIndex, pageSize int) ([]Comment, int, error) {
+func (s *Service) ListCommentsByEntryID(entryID int64, pageIndex, pageSize int) ([]Comment, bool, error) {
 	// 不再在此处验证日记是否存在或状态，因为调用方（如Controller）可能已经验证过
 	// 或者调用方需要获取非Active状态日记的评论（如回收站中的日记）
 	// 安全性由调用方保证

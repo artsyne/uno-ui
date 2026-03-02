@@ -214,24 +214,19 @@ func (s *Service) ListDiariesForWrite(userID int64) ([]Diary, error) {
 //
 // 返回:
 //   - []Diary: 日记本列表
-//   - int: 总记录数
+//   - bool: 是否有更多数据
 //   - error: 查询失败时返回错误
-func (s *Service) ListDiariesByUser(userID int64, includePrivate bool, pageIndex, pageSize int) ([]Diary, int, error) {
-	diaries, _, err := s.repo.ListByUserID(userID, includePrivate, pageIndex, pageSize)
+func (s *Service) ListDiariesByUser(userID int64, includePrivate bool, pageIndex, pageSize int) ([]Diary, bool, error) {
+	diaries, hasMore, err := s.repo.ListByUserID(userID, includePrivate, pageIndex, pageSize)
 	if err != nil {
-		return nil, 0, err
+		return nil, false, err
 	}
 
 	if len(diaries) == 0 {
-		return []Diary{}, 0, nil
+		return []Diary{}, false, nil
 	}
 
-	count, err := s.repo.GetCountByUserID(userID, includePrivate)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return diaries, count, nil
+	return diaries, hasMore, nil
 }
 
 // IncrementEntryCount 增加日记本的日记数量
@@ -510,9 +505,9 @@ func (s *Service) RejectInvitation(diaryID, inviteeID int64) error {
 //   - []Author: 作者列表
 //   - int64: 总数
 //   - error: 查询失败时返回错误
-func (s *Service) GetDiaryAuthors(diaryID int64, onlyActive bool, pageIndex, pageSize int) ([]Author, int64, error) {
-	authors, count, err := s.repo.ListAuthorsByDiaryID(diaryID, onlyActive, pageIndex, pageSize)
-	return authors, int64(count), err
+func (s *Service) GetDiaryAuthors(diaryID int64, onlyActive bool, pageIndex, pageSize int) ([]Author, bool, error) {
+	authors, hasMore, err := s.repo.ListAuthorsByDiaryID(diaryID, onlyActive, pageIndex, pageSize)
+	return authors, hasMore, err
 }
 
 // IsAuthor 检查用户是否为活跃作者
@@ -599,23 +594,18 @@ func (s *Service) ListJoinedDiariesByUserIDWithLimit(userID int64, includePrivat
 	return s.repo.ListJoinedDiariesByUserIDWithLimit(userID, includePrivate, limit)
 }
 
-// ListJoinedDiariesByUserIDPaged 获取用户参与的分页日记本列表
-func (s *Service) ListJoinedDiariesByUserIDPaged(userID int64, includePrivate bool, pageIndex, pageSize int) ([]Diary, int, error) {
-	diaries, _, err := s.repo.ListJoinedDiariesByUserIDPaged(userID, includePrivate, pageIndex, pageSize)
+// ListJoinedDiariesByUserIDPaged 获取用户参与的分页日记本列表（limit+1 模式）
+func (s *Service) ListJoinedDiariesByUserIDPaged(userID int64, includePrivate bool, pageIndex, pageSize int) ([]Diary, bool, error) {
+	diaries, hasMore, err := s.repo.ListJoinedDiariesByUserIDPaged(userID, includePrivate, pageIndex, pageSize)
 	if err != nil {
-		return nil, 0, err
+		return nil, false, err
 	}
 
 	if len(diaries) == 0 {
-		return []Diary{}, 0, nil
+		return []Diary{}, false, nil
 	}
 
-	count, err := s.repo.GetJoinedDiariesCountByUserID(userID, includePrivate)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return diaries, count, nil
+	return diaries, hasMore, nil
 }
 
 // ListPendingInvitationsByUserID 获取用户的待确认邀请列表

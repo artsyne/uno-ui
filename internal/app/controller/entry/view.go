@@ -76,18 +76,18 @@ func (ctrl *EntryController) ShowDrafts(c *gin.Context) {
 	statusInt, _ := strconv.Atoi(statusStr)
 	status := int8(statusInt)
 
-	// 获取列表
-	entries, total, err := ctrl.entryService.ListAllEntriesByUserID(loginUser.UserId, status, pageIndex, pageSize)
+	// 获取列表 - 使用 hasMore 模式
+	entries, hasMore, err := ctrl.entryService.ListAllEntriesByUserID(loginUser.UserId, status, pageIndex, pageSize)
 	if err != nil {
 		ctrl.renderService.RenderErrorPage(c, errors.InternalError)
 		return
 	}
 
-	// 构建分页信息
+	// 构建分页信息 - 使用 hasMore 模式
 	listOptions := pkg.ListOptions{
 		PageIndex: pageIndex,
 		PageSize:  pageSize,
-		Total:     total,
+		HasMore:   hasMore,
 		URL:       fmt.Sprintf("/drafts?status=%d&page=%%d", status),
 		PagePrev:  "<<",
 		PageNext:  ">>",
@@ -97,7 +97,7 @@ func (ctrl *EntryController) ShowDrafts(c *gin.Context) {
 	// 准备渲染数据
 	data := ctrl.renderService.CreatePageData(c, "entry.drafts.title")
 	data.Data["Entries"] = entries
-	data.Data["Total"] = total
+	data.Data["Total"] = len(entries) // hasMore 模式下使用返回的条目数作为参考
 	data.Data["CurrentPage"] = pageIndex
 	data.Data["PageSize"] = pageSize
 	data.Data["Status"] = status
@@ -155,7 +155,7 @@ func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 
 	// 获取日记列表（使用ListEntriesByDiaryID以支持多人日记）
 	// 同时返回日记本信息
-	diaryInfo, entries, entryNum, err := ctrl.entryService.ListEntriesByDiaryID(diaryID, currentUserID, entry.StatusActive, pageIndex, pageSize)
+	diaryInfo, entries, hasMore, err := ctrl.entryService.ListEntriesByDiaryID(diaryID, currentUserID, entry.StatusActive, pageIndex, pageSize)
 	if err != nil {
 		if stdErrors.Is(err, errors.DiaryNotFound) {
 			ctrl.renderService.RenderErrorPage(c, errors.DiaryNotFound)
@@ -174,7 +174,7 @@ func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 	listOptions := pkg.ListOptions{
 		PageIndex: pageIndex,
 		PageSize:  pageSize,
-		Total:     entryNum,
+		HasMore:   hasMore,
 		URL:       fmt.Sprintf("/diary/%d/p/%%d", diaryID),
 		PagePrev:  "<<",
 		PageNext:  ">>",
@@ -209,7 +209,7 @@ func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 	data.Data["Diary"] = diaryInfo
 	data.Data["Entries"] = entries
 	data.Data["PageLinks"] = pageLinks
-	data.Data["EntryNum"] = entryNum
+	data.Data["EntryNum"] = len(entries) // 使用返回的条目数作为参考
 	data.Data["PageSize"] = pageSize
 	data.Data["TimeZone"] = timeZone
 	data.Data["IsOwner"] = isOwner
