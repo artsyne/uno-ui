@@ -137,6 +137,13 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 	// 获取分页配置
 	pageSize := ctrl.config.App.PageSize
 
+	// 性能优化：先获取用户信息，如果用户不存在则直接返回，避免后续 diaries 查询
+	pageUser, err := ctrl.userService.GetUserByUserId(uid)
+	if err != nil || pageUser == nil {
+		ctrl.renderService.Redirect(c, "/")
+		return
+	}
+
 	// 获取用户的日记本列表
 	diaries, hasMore, _ := ctrl.diaryService.ListDiariesByUser(uid, isOwner, pageIndex, pageSize)
 
@@ -151,12 +158,6 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 	}
 	pageLinks := pkg.GeneratePagination(listOptions)
 
-	// 根据uid 获取用户信息
-	pageUser, err := ctrl.userService.GetUserByUserId(uid)
-	if err != nil || pageUser == nil {
-		ctrl.renderService.Redirect(c, "/")
-		return
-	}
 	// 用户配置的时区
 	if pageUser.TimeZone != "" {
 		loc, err := time.LoadLocation(pageUser.TimeZone)

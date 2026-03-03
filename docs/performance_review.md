@@ -685,93 +685,6 @@ type UserProfilePageData struct {
 
 ---
 
-## 九、优化建议代码示例
-
-### 9.1 优化点赞服务
-
-```go
-// internal/domain/like/service.go
-func (s *LikeService) ToggleLikeWithStatus(userID, ownerID int64, likeType int) (*LikeStatus, error) {
-    return s.repo.ToggleLikeAndCount(userID, ownerID, likeType)
-}
-
-// internal/infra/repository/like.go
-func (r *LikeRepository) ToggleLikeAndCount(userID, ownerID int64, likeType int) (*like.LikeStatus, error) {
-    tx, err := r.db.Beginx()
-    if err != nil {
-        return nil, err
-    }
-    defer tx.Rollback()
-
-    var isLiked bool
-
-    // 检查当前状态
-    err = tx.Get(&isLiked, 
-        "SELECT EXISTS(SELECT 1 FROM br_like WHERE user_id = ? AND owner_id = ? AND like_type = ?)",
-        userID, ownerID, likeType)
-    
-    if isLiked {
-        tx.Exec("DELETE FROM br_like WHERE user_id = ? AND owner_id = ? AND like_type = ?", 
-            userID, ownerID, likeType)
-    } else {
-        tx.Exec("INSERT INTO br_like (user_id, owner_id, like_type) VALUES (?, ?, ?)", 
-            userID, ownerID, likeType)
-    }
-
-    var count int
-    tx.Get(&count, "SELECT COUNT(*) FROM br_like WHERE owner_id = ? AND like_type = ?", 
-        ownerID, likeType)
-
-    tx.Commit()
-    return &like.LikeStatus{IsLiked: !isLiked, LikeCount: count}, nil
-}
-```
-
-### 9.2 批量获取点赞状态
-
-```go
-// internal/domain/like/service.go
-func (s *LikeService) GetBatchLikeStatus(userID int64, ownerIDs []int64, likeType int) (map[int64]*LikeStatus, error) {
-    return s.repo.GetBatchLikeStatus(userID, ownerIDs, likeType)
-}
-
-// internal/infra/repository/like.go
-func (r *LikeRepository) GetBatchLikeStatus(userID int64, ownerIDs []int64, likeType int) (map[int64]*like.LikeStatus, error) {
-    result := make(map[int64]*like.LikeStatus)
-    if len(ownerIDs) == 0 {
-        return result, nil
-    }
-    
-    // 批量查询每个 owner 的点赞状态
-    query, args, _ := sqlx.In(`
-        SELECT owner_id, 
-               (SELECT COUNT(*) FROM br_like WHERE user_id = ? AND owner_id = br_like.owner_id AND like_type = ?) as is_liked,
-               COUNT(*) as like_count
-        FROM br_like 
-        WHERE owner_id IN (?) AND like_type = ?
-        GROUP BY owner_id
-    `, userID, likeType, ownerIDs, likeType)
-    
-    rows, err := r.db.Query(r.db.Rebind(query), args...)
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
-    
-    for rows.Next() {
-        var ownerID int64
-        var isLiked bool
-        var count int
-        rows.Scan(&ownerID, &isLiked, &count)
-        result[ownerID] = &like.LikeStatus{IsLiked: isLiked, LikeCount: count}
-    }
-    
-    return result, nil
-}
-```
-
----
-
 ## 十、总结与优先级建议
 
 ### 10.1 高优先级优化项
@@ -797,7 +710,7 @@ func (r *LikeRepository) GetBatchLikeStatus(userID int64, ownerIDs []int64, like
 
 **第五，列表查询的 limit+1 模式推广** ✅ 已完成。已将用户主页中对 joinedDiaries 的优化方式推广到所有分页列表查询，采用 hasMore 模式替代 COUNT 查询，减少数据库往返。涉及多个 Repository 方法和 `pkg/Paginator.go` 的修改。
 
-**第六，渲染上下文构建简化**。移除 `getLoginStatus` 和 `getAuthUser` 的间接调用，直接从 Context 获取值。改动位置：`internal/app/view/service.go:84-105`。
+**第六，渲染上下文构建简化** ✅ 已完成。移除 `getLoginStatus` 和 `getAuthUser` 的间接调用，直接从 Context 获取值。涉及文件：`internal/app/view/service.go` 和 `internal/app/view/helpers.go`。
 
 ### 10.2 中优先级优化项
 

@@ -89,11 +89,21 @@ func (s *ViewService) CreatePageDataWithData(c *gin.Context, titleKey string, da
 // 返回:
 //   - *contracts.RenderContext: 包含登录状态、用户信息、语言设置的渲染上下文
 func (s *ViewService) BuildRenderContext(c *gin.Context) *contracts.RenderContext {
-	// 获取登录状态
-	isLogin := s.getLoginStatus(c)
+	// 直接从上下文中获取登录状态
+	isLogin := false
+	if val, exists := c.Get("IsLogin"); exists {
+		if loginStatus, ok := val.(bool); ok {
+			isLogin = loginStatus
+		}
+	}
 
-	// 获取认证用户
-	authUser := s.getAuthUser(c)
+	// 直接从上下文中获取认证用户
+	var authUser *contracts.AuthUser
+	if val, exists := c.Get("AuthUser"); exists && val != nil {
+		if user, ok := val.(*contracts.AuthUser); ok {
+			authUser = user
+		}
+	}
 
 	// 获取语言设置
 	lang := s.GetLocaleFromContext(c)

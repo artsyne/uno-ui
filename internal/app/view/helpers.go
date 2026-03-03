@@ -4,47 +4,9 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-
-	contracts "github.com/biuren/hebe/internal/contracts"
 )
 
 // ===================== 内部辅助方法 =====================
-
-// getLoginStatus 获取登录状态
-// 从Gin上下文中获取用户的登录状态
-//
-// 参数:
-//   - c: Gin上下文对象
-//
-// 返回:
-//   - bool: true表示已登录，false表示未登录
-func (s *ViewService) getLoginStatus(c *gin.Context) bool {
-	// 从上下文中获取登录状态
-	if isLogin, exists := c.Get("IsLogin"); exists {
-		if loginStatus, ok := isLogin.(bool); ok {
-			return loginStatus
-		}
-	}
-	return false
-}
-
-// getAuthUser 获取认证用户
-// 从Gin上下文中获取当前认证的用户信息
-//
-// 参数:
-//   - c: Gin上下文对象
-//
-// 返回:
-//   - *contracts.AuthUser: 认证用户对象，如果未登录或获取失败则返回nil
-func (s *ViewService) getAuthUser(c *gin.Context) *contracts.AuthUser {
-	// 从上下文中获取认证用户
-	if authUserRaw, exists := c.Get("AuthUser"); exists && authUserRaw != nil {
-		if authUser, ok := authUserRaw.(*contracts.AuthUser); ok {
-			return authUser
-		}
-	}
-	return nil
-}
 
 // generateTitle 生成页面标题
 // 根据标题键和当前语言环境生成完整的页面标题
