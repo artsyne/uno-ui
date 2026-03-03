@@ -273,41 +273,7 @@ if isAuth {
 
 这里 `IsActiveAuthor` 方法会触发一次额外的数据库查询。虽然单次查询开销不大，但在高并发场景下会累积成显著的性能负担。
 
-### 3.4 作者管理页面（ShowAuthors）的多重权限检查
 
-**问题位置**：`internal/app/controller/diary/handlers.go:ShowAuthors`
-
-**问题描述**：
-该方法进行了多次独立的权限检查和数据库查询：
-
-```go
-// handlers.go:260-290
-diaryObj, err := ctrl.diaryService.GetDiaryByID(req.DiaryID)  // 第1次查询
-
-isOwner := diaryObj.AddUserID == loginUser.UserId
-canView := false
-if diaryObj.ViewSetting == diary.ViewSettingPublic {
-    canView = true
-} else {
-    if isOwner {
-        canView = true
-    } else {
-        isAuthor, err := ctrl.diaryService.IsAuthor(req.DiaryID, loginUser.UserId)  // 第2次查询
-        // ...
-    }
-}
-
-// 后续还有：
-allAuthors, totalCount, err := ctrl.diaryService.GetDiaryAuthors(req.DiaryID, !isOwner, pageIndex, pageSize)  // 第3次查询
-```
-
-**影响分析**：
-
-- 每次请求最多触发 3 次数据库查询
-- `IsAuthor` 和 `GetDiaryAuthors` 可能查询相同的数据
-
-**优化建议**：
-- 合并权限检查和数据获取，在服务层统一处理
 
 ### 3.5 设置页面（ShowUserSettingsPage）
 
@@ -716,9 +682,7 @@ type UserProfilePageData struct {
 
 **第一，日记详情页查询并行化**。将时区查询和上/下篇日记查询与主数据查询并行执行，减少串行等待时间。
 
-**第二，EntryService 权限检查方法重构**。将 `CanUpdateEntry` 和 `GetEntryByIDForUser` 方法中的重复查询逻辑进行整合。
-
-**第三，ShowAuthors 多次权限检查优化**。合并权限检查和数据获取，减少数据库往返。
+**第二，EntryService 权限检查方法重构** ✅ 已完成。抽取公共查询逻辑到 `getEntryAndDiary` 方法中，减少 `CanUpdateEntry` 的重复查询。涉及文件：`internal/domain/entry/service.go`。
 
 **第四，用户信息复用**。在设置页面等场景中，直接使用 AuthUser 信息而非重新查询。
 

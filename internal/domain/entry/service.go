@@ -320,14 +320,36 @@ func (s *Service) ListAllEntriesByUserID(userID int64, status int8, pageIndex, p
 	return s.repo.ListAllByUserID(userID, status, pageIndex, pageSize)
 }
 
+// getEntryAndDiary 获取日记及其所属日记本信息
+// 用于权限检查等场景，避免重复查询
+func (s *Service) getEntryAndDiary(entryID int64) (*Entry, *diary.Diary, error) {
+	entry, err := s.repo.GetByIDRaw(entryID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if entry == nil {
+		return nil, nil, errors.EntryNotFound.WithDetails(map[string]interface{}{"entry_id": entryID})
+	}
+
+	diaryData, err := s.diaryService.GetDiaryByID(entry.DiaryID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if diaryData == nil {
+		return nil, nil, errors.DiaryNotFound
+	}
+
+	return entry, diaryData, nil
+}
+
 // CanUpdateEntry 检查用户是否有权限更新指定日记
 // 权限规则：
 // 1. 日记作者本人可以更新
 // 2. 日记本拥有者可以更新
 // 3. 日记本管理员可以更新
 func (s *Service) CanUpdateEntry(entryID, userID int64) (bool, error) {
-	// 获取原始日记数据
-	entry, err := s.repo.GetByIDRaw(entryID)
+	// 获取日记及日记本信息
+	entry, diaryData, err := s.getEntryAndDiary(entryID)
 	if err != nil {
 		return false, err
 	}
@@ -335,15 +357,6 @@ func (s *Service) CanUpdateEntry(entryID, userID int64) (bool, error) {
 	// 1. 检查是否为日记作者
 	if entry.AddUserID == userID {
 		return true, nil
-	}
-
-	// 获取日记本信息
-	diaryData, err := s.diaryService.GetDiaryByID(entry.DiaryID)
-	if err != nil {
-		return false, err
-	}
-	if diaryData == nil {
-		return false, errors.DiaryNotFound
 	}
 
 	// 2. 检查是否为日记本拥有者

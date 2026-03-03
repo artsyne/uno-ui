@@ -301,18 +301,17 @@ func (ctrl *DiaryController) ShowAuthors(c *gin.Context) {
 	canView := false
 	if diaryObj.ViewSetting == diary.ViewSettingPublic {
 		canView = true
+	} else if isOwner {
+		canView = true
 	} else {
-		if isOwner {
+		// 私有日记需要检查是否为活跃作者
+		isAuthor, err := ctrl.diaryService.IsAuthor(req.DiaryID, loginUser.UserId)
+		if err != nil {
+			ctrl.renderService.JSONError(c, err)
+			return
+		}
+		if isAuthor {
 			canView = true
-		} else {
-			isAuthor, err := ctrl.diaryService.IsAuthor(req.DiaryID, loginUser.UserId)
-			if err != nil {
-				ctrl.renderService.JSONError(c, err)
-				return
-			}
-			if isAuthor {
-				canView = true
-			}
 		}
 	}
 
