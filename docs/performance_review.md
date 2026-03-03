@@ -45,68 +45,7 @@ func SharedData() gin.HandlerFunc {
 }
 ```
 
-### 1.2 前端异步加载统计数据的性能开销
-
-**问题位置**：`website/views/diary/entry_card.html` + `website/static/src/js/modules/social.js`
-
-**当前设计分析**：
-
-日记卡片使用 Alpine.js 的 `x-data="entryStats"` 组件异步加载统计数据（点赞数、评论数、点赞状态）。系统实现了 **批量加载管理器 (batchStatsManager)** 来优化请求：
-
-```javascript
-// social.js:31-170 - batchStatsManager 核心实现
-const batchStatsManager = {
-  pendingIds: new Set(),      // 待加载的 ID 队列
-  loadedIds: new Set(),       // 已加载的 ID
-  observer: null,             // IntersectionObserver 实例
-
-  // 使用 IntersectionObserver 观察卡片可见性
-  observe(el, id) {
-    this.observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          this.add(entry.target.dataset.entryId);
-        }
-      });
-    }, { rootMargin: '200px', threshold: 0.1 });
-    this.observer.observe(el);
-  },
-
-  // 延迟 100ms 后批量发送请求
-  add(id) {
-    this.pendingIds.add(id);
-    this.timer = setTimeout(() => this.load(), 100);
-  },
-
-  // 批量请求：每屏幕只发送 2 次 API
-  async load() {
-    const ids = Array.from(this.pendingIds);
-    const [statsRes, likeRes] = await Promise.all([
-      fetch('/api/entry/stats', { body: JSON.stringify({ entryids: ids.join(',') }) }),
-      fetch('/api/entry/like/status', { body: JSON.stringify({ entryids: ids.join(',') }) }),
-    ]);
-  }
-};
-```
-
-**两种加载模式**：
-
-| 场景 | 加载方式 | API 调用次数 |
-|------|----------|--------------|
-| 列表页（滚动加载） | 批量加载（IntersectionObserver） | 每屏幕 **2 次**（stats + like） |
-| Box 内（模态框） | 单独加载 | 每个卡片 **2 次** |
-
-**影响分析**：
-
-- 列表页滚动时，每新进入一屏触发 2 次批量 API 请求（20 条日记 = 2 次请求，而非 40 次）
-- 首屏加载时用户会看到统计数据从 `-` 变化为实际数字的闪烁
-- Box 内打开多个日记卡片时，可能产生多次批量请求
-
-**优化建议**：
-1. 列表页批量请求已实现优化，保持现状即可
-2. **（推荐）Box 内加载复用 batchStatsManager**：Box 内单独加载时可利用批量管理器收集多个卡片 ID，统一发送 2 次批量请求
-
-### 1.3 Repository 层分页查询的 "N+1" 问题
+### 1.2 Repository 层分页查询的 "N+1" 问题
 
 **问题描述**：在分页查询时，代码先执行 SELECT 查询（包含 LIMIT 和 OFFSET），再执行 COUNT 查询获取总数。每次分页请求需要执行 **2 次数据库查询**。
 
@@ -837,15 +776,26 @@ func (r *LikeRepository) GetBatchLikeStatus(userID int64, ownerIDs []int64, like
 
 ### 10.1 高优先级优化项
 
-**第一（最高），静态资源中间件优化**。修改 `SharedData` 中间件，使其跳过静态资源请求。这是性价比最高的优化，可以显著减少 CPU 消耗。涉及文件：`internal/app/startup/application.go` 和 `internal/app/middleware/` 下的中间件文件。
+**第一（最高），静态资源中间件优化** ✅ 已完成。修改 `SharedData` 中间件，使其跳过静态资源请求。这是性价比最高的优化，可以显著减少 CPU 消耗。涉及文件：`internal/app/startup/application.go` 和 `internal/app/middleware/` 下的中间件文件。
 
-**第二，点赞服务优化**。合并 GetLikeStatus 的 2 次查询为 1 次，并优化 ToggleLike 操作使其返回新状态，减少重复查询。涉及文件：`internal/domain/like/service.go` 和 `internal/infra/repository/like.go`。
+**第二，点赞服务优化** ✅ 已完成。不再使用 `SELECT COUNT(*)` 获取点赞数，而是从 owner 对象（Diary/Entry）的 `likeNum` 字段获取：
+- 点赞操作流程：查询 IsLiked → ToggleLike → 更新 owner.likeNum → 直接计算新状态
+- 核心优化：LikeCount 从 owner 对象的 likeNum 字段获取，不查询 br_like 表
+- 减少查询：点赞操作从 4 次查询（GetLikeStatus × 2 + ToggleLike + GetLikeStatus）减少到 1 次查询（仅 IsLiked）
 
-**第三，前端统计数据后端预加载**。在 ShowDiaryIndex 等列表页面中批量预加载统计数据和点赞状态，减少前端 API 请求。涉及文件：`internal/app/controller/entry/view.go`。
+涉及文件：`internal/domain/like/service.go`、`internal/domain/like/repository.go`、`internal/infra/repository/like.go` 和 `internal/app/controller/entry/handlers.go`、`internal/app/controller/diary/handlers.go`。
+
+**第三，前端统计数据后端预加载** ✅ 已完成。系统实现了 **批量加载管理器 (batchStatsManager)** + **列表缓存机制**，完美解决 Box 内加载性能问题：
+- 列表页滚动时批量加载统计数据并缓存
+- Box 内加载时优先使用列表缓存
+- 导航上/下篇时，缓存未命中才发起 ajax 请求
+- 实现方案比后端预加载更灵活，减少不必要的数据加载
+
+涉及文件：`website/static/src/js/modules/social.js`。
 
 **第四，用户主页查询顺序优化**。当前获取用户信息和日记列表的顺序不够优化，应将用户信息获取前置，减少不必要的 JoinedDiaries 查询。改动位置：`internal/app/controller/diary/view.go:58-120`。
 
-**第五，列表查询的 limit+1 模式推广**。将用户主页中对 joinedDiaries 的优化方式推广到所有分页列表查询，减少 COUNT 查询。涉及多个 Repository 方法的修改。
+**第五，列表查询的 limit+1 模式推广** ✅ 已完成。已将用户主页中对 joinedDiaries 的优化方式推广到所有分页列表查询，采用 hasMore 模式替代 COUNT 查询，减少数据库往返。涉及多个 Repository 方法和 `pkg/Paginator.go` 的修改。
 
 **第六，渲染上下文构建简化**。移除 `getLoginStatus` 和 `getAuthUser` 的间接调用，直接从 Context 获取值。改动位置：`internal/app/view/service.go:84-105`。
 

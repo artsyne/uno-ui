@@ -536,8 +536,8 @@ func (ctrl *EntryController) LikeEntry(c *gin.Context) {
 		return
 	}
 
-	// 获取点赞前的状态，用于判断是点赞还是取消点赞
-	beforeStatus, err := ctrl.likeService.GetLikeStatus(loginUser.UserId, entryID, like.LikeTypeEntry)
+	// 查询当前点赞状态
+	beforeLiked, err := ctrl.likeService.IsLiked(loginUser.UserId, entryID, like.LikeTypeEntry)
 	if err != nil {
 		slog.Error("获取点赞状态失败", "error", err, "user_id", loginUser.UserId, "entry_id", entryID)
 		ctrl.renderService.JSONError(c, &errors.InternalError)
@@ -553,7 +553,7 @@ func (ctrl *EntryController) LikeEntry(c *gin.Context) {
 	}
 
 	// 根据之前的状态更新日记的like_num字段
-	if beforeStatus.IsLiked {
+	if beforeLiked {
 		// 之前已点赞，现在是取消点赞，减少like_num
 		err = ctrl.entryService.DecrementLikeCount(entryID)
 	} else {
@@ -567,15 +567,18 @@ func (ctrl *EntryController) LikeEntry(c *gin.Context) {
 		// 可以考虑记录日志或者异步重试
 	}
 
-	// 获取最新的点赞状态
-	status, err := ctrl.likeService.GetLikeStatus(loginUser.UserId, entryID, like.LikeTypeEntry)
-	if err != nil {
-		slog.Error("获取点赞状态失败", "error", err, "user_id", loginUser.UserId, "entry_id", entryID)
-		ctrl.renderService.JSONError(c, &errors.InternalError)
-		return
+	// 直接计算新状态，不需要再次查询数据库
+	newLikeCount := int(entryData.LikeNum)
+	if beforeLiked {
+		newLikeCount--
+	} else {
+		newLikeCount++
 	}
 
-	ctrl.renderService.JSONSuccess(c, status)
+	ctrl.renderService.JSONSuccess(c, &like.LikeStatus{
+		IsLiked:   !beforeLiked,
+		LikeCount: newLikeCount,
+	})
 }
 
 // GetEntriesLikeStatus 获取多个日记的点赞状态

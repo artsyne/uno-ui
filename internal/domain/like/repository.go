@@ -8,7 +8,7 @@ type Repository interface {
 	// IsLiked 检查用户是否已点赞
 	IsLiked(userID, ownerID int64, likeType int) (bool, error)
 
-	// GetLikeCount 获取点赞总数
+	// GetLikeCount 获取点赞总数（从 owner 对象获取，不查询 br_like 表）
 	GetLikeCount(ownerID int64, likeType int) (int, error)
 
 }

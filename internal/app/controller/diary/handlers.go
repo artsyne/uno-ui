@@ -192,36 +192,48 @@ func (ctrl *DiaryController) LikeDiary(c *gin.Context) {
 	loginUser := ctrl.auth.MustGetCurrentUser(c)
 	req := middleware.MustGetValidatedRequest[LikeDiaryRequest](c)
 
-	// 调用点赞服务
-	// 这里的 likeService 是通用的点赞服务
-	// 参数: objectType (diary=1), objectID, userID
-	// 返回: isLiked (true=点赞成功, false=取消点赞成功), likeCount
-	err := ctrl.likeService.ToggleLike(loginUser.UserId, req.DiaryID, like.LikeTypeDiary)
+	// 获取日记本信息（包含当前 likeNum）
+	diaryData, err := ctrl.diaryService.GetDiaryByID(req.DiaryID)
+	if err != nil {
+		ctrl.renderService.JSONError(c, err)
+		return
+	}
+
+	// 查询当前点赞状态
+	beforeLiked, err := ctrl.likeService.IsLiked(loginUser.UserId, req.DiaryID, like.LikeTypeDiary)
+	if err != nil {
+		slog.Error("获取点赞状态失败", "error", err, "user_id", loginUser.UserId, "diary_id", req.DiaryID)
+		ctrl.renderService.JSONError(c, err)
+		return
+	}
+
+	// 切换点赞状态
+	err = ctrl.likeService.ToggleLike(loginUser.UserId, req.DiaryID, like.LikeTypeDiary)
 	if err != nil {
 		slog.Error("点赞失败", "error", err, "user_id", loginUser.UserId, "diary_id", req.DiaryID)
 		ctrl.renderService.JSONError(c, err)
 		return
 	}
 
-	// 获取最新状态
-	status, err := ctrl.likeService.GetLikeStatus(loginUser.UserId, req.DiaryID, like.LikeTypeDiary)
-	if err != nil {
-		ctrl.renderService.JSONError(c, err)
-		return
+	// 根据之前的状态更新日记本的点赞数
+	if beforeLiked {
+		_ = ctrl.diaryService.DecrementLikeCount(req.DiaryID)
+	} else {
+		_ = ctrl.diaryService.IncrementLikeCount(req.DiaryID)
 	}
 
-	// 如果点赞成功，更新日记本的点赞数（缓存或数据库）
-	// 注意：likeService 已经更新了数据库中的点赞记录，但是日记本表中的 like_num 也需要更新
-	if status.IsLiked {
-		_ = ctrl.diaryService.IncrementLikeCount(req.DiaryID)
+	// 直接计算新状态，不需要再次查询数据库
+	newLikeCount := int(diaryData.LikeNum)
+	if beforeLiked {
+		newLikeCount--
 	} else {
-		_ = ctrl.diaryService.DecrementLikeCount(req.DiaryID)
+		newLikeCount++
 	}
 
 	// 返回结果
-	ctrl.renderService.JSONSuccess(c, gin.H{
-		"is_liked":   status.IsLiked,
-		"like_count": status.LikeCount,
+	ctrl.renderService.JSONSuccess(c, &like.LikeStatus{
+		IsLiked:   !beforeLiked,
+		LikeCount: newLikeCount,
 	})
 }
 
@@ -242,15 +254,26 @@ func (ctrl *DiaryController) GetDiaryLikeStatus(c *gin.Context) {
 		userID = loginUser.UserId
 	}
 
+	// 获取日记本信息（包含 likeNum）
+	diaryData, err := ctrl.diaryService.GetDiaryByID(diaryID)
+	if err != nil {
+		ctrl.renderService.JSONError(c, err)
+		return
+	}
+
 	// 获取点赞状态
-	status, err := ctrl.likeService.GetLikeStatus(userID, diaryID, like.LikeTypeDiary)
+	isLiked, err := ctrl.likeService.IsLiked(userID, diaryID, like.LikeTypeDiary)
 	if err != nil {
 		slog.Error("获取点赞状态失败", "error", err, "user_id", userID, "diary_id", diaryID)
 		ctrl.renderService.JSONError(c, &errors.InternalError)
 		return
 	}
 
-	ctrl.renderService.JSONSuccess(c, status)
+	// 从 diary 对象获取 LikeCount
+	ctrl.renderService.JSONSuccess(c, &like.LikeStatus{
+		IsLiked:   isLiked,
+		LikeCount: int(diaryData.LikeNum),
+	})
 }
 
 // AuthorViewModel 作者视图模型

@@ -72,7 +72,8 @@ func (r *LikeRepository) IsLiked(userID, ownerID int64, likeType int) (bool, err
 	return count > 0, nil
 }
 
-// GetLikeCount 获取点赞总数
+// GetLikeCount 获取点赞总数（从 br_like 表查询）
+// 注意：推荐通过 owner 对象的 likeNum 字段获取，而不是使用此方法
 func (r *LikeRepository) GetLikeCount(ownerID int64, likeType int) (int, error) {
 	var count int
 	countSQL := `SELECT COUNT(*) FROM br_like WHERE owner_id = ? AND like_type = ?`
