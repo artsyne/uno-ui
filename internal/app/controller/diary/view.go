@@ -8,6 +8,7 @@ import (
 
 	"github.com/biuren/hebe/internal/app/controller/validation"
 	"github.com/biuren/hebe/internal/domain/entry"
+	user "github.com/biuren/hebe/internal/domain/user"
 	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/pkg"
 	"github.com/gin-gonic/gin"
@@ -159,6 +160,13 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 		}
 	}
 
+	// 设置动态标题（最佳实践：包含用户名）
+	displayName := pageUser.DisplayName
+	if displayName == "" {
+		displayName = pageUser.Handle
+	}
+	data.Title = fmt.Sprintf("%s - %s", displayName, data.Title)
+
 	data.Data["IsOwner"] = isOwner
 	data.Data["User"] = pageUser              //被访问用户
 	data.Data["TimeZone"] = pageUser.TimeZone // 被访问用户时区
@@ -197,6 +205,14 @@ func (ctrl *DiaryController) ShowLatestPublicEntries(c *gin.Context) {
 		ctrl.renderService.Redirect(c, "/")
 		return
 	}
+
+	// 设置动态标题（最佳实践：包含用户名）
+	displayName := pageUser.DisplayName
+	if displayName == "" {
+		displayName = pageUser.Handle
+	}
+	data.Title = fmt.Sprintf("%s - %s", displayName, data.Title)
+
 	data.Data["User"] = pageUser
 	data.Data["TimeZone"] = pageUser.TimeZone // 被访问用户时区
 
@@ -267,11 +283,24 @@ func (ctrl *DiaryController) ShowJoinedDiaries(c *gin.Context) {
 	data.Data["IsJoinedDiariesPage"] = true
 
 	// Get User info for header/navigation if not present
+	var pageUser *user.User
 	if data.Data["User"] == nil {
 		user, err := ctrl.userService.GetUserByUserId(uid)
 		if err == nil {
 			data.Data["User"] = user
+			pageUser = user
 		}
+	} else {
+		pageUser = data.Data["User"].(*user.User)
+	}
+
+	// 设置动态标题（最佳实践：包含用户名）
+	if pageUser != nil {
+		displayName := pageUser.DisplayName
+		if displayName == "" {
+			displayName = pageUser.Handle
+		}
+		data.Title = fmt.Sprintf("%s - %s", displayName, data.Title)
 	}
 
 	if c.GetHeader("HX-Request") == "true" {

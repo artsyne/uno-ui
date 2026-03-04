@@ -248,6 +248,7 @@
       "drafts": "Drafts"
     },
     "profile": {
+      "title": "User Profile",
       "introduction": "Introduction",
       "menu": "Menu",
       "latest_public_diary": "Latest Public Diary",

@@ -408,6 +408,11 @@ export function CommentsMixin(entryId) {
 
         wrapper.innerHTML = text;
 
+        // 初始化 Alpine 组件
+        window.Alpine?.initTree?.(wrapper);
+        // 初始化 HTMX 组件（关键：否则分页链接不会触发异步请求）
+        window.htmx?.process?.(wrapper);
+
         // 更新评论数
         const totalCount = res.headers.get('X-Total-Count');
         const countEl = document.getElementById('post-comment-count');
@@ -424,11 +429,6 @@ export function CommentsMixin(entryId) {
             detail: { entryId: parseInt(this.entryId), count: parseInt(totalCount) },
           }));
         }
-
-        // 初始化 Alpine 组件
-        window.Alpine?.initTree?.(wrapper);
-        // 初始化 HTMX 组件（关键：否则分页链接不会触发异步请求）
-        window.htmx?.process?.(wrapper);
       } catch {
         wrapper.innerHTML = `<div class="text-center text-red-500 py-8">${t('comment.load_fail')}</div>`;
       } finally {

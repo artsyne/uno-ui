@@ -49,7 +49,9 @@ button.btn-social {
 }
 
 .form-mask {
-  @apply fixed inset-0 z-[9999] hidden items-center justify-center bg-white/80 dark:bg-black/80 transition-opacity duration-300 backdrop-blur-sm;
+  @apply fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 dark:bg-black/80 transition-opacity duration-300;
+  opacity: 0;
+  visibility: hidden;
 }
 
 .loading-spinner {

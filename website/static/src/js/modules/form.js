@@ -19,14 +19,22 @@ export function setFormLoading(form, isLoading) {
   }
 
   if (mask) {
-    mask.style.display = isLoading ? 'flex' : 'none';
-
-    // Mask Visual Feedback Policy:
-    // We retain the mask display logic above (to show loading spinner and block clicks via z-index).
-    // However, we REMOVED the logic that explicitly disables inputs/buttons (setting .disabled = true).
-    // This is to avoid visual state changes on the buttons (like graying out or opacity changes)
-    // while still preventing interaction through the full-screen mask.
-    // The mask itself (z-9999) acts as the interaction blocker.
+    // 使用 opacity + visibility 实现平滑过渡（CSS 已设置默认 opacity:0, visibility:hidden）
+    if (isLoading) {
+      mask.style.visibility = 'visible';
+      // 下一帧设置 opacity，触发过渡动画
+      requestAnimationFrame(() => {
+        mask.style.opacity = '1';
+      });
+    } else {
+      mask.style.opacity = '0';
+      // 等待过渡完成后隐藏
+      setTimeout(() => {
+        if (mask.style.opacity === '0') {
+          mask.style.visibility = 'hidden';
+        }
+      }, 300);
+    }
   }
 }
 

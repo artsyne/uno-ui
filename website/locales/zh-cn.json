@@ -250,6 +250,7 @@
       "drafts": "草稿箱"
     },
     "profile": {
+      "title": "个人主页",
       "introduction": "个人介绍",
       "menu": "目录",
       "latest_public_diary": "最新公开日记",

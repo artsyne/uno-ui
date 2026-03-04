@@ -1,6 +1,6 @@
 {{define "diary/list"}}
 <div id="diary-content">
-    <div class="lg:columns-3 md:columns-2 gap-6" id="diary_entry_container"
+    <div class="lg:columns-3 md:columns-2 gap-6 column-fill-balance" id="diary_entry_container"
         hx-on:htmx:after-swap="if(this.querySelectorAll('.card:not(#write-entry-card)').length > 0) { this.querySelectorAll('.empty-placeholder').forEach(el => el.remove()) }">
         {{if .Data.CanWrite}}
         <div class="card p-6 mb-6 break-inside-avoid" id="write-entry-card">
