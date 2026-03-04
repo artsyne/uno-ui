@@ -1,61 +1,47 @@
 package pkg
 
-import (
-	"fmt"
-)
+import "fmt"
 
-// ListOptions 分页选项（limit+1 模式）
-type ListOptions struct {
-	PageIndex int    // 当前页码
-	PageSize  int    // 每页显示的记录数
-	HasMore   bool   // 是否还有更多数据（limit+1 模式）
-	URL       string // 分页链接，其中应该包含 %d，用于替换为页码
-	PagePrev  string // 上一页文字
-	PageNext  string // 下一页文字
+// Pagination 分页信息（limit+1 模式）
+// 简化设计：直接包含上一页/下一页链接，无需中间结构
+type Pagination struct {
+	PageIndex int    // 当前页码（从1开始）
+	HasMore   bool   // 是否有更多数据
+	HasPrev   bool   // 是否有上一页
+	PrevURL   string // 上一页链接
+	NextURL   string // 下一页链接
+	NoPushURL bool   // 是否禁止更新浏览器URL（评论分页需要禁止）
 }
 
-// PageLinks 分页链接结构
-type PageLinks struct {
-	URL       string // 链接地址
-	Text      string // 链接文字
-	PageIndex int    // 页码
-}
-
-// GeneratePagination 生成分页导航（HasMore 模式）
-// 只显示上一页和下一页，适用于"加载更多"场景
-func GeneratePagination(listOptions ListOptions) []PageLinks {
-	pageSize := listOptions.PageSize
-	pageIndex := listOptions.PageIndex
-
-	// 如果页面大小小于等于0，直接返回空数组，避免除零错误
-	if pageSize <= 0 {
-		return []PageLinks{}
-	}
-
-	// 如果页面索引小于1，设为1
+// NewPagination 创建分页信息
+// urlTemplate: 分页链接模板，如 "/u/123/p/%d"，%d 会被替换为页码
+func NewPagination(pageIndex, pageSize int, hasMore bool, urlTemplate string) *Pagination {
+	// 参数校验
 	if pageIndex < 1 {
 		pageIndex = 1
 	}
 
-	aryLinks := make([]PageLinks, 0)
-
-	// 如果当前页码大于 1，则添加上一页链接
-	if pageIndex > 1 {
-		aryLinks = append(aryLinks, PageLinks{
-			URL:       fmt.Sprintf(listOptions.URL, pageIndex-1),
-			Text:      listOptions.PagePrev,
-			PageIndex: pageIndex - 1,
-		})
+	p := &Pagination{
+		PageIndex: pageIndex,
+		HasMore:   hasMore,
+		HasPrev:   pageIndex > 1,
 	}
 
-	// 如果还有更多数据，则添加下一页链接
-	if listOptions.HasMore {
-		aryLinks = append(aryLinks, PageLinks{
-			URL:       fmt.Sprintf(listOptions.URL, pageIndex+1),
-			Text:      listOptions.PageNext,
-			PageIndex: pageIndex + 1,
-		})
+	// 生成上一页链接
+	if p.HasPrev {
+		p.PrevURL = fmt.Sprintf(urlTemplate, pageIndex-1)
 	}
 
-	return aryLinks
+	// 生成下一页链接
+	if hasMore {
+		p.NextURL = fmt.Sprintf(urlTemplate, pageIndex+1)
+	}
+
+	return p
+}
+
+// SetNoPushURL 设置禁止更新浏览器URL
+func (p *Pagination) SetNoPushURL(noPush bool) *Pagination {
+	p.NoPushURL = noPush
+	return p
 }

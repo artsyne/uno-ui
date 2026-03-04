@@ -376,14 +376,7 @@ func (ctrl *DiaryController) ShowAuthors(c *gin.Context) {
 
 	// Pagination Data - 使用 hasMore 模式
 	pageData.Data["HxTarget"] = "#authors-content"
-	pageData.Data["PageLinks"] = pkg.GeneratePagination(pkg.ListOptions{
-		PageIndex: pageIndex,
-		PageSize:  pageSize,
-		HasMore:   hasMore,
-		URL:       fmt.Sprintf("/diary/%d/authors?page=%%d", req.DiaryID),
-		PagePrev:  "<<",
-		PageNext:  ">>",
-	})
+	pageData.Data["Pagination"] = pkg.NewPagination(pageIndex, pageSize, hasMore, fmt.Sprintf("/diary/%d/authors?page=%%d", req.DiaryID))
 
 	if c.GetHeader("HX-Request") == "true" {
 		ctrl.renderService.HTML(c, "diary/authors_content", pageData)

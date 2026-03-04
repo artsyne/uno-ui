@@ -235,39 +235,17 @@ func (ctrl *CommentController) GetComments(c *gin.Context) {
 
 	// 检查是否为HTMX请求
 	if c.GetHeader("HX-Request") == "true" {
-		pageLinks := pkg.GeneratePagination(pkg.ListOptions{
-			PageIndex: req.PageIndex,
-			PageSize:  req.PageSize,
-			HasMore:   hasMore,
-			URL:       fmt.Sprintf("/api/comment/list?entry_id=%d&page_index=%%d", req.EntryID),
-			PagePrev:  "<<",
-			PageNext:  ">>",	
-		})
-
-		// Calculate pagination for manual template rendering
-		var prevPage, nextPage int
-		if req.PageIndex > 1 {
-			prevPage = req.PageIndex - 1
-		}
-		if hasMore {
-			nextPage = req.PageIndex + 1
-		}
+		pagination := pkg.NewPagination(req.PageIndex, req.PageSize, hasMore, fmt.Sprintf("/api/comment/list?entry_id=%d&page_index=%%d", req.EntryID)).SetNoPushURL(true)
 
 		data := gin.H{
 			"comments":      comments,
-			"PageLinks":     pageLinks,
+			"Pagination":    pagination,
 			"HxTarget":      "#comments-list-container",
 			"time_zone":     tz,
 			"CurrentUserID": currentUserID,
 			"EntryID":       req.EntryID,
 			"EntryOwnerID":  entryOwnerID,
 			"TotalCount":    len(comments), // 使用返回的评论数作为参考
-			"pagination": gin.H{
-				"total_pages":  0, // hasMore 模式下不计算总页数
-				"current_page": req.PageIndex,
-				"prev_page":    prevPage,
-				"next_page":    nextPage,
-			},
 		}
 
 		// 设置总数 Header，供前端 JS 更新 UI

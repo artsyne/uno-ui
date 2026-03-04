@@ -147,16 +147,8 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 	// 获取用户的日记本列表
 	diaries, hasMore, _ := ctrl.diaryService.ListDiariesByUser(uid, isOwner, pageIndex, pageSize)
 
-	// 初始化分页信息
-	listOptions := pkg.ListOptions{
-		PageIndex: pageIndex,
-		PageSize:  pageSize,
-		HasMore:   hasMore,
-		URL:       fmt.Sprintf("/u/%d/p/%%d", uid),
-		PagePrev:  "<<",
-		PageNext:  ">>",
-	}
-	pageLinks := pkg.GeneratePagination(listOptions)
+	// 生成分页信息
+	pagination := pkg.NewPagination(pageIndex, pageSize, hasMore, fmt.Sprintf("/u/%d/p/%%d", uid))
 
 	// 用户配置的时区
 	if pageUser.TimeZone != "" {
@@ -174,7 +166,7 @@ func (ctrl *DiaryController) ShowUserProfile(c *gin.Context) {
 	data.Data["DiariesNum"] = len(diaries) // 使用返回的条目数作为参考
 	data.Data["PageSize"] = pageSize
 	data.Data["PageIndex"] = pageIndex
-	data.Data["PageLinks"] = pageLinks
+	data.Data["Pagination"] = pagination
 	data.Data["HxTarget"] = "#diary-container"
 
 	// 检查是否为HTMX请求
@@ -265,19 +257,11 @@ func (ctrl *DiaryController) ShowJoinedDiaries(c *gin.Context) {
 	pageSize := ctrl.config.App.PageSize
 	diaries, hasMore, _ := ctrl.diaryService.ListJoinedDiariesByUserIDPaged(uid, isOwner, pageIndex, pageSize)
 
-	listOptions := pkg.ListOptions{
-		PageIndex: pageIndex,
-		PageSize:  pageSize,
-		HasMore:   hasMore,
-		URL:       fmt.Sprintf("/u/%d/joined/p/%%d", uid),
-		PagePrev:  "<<",
-		PageNext:  ">>",
-	}
-	pageLinks := pkg.GeneratePagination(listOptions)
+	pagination := pkg.NewPagination(pageIndex, pageSize, hasMore, fmt.Sprintf("/u/%d/joined/p/%%d", uid))
 
 	data.Data["Diaries"] = diaries
 	data.Data["DiariesNum"] = len(diaries) // 使用返回的条目数作为参考
-	data.Data["PageLinks"] = pageLinks
+	data.Data["Pagination"] = pagination
 	data.Data["IsJoinedList"] = true
 	data.Data["HxTarget"] = "#joined-diaries-content"
 	data.Data["IsJoinedDiariesPage"] = true

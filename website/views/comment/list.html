@@ -25,9 +25,9 @@
     </div>
     {{end}}
 
-    <!-- Pagination: 使用 hx-boost 实现 HTMX 分页 -->
-    {{if .Data.PageLinks}}
-    <div class="flex justify-center mt-6" hx-boost="true" hx-target="#comments-list-container" hx-swap="outerHTML">
+    <!-- Pagination: 使用 HTMX 分页，不改变浏览器URL -->
+    {{if .Data.Pagination}}
+    <div class="flex justify-center mt-6">
         {{template "pagination" .}}
     </div>
     {{end}}

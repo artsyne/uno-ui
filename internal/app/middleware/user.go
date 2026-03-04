@@ -57,7 +57,8 @@ func SharedData() gin.HandlerFunc {
 		// 跳过静态资源请求，减少 CPU 消耗
 		path := c.Request.URL.Path
 		if path == "/favicon.ico" ||
-		   len(path) > 1 && (path[1:5] == "static" || path[1:7] == "assets" || path[1:7] == "website") {
+			(len(path) >= 7 && (path[1:7] == "static" || path[1:7] == "assets")) ||
+			(len(path) >= 8 && path[1:8] == "website") {
 			c.Next()
 			return
 		}

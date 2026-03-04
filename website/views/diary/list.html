@@ -43,8 +43,8 @@
         {{end}}
     </div>
 
-    {{if .Data.PageLinks}}
-    <div class="flex justify-center mt-10" hx-boost="true" hx-target="#diary-content" hx-swap="outerHTML">
+    {{if .Data.Pagination}}
+    <div class="flex justify-center mt-10">
         {{template "pagination" .}}
     </div>
     {{end}}

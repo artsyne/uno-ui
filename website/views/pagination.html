@@ -1,18 +1,36 @@
 {{define "pagination"}}
-{{/* hasMore 模式：只显示 prev/next 导航 */}}
-{{if .Data.PageLinks}}
+{{/* Limit+1 模式：只显示上一页/下一页导航 */}}
+{{if .Data.Pagination}}
+{{with .Data.Pagination}}
 <div class="flex space-x-2">
-    {{range .Data.PageLinks}}
+    {{if .HasPrev}}
     {{if $.Data.HxTarget}}
-    <a class="border py-2 px-3 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-        href="{{.URL}}" hx-get="{{.URL}}" hx-target="{{$.Data.HxTarget}}" hx-swap="outerHTML">
-        {{.Text}}
+    <a class="btn mr-4"
+        href="{{.PrevURL}}" hx-get="{{.PrevURL}}" hx-target="{{$.Data.HxTarget}}" hx-swap="outerHTML" hx-push-url="{{if .NoPushURL}}false{{else}}true{{end}}">
+        <i class="mdi mdi-chevron-double-left"></i>
     </a>
     {{else}}
-    <a class="border py-2 px-3 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-        href="{{.URL}}">{{.Text}}</a>
+    <a class="btn mr-4"
+        href="{{.PrevURL}}">
+        <i class="mdi mdi-chevron-left"></i>
+    </a>
+    {{end}}
+    {{end}}
+
+    {{if .HasMore}}
+    {{if $.Data.HxTarget}}
+    <a class="btn"
+        href="{{.NextURL}}" hx-get="{{.NextURL}}" hx-target="{{$.Data.HxTarget}}" hx-swap="outerHTML" hx-push-url="{{if .NoPushURL}}false{{else}}true{{end}}">
+        <i class="mdi mdi-chevron-double-right"></i>
+    </a>
+    {{else}}
+    <a class="btn"
+        href="{{.NextURL}}">
+        <i class="mdi mdi-chevron-double-right"></i>
+    </a>
     {{end}}
     {{end}}
 </div>
+{{end}}
 {{end}}
 {{end}}

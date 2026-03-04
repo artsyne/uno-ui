@@ -83,16 +83,8 @@ func (ctrl *EntryController) ShowDrafts(c *gin.Context) {
 		return
 	}
 
-	// 构建分页信息 - 使用 hasMore 模式
-	listOptions := pkg.ListOptions{
-		PageIndex: pageIndex,
-		PageSize:  pageSize,
-		HasMore:   hasMore,
-		URL:       fmt.Sprintf("/drafts?status=%d&page=%%d", status),
-		PagePrev:  "<<",
-		PageNext:  ">>",
-	}
-	pageLinks := pkg.GeneratePagination(listOptions)
+	// 生成分页信息
+	pagination := pkg.NewPagination(pageIndex, pageSize, hasMore, fmt.Sprintf("/drafts?status=%d&page=%%d", status))
 
 	// 准备渲染数据
 	data := ctrl.renderService.CreatePageData(c, "entry.drafts.title")
@@ -101,7 +93,7 @@ func (ctrl *EntryController) ShowDrafts(c *gin.Context) {
 	data.Data["CurrentPage"] = pageIndex
 	data.Data["PageSize"] = pageSize
 	data.Data["Status"] = status
-	data.Data["PageLinks"] = pageLinks
+	data.Data["Pagination"] = pagination
 	data.Data["Tab"] = "drafts" // 用于前端高亮
 	data.Data["HxTarget"] = "#drafts-list"
 
@@ -170,16 +162,8 @@ func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 		return
 	}
 
-	// 构建分页信息
-	listOptions := pkg.ListOptions{
-		PageIndex: pageIndex,
-		PageSize:  pageSize,
-		HasMore:   hasMore,
-		URL:       fmt.Sprintf("/diary/%d/p/%%d", diaryID),
-		PagePrev:  "<<",
-		PageNext:  ">>",
-	}
-	pageLinks := pkg.GeneratePagination(listOptions)
+	// 生成分页信息
+	pagination := pkg.NewPagination(pageIndex, pageSize, hasMore, fmt.Sprintf("/diary/%d/p/%%d", diaryID))
 
 	// 判断当前用户是否为日记本所有者
 	isOwner := isAuth && loginUser.UserId == diaryInfo.AddUserID
@@ -208,7 +192,7 @@ func (ctrl *EntryController) ShowDiaryIndex(c *gin.Context) {
 	data.Title = diaryInfo.Title + " - " + diaryInfo.AddUserDisplayName
 	data.Data["Diary"] = diaryInfo
 	data.Data["Entries"] = entries
-	data.Data["PageLinks"] = pageLinks
+	data.Data["Pagination"] = pagination
 	data.Data["EntryNum"] = len(entries) // 使用返回的条目数作为参考
 	data.Data["PageSize"] = pageSize
 	data.Data["TimeZone"] = timeZone

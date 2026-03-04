@@ -1,177 +1,177 @@
 package pkg_test
 
 import (
-	"context"
 	"testing"
-	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/biuren/hebe/pkg"
-	core "github.com/biuren/hebe/tests/framework/core"
 )
 
-func TestGeneratePagination(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
-	defer cancel()
-
+func TestNewPagination(t *testing.T) {
 	tests := []struct {
 		name        string
-		options     pkg.ListOptions
-		expectedLen int // 期望的长度
+		pageIndex   int
+		pageSize    int
+		hasMore     bool
+		urlTemplate string
+		want        *pkg.Pagination
 	}{
 		{
-			name: "第一页有更多数据",
-			options: pkg.ListOptions{
-				PageIndex: 1,
-				PageSize:  10,
-				HasMore:   true,
-				URL:       "/test?page=%d",
-				PagePrev:  "上一页",
-				PageNext:  "下一页",
+			name:        "第一页有更多数据",
+			pageIndex:   1,
+			pageSize:    20,
+			hasMore:     true,
+			urlTemplate: "/list/p/%d",
+			want: &pkg.Pagination{
+				PageIndex:  1,
+				HasMore:    true,
+				HasPrev:    false,
+				PrevURL:    "",
+				NextURL:    "/list/p/2",
+				NoPushURL:  false,
 			},
-			expectedLen: 1,
 		},
 		{
-			name: "第一页没有更多数据",
-			options: pkg.ListOptions{
-				PageIndex: 1,
-				PageSize:  10,
-				HasMore:   false,
-				URL:       "/test?page=%d",
-				PagePrev:  "上一页",
-				PageNext:  "下一页",
+			name:        "第一页没有更多数据",
+			pageIndex:   1,
+			pageSize:    20,
+			hasMore:     false,
+			urlTemplate: "/list/p/%d",
+			want: &pkg.Pagination{
+				PageIndex:  1,
+				HasMore:    false,
+				HasPrev:    false,
+				PrevURL:    "",
+				NextURL:    "",
+				NoPushURL:  false,
 			},
-			expectedLen: 0,
 		},
 		{
-			name: "中间页有更多数据",
-			options: pkg.ListOptions{
-				PageIndex: 5,
-				PageSize:  10,
-				HasMore:   true,
-				URL:       "/test?page=%d",
-				PagePrev:  "上一页",
-				PageNext:  "下一页",
+			name:        "中间页有更多数据",
+			pageIndex:   3,
+			pageSize:    20,
+			hasMore:     true,
+			urlTemplate: "/list/p/%d",
+			want: &pkg.Pagination{
+				PageIndex:  3,
+				HasMore:    true,
+				HasPrev:    true,
+				PrevURL:    "/list/p/2",
+				NextURL:    "/list/p/4",
+				NoPushURL:  false,
 			},
-			expectedLen: 2,
 		},
 		{
-			name: "最后一页没有更多数据",
-			options: pkg.ListOptions{
-				PageIndex: 10,
-				PageSize:  10,
-				HasMore:   false,
-				URL:       "/test?page=%d",
-				PagePrev:  "上一页",
-				PageNext:  "下一页",
+			name:        "最后一页没有更多数据",
+			pageIndex:   5,
+			pageSize:    20,
+			hasMore:     false,
+			urlTemplate: "/list/p/%d",
+			want: &pkg.Pagination{
+				PageIndex:  5,
+				HasMore:    false,
+				HasPrev:    true,
+				PrevURL:    "/list/p/4",
+				NextURL:    "",
+				NoPushURL:  false,
 			},
-			expectedLen: 1,
 		},
 		{
-			name: "页面大小为0",
-			options: pkg.ListOptions{
-				PageIndex: 1,
-				PageSize:  0,
-				HasMore:   true,
-				URL:       "/test?page=%d",
+			name:        "页码小于1自动修正",
+			pageIndex:   0,
+			pageSize:    20,
+			hasMore:     true,
+			urlTemplate: "/list/p/%d",
+			want: &pkg.Pagination{
+				PageIndex:  1,
+				HasMore:    true,
+				HasPrev:    false,
+				PrevURL:    "",
+				NextURL:    "/list/p/2",
+				NoPushURL:  false,
 			},
-			expectedLen: 0,
 		},
 		{
-			name: "页面大小为负数",
-			options: pkg.ListOptions{
-				PageIndex: 1,
-				PageSize:  -10,
-				HasMore:   true,
-				URL:       "/test?page=%d",
+			name:        "负数页码自动修正",
+			pageIndex:   -5,
+			pageSize:    20,
+			hasMore:     true,
+			urlTemplate: "/list/p/%d",
+			want: &pkg.Pagination{
+				PageIndex:  1,
+				HasMore:    true,
+				HasPrev:    false,
+				PrevURL:    "",
+				NextURL:    "/list/p/2",
+				NoPushURL:  false,
 			},
-			expectedLen: 0,
-		},
-		{
-			name: "页码过小",
-			options: pkg.ListOptions{
-				PageIndex: -1,
-				PageSize:  10,
-				HasMore:   true,
-				URL:       "/test?page=%d",
-				PagePrev:  "上一页",
-				PageNext:  "下一页",
-			},
-			// pageIndex < 1 会被修正为 1
-			expectedLen: 1,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			select {
-			case <-ctx.Done():
-				t.Fatal("测试超时")
-			default:
+			got := pkg.NewPagination(tt.pageIndex, tt.pageSize, tt.hasMore, tt.urlTemplate)
+			if got.PageIndex != tt.want.PageIndex {
+				t.Errorf("PageIndex = %v, want %v", got.PageIndex, tt.want.PageIndex)
 			}
-
-			result := pkg.GeneratePagination(tt.options)
-
-			// 验证结果不为nil
-			assert.NotNil(t, result)
-
-			// 验证长度
-			assert.Equal(t, tt.expectedLen, len(result), "分页链接数量不匹配")
-
-			// 验证具体内容
-			for _, link := range result {
-				if link.PageIndex > 0 {
-					// 验证 URL 格式正确
-					assert.Contains(t, link.URL, "/test?page=", "URL格式不正确")
-				}
+			if got.HasMore != tt.want.HasMore {
+				t.Errorf("HasMore = %v, want %v", got.HasMore, tt.want.HasMore)
+			}
+			if got.HasPrev != tt.want.HasPrev {
+				t.Errorf("HasPrev = %v, want %v", got.HasPrev, tt.want.HasPrev)
+			}
+			if got.PrevURL != tt.want.PrevURL {
+				t.Errorf("PrevURL = %v, want %v", got.PrevURL, tt.want.PrevURL)
+			}
+			if got.NextURL != tt.want.NextURL {
+				t.Errorf("NextURL = %v, want %v", got.NextURL, tt.want.NextURL)
+			}
+			if got.NoPushURL != tt.want.NoPushURL {
+				t.Errorf("NoPushURL = %v, want %v", got.NoPushURL, tt.want.NoPushURL)
 			}
 		})
 	}
 }
 
-func TestGeneratePaginationEdgeCases(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(core.GetTestTimeout())*time.Second)
-	defer cancel()
+func TestPaginationEdgeCases(t *testing.T) {
+	t.Run("空URL模板", func(t *testing.T) {
+		p := pkg.NewPagination(2, 20, true, "")
+		if p.PrevURL != "%!d()" && p.PrevURL != "" {
+			t.Logf("PrevURL with empty template: %s", p.PrevURL)
+		}
+	})
 
-	tests := []struct {
-		name    string
-		options pkg.ListOptions
-	}{
-		{
-			name: "页面大小为0",
-			options: pkg.ListOptions{
-				PageIndex: 1,
-				PageSize:  0,
-				HasMore:   true,
-				URL:       "/test?page=%d",
-			},
-		},
-		{
-			name: "大数据量测试",
-			options: pkg.ListOptions{
-				PageIndex: 500,
-				PageSize:  20,
-				HasMore:   true,
-				URL:       "/test?page=%d",
-				PagePrev:  "上一页",
-				PageNext:  "下一页",
-			},
-		},
-	}
+	t.Run("复杂URL模板", func(t *testing.T) {
+		p := pkg.NewPagination(3, 20, true, "/api/entries?status=1&page=%d&sort=desc")
+		expectedPrev := "/api/entries?status=1&page=2&sort=desc"
+		expectedNext := "/api/entries?status=1&page=4&sort=desc"
+		if p.PrevURL != expectedPrev {
+			t.Errorf("PrevURL = %v, want %v", p.PrevURL, expectedPrev)
+		}
+		if p.NextURL != expectedNext {
+			t.Errorf("NextURL = %v, want %v", p.NextURL, expectedNext)
+		}
+	})
+}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			select {
-			case <-ctx.Done():
-				t.Fatal("测试超时")
-			default:
-			}
+func TestSetNoPushURL(t *testing.T) {
+	t.Run("默认值为false", func(t *testing.T) {
+		p := pkg.NewPagination(1, 20, true, "/list/p/%d")
+		if p.NoPushURL != false {
+			t.Errorf("NoPushURL default = %v, want false", p.NoPushURL)
+		}
+	})
 
-			// 确保函数不会panic
-			assert.NotPanics(t, func() {
-				result := pkg.GeneratePagination(tt.options)
-				assert.NotNil(t, result)
-			})
-		})
-	}
+	t.Run("设置为true", func(t *testing.T) {
+		p := pkg.NewPagination(1, 20, true, "/list/p/%d").SetNoPushURL(true)
+		if p.NoPushURL != true {
+			t.Errorf("NoPushURL = %v, want true", p.NoPushURL)
+		}
+	})
+
+	t.Run("链式调用", func(t *testing.T) {
+		p := pkg.NewPagination(1, 20, true, "/list/p/%d").SetNoPushURL(true)
+		if p.NextURL != "/list/p/2" {
+			t.Errorf("链式调用后 NextURL = %v, want /list/p/2", p.NextURL)
+		}
+	})
 }

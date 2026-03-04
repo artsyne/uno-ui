@@ -138,13 +138,13 @@ func TestGetComments_Pagination_Button_Integration(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w1.Code)
 	body1 := w1.Body.String()
 
-	// Verify ">>" button exists with HTMX pagination
+	// Verify "Next" button exists with HTMX pagination and MDI icon
 	assert.Contains(t, body1, "page_index=2")
 	assert.Contains(t, body1, "hx-get=\"/api/comment/list")
 	assert.Contains(t, body1, "hx-target=\"#comments-list-container\"")
-	assert.Contains(t, body1, "&gt;&gt;")
+	assert.Contains(t, body1, "mdi-chevron-right")
 
-	// Verify "<<" button does NOT exist on first page
+	// Verify "Prev" button does NOT exist on first page
 	assert.NotContains(t, body1, "page_index=0")
 
 	// Case 2: Second page, should have "<<" button
@@ -156,12 +156,12 @@ func TestGetComments_Pagination_Button_Integration(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w2.Code)
 	body2 := w2.Body.String()
 
-	// Verify "<<" button exists with HTMX pagination
+	// Verify "Prev" button exists with HTMX pagination and MDI icon
 	assert.Contains(t, body2, "page_index=1")
 	assert.Contains(t, body2, "hx-get=\"/api/comment/list")
 	assert.Contains(t, body2, "hx-target=\"#comments-list-container\"")
-	assert.Contains(t, body2, "&lt;&lt;")
+	assert.Contains(t, body2, "mdi-chevron-left")
 
-	// Verify ">>" button does NOT exist on last page
+	// Verify "Next" button does NOT exist on last page
 	assert.NotContains(t, body2, "page_index=3")
 }
