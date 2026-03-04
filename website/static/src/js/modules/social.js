@@ -427,6 +427,8 @@ export function CommentsMixin(entryId) {
 
         // 初始化 Alpine 组件
         window.Alpine?.initTree?.(wrapper);
+        // 初始化 HTMX 组件（关键：否则分页链接不会触发异步请求）
+        window.htmx?.process?.(wrapper);
       } catch {
         wrapper.innerHTML = `<div class="text-center text-red-500 py-8">${t('comment.load_fail')}</div>`;
       } finally {
@@ -500,6 +502,22 @@ export function entryStats(entryId, socialSetting = null) {
     stats: { loaded: false, loading: false, view_num: 0, comment_num: 0, like_num: 0, liked: false },
 
     async initStats() {
+      // 监听社交设置变化事件
+      window.addEventListener(EVENTS.SOCIAL_CHANGED, (evt) => {
+        const newSetting = parseInt(evt.detail.setting);
+        if (newSetting === 1 && this.socialSetting !== 1) {
+          // 社交功能开启，重新加载统计数据
+          this.socialSetting = 1;
+          this.stats.loaded = false;
+          this.stats.view_num = 0;
+          this.stats.comment_num = 0;
+          this.stats.like_num = 0;
+          this.stats.liked = false;
+          batchStatsManager.clear(this.entryId);
+          this.loadSingle();
+        }
+      });
+
       // 检查社交设置
       if (this.socialSetting !== 1) {
         const globalSetting = parseInt(document.querySelector('main')?.dataset.socialSetting || '2');

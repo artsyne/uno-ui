@@ -655,7 +655,7 @@ type UserProfilePageData struct {
 
 ### 10.1 高优先级优化项
 
-**第一（最高），静态资源中间件优化** ✅ 已完成。修改 `SharedData` 中间件，使其跳过静态资源请求。这是性价比最高的优化，可以显著减少 CPU 消耗。涉及文件：`internal/app/startup/application.go` 和 `internal/app/middleware/` 下的中间件文件。
+**第一（最高），静态资源中间件优化** ✅ 已完成。修改 `SharedData` 中间件，跳过静态资源请求（/favicon.ico、/static/*、/assets/*、/website/*），避免不必要的 Cookie 解析和 AES 解密操作，显著减少 CPU 消耗。涉及文件：`internal/app/middleware/user.go`。
 
 **第二，点赞服务优化** ✅ 已完成。不再使用 `SELECT COUNT(*)` 获取点赞数，而是从 owner 对象（Diary/Entry）的 `likeNum` 字段获取：
 - 点赞操作流程：查询 IsLiked → ToggleLike → 更新 owner.likeNum → 直接计算新状态
@@ -672,7 +672,7 @@ type UserProfilePageData struct {
 
 涉及文件：`website/static/src/js/modules/social.js`。
 
-**第四，用户主页查询顺序优化**。当前获取用户信息和日记列表的顺序不够优化，应将用户信息获取前置，减少不必要的 JoinedDiaries 查询。改动位置：`internal/app/controller/diary/view.go:58-120`。
+**第四，用户主页查询顺序优化** ✅ 已完成。先获取用户信息，如果用户不存在则直接返回，避免后续 diaries 和 joinedDiaries 查询。涉及文件：`internal/app/controller/diary/view.go`。
 
 **第五，列表查询的 limit+1 模式推广** ✅ 已完成。已将用户主页中对 joinedDiaries 的优化方式推广到所有分页列表查询，采用 hasMore 模式替代 COUNT 查询，减少数据库往返。涉及多个 Repository 方法和 `pkg/Paginator.go` 的修改。
 
@@ -684,9 +684,9 @@ type UserProfilePageData struct {
 
 **第二，EntryService 权限检查方法重构** ✅ 已完成。抽取公共查询逻辑到 `getEntryAndDiary` 方法中，减少 `CanUpdateEntry` 的重复查询。涉及文件：`internal/domain/entry/service.go`。
 
-**第四，用户信息复用**。在设置页面等场景中，直接使用 AuthUser 信息而非重新查询。
+**第三，用户信息复用**。在设置页面等场景中，直接使用 AuthUser 信息而非重新查询。
 
-**第五，深入 SQL 分析**。检查主要查询的 SQL 语句和索引情况，确保相关表的联合索引存在。
+**第四，深入 SQL 分析**。检查主要查询的 SQL 语句和索引情况，确保相关表的联合索引存在。
 
 ### 10.3 低优先级优化项（可后续迭代）
 

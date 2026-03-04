@@ -50,8 +50,18 @@ func AuthRequired() gin.HandlerFunc {
 // 上下文变量:
 //   - IsLogin: bool - 用户是否已登录
 //   - AuthUser: *user.User - 当前登录用户信息(仅登录时)
+//
+// 性能优化：跳过静态资源请求，避免不必要的 Cookie 解析和 AES 解密操作
 func SharedData() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// 跳过静态资源请求，减少 CPU 消耗
+		path := c.Request.URL.Path
+		if path == "/favicon.ico" ||
+		   len(path) > 1 && (path[1:5] == "static" || path[1:7] == "assets" || path[1:7] == "website") {
+			c.Next()
+			return
+		}
+
 		auth := user.NewAuthHelper(config.GetConfig())
 		// 解析用户登录信息
 		authUser := auth.ParseUserFromCookie(c)

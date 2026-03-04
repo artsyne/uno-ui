@@ -5,7 +5,7 @@
     {{range .Data.PageLinks}}
     {{if $.Data.HxTarget}}
     <a class="border py-2 px-3 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-        href="{{.URL}}" hx-get="{{.URL}}" hx-target="{{$.Data.HxTarget}}" hx-push-url="true" hx-swap="outerHTML">
+        href="{{.URL}}" hx-get="{{.URL}}" hx-target="{{$.Data.HxTarget}}" hx-swap="outerHTML">
         {{.Text}}
     </a>
     {{else}}

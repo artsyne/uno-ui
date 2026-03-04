@@ -30,7 +30,7 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	authUser.DisplayName = req.DisplayName
 	authUser.TimeZone = req.TimeZone
 	authUser.Lang = req.Lang
-	
+
 	ctrl.auth.SetLoginCookie(c, authUser)
 
 	ctrl.renderService.JSONSuccessWithMsg(c, nil, "Profile updated successfully")
