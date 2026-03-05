@@ -107,9 +107,6 @@
                 {{if .Context.AuthUser}}
                 <div class="mt-8 mb-6">
                     <form id="comment_editor_form" class="relative" @submit.prevent="submit" x-uno-valid>
-                        <div class="form-mask">
-                            <div class="loading-spinner"></div>
-                        </div>
                         <textarea x-model="content" name="comment_content" id="comment_content"
                             x-uno-valid="['required', { type: 'length', max: 1000 }]" class="form-control" rows="3"
                             placeholder='{{getMessage "comment.placeholder" .Context.Lang}}'></textarea>

@@ -1,11 +1,7 @@
 {{define "form/entry"}}
 
 <div class="px-4 relative">
-    <div class="form-mask">
-        <div class="loading-spinner">
-        </div>
-    </div>
-    <form id="entry_editor_form" x-uno-valid data-auto-save-enabled="{{getAutoSaveEnabled .}}"
+    <form id="entry_editor_form" class="relative" x-uno-valid data-auto-save-enabled="{{getAutoSaveEnabled .}}"
         data-auto-save-interval="{{getAutoSaveInterval .}}" {{if .Data.Entry}}
         hx-put="/entry/{{.Data.Entry.EntryID}}?source={{.Context.Source}}" {{if eq .Context.Source "drafts"
         }}hx-target="body" hx-swap="none" {{else}}hx-target="#entry-card-{{.Data.Entry.EntryID}}" hx-swap="outerHTML"

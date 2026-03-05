@@ -11,11 +11,18 @@
 export function setFormLoading(form, isLoading) {
   if (!form || form.tagName !== 'FORM') return;
 
-  // 1. Handle Mask (if present)
-  // Look for mask inside the form first, then in the container
+  // 如果表单有 no-loading-mask 类，跳过
+  if (form.classList.contains('no-loading-mask')) return;
+
+  // 查找或创建 mask
   let mask = form.querySelector('.form-mask');
-  if (!mask) {
-    mask = form.parentElement?.querySelector('.form-mask');
+
+  if (!mask && isLoading) {
+    // 动态创建 mask（仅首次加载时创建）
+    mask = document.createElement('div');
+    mask.className = 'form-mask';
+    mask.innerHTML = '<div class="loading-spinner"></div>';
+    form.insertBefore(mask, form.firstChild);
   }
 
   if (mask) {

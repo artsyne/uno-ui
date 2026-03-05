@@ -4,9 +4,6 @@
     <form id="diary_editor_form" class="relative" x-uno-valid {{if .Data.Diary}} hx-put="/diary/{{.Data.Diary.DiaryID}}"
         hx-swap="none" {{else}} hx-post="/diary" hx-target="#diary_list" hx-swap="afterbegin" {{end}}
         hx-trigger="validated" @submit.prevent="validateAndTrigger($el)">
-        <div class="form-mask">
-            <div class="loading-spinner"></div>
-        </div>
         <div class="block mb-4">
             <label class="form-title">{{getMessage "diary.form.name_required" .Context.Lang}} </label>
             <input type="text" class="form-control" id="title" name="title"

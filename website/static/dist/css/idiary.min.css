@@ -3322,6 +3322,7 @@ button.btn-social {
   }
 }
 .text-title {
+  margin-bottom: calc(var(--spacing) * 3);
   font-size: var(--text-lg);
   line-height: var(--tw-leading, var(--text-lg--line-height));
   color: var(--color-gray-900);

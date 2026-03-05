@@ -5,9 +5,6 @@
 <main class="main">
     <section>
         <form class="relative" hx-post="/register" hx-target="#register-error" hx-swap="innerHTML" x-data x-uno-valid novalidate>
-            <div class="form-mask">
-                <div class="loading-spinner"></div>
-            </div>
             <div class="mx-auto my-20 flex flex-col lg:w-2/5">
                 <div class="form-group">
                     <h1 class="form-header">{{getMessage "auth.title.register" .Context.Lang}}</h1>

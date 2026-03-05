@@ -23,12 +23,9 @@
     <section class="mx-auto lg:w-2/3">
         <!-- Profile Card -->
         <div class="mb-8">
-            <div class="card-title">{{getMessage "user.settings.profile_card_title" .Context.Lang}}</div>
+            <div class="card-title text-title">{{getMessage "user.settings.profile_card_title" .Context.Lang}}</div>
             <form id="profile-form" class="relative" x-uno-valid hx-post="/u/settings/profile" hx-swap="none"
                 novalidate>
-                <div class="form-mask">
-                    <div class="loading-spinner"></div>
-                </div>
                 <div>
                     <!-- Avatar -->
                     <div class="my-10 text-center">
@@ -98,13 +95,10 @@
         <!-- Handle Card -->
         <div class="mb-8"
             x-data="handleSettings({{.Data.User.ModifiedUTCTime}}, {{.Data.HandleCooldownDays}}, '{{.Data.User.Handle}}')">
-            <div class="card-title">{{getMessage "user.settings.username_label" .Context.Lang}}</div>
+            <div class="text-title">{{getMessage "user.settings.username_label" .Context.Lang}}</div>
             <form id="handle-form" class="relative" x-uno-valid hx-post="/u/settings/handle" hx-swap="none"
                 @htmx:before-request="handleBeforeRequest($event)" @htmx:after-request="handleAfterRequest($event)"
                 novalidate>
-                <div class="form-mask">
-                    <div class="loading-spinner"></div>
-                </div>
                 <div>
                     <div class="mb-4">
                         <input type="text" class="form-control" id="handle" name="handle" x-model="currentHandle"
@@ -133,17 +127,11 @@
 
         <!-- Email Card -->
         <div class="mb-8">
-            <div class="card-title">{{getMessage "user.settings.email_card_title" .Context.Lang}}</div>
+            <div class="text-title">{{getMessage "user.settings.email_card_title" .Context.Lang}}</div>
             <form id="email-form" class="relative" hx-post="/u/settings/email" hx-swap="none" x-uno-valid novalidate>
-                <div class="form-mask">
-                    <div class="loading-spinner">
-                    </div>
-                </div>
                 <div>
                     <!-- Email -->
                     <div class="mb-4">
-                        <label class="form-title" for="email">{{getMessage "user.settings.email_label"
-                            .Context.Lang}}</label>
                         <input type="email" class="form-control" id="email" name="email"
                             placeholder='{{getMessage "user.settings.email_placeholder" .Context.Lang}}'
                             value="{{.Data.User.Email}}" data-original-value="{{.Data.User.Email}}"
@@ -165,13 +153,9 @@
 
         <!-- Password Card -->
         <div>
-            <div class="card-title">{{getMessage "user.settings.update_password_card_title" .Context.Lang}}</div>
+            <div class="text-title">{{getMessage "user.settings.update_password_card_title" .Context.Lang}}</div>
             <form id="password-form" class="relative" x-uno-valid hx-post="/u/settings/password" hx-swap="none"
                 novalidate>
-                <div class="form-mask">
-                    <div class="loading-spinner">
-                    </div>
-                </div>
                 <div>
                     <!-- Current password -->
                     <div class="mb-4">

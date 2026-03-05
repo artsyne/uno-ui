@@ -7,11 +7,6 @@
         <div id="findpwd-container">
             <form class="relative" hx-post="/findpwd" hx-target="#findpwd-container" hx-swap="innerHTML" x-data x-uno-valid
                 novalidate>
-                <div class="form-mask">
-                    <div
-                        class="loading-spinner">
-                    </div>
-                </div>
                 <div class="flex flex-col my-20 mx-auto lg:w-2/5">
                     <div class="form-group">
                         <h1 class="form-header">{{getMessage "auth.title.find_password" .Context.Lang}}</h1>

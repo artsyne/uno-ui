@@ -2,10 +2,6 @@
 <div class="w-full">
     <form id="inviteAuthorForm" hx-post="/diary/{{.DiaryID}}/authors" hx-trigger="submit" hx-target="this"
         hx-swap="none" x-data="{ inviteeIdentity: '' }" x-uno-valid>
-        <div class="form-mask">
-            <div class="loading-spinner"></div>
-        </div>
-
         <div class="mb-4">
             <div class="relative">
                 <input type="text" id="invitee_identity" name="invitee_identity" x-model="inviteeIdentity"
