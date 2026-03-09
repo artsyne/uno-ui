@@ -70,7 +70,8 @@ CREATE TABLE `br_comment` (
   `add_user_id` bigint unsigned NOT NULL COMMENT '创建用户ID',
   `add_user_ip` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '创建用户IP地址',
   PRIMARY KEY (`comment_id`),
-  KEY `uk_entry_time` (`entry_id`,`add_utc_time` DESC)
+  KEY `uk_entry_time` (`entry_id`,`add_utc_time` DESC),
+  KEY `idx_entry_comment` (`entry_id`,`comment_id` DESC)
 ) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='评论表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -100,7 +101,7 @@ CREATE TABLE `br_diary` (
   `theme_id` tinyint unsigned NOT NULL DEFAULT '16' COMMENT '主题ID',
   `status` tinyint unsigned NOT NULL COMMENT '状态(0:删除 1:正常)',
   PRIMARY KEY (`diary_id`),
-  KEY `idx_add_user_id` (`add_user_id`)
+  KEY `idx_user_diary` (`add_user_id`,`diary_id` DESC)
 ) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='日记本表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -136,7 +137,8 @@ CREATE TABLE `br_diary_author` (
   `join_utc_time` bigint unsigned NOT NULL DEFAULT '0' COMMENT '加入时间(UTC时间戳)',
   `post_num` int unsigned NOT NULL DEFAULT '0' COMMENT '发表文章数',
   `status` tinyint unsigned NOT NULL DEFAULT '2' COMMENT '状态(1:活跃 2:待确认)',
-  PRIMARY KEY (`diary_id`,`user_id`)
+  PRIMARY KEY (`diary_id`,`user_id`),
+  KEY `idx_user_status_join` (`user_id`,`status`,`join_utc_time` DESC)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='日记本作者表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -164,7 +166,9 @@ CREATE TABLE `br_entry` (
   `update_utc_time` bigint unsigned NOT NULL DEFAULT '0' COMMENT '更新时间(UTC时间戳)',
   `status` tinyint unsigned NOT NULL DEFAULT '1' COMMENT '状态(0:删除 1:正常 2:草稿)',
   PRIMARY KEY (`entry_id`),
-  KEY `uk_diary_time` (`diary_id`,`add_utc_time` DESC)
+  KEY `uk_diary_time` (`diary_id`,`add_utc_time` DESC),
+  KEY `idx_diary_status_entry` (`diary_id`,`status`,`entry_id` DESC),
+  KEY `idx_user_status_update` (`add_user_id`,`status`,`update_utc_time` DESC)
 ) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='日记表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -203,7 +207,7 @@ CREATE TABLE `br_job_queue` (
   `add_utc_time` bigint unsigned NOT NULL COMMENT '添加时间(UTC时间戳)',
   `plan_utc_time` bigint unsigned NOT NULL COMMENT '计划执行时间(UTC时间戳)',
   PRIMARY KEY (`job_id`),
-  KEY `job_type` (`job_type`)
+  KEY `idx_job_type_id` (`job_type`,`job_id` DESC)
 ) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='任务队列表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -220,7 +224,8 @@ CREATE TABLE `br_like` (
   `owner_id` bigint unsigned NOT NULL COMMENT '被点赞对象ID(日记或日记本)',
   `like_type` tinyint unsigned NOT NULL COMMENT '点赞类型(1:日记 2:日记本)',
   PRIMARY KEY (`like_id`),
-  UNIQUE KEY `uk_user_owner_type` (`user_id`,`owner_id`,`like_type`)
+  UNIQUE KEY `uk_user_owner_type` (`user_id`,`owner_id`,`like_type`),
+  KEY `idx_owner_type` (`owner_id`,`like_type`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='点赞表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
