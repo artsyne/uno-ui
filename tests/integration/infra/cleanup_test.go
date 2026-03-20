@@ -80,6 +80,20 @@ func TestDataCleanup(t *testing.T) {
 }
 
 func recordExists(db *sql.DB, table, pk string, id int64) bool {
+	// 使用白名单验证表名和主键名，防止 SQL 注入
+	validTables := map[string]string{
+		"br_user":    "user_id",
+		"br_diary":   "diary_id",
+		"br_entry":   "entry_id",
+		"br_comment": "comment_id",
+		"br_like":    "like_id",
+	}
+
+	expectedPK, ok := validTables[table]
+	if !ok || expectedPK != pk {
+		return false
+	}
+
 	var count int
 	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s = ?", table, pk)
 	err := db.QueryRow(query, id).Scan(&count)

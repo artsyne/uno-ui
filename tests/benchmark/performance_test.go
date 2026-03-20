@@ -14,7 +14,7 @@ import (
 	"github.com/biuren/hebe/internal/infra/repository"
 	"github.com/biuren/hebe/internal/utils/i18n"
 	"github.com/biuren/hebe/tests/framework"
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 )
 
 // 全局测试上下文和服务，避免重复初始化

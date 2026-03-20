@@ -7,7 +7,7 @@ import (
 
 	"github.com/biuren/hebe/internal/infra/cache"
 	framework "github.com/biuren/hebe/tests/framework"
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

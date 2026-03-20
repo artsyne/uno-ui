@@ -14,7 +14,7 @@ describe('Form Module', () => {
     document.body.innerHTML = `
       <div id="container">
         <form id="test-form">
-          <div class="form-mask" style="display: none;"></div>
+          <div class="form-mask" style="visibility: hidden; opacity: 0;"></div>
           <input type="text" name="username" />
           <button type="submit">Submit</button>
         </form>
@@ -28,6 +28,11 @@ describe('Form Module', () => {
     submitBtn = form.querySelector('button[type="submit"]');
     externalBtn = document.getElementById('external-btn');
 
+    // Mock requestAnimationFrame for synchronous testing
+    global.requestAnimationFrame = (callback) => {
+      setTimeout(callback, 0);
+    };
+
     // Initialize handlers
     initFormHandlers();
   });
@@ -38,66 +43,90 @@ describe('Form Module', () => {
   });
 
   describe('setFormLoading', () => {
-    test('should show mask but NOT disable inputs when loading is true', () => {
+    test('should show mask but NOT disable inputs when loading is true', async () => {
       setFormLoading(form, true);
 
-      expect(mask.style.display).toBe('flex');
+      expect(mask.style.visibility).toBe('visible');
+
+      // Wait a bit for requestAnimationFrame
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      expect(mask.style.opacity).toBe('1');
       // Inputs should remain enabled because mask handles interaction blocking via z-index
       expect(input.disabled).toBe(false);
       expect(submitBtn.disabled).toBe(false);
       expect(externalBtn.disabled).toBe(false);
     });
 
-    test('should hide mask when loading is false', () => {
+    test('should hide mask when loading is false', async () => {
       // First set to loading
       setFormLoading(form, true);
-      
+
+      // Wait for loading to be applied
+      await new Promise(resolve => setTimeout(resolve, 10));
+
       // Then set to not loading
       setFormLoading(form, false);
 
-      expect(mask.style.display).toBe('none');
+      expect(mask.style.opacity).toBe('0');
+
+      // Wait for transition to complete
+      await new Promise(resolve => setTimeout(resolve, 350));
+
+      expect(mask.style.visibility).toBe('hidden');
     });
 
-    test('should look for mask in parent if not found in form', () => {
-      // Reconstruct DOM with mask outside form
-      document.body.innerHTML = `
-        <div id="container" class="relative">
-          <div class="form-mask" style="display: none;"></div>
-          <form id="test-form">
-            <input type="text" name="username" />
-            <button type="submit">Submit</button>
-          </form>
-        </div>
-      `;
-      
-      form = document.getElementById('test-form');
-      mask = document.querySelector('.form-mask'); // It's outside form now
-      
+    test('should create mask inside form if not found', async () => {
+      // Remove existing mask
+      form.removeChild(mask);
+
       setFormLoading(form, true);
-      expect(mask.style.display).toBe('flex');
+
+      // Should create a new mask inside the form
+      const newMask = form.querySelector('.form-mask');
+      expect(newMask).toBeTruthy();
+      expect(newMask.style.visibility).toBe('visible');
+
+      // Wait for requestAnimationFrame
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      expect(newMask.style.opacity).toBe('1');
     });
   });
 
   describe('HTMX Event Integration', () => {
-    test('should trigger loading on htmx:beforeRequest', () => {
+    test('should trigger loading on htmx:beforeRequest', async () => {
       const event = new CustomEvent('htmx:beforeRequest', {
         detail: { elt: form }
       });
       document.body.dispatchEvent(event);
 
-      expect(mask.style.display).toBe('flex');
+      expect(mask.style.visibility).toBe('visible');
+
+      // Wait for requestAnimationFrame
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      expect(mask.style.opacity).toBe('1');
     });
 
-    test('should stop loading on htmx:afterRequest', () => {
+    test('should stop loading on htmx:afterRequest', async () => {
       // Set loading first
       setFormLoading(form, true);
+
+      // Wait for loading to be applied
+      await new Promise(resolve => setTimeout(resolve, 10));
 
       const event = new CustomEvent('htmx:afterRequest', {
         detail: { elt: form }
       });
       document.body.dispatchEvent(event);
 
-      expect(mask.style.display).toBe('none');
+      expect(mask.style.opacity).toBe('0');
+
+      // Wait for visibility transition
+      await new Promise(resolve => setTimeout(resolve, 350));
+
+      expect(mask.style.visibility).toBe('hidden');
     });
   });
 });

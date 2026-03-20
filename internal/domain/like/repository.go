@@ -11,4 +11,7 @@ type Repository interface {
 	// GetLikeCount 获取点赞总数（从 owner 对象获取，不查询 br_like 表）
 	GetLikeCount(ownerID int64, likeType int) (int, error)
 
+	// BatchIsLiked 批量检查用户对多个对象是否已点赞
+	// 返回 map[ownerID]bool 表示每个对象的点赞状态
+	BatchIsLiked(userID int64, ownerIDs []int64, likeType int) (map[int64]bool, error)
 }

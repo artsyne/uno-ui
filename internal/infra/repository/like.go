@@ -84,3 +84,42 @@ func (r *LikeRepository) GetLikeCount(ownerID int64, likeType int) (int, error) 
 
 	return count, nil
 }
+
+// BatchIsLiked 批量检查用户对多个对象是否已点赞
+// 返回 map[ownerID]bool 表示每个对象的点赞状态
+func (r *LikeRepository) BatchIsLiked(userID int64, ownerIDs []int64, likeType int) (map[int64]bool, error) {
+	result := make(map[int64]bool)
+
+	// 初始化所有为 false
+	for _, ownerID := range ownerIDs {
+		result[ownerID] = false
+	}
+
+	if len(ownerIDs) == 0 {
+		return result, nil
+	}
+
+	// 构建 IN 查询
+	query, args, err := sqlx.In(
+		`SELECT owner_id FROM br_like WHERE user_id = ? AND like_type = ? AND owner_id IN (?)`,
+		userID, likeType, ownerIDs,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("构建查询失败: %w", err)
+	}
+
+	query = r.db.Rebind(query)
+
+	var likedOwnerIDs []int64
+	err = r.db.Select(&likedOwnerIDs, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("查询点赞状态失败: %w", err)
+	}
+
+	// 标记已点赞的对象
+	for _, ownerID := range likedOwnerIDs {
+		result[ownerID] = true
+	}
+
+	return result, nil
+}

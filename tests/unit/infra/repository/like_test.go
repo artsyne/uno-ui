@@ -95,3 +95,71 @@ func TestLikeRepository_GetLikeCount(t *testing.T) {
 
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
+
+func TestLikeRepository_BatchIsLiked(t *testing.T) {
+	repo, mock := setupLikeTestRepo(t)
+	userID := int64(1)
+	ownerIDs := []int64{101, 102, 103}
+	likeType := 1
+
+	// 设置期望的查询 - 返回 101 和 103 被点赞
+	rows := sqlmock.NewRows([]string{"owner_id"}).
+		AddRow(101).
+		AddRow(103)
+
+	mock.ExpectQuery("SELECT owner_id FROM br_like WHERE").
+		WithArgs(userID, likeType, ownerIDs[0], ownerIDs[1], ownerIDs[2]).
+		WillReturnRows(rows)
+
+	// 执行测试
+	result, err := repo.BatchIsLiked(userID, ownerIDs, likeType)
+
+	// 验证结果
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Len(t, result, 3)
+	assert.True(t, result[101], "Owner 101 should be liked")
+	assert.False(t, result[102], "Owner 102 should not be liked")
+	assert.True(t, result[103], "Owner 103 should be liked")
+
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestLikeRepository_BatchIsLiked_Empty(t *testing.T) {
+	repo, _ := setupLikeTestRepo(t)
+
+	// 测试空数组
+	result, err := repo.BatchIsLiked(1, []int64{}, 1)
+
+	// 验证结果
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Len(t, result, 0)
+}
+
+func TestLikeRepository_BatchIsLiked_NoLikes(t *testing.T) {
+	repo, mock := setupLikeTestRepo(t)
+	userID := int64(1)
+	ownerIDs := []int64{101, 102, 103}
+	likeType := 1
+
+	// 设置期望的查询 - 没有任何点赞
+	rows := sqlmock.NewRows([]string{"owner_id"})
+
+	mock.ExpectQuery("SELECT owner_id FROM br_like WHERE").
+		WithArgs(userID, likeType, ownerIDs[0], ownerIDs[1], ownerIDs[2]).
+		WillReturnRows(rows)
+
+	// 执行测试
+	result, err := repo.BatchIsLiked(userID, ownerIDs, likeType)
+
+	// 验证结果
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Len(t, result, 3)
+	assert.False(t, result[101])
+	assert.False(t, result[102])
+	assert.False(t, result[103])
+
+	assert.NoError(t, mock.ExpectationsWereMet())
+}

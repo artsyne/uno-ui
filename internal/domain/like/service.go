@@ -15,6 +15,10 @@ type Service interface {
 	// GetLikeCount 获取点赞总数（从 owner 对象获取，不查询 br_like 表）
 	// 注意：此方法已废弃，推荐通过 owner 对象的 likeNum 字段获取
 	GetLikeCount(ownerID int64, likeType int) (int, error)
+
+	// BatchIsLiked 批量检查用户对多个对象是否已点赞
+	// 返回 map[ownerID]bool 表示每个对象的点赞状态
+	BatchIsLiked(userID int64, ownerIDs []int64, likeType int) (map[int64]bool, error)
 }
 
 // LikeStatus 点赞状态信息
@@ -63,4 +67,9 @@ func (s *LikeService) GetLikeStatus(userID, ownerID int64, likeType int) (*LikeS
 		IsLiked:   isLiked,
 		LikeCount: 0,
 	}, nil
+}
+
+// BatchIsLiked 批量检查用户对多个对象是否已点赞
+func (s *LikeService) BatchIsLiked(userID int64, ownerIDs []int64, likeType int) (map[int64]bool, error) {
+	return s.repo.BatchIsLiked(userID, ownerIDs, likeType)
 }

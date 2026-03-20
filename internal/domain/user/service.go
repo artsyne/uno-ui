@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"math"
@@ -13,7 +14,7 @@ import (
 	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/internal/utils/i18n"
 	"github.com/biuren/hebe/pkg"
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 )
 
 // Service 用户业务逻辑层实现
@@ -110,8 +111,9 @@ func (s *Service) checkBruteForce(userID int64) error {
 		return nil
 	}
 
+	ctx := context.Background()
 	key := fmt.Sprintf("brute_force:uid:%d", userID)
-	count, err := s.redis.Get(key).Int()
+	count, err := s.redis.Get(ctx, key).Int()
 	if err != nil && err != redis.Nil {
 		// Redis错误，降级处理，允许通过
 		return nil
@@ -132,19 +134,20 @@ func (s *Service) recordLoginFailure(userID int64) {
 		return
 	}
 
+	ctx := context.Background()
 	key := fmt.Sprintf("brute_force:uid:%d", userID)
 
 	// 使用Pipeline原子操作
 	pipe := s.redis.Pipeline()
-	incr := pipe.Incr(key)
-	if _, err := pipe.Exec(); err != nil {
+	incr := pipe.Incr(ctx, key)
+	if _, err := pipe.Exec(ctx); err != nil {
 		slog.Error("登录失败记录写入失败", "error", err, "user_id", userID)
 		return
 	}
 
 	// 如果是第一次失败（计数为1），设置过期时间
 	if incr.Val() == 1 {
-		s.redis.Expire(key, time.Duration(s.config.BruteForce.LockoutMinutes)*time.Minute)
+		s.redis.Expire(ctx, key, time.Duration(s.config.BruteForce.LockoutMinutes)*time.Minute)
 	}
 }
 
@@ -154,8 +157,9 @@ func (s *Service) clearLoginFailure(userID int64) {
 		return
 	}
 
+	ctx := context.Background()
 	key := fmt.Sprintf("brute_force:uid:%d", userID)
-	s.redis.Del(key)
+	s.redis.Del(ctx, key)
 }
 
 // ActivateUser 激活用户

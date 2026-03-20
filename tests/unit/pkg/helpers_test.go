@@ -480,8 +480,15 @@ func TestHelpersIntegration(t *testing.T) {
 	})
 	
 	t.Run("生成有效的随机密码", func(t *testing.T) {
-		// 生成一个8位的随机密码
-		password := pkg.Rand(8, pkg.RAND_KIND_ALL)
+		// 生成一个8位的随机密码，由于Rand是纯随机的，有极小概率只生成字母或只生成数字
+		// 而IsPwd要求必须包含字母和数字，因此如果生成的不符合要求则重试
+		var password string
+		for i := 0; i < 100; i++ {
+			password = pkg.Rand(8, pkg.RAND_KIND_ALL)
+			if pkg.IsPwd(password) {
+				break
+			}
+		}
 		
 		// 验证生成的密码是否有效
 		isValid := pkg.IsPwd(password)

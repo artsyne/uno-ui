@@ -8,14 +8,15 @@ import (
 	"github.com/biuren/hebe/internal/utils/config"
 	"github.com/biuren/hebe/internal/utils/errors"
 	"github.com/biuren/hebe/pkg"
-	"github.com/jasonlvhit/gocron"
+	"github.com/robfig/cron/v3"
 )
 
 // Service 任务业务逻辑层实现
 // 负责处理所有与任务相关的业务逻辑和规则验证
 type Service struct {
-	config *config.Config       // 配置管理器
-	repo   RepositoryInterface  // 任务数据访问层接口
+	config    *config.Config       // 配置管理器
+	repo      RepositoryInterface  // 任务数据访问层接口
+	scheduler *cron.Cron          // 定时任务调度器
 }
 
 // NewService 创建新的任务业务逻辑层实例
@@ -26,8 +27,9 @@ type Service struct {
 //   - *Service: 任务业务逻辑层实例
 func NewService(config *config.Config, repo RepositoryInterface) *Service {
 	return &Service{
-		config: config,
-		repo:   repo,
+		config:    config,
+		repo:      repo,
+		scheduler: cron.New(cron.WithSeconds()), // 支持秒级调度
 	}
 }
 
@@ -37,21 +39,33 @@ func NewService(config *config.Config, repo RepositoryInterface) *Service {
 // 初始化并启动所有定时任务
 // 注意: 该方法会清除之前的任务，避免重复注册
 func (s *Service) StartScheduler() {
-	// 清除之前的任务，避免重复注册
-	gocron.Clear()
-	
-	// 设置定时任务
-	if err := gocron.Every(10).Seconds().Do(s.ProcessEmailTasks); err != nil {
+	// 停止之前的任务（如果有的话）
+	if s.scheduler != nil {
+		s.scheduler.Stop()
+		s.scheduler = cron.New(cron.WithSeconds())
+	}
+
+	// 设置定时任务 - 每10秒执行一次
+	_, err := s.scheduler.AddFunc("*/10 * * * * *", func() {
+		s.ProcessEmailTasks()
+	})
+	if err != nil {
 		slog.Error("定时任务注册失败", "error", err)
 		return
 	}
 
-	// 在后台启动定时任务，避免阻塞主线程
-	go func() {
-		gocron.Start()
-	}()
+	// 启动调度器
+	s.scheduler.Start()
 
 	slog.Info("定时任务已启动，每10秒执行一次邮件任务")
+}
+
+// StopScheduler 停止定时任务调度器
+func (s *Service) StopScheduler() {
+	if s.scheduler != nil {
+		s.scheduler.Stop()
+		slog.Info("定时任务调度器已停止")
+	}
 }
 
 // ProcessEmailTasks 处理邮件任务

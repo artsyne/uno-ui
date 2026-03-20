@@ -149,49 +149,65 @@ func (cm *CleanupManagerImpl) getTablesInCleanupOrder() []string {
 
 // cleanupTableByPrefix 按前缀清理表
 func (cm *CleanupManagerImpl) cleanupTableByPrefix(table string) (int, error) {
-	// 根据表的特点选择清理字段
-	var whereClause string
+	// 使用白名单验证表名，防止 SQL 注入
+	validTables := map[string]bool{
+		"br_user":         true,
+		"br_diary":        true,
+		"br_entry":        true,
+		"br_comment":      true,
+		"br_like":         true,
+		"br_follow":       true,
+		"br_diary_author": true,
+		"br_job_queue":    true,
+		"br_job_history":  true,
+	}
 
-	switch table {
-	case "br_user":
-		// User table uses handle (formerly user_name)
-		whereClause = fmt.Sprintf("handle LIKE '%s%%' OR email LIKE '%s%%'",
-			cm.isolator.GetPrefix(), cm.isolator.GetPrefix())
-	case "br_diary":
-		// Clean by title prefix OR by users with prefix
-		whereClause = fmt.Sprintf("title LIKE '%s%%' OR add_user_id IN (SELECT user_id FROM br_user WHERE handle LIKE '%s%%')",
-			cm.isolator.GetPrefix(), cm.isolator.GetPrefix())
-	case "br_entry":
-		// Clean by title prefix OR by users with prefix
-		whereClause = fmt.Sprintf("title LIKE '%s%%' OR add_user_id IN (SELECT user_id FROM br_user WHERE handle LIKE '%s%%')",
-			cm.isolator.GetPrefix(), cm.isolator.GetPrefix())
-	case "br_comment":
-		// Clean comments by users with prefix
-		whereClause = fmt.Sprintf("add_user_id IN (SELECT user_id FROM br_user WHERE handle LIKE '%s%%')",
-			cm.isolator.GetPrefix())
-	case "br_like":
-		// Clean likes by users with prefix
-		whereClause = fmt.Sprintf("user_id IN (SELECT user_id FROM br_user WHERE handle LIKE '%s%%')",
-			cm.isolator.GetPrefix())
-	case "br_follow":
-		// Clean follows by users with prefix
-		whereClause = fmt.Sprintf("user_id IN (SELECT user_id FROM br_user WHERE handle LIKE '%s%%')",
-			cm.isolator.GetPrefix())
-	case "br_diary_author":
-		// Clean members by users with prefix
-		whereClause = fmt.Sprintf("user_id IN (SELECT user_id FROM br_user WHERE handle LIKE '%s%%')",
-			cm.isolator.GetPrefix())
-	case "br_job_queue", "br_job_history":
-		whereClause = fmt.Sprintf("body LIKE '%%%s%%'", cm.isolator.GetPrefix())
-	default:
-		// 通用清理逻辑，查找包含前缀的记录
+	if !validTables[table] {
 		slog.Debug("未知表，跳过清理", "table", table)
 		return 0, nil
 	}
 
-	query := fmt.Sprintf("DELETE FROM %s WHERE %s", table, whereClause)
+	prefix := cm.isolator.GetPrefix() + "%"
+	var query string
+	var args []interface{}
 
-	result, err := cm.db.Exec(query)
+	switch table {
+	case "br_user":
+		// User table uses handle (formerly user_name)
+		query = "DELETE FROM br_user WHERE handle LIKE ? OR email LIKE ?"
+		args = []interface{}{prefix, prefix}
+	case "br_diary":
+		// Clean by title prefix OR by users with prefix
+		query = "DELETE FROM br_diary WHERE title LIKE ? OR add_user_id IN (SELECT user_id FROM br_user WHERE handle LIKE ?)"
+		args = []interface{}{prefix, prefix}
+	case "br_entry":
+		// Clean by title prefix OR by users with prefix
+		query = "DELETE FROM br_entry WHERE title LIKE ? OR add_user_id IN (SELECT user_id FROM br_user WHERE handle LIKE ?)"
+		args = []interface{}{prefix, prefix}
+	case "br_comment":
+		// Clean comments by users with prefix
+		query = "DELETE FROM br_comment WHERE add_user_id IN (SELECT user_id FROM br_user WHERE handle LIKE ?)"
+		args = []interface{}{prefix}
+	case "br_like":
+		// Clean likes by users with prefix
+		query = "DELETE FROM br_like WHERE user_id IN (SELECT user_id FROM br_user WHERE handle LIKE ?)"
+		args = []interface{}{prefix}
+	case "br_follow":
+		// Clean follows by users with prefix
+		query = "DELETE FROM br_follow WHERE user_id IN (SELECT user_id FROM br_user WHERE handle LIKE ?)"
+		args = []interface{}{prefix}
+	case "br_diary_author":
+		// Clean members by users with prefix
+		query = "DELETE FROM br_diary_author WHERE user_id IN (SELECT user_id FROM br_user WHERE handle LIKE ?)"
+		args = []interface{}{prefix}
+	case "br_job_queue", "br_job_history":
+		// 对于 body 字段的 LIKE 查询需要特殊处理
+		bodyPattern := "%" + cm.isolator.GetPrefix() + "%"
+		query = "DELETE FROM " + table + " WHERE body LIKE ?"
+		args = []interface{}{bodyPattern}
+	}
+
+	result, err := cm.db.Exec(query, args...)
 	if err != nil {
 		return 0, fmt.Errorf("执行清理失败: %w", err)
 	}
@@ -210,30 +226,20 @@ func (cm *CleanupManagerImpl) cleanupTableByIDs(table string, ids []interface{})
 		return 0, nil
 	}
 
-	// 构建ID列表
-	var idStrs []string
-	for _, id := range ids {
-		idStrs = append(idStrs, fmt.Sprintf("%v", id))
+	// 定义表和主键的映射关系（白名单）
+	tablePrimaryKeys := map[string]string{
+		"br_user":        "user_id",
+		"br_diary":       "diary_id",
+		"br_entry":       "entry_id",
+		"br_comment":     "comment_id",
+		"br_job_queue":   "job_id",
+		"br_job_history": "job_id",
+		"br_valid_code":  "valid_code_id",
+		"br_like":        "like_id",
 	}
 
-	// 根据表确定主键字段名
-	var primaryKey string
-	switch table {
-	case "br_user":
-		primaryKey = "user_id"
-	case "br_diary":
-		primaryKey = "diary_id"
-	case "br_entry":
-		primaryKey = "entry_id"
-	case "br_comment":
-		primaryKey = "comment_id"
-	case "br_job_queue", "br_job_history":
-		primaryKey = "job_id"
-	case "br_valid_code":
-		primaryKey = "valid_code_id"
-	case "br_like":
-		primaryKey = "like_id"
-	default:
+	primaryKey, ok := tablePrimaryKeys[table]
+	if !ok {
 		return 0, fmt.Errorf("未知表: %s", table)
 	}
 
@@ -241,17 +247,25 @@ func (cm *CleanupManagerImpl) cleanupTableByIDs(table string, ids []interface{})
 	batchSize := cm.config.Cleanup.BatchSize
 	totalCleaned := 0
 
-	for i := 0; i < len(idStrs); i += batchSize {
+	for i := 0; i < len(ids); i += batchSize {
 		end := i + batchSize
-		if end > len(idStrs) {
-			end = len(idStrs)
+		if end > len(ids) {
+			end = len(ids)
 		}
 
-		batch := idStrs[i:end]
-		query := fmt.Sprintf("DELETE FROM %s WHERE %s IN (%s)",
-			table, primaryKey, strings.Join(batch, ","))
+		batch := ids[i:end]
 
-		result, err := cm.db.Exec(query)
+		// 构建参数化查询
+		placeholders := make([]string, len(batch))
+		for j := range placeholders {
+			placeholders[j] = "?"
+		}
+
+		// 使用参数化查询，防止 SQL 注入
+		query := fmt.Sprintf("DELETE FROM %s WHERE %s IN (%s)",
+			table, primaryKey, strings.Join(placeholders, ","))
+
+		result, err := cm.db.Exec(query, batch...)
 		if err != nil {
 			slog.Error("批量清理失败", "table", table, "batch", len(batch), "error", err)
 			continue

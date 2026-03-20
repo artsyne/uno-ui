@@ -1,12 +1,13 @@
 package cache
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/biuren/hebe/internal/utils/config"
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 )
 
 // NewRedisClient 创建Redis客户端
@@ -17,7 +18,8 @@ func NewRedisClient(cfg config.RedisConfig) (*redis.Client, error) {
 		DB:       0,
 	})
 
-	_, err := client.Ping().Result()
+	ctx := context.Background()
+	_, err := client.Ping(ctx).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -43,28 +45,32 @@ func NewManager(client *redis.Client) *Manager {
 // value: 缓存值（支持 string, int, bool, []byte 等基本类型）
 // expiration: 过期时间，0 表示永不过期。单位：time.Duration (如 time.Second, time.Hour)
 func (m *Manager) Set(key string, value interface{}, expiration time.Duration) error {
-	return m.client.Set(key, value, expiration).Err()
+	ctx := context.Background()
+	return m.client.Set(ctx, key, value, expiration).Err()
 }
 
 // Get 获取字符串值
 // key: 缓存键
 // 返回: 字符串值，如果键不存在返回 redis.Nil 错误
 func (m *Manager) Get(key string) (string, error) {
-	return m.client.Get(key).Result()
+	ctx := context.Background()
+	return m.client.Get(ctx, key).Result()
 }
 
 // Del 删除键
 // key: 缓存键
 // 返回: 错误信息
 func (m *Manager) Del(key string) error {
-	return m.client.Del(key).Err()
+	ctx := context.Background()
+	return m.client.Del(ctx, key).Err()
 }
 
 // Exists 检查键是否存在
 // key: 缓存键
 // 返回: true 存在, false 不存在
 func (m *Manager) Exists(key string) (bool, error) {
-	count, err := m.client.Exists(key).Result()
+	ctx := context.Background()
+	count, err := m.client.Exists(ctx, key).Result()
 	if err != nil {
 		return false, err
 	}
@@ -75,7 +81,8 @@ func (m *Manager) Exists(key string) (bool, error) {
 // key: 缓存键
 // expiration: 过期时间。单位：time.Duration (如 time.Second, time.Hour)
 func (m *Manager) Expire(key string, expiration time.Duration) error {
-	return m.client.Expire(key, expiration).Err()
+	ctx := context.Background()
+	return m.client.Expire(ctx, key, expiration).Err()
 }
 
 // SetJSON 将对象序列化为JSON存储
@@ -87,14 +94,16 @@ func (m *Manager) SetJSON(key string, value interface{}, expiration time.Duratio
 	if err != nil {
 		return err
 	}
-	return m.client.Set(key, jsonBytes, expiration).Err()
+	ctx := context.Background()
+	return m.client.Set(ctx, key, jsonBytes, expiration).Err()
 }
 
 // GetJSON 获取JSON数据并反序列化到对象中
 // key: 缓存键
 // dest: 目标对象指针，用于接收反序列化后的数据
 func (m *Manager) GetJSON(key string, dest interface{}) error {
-	val, err := m.client.Get(key).Result()
+	ctx := context.Background()
+	val, err := m.client.Get(ctx, key).Result()
 	if err != nil {
 		return err
 	}

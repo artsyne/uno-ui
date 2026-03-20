@@ -608,20 +608,21 @@ func (ctrl *EntryController) GetEntriesLikeStatus(c *gin.Context) {
 		userID = loginUser.UserId
 	}
 
+	// 批量获取点赞状态，避免 N+1 查询
+	likeStatusMap, err := ctrl.likeService.BatchIsLiked(userID, entryIDs, like.LikeTypeEntry)
+	if err != nil {
+		slog.Error("批量获取点赞状态失败", "error", err, "user_id", userID)
+		ctrl.renderService.JSONError(c, errors.DatabaseError.WithDetails("获取点赞状态失败"))
+		return
+	}
+
 	// 构建响应数据
 	statusResponse := make([]EntryLikeStatusResponse, 0, len(entryIDs))
 	for _, entryID := range entryIDs {
-		// 获取点赞状态
-		status, err := ctrl.likeService.GetLikeStatus(userID, entryID, like.LikeTypeEntry)
-		if err != nil {
-			slog.Error("获取点赞状态失败", "error", err, "user_id", userID, "entry_id", entryID)
-			// 对于单个日记的错误，我们继续处理其他日记，但记录错误
-			continue
-		}
-
+		isLiked := likeStatusMap[entryID]
 		statusResponse = append(statusResponse, EntryLikeStatusResponse{
 			EntryID: entryID,
-			Liked:   status.IsLiked,
+			Liked:   isLiked,
 		})
 	}
 
