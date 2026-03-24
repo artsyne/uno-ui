@@ -1,6 +1,7 @@
 package services_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -40,7 +41,7 @@ func TestUserDiaryIntegration(t *testing.T) {
 		DB:       0,
 	})
 	// 确保Redis状态干净，避免因历史数据导致账户锁定等问题
-	redisClient.FlushDB()
+	redisClient.FlushDB(context.Background())
 	
 	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
 	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)

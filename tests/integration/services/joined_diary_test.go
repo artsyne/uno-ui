@@ -1,6 +1,7 @@
 package services_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -29,10 +30,10 @@ func TestJoinedDiariesExclusion(t *testing.T) {
 	taskRepo := repository.NewTaskRepository()
 	diaryRepo := repository.NewDiaryRepository()
 	config := ctx.GetConfig().GetAppConfig()
-    
-    // Explicitly set config for test stability
-    config.App.UserJoinedDiariesLimit = 50
-    config.App.DefaultLang = "zh-cn"
+
+	// Explicitly set config for test stability
+	config.App.UserJoinedDiariesLimit = 50
+	config.App.DefaultLang = "zh-cn"
 
 	taskService := task.NewService(config, taskRepo)
 	i18nManager := i18n.NewLocalizationManager(config)
@@ -42,7 +43,7 @@ func TestJoinedDiariesExclusion(t *testing.T) {
 		Password: config.Redis.Password,
 		DB:       0,
 	})
-	redisClient.FlushDB()
+	redisClient.FlushDB(context.Background())
 
 	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
 	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
@@ -96,7 +97,7 @@ func TestJoinedDiariesExclusion(t *testing.T) {
 		// Should ONLY contain Other's Diary
 		joined, err := diaryService.ListJoinedDiariesByUserID(me.UserId)
 		require.NoError(t, err)
-		
+
 		assert.Equal(t, 1, len(joined), "Should have exactly 1 joined diary")
 		if len(joined) > 0 {
 			assert.Equal(t, idOther, joined[0].DiaryID, "Should be Other's diary")
@@ -139,7 +140,7 @@ func TestDiaryVisibility(t *testing.T) {
 		Password: config.Redis.Password,
 		DB:       0,
 	})
-	redisClient.FlushDB()
+	redisClient.FlushDB(context.Background())
 
 	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
 	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)

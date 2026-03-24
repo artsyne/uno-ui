@@ -1,6 +1,7 @@
 package infra_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -29,7 +30,7 @@ func TestRedisManager(t *testing.T) {
 		DB:       0,
 	})
 
-	_, err := client.Ping().Result()
+	_, err := client.Ping(context.Background()).Result()
 	if err != nil {
 		t.Logf("Redis ping failed: %v", err)
 		// t.Skip("Redis not available, skipping cache tests")

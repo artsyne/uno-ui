@@ -8,7 +8,6 @@ tmp/
 
 # IDE和编辑器文件
 .idea/
-.qoder/
 .vscode/
 *.swp
 *.swo

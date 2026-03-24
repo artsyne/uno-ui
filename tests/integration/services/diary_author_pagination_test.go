@@ -1,6 +1,7 @@
 package services_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -42,7 +43,7 @@ func TestDiaryAuthorPagination(t *testing.T) {
 		Password: config.Redis.Password,
 		DB:       0,
 	})
-	redisClient.FlushDB()
+	redisClient.FlushDB(context.Background())
 
 	userService := user.NewService(config, userRepo, taskService, i18nManager, redisClient)
 	diaryService := diary.NewService(config, diaryRepo, userService, taskService, i18nManager)
