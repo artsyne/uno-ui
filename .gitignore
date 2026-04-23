@@ -1,51 +1,8 @@
-# 依赖目录
+
+# Playwright
 node_modules/
-
-
-# 临时文件
-tmp/
-*.tmp
-
-# IDE和编辑器文件
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-
-# AI 工具配置
-.claude/
-.qoder/
-.trae/
-
-# 部署配置
-.vercel/
-
-# 操作系统文件
-.DS_Store
-Thumbs.db
-
-# 日志文件
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# 环境变量
-
-/cmd/idiary/logs/
-/upload
-config/config.json
-/cmd/idiary/*.exe
-/vendor/
-/logs/
-/ai/
-/__debug_bin/
-
-# oldsrc 中的日志和工具配置
-oldsrc/logs/
-oldsrc/.claude/
-oldsrc/.qoder/
-oldsrc/.trae/
-oldsrc/.vercel/
-oldsrc/__debug_bin
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

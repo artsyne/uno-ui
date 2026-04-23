@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Uno Box Comprehensive Test</title>
+  <link rel="stylesheet" href="../examples.css" />
+  <script src="../examples.js" defer></script>
+  <script src="../theme.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
+  <script src="../../dist/uno.umd.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
+</head>
+
+<body
+  class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen pb-20 transition-colors duration-200">
+  <!-- Header -->
+  <header
+    class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-40 border-b border-slate-200 dark:border-slate-700 transition-colors duration-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a href="../index.html" class="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+          title="Back to Index">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+        </a>
+        <h1 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+          <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">Uno</span>
+          Box Plugin
+        </h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <!-- Dark Mode Toggle -->
+        <button type="button" data-theme-toggle
+          class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors"
+          aria-label="Toggle Dark Mode">
+          <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+            </path>
+          </svg>
+          <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+          </svg>
+        </button>
+
+        <div class="text-sm text-slate-500 dark:text-slate-400">Switch Lang:</div>
+        <div class="flex bg-slate-100 dark:bg-slate-700 rounded p-1">
+          <button onclick="(window.Alpine || window.top.Alpine).store('i18n').setLang('en')"
+            class="px-3 py-1 text-sm rounded hover:bg-white dark:hover:bg-slate-600 dark:text-slate-200 hover:shadow transition-all">
+            EN
+          </button>
+          <button onclick="(window.Alpine || window.top.Alpine).store('i18n').setLang('zh-CN')"
+            class="px-3 py-1 text-sm rounded hover:bg-white dark:hover:bg-slate-600 dark:text-slate-200 hover:shadow transition-all">
+            中文
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main x-data class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <!-- Introduction -->
+    <div
+      class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
+      <p class="mt-4 text-slate-600 dark:text-slate-300 max-w-3xl">
+        Store-First Architecture: Access via <code>Alpine.store('uno').box</code> or
+        <code>x-uno-box</code> directive.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Card 1: Basic Dialog Types -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-white">1. Basic Types (Directive)</h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Recommended</span>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Test: Open Dialog (center) -->
+            <button x-uno-box="{
+                  title: 'Dialog Title',
+                  content: 'This is a standard dialog with some content.',
+                  position: 'center'
+                }"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm">
+              Open Dialog
+            </button>
+            <!-- Test: Open Confirm -->
+            <button
+              @click="$store.uno.box.confirm('Confirm Action', 'Are you sure you want to proceed?', {onOk: () => $store.uno.box.alert('Confirmed!')})"
+              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium shadow-sm">
+              Open Confirm
+            </button>
+            <button x-uno-box="{
+                  type: 'dialog',
+                  title: 'Information',
+                  content: 'Operation completed successfully.',
+                  showOkButton: true
+                }"
+              class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium shadow-sm">
+              Message Alert
+            </button>
+          </div>
+          <button data-testid="box-xss-trigger" x-uno-box="{
+                title: 'XSS Test',
+                content: '<a data-testid=box-xss-link href=javascript:window.__UNO_BOX_XSS__=true>Unsafe Link</a><img data-testid=box-xss-img src=x onerror=window.__UNO_BOX_XSS_IMG__=true /><script>window.__XSS__=1</script>Safe text'
+              }"
+            class="w-full px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors text-sm font-medium shadow-sm">
+            XSS Test (Content Sanitized)
+          </button>
+          <p class="text-xs text-slate-500 dark:text-slate-400">
+            Content is automatically sanitized for XSS protection.
+          </p>
+        </div>
+      </div>
+
+      <!-- Card 2: Positioning -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-white">
+            2. Positioning (9-Point Grid)
+          </h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Layout</span>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="grid grid-cols-3 gap-4 text-center">
+            <button x-uno-box="{
+                  title: 'Position',
+                  content: 'Top Left',
+                  position: 'top-left',
+                  showOkButton: true
+                }"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">
+              Top Left
+            </button>
+            <button x-uno-box="{
+                  title: 'Position',
+                  content: 'Top Center',
+                  position: 'top-center',
+                  showOkButton: true
+                }"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">
+              Top Center
+            </button>
+            <button x-uno-box="{
+                  title: 'Position',
+                  content: 'Top Right',
+                  position: 'top-right',
+                  showOkButton: true
+                }"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">
+              Top Right
+            </button>
+
+            <button x-uno-box="{
+                  title: 'Position',
+                  content: 'Center Left',
+                  position: 'center-left',
+                  showOkButton: true
+                }"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">
+              Center Left
+            </button>
+            <button x-uno-box="{
+                  title: 'Position',
+                  content: 'Center',
+                  position: 'center',
+                  showOkButton: true
+                }"
+              class="p-2 bg-blue-100 dark:bg-blue-900 rounded hover:bg-blue-200 dark:hover:bg-blue-800 dark:text-white transition-colors font-medium">
+              Center
+            </button>
+            <button x-uno-box="{
+                  title: 'Position',
+                  content: 'Center Right',
+                  position: 'center-right',
+                  showOkButton: true
+                }"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">
+              Center Right
+            </button>
+
+            <button x-uno-box="{
+                  title: 'Position',
+                  content: 'Bottom Left',
+                  position: 'bottom-left',
+                  showOkButton: true
+                }"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">
+              Bottom Left
+            </button>
+            <button x-uno-box="{
+                  title: 'Position',
+                  content: 'Bottom Center',
+                  position: 'bottom-center',
+                  showOkButton: true
+                }"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">
+              Bottom Center
+            </button>
+            <button x-uno-box="{
+                  title: 'Position',
+                  content: 'Bottom Right',
+                  position: 'bottom-right',
+                  showOkButton: true
+                }"
+              class="p-2 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-colors">
+              Bottom Right
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Content Loading -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-white">3. Content Sources</h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Loaders</span>
+        </div>
+        <div class="p-6 space-y-4">
+          <button x-uno-box="{ title: 'HTMX Content', hxUrl: '/examples/data/tab-content.html' }"
+            @content-loaded="console.log('Content loaded:', $event.detail)"
+            class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm transition-colors">
+            Load HTML (HTMX)
+          </button>
+          <button
+            @click="Alpine.store('uno').box.open({title: 'DOM Content', content: document.getElementById('hidden-content').innerHTML})"
+            class="w-full px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 shadow-sm transition-colors">
+            Load from DOM (Sanitized)
+          </button>
+          <p class="text-xs text-slate-500 dark:text-slate-400">
+            HTMX content triggers <code>content-loaded</code> event. DOM content is sanitized.
+          </p>
+        </div>
+      </div>
+
+      <!-- Card 4: Callbacks & Custom Sizes -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-white">4. Callbacks & Sizes</h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Advanced</span>
+        </div>
+        <div class="p-6 space-y-4">
+          <button
+            @click="Alpine.store('uno').box.open({title: 'Callback Test', content: 'Close this to see callbacks in console', onBeforeClose: () => console.log('onBeforeClose'), onClose: () => console.log('onClose')})"
+            class="w-full px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 shadow-sm transition-colors">
+            Test Callbacks (Check Console)
+          </button>
+          <button
+            x-uno-box="{ title: 'Custom Size', content: 'This dialog has custom width and height.', width: '600', height: '300' }"
+            class="w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 shadow-sm transition-colors">
+            Custom Size (600x300)
+          </button>
+          <button
+            x-uno-box="{ title: 'CSS Class Size', content: 'Using Tailwind classes for sizing.', widthClass: '!w-[80vw]', heightClass: '!h-[60vh]' }"
+            class="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 shadow-sm transition-colors">
+            Class-based Size
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 5: Keyboard & Modal Behavior -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-white">5. Keyboard & Modal</h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">A11y</span>
+        </div>
+        <div class="p-6 space-y-4">
+          <button x-uno-box="{
+              title: 'Escape to Close',
+              content: 'Press Escape key to close this dialog.',
+              modal: true,
+              closeOnEsc: true
+            }"
+            class="w-full px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 shadow-sm transition-colors">
+            Modal (Escape to Close)
+          </button>
+          <button
+            x-uno-box="{ title: 'Click Overlay to Close', content: 'Click the dark overlay to close.', modal: true, closeOnOverlayClick: true }"
+            class="w-full px-4 py-2 bg-fuchsia-600 text-white rounded-lg hover:bg-fuchsia-700 shadow-sm transition-colors">
+            Modal (Overlay Click)
+          </button>
+          <button x-uno-box="{
+              title: 'No Close Button',
+              content: 'This dialog has no close button.',
+              showCloseButton: false,
+              showOkButton: true
+            }"
+            class="w-full px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 shadow-sm transition-colors">
+            No Close Button
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 6: Prompt -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-white">6. Prompt Dialog</h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Input</span>
+        </div>
+        <div class="p-6 space-y-4">
+          <button
+            @click="Alpine.store('uno').box.prompt('Enter your name:', 'John Doe', {title: 'User Input'}).then(v => v && Alpine.store('uno').box.alert('Hello, ' + v + '!'))"
+            class="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 shadow-sm transition-colors">
+            Prompt Dialog
+          </button>
+          <p class="text-xs text-slate-500 dark:text-slate-400">
+            Returns a Promise resolving to the input value or null if cancelled.
+          </p>
+        </div>
+      </div>
+
+      <!-- Card 7: Auto Focus -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors">
+        <div
+          class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center transition-colors">
+          <h2 class="font-semibold text-slate-800 dark:text-white">7. Auto Focus</h2>
+          <span
+            class="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-700">Focus</span>
+        </div>
+        <div class="p-6 space-y-4">
+          <!-- Case 1: Static Content -->
+          <button @click="$store.uno.box.open({
+              title: 'Static Content',
+              content: `<div class='space-y-4'><p>Focus should be on Username.</p><input type='text' class='border p-2 w-full dark:bg-slate-700 dark:border-slate-600 rounded' placeholder='Username'><input type='password' class='border p-2 w-full dark:bg-slate-700 dark:border-slate-600 rounded' placeholder='Password'></div>`,
+              showCancelButton: true
+            })"
+            class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm transition-colors">
+            Static Content (Focus Input)
+          </button>
+
+          <!-- Case 2: Async Content -->
+          <button @click="$store.uno.box.open({
+              title: 'Async Content',
+              hxUrl: '/examples/data/tab-content-htmx.html',
+              showCancelButton: true
+            })"
+            class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 shadow-sm transition-colors">
+            Async Content (HTMX)
+          </button>
+
+          <!-- Case 3: Hidden/Disabled Input -->
+          <button @click="$store.uno.box.open({
+              title: 'Hidden/Disabled Test',
+              content: `<div><input type='text' style='display:none' placeholder='Hidden'><input type='text' disabled class='border p-2 w-full mb-2 bg-gray-200 dark:bg-slate-600 rounded' placeholder='Disabled'><input type='text' class='border p-2 w-full dark:bg-slate-700 dark:border-slate-600 rounded' placeholder='Visible Input'></div>`
+            })"
+            class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 shadow-sm transition-colors">
+            Skip Hidden/Disabled
+          </button>
+
+          <!-- Case 4: AutoFocus Disabled -->
+          <button @click="$store.uno.box.open({
+              title: 'AutoFocus Off',
+              content: `<input type='text' class='border p-2 w-full dark:bg-slate-700 dark:border-slate-600 rounded' placeholder='Should NOT be focused'>`,
+              autoFocus: false
+            })"
+            class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 shadow-sm transition-colors">
+            AutoFocus Disabled
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="hidden-content" style="display: none">
+    <div class="p-4 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded">
+      This content was hidden in the DOM.
+    </div>
+  </div>
+</body>
+
+</html>
