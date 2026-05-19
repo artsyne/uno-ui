@@ -63,4 +63,64 @@ describe('Box Template', () => {
     const expectedZIndexLogic = ':style="\'z-index:\' + (1400 + index * 10)"'
     expect(template).toContain(expectedZIndexLogic)
   })
+
+  // ============================================================
+  // extraButtons - Template Rendering
+  // ============================================================
+
+  it('should include handleExtraButton click binding', () => {
+    const template = getBoxTemplate()
+    expect(template).toContain('handleExtraButton(item, btn)')
+  })
+
+  it('should render extraButtons with x-for loop', () => {
+    const template = getBoxTemplate()
+    // position='before' loop
+    expect(template).toContain(
+      "(item.extraButtons || []).filter(b => (b.position || 'before') === 'before')"
+    )
+    // position='after' loop
+    expect(template).toContain("(item.extraButtons || []).filter(b => b.position === 'after')")
+  })
+
+  it('should include extraButtons.length in footer x-show condition', () => {
+    const template = getBoxTemplate()
+    expect(template).toContain('item.extraButtons && item.extraButtons.length > 0')
+  })
+
+  it('should use buttonClass as replacement (not additive) for extraBtn default style', () => {
+    const template = getBoxTemplate()
+    // btn.buttonClass || Uno.getStyle('box', 'extraBtn') means:
+    // if buttonClass is set, it REPLACES the default; otherwise fallback to extraBtn
+    expect(template).toContain("btn.buttonClass || Uno.getStyle('box', 'extraBtn')")
+  })
+
+  it('should apply extraBtn style as fallback when buttonClass is not set', () => {
+    const template = getBoxTemplate()
+    // extraBtn is still referenced as the fallback
+    expect(template).toContain("Uno.getStyle('box', 'extraBtn')")
+  })
+
+  it("should apply sm:order-last to position='before' buttons for correct visual ordering", () => {
+    const template = getBoxTemplate()
+    // position='before' buttons need sm:order-last to appear visually LEFT of OK
+    // because the footer uses sm:flex-row-reverse (DOM-first = visual-right)
+    const beforeLoopStart = template.indexOf(
+      "(item.extraButtons || []).filter(b => (b.position || 'before') === 'before')"
+    )
+    const afterLoopStart = template.indexOf(
+      "(item.extraButtons || []).filter(b => b.position === 'after')"
+    )
+    const beforeSection = template.slice(beforeLoopStart, afterLoopStart)
+    expect(beforeSection).toContain("'sm:order-last'")
+    // position='after' buttons should NOT have sm:order-last
+    const afterSection = template.slice(afterLoopStart)
+    const afterButtonClass = afterSection.match(/:class="\[([^"]+)\]"/)?.[1] || ''
+    expect(afterButtonClass).not.toContain('sm:order-last')
+  })
+
+  it('should reference btn.buttonClass in class binding', () => {
+    const template = getBoxTemplate()
+    expect(template).toContain('btn.buttonClass')
+  })
 })

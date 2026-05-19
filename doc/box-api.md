@@ -68,32 +68,56 @@ Alpine.store('uno')
 
 The following options can be passed to `open()`, `dialog()`, or used in the `x-uno-box` configuration object.
 
-| Name                  | Type       | Default    | Required | Description                                                                       |
-| :-------------------- | :--------- | :--------- | :------- | :-------------------------------------------------------------------------------- |
-| `type`                | `String`   | `'dialog'` | No       | Dialog type. Values: `'dialog'`, `'confirm'`.                                     |
-| `title`               | `String`   | `''`       | No       | The title text displayed in the header.                                           |
-| `content`             | `String`   | `''`       | No       | HTML content for the body. Auto-sanitized.                                        |
-| `width`               | `Number`   | `400`      | No       | Width in pixels. Ignored if `widthClass` is set.                                  |
-| `widthClass`          | `String`   | -          | No       | Tailwind CSS classes for width (e.g., `'w-full md:w-lg'`).                        |
-| `height`              | `Number`   | -          | No       | Height in pixels. Ignored if `heightClass` is set.                                |
-| `heightClass`         | `String`   | -          | No       | Tailwind CSS classes for height (e.g., `'h-full'`).                               |
-| `position`            | `String`   | `'center'` | No       | Screen position. Values: `'center'`, `'top-center'`, `'bottom-right'`, etc.       |
-| `modal`               | `Boolean`  | `true`     | No       | If `true`, shows a backdrop and blocks interaction with the page.                 |
-| `showCloseButton`     | `Boolean`  | `true`     | No       | Whether to show the "X" close button in the header.                               |
-| `showOkButton`        | `Boolean`  | `false`    | No       | Whether to show the primary action button. (Default `true` for `confirm` type).   |
-| `showCancelButton`    | `Boolean`  | `false`    | No       | Whether to show the secondary action button. (Default `true` for `confirm` type). |
-| `okText`              | `String`   | `'OK'`     | No       | Text for the OK button. Supports i18n keys.                                       |
-| `cancelText`          | `String`   | `'Cancel'` | No       | Text for the Cancel button. Supports i18n keys.                                   |
-| `okButtonClass`       | `String`   | -          | No       | Tailwind CSS classes for the OK button.                                           |
-| `cancelButtonClass`   | `String`   | -          | No       | Tailwind CSS classes for the Cancel button.                                       |
-| `closeOnEsc`          | `Boolean`  | `false`    | No       | If `true`, pressing ESC closes the dialog.                                        |
-| `closeOnOverlayClick` | `Boolean`  | `false`    | No       | If `true`, clicking the backdrop closes the dialog.                               |
-| `autoFocus`           | `Boolean`  | `true`     | No       | If `true`, automatically focuses the first input field after opening.             |
-| `hxUrl`               | `String`   | -          | No       | URL to fetch content from via HTMX.                                               |
-| `hxMethod`            | `String`   | `'GET'`    | No       | HTTP method for HTMX request.                                                     |
-| `onOk`                | `Function` | -          | No       | Callback when OK button is clicked. Return `false` to prevent closing.            |
-| `onCancel`            | `Function` | -          | No       | Callback when Cancel button is clicked.                                           |
-| `onClose`             | `Function` | -          | No       | Callback when dialog is closed (after animation).                                 |
+| Name                  | Type       | Default    | Required | Description                                                                                                  |
+| :-------------------- | :--------- | :--------- | :------- | :----------------------------------------------------------------------------------------------------------- |
+| `type`                | `String`   | `'dialog'` | No       | Dialog type. Values: `'dialog'`, `'confirm'`.                                                                |
+| `title`               | `String`   | `''`       | No       | The title text displayed in the header.                                                                      |
+| `content`             | `String`   | `''`       | No       | HTML content for the body. Auto-sanitized.                                                                   |
+| `width`               | `Number`   | `400`      | No       | Width in pixels. Ignored if `widthClass` is set.                                                             |
+| `widthClass`          | `String`   | -          | No       | Tailwind CSS classes for width (e.g., `'w-full md:w-lg'`).                                                   |
+| `height`              | `Number`   | -          | No       | Height in pixels. Ignored if `heightClass` is set.                                                           |
+| `heightClass`         | `String`   | -          | No       | Tailwind CSS classes for height (e.g., `'h-full'`).                                                          |
+| `position`            | `String`   | `'center'` | No       | Screen position. Values: `'center'`, `'top-center'`, `'bottom-right'`, etc.                                  |
+| `modal`               | `Boolean`  | `true`     | No       | If `true`, shows a backdrop and blocks interaction with the page.                                            |
+| `showCloseButton`     | `Boolean`  | `true`     | No       | Whether to show the "X" close button in the header.                                                          |
+| `showOkButton`        | `Boolean`  | `false`    | No       | Whether to show the primary action button. (Default `true` for `confirm` type).                              |
+| `showCancelButton`    | `Boolean`  | `false`    | No       | Whether to show the secondary action button. (Default `true` for `confirm` type).                            |
+| `okText`              | `String`   | `'OK'`     | No       | Text for the OK button. Supports i18n keys.                                                                  |
+| `cancelText`          | `String`   | `'Cancel'` | No       | Text for the Cancel button. Supports i18n keys.                                                              |
+| `okButtonClass`       | `String`   | -          | No       | Tailwind CSS classes for the OK button.                                                                      |
+| `cancelButtonClass`   | `String`   | -          | No       | Tailwind CSS classes for the Cancel button.                                                                  |
+| `extraButtons`        | `Array`    | `[]`       | No       | Custom buttons rendered alongside OK/Cancel. See [ExtraButton](#extrabutton-options) for each item's schema. |
+| `closeOnEsc`          | `Boolean`  | `false`    | No       | If `true`, pressing ESC closes the dialog.                                                                   |
+| `closeOnOverlayClick` | `Boolean`  | `false`    | No       | If `true`, clicking the backdrop closes the dialog.                                                          |
+| `autoFocus`           | `Boolean`  | `true`     | No       | If `true`, automatically focuses the first input field after opening.                                        |
+| `hxUrl`               | `String`   | -          | No       | URL to fetch content from via HTMX.                                                                          |
+| `hxMethod`            | `String`   | `'GET'`    | No       | HTTP method for HTMX request.                                                                                |
+| `onOk`                | `Function` | -          | No       | Callback when OK button is clicked. Return `false` to prevent closing.                                       |
+| `onCancel`            | `Function` | -          | No       | Callback when Cancel button is clicked.                                                                      |
+| `onClose`             | `Function` | -          | No       | Callback when dialog is closed (after animation).                                                            |
+
+## ExtraButton Options
+
+Each item in the `extraButtons` array supports the following fields.
+
+| Name          | Type       | Default    | Required | Description                                                                                                                                                        |
+| :------------ | :--------- | :--------- | :------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `text`        | `String`   | -          | **Yes**  | Button label text.                                                                                                                                                 |
+| `position`    | `String`   | `'before'` | No       | Placement relative to OK/Cancel. `'before'` = left of OK button; `'after'` = right of Cancel.                                                                      |
+| `buttonClass` | `String`   | -          | No       | Additional CSS classes to override the default `extraBtn` style.                                                                                                   |
+| `onClick`     | `Function` | -          | No       | Click handler. Receives the `BoxItem` instance. **Return `false` to keep the dialog open**; return `void`/`true` or a `Promise` resolving to non-`false` to close. |
+
+### Behavior Parity with `onOk`
+
+`extraButtons[n].onClick` follows the same close-control contract as `onOk`:
+
+| Return value         | Dialog closes? |
+| :------------------- | :------------- |
+| `void` / `undefined` | ✅ Yes         |
+| `true`               | ✅ Yes         |
+| `false`              | ❌ No          |
+| `Promise<void>`      | ✅ Yes         |
+| `Promise<false>`     | ❌ No          |
 
 ## Auto Focus
 
@@ -204,6 +228,48 @@ Closes all currently open dialogs.
 
 ## Examples
 
+### Dialog with Extra Buttons
+
+Add a "Save Draft" button next to the primary "Publish" action.
+
+```javascript
+const boxInstance = Alpine.store('uno').box.dialog({
+  title: 'New Diary Entry',
+  hxUrl: '/entry/new',
+  showOkButton: true,
+  okText: 'Publish',
+  okButtonClass: 'btn-primary',
+  extraButtons: [
+    {
+      text: 'Save Draft',
+      position: 'before', // renders left of "Publish"
+      buttonClass: '!font-normal !ring-0 !shadow-none !bg-transparent',
+      onClick: async (item) => {
+        await saveDraft() // your save logic
+        showNotification('Draft saved!')
+        return false // keep the dialog open
+      }
+    }
+  ],
+  onOk: async () => {
+    await publishEntry()
+  }
+})
+
+// Update extraButtons at runtime (e.g. after content loads)
+boxInstance.extraButtons = isDraft
+  ? [
+      {
+        text: 'Save Draft',
+        position: 'before',
+        onClick: () => {
+          /* ... */ return false
+        }
+      }
+    ]
+  : []
+```
+
 ### Custom Styled Dialog
 
 ```javascript
@@ -251,8 +317,9 @@ Alpine.store('uno').box.open({
 
 ## Version History
 
-| Version | Date       | Changes                                                                  |
-| :------ | :--------- | :----------------------------------------------------------------------- |
-| v0.8.0  | 2026-02-28 | Added `bindNotifyToHtmx()` method to HTMX integration for automatic notifications. |
-| v0.7.0  | 2026-01-20 | Refactored for **Lazy Initialization** (DOM elements created on demand). |
-| v0.6.0  | 2025-12-18 | Initial stable release.                                                  |
+| Version | Date       | Changes                                                                                                                                                                                                |
+| :------ | :--------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v0.9.0  | 2026-05-18 | Added `extraButtons` support: custom buttons with `position`, `buttonClass`, and async `onClick` (`return false` to keep open). Added `handleExtraButton()` store method and `extraBtn` default style. |
+| v0.8.0  | 2026-02-28 | Added `bindNotifyToHtmx()` method to HTMX integration for automatic notifications.                                                                                                                     |
+| v0.7.0  | 2026-01-20 | Refactored for **Lazy Initialization** (DOM elements created on demand).                                                                                                                               |
+| v0.6.0  | 2025-12-18 | Initial stable release.                                                                                                                                                                                |

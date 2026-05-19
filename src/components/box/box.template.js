@@ -85,7 +85,14 @@ export const getBoxTemplate = () => {
 
           <!-- Footer with Buttons -->
           <div :class="Uno.getStyle('box', 'footer')"
-               x-show="item.showOkButton || item.showCancelButton">
+               x-show="item.showOkButton || item.showCancelButton || (item.extraButtons && item.extraButtons.length > 0)">
+            <!-- Extra buttons: position='before' (visually LEFT of OK; sm:order-last counters flex-row-reverse) -->
+            <template x-for="(btn, xbi) in (item.extraButtons || []).filter(b => (b.position || 'before') === 'before')" :key="'xb-'+xbi">
+              <button type="button"
+                      :class="[btn.buttonClass || Uno.getStyle('box', 'extraBtn'), 'sm:order-last']"
+                      x-text="btn.text"
+                      @click="$store.uno.box.handleExtraButton(item, btn)"></button>
+            </template>
             <button type="button"
                     :id="'uno-box-ok' + item.id"
                     :class="[Uno.getStyle('box', 'okBtn'), item.okButtonClass]"
@@ -98,6 +105,13 @@ export const getBoxTemplate = () => {
                     x-show="item.showCancelButton"
                     x-text="item.cancelText"
                     @click="item.onCancel ? (item.onCancel() !== false && item.close()) : item.close()"></button>
+            <!-- Extra buttons: position='after' (rendered after Cancel button) -->
+            <template x-for="(btn, xai) in (item.extraButtons || []).filter(b => b.position === 'after')" :key="'xa-'+xai">
+              <button type="button"
+                      :class="[btn.buttonClass || Uno.getStyle('box', 'extraBtn')]"
+                      x-text="btn.text"
+                      @click="$store.uno.box.handleExtraButton(item, btn)"></button>
+            </template>
           </div>
         </div>
       </div>

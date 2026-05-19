@@ -542,4 +542,108 @@ describe('Box Component', () => {
       expect(item.closeOnOverlayClick).toBe(false)
     })
   })
+
+  // ============================================================
+  // extraButtons - Custom Button Extension
+  // ============================================================
+
+  describe('extraButtons Configuration', () => {
+    it('should default extraButtons to empty array', () => {
+      const item = boxStore.open('dialog')
+      expect(item.extraButtons).toEqual([])
+    })
+
+    it('should accept extraButtons array', () => {
+      const btns = [
+        { text: 'Save Draft', position: 'before', onClick: vi.fn() },
+        { text: 'Preview', position: 'after', onClick: vi.fn() }
+      ]
+      const item = boxStore.open({ extraButtons: btns })
+      expect(item.extraButtons).toHaveLength(2)
+      expect(item.extraButtons[0].text).toBe('Save Draft')
+      expect(item.extraButtons[1].text).toBe('Preview')
+    })
+
+    it('should normalize non-array extraButtons to empty array', () => {
+      const item = boxStore.open({ extraButtons: 'invalid' })
+      expect(item.extraButtons).toEqual([])
+    })
+
+    it('should normalize null extraButtons to empty array', () => {
+      const item = boxStore.open({ extraButtons: null })
+      expect(item.extraButtons).toEqual([])
+    })
+
+    it('should allow runtime mutation of extraButtons', () => {
+      const item = boxStore.open('dialog')
+      expect(item.extraButtons).toHaveLength(0)
+
+      item.extraButtons = [{ text: 'New Btn', onClick: vi.fn() }]
+      expect(item.extraButtons).toHaveLength(1)
+    })
+  })
+
+  describe('handleExtraButton()', () => {
+    it('should do nothing if btn is null', async () => {
+      const item = boxStore.open('dialog')
+      vi.runAllTimers()
+      const closeSpy = vi.spyOn(item, 'close')
+      await boxStore.handleExtraButton(item, null)
+      expect(closeSpy).not.toHaveBeenCalled()
+    })
+
+    it('should do nothing if btn has no onClick', async () => {
+      const item = boxStore.open('dialog')
+      vi.runAllTimers()
+      const closeSpy = vi.spyOn(item, 'close')
+      await boxStore.handleExtraButton(item, { text: 'No Handler' })
+      expect(closeSpy).not.toHaveBeenCalled()
+    })
+
+    it('should close dialog when sync onClick returns void', async () => {
+      const item = boxStore.open('dialog')
+      vi.runAllTimers()
+      const closeSpy = vi.spyOn(item, 'close')
+      await boxStore.handleExtraButton(item, { text: 'Btn', onClick: () => {} })
+      expect(closeSpy).toHaveBeenCalledOnce()
+    })
+
+    it('should NOT close dialog when sync onClick returns false', async () => {
+      const item = boxStore.open('dialog')
+      vi.runAllTimers()
+      const closeSpy = vi.spyOn(item, 'close')
+      await boxStore.handleExtraButton(item, { text: 'Btn', onClick: () => false })
+      expect(closeSpy).not.toHaveBeenCalled()
+    })
+
+    it('should close dialog when async onClick resolves undefined', async () => {
+      const item = boxStore.open('dialog')
+      vi.runAllTimers()
+      const closeSpy = vi.spyOn(item, 'close')
+      await boxStore.handleExtraButton(item, {
+        text: 'Btn',
+        onClick: async () => undefined
+      })
+      expect(closeSpy).toHaveBeenCalledOnce()
+    })
+
+    it('should NOT close dialog when async onClick resolves false', async () => {
+      const item = boxStore.open('dialog')
+      vi.runAllTimers()
+      const closeSpy = vi.spyOn(item, 'close')
+      await boxStore.handleExtraButton(item, {
+        text: 'Btn',
+        onClick: async () => false
+      })
+      expect(closeSpy).not.toHaveBeenCalled()
+    })
+
+    it('should invoke onClick with the box item as argument', async () => {
+      const item = boxStore.open('dialog')
+      vi.runAllTimers()
+      const onClick = vi.fn().mockReturnValue(false)
+      await boxStore.handleExtraButton(item, { text: 'Btn', onClick })
+      expect(onClick).toHaveBeenCalledWith(item)
+    })
+  })
 })

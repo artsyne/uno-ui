@@ -51,7 +51,7 @@ const f = {
   }
 }, q = /* @__PURE__ */ new WeakMap();
 let V = 0;
-function O(s, t) {
+function M(s, t) {
   if (!s) return !1;
   const n = String(t), e = `${V}:${n}`;
   let o = q.get(s);
@@ -63,7 +63,7 @@ function _(s) {
 function W(s, t, { trusted: n = !1, alpine: e } = {}) {
   s && (s.innerHTML = n ? String(t ?? "") : _(String(t ?? "")), e?.initTree?.(s));
 }
-const B = {
+const O = {
   /**
    * Ensure a container element exists in the DOM, creating it if necessary.
    *
@@ -302,15 +302,15 @@ class X {
        * @param {Function} [handlers.end] - Called when a request ends (success, error, or timeout)
        */
       onRequest: (o = {}) => {
-        if (!o || typeof o != "object" || (this._htmxRequestHandlers.push(o), typeof window > "u" || typeof document > "u") || !window.htmx || !O(document, "uno:htmx:request-hooks")) return;
+        if (!o || typeof o != "object" || (this._htmxRequestHandlers.push(o), typeof window > "u" || typeof document > "u") || !window.htmx || !M(document, "uno:htmx:request-hooks")) return;
         const i = (a) => a?.detail?.xhr, r = (a, u) => {
           for (const y of this._htmxRequestHandlers) {
             const g = y?.[a];
             if (typeof g == "function")
               try {
                 g(u);
-              } catch (w) {
-                f.error("Uno.htmx.onRequest handler failed", w);
+              } catch (v) {
+                f.error("Uno.htmx.onRequest handler failed", v);
               }
           }
         }, l = (a) => {
@@ -362,49 +362,49 @@ class X {
         }
         const y = () => typeof window < "u" && window.Alpine ? window.Alpine.store("uno")?.notify : null;
         let g = 0;
-        const w = (m) => {
+        const v = (h) => {
           if (g++, l) {
-            const h = y();
-            h && typeof h.startProgress == "function" && h.startProgress();
+            const m = y();
+            m && typeof m.startProgress == "function" && m.startProgress();
           }
-        }, E = (m) => {
+        }, E = (h) => {
           if (g = Math.max(0, g - 1), l && g === 0) {
-            const h = y();
-            h && typeof h.stopProgress == "function" && h.stopProgress();
+            const m = y();
+            m && typeof m.stopProgress == "function" && m.stopProgress();
           }
           if (i) {
-            const h = m?.detail?.xhr;
-            if (!(h?.status >= 400)) {
+            const m = h?.detail?.xhr;
+            if (!(m?.status >= 400)) {
               const x = y();
               if (x && typeof x.success == "function") {
-                let b = c;
-                if (h && h.getResponseHeader) {
-                  const j = h.getResponseHeader("X-Notify-Message");
-                  j && (b = j);
+                let w = c;
+                if (m && m.getResponseHeader) {
+                  const j = m.getResponseHeader("X-Notify-Message");
+                  j && (w = j);
                 }
-                h?.getResponseHeader?.("X-Notify-Suppress") || x.success(b);
+                m?.getResponseHeader?.("X-Notify-Suppress") || x.success(w);
               }
             }
           }
-        }, v = (m) => {
+        }, b = (h) => {
           if (g = Math.max(0, g - 1), l && g === 0) {
-            const h = y();
-            h && typeof h.stopProgress == "function" && h.stopProgress();
+            const m = y();
+            m && typeof m.stopProgress == "function" && m.stopProgress();
           }
           if (r) {
-            const h = y();
-            if (h && typeof h.error == "function") {
-              const d = m?.detail?.xhr;
+            const m = y();
+            if (m && typeof m.error == "function") {
+              const d = h?.detail?.xhr;
               let x = a;
               if (d && d.getResponseHeader) {
-                const b = d.getResponseHeader("X-Notify-Error");
-                b && (x = b);
+                const w = d.getResponseHeader("X-Notify-Error");
+                w && (x = w);
               }
-              h.error(x);
+              m.error(x);
             }
           }
         };
-        O(document, "uno:htmx:bind-notify") && (document.addEventListener("htmx:beforeRequest", w), document.addEventListener("htmx:afterRequest", E), document.addEventListener("htmx:responseError", v), document.addEventListener("htmx:sendError", v), document.addEventListener("htmx:timeout", v), f.debug("bindNotifyToHtmx: HTMX events bound to notify"));
+        M(document, "uno:htmx:bind-notify") && (document.addEventListener("htmx:beforeRequest", v), document.addEventListener("htmx:afterRequest", E), document.addEventListener("htmx:responseError", b), document.addEventListener("htmx:sendError", b), document.addEventListener("htmx:timeout", b), f.debug("bindNotifyToHtmx: HTMX events bound to notify"));
       }
     };
     const e = {
@@ -425,6 +425,7 @@ class X {
           itemWrapper: "flex min-h-full p-4 text-center sm:p-0 pointer-events-none",
           container: "relative transform overflow-hidden {base} bg-white dark:bg-gray-900 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg flex flex-col max-h-[90vh] pointer-events-auto outline-none",
           cancelBtn: "mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto",
+          extraBtn: "mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-normal text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto",
           okBtn: "inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto",
           title: "text-base font-semibold leading-6 text-gray-900 dark:text-slate-200",
           closeBtnFloating: "absolute top-2 right-2 z-10 text-slate-400 hover:text-slate-500 focus:outline-none",
@@ -626,7 +627,7 @@ class X {
    * @param {Object} alpine - Alpine instance
    */
   _doInit(t) {
-    f.info(`Uno v${this.version} initializing...`), typeof window < "u" && typeof document < "u" && window.htmx && typeof t?.initTree == "function" && O(document, "uno:htmx-afterSwap:initTree") && document.addEventListener("htmx:afterSwap", (n) => {
+    f.info(`Uno v${this.version} initializing...`), typeof window < "u" && typeof document < "u" && window.htmx && typeof t?.initTree == "function" && M(document, "uno:htmx-afterSwap:initTree") && document.addEventListener("htmx:afterSwap", (n) => {
       const e = n?.detail?.elt;
       e && t.initTree(e);
     }), this.plugins.forEach(({ plugin: n, options: e }) => {
@@ -652,7 +653,7 @@ class X {
    * @private
    */
   _setupGlobalErrorHandlers() {
-    if (!(typeof window > "u") && O(window, "uno:global-error-handlers")) {
+    if (!(typeof window > "u") && M(window, "uno:global-error-handlers")) {
       const t = typeof WeakSet == "function" ? /* @__PURE__ */ new WeakSet() : null;
       window.addEventListener("unhandledrejection", (n) => {
         const e = n.reason;
@@ -855,7 +856,7 @@ function J(s) {
     });
   });
 }
-function M(s, t, n) {
+function U(s, t, n) {
   if (!s || typeof s.store != "function") {
     f.error("[Uno] Alpine.store is not available");
     return;
@@ -900,36 +901,36 @@ const Q = (s) => {
   return t.includes("bottom") && (n = "flex-col-reverse", o = "space-y-reverse space-y-2"), t.includes("left") ? e = "items-start" : t.includes("center") ? t === "center" ? e = "items-center justify-center" : e = "items-center" : e = "items-end", { flexDir: n, alignItems: e, spaceY: o };
 };
 function nt(s, t, n) {
-  const e = s.getBoundingClientRect(), o = t.getBoundingClientRect(), i = o.width, r = o.height, l = e.width, c = e.height, a = { top: e.top, left: e.left }, u = window.innerWidth, y = window.innerHeight, g = 0, w = 0, E = y, v = u, m = (b, U) => {
-    if (U) {
-      if (b + i > v)
-        return v - i - 10;
-      if (b < w)
-        return w + 10;
+  const e = s.getBoundingClientRect(), o = t.getBoundingClientRect(), i = o.width, r = o.height, l = e.width, c = e.height, a = { top: e.top, left: e.left }, u = window.innerWidth, y = window.innerHeight, g = 0, v = 0, E = y, b = u, h = (w, B) => {
+    if (B) {
+      if (w + i > b)
+        return b - i - 10;
+      if (w < v)
+        return v + 10;
     } else {
-      if (b + r > E)
+      if (w + r > E)
         return E - r - 10;
-      if (b < g)
+      if (w < g)
         return g + 10;
     }
-    return b;
+    return w;
   };
-  let h, d, x = n;
+  let m, d, x = n;
   switch (n) {
     case "left":
-      d = a.left - i - 5, d < w && (d = a.left + l + 5, x = "right"), h = m(a.top + c / 2 - r / 2, !1);
+      d = a.left - i - 5, d < v && (d = a.left + l + 5, x = "right"), m = h(a.top + c / 2 - r / 2, !1);
       break;
     case "top":
-      h = a.top - r - 8, h < g && (h = a.top + c + 8, x = "bottom"), d = a.left + (l - i) / 2, d = m(d, !0);
+      m = a.top - r - 8, m < g && (m = a.top + c + 8, x = "bottom"), d = a.left + (l - i) / 2, d = h(d, !0);
       break;
     case "right":
-      d = a.left + l + 5, d + i > v && (d = a.left - i - 5, x = "left"), h = m(a.top + c / 2 - r / 2, !1);
+      d = a.left + l + 5, d + i > b && (d = a.left - i - 5, x = "left"), m = h(a.top + c / 2 - r / 2, !1);
       break;
     default:
-      h = a.top + c + 8, h + r > E && (h = a.top - r - 8, x = "top"), d = a.left + (l - i) / 2, d = m(d, !0);
+      m = a.top + c + 8, m + r > E && (m = a.top - r - 8, x = "top"), d = a.left + (l - i) / 2, d = h(d, !0);
       break;
   }
-  return { top: h, left: d, position: x };
+  return { top: m, left: d, position: x };
 }
 const ot = () => (p.options?.ui?.layers?.tooltip || k("TOOLTIP"), `
     <div id="uno-tooltip-content"
@@ -1051,7 +1052,7 @@ const it = (s) => {
       const e = "uno-tooltip-manager";
       if (document.getElementById(e)) return;
       const o = p.options?.ui?.layers?.tooltip || k("TOOLTIP"), i = ot();
-      B.ensureContainer(e, i, {
+      O.ensureContainer(e, i, {
         "x-data": "{}",
         style: `position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: ${o};`
       });
@@ -1076,25 +1077,25 @@ const it = (s) => {
         g = d;
       });
     });
-    const w = () => {
+    const v = () => {
       if (e && g === null) return;
       const d = a(g);
       p.getConfig("tooltip", d).trigger === "hover" && u(g);
     }, E = () => {
       const d = s.store("uno")?.tooltip;
       d && d.triggerMode === "hover" && d.triggerEl === n && d.scheduleHide();
-    }, v = (d) => {
+    }, b = (d) => {
       const x = a(g);
       p.getConfig("tooltip", x).trigger === "click" && (d.preventDefault(), y(g));
-    }, m = () => {
+    }, h = () => {
       const d = a(g);
       p.getConfig("tooltip", d).trigger === "focus" && u(g);
-    }, h = () => {
+    }, m = () => {
       const d = s.store("uno")?.tooltip;
       d && d.triggerMode === "focus" && d.triggerEl === n && d.hide();
     };
-    n.addEventListener("mouseenter", w), n.addEventListener("mouseleave", E), n.addEventListener("click", v), n.addEventListener("focus", m), n.addEventListener("blur", h), l(() => {
-      n.removeEventListener("mouseenter", w), n.removeEventListener("mouseleave", E), n.removeEventListener("click", v), n.removeEventListener("focus", m), n.removeEventListener("blur", h);
+    n.addEventListener("mouseenter", v), n.addEventListener("mouseleave", E), n.addEventListener("click", b), n.addEventListener("focus", h), n.addEventListener("blur", m), l(() => {
+      n.removeEventListener("mouseenter", v), n.removeEventListener("mouseleave", E), n.removeEventListener("click", b), n.removeEventListener("focus", h), n.removeEventListener("blur", m);
       const d = s.store("uno")?.tooltip;
       d && d.triggerEl === n && d.hide();
     });
@@ -1116,7 +1117,7 @@ const rt = (s, t = {}) => {
     ...t.tooltip
   });
   const e = it(s);
-  M(s, "tooltip", e), st(s);
+  U(s, "tooltip", e), st(s);
 }, at = () => `
   <template x-for="(items, position) in $store.uno.notify.groups" :key="position">
     <div :class="$store.uno.notify.getContainerClass(position)"
@@ -1275,12 +1276,12 @@ const rt = (s, t = {}) => {
     return [n, e, o.flexDir, o.alignItems].join(" ");
   },
   ensureContainer() {
-    const t = "uno-notify-container", n = at(), e = B.ensureContainer(t, n, {
+    const t = "uno-notify-container", n = at(), e = O.ensureContainer(t, n, {
       "x-data": "{}"
       // Independent Alpine component
     });
     e && s.initTree && s.initTree(e);
-    const o = "uno-global-progress", i = lt(), r = B.ensureContainer(o, i, {
+    const o = "uno-global-progress", i = lt(), r = O.ensureContainer(o, i, {
       "x-data": "{}"
     });
     r && s.initTree && s.initTree(r);
@@ -1364,7 +1365,7 @@ const ut = (s, t = {}) => {
     ...t.notify
   });
   const e = ct(s);
-  M(s, "notify", e), dt(s);
+  U(s, "notify", e), dt(s);
 }, ft = () => `
   <!-- Backdrop / Overlay -->
   <div id="uno-box-overlay"
@@ -1443,7 +1444,14 @@ const ut = (s, t = {}) => {
 
           <!-- Footer with Buttons -->
           <div :class="Uno.getStyle('box', 'footer')"
-               x-show="item.showOkButton || item.showCancelButton">
+               x-show="item.showOkButton || item.showCancelButton || (item.extraButtons && item.extraButtons.length > 0)">
+            <!-- Extra buttons: position='before' (visually LEFT of OK; sm:order-last counters flex-row-reverse) -->
+            <template x-for="(btn, xbi) in (item.extraButtons || []).filter(b => (b.position || 'before') === 'before')" :key="'xb-'+xbi">
+              <button type="button"
+                      :class="[btn.buttonClass || Uno.getStyle('box', 'extraBtn'), 'sm:order-last']"
+                      x-text="btn.text"
+                      @click="$store.uno.box.handleExtraButton(item, btn)"></button>
+            </template>
             <button type="button"
                     :id="'uno-box-ok' + item.id"
                     :class="[Uno.getStyle('box', 'okBtn'), item.okButtonClass]"
@@ -1456,6 +1464,13 @@ const ut = (s, t = {}) => {
                     x-show="item.showCancelButton"
                     x-text="item.cancelText"
                     @click="item.onCancel ? (item.onCancel() !== false && item.close()) : item.close()"></button>
+            <!-- Extra buttons: position='after' (rendered after Cancel button) -->
+            <template x-for="(btn, xai) in (item.extraButtons || []).filter(b => b.position === 'after')" :key="'xa-'+xai">
+              <button type="button"
+                      :class="[btn.buttonClass || Uno.getStyle('box', 'extraBtn')]"
+                      x-text="btn.text"
+                      @click="$store.uno.box.handleExtraButton(item, btn)"></button>
+            </template>
           </div>
         </div>
       </div>
@@ -1581,6 +1596,7 @@ const ut = (s, t = {}) => {
       cancelText: i.cancelText || "Cancel",
       okButtonClass: i.okButtonClass,
       cancelButtonClass: i.cancelButtonClass,
+      extraButtons: Array.isArray(i.extraButtons) ? i.extraButtons : [],
       onOk: i.onOk,
       onCancel: i.onCancel,
       onBeforeClose: i.onBeforeClose,
@@ -1597,19 +1613,19 @@ const ut = (s, t = {}) => {
        */
       close() {
         this.onBeforeClose && this.onBeforeClose(), this.isOpen = !1;
-        const g = typeof document < "u" ? document.getElementById("uno-box-" + this.id) : null, w = () => {
-          const m = s.store("uno")?.box;
-          m && m.remove(this.id), this.onClose && this.onClose();
+        const g = typeof document < "u" ? document.getElementById("uno-box-" + this.id) : null, v = () => {
+          const h = s.store("uno")?.box;
+          h && h.remove(this.id), this.onClose && this.onClose();
         };
         if (!g) {
-          w();
+          v();
           return;
         }
         let E = !1;
-        const v = (m) => {
-          m && m.target !== g || E || (E = !0, g.removeEventListener("transitionend", v), w());
+        const b = (h) => {
+          h && h.target !== g || E || (E = !0, g.removeEventListener("transitionend", b), v());
         };
-        g.addEventListener("transitionend", v), setTimeout(v, 350);
+        g.addEventListener("transitionend", b), setTimeout(b, 350);
       }
     };
     this.items.push(a), this.ensureContainer();
@@ -1617,6 +1633,17 @@ const ut = (s, t = {}) => {
       u.isOpen = !0, this.scheduleAutoFocus(u, s);
     };
     return s && typeof s.nextTick == "function" && s.nextTick(y), u;
+  },
+  /**
+   * Handle extra button click
+   * Supports synchronous and asynchronous onClick callbacks, consistent with handleOk
+   * @param {object} item - Box item
+   * @param {object} btn - Extra button config
+   */
+  async handleExtraButton(t, n) {
+    if (!t || !n?.onClick) return;
+    const e = n.onClick(t);
+    e instanceof Promise ? await e !== !1 && t.close() : e !== !1 && t.close();
   },
   /**
    * Handle OK button click
@@ -1717,7 +1744,7 @@ const ut = (s, t = {}) => {
     }, i = ft(), r = p.dom.ensureContainer(t, i, o);
     return r && s && typeof s.initTree == "function" && s.initTree(r), r;
   }
-}), ht = [
+}), mt = [
   "a[href]",
   "area[href]",
   "input:not([disabled])",
@@ -1735,7 +1762,7 @@ function F(s, t = {}) {
     if (!(a instanceof HTMLElement)) return !1;
     const u = window.getComputedStyle(a);
     return u.display === "none" || u.visibility === "hidden" ? !1 : a.getClientRects().length > 0;
-  }, o = () => Array.from(s.querySelectorAll(ht)).filter((a) => e(a)), i = () => o()[0], r = () => {
+  }, o = () => Array.from(s.querySelectorAll(mt)).filter((a) => e(a)), i = () => o()[0], r = () => {
     const a = o();
     return a[a.length - 1];
   }, l = (a) => {
@@ -1761,7 +1788,7 @@ function F(s, t = {}) {
     s.removeEventListener("keydown", l);
   };
 }
-const mt = (s) => {
+const ht = (s) => {
   s.directive("uno-trap", (t, { expression: n }, { cleanup: e, evaluateLater: o }) => {
     if (n)
       o(n)((r) => {
@@ -1802,7 +1829,7 @@ const pt = (s, t = {}) => {
   };
   p.registerPluginDefaults("box", { ...n, ...t.plugins?.box, ...t.box });
   const e = gt(s);
-  M(s, "box", e), mt(s);
+  U(s, "box", e), ht(s);
 }, A = {
   // --- Standard Types ---
   email: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/,
@@ -2006,17 +2033,17 @@ const pt = (s, t = {}) => {
     }
     const r = Uno.getConfig("valid"), l = Uno.options.ui?.valid || {};
     if (r.autoError !== !1) {
-      const g = `$store.uno.valid.errors['${i}']`, w = `[x-text="${g.replace(/"/g, '\\"')}"]`, E = t.form || t.closest("form");
-      if (!(E ? E.querySelector(w) : document.querySelector(w))) {
-        let m;
+      const g = `$store.uno.valid.errors['${i}']`, v = `[x-text="${g.replace(/"/g, '\\"')}"]`, E = t.form || t.closest("form");
+      if (!(E ? E.querySelector(v) : document.querySelector(v))) {
+        let h;
         if (typeof r.createErrorElement == "function")
-          m = r.createErrorElement(i, g);
+          h = r.createErrorElement(i, g);
         else {
-          m = document.createElement("div"), m.setAttribute("x-text", g), m.setAttribute("x-show", g);
-          const h = r.errorClass || l.helperText || "text-xs text-red-500 mt-1";
-          m.className = h;
+          h = document.createElement("div"), h.setAttribute("x-text", g), h.setAttribute("x-show", g);
+          const m = r.errorClass || l.helperText || "text-xs text-red-500 mt-1";
+          h.className = m;
         }
-        m && (t.after(m), s.initTree(m));
+        h && (t.after(h), s.initTree(h));
       }
     }
     const c = n ? e(n) : () => {
@@ -2025,22 +2052,22 @@ const pt = (s, t = {}) => {
     };
     n ? c((g) => {
       a(g);
-      const w = s.store("uno").valid;
-      if (w && w.normalizeRules) {
-        const v = w.normalizeRules(g).find((m) => m.type === "length" || m.maxLength !== void 0 || m.max !== void 0);
-        if (v) {
-          const m = v.max !== void 0 ? v.max : v.maxLength;
-          if (v.stopOnMax === !0 && m !== void 0 && t.setAttribute("maxlength", m), v.showCounter === !0 && m !== void 0) {
-            const h = `${i}-counter`;
-            let d = document.getElementById(h);
+      const v = s.store("uno").valid;
+      if (v && v.normalizeRules) {
+        const b = v.normalizeRules(g).find((h) => h.type === "length" || h.maxLength !== void 0 || h.max !== void 0);
+        if (b) {
+          const h = b.max !== void 0 ? b.max : b.maxLength;
+          if (b.stopOnMax === !0 && h !== void 0 && t.setAttribute("maxlength", h), b.showCounter === !0 && h !== void 0) {
+            const m = `${i}-counter`;
+            let d = document.getElementById(m);
             const x = t.parentElement;
-            x && window.getComputedStyle(x).position === "static" && x.tagName !== "FORM" && x.tagName !== "BODY" && (x.style.position = "relative"), d || (d = document.createElement("span"), d.id = h, d.className = "absolute bottom-1 right-2 text-xs text-gray-400 pointer-events-none transition-colors duration-200", t.after(d));
-            const b = () => {
-              const U = t.value.length;
-              d.textContent = `${U}/${m}`, U > m ? (d.classList.add("text-red-500"), d.classList.remove("text-gray-400")) : (d.classList.remove("text-red-500"), d.classList.add("text-gray-400"));
+            x && window.getComputedStyle(x).position === "static" && x.tagName !== "FORM" && x.tagName !== "BODY" && (x.style.position = "relative"), d || (d = document.createElement("span"), d.id = m, d.className = "absolute bottom-1 right-2 text-xs text-gray-400 pointer-events-none transition-colors duration-200", t.after(d));
+            const w = () => {
+              const B = t.value.length;
+              d.textContent = `${B}/${h}`, B > h ? (d.classList.add("text-red-500"), d.classList.remove("text-gray-400")) : (d.classList.remove("text-red-500"), d.classList.add("text-gray-400"));
             };
-            b(), t.addEventListener("input", b), o(() => {
-              t.removeEventListener("input", b), d && d.parentNode && d.parentNode.removeChild(d);
+            w(), t.addEventListener("input", w), o(() => {
+              t.removeEventListener("input", w), d && d.parentNode && d.parentNode.removeChild(d);
             });
           }
         }
@@ -2067,7 +2094,7 @@ const pt = (s, t = {}) => {
       }
   }));
 };
-const vt = (s, t = {}) => {
+const bt = (s, t = {}) => {
   const n = {
     realtime: !0,
     showError: !0,
@@ -2079,8 +2106,8 @@ const vt = (s, t = {}) => {
     ...t.valid
   });
   const e = xt(s);
-  M(s, "valid", e), yt(s);
-}, wt = (s) => ({
+  U(s, "valid", e), yt(s);
+}, vt = (s) => ({
   // State: { [group]: activeTabName }
   groups: {},
   // Registry: { [tabName]: { group, name, ... } }
@@ -2145,7 +2172,7 @@ const vt = (s, t = {}) => {
     let e = window.location.hash.slice(1);
     !e && window.location.href.includes("#") && (e = window.location.href.split("#")[1]), e === t && (f.info(`[Tab] Hash match for ${t}. Activating.`), this.activate({ group: n, name: t, updateHash: !1 }));
   }
-}), bt = (s) => {
+}), wt = (s) => {
   s.directive("uno-tab", (t, { expression: n }, { evaluateLater: e, cleanup: o }) => {
     if (!n) {
       f.warn("[Uno] x-uno-tab directive requires a configuration object.");
@@ -2181,12 +2208,12 @@ const Et = (s, t = {}) => {
     inactiveClass: ""
   };
   p.registerPluginDefaults("tab", { ...n, ...t.plugins?.tab, ...t.tab });
-  const e = wt();
-  M(s, "tab", e), bt(s);
+  const e = vt();
+  U(s, "tab", e), wt(s);
 };
-p.dom = B;
+p.dom = O;
 typeof window < "u" && (window.Uno = p);
-p.use(J).use(rt).use(ut).use(pt).use(vt).use(Et);
+p.use(J).use(rt).use(ut).use(pt).use(bt).use(Et);
 if (typeof window < "u") {
   const s = () => {
     window.Alpine && !p.initialized && p.init(window.Alpine);
@@ -2200,12 +2227,12 @@ if (typeof window < "u") {
   );
 }
 export {
-  B as DomManager,
+  O as DomManager,
   p as Uno,
   pt as box,
   p as default,
   ut as notify,
   Et as tab,
   rt as tooltip,
-  vt as valid
+  bt as valid
 };

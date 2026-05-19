@@ -169,6 +169,7 @@ export const createBoxStore = (Alpine) => ({
       cancelText: config.cancelText || 'Cancel',
       okButtonClass: config.okButtonClass,
       cancelButtonClass: config.cancelButtonClass,
+      extraButtons: Array.isArray(config.extraButtons) ? config.extraButtons : [],
       onOk: config.onOk,
       onCancel: config.onCancel,
       onBeforeClose: config.onBeforeClose,
@@ -246,6 +247,27 @@ export const createBoxStore = (Alpine) => ({
     }
 
     return reactiveItem
+  },
+
+  /**
+   * Handle extra button click
+   * Supports synchronous and asynchronous onClick callbacks, consistent with handleOk
+   * @param {object} item - Box item
+   * @param {object} btn - Extra button config
+   */
+  async handleExtraButton(item, btn) {
+    if (!item || !btn?.onClick) return
+
+    const result = btn.onClick(item)
+
+    if (result instanceof Promise) {
+      const value = await result
+      if (value !== false) {
+        item.close()
+      }
+    } else if (result !== false) {
+      item.close()
+    }
   },
 
   /**

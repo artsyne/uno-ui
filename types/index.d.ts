@@ -72,6 +72,7 @@ declare module 'uno-ui' {
     itemWrapper?: string
     container?: string
     cancelBtn?: string
+    extraBtn?: string
     okBtn?: string
     title?: string
     closeBtnFloating?: string
@@ -370,6 +371,28 @@ declare module 'uno-ui' {
   }
 
   /**
+   * Extra button configuration for box dialogs
+   */
+  export interface BoxExtraButton {
+    /** Button display text */
+    text: string
+    /** Additional CSS class override */
+    buttonClass?: string
+    /**
+     * Position relative to OK/Cancel buttons.
+     * 'before' = rendered before OK button (default)
+     * 'after'  = rendered after Cancel button
+     */
+    position?: 'before' | 'after'
+    /**
+     * Click handler. Return false to prevent dialog from closing.
+     * Supports both sync and async functions.
+     * @param item - The BoxItem instance
+     */
+    onClick?: (item: BoxItem) => void | false | Promise<void | false>
+  }
+
+  /**
    * Box dialog options
    */
   export interface BoxOptions {
@@ -417,6 +440,8 @@ declare module 'uno-ui' {
     hxHeaders?: Record<string, string>
     /** HTMX trigger condition */
     hxTrigger?: string
+    /** Extra custom buttons rendered alongside OK/Cancel */
+    extraButtons?: BoxExtraButton[]
     /** OK button callback (return false to prevent close) */
     onOk?: () => void | false
     /** Cancel button callback */
@@ -432,11 +457,13 @@ declare module 'uno-ui' {
   /**
    * Box item instance
    */
-  export interface BoxItem extends Required<BoxOptions> {
+  export interface BoxItem extends Required<Omit<BoxOptions, 'extraButtons'>> {
     /** Box instance ID */
     id: string
     /** Open state */
     isOpen: boolean
+    /** Extra buttons (resolved array) */
+    extraButtons: BoxExtraButton[]
     /** Close this box */
     close(): void
   }
@@ -962,11 +989,15 @@ declare module 'uno-ui' {
     errors: Record<string, string>
     /** Rules keyed by field name */
     rules: Record<string, ValidationRuleObject[]>
-    
+
     /**
      * Add validation rules
      */
-    addRules(fieldName: string, config: ValidationRule[] | ValidationRuleObject | string, instanceOpts?: any): void
+    addRules(
+      fieldName: string,
+      config: ValidationRule[] | ValidationRuleObject | string,
+      instanceOpts?: any
+    ): void
 
     /**
      * Normalize rules configuration
@@ -995,7 +1026,11 @@ declare module 'uno-ui' {
      */
     registerValidator(
       name: string,
-      fn: (value: any, fieldName: string, rule: ValidationRuleObject) => Promise<boolean | string | object> | boolean | string | object
+      fn: (
+        value: any,
+        fieldName: string,
+        rule: ValidationRuleObject
+      ) => Promise<boolean | string | object> | boolean | string | object
     ): void
   }
 
