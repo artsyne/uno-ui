@@ -10,6 +10,7 @@
 import Alpine from 'alpinejs'
 import { log } from '../utils/log'
 import { once } from '../utils/dom'
+import { extractXhr, getResponseInfo } from '../utils/htmx-compat'
 import { mergeDeep } from '../utils/object'
 import { Z_INDEX } from './layer'
 
@@ -107,7 +108,9 @@ export class UnoInstance {
 
         if (!once(document, 'uno:htmx:request-hooks')) return
 
-        const getXhr = (event) => event?.detail?.xhr
+        // htmx 2: xhr handle used as dedup key; undefined under htmx 4,
+        // which simply skips deduplication (see utils/htmx-compat)
+        const getXhr = extractXhr
         const callEach = (name, event) => {
           for (const h of this._htmxRequestHandlers) {
             const fn = h?.[name]
@@ -222,22 +225,20 @@ export class UnoInstance {
 
           if (showSuccess) {
             // Check for server-sent success indicator in headers
-            const xhr = event?.detail?.xhr
-            const isError = xhr?.status >= 400
+            const info = getResponseInfo(event)
+            const isError = info?.status >= 400
 
             if (!isError) {
               const notify = getNotifyStore()
               if (notify && typeof notify.success === 'function') {
                 // Check for X-Notify-Message header
                 let message = successMessage
-                if (xhr && xhr.getResponseHeader) {
-                  const customMessage = xhr.getResponseHeader('X-Notify-Message')
-                  if (customMessage) {
-                    message = customMessage
-                  }
+                const customMessage = info?.header('X-Notify-Message')
+                if (customMessage) {
+                  message = customMessage
                 }
                 // Only show if not suppressed
-                const suppress = xhr?.getResponseHeader?.('X-Notify-Suppress')
+                const suppress = info?.header('X-Notify-Suppress')
                 if (!suppress) {
                   notify.success(message)
                 }
@@ -260,13 +261,11 @@ export class UnoInstance {
             const notify = getNotifyStore()
             if (notify && typeof notify.error === 'function') {
               // Check for server-sent error message
-              const xhr = event?.detail?.xhr
+              const info = getResponseInfo(event)
               let message = errorMessage
-              if (xhr && xhr.getResponseHeader) {
-                const customMessage = xhr.getResponseHeader('X-Notify-Error')
-                if (customMessage) {
-                  message = customMessage
-                }
+              const customMessage = info?.header('X-Notify-Error')
+              if (customMessage) {
+                message = customMessage
               }
               notify.error(message)
             }

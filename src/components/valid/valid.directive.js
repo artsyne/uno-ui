@@ -1,3 +1,4 @@
+import { getResponseInfo } from '../../utils/htmx-compat'
 import { log } from '../../utils/log'
 
 /**
@@ -193,10 +194,10 @@ export const registerValidDirectives = (Alpine) => {
      * Processes server-side validation errors (422 status).
      */
     document.body.addEventListener('htmx:afterRequest', (evt) => {
-      const xhr = evt.detail.xhr
-      if (xhr.status === 422) {
+      const info = getResponseInfo(evt)
+      if (info && info.status === 422) {
         try {
-          const response = JSON.parse(xhr.responseText)
+          const response = JSON.parse(info.text)
           if (response.errors) {
             Alpine.store('uno').valid.showErrors(response.errors)
             log.info('[Valid] Server validation errors applied', response.errors)
