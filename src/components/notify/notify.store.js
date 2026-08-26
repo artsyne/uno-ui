@@ -72,14 +72,30 @@ export const createNotifyStore = (Alpine) => ({
     if (!item || item.__unoHtmxActive) return
 
     item.__unoHtmxActive = true
-    this.progressRequests++
-    if (this.progressRequests === 1) this.startProgress()
+    this.beginProgress()
   },
 
   _onHtmxEnd(item) {
     if (!item || !item.__unoHtmxActive) return
 
     item.__unoHtmxActive = false
+    this.endProgress()
+  },
+
+  /**
+   * Begin tracking an active request. Shows the progress bar on the first
+   * concurrent request. Public API — always pair with endProgress().
+   */
+  beginProgress() {
+    this.progressRequests++
+    if (this.progressRequests === 1) this.startProgress()
+  },
+
+  /**
+   * End tracking of an active request. Hides the progress bar when the last
+   * concurrent request finishes. Safe to call more often than beginProgress().
+   */
+  endProgress() {
     if (this.progressRequests > 0) this.progressRequests--
     if (this.progressRequests === 0) this.stopProgress()
   },
@@ -215,7 +231,9 @@ export const createNotifyStore = (Alpine) => ({
       // Then remove it after transition
       const idx = this.groups[position].findIndex((item) => item.id === id)
       if (idx !== -1) {
-        this.groups[position][idx].visible = false
+        // The template binds x-show to `item.isVisible` — setting `visible`
+        // here would never trigger the leave transition.
+        this.groups[position][idx].isVisible = false
         // Wait for transition (default 200ms in template)
         setTimeout(() => {
           // Re-fetch index in case it shifted

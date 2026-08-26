@@ -478,6 +478,55 @@ describe('Valid Component', () => {
       expect(preventDefault).toHaveBeenCalled()
       expect(issueRequest).toHaveBeenCalled()
     })
+
+    it('should apply server-side errors from 422 responses', () => {
+      const showErrorsSpy = vi.spyOn(store.uno.valid, 'showErrors')
+
+      const evt = document.createEvent('CustomEvent')
+      evt.initCustomEvent('htmx:afterRequest', true, true, {
+        xhr: {
+          status: 422,
+          responseText: JSON.stringify({ errors: { email: 'Email already taken' } }),
+          getResponseHeader: () => null
+        }
+      })
+      document.body.dispatchEvent(evt)
+
+      expect(showErrorsSpy).toHaveBeenCalledWith({ email: 'Email already taken' })
+      expect(store.uno.valid.errors['email']).toBe('Email already taken')
+    })
+
+    it('should ignore 422 responses with non-JSON bodies', () => {
+      const showErrorsSpy = vi.spyOn(store.uno.valid, 'showErrors')
+
+      const evt = document.createEvent('CustomEvent')
+      evt.initCustomEvent('htmx:afterRequest', true, true, {
+        xhr: {
+          status: 422,
+          responseText: '<html>Unprocessable</html>',
+          getResponseHeader: () => null
+        }
+      })
+      document.body.dispatchEvent(evt)
+
+      expect(showErrorsSpy).not.toHaveBeenCalled()
+    })
+
+    it('should ignore non-422 responses', () => {
+      const showErrorsSpy = vi.spyOn(store.uno.valid, 'showErrors')
+
+      const evt = document.createEvent('CustomEvent')
+      evt.initCustomEvent('htmx:afterRequest', true, true, {
+        xhr: {
+          status: 200,
+          responseText: JSON.stringify({ errors: { email: 'should not apply' } }),
+          getResponseHeader: () => null
+        }
+      })
+      document.body.dispatchEvent(evt)
+
+      expect(showErrorsSpy).not.toHaveBeenCalled()
+    })
   })
 
   describe('Auto Error Generation', () => {

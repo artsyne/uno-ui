@@ -188,9 +188,9 @@
           <!-- Password & Compare -->
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Password
-              <code>['required', {type:'length', min:8}]</code></label>
-            <input x-uno-valid="['required', { type: 'length', min: 8 }, { type: 'validator', name: 'pwd' }]"
-              id="logic_password" name="logic_password" type="password"
+              <code>['required', {type:'length', min:8}, 'pwd']</code></label>
+            <input x-uno-valid="['required', { type: 'length', min: 8 }, { type: 'pwd' }]" id="logic_password"
+              name="logic_password" type="password"
               class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
               :class="$store.uno.valid.errors['logic_password'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'" />
           </div>
@@ -208,8 +208,7 @@
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Age
               <code>{ min: 18, max: 60 }</code></label>
-            <input
-              x-uno-valid="['required', { type: 'range', min: 18, msgMin: 'Must be at least 18', max: 60, msgMax: 'Must be at most 60' }]"
+            <input x-uno-valid="['required', { type: 'range', min: 18, max: 60, msg: 'Age must be between 18 and 60' }]"
               name="logic_age" type="number"
               class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
               :class="$store.uno.valid.errors['logic_age'] && '!border-red-500 !focus:border-red-500 !focus:ring-red-500'" />
@@ -234,9 +233,8 @@
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Custom Function (Manual
               Error)
-              <code>autoError: false</code></label>
-            <input x-uno-valid="['required', { type: 'validator', name: 'checkname', debounce: 500, autoError: false }]"
-              name="custom"
+              <code>manual error element</code></label>
+            <input x-uno-valid="['required', { type: 'validator', name: 'checkname', debounce: 500 }]" name="custom"
               class="w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
               placeholder="Type 'admin' to fail" />
             <!-- Manual Error Element -->
@@ -518,8 +516,11 @@
           // Manually trigger success feedback
           // In a real app, the server would send HX-Trigger. 
           // Here we can use Uno's notify manually.
-          if (window.getUno && window.getUno().notify) {
-            window.getUno().notify.success('Validation Request Sent (Mocked Success)');
+          // `window.getUno()` is a website-project helper and does NOT exist in
+          // these examples — access the store directly instead.
+          const notify = Alpine.store('uno')?.notify
+          if (notify) {
+            notify.success('Validation Request Sent (Mocked Success)')
           }
         }
       });

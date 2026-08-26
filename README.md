@@ -45,7 +45,7 @@ Simply include the compiled CSS and JS files in your HTML.
     <script src="https://unpkg.com/htmx.org@2.0.8"></script>
 
     <!-- 3. Uno Framework (Must load before your app code if you use global Uno) -->
-    <script defer src="https://unpkg.com/uno-ui@0.8.0/dist/uno.umd.js"></script>
+    <script defer src="https://unpkg.com/uno-ui@0.9.0/dist/uno.umd.js"></script>
 
     <!-- 4. Your App Code (Defensive Initialization) -->
     <script defer src="/js/app.js"></script>
@@ -100,7 +100,7 @@ For NPM users, configure Uno using `setConfig()` BEFORE Alpine loads:
 <head>
   <!-- 1. Configure Uno (before Alpine loads) -->
   <script type="module">
-    import Uno from 'https://unpkg.com/uno-ui@0.8.0/dist/uno.es.js'
+    import Uno from 'https://unpkg.com/uno-ui@0.9.0/dist/uno.es.js'
 
     Uno.setConfig({
       debug: true,
@@ -241,21 +241,19 @@ Alpine.store('uno').box.open(options)
 
 ## Customization
 
-Uno UI provides a flexible styling system that allows you to customize the look and feel of components globally. You can override default Tailwind CSS classes by setting the `window.UnoConfig.ui` object before initialization.
+Uno UI provides a flexible styling system that allows you to customize the look and feel of components globally. You can override default Tailwind CSS classes via `Uno.setConfig()` — callable both before initialization (recommended) and at runtime.
 
 ### Configuration Structure
 
 The `ui` configuration object is structured as follows:
 
 ```javascript
-window.UnoConfig = {
+Uno.setConfig({
   ui: {
-    // Base styles used across multiple components
-    base: {
-      rounded: 'rounded-lg', // Default: rounded-lg. Set to 'rounded-none' for square look.
-      primary: 'bg-blue-600', // Default: bg-blue-600.
-      shadow: 'shadow-md' // Default: shadow-md.
-    },
+    // Base style string, substituted wherever a component style contains `{base}`
+    base: 'rounded-lg shadow-md border border-gray-200 dark:border-gray-700',
+    // Z-index layers managed by the core layer system
+    layers: { box: 1300, tooltip: 1700, notify: 1600 },
     // Component-specific overrides
     box: {
       overlay: '...', // Override overlay style
@@ -273,8 +271,8 @@ window.UnoConfig = {
       content: '...' // Override tooltip content style
     },
     tab: {
-      triggerActive: 'border-b-2 border-blue-500',
-      triggerInactive: 'text-gray-500'
+      active: 'border-b-2 border-blue-500',
+      inactive: 'text-slate-500 hover:text-slate-700'
     },
     valid: {
       inputError: '!border-red-500',
@@ -282,37 +280,37 @@ window.UnoConfig = {
       helperText: 'text-red-600 text-xs'
     }
   }
-}
+})
 ```
+
+> **Tip:** Prefix a style value with `+` to append it to the default instead of replacing it, e.g. `okBtn: '+min-w-24'`.
 
 ### Examples
 
 #### 1. Flat & Square Theme (No Rounded Corners)
 
 ```javascript
-window.UnoConfig = {
+Uno.setConfig({
   ui: {
-    base: {
-      rounded: 'rounded-none',
-      shadow: 'shadow-none'
-    }
+    base: 'rounded-none shadow-none border border-gray-200 dark:border-gray-700'
   }
-}
+})
 ```
 
 #### 2. Brand Color Theme
 
 ```javascript
-window.UnoConfig = {
+Uno.setConfig({
   ui: {
-    base: {
-      primary: 'bg-indigo-600 hover:bg-indigo-700'
-    },
     tab: {
-      triggerActive: 'text-indigo-600 border-b-2 border-indigo-600 font-bold'
+      active: 'text-indigo-600 border-b-2 border-indigo-600 font-bold'
+    },
+    box: {
+      okBtn:
+        'inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:ml-3 sm:w-auto'
     }
   }
-}
+})
 ```
 
 ## Internationalization (i18n)
@@ -410,7 +408,7 @@ npm run test:coverage
 
 **Test Coverage:**
 
-- ✅ 331 unit tests across 16 test files
+- ✅ 380 unit tests across 16 test files
 - ✅ 100% coverage of core modules (uno, plugin-registry, i18n, layer)
 - ✅ 100% coverage of all components (box, notify, tooltip, tab, valid)
 - ✅ 100% coverage of utility functions (dom, position, validation, a11y)
@@ -435,7 +433,7 @@ uno/
 │   ├── utils/            # Utilities (dom, position, validation, a11y, log)
 │   ├── locales/          # I18n Language Files (en, zh-CN, zh-TW)
 │   └── index.js          # Entry point
-├── tests/                # Unit Tests (264 tests across 13 files)
+├── tests/                # Unit Tests (380 tests across 16 files)
 ├── doc/                  # API Documentation
 ├── examples/             # Usage Examples & Interactive Demo
 ├── CONTRIBUTING.md       # Contribution Guidelines

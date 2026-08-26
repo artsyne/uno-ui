@@ -233,7 +233,7 @@ describe('Position Utils - calculatePosition()', () => {
     it('should position tooltip to the left of trigger', () => {
       const result = calculatePosition(triggerEl, tooltipEl, 'left')
       expect(result.position).toBe('left')
-      expect(result.left).toBe(200 - 120 - 5) // trigger.left - tooltip.width - spacing
+      expect(result.left).toBe(200 - 120 - 8) // trigger.left - tooltip.width - offset (default 8)
       expect(result.top).toBe(100 + 40 / 2 - 60 / 2) // centered vertically
     })
 
@@ -247,7 +247,7 @@ describe('Position Utils - calculatePosition()', () => {
 
       const result = calculatePosition(triggerEl, tooltipEl, 'left')
       expect(result.position).toBe('right')
-      expect(result.left).toBe(50 + 80 + 5)
+      expect(result.left).toBe(50 + 80 + 8)
     })
   })
 
@@ -255,7 +255,7 @@ describe('Position Utils - calculatePosition()', () => {
     it('should position tooltip to the right of trigger', () => {
       const result = calculatePosition(triggerEl, tooltipEl, 'right')
       expect(result.position).toBe('right')
-      expect(result.left).toBe(200 + 80 + 5) // trigger.left + trigger.width + spacing
+      expect(result.left).toBe(200 + 80 + 8) // trigger.left + trigger.width + offset (default 8)
       expect(result.top).toBe(100 + 40 / 2 - 60 / 2)
     })
 
@@ -269,7 +269,7 @@ describe('Position Utils - calculatePosition()', () => {
 
       const result = calculatePosition(triggerEl, tooltipEl, 'right')
       expect(result.position).toBe('left')
-      expect(result.left).toBe(950 - 120 - 5)
+      expect(result.left).toBe(950 - 120 - 8)
     })
   })
 
@@ -296,6 +296,86 @@ describe('Position Utils - calculatePosition()', () => {
 
       const result = calculatePosition(triggerEl, tooltipEl, 'left')
       expect(result.top).toBeGreaterThanOrEqual(10) // Min margin
+    })
+  })
+
+  describe('offset option', () => {
+    it('should use default offset of 8 when not provided', () => {
+      const result = calculatePosition(triggerEl, tooltipEl, 'top')
+      expect(result.top).toBe(100 - 60 - 8)
+    })
+
+    it('should honor a custom offset', () => {
+      const result = calculatePosition(triggerEl, tooltipEl, 'top', { offset: 20 })
+      expect(result.top).toBe(100 - 60 - 20)
+
+      const right = calculatePosition(triggerEl, tooltipEl, 'right', { offset: 16 })
+      expect(right.left).toBe(200 + 80 + 16)
+    })
+
+    it('should apply custom offset to the flipped side as well', () => {
+      triggerEl.getBoundingClientRect = () => ({
+        top: 30, // Not enough space above
+        left: 200,
+        width: 80,
+        height: 40
+      })
+
+      const result = calculatePosition(triggerEl, tooltipEl, 'top', { offset: 12 })
+      expect(result.position).toBe('bottom')
+      expect(result.top).toBe(30 + 40 + 12)
+    })
+
+    it('should fall back to 8 for invalid offset values', () => {
+      expect(calculatePosition(triggerEl, tooltipEl, 'top', { offset: -5 }).top).toBe(100 - 60 - 8)
+      expect(calculatePosition(triggerEl, tooltipEl, 'top', { offset: NaN }).top).toBe(100 - 60 - 8)
+      expect(calculatePosition(triggerEl, tooltipEl, 'top', { offset: 'big' }).top).toBe(
+        100 - 60 - 8
+      )
+    })
+  })
+
+  describe('arrow anchor', () => {
+    // Arrow is an 8px square rendered inside the tooltip box (w-2 h-2),
+    // anchored relative to the tooltip's own coordinate system.
+    it('should anchor arrow on the bottom edge for top placement', () => {
+      // tooltip: 120x60 at left = 200 + (80 - 120) / 2 = 180
+      // trigger center X = 200 + 80 / 2 = 240 -> rel = 240 - 180 - 4 = 56
+      const result = calculatePosition(triggerEl, tooltipEl, 'top')
+      expect(result.position).toBe('top')
+      expect(result.arrow).toEqual({ top: 60 - 4, left: 56 })
+    })
+
+    it('should anchor arrow on the top edge for bottom placement', () => {
+      const result = calculatePosition(triggerEl, tooltipEl, 'bottom')
+      expect(result.position).toBe('bottom')
+      expect(result.arrow.top).toBe(-4)
+      expect(result.arrow.left).toBe(56)
+    })
+
+    it('should anchor arrow on the side edges for left/right placement', () => {
+      // trigger center Y = 100 + 40 / 2 = 120; tooltip top = 100 + 20 - 30 = 90
+      // rel Y = 120 - 90 - 4 = 26
+      const left = calculatePosition(triggerEl, tooltipEl, 'left')
+      expect(left.arrow).toEqual({ top: 26, left: 120 - 4 })
+
+      const right = calculatePosition(triggerEl, tooltipEl, 'right')
+      expect(right.arrow).toEqual({ top: 26, left: -4 })
+    })
+
+    it('should clamp arrow inside the tooltip when trigger center is outside', () => {
+      // Trigger far to the right of the (viewport-constrained) tooltip
+      triggerEl.getBoundingClientRect = () => ({
+        top: 100,
+        left: 990, // tooltip gets clamped at viewportRight - 120 - 10 = 894
+        width: 80,
+        height: 40
+      })
+
+      const result = calculatePosition(triggerEl, tooltipEl, 'top')
+      // triggerCX - left - 4 = 1030 - 894 - 4 = 132 > max (120 - 8 = 112)
+      expect(result.arrow.left).toBe(112)
+      expect(result.arrow.top).toBe(60 - 4)
     })
   })
 })

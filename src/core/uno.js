@@ -25,7 +25,7 @@ export class UnoInstance {
    * @param {Object} [options={}] - Global configuration options
    */
   constructor(options = {}) {
-    this.version = '0.8.0'
+    this.version = '0.9.0'
     this.options = options
     this.pluginDefaults = {} // New: Plugin default configuration storage
     this.plugins = []
@@ -335,7 +335,7 @@ export class UnoInstance {
           text: 'text-sm font-medium text-gray-900 dark:text-slate-100 break-words',
           closeWrap: 'ml-4 flex flex-shrink-0',
           closeBtn:
-            'inline-flex rounded-md bg-white dark:bg-slate-900 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2',
+            'inline-flex rounded-md text-gray-500 hover:text-gray-700 hover:bg-black/5 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500',
           closeIcon: 'h-5 w-5',
           progressWrap:
             'fixed top-0 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700 pointer-events-none',

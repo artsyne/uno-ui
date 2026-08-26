@@ -90,36 +90,34 @@ app.listen(3000)
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Uno UI with CSP</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Uno UI with CSP</title>
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
-  <!-- 配置 Uno UI，传入 CSP nonce -->
-  <script type="module">
-    import Uno from 'https://unpkg.com/uno-ui@0.8.0/dist/uno.es.js'
+    <!-- 配置 Uno UI，传入 CSP nonce -->
+    <script type="module">
+      import Uno from 'https://unpkg.com/uno-ui@0.9.0/dist/uno.es.js'
 
-    Uno.setConfig({
-      debug: false,
-      csp: {
-        nonce: '<%= nonce %>' // 从服务器传入的 nonce
-      },
-      ui: {
-        base: 'rounded-lg shadow-md'
-      }
-    })
-  </script>
+      Uno.setConfig({
+        debug: false,
+        csp: {
+          nonce: '<%= nonce %>' // 从服务器传入的 nonce
+        },
+        ui: {
+          base: 'rounded-lg shadow-md'
+        }
+      })
+    </script>
 
-  <!-- 加载 Alpine.js -->
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js"></script>
-</head>
-<body>
-  <button x-data @click="$store.uno.box.alert('Hello!')">
-    点击我
-  </button>
-</body>
+    <!-- 加载 Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js"></script>
+  </head>
+  <body>
+    <button x-data @click="$store.uno.box.alert('Hello!')">点击我</button>
+  </body>
 </html>
 ```
 
@@ -190,54 +188,54 @@ app.listen(3000, () => {
 <!-- views/index.ejs -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Uno UI CSP Example</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Uno UI CSP Example</title>
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
-  <!-- Uno UI 配置 -->
-  <script type="module">
-    import Uno from '/dist/uno.es.js'
+    <!-- Uno UI 配置 -->
+    <script type="module">
+      import Uno from '/dist/uno.es.js'
 
-    Uno.setConfig({
-      debug: false,
-      csp: {
-        nonce: '<%= nonce %>'
-      },
-      ui: {
-        base: 'rounded-lg shadow-md'
-      }
-    })
-  </script>
+      Uno.setConfig({
+        debug: false,
+        csp: {
+          nonce: '<%= nonce %>'
+        },
+        ui: {
+          base: 'rounded-lg shadow-md'
+        }
+      })
+    </script>
 
-  <!-- Alpine.js -->
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js"></script>
-</head>
-<body class="bg-gray-100 min-h-screen p-8">
-  <div class="max-w-md mx-auto">
-    <h1 class="text-2xl font-bold mb-4">Uno UI CSP 示例</h1>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js"></script>
+  </head>
+  <body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-md mx-auto">
+      <h1 class="text-2xl font-bold mb-4">Uno UI CSP 示例</h1>
 
-    <!-- Box 组件示例 -->
-    <button
-      x-data
-      @click="$store.uno.box.alert('这是一个受 CSP 保护的弹窗！')"
-      class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-    >
-      显示弹窗
-    </button>
+      <!-- Box 组件示例 -->
+      <button
+        x-data
+        @click="$store.uno.box.alert('这是一个受 CSP 保护的弹窗！')"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+      >
+        显示弹窗
+      </button>
 
-    <!-- Notify 组件示例 -->
-    <button
-      x-data
-      @click="$store.uno.notify.success('操作成功！')"
-      class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 ml-2"
-    >
-      显示通知
-    </button>
-  </div>
-</body>
+      <!-- Notify 组件示例 -->
+      <button
+        x-data
+        @click="$store.uno.notify.success('操作成功！')"
+        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 ml-2"
+      >
+        显示通知
+      </button>
+    </div>
+  </body>
 </html>
 ```
 
@@ -253,8 +251,8 @@ Uno.setConfig({
 })
 ```
 
-| 选项 | 类型 | 默认值 | 描述 |
-|------|------|--------|------|
+| 选项    | 类型     | 默认值 | 描述                                                                |
+| ------- | -------- | ------ | ------------------------------------------------------------------- |
 | `nonce` | `string` | `null` | CSP nonce 值。如果提供，Uno UI 将自动将其注入到所有内联样式和脚本中 |
 
 ## 常见问题排查
@@ -266,6 +264,7 @@ Uno.setConfig({
 **原因**：CSP 阻止了内联样式。
 
 **解决方案**：
+
 - 确保 CSP 头部中的 `style-src` 包含 nonce 或 `'unsafe-inline'`
 - 检查 nonce 是否正确传递给 Uno UI
 
@@ -280,6 +279,7 @@ Content-Security-Policy: style-src 'self' 'nonce-abc123'
 **原因**：CSP 阻止了内联脚本。
 
 **解决方案**：
+
 - 确保 CSP 头部中的 `script-src` 包含 nonce 或 `'unsafe-inline'`
 - 验证 nonce 的一致性
 
@@ -302,6 +302,7 @@ Content-Security-Policy: script-src 'self' 'nonce-abc123'
 **原因**：服务器端 nonce 和客户端 nonce 不一致。
 
 **解决方案**：
+
 - 确保服务器为每个请求生成唯一的 nonce
 - 确保 nonce 正确传递到客户端
 - 检查模板渲染是否正确
@@ -339,12 +340,14 @@ Content-Security-Policy: script-src 'self' 'nonce-abc123'
 ```javascript
 if (process.env.NODE_ENV === 'development') {
   // 开发环境：使用较宽松的 CSP
-  res.setHeader('Content-Security-Policy',
+  res.setHeader(
+    'Content-Security-Policy',
     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'"
   )
 } else {
   // 生产环境：使用严格的 CSP
-  res.setHeader('Content-Security-Policy',
+  res.setHeader(
+    'Content-Security-Policy',
     `default-src 'self'; script-src 'self' 'nonce-${nonce}'; style-src 'self' 'nonce-${nonce}'`
   )
 }
@@ -356,7 +359,8 @@ if (process.env.NODE_ENV === 'development') {
 
 ```javascript
 // 报告模式：只报告不阻止
-res.setHeader('Content-Security-Policy-Report-Only',
+res.setHeader(
+  'Content-Security-Policy-Report-Only',
   `default-src 'self'; script-src 'self' 'nonce-${nonce}'; style-src 'self' 'nonce-${nonce}'; report-uri /csp-violation-report-endpoint`
 )
 ```

@@ -119,8 +119,7 @@
         <div class="p-6 h-64 flex items-center justify-center">
           <div class="relative">
             <button data-testid="trigger-click" x-uno-tooltip="{
-                  content: 'Clicked (Light)!',
-                  theme: 'light',
+                  content: 'Clicked!',
                   trigger: 'click',
                   placement: 'right'
                 }"
@@ -193,7 +192,7 @@
           </p>
 
           <div class="absolute top-0 left-0 p-4">
-            <button data-testid="trigger-edge" x-uno-tooltip.top="'I flipped to bottom!'"
+            <button data-testid="trigger-edge" x-uno-tooltip="{ content: 'I flipped to bottom!', placement: 'top' }"
               class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium shadow-sm whitespace-nowrap">
               Top Edge (Force Flip)
             </button>

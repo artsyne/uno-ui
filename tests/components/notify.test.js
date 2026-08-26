@@ -124,8 +124,8 @@ describe('Notify Component', () => {
 
       vi.advanceTimersByTime(1000)
 
-      // Should set visible to false first
-      expect(notifyStore.groups['top-right'][0].visible).toBe(false)
+      // Should set isVisible to false first (template binds x-show to isVisible)
+      expect(notifyStore.groups['top-right'][0].isVisible).toBe(false)
 
       // Then remove after transition (300ms)
       vi.advanceTimersByTime(300)
@@ -150,12 +150,43 @@ describe('Notify Component', () => {
 
       notifyStore.remove(id)
 
-      // Should set visible false immediately
-      expect(notifyStore.groups['top-right'][0].visible).toBe(false)
+      // Should set isVisible false immediately — the template binds x-show to
+      // `item.isVisible`, so writing `visible` would never trigger the leave
+      // transition (regression coverage).
+      expect(notifyStore.groups['top-right'][0].isVisible).toBe(false)
 
       // And remove after delay
       vi.advanceTimersByTime(300)
       expect(notifyStore.groups['top-right']).toHaveLength(0)
+    })
+  })
+
+  describe('Progress API', () => {
+    it('should expose beginProgress/endProgress for external progress tracking', () => {
+      const spyStart = vi.spyOn(notifyStore, 'startProgress')
+      const spyStop = vi.spyOn(notifyStore, 'stopProgress')
+
+      notifyStore.beginProgress()
+      expect(spyStart).toHaveBeenCalledTimes(1)
+      expect(notifyStore.progressRequests).toBe(1)
+
+      notifyStore.beginProgress()
+      // Progress bar only starts on the first concurrent request
+      expect(spyStart).toHaveBeenCalledTimes(1)
+      expect(notifyStore.progressRequests).toBe(2)
+
+      notifyStore.endProgress()
+      expect(spyStop).not.toHaveBeenCalled()
+      expect(notifyStore.progressRequests).toBe(1)
+
+      notifyStore.endProgress()
+      expect(spyStop).toHaveBeenCalledTimes(1)
+      expect(notifyStore.progressRequests).toBe(0)
+    })
+
+    it('should tolerate endProgress calls without a matching beginProgress', () => {
+      expect(() => notifyStore.endProgress()).not.toThrow()
+      expect(notifyStore.progressRequests).toBe(0)
     })
   })
 

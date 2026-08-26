@@ -170,7 +170,7 @@ Pass the nonce to Uno during initialization:
 ```javascript
 // CDN Usage
 <script type="module">
-  import Uno from 'https://unpkg.com/uno-ui@0.8.0/dist/uno.es.js'
+  import Uno from 'https://unpkg.com/uno-ui@0.9.0/dist/uno.es.js'
 
   Uno.setConfig({
     csp: {
@@ -202,7 +202,8 @@ const crypto = require('crypto')
 app.use((req, res, next) => {
   const nonce = crypto.randomBytes(16).toString('base64')
   res.locals.nonce = nonce
-  res.setHeader('Content-Security-Policy',
+  res.setHeader(
+    'Content-Security-Policy',
     `default-src 'self'; script-src 'self' 'nonce-${nonce}'; style-src 'self' 'nonce-${nonce}'`
   )
   next()
@@ -229,9 +230,9 @@ app.get('/', (req, res) => {
 
 ### CSP Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `nonce` | `string` | `null` | The CSP nonce value. If provided, Uno will automatically inject it into inline styles and scripts. |
+| Option  | Type     | Default | Description                                                                                        |
+| ------- | -------- | ------- | -------------------------------------------------------------------------------------------------- |
+| `nonce` | `string` | `null`  | The CSP nonce value. If provided, Uno will automatically inject it into inline styles and scripts. |
 
 ### What Uno Does with CSP
 
@@ -246,50 +247,48 @@ When CSP nonce is configured, Uno automatically:
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Uno UI with CSP</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Uno UI with CSP</title>
 
-  <!-- CSP Header (set by server) -->
-  <!-- Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-abc123'; style-src 'self' 'nonce-abc123' -->
+    <!-- CSP Header (set by server) -->
+    <!-- Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-abc123'; style-src 'self' 'nonce-abc123' -->
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
-  <!-- Configure Uno with CSP nonce -->
-  <script type="module">
-    import Uno from 'https://unpkg.com/uno-ui@0.8.0/dist/uno.es.js'
+    <!-- Configure Uno with CSP nonce -->
+    <script type="module">
+      import Uno from 'https://unpkg.com/uno-ui@0.9.0/dist/uno.es.js'
 
-    Uno.setConfig({
-      debug: false,
-      csp: {
-        nonce: 'abc123' // Must match server-generated nonce
-      },
-      ui: {
-        base: 'rounded-lg shadow-md'
-      }
-    })
-  </script>
+      Uno.setConfig({
+        debug: false,
+        csp: {
+          nonce: 'abc123' // Must match server-generated nonce
+        },
+        ui: {
+          base: 'rounded-lg shadow-md'
+        }
+      })
+    </script>
 
-  <!-- Load Alpine -->
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js"></script>
-</head>
-<body>
-  <button x-data @click="$store.uno.box.alert('Hello!')">
-    Click Me
-  </button>
-</body>
+    <!-- Load Alpine -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js"></script>
+  </head>
+  <body>
+    <button x-data @click="$store.uno.box.alert('Hello!')">Click Me</button>
+  </body>
 </html>
 ```
 
 ### Troubleshooting CSP Issues
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| **Styles not applied** | CSP blocking inline styles | Ensure `style-src` includes the nonce or `'unsafe-inline'` |
-| **Scripts not executing** | CSP blocking inline scripts | Ensure `script-src` includes the nonce or `'unsafe-inline'` |
-| **Mixed Content errors** | Loading resources from HTTP on HTTPS page | Ensure all resources use HTTPS |
-| **Nonce mismatch** | Nonce in header doesn't match config | Verify nonce is correctly passed from server to client |
+| Issue                     | Cause                                     | Solution                                                    |
+| ------------------------- | ----------------------------------------- | ----------------------------------------------------------- |
+| **Styles not applied**    | CSP blocking inline styles                | Ensure `style-src` includes the nonce or `'unsafe-inline'`  |
+| **Scripts not executing** | CSP blocking inline scripts               | Ensure `script-src` includes the nonce or `'unsafe-inline'` |
+| **Mixed Content errors**  | Loading resources from HTTP on HTTPS page | Ensure all resources use HTTPS                              |
+| **Nonce mismatch**        | Nonce in header doesn't match config      | Verify nonce is correctly passed from server to client      |
 
 ### Best Practices
 

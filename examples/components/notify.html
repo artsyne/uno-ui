@@ -13,18 +13,6 @@
   <script src="../../dist/uno.umd.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
   <script>
-    // 绑定 HTMX 事件
-    if (window.Alpine && window.Alpine.store('uno') && window.Alpine.store('uno').htmx) {
-      window.Alpine.store('uno').htmx.bindNotifyToHtmx()
-    } else {
-      document.addEventListener('alpine:init', () => {
-        if (Alpine.store('uno') && Alpine.store('uno').htmx) {
-          Alpine.store('uno').htmx.bindNotifyToHtmx()
-        }
-      })
-    }
-  </script>
-  <script>
     // Add HTMX response handler to display the result
     document.addEventListener('DOMContentLoaded', function () {
       document.addEventListener('htmx:afterOnLoad', function (evt) {
@@ -252,7 +240,7 @@
             <h3 class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Global Progress
             </h3>
-            <button hx-get="/examples/data/sample.json" hx-target="#htmx-result"
+            <button hx-get="../data/sample.json" hx-target="#htmx-result"
               class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium shadow-sm">
               Test Global HTMX Progress
             </button>
@@ -264,7 +252,7 @@
             <h3 class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               External Content
             </h3>
-            <button x-uno-notify="{ message: 'Loading...', hxUrl: '/examples/partials/test-content.html', duration: 10000 }"
+            <button x-uno-notify="{ message: 'Loading...', hxUrl: '../partials/test-content.html', duration: 10000 }"
               class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
               Load External HTML
             </button>

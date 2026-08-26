@@ -30,11 +30,14 @@ vi.mock('../../src/utils/log', () => ({
   }
 }))
 
+// NOTE: the real calculatePosition() returns `{ top, left, position }`.
+// The mock MUST use the same field names, otherwise it cannot catch
+// regressions where the store reads a non-existent property (e.g. `placement`).
 vi.mock('../../src/utils/position', () => ({
   calculatePosition: vi.fn(() => ({
     top: 100,
     left: 200,
-    placement: 'top'
+    position: 'top'
   }))
 }))
 
@@ -308,7 +311,7 @@ describe('Tooltip Component', () => {
       positionModule.calculatePosition.mockReturnValueOnce({
         top: 150,
         left: 250,
-        placement: 'bottom' // Flipped from 'top'
+        position: 'bottom' // Flipped from 'top'
       })
 
       tooltipStore.visible = true
@@ -318,6 +321,41 @@ describe('Tooltip Component', () => {
       tooltipStore.updatePosition()
 
       expect(tooltipStore.placement).toBe('bottom')
+    })
+
+    it('should pass the configured offset to calculatePosition', async () => {
+      const positionModule = await import('../../src/utils/position')
+
+      tooltipStore.show({ element: triggerEl, content: 'Test', offset: 16 })
+      tooltipStore.visible = true
+      tooltipStore.triggerEl = triggerEl
+
+      positionModule.calculatePosition.mockClear()
+      tooltipStore.updatePosition()
+
+      expect(positionModule.calculatePosition).toHaveBeenCalledWith(
+        triggerEl,
+        tooltipEl,
+        expect.any(String),
+        { offset: 16 }
+      )
+    })
+
+    it('should update arrowPosition when calculatePosition returns an arrow anchor', async () => {
+      const positionModule = await import('../../src/utils/position')
+      positionModule.calculatePosition.mockReturnValueOnce({
+        top: 150,
+        left: 250,
+        position: 'bottom',
+        arrow: { top: -4, left: 56 }
+      })
+
+      tooltipStore.visible = true
+      tooltipStore.triggerEl = triggerEl
+
+      tooltipStore.updatePosition()
+
+      expect(tooltipStore.arrowPosition).toEqual({ top: -4, left: 56 })
     })
   })
 
@@ -350,20 +388,9 @@ describe('Tooltip Component', () => {
   })
 
   describe('Placement Options', () => {
-    const placements = [
-      'top',
-      'top-start',
-      'top-end',
-      'bottom',
-      'bottom-start',
-      'bottom-end',
-      'left',
-      'left-start',
-      'left-end',
-      'right',
-      'right-start',
-      'right-end'
-    ]
+    // calculatePosition() only resolves these four cardinal values; any other
+    // string (e.g. 'bottom-start') silently falls back to the 'bottom' branch.
+    const placements = ['top', 'bottom', 'left', 'right']
 
     placements.forEach((placement) => {
       it(`should support ${placement} placement`, () => {

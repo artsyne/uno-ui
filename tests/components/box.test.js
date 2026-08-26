@@ -285,6 +285,56 @@ describe('Box Component', () => {
       const result = await promise
       expect(result).toBe(false)
     })
+
+    it('should compose a user-supplied onOk with the Promise resolver', async () => {
+      const onOk = vi.fn()
+      const promise = boxStore.confirm('Confirm?', { onOk })
+      const item = boxStore.items[0]
+
+      const ret = item.onOk()
+      expect(onOk).toHaveBeenCalledTimes(1)
+      expect(ret).toBeUndefined() // allow the dialog to close (handleOk semantics)
+
+      await expect(promise).resolves.toBe(true)
+    })
+
+    it('should keep the dialog open and the promise pending when user onOk returns false', async () => {
+      const onOk = vi.fn(() => false)
+      const promise = boxStore.confirm('Confirm?', { onOk })
+      const item = boxStore.items[0]
+
+      const ret = item.onOk()
+      expect(onOk).toHaveBeenCalledTimes(1)
+      expect(ret).toBe(false) // keep open, like handleOk
+
+      // Promise must remain pending while the dialog stays open
+      let settled = false
+      promise.then(() => {
+        settled = true
+      })
+      await new Promise(process.nextTick)
+      expect(settled).toBe(false)
+    })
+
+    it('should resolve after an async user onOk completes', async () => {
+      const onOk = vi.fn(async () => undefined)
+      const promise = boxStore.confirm('Confirm?', { onOk })
+      const item = boxStore.items[0]
+
+      item.onOk()
+      expect(onOk).toHaveBeenCalledTimes(1)
+      await expect(promise).resolves.toBe(true)
+    })
+
+    it('should compose a user-supplied onCancel with the Promise resolver', async () => {
+      const onCancel = vi.fn()
+      const promise = boxStore.confirm('Confirm?', { onCancel })
+      const item = boxStore.items[0]
+
+      item.onCancel()
+      expect(onCancel).toHaveBeenCalledTimes(1)
+      await expect(promise).resolves.toBe(false)
+    })
   })
 
   describe('prompt() - Input Dialog', () => {

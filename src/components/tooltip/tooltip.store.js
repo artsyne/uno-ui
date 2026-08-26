@@ -114,10 +114,12 @@ export const createTooltipStore = (Alpine) => {
           this.content = sanitizeHTML(targetEl.innerHTML)
         } else {
           log.warn(`Tooltip target element not found: ${config.target}`)
-          this.content = config.content || ''
+          this.content = sanitizeHTML(config.content || '')
         }
       } else {
-        this.content = config.content || ''
+        // Direct content is rendered via x-html — sanitize it exactly like
+        // target-sourced content to keep XSS handling consistent with Box.
+        this.content = sanitizeHTML(config.content || '')
       }
 
       this.placement = config.placement
@@ -178,14 +180,17 @@ export const createTooltipStore = (Alpine) => {
       if (!tooltipEl) return
 
       const pos = calculatePosition(this.triggerEl, tooltipEl, this.placement, {
-        offset: this.offset,
-        arrow: this.arrow
+        offset: this.offset
       })
 
       this.top = pos.top
       this.left = pos.left
-      this.placement = pos.placement // Update placement if flipped
+      // calculatePosition() returns `{ top, left, position }` — keep the
+      // previous placement as fallback so a missing field never wipes state.
+      this.placement = pos.position || this.placement // Update placement if flipped
 
+      // calculatePosition() always returns an arrow anchor relative to the
+      // tooltip box; visibility is controlled by `x-show="...tooltip.arrow"`.
       if (pos.arrow) {
         this.arrowPosition = pos.arrow
       }

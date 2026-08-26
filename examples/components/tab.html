@@ -11,7 +11,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
   <!-- Load Uno before Alpine so it can register on alpine:init -->
-  <script src="../../dist/uno.umd.js?v=0.6.0" defer></script>
+  <script src="../../dist/uno.umd.js" defer></script>
   <script defer src="https://unpkg.com/alpinejs@3.15.2"></script>
   <style type="text/tailwindcss">
     .tab-base {
@@ -271,8 +271,7 @@
             </button>
             <button id="tab-side-htmx" role="tab" aria-controls="panel-side-htmx-target"
               x-uno-tab="{ name: 'side-htmx', group: 'sidebar' }"
-              :aria-selected="$store.uno.tab.isActive('side-htmx', 'sidebar')"
-              @click="$store.uno.tab.activate('side-htmx', 'sidebar')" hx-get="../data/tab-content.html"
+              :aria-selected="$store.uno.tab.isActive('side-htmx', 'sidebar')" hx-get="../data/tab-content.html"
               hx-target="#panel-side-htmx-target"
               class="px-4 py-2 rounded text-left text-sm font-medium transition-colors"
               :class="$store.uno.tab.isActive('side-htmx', 'sidebar') ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'">

@@ -308,12 +308,12 @@ Alpine.store('uno').box.open({
 
 ### Common Issues
 
-| Issue                       | Possible Cause                                | Solution                                                                           |
-| :-------------------------- | :-------------------------------------------- | :--------------------------------------------------------------------------------- |
-| **Dialog not opening**      | Alpine.js not initialized or store not ready. | Ensure `Alpine.start()` is called and `uno` store is accessed after `alpine:init`. |
-| **HTMX content missing**    | `hxUrl` returned 404 or empty response.       | Check Network tab. Ensure server returns partial HTML, not full page.              |
-| **Styling broken**          | Tailwind CSS not loaded or version mismatch.  | Ensure Tailwind 4.x is loaded. Check `window.UnoConfig` overrides.                 |
-| **"Alpine is not defined"** | Script loading order incorrect.               | Load Alpine.js _after_ your app scripts or use `defer`.                            |
+| Issue                       | Possible Cause                                | Solution                                                                                 |
+| :-------------------------- | :-------------------------------------------- | :--------------------------------------------------------------------------------------- |
+| **Dialog not opening**      | Alpine.js not initialized or store not ready. | Ensure `Alpine.start()` is called and `uno` store is accessed after `alpine:init`.       |
+| **HTMX content missing**    | `hxUrl` returned 404 or empty response.       | Check Network tab. Ensure server returns partial HTML, not full page.                    |
+| **Styling broken**          | Tailwind CSS not loaded or version mismatch.  | Ensure Tailwind 4.x is loaded. Check overrides applied via `Uno.setConfig({ ui: ... })`. |
+| **"Alpine is not defined"** | Script loading order incorrect.               | Load Alpine.js _after_ your app scripts or use `defer`.                                  |
 
 ## Version History
 

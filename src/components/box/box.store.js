@@ -34,17 +34,39 @@ export const createBoxStore = (Alpine) => ({
   /**
    * Show a confirm dialog
    * @param {string} message - Confirmation message
-   * @param {object} options - Additional options
+   * @param {object} options - Additional options. User-supplied onOk/onCancel/onClose
+   *   callbacks are composed with (not replacing) the Promise resolver: the promise
+   *   resolves true on OK / false otherwise. Like handleOk, an onOk returning false
+   *   (or resolving to false) keeps the dialog open and the promise pending.
    * @returns {Promise<boolean>} Resolves true if OK, false otherwise
    */
   confirm(message, options = {}) {
     return new Promise((resolve) => {
+      const { onOk, onCancel, onClose, ...rest } = options
       this.open('confirm', {
+        ...rest,
         content: message,
-        onOk: () => resolve(true),
-        onCancel: () => resolve(false),
-        onClose: () => resolve(false), // Closing without choice = cancel
-        ...options
+        onOk: () => {
+          const result = typeof onOk === 'function' ? onOk() : undefined
+          if (result === false) return false // Keep open, promise stays pending
+          if (result instanceof Promise) {
+            return result.then((value) => {
+              if (value === false) return false
+              resolve(true)
+              return undefined
+            })
+          }
+          resolve(true)
+          return undefined
+        },
+        onCancel: () => {
+          if (typeof onCancel === 'function') onCancel()
+          resolve(false)
+        },
+        onClose: () => {
+          if (typeof onClose === 'function') onClose()
+          resolve(false) // Closing without choice = cancel (no-op if already resolved)
+        }
       })
     })
   },
@@ -53,11 +75,14 @@ export const createBoxStore = (Alpine) => ({
    * Show a prompt dialog
    * @param {string} message - Prompt message
    * @param {string} defaultValue - Default input value
-   * @param {object} options - Additional options
+   * @param {object} options - Additional options. User-supplied onOk/onCancel are
+   *   composed with the Promise resolver (see confirm()); onOk returning false
+   *   keeps the dialog open and the promise pending.
    * @returns {Promise<string|null>} Resolves with input value or null
    */
   prompt(message, defaultValue = '', options = {}) {
     return new Promise((resolve) => {
+      const { onOk, onCancel, ...rest } = options
       const id = 'prompt-' + Math.random().toString(36).slice(2, 11)
       const wrapperClass = Uno.getStyle('box', 'promptWrapper')
       const textClass = Uno.getStyle('box', 'promptText')
@@ -74,15 +99,29 @@ export const createBoxStore = (Alpine) => ({
         </div>
       `
       this.open('confirm', {
-        title: options.title || 'Prompt',
+        title: rest.title || 'Prompt',
+        ...rest,
         content,
         _isTrustedPrompt: true, // Internal flag for prompt content
         onOk: () => {
+          const result = typeof onOk === 'function' ? onOk() : undefined
+          if (result === false) return false // Keep open, promise stays pending
+          if (result instanceof Promise) {
+            return result.then((value) => {
+              if (value === false) return false
+              const input = document.getElementById(id)
+              resolve(input ? input.value : null)
+              return undefined
+            })
+          }
           const input = document.getElementById(id)
           resolve(input ? input.value : null)
+          return undefined
         },
-        onCancel: () => resolve(null),
-        ...options
+        onCancel: () => {
+          if (typeof onCancel === 'function') onCancel()
+          resolve(null)
+        }
       })
     })
   },

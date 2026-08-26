@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2026-08-26
+
+### ✨ Features
+
+- **Box**: Added `extraButtons` support — custom buttons with `position`, `buttonClass`, and async `onClick` (`return false` keeps the dialog open). New `handleExtraButton()` store method and `extraBtn` default style.
+- **Notify**: New public `beginProgress()` / `endProgress()` API for external progress tracking with concurrent-request counting.
+
+### 🐛 Fixes
+
+- **Tooltip**: The `offset` option is now honored by `calculatePosition()` (previously parsed but ignored); horizontal placements now use the same default gap (8px) as vertical ones.
+- **Tooltip**: The arrow element is now actually rendered — `calculatePosition()` returns an arrow anchor relative to the tooltip box and the template positions an 8px rotated square from it.
+- **Tooltip**: Fixed `updatePosition()` reading a non-existent `placement` field from `calculatePosition()` results; the returned field is `position`, so auto-flip updates now reach the store.
+- **Tooltip**: Direct string content is now sanitized like target-sourced content (XSS hardening).
+- **Notify**: Fixed `remove()` writing `visible` while the template binds `x-show` to `isVisible` — leave transitions now actually play.
+- **Box**: `confirm()` / `prompt()` now compose user-supplied `onOk` / `onCancel` / `onClose` with the internal Promise resolver instead of letting them overwrite it (which left the promise pending forever). An `onOk` returning `false` (or resolving to `false`) keeps the dialog open, matching `handleOk` semantics.
+
+### 📚 Documentation & Types
+
+- `TooltipPlacement` type narrowed to the four values actually resolved by `calculatePosition()` (`'top' | 'bottom' | 'left' | 'right'`); other strings fall back to `'bottom'` at runtime.
+- Removed the long-deprecated `window.UnoConfig` global type declaration; use `Uno.setConfig()`.
+- Rewrote `doc/tab-api.md` to document the real Store-First API (`x-uno-tab` + `Alpine.store('uno').tab`).
+- Fixed README customization examples (real `ui` structure, `Uno.setConfig()` instead of `window.UnoConfig`).
+
 ## [0.8.0] - 2026-01-22
 
 ### 🚀 Major Improvements

@@ -738,20 +738,11 @@ declare module 'uno-ui' {
 
   /**
    * Tooltip placement
+   *
+   * Note: calculatePosition() only resolves these four cardinal values.
+   * Any other string falls back to the 'bottom' branch at runtime.
    */
-  export type TooltipPlacement =
-    | 'top'
-    | 'top-start'
-    | 'top-end'
-    | 'bottom'
-    | 'bottom-start'
-    | 'bottom-end'
-    | 'left'
-    | 'left-start'
-    | 'left-end'
-    | 'right'
-    | 'right-start'
-    | 'right-end'
+  export type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right'
 
   /**
    * Tooltip trigger mode
@@ -1133,8 +1124,6 @@ declare global {
   interface Window {
     /** Global Uno instance */
     Uno: import('uno-ui').UnoInstance
-    /** Global Uno configuration */
-    UnoConfig?: import('uno-ui').UnoOptions
     /** Alpine.js instance */
     Alpine: AlpineType
     /** HTMX instance */

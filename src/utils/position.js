@@ -115,29 +115,42 @@ export const getStackingConfig = (position) => {
  * - For 'left' placement: Position to the left, flip to 'right' if no space
  * - For 'right' placement: Position to the right, flip to 'left' if no space
  * - Always centers the tooltip relative to the trigger when possible
- * - Adds padding (5px horizontal, 8px vertical) to prevent edge touching
+ * - Separates trigger and tooltip by `options.offset` pixels (default 8)
+ * - Computes an arrow anchor relative to the tooltip box so the template can
+ *   render an 8px rotated square pointing at the trigger center
  *
  * Edge Cases Handled:
  * - Tooltip wider than trigger: Centers tooltip over trigger
  * - Near viewport edge: Shifts tooltip away from edge (10px minimum padding)
  * - Insufficient space on preferred side: Flips to opposite side
  * - Insufficient space on both sides: Shows on preferred side with viewport constraint
+ * - Trigger center outside tooltip bounds: Arrow anchor is clamped inside the tooltip
  *
  * @param {HTMLElement} triggerEl - The trigger element that activates the tooltip
  * @param {HTMLElement} tooltipEl - The tooltip element to be positioned
  * @param {string} preferredPosition - Desired placement ('top'|'bottom'|'left'|'right')
+ * @param {Object} [options] - Positioning options
+ * @param {number} [options.offset=8] - Gap in pixels between trigger and tooltip
  * @returns {Object} Position object with properties:
  *   - {number} top - Top coordinate in pixels (viewport-relative)
  *   - {number} left - Left coordinate in pixels (viewport-relative)
  *   - {string} position - Actual position used (may differ from preferred if flipped)
+ *   - {Object} arrow - Arrow anchor relative to the tooltip box: { top, left }
  *
  * @example
- * const result = calculatePosition(button, tooltip, 'top')
+ * const result = calculatePosition(button, tooltip, 'top', { offset: 12 })
  * tooltip.style.top = `${result.top}px`
  * tooltip.style.left = `${result.left}px`
  * console.log(result.position) // 'top' or 'bottom' if flipped
  */
-export function calculatePosition(triggerEl, tooltipEl, preferredPosition) {
+export function calculatePosition(triggerEl, tooltipEl, preferredPosition, options = {}) {
+  // Gap between trigger and tooltip. Historically hardcoded to 8px
+  // (vertical) / 5px (horizontal); now a single configurable value.
+  const offset =
+    typeof options?.offset === 'number' && Number.isFinite(options.offset) && options.offset >= 0
+      ? options.offset
+      : 8
+
   const triggerRect = triggerEl.getBoundingClientRect()
   const tooltipRect = tooltipEl.getBoundingClientRect()
 
@@ -194,35 +207,35 @@ export function calculatePosition(triggerEl, tooltipEl, preferredPosition) {
 
   switch (preferredPosition) {
     case 'left':
-      left = pos.left - containerWidth - 5
+      left = pos.left - containerWidth - offset
       if (left < viewportLeft) {
-        left = pos.left + triggerWidth + 5
+        left = pos.left + triggerWidth + offset
         finalPosition = 'right'
       }
       top = constrainToViewport(pos.top + triggerHeight / 2 - containerHeight / 2, false)
       break
     case 'top':
-      top = pos.top - containerHeight - 8 // Add some spacing
+      top = pos.top - containerHeight - offset
       if (top < viewportTop) {
-        top = pos.top + triggerHeight + 8
+        top = pos.top + triggerHeight + offset
         finalPosition = 'bottom'
       }
       left = pos.left + (triggerWidth - containerWidth) / 2
       left = constrainToViewport(left, true)
       break
     case 'right':
-      left = pos.left + triggerWidth + 5
+      left = pos.left + triggerWidth + offset
       if (left + containerWidth > viewportRight) {
-        left = pos.left - containerWidth - 5
+        left = pos.left - containerWidth - offset
         finalPosition = 'left'
       }
       top = constrainToViewport(pos.top + triggerHeight / 2 - containerHeight / 2, false)
       break
     case 'bottom':
     default:
-      top = pos.top + triggerHeight + 8
+      top = pos.top + triggerHeight + offset
       if (top + containerHeight > viewportBottom) {
-        top = pos.top - containerHeight - 8
+        top = pos.top - containerHeight - offset
         finalPosition = 'top'
       }
       left = pos.left + (triggerWidth - containerWidth) / 2
@@ -230,5 +243,44 @@ export function calculatePosition(triggerEl, tooltipEl, preferredPosition) {
       break
   }
 
-  return { top, left, position: finalPosition }
+  // Arrow anchor relative to the tooltip box. The template renders an 8px
+  // (w-2 h-2) square rotated 45deg; anchoring with a negative coordinate
+  // lets half of it poke out towards the trigger. The along-axis coordinate
+  // tracks the trigger center, clamped so the arrow never leaves the box.
+  const ARROW_SIZE = 8
+  const half = ARROW_SIZE / 2
+  const clamp = (v, min, max) => Math.min(Math.max(v, min), Math.max(min, max))
+  const triggerCX = pos.left + triggerWidth / 2
+  const triggerCY = pos.top + triggerHeight / 2
+
+  let arrow
+  switch (finalPosition) {
+    case 'top': // tooltip above trigger -> arrow on the tooltip's bottom edge
+      arrow = {
+        top: containerHeight - half,
+        left: clamp(triggerCX - left - half, 0, containerWidth - ARROW_SIZE)
+      }
+      break
+    case 'left': // tooltip left of trigger -> arrow on the tooltip's right edge
+      arrow = {
+        top: clamp(triggerCY - top - half, 0, containerHeight - ARROW_SIZE),
+        left: containerWidth - half
+      }
+      break
+    case 'right': // arrow on the tooltip's left edge
+      arrow = {
+        top: clamp(triggerCY - top - half, 0, containerHeight - ARROW_SIZE),
+        left: -half
+      }
+      break
+    case 'bottom':
+    default: // arrow on the tooltip's top edge
+      arrow = {
+        top: -half,
+        left: clamp(triggerCX - left - half, 0, containerWidth - ARROW_SIZE)
+      }
+      break
+  }
+
+  return { top, left, position: finalPosition, arrow }
 }
