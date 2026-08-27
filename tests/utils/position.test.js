@@ -338,6 +338,18 @@ describe('Position Utils - calculatePosition()', () => {
   describe('arrow anchor', () => {
     // Arrow is an 8px square rendered inside the tooltip box (w-2 h-2),
     // anchored relative to the tooltip's own coordinate system.
+
+    it('should normalize unsupported placements to bottom', () => {
+      // Popper-style values like 'bottom-end' were once echoed back verbatim,
+      // which broke consumers keying styles off `position` (the arrow borders).
+      const result = calculatePosition(triggerEl, tooltipEl, 'bottom-end')
+      expect(result.position).toBe('bottom')
+      // ...and the geometry must match a plain 'bottom' placement
+      const plain = calculatePosition(triggerEl, tooltipEl, 'bottom')
+      expect({ top: result.top, left: result.left }).toEqual({ top: plain.top, left: plain.left })
+      expect(result.arrow).toEqual(plain.arrow)
+    })
+
     it('should anchor arrow on the bottom edge for top placement', () => {
       // tooltip: 120x60 at left = 200 + (80 - 120) / 2 = 180
       // trigger center X = 200 + 80 / 2 = 240 -> rel = 240 - 180 - 4 = 56

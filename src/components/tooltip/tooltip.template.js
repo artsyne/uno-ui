@@ -18,9 +18,14 @@ export const getTooltipTemplate = () => {
          :class="Uno.getStyle('tooltip', 'content')"
          :style="{ top: $store.uno.tooltip.top + 'px', left: $store.uno.tooltip.left + 'px', zIndex: $store.uno.tooltip.zIndex }">
          
-         <!-- Arrow: 8px rotated square, anchored by calculatePosition() -->
+         <!-- Arrow: 8px rotated square, anchored by calculatePosition().
+              Border sides follow the resolved placement so the tip continues
+              the tooltip outline instead of punching a hole in it. -->
          <div x-show="$store.uno.tooltip.arrow"
-              class="absolute w-2 h-2 rotate-45 bg-inherit"
+              :class="[
+                Uno.getStyle('tooltip', 'arrow'),
+                Uno.getStyle('tooltip', 'arrowSides.' + $store.uno.tooltip.placement, '')
+              ]"
               :style="{ top: $store.uno.tooltip.arrowPosition.top + 'px', left: $store.uno.tooltip.arrowPosition.left + 'px' }">
          </div>
 

@@ -128,13 +128,15 @@ export const getStackingConfig = (position) => {
  *
  * @param {HTMLElement} triggerEl - The trigger element that activates the tooltip
  * @param {HTMLElement} tooltipEl - The tooltip element to be positioned
- * @param {string} preferredPosition - Desired placement ('top'|'bottom'|'left'|'right')
+ * @param {string} preferredPosition - Desired placement ('top'|'bottom'|'left'|'right'); any
+ *   other value is treated as 'bottom'
  * @param {Object} [options] - Positioning options
  * @param {number} [options.offset=8] - Gap in pixels between trigger and tooltip
  * @returns {Object} Position object with properties:
  *   - {number} top - Top coordinate in pixels (viewport-relative)
  *   - {number} left - Left coordinate in pixels (viewport-relative)
- *   - {string} position - Actual position used (may differ from preferred if flipped)
+ *   - {string} position - Actual placement used, always one of the four
+ *     supported values (may differ from preferred if flipped or unsupported)
  *   - {Object} arrow - Arrow anchor relative to the tooltip box: { top, left }
  *
  * @example
@@ -203,7 +205,13 @@ export function calculatePosition(triggerEl, tooltipEl, preferredPosition, optio
   }
 
   let top, left
-  let finalPosition = preferredPosition
+  // Only these four placements are implemented; anything else (e.g. the
+  // Popper-style 'bottom-end') falls through to the bottom geometry below, so
+  // report 'bottom' instead of echoing an unsupported value back to callers
+  // that key styles off it (the tooltip arrow does).
+  let finalPosition = ['top', 'bottom', 'left', 'right'].includes(preferredPosition)
+    ? preferredPosition
+    : 'bottom'
 
   switch (preferredPosition) {
     case 'left':

@@ -122,6 +122,10 @@ declare module 'uno-ui' {
   export interface TooltipUiConfig {
     content?: string
     body?: string
+    /** Base classes for the arrow square (positioning, size, rotation, fill) */
+    arrow?: string
+    /** Outward-facing border classes, keyed by resolved placement */
+    arrowSides?: Partial<Record<TooltipPlacement, string>>
   }
 
   /**

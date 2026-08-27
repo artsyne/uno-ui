@@ -357,7 +357,20 @@ export class UnoInstance {
         tooltip: {
           content:
             'fixed px-3 py-2 text-sm font-medium {base} whitespace-nowrap bg-white text-gray-900 dark:bg-slate-800 dark:text-white',
-          body: 'pointer-events-auto'
+          body: 'pointer-events-auto',
+          // Arrow is an 8px square rotated 45deg, half of it poking out of the
+          // tooltip edge. bg-inherit picks up the tooltip background so it reads
+          // as a pointer instead of a white patch.
+          arrow: 'absolute w-2 h-2 rotate-45 bg-inherit border-gray-200 dark:border-gray-700',
+          // Only the two sides facing away from the tooltip carry a border, so
+          // the outline stays continuous around the tip. Keys are the resolved
+          // placement; values assume a clockwise 45deg rotation.
+          arrowSides: {
+            top: 'border-b border-r', // tooltip above trigger -> tip points down
+            bottom: 'border-t border-l', // tip points up
+            left: 'border-t border-r', // tip points right
+            right: 'border-b border-l' // tip points left
+          }
         },
         tab: {
           active: 'border-b-2 border-blue-500',

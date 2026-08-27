@@ -115,6 +115,44 @@ describe('UnoInstance Configuration', () => {
   })
 })
 
+describe('UnoInstance Tooltip Arrow Styles', () => {
+  let uno
+
+  beforeEach(() => {
+    uno = new UnoInstance()
+  })
+
+  it('should expose arrow base classes with rotation and inherited background', () => {
+    const arrow = uno.getStyle('tooltip', 'arrow')
+    expect(arrow).toContain('absolute')
+    expect(arrow).toContain('rotate-45')
+    // bg-inherit keeps the tip in sync with the tooltip background instead of
+    // rendering an opaque white patch on top of it
+    expect(arrow).toContain('bg-inherit')
+  })
+
+  it('should border only the two outward sides for each placement', () => {
+    // The rotated square points at the trigger through the corner shared by
+    // these two sides. Bordering all four would draw a box; bordering none
+    // punches a hole in the tooltip outline.
+    const expected = {
+      top: ['border-b', 'border-r'],
+      bottom: ['border-t', 'border-l'],
+      left: ['border-t', 'border-r'],
+      right: ['border-b', 'border-l']
+    }
+
+    Object.entries(expected).forEach(([placement, sides]) => {
+      const cls = uno.getStyle('tooltip', `arrowSides.${placement}`, '')
+      expect(cls.split(' ').filter(Boolean).sort()).toEqual([...sides].sort())
+    })
+  })
+
+  it('should resolve to no border classes for an unsupported placement', () => {
+    expect(uno.getStyle('tooltip', 'arrowSides.bottom-start', '')).toBe('')
+  })
+})
+
 describe('UnoInstance HTMX Integration', () => {
   let uno
   let mockDocument
@@ -216,9 +254,7 @@ describe('UnoInstance HTMX Integration', () => {
 
       uno.htmx.bindNotifyToHtmx()
 
-      expect(log.warn).toHaveBeenCalledWith(
-        'bindNotifyToHtmx: document is not available'
-      )
+      expect(log.warn).toHaveBeenCalledWith('bindNotifyToHtmx: document is not available')
 
       global.document = prevDocument
     })
@@ -228,9 +264,7 @@ describe('UnoInstance HTMX Integration', () => {
 
       uno.htmx.bindNotifyToHtmx()
 
-      expect(log.warn).toHaveBeenCalledWith(
-        'bindNotifyToHtmx: HTMX is not available'
-      )
+      expect(log.warn).toHaveBeenCalledWith('bindNotifyToHtmx: HTMX is not available')
     })
 
     it('should register event listeners for HTMX events', () => {
