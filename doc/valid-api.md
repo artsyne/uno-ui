@@ -150,7 +150,7 @@ The plugin includes a comprehensive set of validators. Use them by specifying th
 | `mobile`    | Mobile phone number (7+ digits).                | `^\+?[\d\s-]{7,}$`                                                          |
 | `ipv4`      | IPv4 Address.                                   | `^(?:(?:25[0-5]\|2[0-4][0-9]\|[01]?[0-9][0-9]?)\.){3}(?:...)$`              |
 | `hex`       | Hex color code.                                 | `^#?([a-f0-9]{6}\|[a-f0-9]{3})$/i`                                          |
-| `pwd`       | Basic password (8+ chars, letter+num).          | `^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$`                                    |
+| `pwd`       | Basic password (8-72 chars, letter+num).        | `^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!_@#$%^&*()+\-=]{8,72}$`                   |
 | `strongpwd` | Strong password (8+ chars, letter+num+special). | `^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$`            |
 
 > **Note**: In the regex column, pipes `|` are escaped as `\|` or `&#124;` to prevent table formatting errors. The actual regexes in source code use standard `|`.
@@ -172,7 +172,7 @@ The `length` rule supports additional UI controls:
 - **`stopOnMax`** (boolean, default: `false`): If `true`, prevents the user from typing more characters once the `max` limit is reached (sets `maxlength` attribute).
 
 ```html
-<textarea 
+<textarea
   x-uno-valid="[{ 
     type: 'length', 
     max: 200, 
@@ -390,11 +390,11 @@ const valid = Alpine.store('uno').valid
 
 添加或更新字段的验证规则。
 
-| Parameter | Type | Description |
-| :-------- | :--- | :---------- |
-| `fieldName` | `string` | 字段唯一标识符 (name 或 id) |
-| `config` | `Array\|Object\|string` | 验证配置 |
-| `instanceOpts` | `Object` | 实例级全局选项 (可选) |
+| Parameter      | Type                    | Description                 |
+| :------------- | :---------------------- | :-------------------------- |
+| `fieldName`    | `string`                | 字段唯一标识符 (name 或 id) |
+| `config`       | `Array\|Object\|string` | 验证配置                    |
+| `instanceOpts` | `Object`                | 实例级全局选项 (可选)       |
 
 ```js
 valid.addRules('email', ['required', 'email'])
@@ -405,11 +405,11 @@ valid.addRules('password', { type: 'minLength', min: 8 })
 
 验证单个字段。
 
-| Parameter | Type | Description |
-| :-------- | :--- | :---------- |
-| `fieldName` | `string` | 字段标识符 |
-| `value` | `string\|number` | 要验证的值 |
-| `eventType` | `string` | 触发验证的事件类型 ('input', 'blur', 'submit') |
+| Parameter   | Type             | Description                                    |
+| :---------- | :--------------- | :--------------------------------------------- |
+| `fieldName` | `string`         | 字段标识符                                     |
+| `value`     | `string\|number` | 要验证的值                                     |
+| `eventType` | `string`         | 触发验证的事件类型 ('input', 'blur', 'submit') |
 
 ```js
 const isValid = await valid.validate('email', 'test@example.com', 'blur')
@@ -419,10 +419,10 @@ const isValid = await valid.validate('email', 'test@example.com', 'blur')
 
 手动显示字段错误。
 
-| Parameter | Type | Description |
-| :-------- | :--- | :---------- |
-| `fieldName` | `string` | 字段标识符 |
-| `message` | `string` | 错误消息 |
+| Parameter   | Type     | Description |
+| :---------- | :------- | :---------- |
+| `fieldName` | `string` | 字段标识符  |
+| `message`   | `string` | 错误消息    |
 
 ```js
 valid.showError('email', 'Invalid email format')
@@ -448,8 +448,8 @@ valid.clearErrors()
 
 批量显示多个字段错误。
 
-| Parameter | Type | Description |
-| :-------- | :--- | :---------- |
+| Parameter   | Type     | Description                |
+| :---------- | :------- | :------------------------- |
 | `errorsObj` | `Object` | 字段名到错误消息的映射对象 |
 
 ```js
@@ -463,10 +463,10 @@ valid.showErrors({
 
 注册自定义验证器。
 
-| Parameter | Type | Description |
-| :-------- | :--- | :---------- |
-| `name` | `string` | 验证器名称 |
-| `validatorFn` | `Function` | 验证函数 |
+| Parameter     | Type       | Description |
+| :------------ | :--------- | :---------- |
+| `name`        | `string`   | 验证器名称  |
+| `validatorFn` | `Function` | 验证函数    |
 
 ```js
 valid.registerValidator('customRule', ({ value, rule }) => {
@@ -477,8 +477,8 @@ valid.registerValidator('customRule', ({ value, rule }) => {
 
 ## Version History
 
-| Version | Date       | Changes                                                                                                        |
-| :------ | :--------- | :------------------------------------------------------------------------------------------------------------- |
+| Version | Date       | Changes                                                                                                         |
+| :------ | :--------- | :-------------------------------------------------------------------------------------------------------------- |
 | v0.8.1  | 2026-02-28 | Added programmatic Store API documentation (addRules, validate, showError, hideError, clearErrors, showErrors). |
-| v0.8.0  | 2026-01-22 | **Breaking**: Removed HTML5 attribute support. Added `debounce`, `emptyQuit`, and `type: 'validator'` support. |
-| v0.7.0  | 2026-01-20 | Initial release.                                                                                               |
+| v0.8.0  | 2026-01-22 | **Breaking**: Removed HTML5 attribute support. Added `debounce`, `emptyQuit`, and `type: 'validator'` support.  |
+| v0.7.0  | 2026-01-20 | Initial release.                                                                                                |

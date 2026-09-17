@@ -743,7 +743,7 @@ const y = new ot(), it = {
     email: "Invalid email address",
     date: "Invalid date format (YYYY-MM-DD)",
     url: "Invalid URL",
-    pwd: "Password must be 8-80 chars, contain letters and numbers, and can include _@#$%^&*()+-=",
+    pwd: "Password must be 8-72 chars, contain letters and numbers, and can include _!@#$%^&*()+-=",
     strongpwd: "Password must be 8-80 chars, contain letters, numbers, and at least 1 special char (_@#$%^&*()+-=)"
   },
   charCount: "Remaining: {count}"
@@ -774,7 +774,7 @@ const y = new ot(), it = {
     email: "无效的邮箱地址",
     date: "无效的日期格式 (YYYY-MM-DD)",
     url: "无效的 URL",
-    pwd: "密码需 8-80 位，必须包含字母和数字，可含 _@#$%^&*()+-= 特殊字符",
+    pwd: "密码需 8-72 位，必须包含字母和数字，可含 _!@#$%^&*()+-= 特殊字符",
     strongpwd: "密码需 8-80 位，必须包含字母、数字和至少 1 个特殊字符 (_@#$%^&*()+-=)"
   },
   charCount: "剩余: {count}"
@@ -805,7 +805,7 @@ const y = new ot(), it = {
     email: "無效的電子郵件地址",
     date: "無效的日期格式 (YYYY-MM-DD)",
     url: "無效的 URL",
-    pwd: "密碼需 8-80 位，必須包含字母和數字，可含 _@#$%^&*()+-= 特殊字符",
+    pwd: "密碼需 8-72 位，必須包含字母和數字，可含 _!@#$%^&*()+-= 特殊字符",
     strongpwd: "密碼需 8-80 位，必須包含字母、數字和至少 1 個特殊字符 (_@#$%^&*()+-=)"
   },
   charCount: "剩餘: {count}"
@@ -1960,8 +1960,8 @@ const Lt = (s, t = {}) => {
   ipv4: /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
   hex: /^#?([a-f0-9]{6}|[a-f0-9]{3})$/i,
   // --- Security ---
-  pwd: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d_@#$%^&*()+-=]{8,80}$/,
-  // Password must be 8-80 chars, contain letters and numbers, and can include _@#$%^&*()+-= special characters
+  pwd: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!_@#$%^&*()+\-=]{8,72}$/,
+  // Password must be 8-72 chars, contain letters and numbers, and can include _!@#$%^&*()+-= special characters
   strongpwd: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,80}$/
   // Password must be 8-80 chars, contain letters, numbers, and at least 1 special char (_@#$%^&*()+-=)
 }, St = (s) => ({

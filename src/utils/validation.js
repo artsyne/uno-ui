@@ -73,7 +73,9 @@
  * - `pwd`: Basic password (minimum security)
  *   - At least one letter (uppercase or lowercase)
  *   - At least one number
- *   - Minimum 8 characters total
+ *   - 8-72 characters; upper bound aligns with the backend pkg.IsPwd rule
+ *     (bcrypt silently truncates input beyond 72 bytes)
+ *   - Allowed special characters: _!@#$%^&*()+-=
  *   - Example: Password1
  *
  * - `strongpwd`: Strong password (high security)
@@ -124,7 +126,7 @@ export const VALIDATORS = {
   hex: /^#?([a-f0-9]{6}|[a-f0-9]{3})$/i,
 
   // --- Security ---
-  pwd: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d_@#$%^&*()+-=]{8,80}$/, // Password must be 8-80 chars, contain letters and numbers, and can include _@#$%^&*()+-= special characters
+  pwd: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!_@#$%^&*()+\-=]{8,72}$/, // Password must be 8-72 chars, contain letters and numbers, and can include _!@#$%^&*()+-= special characters
   strongpwd: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,80}$/ // Password must be 8-80 chars, contain letters, numbers, and at least 1 special char (_@#$%^&*()+-=)
 }
 

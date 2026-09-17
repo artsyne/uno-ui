@@ -25,8 +25,9 @@ export default {
     email: 'Invalid email address',
     date: 'Invalid date format (YYYY-MM-DD)',
     url: 'Invalid URL',
-    pwd: 'Password must be 8-80 chars, contain letters and numbers, and can include _@#$%^&*()+-=',
-    strongpwd: 'Password must be 8-80 chars, contain letters, numbers, and at least 1 special char (_@#$%^&*()+-=)'
+    pwd: 'Password must be 8-72 chars, contain letters and numbers, and can include _!@#$%^&*()+-=',
+    strongpwd:
+      'Password must be 8-80 chars, contain letters, numbers, and at least 1 special char (_@#$%^&*()+-=)'
   },
   charCount: 'Remaining: {count}'
 }

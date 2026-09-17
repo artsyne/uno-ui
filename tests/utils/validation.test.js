@@ -141,16 +141,20 @@ describe('Validation Utils - VALIDATORS', () => {
   })
 
   describe('pwd (password) validator', () => {
-    it('should validate passwords with letters and numbers (8+ chars)', () => {
+    it('should validate passwords with letters and numbers (8-72 chars)', () => {
       expect(VALIDATORS.pwd.test('abcd1234')).toBe(true)
       expect(VALIDATORS.pwd.test('Password1')).toBe(true)
       expect(VALIDATORS.pwd.test('12345abc')).toBe(true)
+      expect(VALIDATORS.pwd.test('Pass!word1')).toBe(true) // "!" allowed, aligned with backend pkg.IsPwd
+      expect(VALIDATORS.pwd.test('a1'.repeat(36))).toBe(true) // Exactly 72 chars (bcrypt limit) is valid
     })
 
     it('should reject weak passwords', () => {
       expect(VALIDATORS.pwd.test('12345678')).toBe(false) // No letters
       expect(VALIDATORS.pwd.test('abcdefgh')).toBe(false) // No numbers
       expect(VALIDATORS.pwd.test('abc123')).toBe(false) // Too short
+      expect(VALIDATORS.pwd.test('a1'.repeat(36) + 'x')).toBe(false) // Exceeds 72-char bcrypt limit
+      expect(VALIDATORS.pwd.test('abcd1234/')).toBe(false) // "/" is not in the allowed charset
       expect(VALIDATORS.pwd.test('')).toBe(false)
     })
   })
