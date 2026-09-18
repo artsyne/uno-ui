@@ -42,7 +42,7 @@ Simply include the compiled CSS and JS files in your HTML.
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
     <!-- 2. HTMX (Optional) -->
-    <script src="https://unpkg.com/htmx.org@2.0.8"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.10"></script>
 
     <!-- 3. Uno Framework (Must load before your app code if you use global Uno) -->
     <script defer src="https://unpkg.com/uno-ui@0.9.0/dist/uno.umd.js"></script>
@@ -51,7 +51,7 @@ Simply include the compiled CSS and JS files in your HTML.
     <script defer src="/js/app.js"></script>
 
     <!-- 5. Alpine.js (Base Framework) -->
-    <script defer src="https://unpkg.com/alpinejs@3.15.2/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.17.3/dist/cdn.min.js"></script>
   </head>
   <body>
     <!-- Component Usage -->
@@ -115,7 +115,7 @@ For NPM users, configure Uno using `setConfig()` BEFORE Alpine loads:
   </script>
 
   <!-- 2. Load Alpine (Uno auto-initializes) -->
-  <script defer src="https://unpkg.com/alpinejs@3.15.2/dist/cdn.min.js"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.17.3/dist/cdn.min.js"></script>
 </head>
 
 #### Optional: Register Components To register custom Alpine components: ```html

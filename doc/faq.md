@@ -23,7 +23,7 @@ This document addresses common questions and issues when using Uno UI.
 1. **CDN (Quick Start)**:
 
 ```html
-<script src="https://unpkg.com/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
+<script src="https://unpkg.com/alpinejs@3.17.3/dist/cdn.min.js" defer></script>
 <script src="https://unpkg.com/uno-ui@0.7.0/dist/uno.umd.js"></script>
 ```
 
@@ -67,7 +67,7 @@ These versions support ES6+ features and Alpine.js requirements.
 <html>
   <head>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://unpkg.com/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/alpinejs@3.17.3/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/uno-ui@0.6.0/dist/uno.umd.js"></script>
   </head>
   <body>
@@ -509,9 +509,9 @@ console.log(window.htmx) // Should be defined
 
 ```html
 <!-- 1. HTMX -->
-<script src="https://unpkg.com/htmx.org@2.0.8"></script>
+<script src="https://unpkg.com/htmx.org@2.0.10"></script>
 <!-- 2. Alpine -->
-<script src="https://unpkg.com/alpinejs@3.15.2/dist/cdn.min.js" defer></script>
+<script src="https://unpkg.com/alpinejs@3.17.3/dist/cdn.min.js" defer></script>
 <!-- 3. Uno -->
 <script src="https://unpkg.com/uno-ui@0.6.0/dist/uno.umd.js"></script>
 ```

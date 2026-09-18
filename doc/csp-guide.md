@@ -113,7 +113,7 @@ app.listen(3000)
     </script>
 
     <!-- 加载 Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.17.3/dist/cdn.min.js"></script>
   </head>
   <body>
     <button x-data @click="$store.uno.box.alert('Hello!')">点击我</button>
@@ -211,7 +211,7 @@ app.listen(3000, () => {
     </script>
 
     <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.17.3/dist/cdn.min.js"></script>
   </head>
   <body class="bg-gray-100 min-h-screen p-8">
     <div class="max-w-md mx-auto">

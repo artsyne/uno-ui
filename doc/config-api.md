@@ -42,7 +42,7 @@ Uno automatically initializes when Alpine is ready. Just include the scripts:
 #### CDN Usage (No Config)
 
 ```html
-<script defer src="https://unpkg.com/alpinejs@3.15.2/dist/cdn.min.js"></script>
+<script defer src="https://unpkg.com/alpinejs@3.17.3/dist/cdn.min.js"></script>
 <script defer src="https://unpkg.com/uno-ui@0.6.0/dist/uno.umd.js"></script>
 ```
 
@@ -73,7 +73,7 @@ For CDN users who need custom configuration:
   </script>
 
   <!-- Load Alpine (Uno auto-initializes) -->
-  <script defer src="https://unpkg.com/alpinejs@3.15.2/dist/cdn.min.js"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.17.3/dist/cdn.min.js"></script>
 </head>
 ```
 
@@ -273,7 +273,7 @@ When CSP nonce is configured, Uno automatically:
     </script>
 
     <!-- Load Alpine -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.2/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.17.3/dist/cdn.min.js"></script>
   </head>
   <body>
     <button x-data @click="$store.uno.box.alert('Hello!')">Click Me</button>
