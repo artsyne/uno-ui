@@ -446,6 +446,35 @@ describe('Valid Component', () => {
       expect(store.uno.valid.errors['field']).toBeTruthy()
     })
 
+    it('should intercept htmx:confirm when only fields carry x-uno-valid', async () => {
+      document.body.innerHTML = `
+        <form id="htmxForm">
+          <input name="field" value="" x-uno-valid="['required']" />
+        </form>
+      `
+      const form = document.getElementById('htmxForm')
+      store.uno.valid.addRules('field', ['required'])
+
+      const preventDefault = vi.fn()
+      const issueRequest = vi.fn()
+
+      const evt = form.ownerDocument.createEvent('CustomEvent')
+      evt.initCustomEvent('htmx:confirm', true, true, { issueRequest, elt: form })
+      Object.defineProperty(evt, 'preventDefault', { value: preventDefault })
+
+      form.querySelectorAll('input').forEach((el) => {
+        el.scrollIntoView = vi.fn()
+        el.focus = vi.fn()
+      })
+
+      form.dispatchEvent(evt)
+      await new Promise(process.nextTick)
+
+      expect(preventDefault).toHaveBeenCalled()
+      expect(issueRequest).not.toHaveBeenCalled()
+      expect(store.uno.valid.errors['field']).toBeTruthy()
+    })
+
     it('should allow request if validation passes', async () => {
       document.body.innerHTML = `
         <form id="htmxForm" x-uno-valid>

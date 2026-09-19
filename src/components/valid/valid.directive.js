@@ -78,7 +78,9 @@ export const registerValidDirectives = (Alpine) => {
         if (validStore && validStore.normalizeRules) {
           const rules = validStore.normalizeRules(value)
           // Find any length-related rule
-          const lengthRule = rules.find((r) => r.type === 'length' || r.maxLength !== undefined || r.max !== undefined)
+          const lengthRule = rules.find(
+            (r) => r.type === 'length' || r.maxLength !== undefined || r.max !== undefined
+          )
 
           if (lengthRule) {
             const max = lengthRule.max !== undefined ? lengthRule.max : lengthRule.maxLength
@@ -95,7 +97,12 @@ export const registerValidDirectives = (Alpine) => {
 
               // Ensure parent is relative for absolute positioning
               const parent = el.parentElement
-              if (parent && window.getComputedStyle(parent).position === 'static' && parent.tagName !== 'FORM' && parent.tagName !== 'BODY') {
+              if (
+                parent &&
+                window.getComputedStyle(parent).position === 'static' &&
+                parent.tagName !== 'FORM' &&
+                parent.tagName !== 'BODY'
+              ) {
                 parent.style.position = 'relative'
               }
 
@@ -104,7 +111,8 @@ export const registerValidDirectives = (Alpine) => {
                 counterEl.id = counterId
                 // Default styling: bottom-right inside the input container
                 // Adjust margins to not overlap with border/padding
-                counterEl.className = 'absolute bottom-1 right-2 text-xs text-gray-400 pointer-events-none transition-colors duration-200'
+                counterEl.className =
+                  'absolute bottom-1 right-2 text-xs text-gray-400 pointer-events-none transition-colors duration-200'
                 el.after(counterEl)
               }
 
@@ -173,18 +181,31 @@ export const registerValidDirectives = (Alpine) => {
     /**
      * Handles htmx:confirm event.
      * Validates the form before HTMX issues a request.
+     *
+     * A form is intercepted when either the form itself carries the
+     * `x-uno-valid` marker or any descendant declares validation rules via
+     * `x-uno-valid`. The descendant check is required because a form whose
+     * fields declare rules but whose <form> element is missing the marker
+     * would otherwise bypass validation entirely (request sent unvalidated,
+     * no error hints rendered).
      */
     document.body.addEventListener('htmx:confirm', async (evt) => {
       const el = evt.detail.elt
       const form = el.tagName === 'FORM' ? el : el.closest('form')
 
-      if (form && form.hasAttribute('x-uno-valid')) {
+      if (form && (form.hasAttribute('x-uno-valid') || form.querySelector('[x-uno-valid]'))) {
         evt.preventDefault()
 
-        const isValid = await Alpine.store('uno').valid.validateForm(form)
+        try {
+          const isValid = await Alpine.store('uno').valid.validateForm(form)
 
-        if (isValid) {
-          evt.detail.issueRequest(true)
+          if (isValid) {
+            evt.detail.issueRequest(true)
+          }
+        } catch (err) {
+          // Fail closed: an unexpected validation failure must block the
+          // request rather than let an unvalidated submission through.
+          log.error('[Valid] Form validation failed unexpectedly, request blocked', err)
         }
       }
     })
