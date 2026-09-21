@@ -2166,7 +2166,9 @@ const Lt = (s, t = {}) => {
       c(g);
       const w = s.store("uno").valid;
       if (w && w.normalizeRules) {
-        const b = w.normalizeRules(g).find((h) => h.type === "length" || h.maxLength !== void 0 || h.max !== void 0);
+        const b = w.normalizeRules(g).find(
+          (h) => h.type === "length" || h.maxLength !== void 0 || h.max !== void 0
+        );
         if (b) {
           const h = b.max !== void 0 ? b.max : b.maxLength;
           if (b.stopOnMax === !0 && h !== void 0 && t.setAttribute("maxlength", h), b.showCounter === !0 && h !== void 0) {
