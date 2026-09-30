@@ -470,6 +470,35 @@ describe('Tooltip Component', () => {
     })
   })
 
+  // P1-D2（WCAG 1.4.13 Content on Hover or Focus）：hover 提示三要素回归锁。
+  // dismissible=Esc 全局关闭（本块覆盖）；hoverable=指针移入弹层 cancelHide、
+  // persistent=移开后 scheduleHide 延迟 300ms（已由上方 cancelHide()/scheduleHide() 块覆盖）。
+  // ensureGlobalListeners() 在 show() 内、click 分支之前调用，故 hover 触发同样注册 Esc 监听。
+  describe('Hover content dismissible (P1-D2, WCAG 1.4.13)', () => {
+    it('should hide a visible hover tooltip on Escape', () => {
+      const triggerEl = document.createElement('button')
+      document.body.appendChild(triggerEl)
+      tooltipStore.show({ element: triggerEl, content: 'hint', trigger: 'hover' })
+      expect(tooltipStore.visible).toBe(true)
+
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+
+      expect(tooltipStore.visible).toBe(false)
+    })
+
+    it('should leave a hidden tooltip untouched on Escape', () => {
+      const triggerEl = document.createElement('button')
+      document.body.appendChild(triggerEl)
+      tooltipStore.show({ element: triggerEl, content: 'hint', trigger: 'hover' })
+      tooltipStore.hide()
+      expect(tooltipStore.visible).toBe(false)
+
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+
+      expect(tooltipStore.visible).toBe(false)
+    })
+  })
+
   describe('Trigger Modes', () => {
     const modes = ['hover', 'click', 'focus']
 
