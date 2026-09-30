@@ -8,6 +8,7 @@ The Notify component provides a lightweight, toast-style notification system. It
 - **Architecture**: Store-based (`Alpine.store('uno').notify`) with directive triggers (`x-uno-notify`).
 - **Positions**: Supports 9 screen positions (e.g., top-right, bottom-center).
 - **HTMX Support**: Automatic global progress bar integration during HTMX requests.
+- **A11y**: The close button's screen-reader label is localized via the `box.close` i18n key.
 
 ## Basic Usage
 

@@ -7,7 +7,7 @@ The Box component is a lightweight, declarative, HTMX-native modal system based 
 - **Core Function**: Provides modal dialog management with support for stacking, positioning, and content injection.
 - **Architecture**: Store-based state management (`Alpine.store('uno').box`) with directive triggers (`x-uno-box`).
 - **Integration**: Native support for HTMX content loading (`hxUrl`).
-- **A11y**: Built-in focus trapping and keyboard navigation (ESC to close).
+- **A11y**: Built-in focus trapping and keyboard navigation (ESC to close). The floating close button's accessible name is localized via the `box.close` i18n key.
 
 ## Basic Usage
 

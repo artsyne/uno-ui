@@ -123,4 +123,11 @@ describe('Box Template', () => {
     const template = getBoxTemplate()
     expect(template).toContain('btn.buttonClass')
   })
+
+  it('should localize close button aria-label via i18n instead of hardcoding (B7)', () => {
+    const template = getBoxTemplate()
+    // 关闭按钮 aria-label 走 x-t 指令本地化（box.close），不再硬编码 "Close"
+    expect(template).toContain('x-t.aria-label="box.close"')
+    expect(template).not.toContain('aria-label="Close"')
+  })
 })

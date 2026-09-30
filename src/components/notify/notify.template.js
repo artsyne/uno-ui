@@ -43,7 +43,7 @@ export const getNotifyTemplate = () => {
                     <button type="button" 
                             @click="$store.uno.notify.remove(item.id)"
                             :class="Uno.getStyle('notify', 'closeBtn')">
-                      <span class="sr-only">Close</span>
+                      <span class="sr-only" x-t="box.close"></span>
                       <svg :class="Uno.getStyle('notify', 'closeIcon')" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                       </svg>
