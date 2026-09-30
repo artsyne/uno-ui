@@ -219,8 +219,24 @@ export const createBoxStore = (Alpine) => ({
       hxHeaders: config.hxHeaders,
       hxTrigger: config.hxTrigger || 'load',
 
+      // P1-B5：记录 opener，关闭时焦点还原（2.4.3）
+      opener: typeof document !== 'undefined' ? document.activeElement : null,
+
       // Internal state - start closed to trigger animation
       isOpen: false,
+
+      /**
+       * P1-B5 焦点还原：焦点仍在本 box 内（OK/Cancel/关闭按钮）或无处停留（body）时
+       * 还原至 opener；焦点已被外部接管（如新弹窗/页面导航）时不抢占。
+       */
+      restoreFocus() {
+        const opener = this.opener
+        if (!opener || opener === document.body || !opener.isConnected) return
+        const el = document.getElementById('uno-box-' + this.id)
+        const active = document.activeElement
+        const focusInBox = !!el && !!active && el.contains(active)
+        if (focusInBox || active === document.body) opener.focus()
+      },
 
       /**
        * Close this box dialog
@@ -232,6 +248,10 @@ export const createBoxStore = (Alpine) => ({
         }
 
         this.isOpen = false
+        // P1-B5：焦点还原 + 下层 inert 状态重算（多层弹窗）
+        this.restoreFocus()
+        const store = Alpine.store('uno')?.box
+        if (store) store.syncUnderlayInert()
 
         // Use transitionend for precise timing instead of hardcoded timeout
         const el =
@@ -279,6 +299,8 @@ export const createBoxStore = (Alpine) => ({
       reactiveItem.isOpen = true
 
       this.scheduleAutoFocus(reactiveItem, Alpine)
+      // P1-B5：新弹窗置顶后，下层弹窗 inert + aria-hidden
+      this.syncUnderlayInert()
     }
 
     if (Alpine && typeof Alpine.nextTick === 'function') {
@@ -357,7 +379,26 @@ export const createBoxStore = (Alpine) => ({
     const index = this.items.findIndex((i) => i.id === id)
     if (index !== -1) {
       this.items.splice(index, 1)
+      // P1-B5：顶层移除后重算下层 inert 状态
+      this.syncUnderlayInert()
     }
+  },
+
+  /**
+   * P1-B5 多层弹窗：仅顶层可交互/可感知，下层 inert + aria-hidden，
+   * 屏幕阅读器与键盘不穿透底层（不改现有 scheduleAutoFocus 契约）。
+   */
+  syncUnderlayInert() {
+    if (typeof document === 'undefined') return
+    const openItems = this.items.filter((i) => i.isOpen)
+    openItems.forEach((it, idx) => {
+      const el = document.getElementById('uno-box-' + it.id)
+      if (!el) return
+      const underlay = idx < openItems.length - 1
+      el.toggleAttribute('inert', underlay)
+      if (underlay) el.setAttribute('aria-hidden', 'true')
+      else el.removeAttribute('aria-hidden')
+    })
   },
 
   /**
