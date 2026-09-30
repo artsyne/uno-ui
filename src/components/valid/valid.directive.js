@@ -235,6 +235,13 @@ export const registerValidDirectives = (Alpine) => {
                 const current = el.value.length
                 counterEl.textContent = `${current}/${max}`
 
+                // P1-B6: screen-reader label carries the full semantic sentence
+                // ("123/5000 字"); the compact visual text stays unchanged
+                const counterMsg = validStore.getI18nMsg
+                  ? validStore.getI18nMsg('valid.counter', { current, max })
+                  : null
+                counterEl.setAttribute('aria-label', counterMsg || `${current}/${max}`)
+
                 if (current > max) {
                   counterEl.classList.add('text-red-500')
                   counterEl.classList.remove('text-gray-400')

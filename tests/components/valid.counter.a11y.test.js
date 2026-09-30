@@ -100,4 +100,39 @@ describe('Valid counter a11y (P1-B6)', () => {
     expect(tokens).toContain('bio-error')
     expect(tokens).toContain('bio-counter')
   })
+
+  it('counter exposes full semantic label via i18n', () => {
+    // 注册 i18n store（真实环境由 core/i18n 提供 t(key, vars) 插值）
+    Alpine.store('i18n', {
+      t: (key, vars) =>
+        key === 'valid.counter' ? `已输入 ${vars.current} 字，共 ${vars.max} 字` : key
+    })
+    const input = mountCounter('bio')
+    const counter = document.getElementById('bio-counter')
+
+    expect(counter.textContent).toBe('0/20') // 视觉保持紧凑
+    expect(counter.getAttribute('aria-label')).toBe('已输入 0 字，共 20 字')
+
+    input.value = 'hello'
+    input.dispatchEvent(new global.Event('input'))
+    expect(counter.getAttribute('aria-label')).toBe('已输入 5 字，共 20 字')
+  })
+
+  it('counter falls back to "current/max" label without i18n store', () => {
+    mountCounter('bio')
+    const counter = document.getElementById('bio-counter')
+    expect(counter.getAttribute('aria-label')).toBe('0/20')
+  })
+
+  it('over-limit input gets aria-invalid, cleared when back within limit', () => {
+    const input = mountCounter('bio')
+
+    input.value = 'x'.repeat(21)
+    input.dispatchEvent(new global.Event('input'))
+    expect(input.getAttribute('aria-invalid')).toBe('true')
+
+    input.value = 'ok'
+    input.dispatchEvent(new global.Event('input'))
+    expect(input.hasAttribute('aria-invalid')).toBe(false)
+  })
 })

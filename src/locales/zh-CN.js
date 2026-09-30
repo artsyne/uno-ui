@@ -10,6 +10,7 @@ export default {
     pattern: '格式无效',
     min: '至少 {n} 个字符',
     max: '最多 {n} 个字符',
+    counter: '已输入 {current} 字，共 {max} 字',
     range: '必须在 {min} 到 {max} 之间',
     rangeMin: '最小 {n}',
     rangeMax: '最大 {n}',

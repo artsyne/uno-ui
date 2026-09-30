@@ -178,7 +178,7 @@ The plugin includes a comprehensive set of validators. Use them by specifying th
 
 The `length` rule supports additional UI controls:
 
-- **`showCounter`** (boolean, default: `false`): Automatically displays a character counter (e.g., "5/100") in the bottom-right corner of the input. The counter element is linked to the input via `aria-describedby` (P1-B6), so screen readers announce the remaining-length context on focus; existing describedby tokens (e.g. the error element) are preserved.
+- **`showCounter`** (boolean, default: `false`): Automatically displays a character counter (e.g., "5/100") in the bottom-right corner of the input. The counter element is linked to the input via `aria-describedby` (P1-B6), so screen readers announce the remaining-length context on focus; existing describedby tokens (e.g. the error element) are preserved. The counter also carries a full-sentence `aria-label` (i18n key `valid.counter`, fallback `"5/100"`) while the visual text stays compact, and over-limit input is exposed via `aria-invalid` by the standard length-rule validation.
 - **`stopOnMax`** (boolean, default: `false`): If `true`, prevents the user from typing more characters once the `max` limit is reached (sets `maxlength` attribute).
 
 ```html

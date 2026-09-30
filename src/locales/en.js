@@ -10,6 +10,7 @@ export default {
     pattern: 'Invalid format',
     min: 'At least {n} characters',
     max: 'Max {n} characters',
+    counter: '{current} of {max} characters entered',
     range: 'Must be between {min} and {max}',
     rangeMin: 'Min {n}',
     rangeMax: 'Max {n}',
