@@ -4,6 +4,7 @@ import { DomManager } from '../../utils/dom'
 import { log } from '../../utils/log'
 import { sanitizeHTML } from '../../utils/dom'
 import { getZIndex } from '../../core/layer'
+import { trapFocus, FOCUSABLE_SELECTOR } from '../../utils/a11y'
 import { getTooltipTemplate } from './tooltip.template'
 
 // Shared Logic
@@ -75,6 +76,10 @@ export const createTooltipStore = (Alpine) => {
     clickOutside: true,
     arrow: true,
     arrowPosition: { top: 0, left: 0 },
+    // P1-A3 keyboard bindings (click trigger popup): trap cleanup + keydown handlers
+    cleanupTrap: null,
+    onPopupKeydown: null,
+    onTriggerKeydown: null,
 
     // HTMX support
     hxUrl: null,
@@ -138,15 +143,50 @@ export const createTooltipStore = (Alpine) => {
       this.ensureContainer()
       ensureGlobalListeners()
 
+      // P1-A3：click 触发 = 弹层/披露模式。暴露触发器状态并与弹层关联、绑定键盘支持
+      // （Space 合成/方向键导航/Tab 循环），渲染后焦点移入弹层，使菜单链接紧随触发器
+      // 加入 Tab 序（WCAG 2.1.1 / 2.4.3 / 4.1.2）。hover/focus 触发为纯提示，不抢焦点不改状态。
+      if (this.triggerMode === 'click' && this.triggerEl) {
+        this.triggerEl.setAttribute('aria-haspopup', 'true')
+        this.triggerEl.setAttribute('aria-expanded', 'true')
+        this.triggerEl.setAttribute('aria-describedby', 'uno-tooltip-content')
+        this.bindPopupKeyboard()
+      }
+
       // Calculate position next tick to allow rendering
       Alpine.nextTick(() => {
         this.updatePosition()
+        this.focusPopupIfNeeded()
       })
     },
 
     hide() {
+      const trigger = this.triggerEl
+      const wasClickMode = this.triggerMode === 'click'
+      const container = document.getElementById('uno-tooltip-content')
+      const active = document.activeElement
+      const focusInPopup = !!container && !!active && container.contains(active)
+
       this.visible = false
       this.triggerEl = null
+
+      // P1-A3：解除键盘绑定并收起触发器状态
+      if (this.cleanupTrap) {
+        this.cleanupTrap()
+        this.cleanupTrap = null
+      }
+      if (container && this.onPopupKeydown) {
+        container.removeEventListener('keydown', this.onPopupKeydown)
+        this.onPopupKeydown = null
+      }
+      if (trigger && this.onTriggerKeydown) {
+        trigger.removeEventListener('keydown', this.onTriggerKeydown)
+        this.onTriggerKeydown = null
+      }
+      if (wasClickMode && trigger && trigger.setAttribute) {
+        trigger.setAttribute('aria-expanded', 'false')
+        trigger.removeAttribute('aria-describedby')
+      }
 
       if (globalListenersCleanup) {
         globalListenersCleanup()
@@ -157,6 +197,65 @@ export const createTooltipStore = (Alpine) => {
         cancelAnimationFrame(rafId)
         rafId = 0
       }
+
+      // P1-A3：焦点曾位于关闭中的弹层（Esc/动作/Space）或无处停留（outside click 落在
+      // 不可聚焦区域）时还原至触发器，键盘用户不会坠回 body
+      if (
+        wasClickMode &&
+        trigger &&
+        typeof trigger.focus === 'function' &&
+        (focusInPopup || active === document.body)
+      ) {
+        trigger.focus()
+      }
+    },
+
+    /**
+     * P1-A3 click 弹层键盘绑定：Tab 循环（trapFocus）、role=menu 内容方向键导航、
+     * 锚点触发器 Space 合成（Enter 在锚点/按钮上由原生 click 覆盖，按钮 Space 亦原生，
+     * 仅锚点需合成以免双重 toggle）。
+     */
+    bindPopupKeyboard() {
+      const container = document.getElementById('uno-tooltip-content')
+      if (!container) return
+
+      this.cleanupTrap = trapFocus(container, { initialFocus: false })
+
+      this.onPopupKeydown = (e) => {
+        if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) return
+        if (!container.querySelector('[role="menu"]')) return
+        const items = Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR))
+        if (items.length === 0) return
+        e.preventDefault()
+        const idx = items.indexOf(document.activeElement)
+        let next = 0
+        if (e.key === 'ArrowDown') next = (idx + 1) % items.length
+        else if (e.key === 'ArrowUp') next = (idx - 1 + items.length) % items.length
+        else if (e.key === 'End') next = items.length - 1
+        if (items[next]) items[next].focus()
+      }
+      container.addEventListener('keydown', this.onPopupKeydown)
+
+      if (this.triggerEl && this.triggerEl.tagName === 'A') {
+        this.onTriggerKeydown = (e) => {
+          if (e.key !== ' ' && e.key !== 'Spacebar') return
+          e.preventDefault()
+          if (this.visible && this.triggerEl === e.currentTarget) this.hide()
+        }
+        this.triggerEl.addEventListener('keydown', this.onTriggerKeydown)
+      }
+    },
+
+    /**
+     * P1-A3 焦点移入弹层首个可聚焦元素，键盘用户落在刚打开的披露内容内（2.4.3）；
+     * 弹层无可聚焦内容时为 no-op（焦点留在触发器）。
+     */
+    focusPopupIfNeeded() {
+      if (this.triggerMode !== 'click') return
+      const container = document.getElementById('uno-tooltip-content')
+      if (!container || container.contains(document.activeElement)) return
+      const first = container.querySelector(FOCUSABLE_SELECTOR)
+      if (first) first.focus()
     },
 
     cancelHide() {

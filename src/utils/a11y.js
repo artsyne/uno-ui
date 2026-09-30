@@ -4,7 +4,7 @@
  * @module uno.utils.a11y
  */
 
-const FOCUSABLE_SELECTOR = [
+export const FOCUSABLE_SELECTOR = [
   'a[href]',
   'area[href]',
   'input:not([disabled])',

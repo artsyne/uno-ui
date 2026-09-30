@@ -63,6 +63,26 @@ The directive handles native DOM events on the trigger element based on the `tri
 | `click` | `click`                    | Toggles visibility.                          |
 | `focus` | `focus`, `blur`            | Shows on focus, hides on blur.               |
 
+### Keyboard Contract (click trigger = popup/disclosure, P1-A3)
+
+With `trigger: 'click'` the tooltip behaves as a disclosure popup following the APG
+menu-button pattern (WCAG 2.1.1 / 2.4.3 / 4.1.2):
+
+- **Open**: trigger receives `aria-haspopup="true"`, `aria-expanded="true"` and
+  `aria-describedby="uno-tooltip-content"`; after render, focus moves to the first
+  focusable element inside the popup and Tab cycles within it (trapFocus).
+- **While open**: ArrowDown/ArrowUp/Home/End navigate items when the content declares
+  `role="menu"`; anchor triggers synthesize Space to close (Enter is covered by the
+  native click; button triggers handle both natively).
+- **Close** (Esc / outside click / action / Space): `aria-expanded` collapses to
+  `"false"`, `aria-describedby` is removed, and focus restores to the trigger when it
+  was inside the popup (or on body).
+- **hover/focus triggers** remain pure hints: no focus movement, no trap, no aria
+  state changes.
+
+Menu content templates should declare APG menu semantics: `role="menu"` on the list,
+`role="menuitem"` on items, `role="none"` on `<li>` wrappers.
+
 ## Methods
 
 Accessed via `Alpine.store('uno').tooltip`.
