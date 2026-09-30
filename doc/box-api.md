@@ -121,13 +121,16 @@ Each item in the `extraButtons` array supports the following fields.
 
 ## Auto Focus
 
-By default (`autoFocus: true`), the Box component attempts to automatically focus the first "inputable" element within the dialog content when it opens or after HTMX content loads.
+When a box opens (and again after HTMX content loads), initial focus follows the WAI-ARIA APG dialog pattern:
 
-- **Target Elements**: `input` (text, password, etc.), `textarea`, `select`.
-- **Exclusions**: `hidden`, `disabled`, `readonly` elements, and buttons (submit/reset/button).
-- **Visibility Check**: Elements must be visible (not `display: none` or `visibility: hidden`) to receive focus.
+1. **Inputable element** (`autoFocus: true` only): the first visible `input` (text, password, etc.), `textarea`, or `select`.
+   - **Exclusions**: `hidden`, `disabled`, `readonly` elements, and buttons (submit/reset/button).
+   - **Visibility Check**: the element and every ancestor must be visible (not `display: none` or `visibility: hidden`).
+2. **Neutral target**: the title heading when the dialog has a title, otherwise the dialog container itself (both carry `tabindex="-1"` and suppress the focus outline). This step also runs when `autoFocus: false`.
 
-To disable this behavior (e.g., if you want to rely on the default focus trap which usually focuses the first focusable element like the close button or container), set `autoFocus: false`.
+Initial focus never lands on chrome controls such as the floating close button: focusing it made Safari draw a `:focus-visible` ring on script focus and let Enter/Space dismiss the dialog by accident. The focus trap (`x-uno-trap`) still cycles Tab/Shift+Tab within the dialog but no longer takes initial focus.
+
+Set `autoFocus: false` to skip step 1 (e.g., read-only content where focusing an input would pop up the keyboard); the neutral target is still focused so focus stays inside the modal.
 
 ```javascript
 Alpine.store('uno').box.open({

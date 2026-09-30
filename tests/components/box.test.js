@@ -93,7 +93,7 @@ describe('Box Component', () => {
       expect(document.activeElement).toBe(first)
     })
 
-    it('should NOT auto-focus when autoFocus=false', () => {
+    it('should focus the container (not inputs) when autoFocus=false', () => {
       const originalRaf = global.requestAnimationFrame
       global.requestAnimationFrame = (cb) => setTimeout(cb, 0)
       document.body.innerHTML = `<div id="uno-box-containerNOFOCUS"></div>`
@@ -104,7 +104,53 @@ describe('Box Component', () => {
       const first = document.getElementById('nf1')
       vi.runAllTimers()
       global.requestAnimationFrame = originalRaf
+      // autoFocus=false skips input focus but focus must stay in the dialog
       expect(document.activeElement).not.toBe(first)
+      expect(document.activeElement).toBe(container)
+    })
+
+    it('should fall back to the container when content has no inputable element', () => {
+      const originalRaf = global.requestAnimationFrame
+      global.requestAnimationFrame = (cb) => setTimeout(cb, 0)
+      document.body.innerHTML = `<div id="uno-box-containerNOINPUT"></div>`
+      const html = `<p>Read only content</p>`
+      boxStore.open({ boxId: 'NOINPUT', content: html, autoFocus: true })
+      const container = document.getElementById('uno-box-containerNOINPUT')
+      container.innerHTML = html
+      vi.runAllTimers()
+      global.requestAnimationFrame = originalRaf
+      expect(document.activeElement).toBe(container)
+    })
+
+    it('should fall back to the title heading when titled dialog has no inputable element', () => {
+      const originalRaf = global.requestAnimationFrame
+      global.requestAnimationFrame = (cb) => setTimeout(cb, 0)
+      document.body.innerHTML = `<div id="uno-box-containerTITLEFB"></div>`
+      const html = `<h3 id="uno-box-title-TITLEFB">Hello</h3><p>Read only</p>`
+      boxStore.open({ boxId: 'TITLEFB', title: 'Hello', content: html, autoFocus: true })
+      const container = document.getElementById('uno-box-containerTITLEFB')
+      container.innerHTML = html
+      const title = document.getElementById('uno-box-title-TITLEFB')
+      vi.runAllTimers()
+      global.requestAnimationFrame = originalRaf
+      expect(document.activeElement).toBe(title)
+    })
+
+    it('should skip inputs hidden by a display:none ancestor wrapper', () => {
+      const originalRaf = global.requestAnimationFrame
+      global.requestAnimationFrame = (cb) => setTimeout(cb, 0)
+      document.body.innerHTML = `<div id="uno-box-containerWRAP"></div>`
+      const html = `
+        <div style="display:none"><input type="text" id="wrapped"></div>
+        <input type="text" id="shown">
+      `
+      boxStore.open({ boxId: 'WRAP', content: html, autoFocus: true })
+      const container = document.getElementById('uno-box-containerWRAP')
+      container.innerHTML = html
+      const shown = document.getElementById('shown')
+      vi.runAllTimers()
+      global.requestAnimationFrame = originalRaf
+      expect(document.activeElement).toBe(shown)
     })
 
     it('should skip hidden and disabled inputs', () => {

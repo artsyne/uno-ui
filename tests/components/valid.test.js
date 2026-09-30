@@ -763,5 +763,140 @@ describe('Valid Component', () => {
       expect(counter.textContent).toBe('6/5')
       expect(counter.className).toContain('text-red-500')
     })
+
+    it('should anchor the counter in a plugin-managed wrapper independent of sibling flow content', () => {
+      document.body.innerHTML = `
+        <form>
+          <div class="mb-4">
+            <label for="bio">Bio</label>
+            <input name="bio" id="bio" />
+            <p class="help">help text that grows the field container</p>
+          </div>
+        </form>
+      `
+      const input = document.querySelector('input')
+      global.Uno.options.valid = {}
+
+      const directiveFn = directives['uno-valid']
+      const evaluateLater = (expr) => (cb) => cb([{ type: 'length', max: 500, showCounter: true }])
+      const cleanup = () => {}
+
+      directiveFn(input, { expression: '...' }, { evaluateLater, cleanup })
+
+      // Input owns a tight positioned containing block
+      const wrapper = input.parentElement
+      expect(wrapper.hasAttribute('data-uno-counter-wrapper')).toBe(true)
+      expect(wrapper.style.position).toBe('relative')
+
+      // Counter shares that containing block instead of the field container
+      const counter = document.getElementById('bio-counter')
+      expect(counter.parentElement).toBe(wrapper)
+
+      // Sibling flow content stays outside so it can never shift the anchor
+      const field = wrapper.parentElement
+      expect(field.querySelector('p.help').parentElement).toBe(field)
+    })
+
+    it('should keep the auto error element outside the counter wrapper', () => {
+      document.body.innerHTML = `
+        <form>
+          <div>
+            <input name="witherror" />
+          </div>
+        </form>
+      `
+      const input = document.querySelector('input')
+      global.Uno.options.valid = {}
+
+      const directiveFn = directives['uno-valid']
+      const evaluateLater = (expr) => (cb) => cb(['required', { type: 'length', max: 10, showCounter: true }])
+      const cleanup = () => {}
+
+      directiveFn(input, { expression: '...' }, { evaluateLater, cleanup })
+
+      const wrapper = input.parentElement
+      expect(wrapper.hasAttribute('data-uno-counter-wrapper')).toBe(true)
+      // Error element stays in normal flow after the wrapper: showing an error
+      // can no longer stretch the counter's containing block
+      const errorEl = wrapper.nextElementSibling
+      expect(errorEl.getAttribute('x-text')).toBe("$store.uno.valid.errors['witherror']")
+    })
+
+    it('should restore the original DOM shape on cleanup', () => {
+      document.body.innerHTML = `
+        <form>
+          <div id="field">
+            <input name="restored" />
+          </div>
+        </form>
+      `
+      const input = document.querySelector('input')
+      const field = document.getElementById('field')
+      global.Uno.options.valid = {}
+
+      const directiveFn = directives['uno-valid']
+      const evaluateLater = (expr) => (cb) => cb([{ type: 'length', max: 10, showCounter: true }])
+      const cleanups = []
+      const cleanup = (cb) => {
+        cleanups.push(cb)
+      }
+
+      directiveFn(input, { expression: '...' }, { evaluateLater, cleanup })
+      expect(input.parentElement.hasAttribute('data-uno-counter-wrapper')).toBe(true)
+
+      cleanups.forEach((cb) => cb())
+      expect(input.parentElement).toBe(field)
+      expect(field.querySelector('[data-uno-counter-wrapper]')).toBeNull()
+      expect(document.getElementById('restored-counter')).toBeNull()
+    })
+
+    it('should fall back to parent anchoring inside flex containers', () => {
+      document.body.innerHTML = `
+        <form>
+          <div id="row" style="display: flex; position: static;">
+            <input name="flexed" />
+          </div>
+        </form>
+      `
+      const input = document.querySelector('input')
+      const row = document.getElementById('row')
+      global.Uno.options.valid = {}
+
+      const directiveFn = directives['uno-valid']
+      const evaluateLater = (expr) => (cb) => cb([{ type: 'length', max: 10, showCounter: true }])
+      const cleanup = () => {}
+
+      directiveFn(input, { expression: '...' }, { evaluateLater, cleanup })
+
+      // No wrapper: the input keeps its role as flex item, parent is promoted
+      expect(input.parentElement).toBe(row)
+      expect(row.style.position).toBe('relative')
+      expect(document.getElementById('flexed-counter').parentElement).toBe(row)
+    })
+
+    it('should reuse the managed wrapper and counter on re-init', () => {
+      document.body.innerHTML = `
+        <form>
+          <div>
+            <input name="reinit" />
+          </div>
+        </form>
+      `
+      const input = document.querySelector('input')
+      global.Uno.options.valid = {}
+
+      const directiveFn = directives['uno-valid']
+      const evaluateLater = (expr) => (cb) => cb([{ type: 'length', max: 10, showCounter: true }])
+      const cleanup = () => {}
+
+      directiveFn(input, { expression: '...' }, { evaluateLater, cleanup })
+      const wrapper = input.parentElement
+      // Simulate Alpine re-running the directive (e.g. after HTMX swap-in)
+      directiveFn(input, { expression: '...' }, { evaluateLater, cleanup })
+
+      expect(input.parentElement).toBe(wrapper)
+      expect(document.querySelectorAll('[data-uno-counter-wrapper]').length).toBe(1)
+      expect(document.querySelectorAll('#reinit-counter').length).toBe(1)
+    })
   })
 })

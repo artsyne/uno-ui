@@ -398,11 +398,16 @@ export const createBoxStore = (Alpine) => ({
   },
 
   scheduleAutoFocus(item, alpine) {
-    if (!item.autoFocus) return
     const containerId = 'uno-box-container' + item.id
     const run = () => {
       const container = document.getElementById(containerId)
-      if (container) this.focusFirstInput(container)
+      if (!container) return
+      // APG initial-focus policy: prefer the first inputable element when
+      // autoFocus is on; otherwise fall through to the neutral target so
+      // focus never lands on chrome controls (e.g. the floating close
+      // button, which Safari rings on script focus).
+      if (item.autoFocus && this.focusFirstInput(container)) return
+      this.focusNeutralTarget(container, item)
     }
     const defer = (fn) => {
       if (typeof requestAnimationFrame === 'function') {
@@ -435,20 +440,46 @@ export const createBoxStore = (Alpine) => ({
 
     const inputs = container.querySelectorAll(selector)
 
+    // Visibility by ancestor walk: offsetParent is unreliable in WebKit
+    // (null inside position:fixed dialog wrappers), so never consult it here.
+    const isVisible = (node) => {
+      for (let el = node; el && el.nodeType === 1; el = el.parentElement) {
+        const style = window.getComputedStyle(el)
+        if (style.display === 'none' || style.visibility === 'hidden') return false
+      }
+      return true
+    }
+
     // Find first visible input
     for (const input of inputs) {
-      // Check visibility: must have layout (offsetParent) and not be hidden via style
-      const style = window.getComputedStyle(input)
-      if (
-        input.offsetParent !== null &&
-        style.visibility !== 'hidden' &&
-        style.display !== 'none'
-      ) {
+      if (isVisible(input)) {
         input.focus()
         return true
       }
     }
     return false
+  },
+
+  /**
+   * Focus the dialog's neutral target (WAI-ARIA APG dialog pattern):
+   * the title heading when present, otherwise the container itself.
+   * Keeps initial focus off chrome controls such as the close button.
+   * @param {HTMLElement} container - Container element
+   * @param {object} item - Box item
+   * @returns {boolean} True if a neutral target was focused
+   */
+  focusNeutralTarget(container, item) {
+    if (!container) return false
+    // Never steal focus the user has already placed inside the dialog
+    if (container.contains(document.activeElement)) return false
+
+    const title =
+      item && item.title ? document.getElementById('uno-box-title-' + item.id) : null
+    const target = title && container.contains(title) ? title : container
+    // Programmatic focus target must be focusable (template sets tabindex)
+    if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
+    target.focus({ preventScroll: true })
+    return true
   },
 
   /**

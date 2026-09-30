@@ -40,9 +40,10 @@ export const getBoxTemplate = () => {
            @keydown.escape.window="item.isOpen && item.closeOnEsc && item.close()">
 
         <div :id="'uno-box-container' + item.id"
-             :class="[Uno.getStyle('box', 'container'), item.widthClass, item.heightClass, item.containerClass]"
+             :class="[Uno.getStyle('box', 'container'), item.widthClass, item.heightClass, item.containerClass, 'focus:outline-none']"
              :style="(item.width ? 'width:' + item.width + 'px; max-width:' + item.width + 'px;' : (item.widthClass ? 'max-width:none;' : '')) + (item.height ? ' height:' + item.height + 'px;' : '')"
-             x-uno-trap="{ initialFocus: !item.autoFocus }">
+             tabindex="-1"
+             x-uno-trap="{ initialFocus: false }">
 
           <!-- Close Button -->
           <button type="button"
@@ -58,7 +59,8 @@ export const getBoxTemplate = () => {
           <!-- Content Area -->
           <div :class="Uno.getStyle('box', 'content')">
             <h3 :id="'uno-box-title-' + item.id"
-                :class="Uno.getStyle('box', 'title')"
+                :class="[Uno.getStyle('box', 'title'), 'focus:outline-none']"
+                tabindex="-1"
                 x-text="item.title"
                 x-show="item.title"></h3>
             <div class="mt-2" :id="'uno-box-content-' + item.id">

@@ -2,6 +2,70 @@ import { getResponseInfo } from '../../utils/htmx-compat'
 import { log } from '../../utils/log'
 
 /**
+ * Marker attribute identifying plugin-managed counter containing blocks.
+ */
+const COUNTER_WRAPPER_ATTR = 'data-uno-counter-wrapper'
+
+/**
+ * Displays whose children take part in flex/grid placement. Reparenting such a
+ * child into a wrapper div would change its outer layout role, so those
+ * parents keep the legacy parent-relative anchoring instead.
+ */
+const isFlexOrGridDisplay = (display) =>
+  display === 'flex' || display === 'inline-flex' || display === 'grid' || display === 'inline-grid'
+
+/**
+ * Ensures the input owns a tight positioned containing block for the counter.
+ *
+ * The input is wrapped in a plugin-managed `position: relative` div: the
+ * wrapper is a plain block box (inline controls get an inline-block wrapper to
+ * keep flowing with surrounding text) and the input's margins collapse through
+ * it, so the outer layout stays unchanged while `absolute bottom-* right-*`
+ * descendants anchor to the input box itself instead of an arbitrary ancestor.
+ *
+ * @param {HTMLElement} el - The validated input/textarea.
+ * @returns {HTMLElement|null} The containing block to host the counter.
+ */
+const ensureCounterWrapper = (el) => {
+  const parent = el.parentElement
+  if (!parent) return null
+  if (parent.hasAttribute(COUNTER_WRAPPER_ATTR)) return parent
+
+  const parentStyle = window.getComputedStyle(parent)
+  if (isFlexOrGridDisplay(parentStyle.display)) {
+    // Legacy fallback: promote the parent itself rather than changing the
+    // input's role as a flex/grid item.
+    if (parentStyle.position === 'static' && parent.tagName !== 'FORM' && parent.tagName !== 'BODY') {
+      parent.style.position = 'relative'
+    }
+    return parent
+  }
+
+  const wrapper = el.ownerDocument.createElement('div')
+  wrapper.setAttribute(COUNTER_WRAPPER_ATTR, '')
+  wrapper.style.position = 'relative'
+  const display = window.getComputedStyle(el).display
+  if (display === 'inline' || display === 'inline-block') {
+    wrapper.style.display = 'inline-block'
+  }
+  parent.insertBefore(wrapper, el)
+  wrapper.appendChild(el)
+  return wrapper
+}
+
+/**
+ * Restores the original DOM shape on directive teardown: moves the input back
+ * before the managed wrapper and drops the wrapper.
+ */
+const releaseCounterWrapper = (el, wrapper) => {
+  if (!wrapper || !wrapper.hasAttribute(COUNTER_WRAPPER_ATTR)) return
+  const outer = wrapper.parentNode
+  if (!outer) return
+  outer.insertBefore(el, wrapper)
+  outer.removeChild(wrapper)
+}
+
+/**
  * Registers the `x-uno-valid` directive.
  *
  * @param {Object} Alpine - The Alpine.js instance.
@@ -95,16 +159,14 @@ export const registerValidDirectives = (Alpine) => {
               const counterId = `${fieldName}-counter`
               let counterEl = document.getElementById(counterId)
 
-              // Ensure parent is relative for absolute positioning
-              const parent = el.parentElement
-              if (
-                parent &&
-                window.getComputedStyle(parent).position === 'static' &&
-                parent.tagName !== 'FORM' &&
-                parent.tagName !== 'BODY'
-              ) {
-                parent.style.position = 'relative'
-              }
+              // The counter is absolutely positioned, so its containing block is the
+              // nearest positioned ancestor. Anchoring it to the input's parent is
+              // unsafe: field containers usually carry sibling flow content (labels,
+              // help text, status rows) whose height moves the anchor away from the
+              // input box. Wrap the input in a plugin-managed relative container so
+              // the counter stays pinned to the input's bottom-right corner
+              // regardless of the surrounding form markup.
+              const wrapper = ensureCounterWrapper(el)
 
               if (!counterEl) {
                 counterEl = document.createElement('span')
@@ -113,6 +175,10 @@ export const registerValidDirectives = (Alpine) => {
                 // Adjust margins to not overlap with border/padding
                 counterEl.className =
                   'absolute bottom-1 right-2 text-xs text-gray-400 pointer-events-none transition-colors duration-200'
+              }
+              // (Re)attach into the containing block: a counter restored from a
+              // previous init must not stay outside the wrapper
+              if (counterEl.parentElement !== wrapper) {
                 el.after(counterEl)
               }
 
@@ -144,6 +210,7 @@ export const registerValidDirectives = (Alpine) => {
                 if (counterEl && counterEl.parentNode) {
                   counterEl.parentNode.removeChild(counterEl)
                 }
+                releaseCounterWrapper(el, wrapper)
               })
             }
           }

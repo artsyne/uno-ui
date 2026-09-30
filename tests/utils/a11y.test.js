@@ -52,6 +52,16 @@ describe('A11y Utils - trapFocus', () => {
     cleanup()
   })
 
+  it('should not take initial focus when initialFocus=false', () => {
+    const cleanup = trapFocus(container, { initialFocus: false })
+
+    vi.runAllTimers()
+
+    // Trap only cycles Tab; initial focus is owned by the caller (box store)
+    expect(document.activeElement).toBe(document.body)
+    cleanup()
+  })
+
   it('should cycle focus to first element when tabbing from last', () => {
     const cleanup = trapFocus(container)
     vi.runAllTimers()
