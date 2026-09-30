@@ -192,6 +192,17 @@ return jsonify({'result': 'ok'}, headers={
 })
 ```
 
+## Accessibility
+
+Notifications are announced by screen readers with politeness graded by type (P1-B7, `docs/a11y-design.md`):
+
+| Type                 | `role`   | `aria-live`   | Behavior                                                    |
+| :------------------- | :------- | :------------ | :---------------------------------------------------------- |
+| `error`, `warning` | `alert`  | `assertive` | Interrupts the current utterance — urgent feedback.        |
+| `success`, `info` | `status` | `polite`    | Queued after current speech — avoids breaking user context. |
+
+Both attributes are bound dynamically per item in the template; no configuration is needed.
+
 ## Examples
 
 ### Sticky Notification

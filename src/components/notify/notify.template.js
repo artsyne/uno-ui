@@ -11,8 +11,8 @@ export const getNotifyTemplate = () => {
             Uno.getStyle('notify', 'item'),
             Uno.getStyle('notify', 'types.' + item.type)
           ]"
-          role="alert"
-          aria-live="assertive"
+          :role="item.type === 'error' || item.type === 'warning' ? 'alert' : 'status'"
+          :aria-live="item.type === 'error' || item.type === 'warning' ? 'assertive' : 'polite'"
           x-show="item.isVisible"
           x-transition:enter="transition ease-out duration-300"
           x-transition:enter-start="opacity-0 transform scale-90"

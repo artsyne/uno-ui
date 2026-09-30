@@ -14,4 +14,15 @@ describe('Notify Template', () => {
     expect(template).toContain('x-t="box.close"')
     expect(template).not.toContain('<span class="sr-only">Close</span>')
   })
+
+  // P1-B7：成功类通知一律 assertive 会打断当前朗读；播报策略按类型分级——
+  // error/warning 保留 alert+assertive，success/info 降为 status+polite。
+  it('should scale politeness by type: success/info polite status, error/warning assertive alert (B7)', () => {
+    const template = getNotifyTemplate()
+    expect(template).toContain(
+      "item.type === 'error' || item.type === 'warning' ? 'assertive' : 'polite'"
+    )
+    expect(template).toContain("item.type === 'error' || item.type === 'warning' ? 'alert' : 'status'")
+    expect(template).not.toContain('aria-live="assertive"')
+  })
 })
