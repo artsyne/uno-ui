@@ -754,14 +754,14 @@ describe('Valid Component', () => {
       input.dispatchEvent(new Event('input'))
 
       expect(counter.textContent).toBe('3/5')
-      expect(counter.className).toContain('text-gray-400')
+      expect(counter.classList.contains('text-gray-600')).toBe(true)
 
       // Exceed max
       input.value = 'abcdef'
       input.dispatchEvent(new Event('input'))
 
       expect(counter.textContent).toBe('6/5')
-      expect(counter.className).toContain('text-red-500')
+      expect(counter.classList.contains('text-red-600')).toBe(true)
     })
 
     it('should anchor the counter in a plugin-managed wrapper independent of sibling flow content', () => {

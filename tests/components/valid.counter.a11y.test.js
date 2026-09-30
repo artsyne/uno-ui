@@ -135,4 +135,33 @@ describe('Valid counter a11y (P1-B6)', () => {
     input.dispatchEvent(new global.Event('input'))
     expect(input.hasAttribute('aria-invalid')).toBe(false)
   })
+
+  // P2-T3（docs/a11y-design.md Decision 4 对比度专项）：计数器色阶须达 WCAG AA——
+  // 默认态 text-gray-600（白底 7.0:1）、超限态 text-red-600（4.84:1，与错误文本
+  // helperText 同源）；暗色配对 gray-400 red-400。禁止回退 gray-400（2.5:1）/red-500（3.76:1）。
+  // 断言用 classList.contains 精确匹配 token：避开 'dark:text-gray-400' 子串误命中裸类。
+  it('counter color tokens meet AA contrast (gray-600 default / red-600 over-limit)', () => {
+    const input = mountCounter('bio')
+    const counter = document.getElementById('bio-counter')
+
+    // 默认态：亮色 gray-600，暗色 gray-400
+    expect(counter.classList.contains('text-gray-600')).toBe(true)
+    expect(counter.classList.contains('dark:text-gray-400')).toBe(true)
+    expect(counter.classList.contains('text-gray-400')).toBe(false)
+
+    // 超限态：亮色 red-600，暗色 red-400
+    input.value = 'x'.repeat(21)
+    input.dispatchEvent(new global.Event('input'))
+    expect(counter.classList.contains('text-red-600')).toBe(true)
+    expect(counter.classList.contains('dark:text-red-400')).toBe(true)
+    expect(counter.classList.contains('text-red-500')).toBe(false)
+
+    // 回到限内：恢复默认态（red 类清除、gray 类复原）
+    input.value = 'ok'
+    input.dispatchEvent(new global.Event('input'))
+    expect(counter.classList.contains('text-gray-600')).toBe(true)
+    expect(counter.classList.contains('dark:text-gray-400')).toBe(true)
+    expect(counter.classList.contains('text-red-600')).toBe(false)
+    expect(counter.classList.contains('dark:text-red-400')).toBe(false)
+  })
 })

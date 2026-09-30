@@ -2307,12 +2307,12 @@ const Bt = (r, t = {}) => {
             const m = `${i}-counter`;
             let u = document.getElementById(m);
             const y = Ot(t);
-            u || (u = document.createElement("span"), u.id = m, u.className = "absolute bottom-1 right-2 text-xs text-gray-400 pointer-events-none transition-colors duration-200"), u.parentElement !== y && t.after(u), F(t, u);
+            u || (u = document.createElement("span"), u.id = m, u.className = "absolute bottom-1 right-2 text-xs text-gray-600 dark:text-gray-400 pointer-events-none transition-colors duration-200"), u.parentElement !== y && t.after(u), F(t, u);
             const w = () => {
               const C = t.value.length;
               u.textContent = `${C}/${p}`;
               const T = x.getI18nMsg ? x.getI18nMsg("valid.counter", { current: C, max: p }) : null;
-              u.setAttribute("aria-label", T || `${C}/${p}`), C > p ? (u.classList.add("text-red-500"), u.classList.remove("text-gray-400")) : (u.classList.remove("text-red-500"), u.classList.add("text-gray-400"));
+              u.setAttribute("aria-label", T || `${C}/${p}`), C > p ? (u.classList.add("text-red-600", "dark:text-red-400"), u.classList.remove("text-gray-600", "dark:text-gray-400")) : (u.classList.remove("text-red-600", "dark:text-red-400"), u.classList.add("text-gray-600", "dark:text-gray-400"));
             };
             w(), t.addEventListener("input", w), o(() => {
               t.removeEventListener("input", w), u && u.parentNode && u.parentNode.removeChild(u), At(t, y);

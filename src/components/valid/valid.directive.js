@@ -218,8 +218,11 @@ export const registerValidDirectives = (Alpine) => {
                 counterEl.id = counterId
                 // Default styling: bottom-right inside the input container
                 // Adjust margins to not overlap with border/padding
+                // P2-T3 contrast (docs/a11y-design.md Decision 4): AA palette —
+                // gray-600 on white (7.0:1); over-limit switches to red-600 (4.84:1,
+                // same token as helperText); dark pairs gray-400 / red-400.
                 counterEl.className =
-                  'absolute bottom-1 right-2 text-xs text-gray-400 pointer-events-none transition-colors duration-200'
+                  'absolute bottom-1 right-2 text-xs text-gray-600 dark:text-gray-400 pointer-events-none transition-colors duration-200'
               }
               // (Re)attach into the containing block: a counter restored from a
               // previous init must not stay outside the wrapper
@@ -243,11 +246,11 @@ export const registerValidDirectives = (Alpine) => {
                 counterEl.setAttribute('aria-label', counterMsg || `${current}/${max}`)
 
                 if (current > max) {
-                  counterEl.classList.add('text-red-500')
-                  counterEl.classList.remove('text-gray-400')
+                  counterEl.classList.add('text-red-600', 'dark:text-red-400')
+                  counterEl.classList.remove('text-gray-600', 'dark:text-gray-400')
                 } else {
-                  counterEl.classList.remove('text-red-500')
-                  counterEl.classList.add('text-gray-400')
+                  counterEl.classList.remove('text-red-600', 'dark:text-red-400')
+                  counterEl.classList.add('text-gray-600', 'dark:text-gray-400')
                 }
               }
 
