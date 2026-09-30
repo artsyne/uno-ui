@@ -103,6 +103,16 @@ The plugin automatically generates and manages error message elements. You do NO
   - Hides/removes error when validation passes.
   - Updates message automatically based on the failing rule.
 
+#### Accessibility (WCAG 3.3.1 / 4.1.3)
+
+Error exposure to assistive technology is wired automatically — no extra markup required:
+
+- **Error element**: gets `role="alert"` (so the message is announced when it appears) and a stable id `${fieldName}-error`. An author-provided `id` or `role` on a hand-written error element is preserved.
+- **Input**: its `aria-describedby` is pointed at the error element id (appended to any existing describedby targets, never clobbering them). This applies both to auto-generated and hand-written error elements.
+- **`aria-invalid`**: the store mirrors each field's error state onto its control's `aria-invalid` attribute at every `errors` mutation site (`validate`, `showError`, `hideError`, `clearErrors`, `showErrors`), so client-side failures and `422` server errors both toggle it. The attribute is removed once the field is valid again.
+
+> When `autoError: false` and no matching hand-written error element exists, no `aria-describedby` is wired (there is nothing to point at); `aria-invalid` sync still applies.
+
 #### Configuration
 
 You can configure the auto-error behavior via `Uno.options.valid`:
@@ -479,6 +489,7 @@ valid.registerValidator('customRule', ({ value, rule }) => {
 
 | Version | Date       | Changes                                                                                                         |
 | :------ | :--------- | :-------------------------------------------------------------------------------------------------------------- |
+| v0.9.0  | 2026-09-30 | **A11y**: auto error elements get `role="alert"` + stable id; inputs are wired with `aria-describedby` and `aria-invalid` (synced on client validation and 422 server errors). |
 | v0.8.1  | 2026-02-28 | Added programmatic Store API documentation (addRules, validate, showError, hideError, clearErrors, showErrors). |
 | v0.8.0  | 2026-01-22 | **Breaking**: Removed HTML5 attribute support. Added `debounce`, `emptyQuit`, and `type: 'validator'` support.  |
 | v0.7.0  | 2026-01-20 | Initial release.                                                                                                |

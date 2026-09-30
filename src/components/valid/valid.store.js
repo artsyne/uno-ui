@@ -110,6 +110,7 @@ export const createValidStore = (Alpine) => ({
 
     // Clear previous error
     delete this.errors[fieldName]
+    this.syncAriaInvalid(fieldName)
 
     // Clear previous timer if any (for debounce)
     if (this.timers[fieldName]) {
@@ -310,6 +311,7 @@ export const createValidStore = (Alpine) => ({
 
     if (!isValid) {
       this.errors[fieldName] = errorMsg
+      this.syncAriaInvalid(fieldName)
       // Important: Reactive update for Alpine to pick up the change immediately
       // Depending on Alpine version, this might need explicit handling, but usually assignment is enough.
     }
@@ -359,18 +361,55 @@ export const createValidStore = (Alpine) => ({
 
   showError(fieldName, message) {
     this.errors[fieldName] = message
+    this.syncAriaInvalid(fieldName)
   },
 
   hideError(fieldName) {
     delete this.errors[fieldName]
+    this.syncAriaInvalid(fieldName)
   },
 
   clearErrors() {
+    const fields = Object.keys(this.errors)
     this.errors = {}
+    fields.forEach((fieldName) => this.syncAriaInvalid(fieldName))
   },
 
   showErrors(errorsObj) {
     Object.assign(this.errors, errorsObj)
+    Object.keys(errorsObj || {}).forEach((fieldName) => this.syncAriaInvalid(fieldName))
+  },
+
+  /**
+   * Resolves the DOM control backing a field name.
+   *
+   * Field names come from `el.name || el.id`, so look the control up by name
+   * first and fall back to id.
+   *
+   * @param {string} fieldName - The field identifier.
+   * @returns {HTMLElement|null} The matching control, or null when detached.
+   */
+  getFieldElement(fieldName) {
+    if (typeof document === 'undefined' || !fieldName) return null
+    return document.querySelector(`[name="${fieldName}"]`) || document.getElementById(fieldName)
+  },
+
+  /**
+   * Mirrors the field's error state onto its `aria-invalid` attribute so screen
+   * readers announce the control as invalid (WCAG 3.3.1). Called from every
+   * `errors` mutation site so client-side validation and 422 server errors stay
+   * in sync with the exposed state.
+   *
+   * @param {string} fieldName - The field identifier.
+   */
+  syncAriaInvalid(fieldName) {
+    const el = this.getFieldElement(fieldName)
+    if (!el) return
+    if (this.errors[fieldName]) {
+      el.setAttribute('aria-invalid', 'true')
+    } else {
+      el.removeAttribute('aria-invalid')
+    }
   },
 
   getI18nMsg(key, params) {

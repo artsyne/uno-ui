@@ -899,4 +899,118 @@ describe('Valid Component', () => {
       expect(document.querySelectorAll('#reinit-counter').length).toBe(1)
     })
   })
+
+  describe('A11y: Error Element Wiring (A1)', () => {
+    const runDirective = (input, config = {}) => {
+      global.Uno.options.valid = config
+      const directiveFn = directives['uno-valid']
+      const evaluateLater = () => (cb) => cb(['required'])
+      directiveFn(input, { expression: "['required']" }, { evaluateLater, cleanup: () => {} })
+    }
+
+    it('auto-generated error element gets role="alert", a stable id, and wires aria-describedby', () => {
+      document.body.innerHTML = `<form><input name="title" /></form>`
+      const input = document.querySelector('input')
+
+      runDirective(input)
+
+      const errorEl = input.nextElementSibling
+      expect(errorEl.getAttribute('role')).toBe('alert')
+      expect(errorEl.id).toBe('title-error')
+      expect(input.getAttribute('aria-describedby')).toBe('title-error')
+    })
+
+    it('preserves an author-provided error element id/role and still wires describedby', () => {
+      document.body.innerHTML = `
+        <form>
+          <input name="handle" />
+          <div id="my-error" role="status" x-text="$store.uno.valid.errors['handle']"></div>
+        </form>`
+      const input = document.querySelector('input')
+
+      runDirective(input)
+
+      const errorEl = document.getElementById('my-error')
+      expect(errorEl.getAttribute('role')).toBe('status')
+      expect(errorEl.id).toBe('my-error')
+      expect(input.getAttribute('aria-describedby')).toBe('my-error')
+      expect(Alpine.initTree).not.toHaveBeenCalled()
+    })
+
+    it('custom createErrorElement keeps its id and gains role="alert"', () => {
+      document.body.innerHTML = `<form><input name="custom" /></form>`
+      const input = document.querySelector('input')
+
+      runDirective(input, {
+        createErrorElement: (fieldName) => {
+          const span = document.createElement('span')
+          span.id = 'custom-error-' + fieldName
+          return span
+        }
+      })
+
+      const errorEl = input.nextElementSibling
+      expect(errorEl.id).toBe('custom-error-custom')
+      expect(errorEl.getAttribute('role')).toBe('alert')
+      expect(input.getAttribute('aria-describedby')).toBe('custom-error-custom')
+    })
+
+    it('appends to an existing aria-describedby without clobbering prior targets', () => {
+      document.body.innerHTML = `<form><input name="bio" aria-describedby="bio-help" /></form>`
+      const input = document.querySelector('input')
+
+      runDirective(input)
+
+      expect(input.getAttribute('aria-describedby')).toBe('bio-help bio-error')
+    })
+
+    it('does not wire describedby when autoError is disabled and no error element exists', () => {
+      document.body.innerHTML = `<form><input name="noauto" /></form>`
+      const input = document.querySelector('input')
+
+      runDirective(input, { autoError: false })
+
+      expect(input.nextElementSibling).toBeNull()
+      expect(input.hasAttribute('aria-describedby')).toBe(false)
+    })
+  })
+
+  describe('A11y: aria-invalid Sync (A1)', () => {
+    it('sets aria-invalid="true" on failure and removes it on success', async () => {
+      document.body.innerHTML = `<form><input name="req" /></form>`
+      const input = document.querySelector('input')
+      store.uno.valid.addRules('req', ['required'])
+
+      await store.uno.valid.validate('req', '')
+      expect(input.getAttribute('aria-invalid')).toBe('true')
+
+      await store.uno.valid.validate('req', 'ok')
+      expect(input.hasAttribute('aria-invalid')).toBe(false)
+    })
+
+    it('sets aria-invalid on fields delivered via 422 showErrors', () => {
+      document.body.innerHTML = `<form><input name="email" /></form>`
+      const input = document.querySelector('input')
+
+      store.uno.valid.showErrors({ email: 'Email already taken' })
+
+      expect(input.getAttribute('aria-invalid')).toBe('true')
+    })
+
+    it('clears aria-invalid through hideError and clearErrors', () => {
+      document.body.innerHTML = `<form><input name="a" /><input name="b" /></form>`
+      const a = document.querySelector('[name="a"]')
+      const b = document.querySelector('[name="b"]')
+
+      store.uno.valid.showErrors({ a: 'err a', b: 'err b' })
+      expect(a.getAttribute('aria-invalid')).toBe('true')
+
+      store.uno.valid.hideError('a')
+      expect(a.hasAttribute('aria-invalid')).toBe(false)
+      expect(b.getAttribute('aria-invalid')).toBe('true')
+
+      store.uno.valid.clearErrors()
+      expect(b.hasAttribute('aria-invalid')).toBe(false)
+    })
+  })
 })

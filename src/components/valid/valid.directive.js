@@ -66,6 +66,44 @@ const releaseCounterWrapper = (el, wrapper) => {
 }
 
 /**
+ * Builds the stable error element id used for `aria-describedby` wiring.
+ *
+ * @param {string} fieldName - The validated field's name/id.
+ * @returns {string} The deterministic error element id.
+ */
+const errorIdFor = (fieldName) => `${fieldName}-error`
+
+/**
+ * Exposes the error element to assistive technology (WCAG 3.3.1 / 4.1.3):
+ * gives it a stable id so the input can reference it and an `alert` role so
+ * screen readers announce the message when it appears. Author-provided id or
+ * role on a hand-written error element are preserved.
+ *
+ * @param {HTMLElement} errorEl - The error element (auto-generated or existing).
+ * @param {string} fieldName - The validated field's name/id.
+ */
+const ensureErrorA11y = (errorEl, fieldName) => {
+  if (!errorEl.id) errorEl.id = errorIdFor(fieldName)
+  if (!errorEl.hasAttribute('role')) errorEl.setAttribute('role', 'alert')
+}
+
+/**
+ * Points the input's `aria-describedby` at its error element, preserving any
+ * existing describedby targets (e.g. help text) rather than clobbering them.
+ *
+ * @param {HTMLElement} input - The validated input/textarea.
+ * @param {HTMLElement} errorEl - The error element to reference.
+ */
+const linkDescribedBy = (input, errorEl) => {
+  if (!errorEl.id) return
+  const tokens = (input.getAttribute('aria-describedby') || '')
+    .split(/\s+/)
+    .filter(Boolean)
+  if (!tokens.includes(errorEl.id)) tokens.push(errorEl.id)
+  input.setAttribute('aria-describedby', tokens.join(' '))
+}
+
+/**
  * Registers the `x-uno-valid` directive.
  *
  * @param {Object} Alpine - The Alpine.js instance.
@@ -118,10 +156,17 @@ export const registerValidDirectives = (Alpine) => {
         }
 
         if (errorEl) {
+          ensureErrorA11y(errorEl, fieldName)
           el.after(errorEl)
           // Initialize Alpine on the new element
           Alpine.initTree(errorEl)
+          linkDescribedBy(el, errorEl)
         }
+      } else {
+        // A hand-written error element still needs the a11y wiring so screen
+        // readers announce it and the input exposes the association.
+        ensureErrorA11y(existingError, fieldName)
+        linkDescribedBy(el, existingError)
       }
     }
 
