@@ -6,6 +6,8 @@ export const createTabStore = (Alpine) => ({
   groups: {},
   // Registry: { [tabName]: { group, name, ... } }
   registry: {},
+  // P1-B4: { [group]: [tabName...] } 组内注册序（DOM 序代理），供方向键旋转
+  order: {},
   // Initialization state
   initialized: false,
 
@@ -79,6 +81,14 @@ export const createTabStore = (Alpine) => ({
     // Update state
     this.groups[config.group] = config.name
 
+    // P1-B4 共享面板模式（htmx swap）：面板容器声明 role=tabpanel + data-tab-group，
+    // aria-labelledby 随激活 tab 更新；每 tab 独立面板用静态 labelledby，不受影响
+    if (typeof document !== 'undefined') {
+      document
+        .querySelectorAll('[role="tabpanel"][data-tab-group="' + config.group + '"]')
+        .forEach((p) => p.setAttribute('aria-labelledby', 'tab-' + config.name))
+    }
+
     // Handle Hash
     if (config.hash && config.updateHash !== false) {
       if (window.location.hash.slice(1) !== config.name) {
@@ -127,6 +137,9 @@ export const createTabStore = (Alpine) => ({
 
     log.info(`[Tab] Registering ${name} in ${group}. Hash: ${window.location.hash}`)
     this.registry[name] = { name, group }
+    // P1-B4：记录组内注册序（去重），供方向键旋转
+    if (!this.order[group]) this.order[group] = []
+    if (!this.order[group].includes(name)) this.order[group].push(name)
     // If no active tab for this group, set this one
     if (!this.groups[group]) {
       this.groups[group] = name
@@ -143,5 +156,25 @@ export const createTabStore = (Alpine) => ({
       log.info(`[Tab] Hash match for ${name}. Activating.`)
       this.activate({ group, name, updateHash: false })
     }
+  },
+
+  /**
+   * P1-B4 APG 键盘旋转：计算目标 tab 名（不激活），调用方负责 activate + focus
+   * （roving tabindex）。←→ 循环旋转，Home/End 跳首尾。
+   * @param {string} group
+   * @param {string} current
+   * @param {string} key - ArrowRight/ArrowLeft/Home/End
+   * @returns {string|null}
+   */
+  rotate(group, current, key) {
+    const list = this.order[group]
+    if (!list || list.length === 0) return null
+    const idx = list.indexOf(current)
+    if (key === 'Home') return list[0]
+    if (key === 'End') return list[list.length - 1]
+    if (idx === -1) return list[0]
+    if (key === 'ArrowRight') return list[(idx + 1) % list.length]
+    if (key === 'ArrowLeft') return list[(idx - 1 + list.length) % list.length]
+    return null
   }
 })

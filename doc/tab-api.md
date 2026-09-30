@@ -52,6 +52,24 @@ The directive registers the tab on initialization and activates it on click (cal
 
 Equivalent to `{ name: 'profile', group: 'default' }`.
 
+## ARIA & Keyboard (P1-B4)
+
+The directive implements the WAI-ARIA APG tabs pattern:
+
+- Triggers receive `role="tab"`, an id convention `tab-{name}` (used by the store's
+  deep-link HTMX trigger), and `aria-controls` pointing at `config.panel` or the
+  default `panel-{name}`.
+- `aria-selected` and roving `tabindex` (active `0`, others `-1`) sync reactively
+  with the active state.
+- Keyboard: ArrowLeft/ArrowRight rotate within the group (wrapping), Home/End jump
+  to first/last; focus follows to the target tab and activation reuses the click
+  path so htmx-swap tabs load their content identically to mouse clicks.
+- Panels: per-tab panels declare `id="panel-{name}" role="tabpanel"
+  aria-labelledby="tab-{name}"`. Shared-panel mode (htmx swap, e.g. drafts) declares
+  `role="tabpanel" data-tab-group="{group}"` on the container; `activate()` keeps its
+  `aria-labelledby` pointed at the active tab.
+- Tab lists should declare `role="tablist"` with an accessible label.
+
 ## API Parameters
 
 ### `x-uno-tab` Directive Value
