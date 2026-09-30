@@ -227,6 +227,10 @@ export const registerValidDirectives = (Alpine) => {
                 el.after(counterEl)
               }
 
+              // P1-B6: expose the counter to screen readers via aria-describedby
+              // (same association pattern as the error element)
+              linkDescribedBy(el, counterEl)
+
               const updateCounter = () => {
                 const current = el.value.length
                 counterEl.textContent = `${current}/${max}`
