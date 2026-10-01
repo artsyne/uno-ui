@@ -2,6 +2,10 @@ import { VALIDATORS } from '../../utils/validation'
 import { Uno } from '../../core/uno'
 import { log } from '../../utils/log'
 
+// Monotonic id source for summary titles: `aria-labelledby` must point at the
+// current title even though each re-render rebuilds the summary from scratch.
+let summarySeq = 0
+
 export const createValidStore = (Alpine) => ({
   /**
    * Validation error messages keyed by field name.
@@ -322,6 +326,11 @@ export const createValidStore = (Alpine) => ({
   /**
    * Validates all fields in a form.
    *
+   * When two or more fields fail, a focusable error summary is rendered at
+   * the top of the form (E4 / WCAG 3.3.1 / 3.3.3, GOV.UK pattern) and takes
+   * focus; with a single failure the first offending field receives focus as
+   * before. Inline messages are always kept in place (never replaced).
+   *
    * @param {HTMLFormElement} form - The form element to validate
    * @returns {Promise<boolean>} True if the form is valid
    */
@@ -329,6 +338,11 @@ export const createValidStore = (Alpine) => ({
     const inputs = form.querySelectorAll('input, select, textarea')
     let isFormValid = true
     let firstErrorField = null
+    const failedFields = []
+
+    // Re-submit is idempotent: drop a summary from a previous submit before
+    // re-evaluating, so a now-passing form never keeps a stale summary.
+    this.removeErrorSummary(form)
 
     // We need to wait for all validations
     // Use Promise.all to run them in parallel or loop for sequential?
@@ -344,19 +358,97 @@ export const createValidStore = (Alpine) => ({
         if (!isValid) {
           isFormValid = false
           if (!firstErrorField) firstErrorField = input
+          failedFields.push({ input, fieldName })
         }
       }
     }
 
     if (!isFormValid && firstErrorField) {
       const globalConfig = Uno.getConfig('valid') || {}
-      if (globalConfig.scrollOnError !== false) {
+      if (failedFields.length >= 2) {
+        const summary = this.renderErrorSummary(form, failedFields)
+        if (summary && globalConfig.scrollOnError !== false) {
+          summary.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          summary.focus({ preventScroll: true })
+        }
+      } else if (globalConfig.scrollOnError !== false) {
         firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' })
         firstErrorField.focus({ preventScroll: true })
       }
     }
 
     return isFormValid
+  },
+
+  /**
+   * Renders the top-of-form error summary for multi-field failures
+   * (E4 / WCAG 3.3.1 / 3.3.3, GOV.UK pattern): a focusable `role="alert"`
+   * container labelled by its title, with one link per failed field pointing
+   * at the field (`input.id`, falling back to the `{field}-error` element the
+   * directive generates). Clicking a link focuses the field instead of
+   * navigating. Visual classes (`ui-error-summary*`) are styled by the app
+   * stylesheet (website tailwind.css), mirroring the `is-invalid` pattern.
+   *
+   * @param {HTMLFormElement} form - The form receiving the summary.
+   * @param {Array<{input: HTMLElement, fieldName: string}>} failedFields
+   * @returns {HTMLElement|null} The summary element, or null when unsupported.
+   */
+  renderErrorSummary(form, failedFields) {
+    if (typeof document === 'undefined' || !form) return null
+
+    const summary = document.createElement('div')
+    summary.className = 'ui-error-summary'
+    summary.dataset.validSummary = 'true'
+    summary.setAttribute('role', 'alert')
+    summary.setAttribute('tabindex', '-1')
+
+    const titleId = `valid-error-summary-title-${++summarySeq}`
+    summary.setAttribute('aria-labelledby', titleId)
+
+    const title = document.createElement('p')
+    title.className = 'ui-error-summary-title'
+    title.id = titleId
+    title.textContent =
+      this.getI18nMsg('valid.summary_title') || 'Please fix the following problems'
+    summary.appendChild(title)
+
+    const list = document.createElement('ul')
+    list.className = 'ui-error-summary-list'
+    failedFields.forEach(({ input: field, fieldName }) => {
+      const anchorId = field.id || `${fieldName}-error`
+
+      const link = document.createElement('a')
+      link.className = 'ui-error-summary-link'
+      link.setAttribute('href', `#${anchorId}`)
+      link.textContent = this.errors[fieldName] || ''
+      link.addEventListener('click', (evt) => {
+        evt.preventDefault()
+        const target = document.getElementById(anchorId)
+        if (!target) return
+        target.focus({ preventScroll: true })
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      })
+
+      const item = document.createElement('li')
+      item.appendChild(link)
+      list.appendChild(item)
+    })
+    summary.appendChild(list)
+
+    form.prepend(summary)
+    return summary
+  },
+
+  /**
+   * Removes a previously rendered error summary (matched by the
+   * `data-valid-summary` flag written in renderErrorSummary).
+   *
+   * @param {HTMLFormElement} form - The form to clean.
+   */
+  removeErrorSummary(form) {
+    if (!form || typeof form.querySelector !== 'function') return
+    const existing = form.querySelector('[data-valid-summary]')
+    if (existing) existing.remove()
   },
 
   showError(fieldName, message) {
