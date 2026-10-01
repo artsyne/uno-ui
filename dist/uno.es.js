@@ -1029,7 +1029,11 @@ function K(r, t = {}) {
     if (l.key !== "Tab") return;
     const c = o();
     if (!c.length) return;
-    const u = c[0], g = c[c.length - 1], d = document.activeElement, h = c.some((b) => d.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING), w = c.some((b) => d.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_PRECEDING);
+    const u = c[0], g = c[c.length - 1], d = document.activeElement, h = c.some(
+      (b) => d.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING
+    ), w = c.some(
+      (b) => d.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_PRECEDING
+    );
     l.shiftKey ? (d === u || !w) && (l.preventDefault(), g.focus()) : (d === g || !h) && (l.preventDefault(), u.focus());
   }, a = () => {
     if (r.contains(document.activeElement)) return;
