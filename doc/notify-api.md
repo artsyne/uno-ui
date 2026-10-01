@@ -139,6 +139,7 @@ Binds the Notify component to HTMX events for automatic notification display dur
     - `errorMessage` (String, default: `'Operation failed'`) - Default error message.
 - **Returns**: `void`
 - **Example**:
+
   ```javascript
   // Initialize with defaults
   Alpine.store('uno').htmx.bindNotifyToHtmx()
@@ -166,25 +167,26 @@ Binds the Notify component to HTMX events for automatic notification display dur
 
 The `bindNotifyToHtmx()` method binds to the following HTMX events:
 
-| Event                | Trigger Timing                 | Behavior                                             |
-| :------------------- | :----------------------------- | :--------------------------------------------------- |
-| `htmx:beforeRequest` | Start of an HTMX request.      | Starts the global progress bar animation.            |
+| Event                | Trigger Timing                 | Behavior                                                                 |
+| :------------------- | :----------------------------- | :----------------------------------------------------------------------- |
+| `htmx:beforeRequest` | Start of an HTMX request.      | Starts the global progress bar animation.                                |
 | `htmx:afterRequest`  | Completion of an HTMX request. | Stops/Completes the progress bar, shows success toast if response is OK. |
-| `htmx:responseError` | Server returns 4xx/5xx error.  | Stops progress bar and shows error toast.            |
-| `htmx:sendError`     | HTMX request failed to send.   | Stops progress bar and shows error toast.            |
-| `htmx:timeout`       | HTMX request timed out.        | Stops progress bar and shows error toast.            |
+| `htmx:responseError` | Server returns 4xx/5xx error.  | Stops progress bar and shows error toast.                                |
+| `htmx:sendError`     | HTMX request failed to send.   | Stops progress bar and shows error toast.                                |
+| `htmx:timeout`       | HTMX request timed out.        | Stops progress bar and shows error toast.                                |
 
 ### Server-Sent Custom Messages
 
 The integration supports custom messages sent from the server via response headers:
 
-| Header                  | Description                                          |
-| :---------------------- | :--------------------------------------------------- |
-| `X-Notify-Message`     | Custom success message (overrides default).        |
-| `X-Notify-Error`       | Custom error message (overrides default).           |
-| `X-Notify-Suppress`    | Set to `'true'` to suppress success notification.   |
+| Header              | Description                                       |
+| :------------------ | :------------------------------------------------ |
+| `X-Notify-Message`  | Custom success message (overrides default).       |
+| `X-Notify-Error`    | Custom error message (overrides default).         |
+| `X-Notify-Suppress` | Set to `'true'` to suppress success notification. |
 
 Example server response (any language):
+
 ```python
 # Python/Flask example
 return jsonify({'result': 'ok'}, headers={
@@ -196,10 +198,10 @@ return jsonify({'result': 'ok'}, headers={
 
 Notifications are announced by screen readers with politeness graded by type (P1-B7, `docs/a11y-design.md`):
 
-| Type                 | `role`   | `aria-live`   | Behavior                                                    |
-| :------------------- | :------- | :------------ | :---------------------------------------------------------- |
-| `error`, `warning` | `alert`  | `assertive` | Interrupts the current utterance — urgent feedback.        |
-| `success`, `info` | `status` | `polite`    | Queued after current speech — avoids breaking user context. |
+| Type               | `role`   | `aria-live` | Behavior                                                    |
+| :----------------- | :------- | :---------- | :---------------------------------------------------------- |
+| `error`, `warning` | `alert`  | `assertive` | Interrupts the current utterance — urgent feedback.         |
+| `success`, `info`  | `status` | `polite`    | Queued after current speech — avoids breaking user context. |
 
 Both attributes are bound dynamically per item in the template; no configuration is needed.
 
@@ -239,16 +241,16 @@ const loadData = async () => {
 
 ### Common Issues
 
-| Issue | Possible Cause | Solution |
-| :--- | :--- | :--- |
-| **Notification not appearing** | `z-index` conflict or container hidden. | Check CSS. Notify container uses high z-index. |
-| **Progress bar stuck** | HTMX request failed or didn't complete. | Manually call `stopProgress()` in `catch/finally` block. |
-| **Missing styles** | Tailwind classes purged or not loaded. | Ensure `safelist` includes Uno classes if using PurgeCSS. |
+| Issue                          | Possible Cause                          | Solution                                                  |
+| :----------------------------- | :-------------------------------------- | :-------------------------------------------------------- |
+| **Notification not appearing** | `z-index` conflict or container hidden. | Check CSS. Notify container uses high z-index.            |
+| **Progress bar stuck**         | HTMX request failed or didn't complete. | Manually call `stopProgress()` in `catch/finally` block.  |
+| **Missing styles**             | Tailwind classes purged or not loaded.  | Ensure `safelist` includes Uno classes if using PurgeCSS. |
 
 ## Version History
 
-| Version | Date | Changes |
-| :--- | :--- | :--- |
-| v0.8.0 | 2026-02-28 | Added `bindNotifyToHtmx()` method for automatic HTMX integration with progress bar, success/error notifications, and server-sent custom messages support via headers. |
-| v0.7.0 | 2026-01-20 | Refactored for **Lazy Initialization**. Containers injected on first usage. |
-| v0.6.0 | 2025-12-18 | Initial stable release. |
+| Version | Date       | Changes                                                                                                                                                               |
+| :------ | :--------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v0.8.0  | 2026-02-28 | Added `bindNotifyToHtmx()` method for automatic HTMX integration with progress bar, success/error notifications, and server-sent custom messages support via headers. |
+| v0.7.0  | 2026-01-20 | Refactored for **Lazy Initialization**. Containers injected on first usage.                                                                                           |
+| v0.6.0  | 2025-12-18 | Initial stable release.                                                                                                                                               |

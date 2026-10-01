@@ -64,10 +64,12 @@ describe('Box focus restore & multilayer inert (P1-B5)', () => {
     vi.useRealTimers()
   })
 
-  // 模拟渲染层产出 box 容器（真实应用由 Alpine 模板渲染）
+  // 模拟渲染层产出 box 容器（真实应用由 Alpine 模板渲染）。
+  // ID 必须与 box.template.js 的 :id 绑定（uno-box-outer-container{id}）保持一致；
+  // 与模板漂移会使 store 的选择器查询静默失效。
   const mountBoxContainer = (item, innerHtml = '') => {
     const el = document.createElement('div')
-    el.id = 'uno-box-' + item.id
+    el.id = 'uno-box-outer-container' + item.id
     el.innerHTML = innerHtml
     document.body.appendChild(el)
     return el
@@ -129,5 +131,35 @@ describe('Box focus restore & multilayer inert (P1-B5)', () => {
 
     expect(elA.getAttribute('aria-hidden')).toBeNull()
     expect(elA.hasAttribute('inert')).toBe(false)
+  })
+
+  it('multilayer: closing the top restores focus to its opener inside the underlay', () => {
+    const openerA = document.createElement('button')
+    document.body.appendChild(openerA)
+    openerA.focus()
+
+    // 下层 A：内部提供打开 B 的按钮（即 B 的 opener）
+    const itemA = boxStore.open({ content: '<p>a</p>' })
+    mountBoxContainer(itemA, '<button id="opener-b">open b</button>')
+    vi.advanceTimersByTime(10)
+
+    const openerB = document.getElementById('opener-b')
+    openerB.focus()
+    const itemB = boxStore.open({ content: '<p>b</p>' })
+    mountBoxContainer(itemB, '<button id="close-in-b">close</button>')
+    vi.advanceTimersByTime(10)
+
+    const elA = document.getElementById('uno-box-outer-container' + itemA.id)
+    expect(elA.hasAttribute('inert')).toBe(true)
+
+    // 焦点在顶层内部（模拟点击 B 的关闭按钮后关闭）
+    document.getElementById('close-in-b').focus()
+    itemB.close()
+
+    // 下层 inert 必须先解除（否则 opener 不可聚焦），再将焦点还原到 B 的 opener
+    expect(elA.hasAttribute('inert')).toBe(false)
+    expect(document.activeElement).toBe(openerB)
+
+    vi.advanceTimersByTime(400)
   })
 })

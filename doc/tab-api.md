@@ -65,7 +65,7 @@ The directive implements the WAI-ARIA APG tabs pattern:
   to first/last; focus follows to the target tab and activation reuses the click
   path so htmx-swap tabs load their content identically to mouse clicks.
 - Panels: per-tab panels declare `id="panel-{name}" role="tabpanel"
-  aria-labelledby="tab-{name}"`. Shared-panel mode (htmx swap, e.g. drafts) declares
+aria-labelledby="tab-{name}"`. Shared-panel mode (htmx swap, e.g. drafts) declares
   `role="tabpanel" data-tab-group="{group}"` on the container; `activate()` keeps its
   `aria-labelledby` pointed at the active tab.
 - Tab lists should declare `role="tablist"` with an accessible label.

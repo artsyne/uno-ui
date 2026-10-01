@@ -22,7 +22,9 @@ describe('Notify Template', () => {
     expect(template).toContain(
       "item.type === 'error' || item.type === 'warning' ? 'assertive' : 'polite'"
     )
-    expect(template).toContain("item.type === 'error' || item.type === 'warning' ? 'alert' : 'status'")
+    expect(template).toContain(
+      "item.type === 'error' || item.type === 'warning' ? 'alert' : 'status'"
+    )
     expect(template).not.toContain('aria-live="assertive"')
   })
 })

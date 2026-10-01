@@ -35,7 +35,11 @@ const ensureCounterWrapper = (el) => {
   if (isFlexOrGridDisplay(parentStyle.display)) {
     // Legacy fallback: promote the parent itself rather than changing the
     // input's role as a flex/grid item.
-    if (parentStyle.position === 'static' && parent.tagName !== 'FORM' && parent.tagName !== 'BODY') {
+    if (
+      parentStyle.position === 'static' &&
+      parent.tagName !== 'FORM' &&
+      parent.tagName !== 'BODY'
+    ) {
       parent.style.position = 'relative'
     }
     return parent
@@ -96,9 +100,7 @@ const ensureErrorA11y = (errorEl, fieldName) => {
  */
 const linkDescribedBy = (input, errorEl) => {
   if (!errorEl.id) return
-  const tokens = (input.getAttribute('aria-describedby') || '')
-    .split(/\s+/)
-    .filter(Boolean)
+  const tokens = (input.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean)
   if (!tokens.includes(errorEl.id)) tokens.push(errorEl.id)
   input.setAttribute('aria-describedby', tokens.join(' '))
 }

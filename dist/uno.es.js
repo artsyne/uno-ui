@@ -1816,21 +1816,23 @@ const It = (r, t = {}) => {
       /**
        * P1-B5 焦点还原：焦点仍在本 box 内（OK/Cancel/关闭按钮）或无处停留（body）时
        * 还原至 opener；焦点已被外部接管（如新弹窗/页面导航）时不抢占。
+       * 容器锚点必须与 box.template.js 的 :id 绑定一致（uno-box-outer-container{id}，
+       * 即 role="dialog" 元素）——与模板漂移会导致 contains 判定恒为 false。
        */
       restoreFocus() {
         const f = this.opener;
         if (!f || f === document.body || !f.isConnected) return;
-        const h = document.getElementById("uno-box-" + this.id), E = document.activeElement;
+        const h = document.getElementById("uno-box-outer-container" + this.id), E = document.activeElement;
         (h && E && h.contains(E) || E === document.body) && f.focus();
       },
       /**
        * Close this box dialog
        */
       close() {
-        this.onBeforeClose && this.onBeforeClose(), this.isOpen = !1, this.restoreFocus();
+        this.onBeforeClose && this.onBeforeClose(), this.isOpen = !1;
         const f = r.store("uno")?.box;
-        f && f.syncUnderlayInert();
-        const h = typeof document < "u" ? document.getElementById("uno-box-" + this.id) : null, E = () => {
+        f && f.syncUnderlayInert(), this.restoreFocus();
+        const h = typeof document < "u" ? document.getElementById("uno-box-outer-container" + this.id) : null, E = () => {
           const x = r.store("uno")?.box;
           x && x.remove(this.id), this.onClose && this.onClose();
         };
@@ -1899,7 +1901,7 @@ const It = (r, t = {}) => {
     if (typeof document > "u") return;
     const t = this.items.filter((n) => n.isOpen);
     t.forEach((n, e) => {
-      const o = document.getElementById("uno-box-" + n.id);
+      const o = document.getElementById("uno-box-outer-container" + n.id);
       if (!o) return;
       const i = e < t.length - 1;
       o.toggleAttribute("inert", i), i ? o.setAttribute("aria-hidden", "true") : o.removeAttribute("aria-hidden");

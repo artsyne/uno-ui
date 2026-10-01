@@ -809,7 +809,8 @@ describe('Valid Component', () => {
       global.Uno.options.valid = {}
 
       const directiveFn = directives['uno-valid']
-      const evaluateLater = (expr) => (cb) => cb(['required', { type: 'length', max: 10, showCounter: true }])
+      const evaluateLater = (expr) => (cb) =>
+        cb(['required', { type: 'length', max: 10, showCounter: true }])
       const cleanup = () => {}
 
       directiveFn(input, { expression: '...' }, { evaluateLater, cleanup })

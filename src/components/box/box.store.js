@@ -228,11 +228,13 @@ export const createBoxStore = (Alpine) => ({
       /**
        * P1-B5 焦点还原：焦点仍在本 box 内（OK/Cancel/关闭按钮）或无处停留（body）时
        * 还原至 opener；焦点已被外部接管（如新弹窗/页面导航）时不抢占。
+       * 容器锚点必须与 box.template.js 的 :id 绑定一致（uno-box-outer-container{id}，
+       * 即 role="dialog" 元素）——与模板漂移会导致 contains 判定恒为 false。
        */
       restoreFocus() {
         const opener = this.opener
         if (!opener || opener === document.body || !opener.isConnected) return
-        const el = document.getElementById('uno-box-' + this.id)
+        const el = document.getElementById('uno-box-outer-container' + this.id)
         const active = document.activeElement
         const focusInBox = !!el && !!active && el.contains(active)
         if (focusInBox || active === document.body) opener.focus()
@@ -248,14 +250,17 @@ export const createBoxStore = (Alpine) => ({
         }
 
         this.isOpen = false
-        // P1-B5：焦点还原 + 下层 inert 状态重算（多层弹窗）
-        this.restoreFocus()
+        // P1-B5：先重算下层 inert（多层弹窗），再还原焦点——顺序不可颠倒：
+        // 若 opener 位于下层弹窗内，下层仍为 inert 时 focus() 会静默失败
         const store = Alpine.store('uno')?.box
         if (store) store.syncUnderlayInert()
+        this.restoreFocus()
 
         // Use transitionend for precise timing instead of hardcoded timeout
         const el =
-          typeof document !== 'undefined' ? document.getElementById('uno-box-' + this.id) : null
+          typeof document !== 'undefined'
+            ? document.getElementById('uno-box-outer-container' + this.id)
+            : null
 
         const cleanup = () => {
           const store = Alpine.store('uno')?.box
@@ -392,7 +397,7 @@ export const createBoxStore = (Alpine) => ({
     if (typeof document === 'undefined') return
     const openItems = this.items.filter((i) => i.isOpen)
     openItems.forEach((it, idx) => {
-      const el = document.getElementById('uno-box-' + it.id)
+      const el = document.getElementById('uno-box-outer-container' + it.id)
       if (!el) return
       const underlay = idx < openItems.length - 1
       el.toggleAttribute('inert', underlay)
@@ -514,8 +519,7 @@ export const createBoxStore = (Alpine) => ({
     // Never steal focus the user has already placed inside the dialog
     if (container.contains(document.activeElement)) return false
 
-    const title =
-      item && item.title ? document.getElementById('uno-box-title-' + item.id) : null
+    const title = item && item.title ? document.getElementById('uno-box-title-' + item.id) : null
     const target = title && container.contains(title) ? title : container
     // Programmatic focus target must be focusable (template sets tabindex)
     if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')

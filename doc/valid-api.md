@@ -487,9 +487,9 @@ valid.registerValidator('customRule', ({ value, rule }) => {
 
 ## Version History
 
-| Version | Date       | Changes                                                                                                         |
-| :------ | :--------- | :-------------------------------------------------------------------------------------------------------------- |
+| Version | Date       | Changes                                                                                                                                                                                                                                                       |
+| :------ | :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | v0.9.0  | 2026-09-30 | **A11y**: auto error elements get `role="alert"` + stable id; inputs are wired with `aria-describedby` and `aria-invalid` (synced on client validation and 422 server errors); `showCounter` counters are linked to the input via `aria-describedby` (P1-B6). |
-| v0.8.1  | 2026-02-28 | Added programmatic Store API documentation (addRules, validate, showError, hideError, clearErrors, showErrors). |
-| v0.8.0  | 2026-01-22 | **Breaking**: Removed HTML5 attribute support. Added `debounce`, `emptyQuit`, and `type: 'validator'` support.  |
-| v0.7.0  | 2026-01-20 | Initial release.                                                                                                |
+| v0.8.1  | 2026-02-28 | Added programmatic Store API documentation (addRules, validate, showError, hideError, clearErrors, showErrors).                                                                                                                                               |
+| v0.8.0  | 2026-01-22 | **Breaking**: Removed HTML5 attribute support. Added `debounce`, `emptyQuit`, and `type: 'validator'` support.                                                                                                                                                |
+| v0.7.0  | 2026-01-20 | Initial release.                                                                                                                                                                                                                                              |
