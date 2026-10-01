@@ -1,5 +1,5 @@
-import q from "alpinejs";
-let B = !1, D = null;
+import D from "alpinejs";
+let B = !1, q = null;
 const m = {
   /**
    * Set debug mode
@@ -13,7 +13,7 @@ const m = {
    * @param {Function} reporter - (error, ...args) => void
    */
   setReporter(r) {
-    D = r;
+    q = r;
   },
   /**
    * Log info message
@@ -41,9 +41,9 @@ const m = {
    * @param {...any} args - Arguments to log
    */
   error(...r) {
-    if (D)
+    if (q)
       try {
-        D(...r);
+        q(...r);
       } catch (t) {
         B && typeof console < "u" && typeof console.error == "function" && console.error("[Uno Error] Reporter failed:", t);
       }
@@ -57,11 +57,11 @@ function z(r, t) {
   let o = J.get(r);
   return o || (o = /* @__PURE__ */ new Set(), J.set(r, o)), o.has(e) ? !1 : (o.add(e), !0);
 }
-function P(r) {
+function A(r) {
   return r ? r.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "").replace(/<img\b[^>]*>/gim, "").replace(/\s+on[a-z]+="[^"]*"/gim, "").replace(/\s+on[a-z]+='[^']*'/gim, "").replace(/\s+href="javascript:[^"]*"/gim, "").replace(/\s+href='javascript:[^']*'/gim, "").replace(/javascript:/gim, "") : "";
 }
 function it(r, t, { trusted: n = !1, alpine: e } = {}) {
-  r && (r.innerHTML = n ? String(t ?? "") : P(String(t ?? "")), e?.initTree?.(r));
+  r && (r.innerHTML = n ? String(t ?? "") : A(String(t ?? "")), e?.initTree?.(r));
 }
 const j = {
   /**
@@ -203,7 +203,7 @@ const j = {
   // Exports
   setHTML: it,
   // Secure HTML setting
-  sanitize: P
+  sanitize: A
   // HTML sanitization
 }, rt = (r, t) => {
   try {
@@ -307,15 +307,15 @@ class at {
         if (typeof document > "u") throw new Error("document is not available");
         const a = document.createElement("div");
         let l = "";
-        const c = (d) => {
-          d.preventDefault(), l = d.detail.serverResponse, d.detail.shouldSwap = !1;
+        const c = (u) => {
+          u.preventDefault(), l = u.detail.serverResponse, u.detail.shouldSwap = !1;
         };
         a.addEventListener("htmx:beforeSwap", c);
         try {
-          const d = s.swap || "innerHTML";
-          return await this.htmx.ajax(o, i, { ...s, target: a, swap: d }), l;
-        } catch (d) {
-          throw m.error("HTMX fragment fetch failed:", { method: o, url: i, error: d }), d;
+          const u = s.swap || "innerHTML";
+          return await this.htmx.ajax(o, i, { ...s, target: a, swap: u }), l;
+        } catch (u) {
+          throw m.error("HTMX fragment fetch failed:", { method: o, url: i, error: u }), u;
         } finally {
           a.removeEventListener("htmx:beforeSwap", c), a.remove();
         }
@@ -329,28 +329,28 @@ class at {
        */
       onRequest: (o = {}) => {
         if (!o || typeof o != "object" || (this._htmxRequestHandlers.push(o), typeof window > "u" || typeof document > "u") || !window.htmx || !z(document, "uno:htmx:request-hooks")) return;
-        const i = st, s = (c, d) => {
+        const i = st, s = (c, u) => {
           for (const g of this._htmxRequestHandlers) {
-            const f = g?.[c];
-            if (typeof f == "function")
+            const d = g?.[c];
+            if (typeof d == "function")
               try {
-                f(d);
+                d(u);
               } catch (h) {
                 m.error("Uno.htmx.onRequest handler failed", h);
               }
           }
         }, a = (c) => {
-          const d = i(c);
-          if (d && this._htmxActiveXhrs) {
-            if (this._htmxActiveXhrs.has(d)) return;
-            this._htmxActiveXhrs.add(d);
+          const u = i(c);
+          if (u && this._htmxActiveXhrs) {
+            if (this._htmxActiveXhrs.has(u)) return;
+            this._htmxActiveXhrs.add(u);
           }
           s("start", c);
         }, l = (c) => {
-          const d = i(c);
-          if (d && this._htmxActiveXhrs) {
-            if (!this._htmxActiveXhrs.has(d)) return;
-            this._htmxActiveXhrs.delete(d);
+          const u = i(c);
+          if (u && this._htmxActiveXhrs) {
+            if (!this._htmxActiveXhrs.has(u)) return;
+            this._htmxActiveXhrs.delete(u);
           }
           s("end", c);
         };
@@ -377,24 +377,24 @@ class at {
           showProgress: a = !0,
           successMessage: l = "Operation completed",
           errorMessage: c = "Operation failed"
-        } = o, d = this;
+        } = o, u = this;
         if (typeof document > "u") {
           m.warn("bindNotifyToHtmx: document is not available");
           return;
         }
-        if (!d.htmx.available()) {
+        if (!u.htmx.available()) {
           m.warn("bindNotifyToHtmx: HTMX is not available");
           return;
         }
         const g = () => typeof window < "u" && window.Alpine ? window.Alpine.store("uno")?.notify : null;
-        let f = 0;
+        let d = 0;
         const h = (p) => {
-          if (f++, a) {
+          if (d++, a) {
             const x = g();
             x && typeof x.startProgress == "function" && x.startProgress();
           }
-        }, E = (p) => {
-          if (f = Math.max(0, f - 1), a && f === 0) {
+        }, w = (p) => {
+          if (d = Math.max(0, d - 1), a && d === 0) {
             const x = g();
             x && typeof x.stopProgress == "function" && x.stopProgress();
           }
@@ -403,28 +403,28 @@ class at {
             if (!(x?.status >= 400)) {
               const y = g();
               if (y && typeof y.success == "function") {
-                let w = l;
+                let E = l;
                 const C = x?.header("X-Notify-Message");
-                C && (w = C), x?.header("X-Notify-Suppress") || y.success(w);
+                C && (E = C), x?.header("X-Notify-Suppress") || y.success(E);
               }
             }
           }
-        }, v = (p) => {
-          if (f = Math.max(0, f - 1), a && f === 0) {
+        }, b = (p) => {
+          if (d = Math.max(0, d - 1), a && d === 0) {
             const x = g();
             x && typeof x.stopProgress == "function" && x.stopProgress();
           }
           if (s) {
             const x = g();
             if (x && typeof x.error == "function") {
-              const u = V(p);
+              const f = V(p);
               let y = c;
-              const w = u?.header("X-Notify-Error");
-              w && (y = w), x.error(y);
+              const E = f?.header("X-Notify-Error");
+              E && (y = E), x.error(y);
             }
           }
         };
-        z(document, "uno:htmx:bind-notify") && (document.addEventListener("htmx:beforeRequest", h), document.addEventListener("htmx:afterRequest", E), document.addEventListener("htmx:responseError", v), document.addEventListener("htmx:sendError", v), document.addEventListener("htmx:timeout", v), m.debug("bindNotifyToHtmx: HTMX events bound to notify"));
+        z(document, "uno:htmx:bind-notify") && (document.addEventListener("htmx:beforeRequest", h), document.addEventListener("htmx:afterRequest", w), document.addEventListener("htmx:responseError", b), document.addEventListener("htmx:sendError", b), document.addEventListener("htmx:timeout", b), m.debug("bindNotifyToHtmx: HTMX events bound to notify"));
       }
     };
     const e = {
@@ -646,13 +646,13 @@ class at {
    */
   async init(t = {}, n = {}) {
     if (this.initialized)
-      return m.warn("Uno has already been initialized."), q || (typeof window < "u" ? window.Alpine : null);
-    let e = q;
+      return m.warn("Uno has already been initialized."), D || (typeof window < "u" ? window.Alpine : null);
+    let e = D;
     return !e && typeof window < "u" && window.Alpine && (e = window.Alpine), t && (t.version || typeof t.start == "function" || typeof t.store == "function") && (e = t), this.options = k(this.options, this._preInitConfig), m.setDebug(this.options.debug !== !1), this.options.onError && m.setReporter(this.options.onError), e && typeof e.store == "function" ? (this._doInit(e), e) : typeof document > "u" ? (m.error("Alpine not found and document is unavailable. Cannot initialize Uno."), null) : (m.debug("Alpine not ready, waiting for alpine:init event..."), new Promise((i) => {
       document.addEventListener(
         "alpine:init",
         () => {
-          if (e = window.Alpine || q, !e) {
+          if (e = window.Alpine || D, !e) {
             m.error("Alpine still not found after alpine:init event"), i(null);
             return;
           }
@@ -720,7 +720,7 @@ class at {
     }
   }
 }
-const b = new at(), lt = {
+const v = new at(), lt = {
   box: {
     ok: "OK",
     cancel: "Cancel",
@@ -845,9 +845,9 @@ function ft(r, t) {
   }
   return e;
 }
-function X(r, t) {
+function N(r, t) {
   for (const n in t)
-    t[n] && typeof t[n] == "object" ? (r[n] || Object.assign(r, { [n]: {} }), X(r[n], t[n])) : Object.assign(r, { [n]: t[n] });
+    t[n] && typeof t[n] == "object" ? (r[n] || Object.assign(r, { [n]: {} }), N(r[n], t[n])) : Object.assign(r, { [n]: t[n] });
 }
 function gt(r) {
   const t = r.store("i18n"), n = {
@@ -859,7 +859,7 @@ function gt(r) {
     },
     t(e, o = {}) {
       const i = this.locale, s = this.messages[i] || this.messages.en, a = ft(s, e);
-      return (typeof a == "string" ? a : e).replace(/\{(\w+)\}/g, (c, d) => d in o ? String(o[d]) : `{${d}}`);
+      return (typeof a == "string" ? a : e).replace(/\{(\w+)\}/g, (c, u) => u in o ? String(o[u]) : `{${u}}`);
     },
     setLocale(e) {
       if (!this.messages[e]) {
@@ -873,7 +873,7 @@ function gt(r) {
       this.setLocale(e);
     },
     extend(e) {
-      X(this.messages, e);
+      N(this.messages, e);
     },
     async loadLocale(e, o) {
       if (!this.messages[e]) {
@@ -891,15 +891,15 @@ function gt(r) {
       }
     }
   };
-  t ? (m.info("[Uno] Merging into existing i18n store"), t.messages || (t.messages = {}), X(t.messages, W), t.t || (t.t = n.t), t.setLocale || (t.setLocale = n.setLocale), t.setLang || (t.setLang = n.setLang), t.loadLocale || (t.loadLocale = n.loadLocale)) : r.store("i18n", n), r.directive("t", (e, { expression: o, modifiers: i }, { effect: s }) => {
+  t ? (m.info("[Uno] Merging into existing i18n store"), t.messages || (t.messages = {}), N(t.messages, W), t.t || (t.t = n.t), t.setLocale || (t.setLocale = n.setLocale), t.setLang || (t.setLang = n.setLang), t.loadLocale || (t.loadLocale = n.loadLocale)) : r.store("i18n", n), r.directive("t", (e, { expression: o, modifiers: i }, { effect: s }) => {
     const a = () => r.store("i18n");
     s(() => {
       const l = a();
       l.locale;
-      const c = o, d = l.t(c);
+      const c = o, u = l.t(c);
       i.length > 0 ? i.forEach((g) => {
-        e.setAttribute(g, d);
-      }) : e.textContent = d;
+        e.setAttribute(g, u);
+      }) : e.textContent = u;
     });
   });
 }
@@ -948,66 +948,66 @@ const mt = (r) => {
   return t.includes("bottom") && (n = "flex-col-reverse", o = "space-y-reverse space-y-2"), t.includes("left") ? e = "items-start" : t.includes("center") ? t === "center" ? e = "items-center justify-center" : e = "items-center" : e = "items-end", { flexDir: n, alignItems: e, spaceY: o };
 };
 function xt(r, t, n, e = {}) {
-  const o = typeof e?.offset == "number" && Number.isFinite(e.offset) && e.offset >= 0 ? e.offset : 8, i = r.getBoundingClientRect(), s = t.getBoundingClientRect(), a = s.width, l = s.height, c = i.width, d = i.height, g = { top: i.top, left: i.left }, f = window.innerWidth, h = window.innerHeight, E = 0, v = 0, p = h, x = f, u = ($, R) => {
+  const o = typeof e?.offset == "number" && Number.isFinite(e.offset) && e.offset >= 0 ? e.offset : 8, i = r.getBoundingClientRect(), s = t.getBoundingClientRect(), a = s.width, l = s.height, c = i.width, u = i.height, g = { top: i.top, left: i.left }, d = window.innerWidth, h = window.innerHeight, w = 0, b = 0, p = h, x = d, f = ($, R) => {
     if (R) {
       if ($ + a > x)
         return x - a - 10;
-      if ($ < v)
-        return v + 10;
+      if ($ < b)
+        return b + 10;
     } else {
       if ($ + l > p)
         return p - l - 10;
-      if ($ < E)
-        return E + 10;
+      if ($ < w)
+        return w + 10;
     }
     return $;
   };
-  let y, w, C = ["top", "bottom", "left", "right"].includes(n) ? n : "bottom";
+  let y, E, C = ["top", "bottom", "left", "right"].includes(n) ? n : "bottom";
   switch (n) {
     case "left":
-      w = g.left - a - o, w < v && (w = g.left + c + o, C = "right"), y = u(g.top + d / 2 - l / 2, !1);
+      E = g.left - a - o, E < b && (E = g.left + c + o, C = "right"), y = f(g.top + u / 2 - l / 2, !1);
       break;
     case "top":
-      y = g.top - l - o, y < E && (y = g.top + d + o, C = "bottom"), w = g.left + (c - a) / 2, w = u(w, !0);
+      y = g.top - l - o, y < w && (y = g.top + u + o, C = "bottom"), E = g.left + (c - a) / 2, E = f(E, !0);
       break;
     case "right":
-      w = g.left + c + o, w + a > x && (w = g.left - a - o, C = "left"), y = u(g.top + d / 2 - l / 2, !1);
+      E = g.left + c + o, E + a > x && (E = g.left - a - o, C = "left"), y = f(g.top + u / 2 - l / 2, !1);
       break;
     default:
-      y = g.top + d + o, y + l > p && (y = g.top - l - o, C = "top"), w = g.left + (c - a) / 2, w = u(w, !0);
+      y = g.top + u + o, y + l > p && (y = g.top - l - o, C = "top"), E = g.left + (c - a) / 2, E = f(E, !0);
       break;
   }
-  const T = 8, I = T / 2, _ = ($, R, nt) => Math.min(Math.max($, R), Math.max(R, nt)), Z = g.left + c / 2, G = g.top + d / 2;
-  let A;
+  const T = 8, I = T / 2, _ = ($, R, nt) => Math.min(Math.max($, R), Math.max(R, nt)), Z = g.left + c / 2, G = g.top + u / 2;
+  let P;
   switch (C) {
     case "top":
-      A = {
+      P = {
         top: l - I,
-        left: _(Z - w - I, 0, a - T)
+        left: _(Z - E - I, 0, a - T)
       };
       break;
     case "left":
-      A = {
+      P = {
         top: _(G - y - I, 0, l - T),
         left: a - I
       };
       break;
     case "right":
-      A = {
+      P = {
         top: _(G - y - I, 0, l - T),
         left: -I
       };
       break;
     default:
-      A = {
+      P = {
         top: -I,
-        left: _(Z - w - I, 0, a - T)
+        left: _(Z - E - I, 0, a - T)
       };
       break;
   }
-  return { top: y, left: w, position: C, arrow: A };
+  return { top: y, left: E, position: C, arrow: P };
 }
-const K = [
+const X = [
   "a[href]",
   "area[href]",
   "input:not([disabled])",
@@ -1020,38 +1020,27 @@ const K = [
   "[contenteditable]",
   '[tabindex]:not([tabindex^="-"])'
 ].join(",");
-function N(r, t = {}) {
-  const { initialFocus: n = !0 } = t, e = (c) => {
-    if (!(c instanceof HTMLElement)) return !1;
-    const d = window.getComputedStyle(c);
-    return d.display === "none" || d.visibility === "hidden" ? !1 : c.getClientRects().length > 0;
-  }, o = () => Array.from(r.querySelectorAll(K)).filter((c) => e(c)), i = () => o()[0], s = () => {
+function K(r, t = {}) {
+  const { initialFocus: n = !0 } = t, e = (l) => {
+    if (!(l instanceof HTMLElement)) return !1;
+    const c = window.getComputedStyle(l);
+    return c.display === "none" || c.visibility === "hidden" ? !1 : l.getClientRects().length > 0;
+  }, o = () => Array.from(r.querySelectorAll(X)).filter((l) => e(l)), i = () => o()[0], s = (l) => {
+    if (l.key !== "Tab") return;
     const c = o();
-    return c[c.length - 1];
-  }, a = (c) => {
-    if (c.key === "Tab") {
-      if (c.shiftKey) {
-        if (document.activeElement === i()) {
-          c.preventDefault();
-          const d = s();
-          d && d.focus();
-        }
-      } else if (document.activeElement === s()) {
-        c.preventDefault();
-        const d = i();
-        d && d.focus();
-      }
-    }
-  }, l = () => {
+    if (!c.length) return;
+    const u = c[0], g = c[c.length - 1], d = document.activeElement, h = c.some((b) => d.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING), w = c.some((b) => d.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_PRECEDING);
+    l.shiftKey ? (d === u || !w) && (l.preventDefault(), g.focus()) : (d === g || !h) && (l.preventDefault(), u.focus());
+  }, a = () => {
     if (r.contains(document.activeElement)) return;
-    const c = i();
-    c && c.focus();
+    const l = i();
+    l && l.focus();
   };
-  return n && (typeof requestAnimationFrame == "function" ? requestAnimationFrame(() => requestAnimationFrame(l)) : setTimeout(l, 0)), r.addEventListener("keydown", a), () => {
-    r.removeEventListener("keydown", a);
+  return n && (typeof requestAnimationFrame == "function" ? requestAnimationFrame(() => requestAnimationFrame(a)) : setTimeout(a, 0)), r.addEventListener("keydown", s), () => {
+    r.removeEventListener("keydown", s);
   };
 }
-const yt = () => (b.options?.ui?.layers?.tooltip || S("TOOLTIP"), `
+const yt = () => (v.options?.ui?.layers?.tooltip || S("TOOLTIP"), `
     <div id="uno-tooltip-content"
          x-show="$store.uno.tooltip.visible"
          role="tooltip"
@@ -1112,8 +1101,8 @@ const bt = (r) => {
     }, s = (a) => {
       const l = r.store("uno")?.tooltip;
       if (!l?.visible || l.triggerMode !== "click" || l.clickOutside !== !0) return;
-      const c = a.target, d = document.getElementById("uno-tooltip-content"), g = l.triggerEl && l.triggerEl.contains(c), f = d && d.contains(c);
-      !g && !f && l.hide();
+      const c = a.target, u = document.getElementById("uno-tooltip-content"), g = l.triggerEl && l.triggerEl.contains(c), d = u && u.contains(c);
+      !g && !d && l.hide();
     };
     window.addEventListener("scroll", e, !0), window.addEventListener("resize", o), window.addEventListener("keydown", i), window.addEventListener("click", s), O = () => {
       window.removeEventListener("scroll", e, !0), window.removeEventListener("resize", o), window.removeEventListener("keydown", i), window.removeEventListener("click", s), O = null;
@@ -1146,13 +1135,13 @@ const bt = (r) => {
     active: null,
     show(e = {}) {
       m.info("Tooltip show called", e);
-      const o = b.getConfig("tooltip", e);
+      const o = v.getConfig("tooltip", e);
       if (m.info("Tooltip resolved config", o), !o.target && typeof o.content == "string" && o.content.startsWith("#") && (o.content.includes(" ") || document.querySelector(o.content) && (o.target = o.content)), this.triggerEl = o.element || this.triggerEl, o.target) {
         const i = document.querySelector(o.target);
-        i ? this.content = P(i.innerHTML) : (m.warn(`Tooltip target element not found: ${o.target}`), this.content = P(o.content || ""));
+        i ? this.content = A(i.innerHTML) : (m.warn(`Tooltip target element not found: ${o.target}`), this.content = A(o.content || ""));
       } else
-        this.content = P(o.content || "");
-      this.placement = o.placement, this.triggerMode = o.trigger, this.clickOutside = o.clickOutside, this.offset = o.offset, this.arrow = o.arrow !== !1, this.zIndex = b.options?.ui?.layers?.tooltip || S("TOOLTIP"), this.hxUrl = o.hxUrl, this.hxHeaders = o.hxHeaders, this.hxTrigger = o.hxTrigger || "load", this.visible = !0, this.ensureContainer(), n(), this.triggerMode === "click" && this.triggerEl && (this.triggerEl.setAttribute("aria-haspopup", "true"), this.triggerEl.setAttribute("aria-expanded", "true"), this.triggerEl.setAttribute("aria-describedby", "uno-tooltip-content"), this.bindPopupKeyboard()), r.nextTick(() => {
+        this.content = A(o.content || "");
+      this.placement = o.placement, this.triggerMode = o.trigger, this.clickOutside = o.clickOutside, this.offset = o.offset, this.arrow = o.arrow !== !1, this.zIndex = v.options?.ui?.layers?.tooltip || S("TOOLTIP"), this.hxUrl = o.hxUrl, this.hxHeaders = o.hxHeaders, this.hxTrigger = o.hxTrigger || "load", this.visible = !0, this.ensureContainer(), n(), this.triggerMode === "click" && this.triggerEl && (this.triggerEl.setAttribute("aria-haspopup", "true"), this.triggerEl.setAttribute("aria-expanded", "true"), this.triggerEl.setAttribute("aria-describedby", "uno-tooltip-content"), this.bindPopupKeyboard()), r.nextTick(() => {
         this.updatePosition(), this.focusPopupIfNeeded();
       });
     },
@@ -1167,9 +1156,9 @@ const bt = (r) => {
      */
     bindPopupKeyboard() {
       const e = document.getElementById("uno-tooltip-content");
-      e && (this.cleanupTrap = N(e, { initialFocus: !1 }), this.onPopupKeydown = (o) => {
+      e && (this.cleanupTrap = K(e, { initialFocus: !1 }), this.onPopupKeydown = (o) => {
         if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(o.key) || !e.querySelector('[role="menu"]')) return;
-        const i = Array.from(e.querySelectorAll(K));
+        const i = Array.from(e.querySelectorAll(X));
         if (i.length === 0) return;
         o.preventDefault();
         const s = i.indexOf(document.activeElement);
@@ -1187,7 +1176,7 @@ const bt = (r) => {
       if (this.triggerMode !== "click") return;
       const e = document.getElementById("uno-tooltip-content");
       if (!e || e.contains(document.activeElement)) return;
-      const o = e.querySelector(K);
+      const o = e.querySelector(X);
       o && o.focus();
     },
     cancelHide() {
@@ -1210,7 +1199,7 @@ const bt = (r) => {
     ensureContainer() {
       const e = "uno-tooltip-manager";
       if (document.getElementById(e)) return;
-      const o = b.options?.ui?.layers?.tooltip || S("TOOLTIP"), i = yt();
+      const o = v.options?.ui?.layers?.tooltip || S("TOOLTIP"), i = yt();
       j.ensureContainer(e, i, {
         "x-data": "{}",
         style: `position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: ${o};`
@@ -1221,42 +1210,42 @@ const bt = (r) => {
   };
 }, vt = (r) => {
   const t = (n, { expression: e, modifiers: o }, { evaluateLater: i, effect: s, cleanup: a }) => {
-    const l = e ? i(e) : null, c = (u) => (o.length > 0 && m.warn(
+    const l = e ? i(e) : null, c = (f) => (o.length > 0 && m.warn(
       "[Uno] x-uno-tooltip modifiers are deprecated in v2.0. Use configuration object instead."
-    ), { ...typeof u == "object" && u !== null ? u : u ? { content: u } : {}, element: n }), d = (u) => {
+    ), { ...typeof f == "object" && f !== null ? f : f ? { content: f } : {}, element: n }), u = (f) => {
       const y = r.store("uno")?.tooltip;
-      y && y.show(c(u));
-    }, g = (u) => {
+      y && y.show(c(f));
+    }, g = (f) => {
       const y = r.store("uno")?.tooltip;
-      y && (y.visible && y.triggerEl === n ? y.hide() : d(u));
+      y && (y.visible && y.triggerEl === n ? y.hide() : u(f));
     };
-    let f = null;
+    let d = null;
     l && s(() => {
-      l((u) => {
-        f = u;
+      l((f) => {
+        d = f;
       });
     });
     const h = () => {
-      if (e && f === null) return;
-      const u = c(f);
-      b.getConfig("tooltip", u).trigger === "hover" && d(f);
-    }, E = () => {
-      const u = r.store("uno")?.tooltip;
-      u && u.triggerMode === "hover" && u.triggerEl === n && u.scheduleHide();
-    }, v = (u) => {
-      const y = c(f);
-      b.getConfig("tooltip", y).trigger === "click" && (u.preventDefault(), g(f));
+      if (e && d === null) return;
+      const f = c(d);
+      v.getConfig("tooltip", f).trigger === "hover" && u(d);
+    }, w = () => {
+      const f = r.store("uno")?.tooltip;
+      f && f.triggerMode === "hover" && f.triggerEl === n && f.scheduleHide();
+    }, b = (f) => {
+      const y = c(d);
+      v.getConfig("tooltip", y).trigger === "click" && (f.preventDefault(), g(d));
     }, p = () => {
-      const u = c(f);
-      b.getConfig("tooltip", u).trigger === "focus" && d(f);
+      const f = c(d);
+      v.getConfig("tooltip", f).trigger === "focus" && u(d);
     }, x = () => {
-      const u = r.store("uno")?.tooltip;
-      u && u.triggerMode === "focus" && u.triggerEl === n && u.hide();
+      const f = r.store("uno")?.tooltip;
+      f && f.triggerMode === "focus" && f.triggerEl === n && f.hide();
     };
-    n.addEventListener("mouseenter", h), n.addEventListener("mouseleave", E), n.addEventListener("click", v), n.addEventListener("focus", p), n.addEventListener("blur", x), a(() => {
-      n.removeEventListener("mouseenter", h), n.removeEventListener("mouseleave", E), n.removeEventListener("click", v), n.removeEventListener("focus", p), n.removeEventListener("blur", x);
-      const u = r.store("uno")?.tooltip;
-      u && u.triggerEl === n && u.hide();
+    n.addEventListener("mouseenter", h), n.addEventListener("mouseleave", w), n.addEventListener("click", b), n.addEventListener("focus", p), n.addEventListener("blur", x), a(() => {
+      n.removeEventListener("mouseenter", h), n.removeEventListener("mouseleave", w), n.removeEventListener("click", b), n.removeEventListener("focus", p), n.removeEventListener("blur", x);
+      const f = r.store("uno")?.tooltip;
+      f && f.triggerEl === n && f.hide();
     });
   };
   r.directive("uno-tooltip", t);
@@ -1270,7 +1259,7 @@ const wt = (r, t = {}) => {
     arrow: !0,
     clickOutside: !0
   };
-  b.registerPluginDefaults("tooltip", {
+  v.registerPluginDefaults("tooltip", {
     ...n,
     ...t.plugins?.tooltip,
     ...t.tooltip
@@ -1441,11 +1430,11 @@ const wt = (r, t = {}) => {
   },
   getContainerStyle() {
     return {
-      zIndex: b.options?.ui?.layers?.notify || S("NOTIFY")
+      zIndex: v.options?.ui?.layers?.notify || S("NOTIFY")
     };
   },
   getContainerClass(t) {
-    const n = b.getStyle("notify", "container"), e = ht(t), o = pt(t);
+    const n = v.getStyle("notify", "container"), e = ht(t), o = pt(t);
     return [n, e, o.flexDir, o.alignItems].join(" ");
   },
   ensureContainer() {
@@ -1461,7 +1450,7 @@ const wt = (r, t = {}) => {
   },
   show(t, n = {}) {
     this.ensureContainer();
-    const e = b.getConfig("notify", n), o = this.nextId++;
+    const e = v.getConfig("notify", n), o = this.nextId++;
     let i = t;
     r.store("i18n") && typeof r.store("i18n").t == "function" && (i = r.store("i18n").t(t));
     const s = e.duration !== void 0 ? e.duration : 3e3;
@@ -1532,7 +1521,7 @@ const It = (r, t = {}) => {
     duration: 3e3,
     position: "top-right"
   };
-  b.registerPluginDefaults("notify", {
+  v.registerPluginDefaults("notify", {
     ...n,
     ...t.plugins?.notify,
     ...t.notify
@@ -1557,7 +1546,7 @@ const It = (r, t = {}) => {
     <template x-for="(item, index) in $store.uno.box.items" :key="item.id">
       <div :id="'uno-box-outer-container' + item.id"
            :class="[Uno.getStyle('box', 'itemWrapper'), $store.uno.box.getPositionClasses(item.position), 'col-start-1 row-start-1']"
-           :style="'z-index:' + (${b.options?.ui?.layers?.box || S("BOX")} + index * 10)"
+           :style="'z-index:' + (${v.options?.ui?.layers?.box || S("BOX")} + index * 10)"
            x-show="item.isOpen"
            x-transition:enter="ease-out duration-300"
            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -1720,26 +1709,26 @@ const It = (r, t = {}) => {
    */
   prompt(t, n = "", e = {}) {
     return new Promise((o) => {
-      const { onOk: i, onCancel: s, ...a } = e, l = "prompt-" + Math.random().toString(36).slice(2, 11), c = b.getStyle("box", "promptWrapper"), d = b.getStyle("box", "promptText"), g = b.getStyle("box", "promptInput"), f = b.dom.sanitize(t), h = b.dom.sanitize(n), E = `
+      const { onOk: i, onCancel: s, ...a } = e, l = "prompt-" + Math.random().toString(36).slice(2, 11), c = v.getStyle("box", "promptWrapper"), u = v.getStyle("box", "promptText"), g = v.getStyle("box", "promptInput"), d = v.dom.sanitize(t), h = v.dom.sanitize(n), w = `
         <div class="${c}">
-          <p class="${d}">${f}</p>
+          <p class="${u}">${d}</p>
           <input id="${l}" type="text" class="${g}" value="${h}">
         </div>
       `;
       this.open("confirm", {
         title: a.title || "Prompt",
         ...a,
-        content: E,
+        content: w,
         _isTrustedPrompt: !0,
         // Internal flag for prompt content
         onOk: () => {
-          const v = typeof i == "function" ? i() : void 0;
-          if (v === !1) return !1;
-          if (v instanceof Promise)
-            return v.then((x) => {
+          const b = typeof i == "function" ? i() : void 0;
+          if (b === !1) return !1;
+          if (b instanceof Promise)
+            return b.then((x) => {
               if (x === !1) return !1;
-              const u = document.getElementById(l);
-              o(u ? u.value : null);
+              const f = document.getElementById(l);
+              o(f ? f.value : null);
             });
           const p = document.getElementById(l);
           o(p ? p.value : null);
@@ -1771,14 +1760,14 @@ const It = (r, t = {}) => {
   open(t, n = {}) {
     let e = "dialog", o = n;
     typeof t == "object" ? (o = t, e = o.type || "dialog") : e = t;
-    const i = b.getConfig("box", o), s = i.boxId || Math.random().toString(36).slice(2, 10);
+    const i = v.getConfig("box", o), s = i.boxId || Math.random().toString(36).slice(2, 10);
     let a = i.showOkButton, l = i.showCancelButton;
     e === "confirm" ? (a = a !== !1, l = l !== !1) : e === "dialog" && (a = a || !1, l = l || !1);
     const c = {
       id: s,
       type: e,
       title: i.title || "",
-      content: i._isTrustedPrompt ? i.content || "" : b.dom.sanitize(i.content || ""),
+      content: i._isTrustedPrompt ? i.content || "" : v.dom.sanitize(i.content || ""),
       // Security: Always sanitize content (trustedHTML removed)
       // Exception: Internal prompt content is pre-escaped
       _isTrustedPrompt: i._isTrustedPrompt || !1,
@@ -1820,38 +1809,38 @@ const It = (r, t = {}) => {
        * 即 role="dialog" 元素）——与模板漂移会导致 contains 判定恒为 false。
        */
       restoreFocus() {
-        const f = this.opener;
-        if (!f || f === document.body || !f.isConnected) return;
-        const h = document.getElementById("uno-box-outer-container" + this.id), E = document.activeElement;
-        (h && E && h.contains(E) || E === document.body) && f.focus();
+        const d = this.opener;
+        if (!d || d === document.body || !d.isConnected) return;
+        const h = document.getElementById("uno-box-outer-container" + this.id), w = document.activeElement;
+        (h && w && h.contains(w) || w === document.body) && d.focus();
       },
       /**
        * Close this box dialog
        */
       close() {
         this.onBeforeClose && this.onBeforeClose(), this.isOpen = !1;
-        const f = r.store("uno")?.box;
-        f && f.syncUnderlayInert(), this.restoreFocus();
-        const h = typeof document < "u" ? document.getElementById("uno-box-outer-container" + this.id) : null, E = () => {
+        const d = r.store("uno")?.box;
+        d && d.syncUnderlayInert(), this.restoreFocus();
+        const h = typeof document < "u" ? document.getElementById("uno-box-outer-container" + this.id) : null, w = () => {
           const x = r.store("uno")?.box;
           x && x.remove(this.id), this.onClose && this.onClose();
         };
         if (!h) {
-          E();
+          w();
           return;
         }
-        let v = !1;
+        let b = !1;
         const p = (x) => {
-          x && x.target !== h || v || (v = !0, h.removeEventListener("transitionend", p), E());
+          x && x.target !== h || b || (b = !0, h.removeEventListener("transitionend", p), w());
         };
         h.addEventListener("transitionend", p), setTimeout(p, 350);
       }
     };
     this.items.push(c), this.ensureContainer();
-    const d = this.items[this.items.length - 1], g = () => {
-      d.isOpen = !0, this.scheduleAutoFocus(d, r), this.syncUnderlayInert();
+    const u = this.items[this.items.length - 1], g = () => {
+      u.isOpen = !0, this.scheduleAutoFocus(u, r), this.syncUnderlayInert();
     };
-    return r && typeof r.nextTick == "function" && r.nextTick(g), d;
+    return r && typeof r.nextTick == "function" && r.nextTick(g), u;
   },
   /**
    * Handle extra button click
@@ -1986,22 +1975,22 @@ const It = (r, t = {}) => {
     const o = {
       "x-data": "{}",
       class: "relative",
-      style: `z-index: ${b.options?.ui?.layers?.box || S("BOX")};`,
+      style: `z-index: ${v.options?.ui?.layers?.box || S("BOX")};`,
       "x-show": "$store.uno.box.items.length > 0",
       "x-cloak": ""
       // Hide until Alpine is ready
-    }, i = St(), s = b.dom.ensureContainer(t, i, o);
+    }, i = St(), s = v.dom.ensureContainer(t, i, o);
     return s && r && typeof r.initTree == "function" && r.initTree(s), s;
   }
 }), Lt = (r) => {
   r.directive("uno-trap", (t, { expression: n }, { cleanup: e, evaluateLater: o }) => {
     if (n)
       o(n)((s) => {
-        const a = N(t, s || {});
+        const a = K(t, s || {});
         e(a);
       });
     else {
-      const i = N(t);
+      const i = K(t);
       e(i);
     }
   }), r.directive("uno-box", (t, { expression: n }, { evaluateLater: e, cleanup: o }) => {
@@ -2032,7 +2021,7 @@ const Bt = (r, t = {}) => {
     closeOnEsc: !1,
     closeOnOverlayClick: !1
   };
-  b.registerPluginDefaults("box", { ...n, ...t.plugins?.box, ...t.box });
+  v.registerPluginDefaults("box", { ...n, ...t.plugins?.box, ...t.box });
   const e = $t(r);
   H(r, "box", e), Lt(r);
 }, tt = {
@@ -2094,7 +2083,7 @@ const Mt = (r) => ({
    * @param {Object} [instanceOpts={}] - Instance-specific global options
    */
   addRules(t, n, e = {}) {
-    const o = this.normalizeRules(n), i = b.getConfig("valid", e);
+    const o = this.normalizeRules(n), i = v.getConfig("valid", e);
     this.rules[t] = o.map((s) => ({
       emptyQuit: i.emptyQuit !== !1,
       // Default to true
@@ -2140,8 +2129,8 @@ const Mt = (r) => ({
         if (a.debounce > 0 && e === "input")
           return this.validating[t] = !0, new Promise((c) => {
             this.timers[t] = setTimeout(async () => {
-              const d = await this.executeRule(t, n, a, i);
-              delete this.validating[t], c(!!d);
+              const u = await this.executeRule(t, n, a, i);
+              delete this.validating[t], c(!!u);
             }, a.debounce);
           });
         this.validating[t] = !0;
@@ -2220,7 +2209,7 @@ const Mt = (r) => ({
       this.rules[a] && (await this.validate(a, s.value, "submit") || (e = !1, o || (o = s), i.push({ input: s, fieldName: a })));
     }
     if (!e && o) {
-      const s = b.getConfig("valid") || {};
+      const s = v.getConfig("valid") || {};
       if (i.length >= 2) {
         const a = this.renderErrorSummary(t, i);
         a && s.scrollOnError !== !1 && (a.scrollIntoView({ behavior: "smooth", block: "center" }), a.focus({ preventScroll: !0 }));
@@ -2251,14 +2240,14 @@ const Mt = (r) => ({
     i.className = "ui-error-summary-title", i.id = o, i.textContent = this.getI18nMsg("valid.summary_title") || "Please fix the following problems", e.appendChild(i);
     const s = document.createElement("ul");
     return s.className = "ui-error-summary-list", n.forEach(({ input: a, fieldName: l }) => {
-      const c = a.id || `${l}-error`, d = document.createElement("a");
-      d.className = "ui-error-summary-link", d.setAttribute("href", `#${c}`), d.textContent = this.errors[l] || "", d.addEventListener("click", (f) => {
-        f.preventDefault();
+      const c = a.id || `${l}-error`, u = document.createElement("a");
+      u.className = "ui-error-summary-link", u.setAttribute("href", `#${c}`), u.textContent = this.errors[l] || "", u.addEventListener("click", (d) => {
+        d.preventDefault();
         const h = document.getElementById(c);
         h && (h.focus({ preventScroll: !0 }), h.scrollIntoView({ behavior: "smooth", block: "center" }));
       });
       const g = document.createElement("li");
-      g.appendChild(d), s.appendChild(g);
+      g.appendChild(u), s.appendChild(g);
     }), e.appendChild(s), t.prepend(e), e;
   },
   /**
@@ -2313,7 +2302,7 @@ const Mt = (r) => ({
     const e = r.store("i18n");
     return e && typeof e.t == "function" ? e.t(t, n) : null;
   }
-}), Y = "data-uno-counter-wrapper", Ot = (r) => r === "flex" || r === "inline-flex" || r === "grid" || r === "inline-grid", At = (r) => {
+}), Y = "data-uno-counter-wrapper", Ot = (r) => r === "flex" || r === "inline-flex" || r === "grid" || r === "inline-grid", Pt = (r) => {
   const t = r.parentElement;
   if (!t) return null;
   if (t.hasAttribute(Y)) return t;
@@ -2324,7 +2313,7 @@ const Mt = (r) => ({
   e.setAttribute(Y, ""), e.style.position = "relative";
   const o = window.getComputedStyle(r).display;
   return (o === "inline" || o === "inline-block") && (e.style.display = "inline-block"), t.insertBefore(e, r), e.appendChild(r), e;
-}, Pt = (r, t) => {
+}, At = (r, t) => {
   if (!t || !t.hasAttribute(Y)) return;
   const n = t.parentNode;
   n && (n.insertBefore(r, t), n.removeChild(t));
@@ -2344,15 +2333,15 @@ const Mt = (r) => ({
     }
     const s = Uno.getConfig("valid"), a = Uno.options.ui?.valid || {};
     if (s.autoError !== !1) {
-      const f = `$store.uno.valid.errors['${i}']`, h = `[x-text="${f.replace(/"/g, '\\"')}"]`, E = t.form || t.closest("form"), v = E ? E.querySelector(h) : document.querySelector(h);
-      if (v)
-        et(v, i), F(t, v);
+      const d = `$store.uno.valid.errors['${i}']`, h = `[x-text="${d.replace(/"/g, '\\"')}"]`, w = t.form || t.closest("form"), b = w ? w.querySelector(h) : document.querySelector(h);
+      if (b)
+        et(b, i), F(t, b);
       else {
         let p;
         if (typeof s.createErrorElement == "function")
-          p = s.createErrorElement(i, f);
+          p = s.createErrorElement(i, d);
         else {
-          p = document.createElement("div"), p.setAttribute("x-text", f), p.setAttribute("x-show", f);
+          p = document.createElement("div"), p.setAttribute("x-text", d), p.setAttribute("x-show", d);
           const x = s.errorClass || a.helperText || "text-xs text-red-500 mt-1";
           p.className = x;
         }
@@ -2360,43 +2349,43 @@ const Mt = (r) => ({
       }
     }
     const l = n ? e(n) : () => {
-    }, c = (f) => {
-      r.store("uno").valid.addRules(i, f);
+    }, c = (d) => {
+      r.store("uno").valid.addRules(i, d);
     };
-    n ? l((f) => {
-      c(f);
+    n ? l((d) => {
+      c(d);
       const h = r.store("uno").valid;
       if (h && h.normalizeRules) {
-        const v = h.normalizeRules(f).find(
+        const b = h.normalizeRules(d).find(
           (p) => p.type === "length" || p.maxLength !== void 0 || p.max !== void 0
         );
-        if (v) {
-          const p = v.max !== void 0 ? v.max : v.maxLength;
-          if (v.stopOnMax === !0 && p !== void 0 && t.setAttribute("maxlength", p), v.showCounter === !0 && p !== void 0) {
+        if (b) {
+          const p = b.max !== void 0 ? b.max : b.maxLength;
+          if (b.stopOnMax === !0 && p !== void 0 && t.setAttribute("maxlength", p), b.showCounter === !0 && p !== void 0) {
             const x = `${i}-counter`;
-            let u = document.getElementById(x);
-            const y = At(t);
-            u || (u = document.createElement("span"), u.id = x, u.className = "absolute bottom-1 right-2 text-xs text-gray-600 dark:text-gray-400 pointer-events-none transition-colors duration-200"), u.parentElement !== y && t.after(u), F(t, u);
-            const w = () => {
+            let f = document.getElementById(x);
+            const y = Pt(t);
+            f || (f = document.createElement("span"), f.id = x, f.className = "absolute bottom-1 right-2 text-xs text-gray-600 dark:text-gray-400 pointer-events-none transition-colors duration-200"), f.parentElement !== y && t.after(f), F(t, f);
+            const E = () => {
               const C = t.value.length;
-              u.textContent = `${C}/${p}`;
+              f.textContent = `${C}/${p}`;
               const T = h.getI18nMsg ? h.getI18nMsg("valid.counter", { current: C, max: p }) : null;
-              u.setAttribute("aria-label", T || `${C}/${p}`), C > p ? (u.classList.add("text-red-600", "dark:text-red-400"), u.classList.remove("text-gray-600", "dark:text-gray-400")) : (u.classList.remove("text-red-600", "dark:text-red-400"), u.classList.add("text-gray-600", "dark:text-gray-400"));
+              f.setAttribute("aria-label", T || `${C}/${p}`), C > p ? (f.classList.add("text-red-600", "dark:text-red-400"), f.classList.remove("text-gray-600", "dark:text-gray-400")) : (f.classList.remove("text-red-600", "dark:text-red-400"), f.classList.add("text-gray-600", "dark:text-gray-400"));
             };
-            w(), t.addEventListener("input", w), o(() => {
-              t.removeEventListener("input", w), u && u.parentNode && u.parentNode.removeChild(u), Pt(t, y);
+            E(), t.addEventListener("input", E), o(() => {
+              t.removeEventListener("input", E), f && f.parentNode && f.parentNode.removeChild(f), At(t, y);
             });
           }
         }
       }
     }) : c([]);
-    const d = () => {
+    const u = () => {
       r.store("uno").valid.validate(i, t.value, "input");
     }, g = () => {
       r.store("uno").valid.validate(i, t.value, "blur");
     };
-    t.addEventListener("input", d), t.addEventListener("blur", g), o(() => {
-      t.removeEventListener("input", d), t.removeEventListener("blur", g);
+    t.addEventListener("input", u), t.addEventListener("blur", g), o(() => {
+      t.removeEventListener("input", u), t.removeEventListener("blur", g);
     });
   }), typeof document < "u" && (document.body.addEventListener("htmx:confirm", async (t) => {
     const n = t.detail.elt, e = n.tagName === "FORM" ? n : n.closest("form");
@@ -2424,7 +2413,7 @@ const Rt = (r, t = {}) => {
     showError: !0,
     scrollOnError: !0
   };
-  b.registerPluginDefaults("valid", {
+  v.registerPluginDefaults("valid", {
     ...n,
     ...t.plugins?.valid,
     ...t.valid
@@ -2467,7 +2456,7 @@ const Rt = (r, t = {}) => {
    */
   activate(t = {}) {
     this.ensureInit();
-    const n = b.getConfig("tab", {
+    const n = v.getConfig("tab", {
       group: "default",
       hash: !0,
       ...t
@@ -2522,52 +2511,52 @@ const Rt = (r, t = {}) => {
     let a = null;
     const l = (g) => typeof g == "object" && g !== null ? { ...g } : typeof g == "string" ? { name: g } : null;
     s((g) => {
-      const f = l(g);
-      if (!f) {
+      const d = l(g);
+      if (!d) {
         m.warn("[Uno] x-uno-tab directive value must be a string or object", g);
         return;
       }
-      f.group || (f.group = "default"), a = f, f.name && (r.store("uno").tab.register(f.name, f.group), t.setAttribute("role", "tab"), t.id || (t.id = "tab-" + f.name), t.setAttribute("aria-controls", f.panel || "panel-" + f.name));
+      d.group || (d.group = "default"), a = d, d.name && (r.store("uno").tab.register(d.name, d.group), t.setAttribute("role", "tab"), t.id || (t.id = "tab-" + d.name), t.setAttribute("aria-controls", d.panel || "panel-" + d.name));
     }), o(() => {
       if (!a || !a.name) return;
       const g = r.store("uno").tab.isActive(a.name, a.group);
       t.setAttribute("aria-selected", g ? "true" : "false"), t.setAttribute("tabindex", g ? "0" : "-1");
     });
     const c = (g) => {
-      g.preventDefault(), s((f) => {
-        const h = l(f);
+      g.preventDefault(), s((d) => {
+        const h = l(d);
         h && (h.group || (h.group = "default"), a = h, h.name && r.store("uno").tab.activate(h));
       });
-    }, d = (g) => {
+    }, u = (g) => {
       if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(g.key) || !a || !a.name) return;
       g.preventDefault();
       const h = r.store("uno").tab.rotate(a.group, a.name, g.key);
       if (!h) return;
-      const E = document.getElementById("tab-" + h);
-      E && (E.focus(), E.click());
+      const w = document.getElementById("tab-" + h);
+      w && (w.focus(), w.click());
     };
-    t.addEventListener("click", c), t.addEventListener("keydown", d), i(() => {
-      t.removeEventListener("click", c), t.removeEventListener("keydown", d);
+    t.addEventListener("click", c), t.addEventListener("keydown", u), i(() => {
+      t.removeEventListener("click", c), t.removeEventListener("keydown", u);
     });
   });
 };
-const qt = (r, t = {}) => {
+const Dt = (r, t = {}) => {
   const n = {
     defaultTab: "",
     hash: !0,
     activeClass: "is-active",
     inactiveClass: ""
   };
-  b.registerPluginDefaults("tab", { ...n, ...t.plugins?.tab, ...t.tab });
+  v.registerPluginDefaults("tab", { ...n, ...t.plugins?.tab, ...t.tab });
   const e = zt();
   H(r, "tab", e), jt(r);
 };
-b.dom = j;
-typeof window < "u" && (window.Uno = b);
-b.use(gt).use(wt).use(It).use(Bt).use(Rt).use(qt);
+v.dom = j;
+typeof window < "u" && (window.Uno = v);
+v.use(gt).use(wt).use(It).use(Bt).use(Rt).use(Dt);
 if (typeof window < "u") {
   const r = () => {
-    window.Alpine && !b.initialized && b.init(window.Alpine);
+    window.Alpine && !v.initialized && v.init(window.Alpine);
   };
   window.Alpine ? r() : document.addEventListener(
     "alpine:init",
@@ -2579,11 +2568,11 @@ if (typeof window < "u") {
 }
 export {
   j as DomManager,
-  b as Uno,
+  v as Uno,
   Bt as box,
-  b as default,
+  v as default,
   It as notify,
-  qt as tab,
+  Dt as tab,
   wt as tooltip,
   Rt as valid
 };

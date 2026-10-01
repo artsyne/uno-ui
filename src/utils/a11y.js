@@ -37,25 +37,36 @@ export function trapFocus(el, options = {}) {
     Array.from(el.querySelectorAll(FOCUSABLE_SELECTOR)).filter((node) => isVisible(node))
 
   const firstFocusable = () => focusables()[0]
-  const lastFocusable = () => {
-    const list = focusables()
-    return list[list.length - 1]
-  }
 
   const handleKeyDown = (e) => {
     if (e.key !== 'Tab') return
 
+    const list = focusables()
+    if (!list.length) return
+    const first = list[0]
+    const last = list[list.length - 1]
+    const active = document.activeElement
+
+    // Wrap when focus is at the boundary OR when the active element (e.g. a
+    // tabindex="-1" neutral target such as the dialog title) has no focusable
+    // element after/before it in DOM order — otherwise the browser's native
+    // tab order would escape the container entirely.
+    const hasNext = list.some(
+      (node) => active.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING
+    )
+    const hasPrev = list.some(
+      (node) => active.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_PRECEDING
+    )
+
     if (e.shiftKey) {
-      if (document.activeElement === firstFocusable()) {
+      if (active === first || !hasPrev) {
         e.preventDefault()
-        const last = lastFocusable()
-        if (last) last.focus()
+        last.focus()
       }
     } else {
-      if (document.activeElement === lastFocusable()) {
+      if (active === last || !hasNext) {
         e.preventDefault()
-        const first = firstFocusable()
-        if (first) first.focus()
+        first.focus()
       }
     }
   }

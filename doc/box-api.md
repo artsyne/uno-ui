@@ -128,7 +128,7 @@ When a box opens (and again after HTMX content loads), initial focus follows the
    - **Visibility Check**: the element and every ancestor must be visible (not `display: none` or `visibility: hidden`).
 2. **Neutral target**: the title heading when the dialog has a title, otherwise the dialog container itself (both carry `tabindex="-1"` and suppress the focus outline). This step also runs when `autoFocus: false`.
 
-Initial focus never lands on chrome controls such as the floating close button: focusing it made Safari draw a `:focus-visible` ring on script focus and let Enter/Space dismiss the dialog by accident. The focus trap (`x-uno-trap`) still cycles Tab/Shift+Tab within the dialog but no longer takes initial focus.
+Initial focus never lands on chrome controls such as the floating close button: focusing it made Safari draw a `:focus-visible` ring on script focus and let Enter/Space dismiss the dialog by accident. The focus trap (`x-uno-trap`) still cycles Tab/Shift+Tab within the dialog but no longer takes initial focus. Wrapping is DOM-order aware: when focus sits on a neutral target (`tabindex="-1"`, e.g. the title) with no focusable element after/before it, the trap wraps to the first/last focusable instead of letting the browser's native tab order escape the dialog.
 
 Set `autoFocus: false` to skip step 1 (e.g., read-only content where focusing an input would pop up the keyboard); the neutral target is still focused so focus stays inside the modal.
 
