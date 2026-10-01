@@ -448,7 +448,8 @@ class at {
           extraBtn: "mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-normal text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto",
           okBtn: "inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto",
           title: "text-base font-semibold leading-6 text-gray-900 dark:text-slate-200",
-          closeBtnFloating: "absolute top-2 right-2 z-10 text-slate-400 hover:text-slate-500 focus:outline-none",
+          // P2-T6 目标尺寸（2.5.8）：p-1 命中区 20×20 → 28×28；-m-1 抵消绝对定位偏移
+          closeBtnFloating: "absolute top-2 right-2 z-10 p-1 -m-1 text-slate-400 hover:text-slate-500 focus:outline-none",
           closeIconSmall: "h-5 w-5",
           content: "px-4 pb-4 pt-5 sm:p-6 sm:pb-4 overflow-auto flex-1 text-slate-600 dark:text-slate-300",
           loadingWrap: "flex justify-center items-center h-full",
@@ -467,7 +468,8 @@ class at {
           textWrap: "ml-3 min-w-0 flex-1 pt-0.5",
           text: "text-sm font-medium text-gray-900 dark:text-slate-100 break-words",
           closeWrap: "ml-4 flex flex-shrink-0",
-          closeBtn: "inline-flex rounded-md text-gray-500 hover:text-gray-700 hover:bg-black/5 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500",
+          // P2-T6 目标尺寸（2.5.8）：p-1 命中区 20×20 → 28×28；-m-1 抵消行内占位
+          closeBtn: "inline-flex rounded-md p-1 -m-1 text-gray-500 hover:text-gray-700 hover:bg-black/5 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500",
           closeIcon: "h-5 w-5",
           progressWrap: "fixed top-0 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700 pointer-events-none",
           progressBar: "h-full bg-gradient-to-r from-blue-500 to-indigo-600 shadow-sm shadow-blue-500/50",
