@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
-// P2 组件级 axe 门禁（docs/a11y-design.md §3.5）：Tab 标签页水合后 DOM 零违规。
+// 组件级 axe 门禁（docs/a11y-design.md §3.5）：Tab 标签页水合后 DOM 零违规。
 // fixture 采用项目规范用法（ul[role=tablist] > li[role=presentation] > a[x-uno-tab]），
 // role=tab/aria-selected/aria-controls/roving tabindex 均由指令运行时注入——
 // 静态模板扫描完全看不到，故走真实运行时。
 import { describe, it, expect } from 'vitest'
 import { bootUno, scanA11y, tick } from '../helpers/axe'
 
-describe('Tab axe scan (P2 a11y gate)', () => {
+describe('Tab axe scan (a11y gate)', () => {
   it('renders an APG tablist with zero axe violations', async () => {
     const { Alpine } = await bootUno()
 

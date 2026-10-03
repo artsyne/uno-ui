@@ -220,9 +220,9 @@ export const registerValidDirectives = (Alpine) => {
                 counterEl.id = counterId
                 // Default styling: bottom-right inside the input container
                 // Adjust margins to not overlap with border/padding
-                // P2-T3 contrast (docs/a11y-design.md Decision 4): AA palette —
-                // gray-600 on white (7.0:1); over-limit switches to red-600 (4.84:1,
-                // same token as helperText); dark pairs gray-400 / red-400.
+                // Contrast (docs/a11y-design.md Decision 4): AA palette —
+                // gray-600 on white; over-limit switches to red-600
+                // (same token as helperText); dark pairs gray-400 / red-400.
                 counterEl.className =
                   'absolute bottom-1 right-2 text-xs text-gray-600 dark:text-gray-400 pointer-events-none transition-colors duration-200'
               }
@@ -232,7 +232,7 @@ export const registerValidDirectives = (Alpine) => {
                 el.after(counterEl)
               }
 
-              // P1-B6: expose the counter to screen readers via aria-describedby
+              // B6: expose the counter to screen readers via aria-describedby
               // (same association pattern as the error element)
               linkDescribedBy(el, counterEl)
 
@@ -240,7 +240,7 @@ export const registerValidDirectives = (Alpine) => {
                 const current = el.value.length
                 counterEl.textContent = `${current}/${max}`
 
-                // P1-B6: screen-reader label carries the full semantic sentence
+                // B6: screen-reader label carries the full semantic sentence
                 // ("123/5000 字"); the compact visual text stays unchanged
                 const counterMsg = validStore.getI18nMsg
                   ? validStore.getI18nMsg('valid.counter', { current, max })

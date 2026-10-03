@@ -52,7 +52,7 @@ The directive registers the tab on initialization and activates it on click (cal
 
 Equivalent to `{ name: 'profile', group: 'default' }`.
 
-## ARIA & Keyboard (P1-B4)
+## ARIA & Keyboard (B4)
 
 The directive implements the WAI-ARIA APG tabs pattern:
 

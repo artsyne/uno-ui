@@ -45,12 +45,12 @@ const Alpine = {
   initTree: vi.fn()
 }
 
-// P1-A3（docs/a11y-design.md）：click 触发 = 弹层/披露模式键盘契约（WCAG 2.1.1 / 2.4.3 / 4.1.2）。
+// A3（docs/a11y-design.md）：click 触发 = 弹层/披露模式键盘契约（WCAG 2.1.1 / 2.4.3 / 4.1.2）。
 // 打开时焦点移入弹层首个可聚焦元素、Tab 循环于弹层内、关闭时焦点还原触发器；
 // 触发器暴露 aria-haspopup/aria-expanded 并与弹层 aria-describedby 关联；
 // 弹层含 role="menu" 时支持方向键导航；锚点触发器补 Space 键合成（Enter 由原生 click 覆盖）。
 // hover/focus 触发的提示不得抢占或还原焦点。
-describe('Tooltip keyboard support (P1-A3, click trigger popup)', () => {
+describe('Tooltip keyboard support (A3, click trigger popup)', () => {
   let store
   let trigger
 

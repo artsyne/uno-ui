@@ -63,7 +63,7 @@ The directive handles native DOM events on the trigger element based on the `tri
 | `click` | `click`                    | Toggles visibility.                          |
 | `focus` | `focus`, `blur`            | Shows on focus, hides on blur.               |
 
-### Keyboard Contract (click trigger = popup/disclosure, P1-A3)
+### Keyboard Contract (click trigger = popup/disclosure, A3)
 
 With `trigger: 'click'` the tooltip behaves as a disclosure popup following the APG
 menu-button pattern (WCAG 2.1.1 / 2.4.3 / 4.1.2):

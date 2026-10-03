@@ -26,9 +26,9 @@ const Alpine = {
   initTree: vi.fn()
 }
 
-// P1-B5（docs/a11y-design.md）：Box 关闭后焦点还原至 opener（2.4.3），多层弹窗下层
+// B5（docs/a11y-design.md）：Box 关闭后焦点还原至 opener（2.4.3），多层弹窗下层
 // inert + aria-hidden（屏幕阅读器不穿透底层）。不改现有 scheduleAutoFocus 契约。
-describe('Box focus restore & multilayer inert (P1-B5)', () => {
+describe('Box focus restore & multilayer inert (B5)', () => {
   let boxStore
   let mockStore
 

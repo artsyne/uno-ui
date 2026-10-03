@@ -818,7 +818,7 @@ describe('Valid Component', () => {
       const wrapper = input.parentElement
       expect(wrapper.hasAttribute('data-uno-counter-wrapper')).toBe(true)
       // Error element stays in normal flow after the wrapper: showing an error
-      // can no longer stretch the counter's containing block
+      // does not stretch the counter's containing block
       const errorEl = wrapper.nextElementSibling
       expect(errorEl.getAttribute('x-text')).toBe("$store.uno.valid.errors['witherror']")
     })

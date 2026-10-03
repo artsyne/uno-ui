@@ -1,5 +1,5 @@
 /**
- * 组件级 axe 无障碍扫描助手（P2 组件门禁，docs/a11y-design.md §3.5）
+ * 组件级 axe 无障碍扫描助手（组件门禁，docs/a11y-design.md §3.5）
  *
  * 设计取舍：
  * - 以真实 Alpine 运行时驱动 uno 组件（jsdom 环境），扫描"水合后"的真实 DOM，

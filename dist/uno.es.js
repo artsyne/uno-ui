@@ -448,9 +448,9 @@ class at {
           extraBtn: "mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-normal text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto",
           okBtn: "inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto",
           title: "text-base font-semibold leading-6 text-gray-900 dark:text-slate-200",
-          // P2-T6 目标尺寸（2.5.8）：p-1 命中区 20×20 → 28×28；-m-1 抵消绝对定位偏移
-          // P3-C3 对比度（1.4.11）：亮色 slate-400（白底 ≈2.6:1 未达标）→ slate-500
-          // （≈4.8:1），hover slate-600；暗底配对 slate-400/300
+          // 目标尺寸（D5，WCAG 2.5.8）：p-1 使图标命中区达 28×28；-m-1 抵消绝对定位偏移
+          // 非文本对比度（E7，WCAG 1.4.11）：亮色 slate-500（hover slate-600）；
+          // 暗底配对 slate-400/300
           closeBtnFloating: "absolute top-2 right-2 z-10 p-1 -m-1 text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300 focus:outline-none",
           closeIconSmall: "h-5 w-5",
           content: "px-4 pb-4 pt-5 sm:p-6 sm:pb-4 overflow-auto flex-1 text-slate-600 dark:text-slate-300",
@@ -470,7 +470,7 @@ class at {
           textWrap: "ml-3 min-w-0 flex-1 pt-0.5",
           text: "text-sm font-medium text-gray-900 dark:text-slate-100 break-words",
           closeWrap: "ml-4 flex flex-shrink-0",
-          // P2-T6 目标尺寸（2.5.8）：p-1 命中区 20×20 → 28×28；-m-1 抵消行内占位
+          // 目标尺寸（D5，WCAG 2.5.8）：p-1 使图标命中区达 28×28；-m-1 抵消行内占位
           closeBtn: "inline-flex rounded-md p-1 -m-1 text-gray-500 hover:text-gray-700 hover:bg-black/5 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500",
           closeIcon: "h-5 w-5",
           progressWrap: "fixed top-0 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700 pointer-events-none",
@@ -1124,7 +1124,7 @@ const bt = (r) => {
     clickOutside: !0,
     arrow: !0,
     arrowPosition: { top: 0, left: 0 },
-    // P1-A3 keyboard bindings (click trigger popup): trap cleanup + keydown handlers
+    // A3 keyboard bindings (click trigger popup): trap cleanup + keydown handlers
     cleanupTrap: null,
     onPopupKeydown: null,
     onTriggerKeydown: null,
@@ -1154,7 +1154,7 @@ const bt = (r) => {
       this.visible = !1, this.triggerEl = null, this.cleanupTrap && (this.cleanupTrap(), this.cleanupTrap = null), i && this.onPopupKeydown && (i.removeEventListener("keydown", this.onPopupKeydown), this.onPopupKeydown = null), e && this.onTriggerKeydown && (e.removeEventListener("keydown", this.onTriggerKeydown), this.onTriggerKeydown = null), o && e && e.setAttribute && (e.setAttribute("aria-expanded", "false"), e.removeAttribute("aria-describedby")), O && (O(), O = null), M && (cancelAnimationFrame(M), M = 0), o && e && typeof e.focus == "function" && (a || s === document.body) && e.focus();
     },
     /**
-     * P1-A3 click 弹层键盘绑定：Tab 循环（trapFocus）、role=menu 内容方向键导航、
+     * A3 click 弹层键盘绑定：Tab 循环（trapFocus）、role=menu 内容方向键导航、
      * 锚点触发器 Space 合成（Enter 在锚点/按钮上由原生 click 覆盖，按钮 Space 亦原生，
      * 仅锚点需合成以免双重 toggle）。
      */
@@ -1173,7 +1173,7 @@ const bt = (r) => {
       }, this.triggerEl.addEventListener("keydown", this.onTriggerKeydown)));
     },
     /**
-     * P1-A3 焦点移入弹层首个可聚焦元素，键盘用户落在刚打开的披露内容内（2.4.3）；
+     * A3 焦点移入弹层首个可聚焦元素，键盘用户落在刚打开的披露内容内（2.4.3）；
      * 弹层无可聚焦内容时为 no-op（焦点留在触发器）。
      */
     focusPopupIfNeeded() {
@@ -1802,12 +1802,12 @@ const It = (r, t = {}) => {
       hxMethod: i.hxMethod || "GET",
       hxHeaders: i.hxHeaders,
       hxTrigger: i.hxTrigger || "load",
-      // P1-B5：记录 opener，关闭时焦点还原（2.4.3）
+      // B5：记录 opener，关闭时焦点还原（2.4.3）
       opener: typeof document < "u" ? document.activeElement : null,
       // Internal state - start closed to trigger animation
       isOpen: !1,
       /**
-       * P1-B5 焦点还原：焦点仍在本 box 内（OK/Cancel/关闭按钮）或无处停留（body）时
+       * B5 焦点还原：焦点仍在本 box 内（OK/Cancel/关闭按钮）或无处停留（body）时
        * 还原至 opener；焦点已被外部接管（如新弹窗/页面导航）时不抢占。
        * 容器锚点必须与 box.template.js 的 :id 绑定一致（uno-box-outer-container{id}，
        * 即 role="dialog" 元素）——与模板漂移会导致 contains 判定恒为 false。
@@ -1887,7 +1887,7 @@ const It = (r, t = {}) => {
     n !== -1 && (this.items.splice(n, 1), this.syncUnderlayInert());
   },
   /**
-   * P1-B5 多层弹窗：仅顶层可交互/可感知，下层 inert + aria-hidden，
+   * B5 多层弹窗：仅顶层可交互/可感知，下层 inert + aria-hidden，
    * 屏幕阅读器与键盘不穿透底层（不改现有 scheduleAutoFocus 契约）。
    */
   syncUnderlayInert() {
@@ -2429,7 +2429,7 @@ const Rt = (r, t = {}) => {
   groups: {},
   // Registry: { [tabName]: { group, name, ... } }
   registry: {},
-  // P1-B4: { [group]: [tabName...] } 组内注册序（DOM 序代理），供方向键旋转
+  // B4: { [group]: [tabName...] } 组内注册序（DOM 序代理），供方向键旋转
   order: {},
   // Initialization state
   initialized: !1,
@@ -2492,7 +2492,7 @@ const Rt = (r, t = {}) => {
     !e && window.location.href.includes("#") && (e = window.location.href.split("#")[1]), e === t && (m.info(`[Tab] Hash match for ${t}. Activating.`), this.activate({ group: n, name: t, updateHash: !1 }));
   },
   /**
-   * P1-B4 APG 键盘旋转：计算目标 tab 名（不激活），调用方负责 activate + focus
+   * B4 APG 键盘旋转：计算目标 tab 名（不激活），调用方负责 activate + focus
    * （roving tabindex）。←→ 循环旋转，Home/End 跳首尾。
    * @param {string} group
    * @param {string} current

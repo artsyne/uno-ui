@@ -76,7 +76,7 @@ export const createTooltipStore = (Alpine) => {
     clickOutside: true,
     arrow: true,
     arrowPosition: { top: 0, left: 0 },
-    // P1-A3 keyboard bindings (click trigger popup): trap cleanup + keydown handlers
+    // A3 keyboard bindings (click trigger popup): trap cleanup + keydown handlers
     cleanupTrap: null,
     onPopupKeydown: null,
     onTriggerKeydown: null,
@@ -143,7 +143,7 @@ export const createTooltipStore = (Alpine) => {
       this.ensureContainer()
       ensureGlobalListeners()
 
-      // P1-A3：click 触发 = 弹层/披露模式。暴露触发器状态并与弹层关联、绑定键盘支持
+      // A3：click 触发 = 弹层/披露模式。暴露触发器状态并与弹层关联、绑定键盘支持
       // （Space 合成/方向键导航/Tab 循环），渲染后焦点移入弹层，使菜单链接紧随触发器
       // 加入 Tab 序（WCAG 2.1.1 / 2.4.3 / 4.1.2）。hover/focus 触发为纯提示，不抢焦点不改状态。
       if (this.triggerMode === 'click' && this.triggerEl) {
@@ -170,7 +170,7 @@ export const createTooltipStore = (Alpine) => {
       this.visible = false
       this.triggerEl = null
 
-      // P1-A3：解除键盘绑定并收起触发器状态
+      // A3：解除键盘绑定并收起触发器状态
       if (this.cleanupTrap) {
         this.cleanupTrap()
         this.cleanupTrap = null
@@ -198,7 +198,7 @@ export const createTooltipStore = (Alpine) => {
         rafId = 0
       }
 
-      // P1-A3：焦点曾位于关闭中的弹层（Esc/动作/Space）或无处停留（outside click 落在
+      // A3：焦点曾位于关闭中的弹层（Esc/动作/Space）或无处停留（outside click 落在
       // 不可聚焦区域）时还原至触发器，键盘用户不会坠回 body
       if (
         wasClickMode &&
@@ -211,7 +211,7 @@ export const createTooltipStore = (Alpine) => {
     },
 
     /**
-     * P1-A3 click 弹层键盘绑定：Tab 循环（trapFocus）、role=menu 内容方向键导航、
+     * A3 click 弹层键盘绑定：Tab 循环（trapFocus）、role=menu 内容方向键导航、
      * 锚点触发器 Space 合成（Enter 在锚点/按钮上由原生 click 覆盖，按钮 Space 亦原生，
      * 仅锚点需合成以免双重 toggle）。
      */
@@ -247,7 +247,7 @@ export const createTooltipStore = (Alpine) => {
     },
 
     /**
-     * P1-A3 焦点移入弹层首个可聚焦元素，键盘用户落在刚打开的披露内容内（2.4.3）；
+     * A3 焦点移入弹层首个可聚焦元素，键盘用户落在刚打开的披露内容内（2.4.3）；
      * 弹层无可聚焦内容时为 no-op（焦点留在触发器）。
      */
     focusPopupIfNeeded() {

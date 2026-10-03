@@ -4,9 +4,9 @@ import { TextEncoder, TextDecoder } from 'util'
 global.TextEncoder = TextEncoder
 global.TextDecoder = TextDecoder
 
-// P1-B6（docs/a11y-design.md）：showCounter 字符计数器必须通过 aria-describedby
+// B6（docs/a11y-design.md）：showCounter 字符计数器必须通过 aria-describedby
 // 关联到输入框，屏幕阅读器聚焦输入时才能播报剩余字数上下文（WCAG 1.3.1/4.1.2）。
-describe('Valid counter a11y (P1-B6)', () => {
+describe('Valid counter a11y (B6)', () => {
   let ValidPlugin
   let UnoInstance
   let Alpine
@@ -136,9 +136,9 @@ describe('Valid counter a11y (P1-B6)', () => {
     expect(input.hasAttribute('aria-invalid')).toBe(false)
   })
 
-  // P2-T3（docs/a11y-design.md Decision 4 对比度专项）：计数器色阶须达 WCAG AA——
-  // 默认态 text-gray-600（白底 7.0:1）、超限态 text-red-600（4.84:1，与错误文本
-  // helperText 同源）；暗色配对 gray-400 red-400。禁止回退 gray-400（2.5:1）/red-500（3.76:1）。
+  // 对比度专项（docs/a11y-design.md Decision 4）：计数器色阶须达 WCAG AA——
+  // 默认态 text-gray-600、超限态 text-red-600（与错误文本 helperText 同源）；
+  // 暗色配对 gray-400 red-400。禁止回退 gray-400/red-500。
   // 断言用 classList.contains 精确匹配 token：避开 'dark:text-gray-400' 子串误命中裸类。
   it('counter color tokens meet AA contrast (gray-600 default / red-600 over-limit)', () => {
     const input = mountCounter('bio')

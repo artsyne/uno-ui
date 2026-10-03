@@ -219,14 +219,14 @@ export const createBoxStore = (Alpine) => ({
       hxHeaders: config.hxHeaders,
       hxTrigger: config.hxTrigger || 'load',
 
-      // P1-B5：记录 opener，关闭时焦点还原（2.4.3）
+      // B5：记录 opener，关闭时焦点还原（2.4.3）
       opener: typeof document !== 'undefined' ? document.activeElement : null,
 
       // Internal state - start closed to trigger animation
       isOpen: false,
 
       /**
-       * P1-B5 焦点还原：焦点仍在本 box 内（OK/Cancel/关闭按钮）或无处停留（body）时
+       * B5 焦点还原：焦点仍在本 box 内（OK/Cancel/关闭按钮）或无处停留（body）时
        * 还原至 opener；焦点已被外部接管（如新弹窗/页面导航）时不抢占。
        * 容器锚点必须与 box.template.js 的 :id 绑定一致（uno-box-outer-container{id}，
        * 即 role="dialog" 元素）——与模板漂移会导致 contains 判定恒为 false。
@@ -250,7 +250,7 @@ export const createBoxStore = (Alpine) => ({
         }
 
         this.isOpen = false
-        // P1-B5：先重算下层 inert（多层弹窗），再还原焦点——顺序不可颠倒：
+        // B5：先重算下层 inert（多层弹窗），再还原焦点——顺序不可颠倒：
         // 若 opener 位于下层弹窗内，下层仍为 inert 时 focus() 会静默失败
         const store = Alpine.store('uno')?.box
         if (store) store.syncUnderlayInert()
@@ -304,7 +304,7 @@ export const createBoxStore = (Alpine) => ({
       reactiveItem.isOpen = true
 
       this.scheduleAutoFocus(reactiveItem, Alpine)
-      // P1-B5：新弹窗置顶后，下层弹窗 inert + aria-hidden
+      // B5：新弹窗置顶后，下层弹窗 inert + aria-hidden
       this.syncUnderlayInert()
     }
 
@@ -384,13 +384,13 @@ export const createBoxStore = (Alpine) => ({
     const index = this.items.findIndex((i) => i.id === id)
     if (index !== -1) {
       this.items.splice(index, 1)
-      // P1-B5：顶层移除后重算下层 inert 状态
+      // B5：顶层移除后重算下层 inert 状态
       this.syncUnderlayInert()
     }
   },
 
   /**
-   * P1-B5 多层弹窗：仅顶层可交互/可感知，下层 inert + aria-hidden，
+   * B5 多层弹窗：仅顶层可交互/可感知，下层 inert + aria-hidden，
    * 屏幕阅读器与键盘不穿透底层（不改现有 scheduleAutoFocus 契约）。
    */
   syncUnderlayInert() {

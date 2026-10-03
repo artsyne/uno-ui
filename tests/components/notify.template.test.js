@@ -10,12 +10,12 @@ vi.mock('../../src/core/layer', () => ({
 describe('Notify Template', () => {
   it('should localize close button label via i18n instead of hardcoding (B7)', () => {
     const template = getNotifyTemplate()
-    // sr-only 关闭文案走 x-t 本地化（复用 uno 既有 box.close），不再硬编码 "Close"
+    // sr-only 关闭文案走 x-t 本地化（复用 uno 既有 box.close），不硬编码 "Close"
     expect(template).toContain('x-t="box.close"')
     expect(template).not.toContain('<span class="sr-only">Close</span>')
   })
 
-  // P1-B7：成功类通知一律 assertive 会打断当前朗读；播报策略按类型分级——
+  // B7：成功类通知一律 assertive 会打断当前朗读；播报策略按类型分级——
   // error/warning 保留 alert+assertive，success/info 降为 status+polite。
   it('should scale politeness by type: success/info polite status, error/warning assertive alert (B7)', () => {
     const template = getNotifyTemplate()

@@ -178,7 +178,7 @@ The plugin includes a comprehensive set of validators. Use them by specifying th
 
 The `length` rule supports additional UI controls:
 
-- **`showCounter`** (boolean, default: `false`): Automatically displays a character counter (e.g., "5/100") in the bottom-right corner of the input. The counter element is linked to the input via `aria-describedby` (P1-B6), so screen readers announce the remaining-length context on focus; existing describedby tokens (e.g. the error element) are preserved. The counter also carries a full-sentence `aria-label` (i18n key `valid.counter`, fallback `"5/100"`) while the visual text stays compact, and over-limit input is exposed via `aria-invalid` by the standard length-rule validation.
+- **`showCounter`** (boolean, default: `false`): Automatically displays a character counter (e.g., "5/100") in the bottom-right corner of the input. The counter element is linked to the input via `aria-describedby` (B6), so screen readers announce the remaining-length context on focus; existing describedby tokens (e.g. the error element) are preserved. The counter also carries a full-sentence `aria-label` (i18n key `valid.counter`, fallback `"5/100"`) while the visual text stays compact, and over-limit input is exposed via `aria-invalid` by the standard length-rule validation.
 - **`stopOnMax`** (boolean, default: `false`): If `true`, prevents the user from typing more characters once the `max` limit is reached (sets `maxlength` attribute).
 
 ```html
@@ -487,9 +487,9 @@ valid.registerValidator('customRule', ({ value, rule }) => {
 
 ## Version History
 
-| Version | Date       | Changes                                                                                                                                                                                                                                                       |
-| :------ | :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| v0.9.0  | 2026-09-30 | **A11y**: auto error elements get `role="alert"` + stable id; inputs are wired with `aria-describedby` and `aria-invalid` (synced on client validation and 422 server errors); `showCounter` counters are linked to the input via `aria-describedby` (P1-B6). |
-| v0.8.1  | 2026-02-28 | Added programmatic Store API documentation (addRules, validate, showError, hideError, clearErrors, showErrors).                                                                                                                                               |
-| v0.8.0  | 2026-01-22 | **Breaking**: Removed HTML5 attribute support. Added `debounce`, `emptyQuit`, and `type: 'validator'` support.                                                                                                                                                |
-| v0.7.0  | 2026-01-20 | Initial release.                                                                                                                                                                                                                                              |
+| Version | Date       | Changes                                                                                                                                                                                                                                                    |
+| :------ | :--------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v0.9.0  | 2026-09-30 | **A11y**: auto error elements get `role="alert"` + stable id; inputs are wired with `aria-describedby` and `aria-invalid` (synced on client validation and 422 server errors); `showCounter` counters are linked to the input via `aria-describedby` (B6). |
+| v0.8.1  | 2026-02-28 | Added programmatic Store API documentation (addRules, validate, showError, hideError, clearErrors, showErrors).                                                                                                                                            |
+| v0.8.0  | 2026-01-22 | **Breaking**: Removed HTML5 attribute support. Added `debounce`, `emptyQuit`, and `type: 'validator'` support.                                                                                                                                             |
+| v0.7.0  | 2026-01-20 | Initial release.                                                                                                                                                                                                                                           |

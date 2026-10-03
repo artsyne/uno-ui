@@ -23,9 +23,9 @@ const Alpine = {
   nextTick: vi.fn((fn) => setTimeout(fn, 0))
 }
 
-// P1-B4（docs/a11y-design.md）：APG tabs 模式的 store 契约——组内注册序（DOM 序代理）、
+// B4（docs/a11y-design.md）：APG tabs 模式的 store 契约——组内注册序（DOM 序代理）、
 // 方向键/Home/End 旋转目标计算、共享面板（htmx swap 模式）aria-labelledby 随激活 tab 更新。
-describe('Tab ARIA store contract (P1-B4)', () => {
+describe('Tab ARIA store contract (B4)', () => {
   let store
 
   beforeEach(() => {

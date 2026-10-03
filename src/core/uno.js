@@ -311,9 +311,9 @@ export class UnoInstance {
           okBtn:
             'inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto',
           title: 'text-base font-semibold leading-6 text-gray-900 dark:text-slate-200',
-          // P2-T6 目标尺寸（2.5.8）：p-1 命中区 20×20 → 28×28；-m-1 抵消绝对定位偏移
-          // P3-C3 对比度（1.4.11）：亮色 slate-400（白底 ≈2.6:1 未达标）→ slate-500
-          // （≈4.8:1），hover slate-600；暗底配对 slate-400/300
+          // 目标尺寸（D5，WCAG 2.5.8）：p-1 使图标命中区达 28×28；-m-1 抵消绝对定位偏移
+          // 非文本对比度（E7，WCAG 1.4.11）：亮色 slate-500（hover slate-600）；
+          // 暗底配对 slate-400/300
           closeBtnFloating:
             'absolute top-2 right-2 z-10 p-1 -m-1 text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300 focus:outline-none',
           closeIconSmall: 'h-5 w-5',
@@ -337,7 +337,7 @@ export class UnoInstance {
           textWrap: 'ml-3 min-w-0 flex-1 pt-0.5',
           text: 'text-sm font-medium text-gray-900 dark:text-slate-100 break-words',
           closeWrap: 'ml-4 flex flex-shrink-0',
-          // P2-T6 目标尺寸（2.5.8）：p-1 命中区 20×20 → 28×28；-m-1 抵消行内占位
+          // 目标尺寸（D5，WCAG 2.5.8）：p-1 使图标命中区达 28×28；-m-1 抵消行内占位
           closeBtn:
             'inline-flex rounded-md p-1 -m-1 text-gray-500 hover:text-gray-700 hover:bg-black/5 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500',
           closeIcon: 'h-5 w-5',
