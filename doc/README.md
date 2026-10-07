@@ -42,3 +42,7 @@ uno/
 │   └── utils/            # Utilities (dom, log, position)
 └── doc/                  # Documentation (You are here)
 ```
+
+## HTMX version
+
+Uno and Hebe use the same HTMX 2 version resolved by `uno/package-lock.json`. Hebe copies the runtime from Uno dependencies. Only XHR event details are supported; upgrades update both projects together.

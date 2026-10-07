@@ -108,8 +108,7 @@ export class UnoInstance {
 
         if (!once(document, 'uno:htmx:request-hooks')) return
 
-        // htmx 2: xhr handle used as dedup key; undefined under htmx 4,
-        // which simply skips deduplication (see utils/htmx-compat)
+        // XHR handle identifies each HTMX request.
         const getXhr = extractXhr
         const callEach = (name, event) => {
           for (const h of this._htmxRequestHandlers) {

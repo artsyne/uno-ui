@@ -212,24 +212,11 @@ const j = {
     return null;
   }
 }, V = (r) => {
-  const t = r?.detail, n = t?.xhr;
-  if (n)
-    return {
-      status: n.status,
-      text: n.responseText ?? "",
-      header: (o) => rt(n, o)
-    };
-  const e = t?.ctx?.response;
-  return e ? {
-    status: e.status,
-    text: t.ctx.text ?? "",
-    header: (o) => {
-      try {
-        return e.headers?.get(o) ?? null;
-      } catch {
-        return null;
-      }
-    }
+  const n = r?.detail?.xhr;
+  return n ? {
+    status: n.status,
+    text: n.responseText ?? "",
+    header: (e) => rt(n, e)
   } : null;
 }, st = (r) => r?.detail?.xhr;
 function U(r) {
