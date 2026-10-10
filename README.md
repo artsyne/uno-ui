@@ -5,7 +5,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
 [![Bundle Size](https://img.shields.io/bundlephobia/minzip/uno-ui?style=flat-square)](https://bundlephobia.com/package/uno-ui)
-[![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg?style=flat-square)](#)
 
 Uno is a lightweight, modern UI component library built on **Alpine.js** and **Tailwind CSS**, designed for simplicity, performance, and ease of integration.
 
@@ -396,22 +395,18 @@ npm install
 The project uses Vitest for unit testing with comprehensive coverage of all components and utilities.
 
 ```bash
-# Run unit tests
-npm run test
+# Run unit tests once (this is the CI entry point)
+npm run test:run
 
-# Run tests in watch mode during development
-npm run test:watch
-
-# Generate coverage report
-npm run test:coverage
+# Watch mode during development
+npm run test -- --watch
 ```
 
-**Test Coverage:**
+**Coverage:**
 
-- ✅ 380 unit tests across 16 test files
-- ✅ 100% coverage of core modules (uno, plugin-registry, i18n, layer)
-- ✅ 100% coverage of all components (box, notify, tooltip, tab, valid)
-- ✅ 100% coverage of utility functions (dom, position, validation, a11y)
+- Unit tests for the components, the core modules and the utilities, plus component-level axe scans
+- Behaviour and accessibility contracts live in `tests/`; counts change per release, so run the suite rather than reading a fixed number here
+- See [Test Reports](doc/test-reports.md) for the layout and what the component scans do and do not cover
 
 You can also verify component functionality manually using the interactive demo:
 
@@ -433,7 +428,7 @@ uno/
 │   ├── utils/            # Utilities (dom, position, validation, a11y, log)
 │   ├── locales/          # I18n Language Files (en, zh-CN, zh-TW)
 │   └── index.js          # Entry point
-├── tests/                # Unit Tests (380 tests across 16 files)
+├── tests/                # Unit tests (components, core, utils) + axe helper
 ├── doc/                  # API Documentation
 ├── examples/             # Usage Examples & Interactive Demo
 ├── CONTRIBUTING.md       # Contribution Guidelines

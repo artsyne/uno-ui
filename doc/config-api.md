@@ -1,14 +1,15 @@
 # Uno Configuration API
 
-Uno provides a flexible 4-level configuration system that merges settings from plugin defaults, global user config, global plugin config, and instance-specific options.
+Uno provides a flexible 4-level configuration system that merges plugin defaults, global user config, direct global config, and instance-specific options.
 
 ## Configuration Levels
 
 The configuration is resolved in the following order (from lowest to highest priority):
 
-1.  **Plugin Defaults**: Built-in defaults defined by the component.
+1.  **Plugin Defaults**: Built-in defaults registered by the component.
 2.  **Global User Config**: Settings provided via `Uno.setConfig()` in `plugins.<componentName>`.
-3.  **Instance Config**: Options passed directly to the component method (e.g., `Alpine.store('uno').box.alert(msg, options)` or `x-uno-box='{...}'`).
+3.  **Direct Global Config**: Settings provided via `Uno.setConfig()` under the component name itself (`<componentName>`), a shorthand for global overrides.
+4.  **Instance Config**: Options passed directly to the component method (e.g., `Alpine.store('uno').box.alert(msg, options)` or `x-uno-box='{...}'`).
 
 ### Example
 
@@ -43,7 +44,7 @@ Uno automatically initializes when Alpine is ready. Just include the scripts:
 
 ```html
 <script defer src="https://unpkg.com/alpinejs@3.17.3/dist/cdn.min.js"></script>
-<script defer src="https://unpkg.com/uno-ui@0.6.0/dist/uno.umd.js"></script>
+<script defer src="https://unpkg.com/uno-ui@0.9.0/dist/uno.umd.js"></script>
 ```
 
 **That's it!** Uno will:
@@ -60,7 +61,7 @@ For CDN users who need custom configuration:
 <head>
   <!-- Configure Uno using ES module import -->
   <script type="module">
-    import Uno from 'https://unpkg.com/uno-ui@0.6.0/dist/uno.es.js'
+    import Uno from 'https://unpkg.com/uno-ui@0.9.0/dist/uno.es.js'
 
     Uno.setConfig({
       debug: true,

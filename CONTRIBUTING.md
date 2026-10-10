@@ -56,7 +56,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 4. **Run tests**:
 
    ```bash
-   npm run test         # Run all unit tests
+   npm run test:run     # Run all unit tests once
    npm run lint         # Linting
    ```
 
@@ -311,7 +311,7 @@ Update `README.md` if your changes:
 
 1. **Update version** in `package.json`
 2. **Update CHANGELOG.md** with all changes
-3. **Run all tests**: `npm run test`
+3. **Run all tests**: `npm run test:run`
 4. **Build**: `npm run build`
 5. **Create release commit**: `git commit -m "chore: release v0.x.0"`
 6. **Tag release**: `git tag v0.x.0`

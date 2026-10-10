@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### ✨ Features
+
+- **Valid**: error elements get `role="alert"` and a stable `${field}-error` id; the control is wired with `aria-describedby` and `aria-invalid`.
+- **Valid**: `showCounter` counters are linked to the input via `aria-describedby` and carry a full-sentence `aria-label`.
+- **Valid**: multiple field failures render a focusable error summary with jump links, keeping the inline errors.
+- **Notify**: announcement politeness is graded by type — `error` / `warning` keep `alert` + `assertive`, `success` / `info` use `status` + `polite`.
+- **Notify** / **Box**: close-button accessible names come from the Uno i18n keys.
+- **Tab**: WAI-ARIA APG tabs pattern — `role="tab"`, `aria-selected`, roving `tabindex`, Arrow/Home/End navigation, per-tab and shared panels.
+- **Box**: closing restores focus to the opener, and underlay dialogs are marked `inert` + `aria-hidden`.
+- **Tooltip**: `trigger: 'click'` popovers implement the full keyboard contract (`aria-haspopup`, `aria-expanded`, `aria-describedby`, focus into the popup, Arrow/Home/End navigation, Esc/outside-click close with focus restore).
+
+### 🐛 Fixes
+
+- **Box**: the focus trap is DOM-order aware, so Tab no longer escapes a modal whose only tabbable element precedes the neutral focus target.
+- **Box**: the floating close button reaches ≥3:1 contrast in light mode (WCAG 1.4.11).
+- **Valid**: counters, focus rings and spinners use AA-compliant colour steps in both themes.
+- **Valid**: `x-uno-valid` binding-tag validation.
+- Icon-only controls: hit areas widened to at least 24×24 CSS px (WCAG 2.2 SC 2.5.8).
+
+### 🧪 Tests
+
+- Component-level axe scanning over all five components with real Alpine hydration, wired into CI.
+
 ## [0.9.0] - 2026-08-26
 
 ### ✨ Features

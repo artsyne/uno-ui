@@ -58,7 +58,7 @@ function riskyOperation() {
 }
 
 // Uno logs:
-// [Uno:Error] Uncaught Error: {
+// [Uno Error] Uncaught Error: {
 //   message: "Something went wrong",
 //   filename: "app.js",
 //   lineno: 42,
@@ -114,23 +114,19 @@ The `onError` callback receives:
 ### Box Component
 
 ```javascript
-// Error handling with Box.open()
+// Box loads HTMX content from hxUrl; onContentLoad runs after the response is swapped in.
 Alpine.store('uno').box.open({
   title: 'Load Content',
-  loading: true,
-  ajax: {
-    url: '/api/content',
-    success: (html) => {
-      // Handle success
-    },
-    error: (error) => {
-      // Handle error
-      console.error('Failed to load:', error)
-      Alpine.store('uno').notify.error('Failed to load content')
-    }
+  hxUrl: '/api/content',
+  hxMethod: 'GET',
+  onContentLoad: (el) => {
+    // The loaded content element is available here.
   }
 })
 ```
+
+Box has no `onError` callback: a failed `hxUrl` request surfaces through the HTMX events below, so
+report the failure with the same global listeners.
 
 ### HTMX Integration
 
@@ -305,7 +301,7 @@ Uno.init({
 
 ```javascript
 Uno.init({ debug: true })
-// Outputs: [Uno:Debug] messages to console
+// Outputs: [Uno Debug] / [Uno Info] / [Uno Warn] messages to console
 ```
 
 ### Check Component State
@@ -344,10 +340,10 @@ Uno uses standard JavaScript Error objects. Common error types:
 ### Example Error Messages
 
 ```
-[Uno:Error] Unhandled Promise Rejection: Failed to fetch
-[Uno:Error] HTMX fragment fetch failed: {method: "GET", url: "/api/data", error: Error}
-[Uno:Error] Uncaught Error: {message: "Cannot read property 'box' of undefined", ...}
-[Uno:Warning] Uno.use() called after initialization
+[Uno Error] Unhandled Promise Rejection: Failed to fetch
+[Uno Error] HTMX fragment fetch failed: {method: "GET", url: "/api/data", error: Error}
+[Uno Error] Uncaught Error: {message: "Cannot read property 'box' of undefined", ...}
+[Uno Warn] Uno.use() called after initialization. Plugin might not work correctly.
 ```
 
 ## See Also

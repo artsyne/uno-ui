@@ -94,8 +94,8 @@ Alpine.store('uno').notify.info('FYI: Update available')
 ```typescript
 import type { TooltipOptions, TooltipPlacement } from 'uno-ui'
 
-// Type-safe placement
-const placement: TooltipPlacement = 'top-start'
+// Type-safe placement (top | bottom | left | right)
+const placement: TooltipPlacement = 'top'
 
 const options: TooltipOptions = {
   content: 'This is a tooltip',
@@ -259,8 +259,8 @@ const boxPos: BoxPosition = 'top-center' // ✅ Valid
 // Notify positions
 const notifyPos: NotifyPosition = 'bottom-right' // ✅ Valid
 
-// Tooltip placements (12 directions)
-const tooltipPlace: TooltipPlacement = 'top-start' // ✅ Valid
+// Tooltip placements (top | bottom | left | right)
+const tooltipPlace: TooltipPlacement = 'top' // ✅ Valid
 ```
 
 ### Type Guards

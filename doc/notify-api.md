@@ -112,21 +112,46 @@ Removes a specific notification immediately.
 - **Parameters**: `id` (Number) - The notification ID.
 - **Returns**: `void`
 
+### `beginProgress()`
+
+Starts tracking one concurrent operation and shows the global progress bar when the first one
+starts. Public API — always pair it with `endProgress()`.
+
+- **Parameters**: None.
+- **Returns**: `void`
+- **Example**:
+  ```javascript
+  Alpine.store('uno').notify.beginProgress()
+  await loadData()
+  Alpine.store('uno').notify.endProgress()
+  ```
+
+### `endProgress()`
+
+Finishes tracking one concurrent operation and hides the progress bar once the last one finishes.
+Safe to call more often than `beginProgress()`.
+
+- **Parameters**: None.
+- **Returns**: `void`
+
 ### `startProgress()`
 
-Manually starts the global progress bar (loops 0-100%).
+Drives the global progress bar directly (loops 0-100%). Prefer `beginProgress()` /
+`endProgress()` when several requests can overlap; this pair does not count concurrency.
 
 - **Parameters**: None.
 - **Returns**: `void`
 
 ### `stopProgress()`
 
-Manually stops the global progress bar (fills to 100% then fades).
+Stops the bar started by `startProgress()` (fills to 100% then fades).
 
 - **Parameters**: None.
 - **Returns**: `void`
 
 ### `bindNotifyToHtmx(options)`
+
+Declared on the `Uno.htmx` helper (`Uno.htmx.bindNotifyToHtmx()`), not on the notify store.
 
 Binds the Notify component to HTMX events for automatic notification display during HTMX requests. This provides a seamless integration where success/error notifications and progress bar are automatically shown based on HTMX request lifecycle.
 
@@ -142,10 +167,10 @@ Binds the Notify component to HTMX events for automatic notification display dur
 
   ```javascript
   // Initialize with defaults
-  Alpine.store('uno').htmx.bindNotifyToHtmx()
+  Uno.htmx.bindNotifyToHtmx()
 
   // Custom messages
-  Alpine.store('uno').htmx.bindNotifyToHtmx({
+  Uno.htmx.bindNotifyToHtmx({
     showSuccess: true,
     showError: true,
     showProgress: true,
@@ -154,7 +179,7 @@ Binds the Notify component to HTMX events for automatic notification display dur
   })
 
   // Only show progress bar, disable notifications
-  Alpine.store('uno').htmx.bindNotifyToHtmx({
+  Uno.htmx.bindNotifyToHtmx({
     showSuccess: false,
     showError: false,
     showProgress: true
@@ -221,18 +246,19 @@ Alpine.store('uno').notify.show('Please verify your email.', {
 
 ### HTMX Progress Bar Control
 
-While handled automatically, you can manually trigger it for non-HTMX async operations.
+While handled automatically, you can manually trigger it for non-HTMX async operations. Use the
+`beginProgress()` / `endProgress()` pair so overlapping callers do not hide the bar early:
 
 ```javascript
 const loadData = async () => {
-  Alpine.store('uno').notify.startProgress()
+  Alpine.store('uno').notify.beginProgress()
   try {
     await fetch('/api/data')
     Alpine.store('uno').notify.success('Data loaded')
   } catch (e) {
     Alpine.store('uno').notify.error('Error loading data')
   } finally {
-    Alpine.store('uno').notify.stopProgress()
+    Alpine.store('uno').notify.endProgress()
   }
 }
 ```
@@ -249,8 +275,9 @@ const loadData = async () => {
 
 ## Version History
 
-| Version | Date       | Changes                                                                                                                                                               |
-| :------ | :--------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| v0.8.0  | 2026-02-28 | Added `bindNotifyToHtmx()` method for automatic HTMX integration with progress bar, success/error notifications, and server-sent custom messages support via headers. |
-| v0.7.0  | 2026-01-20 | Refactored for **Lazy Initialization**. Containers injected on first usage.                                                                                           |
-| v0.6.0  | 2025-12-18 | Initial stable release.                                                                                                                                               |
+| Version    | Date       | Changes                                                                                                                                                                                       |
+| :--------- | :--------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unreleased | —          | Announcement politeness graded by type (`error` / `warning` keep `alert` + `assertive`, `success` / `info` use `status` + `polite`); close-button accessible name moved to the Uno i18n keys. |
+| v0.8.0     | 2026-01-22 | Added `bindNotifyToHtmx()` method for automatic HTMX integration with progress bar, success/error notifications, and server-sent custom messages support via headers.                         |
+| v0.7.0     | 2026-01-20 | Refactored for **Lazy Initialization**. Containers injected on first usage.                                                                                                                   |
+| v0.6.0     | 2025-12-18 | Initial stable release.                                                                                                                                                                       |

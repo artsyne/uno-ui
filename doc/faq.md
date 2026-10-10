@@ -24,7 +24,7 @@ This document addresses common questions and issues when using Uno UI.
 
 ```html
 <script src="https://unpkg.com/alpinejs@3.17.3/dist/cdn.min.js" defer></script>
-<script src="https://unpkg.com/uno-ui@0.7.0/dist/uno.umd.js"></script>
+<script src="https://unpkg.com/uno-ui@0.9.0/dist/uno.umd.js"></script>
 ```
 
 2. **NPM (Recommended)**:
@@ -49,14 +49,10 @@ See [README.md](../README.md) for detailed setup instructions.
 
 ### Q: What are the minimum browser requirements?
 
-**A:** Uno UI supports:
-
-- Chrome/Edge 90+
-- Firefox 88+
-- Safari 14+
-- Opera 76+
-
-These versions support ES6+ features and Alpine.js requirements.
+**A:** Uno UI depends on Alpine.js 3 and Tailwind CSS 4. The supported target is the current
+maintenance releases of Chrome, Edge, Firefox and Safari. The framework capability floor is the
+one documented for Tailwind v4 (Chrome 111 / Safari 16.4 / Firefox 128); earlier versions are not
+promised. Legacy IE and Edge IE mode are not supported.
 
 ### Q: Can I use Uno UI without a build tool?
 
@@ -68,7 +64,7 @@ These versions support ES6+ features and Alpine.js requirements.
   <head>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/alpinejs@3.17.3/dist/cdn.min.js" defer></script>
-    <script src="https://unpkg.com/uno-ui@0.6.0/dist/uno.umd.js"></script>
+    <script src="https://unpkg.com/uno-ui@0.9.0/dist/uno.umd.js"></script>
   </head>
   <body>
     <button @click="$store.uno.notify.success('Hello!')">Click Me</button>
@@ -123,23 +119,23 @@ See [Notify API](./notify-api.md) for more options.
 
 ### Q: How do I create tooltips?
 
-**A:** Use HTML attributes or JavaScript:
+**A:** Use the `x-uno-tooltip` directive or the store:
 
-**HTML Directive**:
+**HTML directive**:
 
 ```html
-<button x-tooltip="This is a tooltip">Hover me</button>
+<button x-uno-tooltip="'Save changes'">Save</button>
 
-<!-- With options -->
-<button x-tooltip.top="Tooltip on top">Hover me</button>
+<!-- With options: DOM element as content, click (popover) trigger -->
+<button x-uno-tooltip="{ target: '#tip-content', trigger: 'click', placement: 'bottom' }">Info</button>
 ```
 
 **JavaScript**:
 
 ```javascript
 Alpine.store('uno').tooltip.show({
-  triggerEl: document.querySelector('#my-button'),
-  text: 'Tooltip text'
+  element: document.querySelector('#my-button'),
+  content: 'Tooltip text'
 })
 ```
 
@@ -147,16 +143,21 @@ See [Tooltip API](./tooltip-api.md) for more options.
 
 ### Q: How do I validate forms?
 
-**A:** Use the Valid component:
+**A:** Use the Valid component. Rules are declared in the `x-uno-valid` directive as an array —
+HTML5 attributes such as `required` are not read:
 
 ```html
-<input type="email" x-valid:email x-model="email" />
+<input type="email" name="email" x-uno-valid="['required', 'email']" />
 
-<!-- With custom validation -->
-<input type="text" x-valid:custom="value.length >= 5" x-model="username" />
+<!-- Length bounds; showCounter renders the character counter -->
+<input
+  type="text"
+  name="username"
+  x-uno-valid="['required', { type: 'length', min: 5, max: 20, showCounter: true }]"
+/>
 ```
 
-See [Valid API](./valid-api.md) for more patterns.
+See [Valid API](./valid-api.md) for custom validators and more patterns.
 
 ### Q: Can I use multiple modals at once?
 
@@ -178,7 +179,7 @@ Each modal gets the correct z-index automatically.
 
 ### Q: Does Uno UI support TypeScript?
 
-**A:** Yes! Full TypeScript support with 1,097 lines of type definitions.
+**A:** Yes! Type definitions ship inside the package (`types/index.d.ts`); no separate `@types` package is required.
 
 ```typescript
 import type { BoxOptions, NotifyOptions } from 'uno-ui'
@@ -245,15 +246,24 @@ npm install -D @types/alpinejs
 **A:** Uno UI has native HTMX support:
 
 ```html
-<!-- Box with HTMX loading -->
-<button x-box data-box-ajax-url="/api/content" data-box-title="Dynamic Content">
-  Load Content
-</button>
+<!-- Box loading content from the server -->
+<button x-uno-box='{ "title": "Dynamic Content", "hxUrl": "/api/content" }'>Load Content</button>
 
-<!-- Tab with HTMX -->
-<div x-data="$store.uno.tab.create('myTabs')">
-  <button x-tab:trigger="'tab1'" hx-get="/tab1" hx-target="#content">Tab 1</button>
-  <div id="content" x-tab:panel="'tab1'"></div>
+<!-- Tab with HTMX: the trigger carries hx-get and its id follows tab-{name} -->
+<div x-data>
+  <div role="tablist">
+    <button
+      id="tab-tab1"
+      role="tab"
+      x-uno-tab="{ name: 'tab1', group: 'main' }"
+      :aria-selected="$store.uno.tab.isActive('tab1', 'main')"
+      hx-get="/tab1"
+      hx-target="#content"
+    >
+      Tab 1
+    </button>
+  </div>
+  <div id="content" x-show="$store.uno.tab.isActive('tab1', 'main')" role="tabpanel"></div>
 </div>
 ```
 
@@ -356,12 +366,16 @@ Uno.init({
 
 ### Q: What is the bundle size?
 
-**A:**
+**A:** Bundle size depends on the build, so read it from the committed artifacts instead of this
+document:
 
-- **ESM**: 69.69 kB (gzip: 19.32 kB)
-- **UMD**: 49.87 kB (gzip: 15.36 kB)
+```bash
+npm run build
+ls -l dist/uno.es.js dist/uno.umd.js
+```
 
-Very lightweight compared to similar libraries.
+`dist/uno.es.js` and `dist/uno.umd.js` are tracked in the repository, so their current sizes are the
+reference for the released build. Uno has no runtime dependencies besides Alpine.js.
 
 ### Q: Does Uno UI support tree-shaking?
 
@@ -379,7 +393,7 @@ import { Uno } from 'uno-ui'
 1. **Use CDN for production**:
 
 ```html
-<script src="https://unpkg.com/uno-ui@0.6.0/dist/uno.umd.js"></script>
+<script src="https://unpkg.com/uno-ui@0.9.0/dist/uno.umd.js"></script>
 ```
 
 2. **Lazy load HTMX** (if not needed immediately):
@@ -398,14 +412,10 @@ Alpine.store('uno').notify.success('Quick message', { duration: 2000 })
 
 ### Q: Are there any performance benchmarks?
 
-**A:** Yes, key metrics:
-
-- Tooltip show/hide: ~0.19ms
-- Notify creation: ~0.15ms
-- Box open: ~0.25ms
-- Config lookup: ~0.05ms
-
-See `refactor/reviews/performance-baseline.md` for details.
+**A:** No performance baseline is maintained in this document: the figures depend on the runtime,
+the DOM fixture and the build output, so they have to be measured against the target version.
+Run `npm --prefix uno run test:run` for the behavioral gates; see [Test Reports](./test-reports.md)
+for the test entry points.
 
 ---
 
@@ -513,7 +523,7 @@ console.log(window.htmx) // Should be defined
 <!-- 2. Alpine -->
 <script src="https://unpkg.com/alpinejs@3.17.3/dist/cdn.min.js" defer></script>
 <!-- 3. Uno -->
-<script src="https://unpkg.com/uno-ui@0.6.0/dist/uno.umd.js"></script>
+<script src="https://unpkg.com/uno-ui@0.9.0/dist/uno.umd.js"></script>
 ```
 
 3. **HTMX events**:
@@ -561,5 +571,4 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed guidelines.
 
 ---
 
-**Last Updated**: 2026-01-06  
-**Version**: 0.6.0
+**Version**: 0.9.0 — release history in [CHANGELOG.md](../CHANGELOG.md).

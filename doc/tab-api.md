@@ -191,8 +191,9 @@ If a user visits `page#users`, the "Users" tab activates AND the HTMX request fi
 
 ## Version History
 
-| Version | Date       | Changes                                                                                                |
-| :------ | :--------- | :----------------------------------------------------------------------------------------------------- |
-| v0.8.0  | 2026-02-28 | Documentation realigned with the Store-First implementation (`x-uno-tab` + `Alpine.store('uno').tab`). |
-| v0.7.0  | 2026-01-20 | **Lazy Listener**: Hash change listener now starts only after first tab usage.                         |
-| v0.6.0  | 2025-12-18 | Initial stable release.                                                                                |
+| Version    | Date       | Changes                                                                                                                            |
+| :--------- | :--------- | :--------------------------------------------------------------------------------------------------------------------------------- |
+| Unreleased | —          | WAI-ARIA APG tabs pattern: `role="tab"`, `aria-selected`, roving `tabindex`, Arrow/Home/End navigation, per-tab and shared panels. |
+| v0.8.0     | 2026-01-22 | Documentation realigned with the Store-First implementation (`x-uno-tab` + `Alpine.store('uno').tab`).                             |
+| v0.7.0     | 2026-01-20 | **Lazy Listener**: Hash change listener now starts only after first tab usage.                                                     |
+| v0.6.0     | 2025-12-18 | Initial stable release.                                                                                                            |
