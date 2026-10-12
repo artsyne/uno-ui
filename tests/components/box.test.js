@@ -615,6 +615,12 @@ describe('Box Component', () => {
       expect(item.height).toBe(500)
       expect(item.heightClass).toBe('h-screen')
     })
+
+    it('should only enable fill for an explicit true', () => {
+      expect(boxStore.open({}).fill).toBe(false)
+      expect(boxStore.open({ fill: 'yes' }).fill).toBe(false)
+      expect(boxStore.open({ fill: true }).fill).toBe(true)
+    })
   })
 
   describe('Modal Behavior', () => {

@@ -195,6 +195,7 @@ export const createBoxStore = (Alpine) => ({
       widthClass: config.widthClass,
       heightClass: config.heightClass,
       containerClass: config.containerClass,
+      fill: config.fill === true,
       autoFocus: config.autoFocus !== undefined ? config.autoFocus : true,
       position: config.position || config.defaultPosition || 'center',
       modal: config.modal !== undefined ? config.modal : true,

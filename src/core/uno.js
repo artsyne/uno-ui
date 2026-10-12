@@ -302,7 +302,10 @@ export class UnoInstance {
           dialogWrapper: 'fixed inset-0 z-10 w-screen overflow-y-auto',
           itemWrapper: 'flex min-h-full p-4 text-center sm:p-0 pointer-events-none',
           container:
-            'relative transform overflow-hidden {base} bg-white dark:bg-gray-900 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg flex flex-col max-h-[90vh] pointer-events-auto outline-none',
+            'relative transform overflow-hidden {base} bg-white dark:bg-gray-900 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] pointer-events-auto outline-none',
+          // fill 模式：未指定 height/heightClass 时的默认高度；dvh 排除移动端地址栏，
+          // 手机扣除 itemWrapper p-4，sm 起扣除 container my-8
+          containerFill: 'h-[calc(100dvh-2rem)] sm:h-[min(85dvh,56rem)]',
           cancelBtn:
             'mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto',
           extraBtn:
@@ -318,6 +321,9 @@ export class UnoInstance {
           closeIconSmall: 'h-5 w-5',
           content:
             'px-4 pb-4 pt-5 sm:p-6 sm:pb-4 overflow-auto flex-1 text-slate-600 dark:text-slate-300',
+          // fill 模式：内容区与正文容器逐层传递剩余高度，供加载内容以 flex-1 撑满
+          contentFill: 'flex flex-col min-h-0',
+          bodyFill: 'flex-1 min-h-0 flex flex-col',
           loadingWrap: 'flex justify-center items-center h-full',
           spinner: 'animate-spin h-8 w-8 text-blue-500',
           footer:

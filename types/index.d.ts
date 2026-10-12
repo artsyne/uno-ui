@@ -71,6 +71,8 @@ declare module 'uno-ui' {
     dialogWrapper?: string
     itemWrapper?: string
     container?: string
+    /** Container height in fill mode when neither height nor heightClass is set */
+    containerFill?: string
     cancelBtn?: string
     extraBtn?: string
     okBtn?: string
@@ -78,6 +80,10 @@ declare module 'uno-ui' {
     closeBtnFloating?: string
     closeIconSmall?: string
     content?: string
+    /** Classes appended to content in fill mode */
+    contentFill?: string
+    /** Classes appended to the body and loading containers in fill mode */
+    bodyFill?: string
     loadingWrap?: string
     spinner?: string
     footer?: string
@@ -418,6 +424,8 @@ declare module 'uno-ui' {
     heightClass?: string
     /** Additional container class */
     containerClass?: string
+    /** Fill mode: body passes the remaining height down to loaded content */
+    fill?: boolean
     /** Show modal overlay */
     modal?: boolean
     /** Close on Escape key */

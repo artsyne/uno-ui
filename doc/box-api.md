@@ -77,6 +77,7 @@ The following options can be passed to `open()`, `dialog()`, or used in the `x-u
 | `widthClass`          | `String`   | -          | No       | Tailwind CSS classes for width (e.g., `'w-full md:w-lg'`).                                                   |
 | `height`              | `Number`   | -          | No       | Height in pixels. Ignored if `heightClass` is set.                                                           |
 | `heightClass`         | `String`   | -          | No       | Tailwind CSS classes for height (e.g., `'h-full'`).                                                          |
+| `fill`                | `Boolean`  | `false`    | No       | Fill mode, see [Fill Mode](#fill-mode). Without `height`/`heightClass`, uses the `containerFill` height.     |
 | `position`            | `String`   | `'center'` | No       | Screen position. Values: `'center'`, `'top-center'`, `'bottom-right'`, etc.                                  |
 | `modal`               | `Boolean`  | `true`     | No       | If `true`, shows a backdrop and blocks interaction with the page.                                            |
 | `showCloseButton`     | `Boolean`  | `true`     | No       | Whether to show the "X" close button in the header.                                                          |
@@ -137,6 +138,25 @@ Alpine.store('uno').box.open({
   title: 'Read Only',
   content: '<input value="Copy this" readonly>',
   autoFocus: false
+})
+```
+
+## Fill Mode
+
+By default the body is a block layout: the dialog grows with its content up to the container `max-height`, and `heightClass` only sizes the outer frame. For editors whose input should take the space left in the dialog (e.g., a long-form `textarea`), set `fill: true`:
+
+- The content area, the body container and the HTMX/`content` container become a flex column chain (`contentFill` / `bodyFill` UI keys), so the loaded content can grow with `flex-1 min-h-0`.
+- Without `height` or `heightClass`, the container uses the `containerFill` height (default `h-[calc(100dvh-2rem)] sm:h-[min(85dvh,56rem)]`).
+- The loaded content must continue the chain itself: every wrapper down to the growing element needs `flex-1 min-h-0 flex flex-col`, and the growing element needs a minimum height (e.g., `min-h-40`). When the dialog is shorter than that minimum, the content area scrolls as a single scroll container.
+
+Keep the validated field's direct parent free of other flow content. `x-uno-valid` anchors the counter to a flex parent instead of wrapping the field, and inserts the auto-generated error element right after the field; hand-write the error element (`x-text="$store.uno.valid.errors['name']"`) outside that parent so the counter stays pinned to the field corner.
+
+```javascript
+Alpine.store('uno').box.open({
+  title: 'New Entry',
+  hxUrl: '/form/entry',
+  widthClass: 'w-full lg:w-[70%]',
+  fill: true
 })
 ```
 
@@ -322,7 +342,7 @@ Alpine.store('uno').box.open({
 
 | Version    | Date       | Changes                                                                                                                                                                                                |
 | :--------- | :--------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unreleased | —          | Focus returns to the opener on close; underlay dialogs are marked `inert` + `aria-hidden`; the focus trap is DOM-order aware so Tab cannot escape.                                                     |
+| Unreleased | —          | Focus returns to the opener on close; underlay dialogs are marked `inert` + `aria-hidden`; the focus trap is DOM-order aware so Tab cannot escape. Added `fill` mode; container `max-height` uses `dvh` and accounts for the wrapper margins. |
 | v0.9.0     | 2026-08-26 | Added `extraButtons` support: custom buttons with `position`, `buttonClass`, and async `onClick` (`return false` to keep open). Added `handleExtraButton()` store method and `extraBtn` default style. |
 | v0.8.0     | 2026-01-22 | Added `bindNotifyToHtmx()` method to HTMX integration for automatic notifications.                                                                                                                     |
 | v0.7.0     | 2026-01-20 | Refactored for **Lazy Initialization** (DOM elements created on demand).                                                                                                                               |

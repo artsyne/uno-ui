@@ -40,7 +40,7 @@ export const getBoxTemplate = () => {
            @keydown.escape.window="item.isOpen && item.closeOnEsc && item.close()">
 
         <div :id="'uno-box-container' + item.id"
-             :class="[Uno.getStyle('box', 'container'), item.widthClass, item.heightClass, item.containerClass, 'focus:outline-none']"
+             :class="[Uno.getStyle('box', 'container'), item.widthClass, item.heightClass || (item.fill && !item.height ? Uno.getStyle('box', 'containerFill') : ''), item.containerClass, 'focus:outline-none']"
              :style="(item.width ? 'width:' + item.width + 'px; max-width:' + item.width + 'px;' : (item.widthClass ? 'max-width:none;' : '')) + (item.height ? ' height:' + item.height + 'px;' : '')"
              tabindex="-1"
              x-uno-trap="{ initialFocus: false }">
@@ -56,25 +56,26 @@ export const getBoxTemplate = () => {
             </svg>
           </button>
 
-          <!-- Content Area -->
-          <div :class="Uno.getStyle('box', 'content')">
+          <!-- Content Area（fill 模式下至加载容器逐层 flex 传递剩余高度） -->
+          <div :class="[Uno.getStyle('box', 'content'), item.fill ? Uno.getStyle('box', 'contentFill') : '']">
             <h3 :id="'uno-box-title-' + item.id"
                 :class="[Uno.getStyle('box', 'title'), 'focus:outline-none']"
                 tabindex="-1"
                 x-text="item.title"
                 x-show="item.title"></h3>
-            <div class="mt-2" :id="'uno-box-content-' + item.id">
+            <div class="mt-2" :class="item.fill ? Uno.getStyle('box', 'bodyFill') : ''" :id="'uno-box-content-' + item.id">
               <template x-if="!item.hxUrl">
-                <div x-html="item.content"></div>
+                <div :class="item.fill ? Uno.getStyle('box', 'bodyFill') : ''" x-html="item.content"></div>
               </template>
               <template x-if="item.hxUrl">
                 <div x-init="htmx.process($el); $el.addEventListener('htmx:afterSwap', () => $store.uno.box.onHtmxContentLoaded($el, item))"
+                     :class="item.fill ? Uno.getStyle('box', 'bodyFill') : ''"
                      :hx-get="item.hxMethod === 'GET' ? item.hxUrl : undefined"
                      :hx-post="item.hxMethod === 'POST' ? item.hxUrl : undefined"
                      :hx-trigger="item.hxTrigger"
                      hx-swap="innerHTML"
                      :hx-headers="item.hxHeaders ? JSON.stringify(item.hxHeaders) : null">
-                  <div :class="Uno.getStyle('box', 'loadingWrap')">
+                  <div :class="[Uno.getStyle('box', 'loadingWrap'), item.fill ? 'flex-1' : '']">
                     <svg :class="Uno.getStyle('box', 'spinner')" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
