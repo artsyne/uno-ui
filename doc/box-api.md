@@ -340,10 +340,10 @@ Alpine.store('uno').box.open({
 
 ## Version History
 
-| Version    | Date       | Changes                                                                                                                                                                                                |
-| :--------- | :--------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Version    | Date       | Changes                                                                                                                                                                                                                                       |
+| :--------- | :--------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Unreleased | —          | Focus returns to the opener on close; underlay dialogs are marked `inert` + `aria-hidden`; the focus trap is DOM-order aware so Tab cannot escape. Added `fill` mode; container `max-height` uses `dvh` and accounts for the wrapper margins. |
-| v0.9.0     | 2026-08-26 | Added `extraButtons` support: custom buttons with `position`, `buttonClass`, and async `onClick` (`return false` to keep open). Added `handleExtraButton()` store method and `extraBtn` default style. |
-| v0.8.0     | 2026-01-22 | Added `bindNotifyToHtmx()` method to HTMX integration for automatic notifications.                                                                                                                     |
-| v0.7.0     | 2026-01-20 | Refactored for **Lazy Initialization** (DOM elements created on demand).                                                                                                                               |
-| v0.6.0     | 2025-12-18 | Initial stable release.                                                                                                                                                                                |
+| v0.9.0     | 2026-08-26 | Added `extraButtons` support: custom buttons with `position`, `buttonClass`, and async `onClick` (`return false` to keep open). Added `handleExtraButton()` store method and `extraBtn` default style.                                        |
+| v0.8.0     | 2026-01-22 | Added `bindNotifyToHtmx()` method to HTMX integration for automatic notifications.                                                                                                                                                            |
+| v0.7.0     | 2026-01-20 | Refactored for **Lazy Initialization** (DOM elements created on demand).                                                                                                                                                                      |
+| v0.6.0     | 2025-12-18 | Initial stable release.                                                                                                                                                                                                                       |

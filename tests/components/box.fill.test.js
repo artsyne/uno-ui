@@ -24,7 +24,12 @@ describe('Box fill mode', () => {
     const container = document.getElementById('uno-box-container' + id)
     const body = document.getElementById('uno-box-content-' + id)
     // x-if 渲染的节点插在 <template> 之后，取首个 div 子节点
-    return { container, content: body?.parentElement, body, inner: body?.querySelector(':scope > div') }
+    return {
+      container,
+      content: body?.parentElement,
+      body,
+      inner: body?.querySelector(':scope > div')
+    }
   }
 
   it('defaults fill to false', () => {
