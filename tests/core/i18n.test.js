@@ -1,11 +1,29 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { installAlpine } from '../../src/core/i18n'
+import en from '../../src/locales/en'
+import zhCN from '../../src/locales/zh-CN'
+import zhTW from '../../src/locales/zh-TW'
+
+function flatten(obj, prefix = '', out = {}) {
+  for (const [k, v] of Object.entries(obj)) {
+    const key = prefix ? `${prefix}.${k}` : k
+    if (v && typeof v === 'object') flatten(v, key, out)
+    else out[key] = v
+  }
+  return out
+}
+
+function placeholders(str) {
+  return [...String(str).matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort()
+}
 
 describe('i18n Store', () => {
   let store
   let Alpine
 
   beforeEach(() => {
+    // Reset store so each case re-runs detection
+    store = undefined
     // Mock Alpine
     Alpine = {
       store: vi.fn((name, definition) => {
@@ -56,7 +74,7 @@ describe('i18n Store', () => {
     store.extend({
       en: { welcome: 'Welcome, {name}!' }
     })
-    
+
     // Explicitly set locale to ensure we are using the updated messages
     store.setLang('en')
 
@@ -90,6 +108,55 @@ describe('i18n Store', () => {
     } else {
       // Fail if not implemented (which is expected now)
       throw new Error('loadLocale not implemented')
+    }
+  })
+
+  it('should normalize saved language codes on detection', () => {
+    for (const lang of ['zh-HK', 'zh-MO', 'zh-Hant-TW', 'zh_tw', 'zh-TW']) {
+      store = undefined
+      global.localStorage.getItem.mockReturnValue(lang)
+      installAlpine(Alpine)
+      expect(store.locale, lang).toBe('zh-TW')
+    }
+  })
+
+  it('should detect zh-HK/zh-MO navigator locales as zh-TW', () => {
+    for (const lang of ['zh-HK', 'zh-MO', 'zh-Hant']) {
+      store = undefined
+      vi.stubGlobal('navigator', { language: lang, languages: [lang] })
+      installAlpine(Alpine)
+      expect(store.locale, lang).toBe('zh-TW')
+    }
+    vi.unstubAllGlobals()
+  })
+
+  it('should normalize language codes in setLocale', () => {
+    installAlpine(Alpine)
+    store.setLocale('zh-tw')
+    expect(store.locale).toBe('zh-TW')
+    expect(global.localStorage.setItem).toHaveBeenCalledWith('uno.lang', 'zh-TW')
+    expect(document.documentElement.lang).toBe('zh-TW')
+  })
+})
+
+describe('locale files', () => {
+  const locales = {
+    en: flatten(en),
+    'zh-CN': flatten(zhCN),
+    'zh-TW': flatten(zhTW)
+  }
+  const baseKeys = Object.keys(locales.en).sort()
+
+  it('should keep the same key set across locales', () => {
+    expect(Object.keys(locales['zh-CN']).sort()).toEqual(baseKeys)
+    expect(Object.keys(locales['zh-TW']).sort()).toEqual(baseKeys)
+  })
+
+  it('should keep placeholders consistent across locales', () => {
+    for (const key of baseKeys) {
+      const expected = placeholders(locales.en[key])
+      expect(placeholders(locales['zh-CN'][key]), `zh-CN: ${key}`).toEqual(expected)
+      expect(placeholders(locales['zh-TW'][key]), `zh-TW: ${key}`).toEqual(expected)
     }
   })
 })

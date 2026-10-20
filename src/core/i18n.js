@@ -19,19 +19,33 @@ const initialMessages = {
 
 const supported = Object.keys(initialMessages)
 
+// 语言码归一：不区分大小写与 _/- 分隔符；zh-Hant 及 zh-HK / zh-MO 归入繁体，
+// 与主站 NormalizeLocale 的判定保持一致。
+function normalizeLocale(lang) {
+  if (!lang) return ''
+  const raw = String(lang).trim().replace(/_/g, '-')
+  const lower = raw.toLowerCase()
+  if (lower === 'zh' || lower.startsWith('zh-')) {
+    if (lower.includes('hant')) return 'zh-TW'
+    if (lower.includes('hans')) return 'zh-CN'
+    if (/(?:^|-)(?:tw|hk|mo)(?:-|$)/.test(lower)) return 'zh-TW'
+    return 'zh-CN'
+  }
+  return raw
+}
+
 function detect() {
   if (typeof localStorage !== 'undefined') {
-    const saved = localStorage.getItem('uno.lang')
+    const saved = normalizeLocale(localStorage.getItem('uno.lang'))
     if (saved && supported.includes(saved)) return saved
   }
   if (typeof navigator !== 'undefined') {
-    const nav = navigator.language
-    const lang = nav.startsWith('zh')
-      ? nav.includes('TW') || nav.includes('Hant')
-        ? 'zh-TW'
-        : 'zh-CN'
-      : 'en'
-    return supported.includes(lang) ? lang : 'en'
+    const candidates = [navigator.language, ...(navigator.languages || [])]
+    for (const raw of candidates) {
+      const lang = normalizeLocale(raw)
+      if (supported.includes(lang)) return lang
+    }
+    return 'en'
   }
   return 'en'
 }
@@ -72,7 +86,7 @@ export function installAlpine(Alpine) {
 
     t(key, vars = {}) {
       // Access locale to ensure reactivity
-      const currentLang = this.locale
+      const currentLang = normalizeLocale(this.locale)
       const dict = this.messages[currentLang] || this.messages['en']
       const msg = get(dict, key)
       const str = typeof msg === 'string' ? msg : key
@@ -80,13 +94,14 @@ export function installAlpine(Alpine) {
     },
 
     setLocale(lang) {
-      if (!this.messages[lang]) {
+      const target = normalizeLocale(lang)
+      if (!this.messages[target]) {
         log.warn(`[Uno] Language ${lang} not found. Please load it first using loadLocale().`)
         return
       }
-      this.locale = lang
-      if (typeof localStorage !== 'undefined') localStorage.setItem('uno.lang', lang)
-      if (typeof document !== 'undefined') document.documentElement.lang = lang
+      this.locale = target
+      if (typeof localStorage !== 'undefined') localStorage.setItem('uno.lang', target)
+      if (typeof document !== 'undefined') document.documentElement.lang = target
     },
 
     // Alias for backward compatibility
@@ -99,15 +114,16 @@ export function installAlpine(Alpine) {
     },
 
     async loadLocale(lang, url) {
-      if (this.messages[lang]) return // Already loaded
+      const target = normalizeLocale(lang)
+      if (this.messages[target]) return // Already loaded
 
       this.loading = true
       try {
         const response = await fetch(url)
         if (!response.ok) throw new Error(`Failed to load ${lang}`)
         const data = await response.json()
-        this.messages[lang] = data
-        this.setLocale(lang)
+        this.messages[target] = data
+        this.setLocale(target)
       } catch (e) {
         log.error(`[Uno] Failed to load locale ${lang}:`, e)
       } finally {
