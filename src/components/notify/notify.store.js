@@ -144,7 +144,7 @@ export const createNotifyStore = (Alpine) => ({
 
     // We combine:
     // 1. Base Uno styles (fixed flex gap-2 p-4 pointer-events-none)
-    // 2. Fixed positioning (top-0 right-0 etc)
+    // 2. Fixed positioning (top-0 end-0 etc)
     // 3. Flex direction (flex-col etc)
     // 4. Alignment (items-end etc)
 

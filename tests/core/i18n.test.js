@@ -1,8 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { installAlpine } from '../../src/core/i18n'
-import en from '../../src/locales/en'
-import zhCN from '../../src/locales/zh-CN'
-import zhTW from '../../src/locales/zh-TW'
 
 function flatten(obj, prefix = '', out = {}) {
   for (const [k, v] of Object.entries(obj)) {
@@ -98,12 +95,12 @@ describe('i18n Store', () => {
     // We expect a loadLocale method to exist (TDD - Red)
     // Currently it doesn't exist.
     if (store.loadLocale) {
-      await store.loadLocale('fr', '/locales/fr.json')
+      await store.loadLocale('it', '/locales/it.json')
 
-      expect(global.fetch).toHaveBeenCalledWith('/locales/fr.json')
-      expect(store.messages['fr']).toEqual({ loaded: 'Loaded Message' })
+      expect(global.fetch).toHaveBeenCalledWith('/locales/it.json')
+      expect(store.messages['it']).toEqual({ loaded: 'Loaded Message' })
 
-      store.setLang('fr')
+      store.setLang('it')
       expect(store.t('loaded')).toBe('Loaded Message')
     } else {
       // Fail if not implemented (which is expected now)
@@ -135,28 +132,50 @@ describe('i18n Store', () => {
     store.setLocale('zh-tw')
     expect(store.locale).toBe('zh-TW')
     expect(global.localStorage.setItem).toHaveBeenCalledWith('uno.lang', 'zh-TW')
-    expect(document.documentElement.lang).toBe('zh-TW')
+    // <html lang> 只由服务端输出：Uno 不再回写文档属性
+    expect(document.documentElement.lang).toBe('en')
+  })
+
+  it('should fall back to the base language for regional tags', () => {
+    for (const [tag, expected] of [
+      ['ja-JP', 'ja'],
+      ['ko-KR', 'ko'],
+      ['pt-BR', 'pt'],
+      ['de-CH', 'de']
+    ]) {
+      store = undefined
+      global.localStorage.getItem.mockReturnValue(null)
+      vi.stubGlobal('navigator', { language: tag, languages: [tag] })
+      installAlpine(Alpine)
+      expect(store.locale, tag).toBe(expected)
+    }
+    vi.unstubAllGlobals()
   })
 })
 
 describe('locale files', () => {
-  const locales = {
-    en: flatten(en),
-    'zh-CN': flatten(zhCN),
-    'zh-TW': flatten(zhTW)
-  }
+  // 键集与占位符一致性遍历 uno/src/locales 目录，新增语言无需改测试
+  const modules = import.meta.glob('../../src/locales/*.js', { eager: true })
+  const locales = Object.fromEntries(
+    Object.entries(modules).map(([file, mod]) => [
+      file.split('/').pop().replace(/\.js$/, ''),
+      flatten(mod.default)
+    ])
+  )
   const baseKeys = Object.keys(locales.en).sort()
 
-  it('should keep the same key set across locales', () => {
-    expect(Object.keys(locales['zh-CN']).sort()).toEqual(baseKeys)
-    expect(Object.keys(locales['zh-TW']).sort()).toEqual(baseKeys)
+  it('should keep the same key set across every locale', () => {
+    for (const [code, dict] of Object.entries(locales)) {
+      expect(Object.keys(dict).sort(), code).toEqual(baseKeys)
+    }
   })
 
-  it('should keep placeholders consistent across locales', () => {
-    for (const key of baseKeys) {
-      const expected = placeholders(locales.en[key])
-      expect(placeholders(locales['zh-CN'][key]), `zh-CN: ${key}`).toEqual(expected)
-      expect(placeholders(locales['zh-TW'][key]), `zh-TW: ${key}`).toEqual(expected)
+  it('should keep placeholders consistent across every locale', () => {
+    for (const [code, dict] of Object.entries(locales)) {
+      for (const key of baseKeys) {
+        const expected = placeholders(locales.en[key])
+        expect(placeholders(dict[key]), `${code}: ${key}`).toEqual(expected)
+      }
     }
   })
 })

@@ -136,10 +136,10 @@ describe('UnoInstance Tooltip Arrow Styles', () => {
     // these two sides. Bordering all four would draw a box; bordering none
     // punches a hole in the tooltip outline.
     const expected = {
-      top: ['border-b', 'border-r'],
-      bottom: ['border-t', 'border-l'],
-      left: ['border-t', 'border-r'],
-      right: ['border-b', 'border-l']
+      top: ['border-b', 'border-e'],
+      bottom: ['border-t', 'border-s'],
+      left: ['border-t', 'border-e'],
+      right: ['border-b', 'border-s']
     }
 
     Object.entries(expected).forEach(([placement, sides]) => {

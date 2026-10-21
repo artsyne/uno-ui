@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import {
   POSITIONS,
   getFlexAlignmentClass,
@@ -58,9 +58,9 @@ describe('Position Utils - getFlexAlignmentClass()', () => {
 
 describe('Position Utils - getFixedPositionClass()', () => {
   it('should return correct classes for top positions', () => {
-    expect(getFixedPositionClass('top-left')).toBe('top-0 left-0')
-    expect(getFixedPositionClass('top-center')).toBe('top-0 left-0 right-0')
-    expect(getFixedPositionClass('top-right')).toBe('top-0 right-0')
+    expect(getFixedPositionClass('top-left')).toBe('top-0 start-0')
+    expect(getFixedPositionClass('top-center')).toBe('top-0 start-0 end-0')
+    expect(getFixedPositionClass('top-right')).toBe('top-0 end-0')
   })
 
   it('should return correct classes for center', () => {
@@ -68,23 +68,23 @@ describe('Position Utils - getFixedPositionClass()', () => {
   })
 
   it('should return correct classes for center-left/right', () => {
-    expect(getFixedPositionClass('center-left')).toBe('top-1/2 left-0 -translate-y-1/2')
-    expect(getFixedPositionClass('center-right')).toBe('top-1/2 right-0 -translate-y-1/2')
+    expect(getFixedPositionClass('center-left')).toBe('top-1/2 start-0 -translate-y-1/2')
+    expect(getFixedPositionClass('center-right')).toBe('top-1/2 end-0 -translate-y-1/2')
   })
 
   it('should return correct classes for bottom positions', () => {
-    expect(getFixedPositionClass('bottom-left')).toBe('bottom-0 left-0')
-    expect(getFixedPositionClass('bottom-center')).toBe('bottom-0 left-0 right-0')
-    expect(getFixedPositionClass('bottom-right')).toBe('bottom-0 right-0')
+    expect(getFixedPositionClass('bottom-left')).toBe('bottom-0 start-0')
+    expect(getFixedPositionClass('bottom-center')).toBe('bottom-0 start-0 end-0')
+    expect(getFixedPositionClass('bottom-right')).toBe('bottom-0 end-0')
   })
 
   it('should default to top-right for undefined position', () => {
-    expect(getFixedPositionClass()).toBe('top-0 right-0')
-    expect(getFixedPositionClass(null)).toBe('top-0 right-0')
+    expect(getFixedPositionClass()).toBe('top-0 end-0')
+    expect(getFixedPositionClass(null)).toBe('top-0 end-0')
   })
 
   it('should default to top-right for unknown position', () => {
-    expect(getFixedPositionClass('invalid')).toBe('top-0 right-0')
+    expect(getFixedPositionClass('invalid')).toBe('top-0 end-0')
   })
 })
 
@@ -183,6 +183,22 @@ describe('Position Utils - calculatePosition()', () => {
     // Mock window dimensions
     Object.defineProperty(window, 'innerWidth', { value: 1024, writable: true })
     Object.defineProperty(window, 'innerHeight', { value: 768, writable: true })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('should mirror left/right placement by the anchor element direction', () => {
+    vi.stubGlobal('getComputedStyle', () => ({ direction: 'rtl' }))
+    const mirrored = calculatePosition(triggerEl, tooltipEl, 'left')
+    expect(mirrored.position).toBe('right')
+    expect(mirrored.left).toBe(200 + 80 + 8)
+
+    vi.stubGlobal('getComputedStyle', () => ({ direction: 'ltr' }))
+    const normal = calculatePosition(triggerEl, tooltipEl, 'left')
+    expect(normal.position).toBe('left')
+    expect(normal.left).toBe(200 - 120 - 8)
   })
 
   describe('top placement', () => {

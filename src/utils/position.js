@@ -51,15 +51,15 @@ export const getFlexAlignmentClass = (position) => {
 export const getFixedPositionClass = (position) => {
   const pos = position || 'top-right'
   const map = {
-    'top-right': 'top-0 right-0',
-    'top-left': 'top-0 left-0',
-    'top-center': 'top-0 left-0 right-0', // Full width for center alignment
+    'top-right': 'top-0 end-0',
+    'top-left': 'top-0 start-0',
+    'top-center': 'top-0 start-0 end-0', // Full width for center alignment
     center: 'inset-0', // Full screen for center
-    'center-right': 'top-1/2 right-0 -translate-y-1/2',
-    'center-left': 'top-1/2 left-0 -translate-y-1/2',
-    'bottom-right': 'bottom-0 right-0',
-    'bottom-left': 'bottom-0 left-0',
-    'bottom-center': 'bottom-0 left-0 right-0'
+    'center-right': 'top-1/2 end-0 -translate-y-1/2',
+    'center-left': 'top-1/2 start-0 -translate-y-1/2',
+    'bottom-right': 'bottom-0 end-0',
+    'bottom-left': 'bottom-0 start-0',
+    'bottom-center': 'bottom-0 start-0 end-0'
   }
   return map[pos] || map['top-right']
 }
@@ -156,6 +156,24 @@ export function calculatePosition(triggerEl, tooltipEl, preferredPosition, optio
   const triggerRect = triggerEl.getBoundingClientRect()
   const tooltipRect = tooltipEl.getBoundingClientRect()
 
+  // placement 按锚点元素实际计算出的 direction 镜像，而不是按站点语言清单猜测：
+  // RTL 下语义「start/end」与物理 left/right 相反，调用方传 left/right 时交换物理侧，
+  // 保证 tooltip 出现在文本阅读方向的同一侧。不读取 document.documentElement.dir。
+  const anchorDirection =
+    typeof getComputedStyle === 'function'
+      ? getComputedStyle(triggerEl).direction === 'rtl'
+        ? 'rtl'
+        : 'ltr'
+      : 'ltr'
+  const effectivePosition =
+    anchorDirection === 'rtl'
+      ? preferredPosition === 'left'
+        ? 'right'
+        : preferredPosition === 'right'
+          ? 'left'
+          : preferredPosition
+      : preferredPosition
+
   const containerWidth = tooltipRect.width
   const containerHeight = tooltipRect.height
   const triggerWidth = triggerRect.width
@@ -209,11 +227,11 @@ export function calculatePosition(triggerEl, tooltipEl, preferredPosition, optio
   // Popper-style 'bottom-end') falls through to the bottom geometry below, so
   // report 'bottom' instead of echoing an unsupported value back to callers
   // that key styles off it (the tooltip arrow does).
-  let finalPosition = ['top', 'bottom', 'left', 'right'].includes(preferredPosition)
-    ? preferredPosition
+  let finalPosition = ['top', 'bottom', 'left', 'right'].includes(effectivePosition)
+    ? effectivePosition
     : 'bottom'
 
-  switch (preferredPosition) {
+  switch (effectivePosition) {
     case 'left':
       left = pos.left - containerWidth - offset
       if (left < viewportLeft) {

@@ -9,12 +9,28 @@
 import en from '../locales/en'
 import zhCN from '../locales/zh-CN'
 import zhTW from '../locales/zh-TW'
+import es from '../locales/es'
+import ja from '../locales/ja'
+import de from '../locales/de'
+import fr from '../locales/fr'
+import ko from '../locales/ko'
+import pt from '../locales/pt'
+import ru from '../locales/ru'
+import ar from '../locales/ar'
 import { log } from '../utils/log'
 
 const initialMessages = {
   en,
   'zh-CN': zhCN,
-  'zh-TW': zhTW
+  'zh-TW': zhTW,
+  es: es,
+  ja: ja,
+  de: de,
+  fr: fr,
+  ko: ko,
+  pt: pt,
+  ru: ru,
+  ar: ar,
 }
 
 const supported = Object.keys(initialMessages)
@@ -31,7 +47,11 @@ function normalizeLocale(lang) {
     if (/(?:^|-)(?:tw|hk|mo)(?:-|$)/.test(lower)) return 'zh-TW'
     return 'zh-CN'
   }
-  return raw
+  // 非中文标签按基础语言回退（ja-JP → ja、pt-BR → pt），未登记仍回退 en。
+  // 主站与 Uno 使用同一内部代码（zh 特殊处理之外不含地区后缀）。
+  const base = lower.split('-')[0]
+  const matched = supported.find((code) => code.toLowerCase() === lower || code.toLowerCase() === base)
+  return matched || raw
 }
 
 function detect() {
@@ -78,11 +98,8 @@ export function installAlpine(Alpine) {
     messages: initialMessages,
     loading: false,
 
-    init() {
-      if (typeof document !== 'undefined') {
-        document.documentElement.lang = this.locale
-      }
-    },
+    // <html lang> 只由服务端模板输出；Uno 只维护组件词条语言，不回写文档属性。
+    init() {},
 
     t(key, vars = {}) {
       // Access locale to ensure reactivity
@@ -101,7 +118,6 @@ export function installAlpine(Alpine) {
       }
       this.locale = target
       if (typeof localStorage !== 'undefined') localStorage.setItem('uno.lang', target)
-      if (typeof document !== 'undefined') document.documentElement.lang = target
     },
 
     // Alias for backward compatibility

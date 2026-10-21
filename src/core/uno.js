@@ -302,7 +302,7 @@ export class UnoInstance {
           dialogWrapper: 'fixed inset-0 z-10 w-screen overflow-y-auto',
           itemWrapper: 'flex min-h-full p-4 text-center sm:p-0 pointer-events-none',
           container:
-            'relative transform overflow-hidden {base} bg-white dark:bg-gray-900 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] pointer-events-auto outline-none',
+            'relative transform overflow-hidden {base} bg-white dark:bg-gray-900 text-start shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] pointer-events-auto outline-none',
           // fill 模式：未指定 height/heightClass 时的默认高度；dvh 排除移动端地址栏，
           // 手机扣除 itemWrapper p-4，sm 起扣除 container my-8
           containerFill: 'h-[calc(100dvh-2rem)] sm:h-[min(85dvh,56rem)]',
@@ -311,13 +311,13 @@ export class UnoInstance {
           extraBtn:
             'mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-normal text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto',
           okBtn:
-            'inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto',
+            'inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ms-3 sm:w-auto',
           title: 'text-base font-semibold leading-6 text-gray-900 dark:text-slate-200',
           // 目标尺寸（D5，WCAG 2.5.8）：p-1 使图标命中区达 28×28；-m-1 抵消绝对定位偏移
           // 非文本对比度（E7，WCAG 1.4.11）：亮色 slate-500（hover slate-600）；
           // 暗底配对 slate-400/300
           closeBtnFloating:
-            'absolute top-2 right-2 z-10 p-1 -m-1 text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300 focus:outline-none',
+            'absolute top-2 end-2 z-10 p-1 -m-1 text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300 focus:outline-none',
           closeIconSmall: 'h-5 w-5',
           content:
             'px-4 pb-4 pt-5 sm:p-6 sm:pb-4 overflow-auto flex-1 text-slate-600 dark:text-slate-300',
@@ -339,17 +339,17 @@ export class UnoInstance {
           content: 'p-4',
           row: 'flex items-start',
           iconWrap: 'flex-shrink-0',
-          textWrap: 'ml-3 min-w-0 flex-1 pt-0.5',
+          textWrap: 'ms-3 min-w-0 flex-1 pt-0.5',
           text: 'text-sm font-medium text-gray-900 dark:text-slate-100 break-words',
-          closeWrap: 'ml-4 flex flex-shrink-0',
+          closeWrap: 'ms-4 flex flex-shrink-0',
           // 目标尺寸（D5，WCAG 2.5.8）：p-1 使图标命中区达 28×28；-m-1 抵消行内占位
           closeBtn:
             'inline-flex rounded-md p-1 -m-1 text-gray-500 hover:text-gray-700 hover:bg-black/5 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500',
           closeIcon: 'h-5 w-5',
           progressWrap:
-            'fixed top-0 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700 pointer-events-none',
+            'fixed top-0 start-0 end-0 h-1 bg-gray-200 dark:bg-gray-700 pointer-events-none',
           progressBar:
-            'h-full bg-gradient-to-r from-blue-500 to-indigo-600 shadow-sm shadow-blue-500/50',
+            'h-full bg-gradient-to-r from-blue-500 to-indigo-600 shadow-sm shadow-blue-500/50 rtl:bg-gradient-to-l',
           types: {
             success: 'bg-green-100 dark:bg-green-950',
             error: 'bg-red-100 dark:bg-red-950',
@@ -375,10 +375,10 @@ export class UnoInstance {
           // the outline stays continuous around the tip. Keys are the resolved
           // placement; values assume a clockwise 45deg rotation.
           arrowSides: {
-            top: 'border-b border-r', // tooltip above trigger -> tip points down
-            bottom: 'border-t border-l', // tip points up
-            left: 'border-t border-r', // tip points right
-            right: 'border-b border-l' // tip points left
+            top: 'border-b border-e', // tooltip above trigger -> tip points down
+            bottom: 'border-t border-s', // tip points up
+            left: 'border-t border-e', // tip points right
+            right: 'border-b border-s' // tip points left
           }
         },
         tab: {
@@ -390,7 +390,7 @@ export class UnoInstance {
         valid: {
           wrapper: 'relative w-full',
           iconBase:
-            'absolute right-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200',
+            'absolute end-0 top-0 bottom-0 flex items-center justify-center w-10 pointer-events-none transition-opacity duration-200',
           inputError: '!border-red-500',
           inputValid: '!border-green-500',
           iconError: 'text-red-500 dark:text-red-400',
@@ -398,7 +398,7 @@ export class UnoInstance {
           stateInvalid: 'is-invalid',
           stateValid: 'is-valid',
           stateValidating: 'validating',
-          inputPaddingIcon: 'pr-10',
+          inputPaddingIcon: 'pe-10',
           helperText: 'text-red-600 dark:text-red-400 text-xs mt-1'
         }
       }

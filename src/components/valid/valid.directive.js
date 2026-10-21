@@ -20,7 +20,7 @@ const isFlexOrGridDisplay = (display) =>
  * The input is wrapped in a plugin-managed `position: relative` div: the
  * wrapper is a plain block box (inline controls get an inline-block wrapper to
  * keep flowing with surrounding text) and the input's margins collapse through
- * it, so the outer layout stays unchanged while `absolute bottom-* right-*`
+ * it, so the outer layout stays unchanged while `absolute bottom-* end-*`
  * descendants anchor to the input box itself instead of an arbitrary ancestor.
  *
  * @param {HTMLElement} el - The validated input/textarea.
@@ -224,7 +224,7 @@ export const registerValidDirectives = (Alpine) => {
                 // gray-600 on white; over-limit switches to red-600
                 // (same token as helperText); dark pairs gray-400 / red-400.
                 counterEl.className =
-                  'absolute bottom-1 right-2 text-xs text-gray-600 dark:text-gray-400 pointer-events-none transition-colors duration-200'
+                  'absolute bottom-1 end-2 text-xs text-gray-600 dark:text-gray-400 pointer-events-none transition-colors duration-200'
               }
               // (Re)attach into the containing block: a counter restored from a
               // previous init must not stay outside the wrapper

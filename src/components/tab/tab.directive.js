@@ -73,7 +73,17 @@ export const registerTabDirectives = (Alpine) => {
       if (!lastConfig || !lastConfig.name) return
       e.preventDefault()
       const store = Alpine.store('uno').tab
-      const target = store.rotate(lastConfig.group, lastConfig.name, e.key)
+      // RTL 下左右方向键的视觉含义互换：先按最近的方向容器判定，未标注时回退文档方向。
+      const scope = el.closest('[dir]') || document.documentElement
+      const isRTL = typeof getComputedStyle === 'function' && getComputedStyle(scope).direction === 'rtl'
+      const key = isRTL
+        ? e.key === 'ArrowRight'
+          ? 'ArrowLeft'
+          : e.key === 'ArrowLeft'
+            ? 'ArrowRight'
+            : e.key
+        : e.key
+      const target = store.rotate(lastConfig.group, lastConfig.name, key)
       if (!target) return
       const targetEl = document.getElementById('tab-' + target)
       if (!targetEl) return
