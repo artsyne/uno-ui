@@ -10,6 +10,7 @@ import { getTooltipTemplate } from './tooltip.template'
 // Shared Logic
 let rafId = 0
 let globalListenersCleanup = null
+let sizeObserver = null
 
 export const createTooltipStore = (Alpine) => {
   const scheduleUpdatePosition = () => {
@@ -20,6 +21,26 @@ export const createTooltipStore = (Alpine) => {
       const store = Alpine.store('uno')?.tooltip
       if (store) store.updatePosition()
     })
+  }
+
+  const disconnectSizeObserver = () => {
+    if (!sizeObserver) return
+    sizeObserver.disconnect()
+    sizeObserver = null
+  }
+
+  /**
+   * 弹层尺寸变化后重算位置：打开瞬间测得的宽度只对同步内容有效，
+   * htmx 异步内容、字体晚到、切换文案都会改变宽高；不重算则贴近视口边界的弹层
+   * 仍按旧尺寸定位而越界。实例存在模块级闭包而非 store 字段，避免被 Alpine 响应式代理包裹。
+   */
+  const observeSize = () => {
+    disconnectSizeObserver()
+    if (typeof ResizeObserver !== 'function') return
+    const el = document.getElementById('uno-tooltip-content')
+    if (!el) return
+    sizeObserver = new ResizeObserver(() => scheduleUpdatePosition())
+    sizeObserver.observe(el)
   }
 
   const ensureGlobalListeners = () => {
@@ -142,6 +163,7 @@ export const createTooltipStore = (Alpine) => {
       this.visible = true
       this.ensureContainer()
       ensureGlobalListeners()
+      observeSize()
 
       // A3：click 触发 = 弹层/披露模式。暴露触发器状态并与弹层关联、绑定键盘支持
       // （Space 合成/方向键导航/Tab 循环），渲染后焦点移入弹层，使菜单链接紧随触发器
@@ -192,6 +214,8 @@ export const createTooltipStore = (Alpine) => {
         globalListenersCleanup()
         globalListenersCleanup = null
       }
+
+      disconnectSizeObserver()
 
       if (rafId) {
         cancelAnimationFrame(rafId)
@@ -272,6 +296,34 @@ export const createTooltipStore = (Alpine) => {
       }, delay)
     },
 
+    /**
+     * Resolve the offset used by the next positioning pass.
+     *
+     * A number is used as-is. A function is invoked on every positioning pass
+     * (open, scroll, resize, size change) with the live geometry, so callers can
+     * derive the gap instead of freezing it at trigger time — breakpoint switches
+     * and layout changes then stay correct while the popup is open. A throwing or
+     * non-numeric result falls back to the default gap rather than breaking the
+     * popup.
+     *
+     * @param {HTMLElement} tooltipEl - The popup element being positioned
+     * @returns {number|undefined} Pixels between trigger and popup
+     */
+    resolveOffset(tooltipEl) {
+      if (typeof this.offset !== 'function') return this.offset
+      try {
+        const value = this.offset({
+          triggerEl: this.triggerEl,
+          tooltipEl,
+          placement: this.placement
+        })
+        return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+      } catch (error) {
+        log.warn('[Uno] tooltip offset() threw, falling back to the default gap', error)
+        return undefined
+      }
+    },
+
     updatePosition() {
       if (!this.visible || !this.triggerEl) return
 
@@ -279,7 +331,7 @@ export const createTooltipStore = (Alpine) => {
       if (!tooltipEl) return
 
       const pos = calculatePosition(this.triggerEl, tooltipEl, this.placement, {
-        offset: this.offset
+        offset: this.resolveOffset(tooltipEl)
       })
 
       this.top = pos.top

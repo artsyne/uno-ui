@@ -206,6 +206,50 @@ describe('Tooltip Component', () => {
     })
   })
 
+  describe('Size observation', () => {
+    let triggerEl, observer
+
+    beforeEach(() => {
+      observer = { observe: vi.fn(), disconnect: vi.fn() }
+      vi.stubGlobal(
+        'ResizeObserver',
+        class {
+          observe(el) {
+            observer.observe(el)
+          }
+
+          disconnect() {
+            observer.disconnect()
+          }
+        }
+      )
+
+      triggerEl = document.createElement('button')
+      document.body.appendChild(triggerEl)
+
+      const content = document.createElement('div')
+      content.id = 'uno-tooltip-content'
+      document.body.appendChild(content)
+    })
+
+    afterEach(() => {
+      vi.unstubAllGlobals()
+    })
+
+    it('should observe the popup size after show', () => {
+      tooltipStore.show({ element: triggerEl, content: 'Menu' })
+      expect(observer.observe).toHaveBeenCalledWith(
+        document.getElementById('uno-tooltip-content')
+      )
+    })
+
+    it('should stop observing on hide', () => {
+      tooltipStore.show({ element: triggerEl, content: 'Menu' })
+      tooltipStore.hide()
+      expect(observer.disconnect).toHaveBeenCalled()
+    })
+  })
+
   describe('scheduleHide()', () => {
     it('should hide tooltip after delay', () => {
       tooltipStore.visible = true
@@ -338,6 +382,85 @@ describe('Tooltip Component', () => {
         tooltipEl,
         expect.any(String),
         { offset: 16 }
+      )
+    })
+
+    it('should evaluate a function offset on every positioning pass', async () => {
+      const positionModule = await import('../../src/utils/position')
+      const offset = vi.fn(() => 12)
+
+      tooltipStore.show({ element: triggerEl, content: 'Test', offset })
+      tooltipStore.visible = true
+      tooltipStore.triggerEl = triggerEl
+
+      positionModule.calculatePosition.mockClear()
+      tooltipStore.updatePosition()
+      tooltipStore.updatePosition()
+
+      expect(offset).toHaveBeenCalledTimes(2)
+      expect(offset).toHaveBeenCalledWith({
+        triggerEl,
+        tooltipEl,
+        placement: expect.any(String)
+      })
+      expect(positionModule.calculatePosition).toHaveBeenLastCalledWith(
+        triggerEl,
+        tooltipEl,
+        expect.any(String),
+        { offset: 12 }
+      )
+    })
+
+    it('should follow the value returned by offset() between positioning passes', async () => {
+      const positionModule = await import('../../src/utils/position')
+      let gap = 22
+
+      tooltipStore.show({ element: triggerEl, content: 'Test', offset: () => gap })
+      tooltipStore.visible = true
+      tooltipStore.triggerEl = triggerEl
+
+      positionModule.calculatePosition.mockClear()
+      tooltipStore.updatePosition()
+      gap = 8
+      tooltipStore.updatePosition()
+
+      const offsets = positionModule.calculatePosition.mock.calls.map(
+        (call) => call[3].offset
+      )
+      expect(offsets).toEqual([22, 8])
+    })
+
+    it('should fall back to the default gap when offset() throws or returns a non-number', async () => {
+      const positionModule = await import('../../src/utils/position')
+      const { log } = await import('../../src/utils/log')
+
+      tooltipStore.show({
+        element: triggerEl,
+        content: 'Test',
+        offset: () => {
+          throw new Error('boom')
+        }
+      })
+      tooltipStore.visible = true
+      tooltipStore.triggerEl = triggerEl
+
+      positionModule.calculatePosition.mockClear()
+      tooltipStore.updatePosition()
+      expect(positionModule.calculatePosition).toHaveBeenLastCalledWith(
+        triggerEl,
+        tooltipEl,
+        expect.any(String),
+        { offset: undefined }
+      )
+      expect(log.warn).toHaveBeenCalled()
+
+      tooltipStore.offset = () => Number.NaN
+      tooltipStore.updatePosition()
+      expect(positionModule.calculatePosition).toHaveBeenLastCalledWith(
+        triggerEl,
+        tooltipEl,
+        expect.any(String),
+        { offset: undefined }
       )
     })
 

@@ -313,6 +313,29 @@ describe('Position Utils - calculatePosition()', () => {
       const result = calculatePosition(triggerEl, tooltipEl, 'left')
       expect(result.top).toBeGreaterThanOrEqual(10) // Min margin
     })
+
+    it('should keep a non-negative left edge when the tooltip is wider than the viewport', () => {
+      Object.defineProperty(window, 'innerWidth', { value: 375, writable: true })
+      triggerEl.getBoundingClientRect = () => ({
+        top: 100,
+        left: 200,
+        width: 32,
+        height: 32
+      })
+      tooltipEl.getBoundingClientRect = () => ({
+        width: 400, // Wider than the 375px viewport
+        height: 60,
+        top: 0,
+        left: 0,
+        bottom: 60,
+        right: 400
+      })
+
+      const result = calculatePosition(triggerEl, tooltipEl, 'bottom')
+
+      // 右侧夹取结果为负（375 - 400 - 10）时不得直接落盘，左侧安全边保底
+      expect(result.left).toBe(10)
+    })
   })
 
   describe('offset option', () => {

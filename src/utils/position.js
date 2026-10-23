@@ -206,7 +206,9 @@ export function calculatePosition(triggerEl, tooltipEl, preferredPosition, optio
   const constrainToViewport = (position, isHorizontal) => {
     if (isHorizontal) {
       if (position + containerWidth > viewportRight) {
-        return viewportRight - containerWidth - 10
+        // 容器宽于视口时不能让坐标变成负数（左侧露白、右侧溢出视口）：
+        // 夹取结果不低于 10px 左安全边，超出部分由调用方的最大宽度约束兑现
+        return Math.max(viewportLeft + 10, viewportRight - containerWidth - 10)
       }
       if (position < viewportLeft) {
         return viewportLeft + 10

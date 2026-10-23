@@ -14,9 +14,12 @@ All notable changes to this project will be documented in this file.
 - **Tab**: WAI-ARIA APG tabs pattern — `role="tab"`, `aria-selected`, roving `tabindex`, Arrow/Home/End navigation, per-tab and shared panels.
 - **Box**: closing restores focus to the opener, and underlay dialogs are marked `inert` + `aria-hidden`.
 - **Tooltip**: `trigger: 'click'` popovers implement the full keyboard contract (`aria-haspopup`, `aria-expanded`, `aria-describedby`, focus into the popup, Arrow/Home/End navigation, Esc/outside-click close with focus restore).
+- **Tooltip**: the popup size is observed after opening, so content injected later (HTMX, late fonts, language switches) re-runs the collision-aware positioning instead of keeping the first measurement.
+- **Tooltip**: `offset` accepts a function `({ triggerEl, tooltipEl, placement }) => number`, re-evaluated on every positioning pass (open, scroll, resize, content resize). A gap derived from live geometry — for example "panel top = container bottom + 8px" — stays correct across breakpoint switches and layout changes instead of being frozen when the trigger was configured.
 
 ### 🐛 Fixes
 
+- **Tooltip**: viewport clamping never returns a negative horizontal coordinate, so a popup wider than the viewport stays anchored to the 10px safe margin instead of overflowing off screen.
 - **Box**: the focus trap is DOM-order aware, so Tab no longer escapes a modal whose only tabbable element precedes the neutral focus target.
 - **Box**: the floating close button reaches ≥3:1 contrast in light mode (WCAG 1.4.11).
 - **Valid**: counters, focus rings and spinners use AA-compliant colour steps in both themes.

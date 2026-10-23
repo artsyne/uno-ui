@@ -6,7 +6,8 @@ The Tooltip component provides smart, positioning-aware tooltips. It supports au
 
 - **Core Function**: Display contextual information attached to an element.
 - **Architecture**: Directive (`x-uno-tooltip`) registers triggers; Store (`Alpine.store('uno').tooltip`) manages visibility and position.
-- **Positioning**: Uses `requestAnimationFrame` for high-performance, collision-aware positioning.
+- **Positioning**: Uses `requestAnimationFrame` for high-performance, collision-aware positioning. Placement flips when the preferred side lacks room, the box is clamped 10px inside the viewport on both axes, and the popup size is re-measured after opening (HTMX content, late fonts, language switches) so edge-anchored popups stay fully visible.
+- **Content width**: the default content class uses `whitespace-nowrap`; popups that hold menus or paragraphs should override it with a max width (e.g. `max-w-[calc(100vw-1rem)]`) so a box wider than the viewport still clamps to the left safe margin instead of overflowing.
 - **Interaction**: Supports Hover (default), Click (Popover), and Focus triggers.
 
 ## Basic Usage
@@ -48,7 +49,7 @@ These options are passed in the configuration object to `x-uno-tooltip`.
 | `placement`    | `String`  | `'top'`   | No       | Preferred position. Values: `'top'`, `'bottom'`, `'left'`, `'right'`.         |
 | `trigger`      | `String`  | `'hover'` | No       | Trigger mode. Values: `'hover'`, `'click'`, `'focus'`.                        |
 | `arrow`        | `Boolean` | `true`    | No       | Whether to show the directional arrow.                                        |
-| `offset`       | `Number`  | `8`       | No       | Distance in pixels between trigger and tooltip.                               |
+| `offset`       | `Number` \| `Function` | `8` | No | Gap in pixels between trigger and tooltip. A function `({ triggerEl, tooltipEl, placement }) => number` is re-evaluated on every positioning pass (open, scroll, resize, content resize), so the gap can follow live geometry and an open popup survives breakpoint switches. Throwing or non-numeric results fall back to the default gap. |
 | `clickOutside` | `Boolean` | `true`    | No       | If `true`, clicking outside closes the tooltip (for `click` mode).            |
 | `hxUrl`        | `String`  | -         | No       | URL to fetch content from via HTMX.                                           |
 | `hxTrigger`    | `String`  | `'load'`  | No       | When to trigger HTMX fetch. Default `'load'` means fetch when tooltip shows.  |
@@ -189,7 +190,7 @@ Fetch user details when hovering over a username.
 
 | Version    | Date       | Changes                                                                                                                                                                                                                          |
 | :--------- | :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unreleased | —          | `trigger: 'click'` popovers implement the full keyboard contract (`aria-haspopup`, `aria-expanded`, `aria-describedby`, focus into the popup, Arrow/Home/End navigation, Esc/outside-click close with focus restore).            |
+| Unreleased | —          | `trigger: 'click'` popovers implement the full keyboard contract (`aria-haspopup`, `aria-expanded`, `aria-describedby`, focus into the popup, Arrow/Home/End navigation, Esc/outside-click close with focus restore). Popup size is observed after opening, and viewport clamping never returns a negative horizontal coordinate. `offset` also accepts a function that is re-evaluated on every positioning pass. |
 | v0.9.0     | 2026-08-26 | `offset` option is now honored by `calculatePosition()` (previously ignored); the arrow element is rendered from the returned anchor. `placement` documented/typed as the four supported values (`top`/`bottom`/`left`/`right`). |
 | v0.8.0     | 2026-01-22 | Added `bindNotifyToHtmx()` method to HTMX integration for automatic notifications.                                                                                                                                               |
 | v0.7.0     | 2026-01-20 | Refactored for **Lazy Initialization**.                                                                                                                                                                                          |
