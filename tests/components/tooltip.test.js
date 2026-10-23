@@ -238,9 +238,7 @@ describe('Tooltip Component', () => {
 
     it('should observe the popup size after show', () => {
       tooltipStore.show({ element: triggerEl, content: 'Menu' })
-      expect(observer.observe).toHaveBeenCalledWith(
-        document.getElementById('uno-tooltip-content')
-      )
+      expect(observer.observe).toHaveBeenCalledWith(document.getElementById('uno-tooltip-content'))
     })
 
     it('should stop observing on hide', () => {
@@ -424,9 +422,7 @@ describe('Tooltip Component', () => {
       gap = 8
       tooltipStore.updatePosition()
 
-      const offsets = positionModule.calculatePosition.mock.calls.map(
-        (call) => call[3].offset
-      )
+      const offsets = positionModule.calculatePosition.mock.calls.map((call) => call[3].offset)
       expect(offsets).toEqual([22, 8])
     })
 
