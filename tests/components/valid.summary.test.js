@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { TextEncoder, TextDecoder } from 'util'
+// JSDOM 在模块加载阶段引入，避免冷启动时占用 beforeEach 的 10s 钩子预算。
+import { JSDOM } from 'jsdom'
 
 global.TextEncoder = TextEncoder
 global.TextDecoder = TextDecoder
@@ -18,7 +20,6 @@ describe('Valid error summary (E4, WCAG 3.3.1/3.3.3)', () => {
   let dom
 
   beforeEach(async () => {
-    const { JSDOM } = await import('jsdom')
     dom = new JSDOM('<!DOCTYPE html><body></body>')
     global.document = dom.window.document
     global.window = dom.window
