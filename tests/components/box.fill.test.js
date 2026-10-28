@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // fill 模式：类名由 Alpine :class 运行时合成，走真实运行时断言水合后 DOM。
-import { describe, it, expect, beforeAll, afterEach } from 'vitest'
-import { bootUno, tick } from '../helpers/axe'
+import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest'
+import { bootUno } from '../helpers/axe'
 
 describe('Box fill mode', () => {
   let box
@@ -13,9 +13,19 @@ describe('Box fill mode', () => {
     Uno = booted.Uno
   })
 
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
   afterEach(async () => {
-    box.closeAll()
-    await tick()
+    try {
+      // 打开、过渡与焦点任务先完成，再移除 DOM，避免取消回调跨用例存活。
+      await vi.runAllTimersAsync()
+      box.closeAll()
+      await vi.runAllTimersAsync()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   const classesOf = (el) => (el ? el.className.split(/\s+/).filter(Boolean) : [])
@@ -39,7 +49,7 @@ describe('Box fill mode', () => {
 
   it('chains flex classes down to the content container and applies the fill height', async () => {
     const item = box.open({ content: '<p>body</p>', widthClass: 'w-full', fill: true })
-    await tick(100)
+    await vi.runAllTimersAsync()
     const { container, content, body, inner } = nodes(item.id)
 
     expect(classesOf(container)).toEqual(expect.arrayContaining(styleClasses('containerFill')))
@@ -50,7 +60,7 @@ describe('Box fill mode', () => {
 
   it('lets heightClass replace the fill height', async () => {
     const item = box.open({ content: 'x', heightClass: 'h-[30rem]', fill: true })
-    await tick(100)
+    await vi.runAllTimersAsync()
     const cls = classesOf(nodes(item.id).container)
 
     expect(cls).toContain('h-[30rem]')
@@ -59,7 +69,7 @@ describe('Box fill mode', () => {
 
   it('lets numeric height replace the fill height', async () => {
     const item = box.open({ content: 'x', height: 480, fill: true })
-    await tick(100)
+    await vi.runAllTimersAsync()
     const { container } = nodes(item.id)
 
     styleClasses('containerFill').forEach((c) => expect(classesOf(container)).not.toContain(c))
@@ -68,7 +78,7 @@ describe('Box fill mode', () => {
 
   it('keeps the block layout when fill is off', async () => {
     const item = box.open({ content: 'x', heightClass: 'h-[30rem]' })
-    await tick(100)
+    await vi.runAllTimersAsync()
     const { content, body } = nodes(item.id)
 
     expect(classesOf(content)).not.toContain('min-h-0')
@@ -78,7 +88,7 @@ describe('Box fill mode', () => {
   it('stretches the HTMX loading placeholder in fill mode', async () => {
     window.htmx = { process: () => {} }
     const item = box.open({ hxUrl: '/fragment', fill: true })
-    await tick(100)
+    await vi.runAllTimersAsync()
     const { inner } = nodes(item.id)
 
     expect(classesOf(inner)).toEqual(expect.arrayContaining(styleClasses('bodyFill')))
