@@ -3,7 +3,7 @@ export default {
     ok: '확인',
     cancel: '취소',
     loading: '불러오는 중',
-    close: '닫기',
+    close: '닫기'
   },
   valid: {
     required: '필수 입력 항목이에요',
@@ -28,7 +28,7 @@ export default {
     url: 'URL 형식이 올바르지 않아요',
     pwd: '비밀번호는 8~72자이며 영문과 숫자를 포함해야 하고, _!@#$%^&*()+-=를 사용할 수 있어요',
     strongpwd: '비밀번호는 8~80자이며 영문, 숫자, 특수문자 1자 이상(@$!%*#?&)을 포함해야 해요',
-    summary_title: '다음 항목을 수정해 주세요',
+    summary_title: '다음 항목을 수정해 주세요'
   },
-  charCount: '남은 글자: {count}',
-};
+  charCount: '남은 글자: {count}'
+}

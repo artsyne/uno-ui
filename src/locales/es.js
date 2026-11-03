@@ -3,7 +3,7 @@ export default {
     ok: 'Aceptar',
     cancel: 'Cancelar',
     loading: 'Cargando',
-    close: 'Cerrar',
+    close: 'Cerrar'
   },
   valid: {
     required: 'Obligatorio',
@@ -27,8 +27,9 @@ export default {
     date: 'Formato de fecha no válido (YYYY-MM-DD)',
     url: 'URL no válida',
     pwd: 'La contraseña debe tener entre 8 y 72 caracteres, incluir letras y números y puede contener _!@#$%^&*()+-=',
-    strongpwd: 'La contraseña debe tener entre 8 y 80 caracteres, incluir letras, números y al menos 1 carácter especial (@$!%*#?&)',
-    summary_title: 'Corrige los siguientes problemas',
+    strongpwd:
+      'La contraseña debe tener entre 8 y 80 caracteres, incluir letras, números y al menos 1 carácter especial (@$!%*#?&)',
+    summary_title: 'Corrige los siguientes problemas'
   },
-  charCount: 'Restantes: {count}',
-};
+  charCount: 'Restantes: {count}'
+}

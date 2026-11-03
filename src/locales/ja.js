@@ -3,7 +3,7 @@ export default {
     ok: '確認',
     cancel: 'キャンセル',
     loading: '読み込み中',
-    close: '閉じる',
+    close: '閉じる'
   },
   valid: {
     required: '必須です',
@@ -27,8 +27,9 @@ export default {
     date: '日付の形式が正しくありません（YYYY-MM-DD）',
     url: 'URL の形式が正しくありません',
     pwd: 'パスワードは 8〜72 文字で、英字と数字を含み、_!@#$%^&*()+-= も使用できます',
-    strongpwd: 'パスワードは 8〜80 文字で、英字・数字を含み、記号（@$!%*#?&）を 1 文字以上含めてください',
-    summary_title: '次の問題を修正してください',
+    strongpwd:
+      'パスワードは 8〜80 文字で、英字・数字を含み、記号（@$!%*#?&）を 1 文字以上含めてください',
+    summary_title: '次の問題を修正してください'
   },
-  charCount: '残り：{count}',
-};
+  charCount: '残り：{count}'
+}

@@ -3,7 +3,7 @@ export default {
     ok: 'OK',
     cancel: 'Abbrechen',
     loading: 'Wird geladen',
-    close: 'Schließen',
+    close: 'Schließen'
   },
   valid: {
     required: 'Erforderlich',
@@ -27,8 +27,9 @@ export default {
     date: 'Ungültiges Datumsformat (YYYY-MM-DD)',
     url: 'Ungültige URL',
     pwd: 'Das Passwort muss 8-72 Zeichen lang sein, Buchstaben und Zahlen enthalten; außerdem sind _!@#$%^&*()+-= erlaubt',
-    strongpwd: 'Das Passwort muss 8-80 Zeichen lang sein, Buchstaben, Zahlen und mindestens ein Sonderzeichen (@$!%*#?&) enthalten',
-    summary_title: 'Bitte behebe die folgenden Probleme',
+    strongpwd:
+      'Das Passwort muss 8-80 Zeichen lang sein, Buchstaben, Zahlen und mindestens ein Sonderzeichen (@$!%*#?&) enthalten',
+    summary_title: 'Bitte behebe die folgenden Probleme'
   },
-  charCount: 'Verbleibend: {count}',
-};
+  charCount: 'Verbleibend: {count}'
+}
