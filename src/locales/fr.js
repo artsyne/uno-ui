@@ -27,7 +27,7 @@ export default {
     date: 'Format de date invalide (AAAA-MM-JJ)',
     url: 'URL invalide',
     pwd: 'Le mot de passe doit comporter entre 8 et 72 caractères, contenir des lettres et des chiffres, et peut inclure _!@#$%^&*()+-=',
-    strongpwd: 'Le mot de passe doit comporter entre 8 et 80 caractères, contenir des lettres, des chiffres et au moins un caractère spécial (_@#$%^&*()+-=)',
+    strongpwd: 'Le mot de passe doit comporter entre 8 et 80 caractères, contenir des lettres, des chiffres et au moins un caractère spécial (@$!%*#?&)',
     summary_title: 'Veuillez corriger les problèmes suivants',
   },
   charCount: 'Caractères restants : {count}',

@@ -742,7 +742,7 @@ const b = new ue(), fe = {
     date: "Invalid date format (YYYY-MM-DD)",
     url: "Invalid URL",
     pwd: "Password must be 8-72 chars, contain letters and numbers, and can include _!@#$%^&*()+-=",
-    strongpwd: "Password must be 8-80 chars, contain letters, numbers, and at least 1 special char (_@#$%^&*()+-=)",
+    strongpwd: "Password must be 8-80 chars, contain letters, numbers, and at least 1 special char (@$!%*#?&)",
     summary_title: "Please fix the following problems"
   },
   charCount: "Remaining: {count}"
@@ -775,7 +775,7 @@ const b = new ue(), fe = {
     date: "无效的日期格式 (YYYY-MM-DD)",
     url: "无效的 URL",
     pwd: "密码需 8-72 位，必须包含字母和数字，可含 _!@#$%^&*()+-= 特殊字符",
-    strongpwd: "密码需 8-80 位，必须包含字母、数字和至少 1 个特殊字符 (_@#$%^&*()+-=)",
+    strongpwd: "密码需 8-80 位，必须包含字母、数字和至少 1 个特殊字符 (@$!%*#?&)",
     summary_title: "请修正以下问题"
   },
   charCount: "剩余: {count}"
@@ -808,7 +808,7 @@ const b = new ue(), fe = {
     date: "無效的日期格式 (YYYY-MM-DD)",
     url: "無效的 URL",
     pwd: "密碼需 8-72 個字元，必須包含字母和數字，可含 _!@#$%^&*()+-= 特殊字元",
-    strongpwd: "密碼需 8-80 個字元，必須包含字母、數字和至少 1 個特殊字元 (_@#$%^&*()+-=)",
+    strongpwd: "密碼需 8-80 個字元，必須包含字母、數字和至少 1 個特殊字元 (@$!%*#?&)",
     summary_title: "請修正以下問題"
   },
   charCount: "剩餘: {count}"
@@ -841,7 +841,7 @@ const b = new ue(), fe = {
     date: "Formato de fecha no válido (YYYY-MM-DD)",
     url: "URL no válida",
     pwd: "La contraseña debe tener entre 8 y 72 caracteres, incluir letras y números y puede contener _!@#$%^&*()+-=",
-    strongpwd: "La contraseña debe tener entre 8 y 80 caracteres, incluir letras, números y al menos 1 carácter especial (_@#$%^&*()+-=)",
+    strongpwd: "La contraseña debe tener entre 8 y 80 caracteres, incluir letras, números y al menos 1 carácter especial (@$!%*#?&)",
     summary_title: "Corrige los siguientes problemas"
   },
   charCount: "Restantes: {count}"
@@ -874,7 +874,7 @@ const b = new ue(), fe = {
     date: "日付の形式が正しくありません（YYYY-MM-DD）",
     url: "URL の形式が正しくありません",
     pwd: "パスワードは 8〜72 文字で、英字と数字を含み、_!@#$%^&*()+-= も使用できます",
-    strongpwd: "パスワードは 8〜80 文字で、英字・数字を含み、記号（_@#$%^&*()+-=）を 1 文字以上含めてください",
+    strongpwd: "パスワードは 8〜80 文字で、英字・数字を含み、記号（@$!%*#?&）を 1 文字以上含めてください",
     summary_title: "次の問題を修正してください"
   },
   charCount: "残り：{count}"
@@ -907,7 +907,7 @@ const b = new ue(), fe = {
     date: "Ungültiges Datumsformat (YYYY-MM-DD)",
     url: "Ungültige URL",
     pwd: "Das Passwort muss 8-72 Zeichen lang sein, Buchstaben und Zahlen enthalten; außerdem sind _!@#$%^&*()+-= erlaubt",
-    strongpwd: "Das Passwort muss 8-80 Zeichen lang sein, Buchstaben, Zahlen und mindestens ein Sonderzeichen (_@#$%^&*()+-=) enthalten",
+    strongpwd: "Das Passwort muss 8-80 Zeichen lang sein, Buchstaben, Zahlen und mindestens ein Sonderzeichen (@$!%*#?&) enthalten",
     summary_title: "Bitte behebe die folgenden Probleme"
   },
   charCount: "Verbleibend: {count}"
@@ -940,7 +940,7 @@ const b = new ue(), fe = {
     date: "Format de date invalide (AAAA-MM-JJ)",
     url: "URL invalide",
     pwd: "Le mot de passe doit comporter entre 8 et 72 caractères, contenir des lettres et des chiffres, et peut inclure _!@#$%^&*()+-=",
-    strongpwd: "Le mot de passe doit comporter entre 8 et 80 caractères, contenir des lettres, des chiffres et au moins un caractère spécial (_@#$%^&*()+-=)",
+    strongpwd: "Le mot de passe doit comporter entre 8 et 80 caractères, contenir des lettres, des chiffres et au moins un caractère spécial (@$!%*#?&)",
     summary_title: "Veuillez corriger les problèmes suivants"
   },
   charCount: "Caractères restants : {count}"
@@ -973,7 +973,7 @@ const b = new ue(), fe = {
     date: "날짜 형식이 올바르지 않아요 (YYYY-MM-DD)",
     url: "URL 형식이 올바르지 않아요",
     pwd: "비밀번호는 8~72자이며 영문과 숫자를 포함해야 하고, _!@#$%^&*()+-=를 사용할 수 있어요",
-    strongpwd: "비밀번호는 8~80자이며 영문, 숫자, 특수문자 1자 이상(_@#$%^&*()+-=)을 포함해야 해요",
+    strongpwd: "비밀번호는 8~80자이며 영문, 숫자, 특수문자 1자 이상(@$!%*#?&)을 포함해야 해요",
     summary_title: "다음 항목을 수정해 주세요"
   },
   charCount: "남은 글자: {count}"
@@ -1006,7 +1006,7 @@ const b = new ue(), fe = {
     date: "Formato de data inválido (YYYY-MM-DD)",
     url: "URL inválida",
     pwd: "A senha deve ter de 8 a 72 caracteres e conter letras e números; pode incluir _!@#$%^&*()+-=",
-    strongpwd: "A senha deve ter de 8 a 80 caracteres e conter letras, números e pelo menos 1 caractere especial (_@#$%^&*()+-=)",
+    strongpwd: "A senha deve ter de 8 a 80 caracteres e conter letras, números e pelo menos 1 caractere especial (@$!%*#?&)",
     summary_title: "Corrija os seguintes problemas"
   },
   charCount: "Restantes: {count}"
@@ -1039,7 +1039,7 @@ const b = new ue(), fe = {
     date: "Неверный формат даты (YYYY-MM-DD)",
     url: "Неверная ссылка",
     pwd: "Пароль должен содержать от 8 до 72 символов, включать буквы и цифры; допускаются символы _!@#$%^&*()+-=",
-    strongpwd: "Пароль должен содержать от 8 до 80 символов, включать буквы, цифры и хотя бы один специальный символ (_@#$%^&*()+-=)",
+    strongpwd: "Пароль должен содержать от 8 до 80 символов, включать буквы, цифры и хотя бы один специальный символ (@$!%*#?&)",
     summary_title: "Пожалуйста, исправьте следующие ошибки"
   },
   charCount: "Осталось: {count}"
@@ -1072,7 +1072,7 @@ const b = new ue(), fe = {
     date: "صيغة التاريخ غير صالحة (YYYY-MM-DD)",
     url: "رابط غير صالح",
     pwd: "يجب أن تتكون كلمة المرور من 8 إلى 72 حرفًا، وأن تحتوي على أحرف وأرقام، ويمكن أن تتضمن _!@#$%^&*()+-=",
-    strongpwd: "يجب أن تتكون كلمة المرور من 8 إلى 80 حرفًا، وأن تحتوي على أحرف وأرقام، ورمز خاص واحد على الأقل (_@#$%^&*()+-=)",
+    strongpwd: "يجب أن تتكون كلمة المرور من 8 إلى 80 حرفًا، وأن تحتوي على أحرف وأرقام، ورمز خاص واحد على الأقل (@$!%*#?&)",
     summary_title: "يُرجى تصحيح المشكلات التالية"
   },
   charCount: "المتبقي: {count}"
@@ -1256,31 +1256,31 @@ function Le(i, e, t, n = {}) {
       E = m.top + u + r, E + d > f && (E = m.top - d - r, I = "top"), C = m.left + (g - c) / 2, C = k(C, !0);
       break;
   }
-  const A = 8, T = A / 2, H = ($, q, se) => Math.min(Math.max($, q), Math.max(q, se)), te = m.left + g / 2, ne = m.top + u / 2;
+  const _ = 8, T = _ / 2, H = ($, q, se) => Math.min(Math.max($, q), Math.max(q, se)), te = m.left + g / 2, ne = m.top + u / 2;
   let P;
   switch (I) {
     case "top":
       P = {
         top: d - T,
-        left: H(te - C - T, 0, c - A)
+        left: H(te - C - T, 0, c - _)
       };
       break;
     case "left":
       P = {
-        top: H(ne - E - T, 0, d - A),
+        top: H(ne - E - T, 0, d - _),
         left: c - T
       };
       break;
     case "right":
       P = {
-        top: H(ne - E - T, 0, d - A),
+        top: H(ne - E - T, 0, d - _),
         left: -T
       };
       break;
     default:
       P = {
         top: -T,
-        left: H(te - C - T, 0, c - A)
+        left: H(te - C - T, 0, c - _)
       };
       break;
   }
@@ -1367,7 +1367,7 @@ const Ie = () => (b.options?.ui?.layers?.tooltip || S("TOOLTIP"), `
          </div>
     </div>
   `);
-let O = 0, _ = null, R = null;
+let O = 0, A = null, R = null;
 const Ue = (i) => {
   const e = () => {
     O || typeof requestAnimationFrame == "function" && (O = requestAnimationFrame(() => {
@@ -1382,7 +1382,7 @@ const Ue = (i) => {
     const o = document.getElementById("uno-tooltip-content");
     o && (R = new ResizeObserver(() => e()), R.observe(o));
   }, r = () => {
-    if (_ || typeof window > "u" || typeof document > "u") return;
+    if (A || typeof window > "u" || typeof document > "u") return;
     const o = () => e(), s = () => e(), a = (c) => {
       if (c.key !== "Escape") return;
       const d = i.store("uno")?.tooltip;
@@ -1393,8 +1393,8 @@ const Ue = (i) => {
       const g = c.target, u = document.getElementById("uno-tooltip-content"), m = d.triggerEl && d.triggerEl.contains(g), w = u && u.contains(g);
       !m && !w && d.hide();
     };
-    window.addEventListener("scroll", o, !0), window.addEventListener("resize", s), window.addEventListener("keydown", a), window.addEventListener("click", l), _ = () => {
-      window.removeEventListener("scroll", o, !0), window.removeEventListener("resize", s), window.removeEventListener("keydown", a), window.removeEventListener("click", l), _ = null;
+    window.addEventListener("scroll", o, !0), window.addEventListener("resize", s), window.addEventListener("keydown", a), window.addEventListener("click", l), A = () => {
+      window.removeEventListener("scroll", o, !0), window.removeEventListener("resize", s), window.removeEventListener("keydown", a), window.removeEventListener("click", l), A = null;
     };
   };
   return {
@@ -1436,7 +1436,7 @@ const Ue = (i) => {
     },
     hide() {
       const o = this.triggerEl, s = this.triggerMode === "click", a = document.getElementById("uno-tooltip-content"), l = document.activeElement, c = !!a && !!l && a.contains(l);
-      this.visible = !1, this.triggerEl = null, this.cleanupTrap && (this.cleanupTrap(), this.cleanupTrap = null), a && this.onPopupKeydown && (a.removeEventListener("keydown", this.onPopupKeydown), this.onPopupKeydown = null), o && this.onTriggerKeydown && (o.removeEventListener("keydown", this.onTriggerKeydown), this.onTriggerKeydown = null), s && o && o.setAttribute && (o.setAttribute("aria-expanded", "false"), o.removeAttribute("aria-describedby")), _ && (_(), _ = null), t(), O && (cancelAnimationFrame(O), O = 0), s && o && typeof o.focus == "function" && (c || l === document.body) && o.focus();
+      this.visible = !1, this.triggerEl = null, this.cleanupTrap && (this.cleanupTrap(), this.cleanupTrap = null), a && this.onPopupKeydown && (a.removeEventListener("keydown", this.onPopupKeydown), this.onPopupKeydown = null), o && this.onTriggerKeydown && (o.removeEventListener("keydown", this.onTriggerKeydown), this.onTriggerKeydown = null), s && o && o.setAttribute && (o.setAttribute("aria-expanded", "false"), o.removeAttribute("aria-describedby")), A && (A(), A = null), t(), O && (cancelAnimationFrame(O), O = 0), s && o && typeof o.focus == "function" && (c || l === document.body) && o.focus();
     },
     /**
      * A3 click 弹层键盘绑定：Tab 循环（trapFocus）、role=menu 内容方向键导航、
@@ -1582,7 +1582,7 @@ const Oe = (i, e = {}) => {
   });
   const n = Ue(i);
   F(i, "tooltip", n), Be(i);
-}, _e = () => `
+}, Ae = () => `
   <template x-for="(items, position) in $store.uno.notify.groups" :key="position">
     <div :class="$store.uno.notify.getContainerClass(position)"
          :style="$store.uno.notify.getContainerStyle(position)">
@@ -1659,7 +1659,7 @@ const Oe = (i, e = {}) => {
       </template>
     </div>
   </template>
-`, Ae = () => `
+`, _e = () => `
     <div :class="Uno.getStyle('notify', 'progressWrap')"
          style="z-index: ${S("MAX")}"
          x-show="$store.uno.notify.progressVisible"
@@ -1754,12 +1754,12 @@ const Oe = (i, e = {}) => {
     return [t, n, r.flexDir, r.alignItems].join(" ");
   },
   ensureContainer() {
-    const e = "uno-notify-container", t = _e(), n = V.ensureContainer(e, t, {
+    const e = "uno-notify-container", t = Ae(), n = V.ensureContainer(e, t, {
       "x-data": "{}"
       // Independent Alpine component
     });
     n && i.initTree && i.initTree(n);
-    const r = "uno-global-progress", o = Ae(), s = V.ensureContainer(r, o, {
+    const r = "uno-global-progress", o = _e(), s = V.ensureContainer(r, o, {
       "x-data": "{}"
     });
     s && i.initTree && i.initTree(s);
@@ -2363,7 +2363,7 @@ const qe = (i, e = {}) => {
   pwd: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!_@#$%^&*()+\-=]{8,72}$/,
   // Password must be 8-72 chars, contain letters and numbers, and can include _!@#$%^&*()+-= special characters
   strongpwd: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,80}$/
-  // Password must be 8-80 chars, contain letters, numbers, and at least 1 special char (_@#$%^&*()+-=)
+  // Password must be 8-80 chars, contain letters, numbers, and at least 1 special char (@$!%*#?&)
 };
 let je = 0;
 const Ve = (i) => ({

@@ -112,6 +112,37 @@ describe('Valid Component', () => {
   })
 
   describe('Validation Logic', () => {
+    it.each(['en', 'zh-CN', 'zh-TW', 'es', 'ja', 'de', 'fr', 'ko', 'pt', 'ru', 'ar'])(
+      '%s 强密码默认提示只列出验证器接受的特殊字符',
+      async (locale) => {
+        const { installAlpine } = await import('../../src/core/i18n')
+        installAlpine(Alpine)
+        store.i18n.setLocale(locale)
+        store.uno.valid.addRules('strong', ['strongpwd'])
+        expect(await store.uno.valid.validate('strong', 'Abcd123_')).toBe(false)
+        const message = store.uno.valid.errors.strong
+        const advertised = message.match(/[（(](.+)[）)]/)
+        expect(advertised).not.toBeNull()
+        const symbols = advertised[1]
+        expect(symbols).toBe('@$!%*#?&')
+        expect(message).not.toContain('&amp;')
+        for (const symbol of symbols) {
+          expect(await store.uno.valid.validate('strong', `Abcd123${symbol}`)).toBe(true)
+        }
+        for (const symbol of '_^()+-=') {
+          expect(await store.uno.valid.validate('strong', `Abcd123${symbol}`)).toBe(false)
+        }
+        expect(await store.uno.valid.validate('strong', `Ab1!${'a'.repeat(76)}`)).toBe(true)
+        expect(await store.uno.valid.validate('strong', `Ab1!${'a'.repeat(77)}`)).toBe(false)
+      }
+    )
+
+    it('强密码自定义提示优先于默认译文', async () => {
+      store.uno.valid.addRules('strong', [{ type: 'strongpwd', msg: '自定义错误' }])
+      expect(await store.uno.valid.validate('strong', 'Abcd123_')).toBe(false)
+      expect(store.uno.valid.errors.strong).toBe('自定义错误')
+    })
+
     it('should validate required field', async () => {
       store.uno.valid.addRules('username', ['required'])
 

@@ -127,7 +127,7 @@ export const VALIDATORS = {
 
   // --- Security ---
   pwd: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!_@#$%^&*()+\-=]{8,72}$/, // Password must be 8-72 chars, contain letters and numbers, and can include _!@#$%^&*()+-= special characters
-  strongpwd: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,80}$/ // Password must be 8-80 chars, contain letters, numbers, and at least 1 special char (_@#$%^&*()+-=)
+  strongpwd: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,80}$/ // Password must be 8-80 chars, contain letters, numbers, and at least 1 special char (@$!%*#?&)
 }
 
 /**

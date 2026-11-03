@@ -27,7 +27,7 @@ export default {
     date: 'Formato de data inválido (YYYY-MM-DD)',
     url: 'URL inválida',
     pwd: 'A senha deve ter de 8 a 72 caracteres e conter letras e números; pode incluir _!@#$%^&*()+-=',
-    strongpwd: 'A senha deve ter de 8 a 80 caracteres e conter letras, números e pelo menos 1 caractere especial (_@#$%^&*()+-=)',
+    strongpwd: 'A senha deve ter de 8 a 80 caracteres e conter letras, números e pelo menos 1 caractere especial (@$!%*#?&)',
     summary_title: 'Corrija os seguintes problemas',
   },
   charCount: 'Restantes: {count}',

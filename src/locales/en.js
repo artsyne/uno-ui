@@ -28,7 +28,7 @@ export default {
     url: 'Invalid URL',
     pwd: 'Password must be 8-72 chars, contain letters and numbers, and can include _!@#$%^&*()+-=',
     strongpwd:
-      'Password must be 8-80 chars, contain letters, numbers, and at least 1 special char (_@#$%^&*()+-=)',
+      'Password must be 8-80 chars, contain letters, numbers, and at least 1 special char (@$!%*#?&)',
     summary_title: 'Please fix the following problems'
   },
   charCount: 'Remaining: {count}'
