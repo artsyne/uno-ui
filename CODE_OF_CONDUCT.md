@@ -59,8 +59,9 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-[INSERT CONTACT EMAIL].
+reported to the community leaders responsible for enforcement through the
+maintainers' GitHub presence at [https://github.com/artsyne](https://github.com/artsyne).
+If a private channel is needed, ask a maintainer there before sharing details.
 
 All complaints will be reviewed and investigated promptly and fairly.
 

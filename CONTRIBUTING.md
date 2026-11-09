@@ -1,335 +1,228 @@
 # Contributing to Uno UI
 
-Thank you for your interest in contributing to Uno UI! We welcome contributions from everyone. This document provides guidelines for contributing to the project.
+Thanks for contributing. This guide covers the local workflow, tests, documentation, the
+tracked `dist/` policy and the release process.
 
-## Code of Conduct
+By participating, you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md).
+## Prerequisites
 
-## How Can I Contribute?
+- Node.js >= 20.19. CI uses the version in `.nvmrc` (24).
+- npm (the lockfile is version 3).
+- A public npm registry; `.npmrc` pins `https://registry.npmjs.org/`.
 
-### Reporting Bugs
-
-Before submitting a bug report:
-
-- **Check existing issues** to avoid duplicates
-- **Use a clear and descriptive title**
-- **Describe the exact steps** to reproduce the problem
-- **Provide specific examples** to demonstrate the steps
-- **Describe the behavior** you observed and what you expected
-- **Include screenshots** if applicable
-- **Specify your environment** (browser, OS, Alpine.js version, etc.)
-
-### Suggesting Enhancements
-
-Enhancement suggestions are tracked as GitHub issues. When creating an enhancement suggestion:
-
-- **Use a clear and descriptive title**
-- **Provide a detailed description** of the proposed feature
-- **Explain why this enhancement would be useful**
-- **List any similar features** in other libraries
-- **Include mockups or examples** if possible
-
-### Pull Requests
-
-#### Development Workflow
-
-1. **Fork the repository** and create your branch from `main`:
-
-   ```bash
-   git checkout -b feature/my-feature
-   # or
-   git checkout -b fix/issue-123
-   ```
-
-2. **Install dependencies**:
-
-   ```bash
-   npm install
-   ```
-
-3. **Make your changes**:
-   - Follow the [coding style](#coding-style)
-   - Add tests for your changes
-   - Update documentation as needed
-
-4. **Run tests**:
-
-   ```bash
-   npm run test:run     # Run all unit tests once
-   npm run lint         # Linting
-   ```
-
-5. **Commit your changes**:
-
-   ```bash
-   git commit -m "feat: add new feature"
-   # or
-   git commit -m "fix: resolve issue #123"
-   ```
-
-   Use [Conventional Commits](https://www.conventionalcommits.org/) format:
-   - `feat:` for new features
-   - `fix:` for bug fixes
-   - `docs:` for documentation changes
-   - `test:` for adding or updating tests
-   - `refactor:` for code refactoring
-   - `perf:` for performance improvements
-   - `chore:` for maintenance tasks
-
-6. **Push to your fork** and submit a pull request
-
-#### Pull Request Guidelines
-
-- **One feature per PR**: Keep pull requests focused on a single feature or fix
-- **Update documentation**: Include relevant documentation updates
-- **Add tests**: Ensure your changes are covered by tests
-- **Pass all tests**: All tests must pass before merging
-- **Follow code style**: Use ESLint and Prettier
-- **Update CHANGELOG**: Add an entry to `CHANGELOG.md` for user-facing changes
-- **Link issues**: Reference related issues in the PR description
-
-## Coding Style
-
-### JavaScript/TypeScript
-
-- **ES6+ syntax**: Use modern JavaScript features
-- **ESLint**: Follow the project's ESLint configuration
-- **Prettier**: Format code with Prettier
-- **JSDoc comments**: Document public APIs with JSDoc
-
-Example:
-
-```javascript
-/**
- * Show a notification message
- *
- * @param {string} message - The notification message
- * @param {Object} [options] - Configuration options
- * @param {string} [options.type='info'] - Notification type (info, success, error, warning)
- * @param {number} [options.duration=3000] - Display duration in milliseconds
- * @returns {Object} Notification item instance
- *
- * @example
- * Alpine.store('uno').notify.show('Hello World', { type: 'success' })
- */
-show(message, options = {}) {
-  // Implementation
-}
+```bash
+git clone https://github.com/artsyne/uno-ui.git
+cd uno-ui
+npm ci
 ```
 
-### Naming Conventions
+Use `npm ci` for a clean, lockfile-exact install. `npm install` is fine for local experiments but
+may update the lockfile.
 
-- **camelCase** for variables and functions
-- **PascalCase** for classes and components
-- **UPPER_CASE** for constants
-- **kebab-case** for file names
+## Repository layout
 
-### Architecture Guidelines
-
-Uno UI follows a **Store-First, Directive-Driven** architecture:
-
-1. **Store-First**: State management via Alpine.js stores
-
-   ```javascript
-   Alpine.store('uno').componentName.method()
-   ```
-
-2. **Directive-Driven**: Declarative HTML interface
-
-   ```html
-   <button x-uno-componentName="{ option: value }">Click</button>
-   ```
-
-3. **4-Level Configuration**: Support multiple configuration levels
-   - Plugin Defaults
-   - Global User Config (via `plugins`)
-   - Direct Global Config
-   - Instance Config (highest priority)
-
-4. **Plugin Registry**: Use unified plugin registration
-   ```javascript
-   import { registerPlugin } from '../../core/plugin-registry'
-   registerPlugin(Alpine, 'componentName', componentStore)
-   ```
-
-## Testing
-
-### Unit Tests
-
-- Use **Vitest** for unit tests
-- Test files: `tests/**/*.test.js`
-- Coverage goal: 100% for core functionality
-- All components and utilities must have comprehensive unit tests
-
-Example:
-
-```javascript
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-
-describe('Component Store', () => {
-  let store
-  let Alpine
-
-  beforeEach(() => {
-    // Setup mocks
-    Alpine = {
-      store: vi.fn(),
-      nextTick: vi.fn((fn) => setTimeout(fn, 0))
-    }
-
-    // Create store instance
-    store = createComponentStore(Alpine)
-  })
-
-  it('should initialize with default state', () => {
-    expect(store.items).toEqual([])
-    expect(store.visible).toBe(false)
-  })
-
-  it('should update state correctly', () => {
-    store.show({ content: 'Test' })
-    expect(store.visible).toBe(true)
-  })
-})
+```text
+src/
+├── components/   # box, notify, tooltip, tab, valid (store / directive / template)
+├── core/         # uno instance, i18n, layer, plugin registry
+├── locales/      # 11 locale modules
+├── utils/        # dom, position, validation, a11y, log, object
+└── index.js      # public entry, plugin registration, Alpine auto-registration
+types/            # public TypeScript declarations
+tests/            # Vitest suites and the axe helper
+examples/         # browser demos using the built dist/
+docs/             # documentation (English; the root README is Chinese)
+dist/             # tracked build output
 ```
 
-**Test Coverage Requirements:**
+## Development commands
 
-- ✅ All public methods must be tested
-- ✅ Edge cases and error handling must be covered
-- ✅ Configuration merge logic must be verified
-- ✅ Callbacks and event handlers must be tested
-- ✅ Integration with Uno.getConfig() must be validated
+| Command | Purpose |
+| :--- | :--- |
+| `npm run dev` | Vite dev server on fixed port 5176; opens `examples/index.html`. |
+| `npm run build` | Build `dist/uno.es.js` and `dist/uno.umd.js`. |
+| `npm run test` | Vitest watch mode. |
+| `npm run test:run` | Single test run; CI entry point. |
+| `npm run lint` | ESLint. |
+| `npm run format` | Prettier write. |
+
+## The `dist/` policy
+
+`dist/` is committed and is part of the published package.
+
+- Do not edit `dist/` by hand.
+- After any `src/` change, run `npm run build` and commit the resulting `dist/` files with the
+  source change.
+- CI runs `npm run build` and then `git diff --exit-code dist`. A source change with a stale
+  bundle fails.
+- Documentation-only changes must not modify `dist/`.
+
+```bash
+npm run build
+git diff --exit-code dist
+```
+
+## Tests
+
+- Vitest, with `happy-dom` as the default environment. Axe suites opt into jsdom per file.
+- Component tests live in `tests/components/`, core in `tests/core/`, utilities in
+  `tests/utils/`.
+- `tests/types/types.test.ts` is not collected by `npm run test:run` (the include pattern is
+  `tests/**/*.test.js`). Type changes should be checked with a separate config.
+- There is no coverage provider configured and no coverage threshold. Do not claim a coverage
+  percentage in documentation or PRs.
+- Add tests for behavior changes and edge cases. Accessibility contracts belong in tests, not
+  only in docs.
+
+```bash
+npm run test:run
+npm run test:run -- tests/components/box.test.js
+npm run lint
+```
+
+## Coding style
+
+- Prettier config: no semicolons, single quotes, 2 spaces, no trailing commas, width 100.
+- ESLint uses `@eslint/js` recommended plus `eslint-config-prettier`; `dist/` is ignored.
+- Modern ESM syntax; browser globals plus `Alpine` and `htmx` are declared read-only.
+- Public functions and stores use JSDoc.
+- camelCase for variables/functions, PascalCase for classes/components, UPPER_CASE for
+  constants, kebab-case for file names.
+
+## Architecture
+
+Uno follows **Store-First, Directive-Driven**:
+
+1. **Store** — state and behavior live in `Alpine.store('uno').<component>`. The plugin
+   registry re-registers the whole `uno` store so nested properties stay reactive.
+2. **Directive** — `x-uno-*` reads its expression, attaches listeners, calls the store and cleans
+   up with Alpine's `cleanup`.
+3. **Template** — markup lives in `*.template.js` and is injected into a lazily created
+   container. Templates use Alpine expressions and the global `Uno` object.
+4. **Configuration** — `Uno.getConfig(name, instanceOpts)` merges plugin defaults,
+   `plugins.<name>`, top-level `<name>` and instance options, in that order.
+5. **Layer** — z-index constants live in `src/core/layer.js`; `ui.layers` overrides the three
+   manager values.
+
+Read [Core Concepts](docs/concepts.md) and [Configuration](docs/configuration.md) before adding a
+component.
+
+## Adding or changing a component
+
+1. Create or update `src/components/<name>/`:
+   - `index.js` — plugin factory, default registration, store/directive registration.
+   - `<name>.store.js` — state and public actions.
+   - `<name>.directive.js` — directives and DOM listeners.
+   - `<name>.template.js` — template strings, if the component renders DOM.
+2. Register plugin defaults with `Uno.registerPluginDefaults(name, defaults)`.
+3. Register the store with `registerPlugin(Alpine, name, store)`.
+4. Add tests under `tests/components/`. Include accessibility behavior in the tests.
+5. Update the public types in `types/index.d.ts`.
+6. Add or update the API page under `docs/` using the standard API order:
+   purpose → minimal example → directive → store API → options → events/callbacks →
+   accessibility → notes → related links.
+7. Add a demo page under `examples/components/` and link it from `examples/index.html`.
+8. Update `CHANGELOG.md` under `Unreleased` or the target version.
+9. Run `npm run build` and commit `dist/`.
 
 ## Documentation
 
-### API Documentation
+- The root `README.md` is Chinese. All other documentation is English.
+- `docs/` is the documentation hub; keep `docs/README.md` links current.
+- API option tables use **Name / Type / Default / Description** and defaults must match
+  `src/core/uno.js` and the plugin factories.
+- Do not document APIs, defaults, browser support or performance numbers that the source and
+  tests do not support.
+- Mark npm/CDN examples that require the published package with **after first publish**.
+- Do not reference private project docs or internal repositories.
+- Prefer one canonical page per topic; link instead of duplicating a section.
 
-- Document all public APIs with JSDoc
-- Include parameter types and descriptions
-- Provide usage examples
-- Update relevant `.md` files in `doc/`
+## Commit messages
 
-### README Updates
+Use [Conventional Commits](https://www.conventionalcommits.org/):
 
-Update `README.md` if your changes:
+```text
+feat: add component X
+fix: correct focus restore in nested dialogs
+docs: document Valid error summary
+test: cover tab RTL arrow handling
+refactor: extract shared position helper
+perf: avoid duplicate HTMX listeners
+chore: release 0.10.0
+```
 
-- Add new features
-- Change installation steps
-- Modify usage examples
-- Update supported environments
+Keep one logical change per commit. Do not mix formatting-only changes with behavior changes.
 
-### TypeScript Definitions
+## Pull requests
 
-- Update `types/index.d.ts` for API changes
-- Ensure type definitions match implementation
-- Test TypeScript usage in `doc/typescript-usage.md`
+1. Branch from `main`.
+2. Keep the PR focused; update tests and docs.
+3. Run `npm run lint` and `npm run test:run`.
+4. If `src/` changed, rebuild and commit `dist/`.
+5. Fill in the PR template: summary, type, tests, docs, `dist` confirmation.
+6. Link related issues.
+7. Wait for CI to pass.
 
-## Component Development
+Reviewers check behavior, tests, accessibility impact, documentation accuracy and the `dist/`
+diff.
 
-### Creating a New Component
+## Release process
 
-1. **Create component directory**:
+The package is `@artsyne/uno-ui` under the `@artsyne` npm scope. It has not been published yet;
+the first publish establishes the version and provenance.
 
-   ```
-   src/components/mycomponent/
-   ├── index.js           # Plugin factory
-   ├── mycomponent.store.js   # Store logic
-   ├── mycomponent.directive.js  # Directive registration
-   └── mycomponent.template.js   # HTML templates
-   ```
+Before tagging:
 
-2. **Implement Store-First pattern**:
+1. Confirm `main` is green and the working tree is clean.
+2. Update the version in `package.json` (and the lockfile) and add the matching heading to
+   `CHANGELOG.md`.
+3. Run the full check:
 
-   ```javascript
-   // mycomponent.store.js
-   export const createMyComponentStore = (Alpine) => ({
-     // State
-     items: [],
+```bash
+npm ci
+npm run lint
+npm run test:run
+npm run build
+git diff --exit-code dist
+npm pack --dry-run
+```
 
-     // Methods
-     doSomething(options) {
-       const config = Uno.getConfig('mycomponent', options)
-       // Implementation
-     }
-   })
-   ```
+4. Commit `chore(release): x.y.z`.
+5. Create the tag `vX.Y.Z` and push both the commit and the tag.
+6. Publish from a provenance-capable environment:
 
-3. **Register plugin**:
+```bash
+npm login            # account with access to the @artsyne scope
+npm publish --access public --provenance
+```
 
-   ```javascript
-   // index.js
-   import { Uno } from '../../core/uno'
-   import { registerPlugin } from '../../core/plugin-registry'
-   import { createMyComponentStore } from './mycomponent.store'
-   import { registerMyComponentDirectives } from './mycomponent.directive'
+- `--access public` is required for a scoped package that should be public.
+- `--provenance` requires a supported CI/OIDC environment; do not assume a local shell produces
+  a valid attestation.
+- `prepublishOnly` reruns `test:run` and `build`, so a stale `dist/` cannot be published.
+- Never publish from a dirty tree or a branch other than the release commit.
 
-   export default (Alpine, options = {}) => {
-     // Register plugin defaults
-     Uno.registerPluginDefaults('mycomponent', {
-       /* defaults */
-     })
+7. Verify `npm view @artsyne/uno-ui version` and create the GitHub release.
 
-     // Register store
-     const store = createMyComponentStore(Alpine)
-     registerPlugin(Alpine, 'mycomponent', store)
+2FA is required on the publishing account. Do not share tokens in issues or pull requests.
 
-     // Register directives
-     registerMyComponentDirectives(Alpine)
-   }
-   ```
+## Security
 
-4. **Add tests**:
-   - Unit tests: `tests/components/mycomponent.test.js`
-   - Test all public methods, edge cases, and configuration merge
-   - Ensure 100% coverage of core functionality
+- Do not open a public issue for a vulnerability. Follow [SECURITY.md](SECURITY.md).
+- Keep dependencies minimal; the only runtime dependency is `alpinejs`.
+- Sanitize untrusted content on the server or with a dedicated sanitizer; Uno's regex sanitizer
+  is not a general-purpose protection.
+- CSP nonce support does not make Alpine's expression evaluator CSP-safe. See
+  [CSP](docs/csp.md).
 
-5. **Create documentation**:
-   - API docs: `doc/mycomponent-api.md`
-   - Update `README.md`
-   - Add TypeScript types to `types/index.d.ts`
+## Getting help
 
-6. **Add examples**:
-   - Create `examples/components/mycomponent.html`
-
-## Performance Guidelines
-
-- **Minimize DOM operations**: Batch updates, use RAF when needed
-- **Avoid memory leaks**: Clean up event listeners, use WeakMap/WeakSet
-- **Lazy initialization**: Initialize components only when needed
-- **Bundle size**: Keep the library lightweight (<25KB gzip)
-
-## Security Guidelines
-
-- **XSS Prevention**: Sanitize all user-provided HTML
-- **CSP Support**: Support Content Security Policy with nonce
-- **Dependency Security**: Minimize dependencies, use trusted sources
-- **Input Validation**: Validate all user inputs
-
-## Release Process
-
-1. **Update version** in `package.json`
-2. **Update CHANGELOG.md** with all changes
-3. **Run the full check**: `npm run lint && npm run test:run`
-4. **Build**: `npm run build`
-5. **Create release commit**: `git commit -m "chore: release v0.x.0"`
-6. **Tag release**: `git tag v0.x.0`
-7. **Push**: `git push && git push --tags`
-8. **Publish**: `npm publish --provenance --access public`
-
-The GitHub Actions CI must be green on `main` before tagging. `prepublishOnly` reruns the test suite and the build, so a stale `dist/` cannot be published.
-
-## Getting Help
-
-- **GitHub Discussions**: Ask questions and discuss ideas
-- **GitHub Issues**: Report bugs and request features
-- **Documentation**: Read the docs in `doc/` and `README.md`
+- Documentation: start at [docs/README.md](docs/README.md).
+- Bugs and features: use the issue templates.
+- Security: [SECURITY.md](SECURITY.md).
+- Code of conduct reports: see [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
-
----
-
-Thank you for contributing to Uno UI! 🎉
+By contributing, you agree that your contributions are licensed under the MIT License.
