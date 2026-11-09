@@ -66,8 +66,10 @@ are unchanged.
 - `extraButtons` support was added. Each item takes `text`, optional `position`
   (`'before'`/`'after'`), `buttonClass`, and an `onClick` that may return `false` (or a Promise
   resolving to `false`) to keep the dialog open.
-- `confirm()` and `prompt()` now compose user `onOk`/`onCancel`/`onClose` callbacks with the
-  internal Promise resolver instead of letting them overwrite it.
+- `confirm()` composes user `onOk`/`onCancel`/`onClose` callbacks with the internal Promise
+  resolver instead of letting them overwrite it; closing the dialog resolves `false`.
+- `prompt()` composes `onOk`/`onCancel`; `onClose` is passed through but does not resolve the
+  prompt Promise (known limitation).
 - `handleExtraButton()` was added to the store.
 
 ### Notify

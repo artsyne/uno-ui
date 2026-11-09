@@ -170,7 +170,7 @@ of the other three values) when you want the default visual treatment.
 
 | Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `realtime` | `boolean` | `true` | Registered default; validation currently runs on `input` and `blur` regardless. |
+| `realtime` | `boolean` | `true` | Registered default; the global value is not read. Per-rule `realtime: false` still skips the input pass. |
 | `showError` | `boolean` | `true` | Registered default; not read by the current store. |
 | `scrollOnError` | `boolean` | `true` | When `false`, `validateForm()` does not scroll or focus the first error/summary. |
 

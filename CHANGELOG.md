@@ -75,9 +75,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Tooltip**: `updatePosition()` reads the `position` field returned by `calculatePosition()`.
 - **Tooltip**: direct string content is sanitized like target-sourced content.
 - **Notify**: `remove()` writes `isVisible`, so leave transitions play.
-- **Box**: `confirm()` / `prompt()` compose user `onOk` / `onCancel` / `onClose` callbacks with
-  the internal Promise resolver instead of letting them overwrite it. An `onOk` returning
-  `false` keeps the dialog open.
+- **Box**: `confirm()` / `prompt()` compose user `onOk` / `onCancel` callbacks with the internal
+  Promise resolver instead of letting them overwrite it. `confirm()` also resolves on close;
+  `prompt()` does not resolve on close (known limitation). An `onOk` returning `false` keeps the
+  dialog open.
 
 ### Changed
 

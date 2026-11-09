@@ -34,7 +34,50 @@ npm run dev
 > `npm run build` is only necessary after changing `src/`. `dist/` is tracked in the repository
 > and CI verifies that it matches the source.
 
-## 2. Use the UMD bundle from a local copy
+## 2. Use the CDN (UMD)
+
+The published UMD bundle is available from jsDelivr and unpkg. Pin the version and keep Uno
+before Alpine:
+
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Uno CDN example</title>
+
+    <!-- 1. Tailwind 4 (browser build for prototyping) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <!-- 2. Uno UI from the npm registry -->
+    <script src="https://cdn.jsdelivr.net/npm/@artsyne/uno-ui@0.10.0/dist/uno.umd.js" defer></script>
+
+    <!-- 3. Alpine.js -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.17.3/dist/cdn.min.js" defer></script>
+  </head>
+  <body>
+    <button x-data @click="$store.uno.box.alert('Hello from the CDN')">Open dialog</button>
+  </body>
+</html>
+```
+
+The same file is available from unpkg:
+
+```html
+<script src="https://unpkg.com/@artsyne/uno-ui@0.10.0/dist/uno.umd.js" defer></script>
+```
+
+Notes:
+
+- `@0.10.0` is a pinned version. Update it deliberately when you upgrade.
+- The CDN serves JavaScript only. Tailwind CSS is still required; the browser build above is for
+  prototypes. Use the build-time setup in [Theming](theming.md) for production.
+- To apply configuration before initialization, load a small config file after Uno and before
+  Alpine, as shown in the local UMD section below.
+- HTMX is optional and can be loaded before Uno; see [HTMX integration](htmx.md).
+
+## 3. Use the UMD bundle from a local copy
 
 Uno must be served over HTTP. Opening an HTML file with `file://` prevents `fetch` and HTMX
 requests from working, and may block module scripts.
@@ -85,7 +128,7 @@ Alpine initializes the page. Loading Alpine first is different: Alpine starts an
 before Uno registers `x-uno-*` directives, so the components on that page are ignored. See
 [Alpine loading paths](#alpine-loading-paths) below for the supported alternative.
 
-## 3. Use ESM and a bundler
+## 4. Use ESM and a bundler
 
 ```bash
 npm install @artsyne/uno-ui alpinejs

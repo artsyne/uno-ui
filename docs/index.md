@@ -37,6 +37,13 @@ features:
 npm install @artsyne/uno-ui alpinejs
 ```
 
+Or load the UMD bundle from jsDelivr:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@artsyne/uno-ui@0.10.0/dist/uno.umd.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.17.3/dist/cdn.min.js" defer></script>
+```
+
 Load Uno before Alpine, and let Tailwind CSS 4 scan the package source:
 
 ```css

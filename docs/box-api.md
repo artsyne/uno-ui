@@ -180,6 +180,9 @@ Returns the flex alignment classes for a 9-point position. Mainly used by the te
 `BoxPosition` values: `center`, `top-left`, `top-center`, `top-right`, `center-left`,
 `center-right`, `bottom-left`, `bottom-center`, `bottom-right`.
 
+`defaultWidth` and `defaultPosition` are plugin-level defaults, not per-instance options; they are
+read when `width` / `position` are absent. See [Configuration](configuration.md#plugin-defaults).
+
 ## Extra buttons
 
 | Name | Type | Default | Description |
