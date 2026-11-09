@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/artsyne/uno-ui/tree/main/docs
+    about: Read the getting-started, API, integration and troubleshooting guides.
+  - name: Security report
+    url: https://github.com/artsyne/uno-ui/security/advisories/new
+    about: Report a vulnerability privately. Do not open a public issue.

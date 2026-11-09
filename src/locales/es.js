@@ -1,0 +1,35 @@
+export default {
+  box: {
+    ok: 'Aceptar',
+    cancel: 'Cancelar',
+    loading: 'Cargando',
+    close: 'Cerrar'
+  },
+  valid: {
+    required: 'Obligatorio',
+    pattern: 'Formato no válido',
+    min: 'Al menos {n} caracteres',
+    max: 'Máximo {n} caracteres',
+    counter: '{current} de {max} caracteres ingresados',
+    range: 'Debe estar entre {min} y {max}',
+    rangeMin: 'Mín. {n}',
+    rangeMax: 'Máx. {n}',
+    match: 'Los campos no coinciden',
+    compareto: 'No coincide',
+    tagMax: 'Máximo {n} elementos',
+    callback: 'Error de validación',
+    validname: 'Solo letras, números, guion (-) y guion bajo (_), de 3 a 16 caracteres',
+    en: 'Solo letras del alfabeto inglés',
+    domain: 'Formato de dominio no válido',
+    mobile: 'Número de celular no válido',
+    int: 'Se requiere un número entero',
+    email: 'Correo electrónico no válido',
+    date: 'Formato de fecha no válido (YYYY-MM-DD)',
+    url: 'URL no válida',
+    pwd: 'La contraseña debe tener entre 8 y 72 caracteres, incluir letras y números y puede contener _!@#$%^&*()+-=',
+    strongpwd:
+      'La contraseña debe tener entre 8 y 80 caracteres, incluir letras, números y al menos 1 carácter especial (@$!%*#?&)',
+    summary_title: 'Corrige los siguientes problemas'
+  },
+  charCount: 'Restantes: {count}'
+}

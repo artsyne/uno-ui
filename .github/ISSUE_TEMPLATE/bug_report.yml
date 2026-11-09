@@ -1,0 +1,89 @@
+name: Bug report
+description: Report a reproducible bug in Uno UI
+title: '[Bug]: '
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before opening a bug, check the documentation and search existing issues.
+        For security vulnerabilities, do not open a public issue — use the security policy instead.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-flight checks
+      options:
+        - label: I have read the documentation in `docs/`.
+          required: true
+        - label: I have searched existing issues.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What is wrong?
+      placeholder: A clear and concise description of the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: HTML/JS that reproduces the issue. Prefer the committed `dist/` bundle.
+      render: html
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: uno-version
+    attributes:
+      label: Uno version / commit
+      placeholder: 0.10.0 or a commit SHA
+    validations:
+      required: true
+  - type: input
+    id: alpine-version
+    attributes:
+      label: Alpine.js version
+      placeholder: 3.17.3
+    validations:
+      required: true
+  - type: input
+    id: htmx-version
+    attributes:
+      label: HTMX version (if used)
+      placeholder: 2.0.10
+  - type: input
+    id: tailwind-version
+    attributes:
+      label: Tailwind CSS version and integration
+      placeholder: 4.x, build-time or browser CDN
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: Chrome 130 / macOS 15
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: Console output
+      description: "Include errors/warnings. Enable `Uno.setConfig({ debug: true })` first."
+      render: text
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
