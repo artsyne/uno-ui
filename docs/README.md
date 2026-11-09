@@ -4,8 +4,8 @@ Uno is a lightweight UI component library for Alpine.js and Tailwind CSS 4, with
 2 integration. The package is published as `@artsyne/uno-ui@0.10.0`; the repository's
 committed `dist/` bundles are still the reference artifacts for unreleased changes.
 
-The repository landing page is available in English ([README.md](../README.md)) and Chinese
-([README.zh-CN.md](../README.zh-CN.md)). All guides under `docs/` are in English.
+The repository landing page is available in English ([README.md](https://github.com/artsyne/uno-ui/blob/main/README.md)) and Chinese
+([README.zh-CN.md](https://github.com/artsyne/uno-ui/blob/main/README.zh-CN.md)). All guides under `docs/` are in English.
 
 ## Choose a path
 
@@ -42,10 +42,10 @@ The repository landing page is available in English ([README.md](../README.md)) 
 
 ### Contributing and maintaining
 
-- [CONTRIBUTING.md](../CONTRIBUTING.md) — local setup, tests, `dist` policy, release.
-- [SECURITY.md](../SECURITY.md) — private reporting, scope, limitations.
-- [CHANGELOG.md](../CHANGELOG.md) — release history.
-- Issue and PR templates are in [.github](../.github/).
+- [CONTRIBUTING.md](https://github.com/artsyne/uno-ui/blob/main/CONTRIBUTING.md) — local setup, tests, `dist` policy, release.
+- [SECURITY.md](https://github.com/artsyne/uno-ui/blob/main/SECURITY.md) — private reporting, scope, limitations.
+- [CHANGELOG.md](https://github.com/artsyne/uno-ui/blob/main/CHANGELOG.md) — release history.
+- Issue and PR templates are in [.github](https://github.com/artsyne/uno-ui/tree/main/.github).
 
 ## Documentation conventions
 
@@ -64,6 +64,7 @@ The repository landing page is available in English ([README.md](../README.md)) 
 | Package | `@artsyne/uno-ui` |
 | Version | `0.10.0` |
 | npm | Published as `@artsyne/uno-ui@0.10.0` |
+| Website | https://artsyne.github.io/uno-ui/ |
 | License | MIT |
 | Node (development) | >= 20.19; CI uses 24 |
 | Runtime dependencies | `alpinejs` |
@@ -71,9 +72,9 @@ The repository landing page is available in English ([README.md](../README.md)) 
 
 ## Related
 
-- [Open-source release notes](../RELEASE.md)
-- [Repository README (English)](../README.md)
-- [Repository README (Chinese)](../README.zh-CN.md)
-- [Contributing](../CONTRIBUTING.md)
-- [Security](../SECURITY.md)
-- [License](../LICENSE)
+- [Open-source release notes](https://github.com/artsyne/uno-ui/blob/main/RELEASE.md)
+- [Repository README (English)](https://github.com/artsyne/uno-ui/blob/main/README.md)
+- [Repository README (Chinese)](https://github.com/artsyne/uno-ui/blob/main/README.zh-CN.md)
+- [Contributing](https://github.com/artsyne/uno-ui/blob/main/CONTRIBUTING.md)
+- [Security](https://github.com/artsyne/uno-ui/blob/main/SECURITY.md)
+- [License](https://github.com/artsyne/uno-ui/blob/main/LICENSE)

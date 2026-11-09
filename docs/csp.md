@@ -125,6 +125,6 @@ and integrations you use.
 
 ## Related
 
-- [Security policy](../SECURITY.md)
+- [Security policy](https://github.com/artsyne/uno-ui/blob/main/SECURITY.md)
 - [Configuration](configuration.md)
 - [Troubleshooting](troubleshooting.md)

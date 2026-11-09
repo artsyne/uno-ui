@@ -169,10 +169,10 @@ console.log(window.Alpine?.store('i18n'))
 ## Getting help
 
 - Check the component API page and [Configuration](configuration.md).
-- Reproduce with the [examples](../examples/index.html) and the committed `dist/`.
+- Reproduce with the [examples](https://github.com/artsyne/uno-ui/blob/main/examples/index.html) and the committed `dist/`.
 - Open an issue with version, Alpine/HTMX/Tailwind versions, browser, minimal HTML and console
   output. Use the issue template.
-- Security issues go through [SECURITY.md](../SECURITY.md), not a public issue.
+- Security issues go through [SECURITY.md](https://github.com/artsyne/uno-ui/blob/main/SECURITY.md), not a public issue.
 
 ## Related
 

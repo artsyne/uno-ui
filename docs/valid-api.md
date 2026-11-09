@@ -116,7 +116,7 @@ Set `valid.emptyQuit: false` globally if you need the opposite default.
 | `strongpwd` | 8–80 chars, letter + digit + one of `@$!%*#?&`. | `^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,80}$` |
 
 The `|` characters inside the regex column are escaped for table rendering; the source uses
-normal alternation. See [src/utils/validation.js](../src/utils/validation.js) for the exact
+normal alternation. See [src/utils/validation.js](https://github.com/artsyne/uno-ui/blob/main/src/utils/validation.js) for the exact
 patterns.
 
 ### Length and range

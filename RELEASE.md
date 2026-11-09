@@ -11,6 +11,7 @@ Uno UI is now open source under the MIT License. This is the first public npm re
 | License | MIT |
 | Repository | https://github.com/artsyne/uno-ui |
 | npm | https://www.npmjs.com/package/@artsyne/uno-ui |
+| Website | https://artsyne.github.io/uno-ui/ |
 
 ## About the project
 

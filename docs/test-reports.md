@@ -88,7 +88,7 @@ demos live under `examples/components/`.
    source build.
 5. `npm pack --dry-run` — the publishable package must be valid.
 
-See [.github/workflows/ci.yml](../.github/workflows/ci.yml).
+See [.github/workflows/ci.yml](https://github.com/artsyne/uno-ui/blob/main/.github/workflows/ci.yml).
 
 ## Coverage
 
@@ -109,5 +109,5 @@ and record the threshold in this document when you do.
 ## Related
 
 - [Accessibility](accessibility.md)
-- [CONTRIBUTING.md](../CONTRIBUTING.md)
-- [CHANGELOG.md](../CHANGELOG.md)
+- [CONTRIBUTING.md](https://github.com/artsyne/uno-ui/blob/main/CONTRIBUTING.md)
+- [CHANGELOG.md](https://github.com/artsyne/uno-ui/blob/main/CHANGELOG.md)

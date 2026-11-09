@@ -168,7 +168,7 @@ can be bypassed. The boundary is:
 | Valid error messages | Rendered with `x-text`; plain text. |
 
 For untrusted HTML, use a dedicated sanitizer such as DOMPurify before passing content to Uno.
-See [Security](../SECURITY.md) and the [CSP guide](csp.md).
+See [Security](https://github.com/artsyne/uno-ui/blob/main/SECURITY.md) and the [CSP guide](csp.md).
 
 ## Next
 

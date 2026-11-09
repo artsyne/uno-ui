@@ -34,7 +34,7 @@ Use a bundler-oriented resolution so the `exports.types` condition is honored:
 }
 ```
 
-The repository's [tsconfig.example.json](../tsconfig.example.json) is for building Uno itself,
+The repository's [tsconfig.example.json](https://github.com/artsyne/uno-ui/blob/main/tsconfig.example.json) is for building Uno itself,
 not a consumer template. Copy the relevant compiler options, not the `rootDir`/`outDir` values.
 
 ## Imports

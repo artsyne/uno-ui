@@ -18,6 +18,7 @@ integration.
 
 - Version: `0.10.0`
 - npm: published as `@artsyne/uno-ui@0.10.0`.
+- Website: https://artsyne.github.io/uno-ui/
 - Open-source release notes: [RELEASE.md](RELEASE.md).
 - The committed `dist/uno.umd.js` and `dist/uno.es.js` are the current artifacts; CI verifies
   that they match `src/`.

@@ -98,7 +98,7 @@ check at least:
 ## Reporting accessibility issues
 
 Open an issue with the browser, assistive technology, component, reproduction and expected
-behaviour. Security-sensitive reports should follow [SECURITY.md](../SECURITY.md).
+behaviour. Security-sensitive reports should follow [SECURITY.md](https://github.com/artsyne/uno-ui/blob/main/SECURITY.md).
 
 ## Related
 

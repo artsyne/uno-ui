@@ -1,7 +1,7 @@
 # Migration Guide
 
 This page summarizes behaviour changes that affect upgrades. It is derived from
-[CHANGELOG.md](../CHANGELOG.md) and the current source; dates are the ones already recorded in
+[CHANGELOG.md](https://github.com/artsyne/uno-ui/blob/main/CHANGELOG.md) and the current source; dates are the ones already recorded in
 the changelog.
 
 ## Version map
@@ -160,7 +160,7 @@ git diff --exit-code dist
 
 ## Related
 
-- [CHANGELOG.md](../CHANGELOG.md)
+- [CHANGELOG.md](https://github.com/artsyne/uno-ui/blob/main/CHANGELOG.md)
 - [Valid API](valid-api.md)
 - [Box API](box-api.md)
 - [Tooltip API](tooltip-api.md)
