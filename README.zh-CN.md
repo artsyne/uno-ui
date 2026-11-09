@@ -206,8 +206,10 @@ npm run test:run
 npm run build
 ```
 
-- `npm run dev`：Vite 开发服务器。
-- `npm run build`：构建到 `dist/`。
+- `npm run dev`：组件示例的 Vite 开发服务器。
+- `npm run build`：构建 npm 包到 `dist/`。
+- `npm run docs:dev`：文档站的 VitePress 开发服务器。
+- `npm run docs:build`：构建静态站点到 `docs/.vitepress/dist/`。
 - `npm run test:run`：CI 使用的单次测试。
 - `npm run test`：Vitest watch 模式。
 

@@ -42,6 +42,8 @@ dist/             # tracked build output
 | :--- | :--- |
 | `npm run dev` | Vite dev server on fixed port 5176; opens `examples/index.html`. |
 | `npm run build` | Build `dist/uno.es.js` and `dist/uno.umd.js`. |
+| `npm run docs:dev` | VitePress dev server for the documentation site. |
+| `npm run docs:build` | Build the static site into `docs/.vitepress/dist/`. |
 | `npm run test` | Vitest watch mode. |
 | `npm run test:run` | Single test run; CI entry point. |
 | `npm run lint` | ESLint. |

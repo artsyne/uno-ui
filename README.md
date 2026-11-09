@@ -220,8 +220,10 @@ npm run test:run
 npm run build
 ```
 
-- `npm run dev`: Vite dev server.
-- `npm run build`: build into `dist/`.
+- `npm run dev`: Vite dev server for the component examples.
+- `npm run build`: build the npm package into `dist/`.
+- `npm run docs:dev`: VitePress dev server for this documentation site.
+- `npm run docs:build`: build the static site into `docs/.vitepress/dist/`.
 - `npm run test:run`: single test run used by CI.
 - `npm run test`: Vitest watch mode.
 
