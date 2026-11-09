@@ -5,7 +5,7 @@ Uno UI v0.7.0+ includes full TypeScript type definitions for enhanced developer 
 ## Installation
 
 ```bash
-npm install uno-ui alpinejs htmx.org
+npm install @artsyne/uno-ui alpinejs htmx.org
 ```
 
 No additional type packages needed! Type definitions are included in the package.
@@ -15,7 +15,7 @@ No additional type packages needed! Type definitions are included in the package
 ### Import with Types
 
 ```typescript
-import { Uno, type UnoOptions } from 'uno-ui'
+import { Uno, type UnoOptions } from '@artsyne/uno-ui'
 import Alpine from 'alpinejs'
 
 // Initialize with type-safe configuration
@@ -34,7 +34,7 @@ Alpine.start()
 ### Using Box Component
 
 ```typescript
-import type { BoxOptions, BoxItem } from 'uno-ui'
+import type { BoxOptions, BoxItem } from '@artsyne/uno-ui'
 
 // Type-safe box options
 const options: BoxOptions = {
@@ -69,7 +69,7 @@ Alpine.store('uno')
 ### Using Notify Component
 
 ```typescript
-import type { NotifyOptions, NotifyType } from 'uno-ui'
+import type { NotifyOptions, NotifyType } from '@artsyne/uno-ui'
 
 // Type-safe notify options
 const options: NotifyOptions = {
@@ -92,7 +92,7 @@ Alpine.store('uno').notify.info('FYI: Update available')
 ### Using Tooltip Component
 
 ```typescript
-import type { TooltipOptions, TooltipPlacement } from 'uno-ui'
+import type { TooltipOptions, TooltipPlacement } from '@artsyne/uno-ui'
 
 // Type-safe placement (top | bottom | left | right)
 const placement: TooltipPlacement = 'top'
@@ -111,7 +111,7 @@ Alpine.store('uno').tooltip.show(options)
 ### Using Tab Component
 
 ```typescript
-import type { TabOptions } from 'uno-ui'
+import type { TabOptions } from '@artsyne/uno-ui'
 
 // Type-safe tab activation
 const options: TabOptions = {
@@ -131,7 +131,7 @@ const isActive: boolean = Alpine.store('uno').tab.isActive('profile', 'settings'
 ### Global UI Configuration
 
 ```typescript
-import type { UnoOptions, UiConfig, BoxUiConfig } from 'uno-ui'
+import type { UnoOptions, UiConfig, BoxUiConfig } from '@artsyne/uno-ui'
 
 const boxUi: BoxUiConfig = {
   container: 'rounded-xl bg-white dark:bg-gray-900 shadow-2xl',
@@ -160,7 +160,7 @@ Uno.init(config)
 ### Plugin Configuration
 
 ```typescript
-import type { BoxPluginDefaults, NotifyPluginDefaults } from 'uno-ui'
+import type { BoxPluginDefaults, NotifyPluginDefaults } from '@artsyne/uno-ui'
 
 const boxDefaults: BoxPluginDefaults = {
   defaultWidth: 500,
@@ -189,7 +189,7 @@ Uno.init(config)
 ## HTMX Integration with Types
 
 ```typescript
-import type { BoxOptions } from 'uno-ui'
+import type { BoxOptions } from '@artsyne/uno-ui'
 
 // HTMX content loading with type safety
 const htmxOptions: BoxOptions = {
@@ -214,7 +214,7 @@ Alpine.store('uno').box.open(htmxOptions)
 If you need to extend the store types:
 
 ```typescript
-import 'uno-ui'
+import '@artsyne/uno-ui'
 
 declare module 'alpinejs' {
   interface Stores {
@@ -230,7 +230,7 @@ declare module 'alpinejs' {
 ### Using Generic Types
 
 ```typescript
-import type { BoxOptions, NotifyOptions } from 'uno-ui'
+import type { BoxOptions, NotifyOptions } from '@artsyne/uno-ui'
 
 // Create a type-safe wrapper function
 function showDialog<T extends BoxOptions>(options: T): Promise<boolean> {
@@ -250,7 +250,7 @@ showDialog({
 ### Position Types
 
 ```typescript
-import type { BoxPosition, NotifyPosition, TooltipPlacement } from 'uno-ui'
+import type { BoxPosition, NotifyPosition, TooltipPlacement } from '@artsyne/uno-ui'
 
 // Box positions (9-point grid)
 const boxPos: BoxPosition = 'top-center' // ✅ Valid
@@ -266,7 +266,7 @@ const tooltipPlace: TooltipPlacement = 'top' // ✅ Valid
 ### Type Guards
 
 ```typescript
-import type { BoxType, NotifyType } from 'uno-ui'
+import type { BoxType, NotifyType } from '@artsyne/uno-ui'
 
 function isBoxType(type: string): type is BoxType {
   return type === 'dialog' || type === 'confirm'
@@ -292,7 +292,7 @@ With TypeScript support, you get:
 If you're migrating from JavaScript:
 
 1. **Rename files**: `.js` → `.ts`
-2. **Add type imports**: `import type { ... } from 'uno-ui'`
+2. **Add type imports**: `import type { ... } from '@artsyne/uno-ui'`
 3. **Add type annotations**: Start with function parameters and return types
 4. **Fix type errors**: TypeScript will guide you
 
@@ -310,7 +310,7 @@ Alpine.store('uno').box.open(options)
 
 ```typescript
 // After (TypeScript)
-import type { BoxOptions } from 'uno-ui'
+import type { BoxOptions } from '@artsyne/uno-ui'
 
 const options: BoxOptions = {
   title: 'Hello',
@@ -335,7 +335,7 @@ npm install --save-dev @types/alpinejs
 Make sure to import the types:
 
 ```typescript
-import 'uno-ui' // This declares the store types
+import '@artsyne/uno-ui' // This declares the store types
 import Alpine from 'alpinejs'
 
 // Now stores are typed

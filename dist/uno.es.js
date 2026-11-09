@@ -266,7 +266,7 @@ class ue {
    * @param {Object} [options={}] - Global configuration options
    */
   constructor(e = {}) {
-    this.version = "0.9.0", this.options = e, this.pluginDefaults = {}, this.plugins = [], this.initialized = !1, this._preInitConfig = {}, this._htmxRequestHandlers = [], this._htmxActiveXhrs = typeof WeakSet == "function" ? /* @__PURE__ */ new WeakSet() : null, this.htmx = {
+    this.version = "0.10.0", this.options = e, this.pluginDefaults = {}, this.plugins = [], this.initialized = !1, this._preInitConfig = {}, this._htmxRequestHandlers = [], this._htmxActiveXhrs = typeof WeakSet == "function" ? /* @__PURE__ */ new WeakSet() : null, this.htmx = {
       /**
        * Check if HTMX is available.
        * @returns {boolean} True if HTMX is loaded and available

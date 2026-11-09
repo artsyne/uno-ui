@@ -99,7 +99,7 @@ app.listen(3000)
 
     <!-- 配置 Uno UI，传入 CSP nonce -->
     <script type="module">
-      import Uno from 'https://unpkg.com/uno-ui@0.9.0/dist/uno.es.js'
+      import Uno from 'https://unpkg.com/@artsyne/uno-ui@0.10.0/dist/uno.es.js'
 
       Uno.setConfig({
         debug: false,
@@ -125,7 +125,7 @@ app.listen(3000)
 
 ```javascript
 // app.js
-import Uno from 'uno-ui'
+import Uno from '@artsyne/uno-ui'
 import Alpine from 'alpinejs'
 
 // 从服务器获取 nonce（通过全局变量或 API）

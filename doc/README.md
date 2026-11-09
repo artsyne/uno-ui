@@ -45,4 +45,4 @@ uno/
 
 ## HTMX version
 
-Uno and Hebe use the same HTMX 2 version resolved by `uno/package-lock.json`. Hebe copies the runtime from Uno dependencies. Only XHR event details are supported; upgrades update both projects together.
+Uno targets HTMX 2.x and only relies on XHR event details. The version used by the test suite is pinned in `package.json` and `package-lock.json`; applications that vendor HTMX should upgrade it together with Uno.

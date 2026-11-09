@@ -15,7 +15,7 @@ The `Valid` plugin provides a lightweight, directive-driven form validation engi
 The Valid plugin is initialized automatically by Uno.
 
 ```javascript
-import Uno from 'uno-ui'
+import Uno from '@artsyne/uno-ui'
 Uno.init() // Includes Valid plugin
 ```
 

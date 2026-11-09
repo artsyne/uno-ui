@@ -74,7 +74,7 @@ You can provide a custom error handler to send errors to your logging service:
 ### Configuration
 
 ```javascript
-import { Uno } from 'uno-ui'
+import { Uno } from '@artsyne/uno-ui'
 
 Uno.init({
   debug: true,

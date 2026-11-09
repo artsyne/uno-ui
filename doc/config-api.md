@@ -15,7 +15,7 @@ The configuration is resolved in the following order (from lowest to highest pri
 
 ```javascript
 // 1. Global Config (Level 2)
-import Uno from 'uno-ui'
+import Uno from '@artsyne/uno-ui'
 
 Uno.setConfig({
   // Global defaults for all notify instances
@@ -44,7 +44,7 @@ Uno automatically initializes when Alpine is ready. Just include the scripts:
 
 ```html
 <script defer src="https://unpkg.com/alpinejs@3.17.3/dist/cdn.min.js"></script>
-<script defer src="https://unpkg.com/uno-ui@0.9.0/dist/uno.umd.js"></script>
+<script defer src="https://unpkg.com/@artsyne/uno-ui@0.10.0/dist/uno.umd.js"></script>
 ```
 
 **That's it!** Uno will:
@@ -61,7 +61,7 @@ For CDN users who need custom configuration:
 <head>
   <!-- Configure Uno using ES module import -->
   <script type="module">
-    import Uno from 'https://unpkg.com/uno-ui@0.9.0/dist/uno.es.js'
+    import Uno from 'https://unpkg.com/@artsyne/uno-ui@0.10.0/dist/uno.es.js'
 
     Uno.setConfig({
       debug: true,
@@ -83,7 +83,7 @@ For CDN users who need custom configuration:
 For NPM/bundler usage:
 
 ```javascript
-import Uno from 'uno-ui'
+import Uno from '@artsyne/uno-ui'
 import Alpine from 'alpinejs'
 
 // Configure Uno BEFORE Alpine starts
@@ -132,7 +132,7 @@ Uno.setConfig({
 Component behavior options are recommended to be placed under `plugins.<component>`.
 
 ```javascript
-import Uno from 'uno-ui'
+import Uno from '@artsyne/uno-ui'
 
 Uno.setConfig({
   plugins: {
@@ -171,7 +171,7 @@ Pass the nonce to Uno during initialization:
 ```javascript
 // CDN Usage
 <script type="module">
-  import Uno from 'https://unpkg.com/uno-ui@0.9.0/dist/uno.es.js'
+  import Uno from 'https://unpkg.com/@artsyne/uno-ui@0.10.0/dist/uno.es.js'
 
   Uno.setConfig({
     csp: {
@@ -183,7 +183,7 @@ Pass the nonce to Uno during initialization:
 
 ```javascript
 // NPM/Module Usage
-import Uno from 'uno-ui'
+import Uno from '@artsyne/uno-ui'
 
 Uno.setConfig({
   csp: {
@@ -260,7 +260,7 @@ When CSP nonce is configured, Uno automatically:
 
     <!-- Configure Uno with CSP nonce -->
     <script type="module">
-      import Uno from 'https://unpkg.com/uno-ui@0.9.0/dist/uno.es.js'
+      import Uno from 'https://unpkg.com/@artsyne/uno-ui@0.10.0/dist/uno.es.js'
 
       Uno.setConfig({
         debug: false,

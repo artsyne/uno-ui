@@ -311,11 +311,14 @@ Update `README.md` if your changes:
 
 1. **Update version** in `package.json`
 2. **Update CHANGELOG.md** with all changes
-3. **Run all tests**: `npm run test:run`
+3. **Run the full check**: `npm run lint && npm run test:run`
 4. **Build**: `npm run build`
 5. **Create release commit**: `git commit -m "chore: release v0.x.0"`
 6. **Tag release**: `git tag v0.x.0`
 7. **Push**: `git push && git push --tags`
+8. **Publish**: `npm publish --provenance --access public`
+
+The GitHub Actions CI must be green on `main` before tagging. `prepublishOnly` reruns the test suite and the build, so a stale `dist/` cannot be published.
 
 ## Getting Help
 

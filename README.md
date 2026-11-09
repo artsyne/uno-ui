@@ -1,10 +1,11 @@
 # Uno UI
 
-[![npm version](https://img.shields.io/npm/v/uno-ui.svg?style=flat-square)](https://www.npmjs.com/package/uno-ui)
-[![npm downloads](https://img.shields.io/npm/dm/uno-ui.svg?style=flat-square)](https://www.npmjs.com/package/uno-ui)
+[![npm version](https://img.shields.io/npm/v/@artsyne/uno-ui.svg?style=flat-square)](https://www.npmjs.com/package/@artsyne/uno-ui)
+[![npm downloads](https://img.shields.io/npm/dm/@artsyne/uno-ui.svg?style=flat-square)](https://www.npmjs.com/package/@artsyne/uno-ui)
+[![CI](https://github.com/artsyne/uno-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/artsyne/uno-ui/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
-[![Bundle Size](https://img.shields.io/bundlephobia/minzip/uno-ui?style=flat-square)](https://bundlephobia.com/package/uno-ui)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@artsyne/uno-ui?style=flat-square)](https://bundlephobia.com/package/@artsyne/uno-ui)
 
 Uno is a lightweight, modern UI component library built on **Alpine.js** and **Tailwind CSS**, designed for simplicity, performance, and ease of integration.
 
@@ -44,7 +45,7 @@ Simply include the compiled CSS and JS files in your HTML.
     <script src="https://unpkg.com/htmx.org@2.0.10"></script>
 
     <!-- 3. Uno Framework (Must load before your app code if you use global Uno) -->
-    <script defer src="https://unpkg.com/uno-ui@0.9.0/dist/uno.umd.js"></script>
+    <script defer src="https://unpkg.com/@artsyne/uno-ui@0.10.0/dist/uno.umd.js"></script>
 
     <!-- 4. Your App Code (Defensive Initialization) -->
     <script defer src="/js/app.js"></script>
@@ -99,7 +100,7 @@ For NPM users, configure Uno using `setConfig()` BEFORE Alpine loads:
 <head>
   <!-- 1. Configure Uno (before Alpine loads) -->
   <script type="module">
-    import Uno from 'https://unpkg.com/uno-ui@0.9.0/dist/uno.es.js'
+    import Uno from 'https://unpkg.com/@artsyne/uno-ui@0.10.0/dist/uno.es.js'
 
     Uno.setConfig({
       debug: true,
@@ -130,14 +131,14 @@ For NPM users, configure Uno using `setConfig()` BEFORE Alpine loads:
 ### 2. Using NPM (Module)
 
 ```bash
-npm install uno-ui alpinejs htmx.org
+npm install @artsyne/uno-ui alpinejs htmx.org
 ```
 
 Import into your project's entry file:
 
 ```javascript
 import Alpine from 'alpinejs'
-import Uno from 'uno-ui'
+import Uno from '@artsyne/uno-ui'
 
 // Configure Uno BEFORE Alpine loads
 Uno.setConfig({
@@ -163,7 +164,7 @@ Alpine.start()
 Uno UI includes full TypeScript type definitions. No additional setup required!
 
 ```typescript
-import { Uno, type BoxOptions, type NotifyOptions } from 'uno-ui'
+import { Uno, type BoxOptions, type NotifyOptions } from '@artsyne/uno-ui'
 import Alpine from 'alpinejs'
 
 // Full type checking and IntelliSense
@@ -179,8 +180,8 @@ Alpine.store('uno').box.open(options)
 **Type-safe configuration:**
 
 ```typescript
-import type { UnoOptions } from 'uno-ui'
-import Uno from 'uno-ui'
+import type { UnoOptions } from '@artsyne/uno-ui'
+import Uno from '@artsyne/uno-ui'
 
 const config: UnoOptions = {
   debug: true,
@@ -227,7 +228,7 @@ Uno UI v0.7.0+ includes full TypeScript type definitions. See the [TypeScript Us
 **Quick Example:**
 
 ```typescript
-import type { BoxOptions } from 'uno-ui'
+import type { BoxOptions } from '@artsyne/uno-ui'
 
 const options: BoxOptions = {
   title: 'Hello',
@@ -373,13 +374,13 @@ document.addEventListener('alpine:init', () => {
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20.19+
 - NPM 9+
 
 ### Setup
 
 ```bash
-git clone https://github.com/your-org/uno-ui.git
+git clone https://github.com/artsyne/uno-ui.git
 cd uno-ui
 npm install
 ```
@@ -442,4 +443,4 @@ MIT License
 
 ## HTMX version
 
-Uno and Hebe use the same HTMX 2 version resolved by `uno/package-lock.json`. Hebe copies the runtime from Uno dependencies. Only XHR event details are supported; upgrades update both projects together.
+Uno targets HTMX 2.x and only relies on XHR event details. The version used by the test suite is pinned in `package.json` and `package-lock.json`; applications that vendor HTMX should upgrade it together with Uno.

@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # 静态检查与组件级 axe 扫描都在 test:run 内
+      - run: npm run lint
+      - run: npm run test:run
+
+      # dist 是仓库跟踪的发布产物：构建必须可复现，且与源码同步
+      - name: 校验 dist 与源码一致
+        run: |
+          npm run build
+          git diff --exit-code dist
+
+      - name: 校验发布包内容
+        run: npm pack --dry-run

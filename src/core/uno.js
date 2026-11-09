@@ -4,7 +4,7 @@
  * Manages plugins, initialization, and global configuration.
  *
  * @module uno.core.instance
- * @version 0.8.0
+ * @version 0.10.0
  */
 
 import Alpine from 'alpinejs'
@@ -25,7 +25,7 @@ export class UnoInstance {
    * @param {Object} [options={}] - Global configuration options
    */
   constructor(options = {}) {
-    this.version = '0.9.0'
+    this.version = '0.10.0'
     this.options = options
     this.pluginDefaults = {} // New: Plugin default configuration storage
     this.plugins = []

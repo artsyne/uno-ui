@@ -24,13 +24,13 @@ This document addresses common questions and issues when using Uno UI.
 
 ```html
 <script src="https://unpkg.com/alpinejs@3.17.3/dist/cdn.min.js" defer></script>
-<script src="https://unpkg.com/uno-ui@0.9.0/dist/uno.umd.js"></script>
+<script src="https://unpkg.com/@artsyne/uno-ui@0.10.0/dist/uno.umd.js"></script>
 ```
 
 2. **NPM (Recommended)**:
 
 ```bash
-npm install uno-ui alpinejs
+npm install @artsyne/uno-ui alpinejs
 ```
 
 See [README.md](../README.md) for detailed setup instructions.
@@ -64,7 +64,7 @@ promised. Legacy IE and Edge IE mode are not supported.
   <head>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/alpinejs@3.17.3/dist/cdn.min.js" defer></script>
-    <script src="https://unpkg.com/uno-ui@0.9.0/dist/uno.umd.js"></script>
+    <script src="https://unpkg.com/@artsyne/uno-ui@0.10.0/dist/uno.umd.js"></script>
   </head>
   <body>
     <button @click="$store.uno.notify.success('Hello!')">Click Me</button>
@@ -182,7 +182,7 @@ Each modal gets the correct z-index automatically.
 **A:** Yes! Type definitions ship inside the package (`types/index.d.ts`); no separate `@types` package is required.
 
 ```typescript
-import type { BoxOptions, NotifyOptions } from 'uno-ui'
+import type { BoxOptions, NotifyOptions } from '@artsyne/uno-ui'
 
 const options: BoxOptions = {
   title: 'Hello',
@@ -197,8 +197,8 @@ See [TypeScript Usage Guide](./typescript-usage.md) for details.
 **A:** Just import the types - no additional setup needed:
 
 ```typescript
-import { Uno } from 'uno-ui'
-import type { UnoInstance, BoxOptions } from 'uno-ui'
+import { Uno } from '@artsyne/uno-ui'
+import type { UnoInstance, BoxOptions } from '@artsyne/uno-ui'
 
 // IntelliSense works automatically
 const box: BoxOptions = {
@@ -214,10 +214,10 @@ const box: BoxOptions = {
 
 ```typescript
 // ❌ Wrong
-import { BoxOptions } from 'uno-ui'
+import { BoxOptions } from '@artsyne/uno-ui'
 
 // ✅ Correct
-import type { BoxOptions } from 'uno-ui'
+import type { BoxOptions } from '@artsyne/uno-ui'
 ```
 
 2. **Incorrect option values**:
@@ -383,7 +383,7 @@ reference for the released build. Uno has no runtime dependencies besides Alpine
 
 ```javascript
 // Only imports what you use
-import { Uno } from 'uno-ui'
+import { Uno } from '@artsyne/uno-ui'
 ```
 
 ### Q: How can I optimize performance?
@@ -393,7 +393,7 @@ import { Uno } from 'uno-ui'
 1. **Use CDN for production**:
 
 ```html
-<script src="https://unpkg.com/uno-ui@0.9.0/dist/uno.umd.js"></script>
+<script src="https://unpkg.com/@artsyne/uno-ui@0.10.0/dist/uno.umd.js"></script>
 ```
 
 2. **Lazy load HTMX** (if not needed immediately):
@@ -489,7 +489,7 @@ console.log(Uno.options.ui)
 1. **Reinstall types**:
 
 ```bash
-npm install uno-ui --save
+npm install @artsyne/uno-ui --save
 ```
 
 2. **Check tsconfig.json**:
@@ -498,7 +498,7 @@ npm install uno-ui --save
 {
   "compilerOptions": {
     "moduleResolution": "node",
-    "types": ["uno-ui"]
+    "types": ["@artsyne/uno-ui"]
   }
 }
 ```
@@ -523,7 +523,7 @@ console.log(window.htmx) // Should be defined
 <!-- 2. Alpine -->
 <script src="https://unpkg.com/alpinejs@3.17.3/dist/cdn.min.js" defer></script>
 <!-- 3. Uno -->
-<script src="https://unpkg.com/uno-ui@0.9.0/dist/uno.umd.js"></script>
+<script src="https://unpkg.com/@artsyne/uno-ui@0.10.0/dist/uno.umd.js"></script>
 ```
 
 3. **HTMX events**:
@@ -538,7 +538,7 @@ document.addEventListener('htmx:responseError', (e) => {
 
 **A:**
 
-1. **Check existing issues**: [GitHub Issues](https://github.com/idiary-ai/uno-ui/issues)
+1. **Check existing issues**: [GitHub Issues](https://github.com/artsyne/uno-ui/issues)
 2. **Create minimal reproduction**: Use CodePen or JSFiddle
 3. **Provide details**:
    - Uno UI version

@@ -44,9 +44,9 @@ wrapper deliberately disables the rules that depend on a full page or on a real 
 | `region`, `landmark-one-main`, `page-has-heading-one`, `bypass`, `html-has-lang`, `document-title` | Host-page responsibilities, not component responsibilities. |
 
 A passing scan therefore proves component-level semantics for the configuration under test. It is
-**not** a WCAG conformance statement and does not replace keyboard or screen-reader acceptance: the
-component contracts live in [a11y-design.md](../../docs/a11y-design.md) §3.5, and the open review
-findings in [core-review-summary.md](../../docs/core-review-summary.md) §5.
+**not** a WCAG conformance statement and does not replace keyboard or screen-reader acceptance.
+Component-level accessibility contracts are enforced by the tests in `tests/`; keyboard and
+screen-reader acceptance remains a manual review step before release.
 
 ## Security-Related Checks
 

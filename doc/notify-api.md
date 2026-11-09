@@ -221,7 +221,7 @@ return jsonify({'result': 'ok'}, headers={
 
 ## Accessibility
 
-Notifications are announced by screen readers with politeness graded by type (B7, `docs/a11y-design.md`):
+Notifications are announced by screen readers with politeness graded by type (B7):
 
 | Type               | `role`   | `aria-live` | Behavior                                                    |
 | :----------------- | :------- | :---------- | :---------------------------------------------------------- |

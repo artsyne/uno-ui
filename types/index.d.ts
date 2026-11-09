@@ -1,7 +1,7 @@
 /**
  * Type definitions for Uno UI
  *
- * @version 0.8.0
+ * @version 0.10.0
  * @license MIT
  */
 
@@ -9,7 +9,7 @@
 
 import type { Alpine as AlpineType } from 'alpinejs'
 
-declare module 'uno-ui' {
+declare module '@artsyne/uno-ui' {
   // ============================================================
   // Core Types
   // ============================================================
@@ -1122,9 +1122,9 @@ declare module 'uno-ui' {
 declare module 'alpinejs' {
   interface Stores {
     /** Uno component stores */
-    uno: import('uno-ui').UnoStores
+    uno: import('@artsyne/uno-ui').UnoStores
     /** I18n store */
-    i18n: import('uno-ui').I18nStore
+    i18n: import('@artsyne/uno-ui').I18nStore
   }
 }
 
@@ -1135,7 +1135,7 @@ declare module 'alpinejs' {
 declare global {
   interface Window {
     /** Global Uno instance */
-    Uno: import('uno-ui').UnoInstance
+    Uno: import('@artsyne/uno-ui').UnoInstance
     /** Alpine.js instance */
     Alpine: AlpineType
     /** HTMX instance */
@@ -1147,7 +1147,7 @@ declare global {
 // Re-export for convenience
 // ============================================================
 
-import type { UnoInstance, DomManager as DomManagerType, Plugin } from 'uno-ui'
+import type { UnoInstance, DomManager as DomManagerType, Plugin } from '@artsyne/uno-ui'
 
 declare const Uno: UnoInstance
 declare const DomManager: DomManagerType
