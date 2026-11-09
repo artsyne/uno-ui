@@ -516,8 +516,7 @@
           // Manually trigger success feedback
           // In a real app, the server would send HX-Trigger. 
           // Here we can use Uno's notify manually.
-          // `window.getUno()` is a website-project helper and does NOT exist in
-          // these examples — access the store directly instead.
+          // The Uno store is available through Alpine; no website-only helpers.
           const notify = Alpine.store('uno')?.notify
           if (notify) {
             notify.success('Validation Request Sent (Mocked Success)')

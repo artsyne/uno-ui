@@ -14,7 +14,7 @@
   const style = document.createElement('style')
   style.type = 'text/tailwindcss'
   style.textContent = `
-    @variant dark (&:where(.dark, .dark *));
+    @custom-variant dark (&:where(.dark, .dark *));
   `
   document.head.appendChild(style)
 
