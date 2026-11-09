@@ -81,7 +81,7 @@ body:
     id: console
     attributes:
       label: Console output
-      description: Include errors/warnings. Enable `Uno.setConfig({ debug: true })` first.
+      description: "Include errors/warnings. Enable `Uno.setConfig({ debug: true })` first."
       render: text
   - type: textarea
     id: additional
