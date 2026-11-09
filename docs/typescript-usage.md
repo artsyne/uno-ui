@@ -230,7 +230,6 @@ declaration:
 | `loadLocale` | Typed as `Promise<boolean>`; the implementation resolves `undefined`. |
 | `init()` return | Typed as `AlpineType`; it can resolve `null` when Alpine is unavailable. |
 | `offset` | `TooltipOptions.offset` is `number`; the runtime accepts a function. |
-| `EmptyOptions` | `UnoOptions` is not exported as a runtime value; it is a type only. |
 
 The repository's `tests/types/types.test.ts` is not collected by `npm run test:run` because the
 Vitest `include` pattern is `tests/**/*.test.js`. Type changes are therefore not covered by the
