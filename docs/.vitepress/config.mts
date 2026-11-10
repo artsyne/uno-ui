@@ -25,7 +25,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Guide', link: '/getting-started' },
-      { text: 'Components', link: '/box-api' },
+      { text: 'Components', link: '/getting-started' },
       { text: 'Docs', link: '/README' },
       { text: 'GitHub', link: 'https://github.com/artsyne/uno-ui' }
     ],
