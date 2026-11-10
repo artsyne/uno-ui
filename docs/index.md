@@ -11,7 +11,7 @@ hero:
       link: /getting-started
     - theme: alt
       text: Components
-      link: /getting-started
+      link: /components
     - theme: alt
       text: GitHub
       link: https://github.com/artsyne/uno-ui

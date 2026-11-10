@@ -25,7 +25,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Guide', link: '/getting-started' },
-      { text: 'Components', link: '/getting-started' },
+      { text: 'Components', link: '/components' },
       { text: 'Docs', link: '/README' },
       { text: 'GitHub', link: 'https://github.com/artsyne/uno-ui' }
     ],
@@ -43,6 +43,7 @@ export default defineConfig({
       {
         text: 'Components',
         items: [
+          { text: 'Overview', link: '/components' },
           { text: 'Box', link: '/box-api' },
           { text: 'Notify', link: '/notify-api' },
           { text: 'Tooltip', link: '/tooltip-api' },

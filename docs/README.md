@@ -17,6 +17,7 @@ The repository landing page is available in English ([README.md](https://github.
 
 ### Using components
 
+- [Components overview](components.md) — the five components and shared setup.
 - [Box API](box-api.md) — dialogs, alerts, confirms, prompts, fill mode.
 - [Notify API](notify-api.md) — toasts, positions, progress bar.
 - [Tooltip API](tooltip-api.md) — hover, click and focus popups.
