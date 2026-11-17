@@ -8,7 +8,7 @@
 [![CI](https://github.com/artsyne/uno-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/artsyne/uno-ui/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@artsyne/uno-ui.svg?style=flat-square)](https://www.npmjs.com/package/@artsyne/uno-ui)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-0.10.0-blue.svg?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.10.1-blue.svg?style=flat-square)](CHANGELOG.md)
 
 Uno is a lightweight UI component library built on **Alpine.js** and **Tailwind CSS 4**. It
 follows a **Store-First, Directive-Driven** architecture and supports optional **HTMX 2**
@@ -16,8 +16,8 @@ integration.
 
 ## Status
 
-- Version: `0.10.0`
-- npm: published as `@artsyne/uno-ui@0.10.0`.
+- Version: `0.10.1`
+- npm: published as `@artsyne/uno-ui@0.10.1`.
 - Website: https://artsyne.github.io/uno-ui/
 - Open-source release notes: [RELEASE.md](RELEASE.md).
 - The committed `dist/uno.umd.js` and `dist/uno.es.js` are the current artifacts; CI verifies
@@ -123,7 +123,7 @@ npm install @artsyne/uno-ui alpinejs
 ```
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@artsyne/uno-ui@0.10.0/dist/uno.umd.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@artsyne/uno-ui@0.10.1/dist/uno.umd.js" defer></script>
 ```
 
 Both jsDelivr and unpkg serve the published tarball. The repository `dist/` remains available for

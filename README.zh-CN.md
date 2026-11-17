@@ -8,15 +8,15 @@
 [![CI](https://github.com/artsyne/uno-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/artsyne/uno-ui/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@artsyne/uno-ui.svg?style=flat-square)](https://www.npmjs.com/package/@artsyne/uno-ui)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-0.10.0-blue.svg?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.10.1-blue.svg?style=flat-square)](CHANGELOG.md)
 
 Uno 是一个基于 **Alpine.js** 与 **Tailwind CSS 4** 的轻量 UI 组件库，采用
 **Store-First、Directive-Driven** 架构，可选集成 **HTMX 2**。
 
 ## 当前状态
 
-- 版本：`0.10.0`
-- npm：已发布为 `@artsyne/uno-ui@0.10.0`。
+- 版本：`0.10.1`
+- npm：已发布为 `@artsyne/uno-ui@0.10.1`。
 - 项目网站：https://artsyne.github.io/uno-ui/
 - 开源发布说明：[RELEASE.md](RELEASE.md)。
 - 仓库内的 `dist/uno.umd.js` 与 `dist/uno.es.js` 是当前可用的构建产物；CI 会校验它们与
@@ -116,7 +116,7 @@ npm install @artsyne/uno-ui alpinejs
 ```
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@artsyne/uno-ui@0.10.0/dist/uno.umd.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@artsyne/uno-ui@0.10.1/dist/uno.umd.js" defer></script>
 ```
 
 jsDelivr 与 unpkg 均可访问已发布的 tarball。仓库内的 `dist/` 仍可用于本地开发和未发布的改动。

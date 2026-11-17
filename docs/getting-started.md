@@ -3,7 +3,7 @@
 This guide takes you from an empty page to a working Uno dialog. It covers the two supported
 loading paths, the Tailwind CSS setup, and the optional integrations.
 
-**Status:** Uno UI is published as `@artsyne/uno-ui@0.10.0`. The repository's committed `dist/`
+**Status:** Uno UI is published as `@artsyne/uno-ui@0.10.1`. The repository's committed `dist/`
 bundles remain the reference artifacts for unreleased changes.
 
 ## Prerequisites
@@ -51,7 +51,7 @@ before Alpine:
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
     <!-- 2. Uno UI from the npm registry -->
-    <script src="https://cdn.jsdelivr.net/npm/@artsyne/uno-ui@0.10.0/dist/uno.umd.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@artsyne/uno-ui@0.10.1/dist/uno.umd.js" defer></script>
 
     <!-- 3. Alpine.js -->
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.17.3/dist/cdn.min.js" defer></script>
@@ -65,12 +65,12 @@ before Alpine:
 The same file is available from unpkg:
 
 ```html
-<script src="https://unpkg.com/@artsyne/uno-ui@0.10.0/dist/uno.umd.js" defer></script>
+<script src="https://unpkg.com/@artsyne/uno-ui@0.10.1/dist/uno.umd.js" defer></script>
 ```
 
 Notes:
 
-- `@0.10.0` is a pinned version. Update it deliberately when you upgrade.
+- `@0.10.1` is a pinned version. Update it deliberately when you upgrade.
 - The CDN serves JavaScript only. Tailwind CSS is still required; the browser build above is for
   prototypes. Use the build-time setup in [Theming](theming.md) for production.
 - To apply configuration before initialization, load a small config file after Uno and before

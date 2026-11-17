@@ -1,7 +1,7 @@
 # Uno Documentation
 
 Uno is a lightweight UI component library for Alpine.js and Tailwind CSS 4, with optional HTMX
-2 integration. The package is published as `@artsyne/uno-ui@0.10.0`; the repository's
+2 integration. The package is published as `@artsyne/uno-ui@0.10.1`; the repository's
 committed `dist/` bundles are still the reference artifacts for unreleased changes.
 
 The repository landing page is available in English ([README.md](https://github.com/artsyne/uno-ui/blob/main/README.md)) and Chinese
@@ -63,8 +63,8 @@ The repository landing page is available in English ([README.md](https://github.
 | Item | Value |
 | :--- | :--- |
 | Package | `@artsyne/uno-ui` |
-| Version | `0.10.0` |
-| npm | Published as `@artsyne/uno-ui@0.10.0` |
+| Version | `0.10.1` |
+| npm | Published as `@artsyne/uno-ui@0.10.1` |
 | Website | https://artsyne.github.io/uno-ui/ |
 | License | MIT |
 | Node (development) | >= 20.19; CI uses 24 |

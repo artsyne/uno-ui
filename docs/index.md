@@ -40,7 +40,7 @@ npm install @artsyne/uno-ui alpinejs
 Or load the UMD bundle from jsDelivr:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@artsyne/uno-ui@0.10.0/dist/uno.umd.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@artsyne/uno-ui@0.10.1/dist/uno.umd.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.17.3/dist/cdn.min.js" defer></script>
 ```
 
@@ -56,7 +56,7 @@ nonce and i18n.
 
 ## Status
 
-`@artsyne/uno-ui@0.10.0` is published on npm and released on GitHub. The project is pre-1.0;
+`@artsyne/uno-ui@0.10.1` is published on npm and released on GitHub. The project is pre-1.0;
 the documented store and directive APIs are the public contract.
 
 - [Open-source release notes](https://github.com/artsyne/uno-ui/blob/main/RELEASE.md)

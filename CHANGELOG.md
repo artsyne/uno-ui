@@ -15,6 +15,49 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   security policy. The root README now defaults to English with a Chinese translation; all other
   documentation is English.
 
+## [0.10.1] - 2026-11-17
+
+### Added
+
+- **Box**: accessible-name contract — `aria-labelledby` resolves `labelledBy` > the title `h3` >
+  a localized `aria-label` fallback (`box.dialog`), bound with `null` so the unused attribute is
+  truly removed; new `labelledBy` option. `prompt` uses a visible `<label for>` and a localized
+  title (`box.prompt`).
+- **Box**: a topmost modal isolates the page background with native `inert` (the `<body>`
+  children outside `#uno-box-manager`), so focus cannot escape in any engine. Close restores only
+  the nodes the component inented, preserving the application's own inert state; `closeAll()`
+  restores the background too. Non-modal boxes (`modal: false`) never isolate the background.
+- **Tooltip**: default `hover` hints also respond to keyboard focus (show on focus, hide on blur
+  when the pointer is not over the trigger); hover/focus/click triggers associate the trigger's
+  `aria-describedby` with the stable tooltip id as a token, preserving any other references and
+  removing only that token on hide.
+- **Notify**: `error()` is persistent by default (`duration: 0`, an explicit duration overrides);
+  auto-dismiss pauses on hover/focus and resumes with the remaining time rather than resetting;
+  the live region (`role`/`aria-live`) sits on the message text and the HTMX content wrapper, not
+  the whole item, so action buttons are not re-announced; closing a focused notification hands
+  focus to another visible notification.
+- **Tab**: anchor tabs activate on Space (synthesized click, `preventDefault` stops page scroll,
+  repeat-guarded against key hold); Enter is covered by the native click.
+- **Valid**: multi-field error-summary links carry the field name (label / `aria-label`, falling
+  back to the field name) plus the error message and anchor the real control — minting a stable
+  id when the control has none instead of targeting the non-focusable inline error div. Focus and
+  scroll are separate steps and scrolling honors `prefers-reduced-motion`.
+
+### Fixed
+
+- **Box**: ESC is consumed only by the topmost open box, and an open tooltip consumes it first;
+  the deferred initial autofocus bails out after close so it never overrides the opener focus
+  that `close()` already restored.
+- **Tooltip**: `show()` / `hide()` cancel any pending delayed hide, so switching quickly between
+  triggers keeps the new tooltip instead of being hidden by the old timer.
+
+### Tests
+
+- Added box background-inert isolation, tooltip directive focus/describedby, notify
+  timing/persistence/focus-handoff and tab keyboard suites; the box focus fixtures now mount
+  dialogs inside `#uno-box-manager` to match production. Full suite: 527 tests green, including
+  the five component axe scans.
+
 ## [0.10.0] - 2026-11-09
 
 ### Added
