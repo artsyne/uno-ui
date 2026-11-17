@@ -1,13 +1,13 @@
-# Uno UI 0.10.0 — Open Source Release
+# Uno UI 0.10.1 — Open Source Release
 
-Uno UI is now open source under the MIT License. This is the first public npm release of
-`@artsyne/uno-ui`.
+Uno UI is open source under the MIT License. `0.10.1` is a follow-up to the first public npm
+release, refining the accessibility contracts across all five components.
 
 | Item | Value |
 | :--- | :--- |
 | Package | `@artsyne/uno-ui` |
-| Version | `0.10.0` |
-| Release date | 2026-11-09 |
+| Version | `0.10.1` |
+| Release date | 2026-11-17 |
 | License | MIT |
 | Repository | https://github.com/artsyne/uno-ui |
 | npm | https://www.npmjs.com/package/@artsyne/uno-ui |
@@ -29,13 +29,26 @@ npm install @artsyne/uno-ui alpinejs
 ```
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@artsyne/uno-ui@0.10.0/dist/uno.umd.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@artsyne/uno-ui@0.10.1/dist/uno.umd.js" defer></script>
 ```
 
 Load Uno before Alpine. See [Getting Started](docs/getting-started.md) for the full setup,
 including Tailwind CSS 4 `@source` configuration.
 
-## Release highlights
+## 0.10.1 highlights
+
+- **Box**: accessible name resolution with `labelledBy`, a localized fallback, native `inert`
+  isolation of the page background for the topmost modal, and no backdrop/trap for non-modal
+  dialogs.
+- **Tooltip**: hover hints also respond to keyboard focus; all triggers associate
+  `aria-describedby`; delayed hides are cancelled when switching triggers.
+- **Notify**: `error()` is persistent by default; auto-dismiss pauses on hover/focus and resumes
+  with the remaining time; live regions exclude action buttons; focus hands off on close.
+- **Tab**: anchor tabs activate on Space with scroll prevention and key-repeat guarding.
+- **Valid**: error-summary links carry the field name and target the real control, with
+  reduced-motion-aware scrolling.
+
+## Project highlights
 
 - Five accessible, dependency-light components.
 - Store-First API with lazy container initialization.

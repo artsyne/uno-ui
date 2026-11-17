@@ -8,6 +8,7 @@ the changelog.
 
 | Version | Date | Main theme |
 | :--- | :--- | :--- |
+| 0.10.1 | 2026-11-17 | Accessibility refinements: Box naming/inert, Tooltip focus hints, Notify persistence, Tab Space, Valid summary links |
 | 0.10.0 | 2026-11-09 | Accessibility contracts, Box fill mode, Tooltip offset function and sizing |
 | 0.9.0 | 2026-08-26 | Box extra buttons, Notify progress tracking, Tooltip fixes |
 | 0.8.0 | 2026-01-22 | Valid rule arrays (breaking), debounce, match target |
@@ -16,6 +17,57 @@ the changelog.
 
 TypeScript definitions have been part of the package since 0.6.0 according to the changelog and
 the `types/index.d.ts` header. Older README text that said "0.7.0+" was inaccurate.
+
+## Upgrading to 0.10.1
+
+0.10.1 is additive for the public store and directive API. The notable behaviour changes are:
+
+### Box
+
+- New `labelledBy` option. The accessible name resolves `labelledBy` > the title heading > a
+  localized `aria-label` fallback.
+- The topmost modal now isolates the page background with native `inert` (outside
+  `#uno-box-manager`) and restores only the nodes it marked. Nested modals still mark underlays
+  `inert` + `aria-hidden`.
+- A non-modal box (`modal: false`) no longer renders the backdrop and does not enable the focus
+  trap. If you relied on a backdrop for a non-modal dialog, add your own overlay.
+- `closeAll()` restores the background isolation; Esc is consumed only by the topmost open box
+  (and an open tooltip consumes it first).
+
+### Tooltip
+
+- Default `hover` hints also show on keyboard focus and hide on blur when the pointer is not
+  over the trigger.
+- Hover, focus and click triggers add the tooltip id to the trigger's `aria-describedby` as a
+  token; other tokens are preserved.
+- `show()` and `hide()` cancel pending delayed hides, so switching triggers is not overridden by
+  an old timer.
+
+### Notify
+
+- `error()` is persistent by default (`duration: 0`). Pass an explicit `duration` to auto-dismiss
+  an error.
+- Auto-dismiss pauses on hover/focus and resumes with the remaining time instead of resetting.
+- The live region is on the message text and HTMX wrapper, not the whole item, so action buttons
+  are not re-announced.
+- Closing a focused notification moves focus to another visible notification.
+
+### Tab
+
+- Anchor tabs activate on Space via a synthesized click; Enter is covered by the native click.
+
+### Valid
+
+- Error-summary links carry the field name plus message and target the real control (minting an
+  id when needed).
+- Focus and scroll are separate steps; scrolling honors `prefers-reduced-motion`.
+
+### Upgrade check
+
+- If you relied on error toasts disappearing automatically, pass an explicit `duration`.
+- Re-test non-modal dialogs if you relied on the previous backdrop.
+- Rebuild Tailwind CSS only if you changed `ui` classes; the default class strings did not change
+  in this release.
 
 ## Upgrading to 0.10.0
 
