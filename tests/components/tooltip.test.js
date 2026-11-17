@@ -281,6 +281,29 @@ describe('Tooltip Component', () => {
       vi.advanceTimersByTime(300)
       expect(tooltipStore.visible).toBe(true)
     })
+
+    // 离开触发器 A 后 300ms 内进入 B，A 的延迟隐藏不得隐藏 B 的提示
+    it('show() cancels pending hide so a fast trigger switch keeps the new tooltip', () => {
+      const other = document.createElement('button')
+      document.body.appendChild(other)
+      tooltipStore.visible = true
+      tooltipStore.scheduleHide(300)
+
+      vi.advanceTimersByTime(100)
+      tooltipStore.show({ element: other, content: 'B' })
+      vi.advanceTimersByTime(300)
+
+      expect(tooltipStore.visible).toBe(true)
+    })
+
+    it('hide() clears pending hide timer', () => {
+      tooltipStore.visible = true
+      tooltipStore.scheduleHide(300)
+
+      tooltipStore.hide()
+
+      expect(tooltipStore.hideTimeout).toBeNull()
+    })
   })
 
   describe('updatePosition()', () => {
@@ -627,6 +650,38 @@ describe('Tooltip Component', () => {
         tooltipStore.show({ element: triggerEl, content: 'Test', trigger: mode })
         expect(tooltipStore.triggerMode).toBe(mode)
       })
+    })
+  })
+
+  // hover/focus/click 都把触发器 aria-describedby 关联到稳定提示 id，
+  // 以 token 方式增删并保留触发器原有的其他 describedby 引用。
+  describe('describedby association', () => {
+    it.each(['hover', 'focus', 'click'])('associates %s trigger with the tooltip content id', (mode) => {
+      const triggerEl = document.createElement('button')
+      tooltipStore.show({ element: triggerEl, content: 'Test', trigger: mode })
+      expect(triggerEl.getAttribute('aria-describedby')).toBe('uno-tooltip-content')
+    })
+
+    it('preserves existing describedby tokens when associating', () => {
+      const triggerEl = document.createElement('button')
+      triggerEl.setAttribute('aria-describedby', 'help-text')
+      tooltipStore.show({ element: triggerEl, content: 'Test', trigger: 'hover' })
+      expect(triggerEl.getAttribute('aria-describedby')).toBe('help-text uno-tooltip-content')
+    })
+
+    it('removes only the tooltip token on hide, keeping other tokens', () => {
+      const triggerEl = document.createElement('button')
+      triggerEl.setAttribute('aria-describedby', 'help-text')
+      tooltipStore.show({ element: triggerEl, content: 'Test', trigger: 'hover' })
+      tooltipStore.hide()
+      expect(triggerEl.getAttribute('aria-describedby')).toBe('help-text')
+    })
+
+    it('removes the attribute entirely on hide when no other tokens exist', () => {
+      const triggerEl = document.createElement('button')
+      tooltipStore.show({ element: triggerEl, content: 'Test', trigger: 'focus' })
+      tooltipStore.hide()
+      expect(triggerEl.hasAttribute('aria-describedby')).toBe(false)
     })
   })
 })

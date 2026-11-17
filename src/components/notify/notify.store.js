@@ -203,7 +203,12 @@ export const createNotifyStore = (Alpine) => ({
       closable: true,
       duration,
       content: config.hxUrl ? '' : undefined, // Initialize content for HTMX-loaded content
-      ...config
+      ...config,
+      // 可暂停的自动关闭计时——保留剩余时长，hover/focus 期间不走表
+      _remaining: duration,
+      _timer: null,
+      _startedAt: 0,
+      _paused: { hover: false, focus: false }
     }
 
     const position = config.position || 'top-right'
@@ -215,17 +220,74 @@ export const createNotifyStore = (Alpine) => ({
       this.groups[position].push(notification)
     }
 
-    // Auto dismiss
-    if (duration > 0) {
-      setTimeout(() => {
-        this.remove(id)
-      }, duration)
-    }
+    // Auto dismiss（经响应式代理启动，pause/resume 与 remove 操作同一对象）
+    this._startDismiss(this._findNotificationById(id))
 
     return id
   },
 
+  /**
+   * 启动自动关闭计时。仅对 duration>0、可见、未暂停且未在计时的通知生效；
+   * 以 _remaining 为延时，暂停后恢复时续走剩余时长而非重置。
+   */
+  _startDismiss(item) {
+    if (!item || !(item.duration > 0) || !item.isVisible || item._timer) return
+    if (item._paused.hover || item._paused.focus) return
+    item._startedAt = Date.now()
+    item._timer = setTimeout(() => {
+      item._timer = null
+      this.remove(item.id)
+    }, item._remaining)
+  },
+
+  /**
+   * 暂停自动关闭（鼠标悬停或键盘聚焦）。结算已走时长并保留剩余，
+   * 使读者/键盘用户有充足时间阅读与操作，不被超时打断。
+   * @param {number} id
+   * @param {'hover'|'focus'} reason
+   */
+  pause(id, reason) {
+    const item = this._findNotificationById(id)
+    if (!item) return
+    if (reason) item._paused[reason] = true
+    if (item._timer) {
+      clearTimeout(item._timer)
+      item._timer = null
+      item._remaining = Math.max(0, item._remaining - (Date.now() - item._startedAt))
+    }
+  },
+
+  /**
+   * 恢复自动关闭。仅当 hover 与 focus 两种暂停都解除后续走剩余时长。
+   * @param {number} id
+   * @param {'hover'|'focus'} reason
+   */
+  resume(id, reason) {
+    const item = this._findNotificationById(id)
+    if (!item) return
+    if (reason) item._paused[reason] = false
+    if (!item._paused.hover && !item._paused.focus) this._startDismiss(item)
+  },
+
   remove(id) {
+    // 关闭前清理计时并把焦点合理交接——若焦点正落在被关通知内，
+    // 移到另一条可见通知的操作按钮，避免 DOM 移除后焦点坠回 body
+    const closing = this._findNotificationById(id)
+    if (closing && closing._timer) {
+      clearTimeout(closing._timer)
+      closing._timer = null
+    }
+    if (typeof document !== 'undefined') {
+      const el = document.querySelector(`[data-id="${id}"]`)
+      if (el && el.contains(document.activeElement)) {
+        const next = Array.from(document.querySelectorAll('[data-testid="notify-item"]'))
+          .filter((n) => n !== el)
+          .map((n) => n.querySelector('button'))
+          .find(Boolean)
+        if (next) next.focus()
+      }
+    }
+
     Object.keys(this.groups).forEach((position) => {
       // We find the item and set visible to false to trigger leave transition
       // Then remove it after transition
@@ -251,7 +313,8 @@ export const createNotifyStore = (Alpine) => ({
     return this.show(message, { type: 'success', ...opts })
   },
   error(message, opts = {}) {
-    return this.show(message, { type: 'error', ...opts })
+    // 关键错误默认持久可读（duration 0），不被超时删除；调用方显式传 duration 可覆盖
+    return this.show(message, { type: 'error', duration: 0, ...opts })
   },
   warning(message, opts = {}) {
     return this.show(message, { type: 'warning', ...opts })

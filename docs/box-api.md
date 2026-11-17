@@ -145,7 +145,8 @@ Returns the flex alignment classes for a 9-point position. Mainly used by the te
 | Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `type` | `'dialog' \| 'confirm'` | `'dialog'` | Dialog type. Other strings are accepted but do not add button defaults. |
-| `title` | `string` | `''` | Header text. Also used as the dialog label when present. |
+| `title` | `string` | `''` | Header text. Used as the dialog's accessible name when `labelledBy` is absent. |
+| `labelledBy` | `string` | — | Id of an external or content heading to name the dialog (`aria-labelledby`). Takes precedence over `title`; when neither is set, a localized `aria-label` (`box.dialog`) is used instead. |
 | `content` | `string` | `''` | HTML body. Passed through `Uno.dom.sanitize()`. |
 | `width` | `number` | `400` | Width in pixels. The 400 default applies only when both `width` and `widthClass` are absent. |
 | `widthClass` | `string` | — | Tailwind classes for width, applied alongside any inline width. |
@@ -155,7 +156,7 @@ Returns the flex alignment classes for a 9-point position. Mainly used by the te
 | `boxId` | `string` | random | Explicit item id. |
 | `fill` | `boolean` | `false` | Fill mode; see [Fill mode](#fill-mode). |
 | `position` | `BoxPosition` | `'center'` | One of the 9 positions below. |
-| `modal` | `boolean` | `true` | Sets the `aria-modal` attribute. The backdrop is rendered whenever an item exists; use `closeOnOverlayClick` for dismissal. |
+| `modal` | `boolean` | `true` | Sets `aria-modal`. While the topmost open box is modal, the backdrop renders and the page background outside `#uno-box-manager` is isolated with native `inert`. `modal: false` keeps the page interactive (no backdrop, no inert, no focus trap). Use `closeOnOverlayClick` for dismissal. |
 | `showCloseButton` | `boolean` | `true` | Show the floating close button. |
 | `showOkButton` | `boolean` | `false` (`true` for `confirm`) | Show the OK button. |
 | `showCancelButton` | `boolean` | `false` (`true` for `confirm`) | Show the Cancel button. |
@@ -231,14 +232,22 @@ Escape or the overlay calls `onClose` (and `onBeforeClose`), not `onCancel`.
 
 ## Accessibility
 
-- `role="dialog"`, `:aria-modal`, `:aria-labelledby` (title) and `:aria-describedby`
-  (content container).
+- `role="dialog"`, `:aria-modal` and `:aria-describedby` (content container). The accessible name
+  resolves `labelledBy` > the title `h3` (`aria-labelledby`) > a localized `aria-label` fallback
+  (`box.dialog`); the unused attribute is bound to `null` so it is truly removed. `prompt` uses a
+  visible `<label for>` and a localized title (`box.prompt`).
 - Initial focus goes to the first visible input/textarea/select when `autoFocus` is `true`;
   otherwise to the title or container. Hidden, disabled and readonly inputs are skipped, as are
-  buttons.
-- `x-uno-trap` traps Tab/Shift+Tab and wraps in DOM order.
+  buttons. The deferred initial autofocus bails out if the box was already closed, so it never
+  overrides the opener focus that `close()` restored.
+- `x-uno-trap` traps Tab/Shift+Tab and wraps in DOM order (enabled only for modal boxes).
 - Closing restores focus to the opener when focus is still inside the dialog or on `body`.
-- Underlay dialogs receive `inert` and `aria-hidden="true"`.
+- Underlay dialogs receive `inert` and `aria-hidden="true"`. A topmost modal also isolates the
+  page background (the `<body>` children outside `#uno-box-manager`) with native `inert`; close
+  restores only the nodes the component inented, preserving the application's own inert state,
+  and `closeAll()` restores the background too.
+- Escape is consumed only by the topmost open box (when `closeOnEsc` is set), and an open tooltip
+  consumes it first.
 - The floating close button gets its accessible name from `box.close`.
 
 See [Accessibility](accessibility.md) for test scope and limitations.
@@ -272,8 +281,8 @@ sanitized; treat it as trusted server output. Box has no `onError`; use HTMX eve
 
 - `content` is sanitized with a regex-based sanitizer; it is not a general-purpose HTML
   sanitizer. Do not pass untrusted HTML.
-- The backdrop is always rendered while an item exists. `modal: false` only changes
-  `aria-modal`; it does not remove the backdrop or make the page interactive.
+- The backdrop renders only while a modal box is open. `modal: false` removes the backdrop, the
+  background `inert` isolation and the focus trap, leaving the page interactive.
 - Stacked dialogs add `index * 10` to `ui.layers.box`.
 - `closeAll()` is immediate and does not run the leave transition.
 

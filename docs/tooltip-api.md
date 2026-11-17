@@ -125,7 +125,7 @@ scroll, resize and popup size changes.
 
 | Behavior | Native events | Notes |
 | :--- | :--- | :--- |
-| `hover` | `mouseenter`, `mouseleave` | Popup enter cancels hide; popup leave schedules hide. |
+| `hover` | `mouseenter`, `mouseleave`, `focus`, `blur` | Also shows on keyboard focus; blur hides only when the pointer is not over the trigger. Popup enter cancels hide; popup leave schedules hide. |
 | `click` | `click` | Toggles. `preventDefault()` is called. Outside click closes when `clickOutside` is true. |
 | `focus` | `focus`, `blur` | Shows on focus and hides on blur. |
 
@@ -145,7 +145,8 @@ With `trigger: 'click'`:
   becomes `"false"` and `aria-describedby` is removed.
 - Focus returns to the trigger when it was inside the popup (or on `body`).
 
-Hover and focus modes remain hints: no focus movement, no trap, no ARIA state changes.
+Hover and focus modes remain hints: no focus movement, no trap and no `aria-expanded` change, but
+they do associate the trigger's `aria-describedby` with the tooltip id (see Accessibility).
 
 Menu content should declare APG semantics:
 
@@ -206,12 +207,16 @@ trusted. `hxTrigger` defaults to `'load'`, so the request happens when the popup
 
 - `role="tooltip"` on the popup.
 - Click mode adds the ARIA state and focus behaviour described above.
-- Hover/focus mode does not add `aria-describedby`; screen readers may not announce a
-  hover-only tooltip. Provide the same information in visible text when it is essential.
+- Hover, focus and click triggers all associate the trigger's `aria-describedby` with the stable
+  tooltip id (`uno-tooltip-content`) as a token, preserving any other references and removing only
+  that token on hide. Hover hints also show on keyboard focus, so the description is available to
+  screen readers without a pointer.
 
 ## Notes
 
 - The tooltip store is a singleton; opening a second tooltip hides the first.
+- `show()` and `hide()` cancel any pending delayed hide, so switching quickly between triggers
+  keeps the new tooltip instead of being hidden by the old timer.
 - `ui.tooltip.content` contains `{base}` and defaults to `whitespace-nowrap`.
 - `scheduleHide()` defaults to 300 ms. The registered plugin default `delay` is not currently
   read by the directive.
@@ -221,6 +226,7 @@ trusted. `hxTrigger` defaults to `'load'`, so the request happens when the popup
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| 0.10.1 | 2026-11-17 | Hover hints respond to keyboard focus; hover/focus/click associate `aria-describedby` as a token; `show()`/`hide()` cancel pending delayed hide. |
 | 0.10.0 | 2026-11-09 | Click popup keyboard contract, popup size observation, non-negative horizontal clamping, function `offset`. |
 | 0.9.0 | 2026-08-26 | `offset` honored by positioning; arrow rendered; `updatePosition()` reads `position`; content sanitized; placement narrowed to four values. |
 | 0.7.0 | 2026-01-20 | Lazy initialization. |

@@ -3,7 +3,9 @@ export default {
     ok: 'ОК',
     cancel: 'Отмена',
     loading: 'Загрузка',
-    close: 'Закрыть'
+    close: 'Закрыть',
+    dialog: 'Диалоговое окно',
+    prompt: 'Ввод'
   },
   valid: {
     required: 'Обязательное поле',

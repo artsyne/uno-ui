@@ -59,7 +59,7 @@ comes back unchanged; a key is translated.
 | Method | Equivalent |
 | :--- | :--- |
 | `success(message, options)` | `show(message, { type: 'success', ...options })` |
-| `error(message, options)` | `show(message, { type: 'error', ...options })` |
+| `error(message, options)` | `show(message, { type: 'error', duration: 0, ...options })` — persistent by default; an explicit `duration` overrides. |
 | `warning(message, options)` | `show(message, { type: 'warning', ...options })` |
 | `info(message, options)` | `show(message, { type: 'info', ...options })` |
 
@@ -112,7 +112,7 @@ overlap.
 | :--- | :--- | :--- | :--- |
 | `message` | `string` | required | Text or i18n key. Rendered with `x-text`. |
 | `type` | `'info' \| 'success' \| 'warning' \| 'error'` | none | Controls the background, icon colour and announcement politeness. There is no default; pass a type for a styled notification. |
-| `duration` | `number` | `3000` | Auto-dismiss after this many milliseconds. `0` disables auto-dismiss. |
+| `duration` | `number` | `3000` (`0` for `error()`) | Auto-dismiss after this many milliseconds. `0` disables auto-dismiss. Auto-dismiss pauses on hover/focus and resumes with the remaining time. |
 | `position` | `NotifyPosition` | `'top-right'` | Screen position. Unknown values fall back to the `top-right` group. |
 | `closable` | `boolean` | `true` | Show the close button. |
 | `icon` | `string` | — | CSS class string for an `<i>` element, for example `fas fa-check`. The icon is only rendered when set. |
@@ -167,9 +167,10 @@ See [HTMX integration](htmx.md#bindnotifytohtmx) for options and server headers.
 | `error`, `warning` | `alert` | `assertive` |
 | `success`, `info` | `status` | `polite` |
 
-The role and live-region attributes are bound per item in the template. The close button is an
-icon-only button with a visually hidden label from the `box.close` i18n key. Notifications do
-not steal focus.
+The role and live-region attributes sit on the message text and the HTMX content wrapper, not the
+whole item, so action buttons are not re-announced. The close button is an icon-only button with a
+visually hidden label from the `box.close` i18n key. Notifications do not steal focus; closing a
+focused notification hands focus to another visible notification.
 
 The global progress bar is visual only; it has no `progressbar` role in the current template.
 
@@ -179,7 +180,8 @@ The global progress bar is visual only; it has no `progressbar` role in the curr
 - The container's z-index comes from `ui.layers.notify` (default 1600); the progress bar uses
   9999.
 - `duration` is measured from insertion; the leave transition adds roughly 300 ms before the
-  element is removed.
+  element is removed. Auto-dismiss pauses while the pointer is over the notification or focus is
+  inside it, and resumes with the remaining time (not a reset) once both clear.
 - The progress bar container is created by `show()`. If you call `startProgress()` (or
   `bindNotifyToHtmx()` progress) before any notification has been shown, call
   `notify.ensureContainer()` once or show a notification first.
@@ -189,6 +191,7 @@ The global progress bar is visual only; it has no `progressbar` role in the curr
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| 0.10.1 | 2026-11-17 | `error()` persistent by default; auto-dismiss pauses on hover/focus and resumes remaining; live region on message text/HTMX wrapper; focus handoff on close. |
 | 0.10.0 | 2026-11-09 | Announcement politeness graded by type; close-button name uses Uno i18n. |
 | 0.9.0 | 2026-08-26 | Added `beginProgress()` / `endProgress()`; fixed `remove()` hiding via `isVisible`. |
 | 0.8.0 | 2026-01-22 | Added `bindNotifyToHtmx()` on `Uno.htmx`. |

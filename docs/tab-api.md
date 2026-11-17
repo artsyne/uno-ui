@@ -157,6 +157,9 @@ tab with `updateHash: false`; when HTMX is loaded, Uno calls `htmx.trigger(el, '
 - `aria-controls` points at `panel` or `panel-{name}`.
 - ArrowLeft/ArrowRight rotate within the group; Home/End go to the first/last tab; focus follows
   and activation reuses the click path. RTL containers reverse the horizontal arrows.
+- Enter and Space activate the focused tab. Anchor tabs have no native Space activation, so the
+  directive synthesizes a click (and prevents page scroll); button tabs' native Space is preempted
+  to avoid double activation, and held keys do not repeat.
 - Per-tab panels declare `id="panel-{name}" role="tabpanel" aria-labelledby="tab-{name}"`.
 - Shared-panel mode declares `role="tabpanel" data-tab-group="{group}"`; activation updates
   `aria-labelledby`.
@@ -179,6 +182,7 @@ The directive does not inject panel roles or `x-show`; those remain the author's
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| 0.10.1 | 2026-11-17 | Anchor tabs activate on Space (synthesized click, scroll prevented, repeat-guarded); Enter covered by native click. |
 | 0.10.0 | 2026-11-09 | APG tabs pattern: roles, `aria-selected`, roving tabindex, Arrow/Home/End, per-tab and shared panels. |
 | 0.8.0 | 2026-01-22 | Documentation realigned with the Store-First implementation. |
 | 0.7.0 | 2026-01-20 | Hash listener starts only after first tab use. |

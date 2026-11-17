@@ -77,17 +77,26 @@ export const registerTooltipDirectives = (Alpine) => {
     }
 
     const onFocus = () => {
+      // Safety check: if expression exists but hasn't evaluated, skip
+      if (expression && currentVal === null) return
+
       const config = resolveConfig(currentVal)
       const finalConfig = Uno.getConfig('tooltip', config)
-      if (finalConfig.trigger === 'focus') {
+      // hover 提示也响应键盘聚焦（APG tooltip 对 hover/focus 两种输入均显示），
+      // click 为披露模式不随聚焦自动打开
+      if (finalConfig.trigger === 'focus' || finalConfig.trigger === 'hover') {
         show(currentVal)
       }
     }
 
     const onBlur = () => {
       const store = Alpine.store('uno')?.tooltip
-      if (store && store.triggerMode === 'focus' && store.triggerEl === el) {
+      if (!store || store.triggerEl !== el) return
+      if (store.triggerMode === 'focus') {
         store.hide()
+      } else if (store.triggerMode === 'hover' && !el.matches(':hover')) {
+        // 鼠标仍悬停时不因失焦隐藏（hover 与 focus 任一存在即保持）
+        store.scheduleHide()
       }
     }
 

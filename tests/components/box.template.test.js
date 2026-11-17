@@ -130,4 +130,42 @@ describe('Box Template', () => {
     expect(template).toContain('x-t.aria-label="box.close"')
     expect(template).not.toContain('aria-label="Close"')
   })
+
+  // ============================================================
+  // 可访问名 / Esc 顶层消费与非模态语义
+  // ============================================================
+
+  it('aria-labelledby 优先 labelledBy，其次标题，均无时回退本地化 aria-label', () => {
+    const template = getBoxTemplate()
+    // 绑定用 null 而非 undefined：Alpine 对含点表达式的 undefined 强转空串，
+    // 会留下 aria-labelledby="" 空属性；null 才真正移除属性
+    expect(template).toContain(
+      `:aria-labelledby="item.labelledBy || (item.title ? 'uno-box-title-' + item.id : null)"`
+    )
+    expect(template).toContain(
+      `:aria-label="item.labelledBy || item.title ? null : $store.i18n.t('box.dialog')"`
+    )
+  })
+
+  it('Esc 只由顶层打开实例消费，且打开的 tooltip 浮层先消费', () => {
+    const template = getBoxTemplate()
+    expect(template).toContain(
+      '@keydown.escape.window="$store.uno.box.isTopmost(item) && item.closeOnEsc && !$store.uno.tooltip?.visible && item.close()"'
+    )
+  })
+
+  it('遮罩与全屏 wrapper 仅在存在打开的模态弹窗时拦截背景', () => {
+    const template = getBoxTemplate()
+    expect(template).toContain('x-show="$store.uno.box.hasModalOpen()"')
+    expect(template).toContain(
+      `$store.uno.box.hasModalOpen() ? '' : 'pointer-events-none'`
+    )
+  })
+
+  it('非模态实例不启用焦点 trap', () => {
+    const template = getBoxTemplate()
+    expect(template).toContain(
+      'x-uno-trap="{ initialFocus: false, enabled: item.modal !== false }"'
+    )
+  })
 })

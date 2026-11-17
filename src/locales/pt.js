@@ -3,7 +3,9 @@ export default {
     ok: 'Confirmar',
     cancel: 'Cancelar',
     loading: 'Carregando',
-    close: 'Fechar'
+    close: 'Fechar',
+    dialog: 'Caixa de diálogo',
+    prompt: 'Entrada'
   },
   valid: {
     required: 'Obrigatório',

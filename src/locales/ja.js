@@ -3,7 +3,9 @@ export default {
     ok: '確認',
     cancel: 'キャンセル',
     loading: '読み込み中',
-    close: '閉じる'
+    close: '閉じる',
+    dialog: 'ダイアログ',
+    prompt: '入力'
   },
   valid: {
     required: '必須です',

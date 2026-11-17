@@ -8,10 +8,10 @@ import { getZIndex } from '../../core/layer'
 export const getBoxTemplate = () => {
   const zBase = Uno.options?.ui?.layers?.box || getZIndex('BOX')
   return `
-  <!-- Backdrop / Overlay -->
+  <!-- Backdrop / Overlay（仅模态弹窗存在时显示，非模态不遮挡背景） -->
   <div id="uno-box-overlay"
        :class="Uno.getStyle('box', 'overlay')"
-       x-show="$store.uno.box.items.length > 0"
+       x-show="$store.uno.box.hasModalOpen()"
        x-transition:enter="ease-out duration-300"
        x-transition:enter-start="opacity-0"
        x-transition:enter-end="opacity-100"
@@ -20,7 +20,7 @@ export const getBoxTemplate = () => {
        x-transition:leave-end="opacity-0"
        @click="$store.uno.box.items.length && $store.uno.box.items[$store.uno.box.items.length - 1].closeOnOverlayClick && $store.uno.box.items[$store.uno.box.items.length - 1].close()"></div>
 
-  <div :class="[Uno.getStyle('box', 'dialogWrapper'), 'grid grid-cols-1']"
+  <div :class="[Uno.getStyle('box', 'dialogWrapper'), 'grid grid-cols-1', $store.uno.box.hasModalOpen() ? '' : 'pointer-events-none']"
        @click.self="$store.uno.box.items.length && $store.uno.box.items[$store.uno.box.items.length - 1].closeOnOverlayClick && $store.uno.box.items[$store.uno.box.items.length - 1].close()">
     <template x-for="(item, index) in $store.uno.box.items" :key="item.id">
       <div :id="'uno-box-outer-container' + item.id"
@@ -35,15 +35,16 @@ export const getBoxTemplate = () => {
            x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
            role="dialog"
            :aria-modal="item.modal !== false ? 'true' : 'false'"
-           :aria-labelledby="item.title ? 'uno-box-title-' + item.id : undefined"
+           :aria-labelledby="item.labelledBy || (item.title ? 'uno-box-title-' + item.id : null)"
+           :aria-label="item.labelledBy || item.title ? null : $store.i18n.t('box.dialog')"
            :aria-describedby="'uno-box-content-' + item.id"
-           @keydown.escape.window="item.isOpen && item.closeOnEsc && item.close()">
+           @keydown.escape.window="$store.uno.box.isTopmost(item) && item.closeOnEsc && !$store.uno.tooltip?.visible && item.close()">
 
         <div :id="'uno-box-container' + item.id"
              :class="[Uno.getStyle('box', 'container'), item.widthClass, item.heightClass || (item.fill && !item.height ? Uno.getStyle('box', 'containerFill') : ''), item.containerClass, 'focus:outline-none']"
              :style="(item.width ? 'width:' + item.width + 'px; max-width:' + item.width + 'px;' : (item.widthClass ? 'max-width:none;' : '')) + (item.height ? ' height:' + item.height + 'px;' : '')"
              tabindex="-1"
-             x-uno-trap="{ initialFocus: false }">
+             x-uno-trap="{ initialFocus: false, enabled: item.modal !== false }">
 
           <!-- Close Button -->
           <button type="button"

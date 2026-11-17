@@ -62,6 +62,23 @@ describe('A11y Utils - trapFocus', () => {
     cleanup()
   })
 
+  it('enabled=false 不注册 trap：不抢初始焦点，Tab 不被拦截（非模态）', () => {
+    const cleanup = trapFocus(container, { enabled: false })
+    vi.runAllTimers()
+    expect(document.activeElement).toBe(document.body)
+
+    btn2.focus()
+    const event = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      bubbles: true,
+      cancelable: true
+    })
+    container.dispatchEvent(event)
+    expect(event.defaultPrevented).toBe(false)
+    expect(document.activeElement).toBe(btn2)
+    cleanup()
+  })
+
   it('should cycle focus to first element when tabbing from last', () => {
     const cleanup = trapFocus(container)
     vi.runAllTimers()

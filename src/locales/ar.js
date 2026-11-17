@@ -3,7 +3,9 @@ export default {
     ok: 'موافق',
     cancel: 'إلغاء',
     loading: 'جارٍ التحميل',
-    close: 'إغلاق'
+    close: 'إغلاق',
+    dialog: 'مربع حوار',
+    prompt: 'إدخال'
   },
   valid: {
     required: 'مطلوب',

@@ -283,8 +283,12 @@ Validates every form control that has registered rules. Returns a Promise of `bo
 
 - Uses the `submit` event type so every rule runs.
 - With two or more failures, renders a focusable `role="alert"` summary at the top of the form
-  and focuses it.
+  and focuses it. Each link carries the field name (its `<label>` / `aria-label`, falling back to
+  the field name) plus the error message, and anchors the real control — minting a stable id when
+  the control has none — so clicking focuses the control itself, not the inline error div.
 - With one failure, focuses the first failing field.
+- Focus and scroll are separate steps; scrolling honors `prefers-reduced-motion` (an instant jump
+  when reduced motion is requested, smooth otherwise).
 - `scrollOnError: false` disables scrolling/focus.
 - Removes a previous summary before re-evaluating.
 
@@ -338,7 +342,8 @@ See [HTMX integration](htmx.md#valid).
 - `aria-invalid` is set on error and removed when the field becomes valid, including `422`
   errors.
 - The counter is linked by `aria-describedby` and has a full-sentence `aria-label`.
-- Multi-field failures render a focusable summary with links that focus the field.
+- Multi-field failures render a focusable summary whose links carry the field name plus the
+  message and focus the real control (a stable id is minted when the control has none).
 - If `autoError: false` and no matching manual error element exists, there is nothing to point
   `aria-describedby` at; `aria-invalid` still syncs.
 
@@ -358,6 +363,7 @@ See [HTMX integration](htmx.md#valid).
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| 0.10.1 | 2026-11-17 | Error-summary links carry the field name and anchor the real control (minted id); focus/scroll split with `prefers-reduced-motion`. |
 | 0.10.0 | 2026-11-09 | `role="alert"` + `${field}-error`, `aria-describedby`, `aria-invalid`, counter association, error summary. |
 | 0.8.0 | 2026-01-22 | Breaking: HTML5 attribute rules removed. Added debounce, emptyQuit, `type: 'validator'`; documented store API. |
 | 0.7.0 | 2026-01-20 | Initial release. |

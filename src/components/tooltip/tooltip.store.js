@@ -4,13 +4,29 @@ import { DomManager } from '../../utils/dom'
 import { log } from '../../utils/log'
 import { sanitizeHTML } from '../../utils/dom'
 import { getZIndex } from '../../core/layer'
-import { trapFocus, FOCUSABLE_SELECTOR } from '../../utils/a11y'
+import { FOCUSABLE_SELECTOR } from '../../utils/a11y'
 import { getTooltipTemplate } from './tooltip.template'
 
 // Shared Logic
 let rafId = 0
 let globalListenersCleanup = null
 let sizeObserver = null
+
+// hover/focus/click 三种触发都把触发器 aria-describedby 关联到稳定的提示内容 id；
+// 以 token 方式增删，保留触发器原有的其他 describedby 引用
+const DESCRIBEDBY_ID = 'uno-tooltip-content'
+const addDescribedBy = (el) => {
+  const tokens = (el.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean)
+  if (!tokens.includes(DESCRIBEDBY_ID)) tokens.push(DESCRIBEDBY_ID)
+  el.setAttribute('aria-describedby', tokens.join(' '))
+}
+const removeDescribedBy = (el) => {
+  const tokens = (el.getAttribute('aria-describedby') || '')
+    .split(/\s+/)
+    .filter((t) => t && t !== DESCRIBEDBY_ID)
+  if (tokens.length) el.setAttribute('aria-describedby', tokens.join(' '))
+  else el.removeAttribute('aria-describedby')
+}
 
 export const createTooltipStore = (Alpine) => {
   const scheduleUpdatePosition = () => {
@@ -97,8 +113,7 @@ export const createTooltipStore = (Alpine) => {
     clickOutside: true,
     arrow: true,
     arrowPosition: { top: 0, left: 0 },
-    // A3 keyboard bindings (click trigger popup): trap cleanup + keydown handlers
-    cleanupTrap: null,
+    // A3 keyboard bindings (click trigger popup): keydown handlers
     onPopupKeydown: null,
     onTriggerKeydown: null,
 
@@ -115,6 +130,9 @@ export const createTooltipStore = (Alpine) => {
 
     show(instanceOpts = {}) {
       log.info('Tooltip show called', instanceOpts)
+      // 快速切换触发器（A 离开后 300ms 内进入 B）时清除 A 的延迟隐藏，
+      // 否则旧 timer 会把 B 刚打开的提示隐藏掉
+      this.cancelHide()
       // 4-level merge via Uno.getConfig
       const config = Uno.getConfig('tooltip', instanceOpts)
       log.info('Tooltip resolved config', config)
@@ -165,14 +183,18 @@ export const createTooltipStore = (Alpine) => {
       ensureGlobalListeners()
       observeSize()
 
-      // A3：click 触发 = 弹层/披露模式。暴露触发器状态并与弹层关联、绑定键盘支持
-      // （Space 合成/方向键导航/Tab 循环），渲染后焦点移入弹层，使菜单链接紧随触发器
-      // 加入 Tab 序（WCAG 2.1.1 / 2.4.3 / 4.1.2）。hover/focus 触发为纯提示，不抢焦点不改状态。
-      if (this.triggerMode === 'click' && this.triggerEl) {
-        this.triggerEl.setAttribute('aria-haspopup', 'true')
-        this.triggerEl.setAttribute('aria-expanded', 'true')
-        this.triggerEl.setAttribute('aria-describedby', 'uno-tooltip-content')
-        this.bindPopupKeyboard()
+      // A3：click 触发 = 弹层/披露模式（APG menu-button）。暴露触发器状态并与弹层关联、
+      // 绑定键盘支持（Space 合成/方向键导航/Tab 关闭离开），渲染后焦点移入弹层，
+      // 使菜单链接紧随触发器加入 Tab 序（WCAG 2.1.1 / 2.4.3 / 4.1.2）。
+      // hover/focus 触发为纯提示，不抢焦点不改展开状态，但同样关联 describedby，
+      // 使读屏在聚焦/悬停时播报提示内容。
+      if (this.triggerEl) {
+        addDescribedBy(this.triggerEl)
+        if (this.triggerMode === 'click') {
+          this.triggerEl.setAttribute('aria-haspopup', 'true')
+          this.triggerEl.setAttribute('aria-expanded', 'true')
+          this.bindPopupKeyboard()
+        }
       }
 
       // Calculate position next tick to allow rendering
@@ -183,6 +205,7 @@ export const createTooltipStore = (Alpine) => {
     },
 
     hide() {
+      this.cancelHide()
       const trigger = this.triggerEl
       const wasClickMode = this.triggerMode === 'click'
       const container = document.getElementById('uno-tooltip-content')
@@ -193,10 +216,6 @@ export const createTooltipStore = (Alpine) => {
       this.triggerEl = null
 
       // A3：解除键盘绑定并收起触发器状态
-      if (this.cleanupTrap) {
-        this.cleanupTrap()
-        this.cleanupTrap = null
-      }
       if (container && this.onPopupKeydown) {
         container.removeEventListener('keydown', this.onPopupKeydown)
         this.onPopupKeydown = null
@@ -205,9 +224,10 @@ export const createTooltipStore = (Alpine) => {
         trigger.removeEventListener('keydown', this.onTriggerKeydown)
         this.onTriggerKeydown = null
       }
-      if (wasClickMode && trigger && trigger.setAttribute) {
-        trigger.setAttribute('aria-expanded', 'false')
-        trigger.removeAttribute('aria-describedby')
+      if (trigger && trigger.setAttribute) {
+        // 所有触发模式都解除 describedby 关联（保留其他 token）；click 另收起展开态
+        removeDescribedBy(trigger)
+        if (wasClickMode) trigger.setAttribute('aria-expanded', 'false')
       }
 
       if (globalListenersCleanup) {
@@ -235,17 +255,28 @@ export const createTooltipStore = (Alpine) => {
     },
 
     /**
-     * A3 click 弹层键盘绑定：Tab 循环（trapFocus）、role=menu 内容方向键导航、
-     * 锚点触发器 Space 合成（Enter 在锚点/按钮上由原生 click 覆盖，按钮 Space 亦原生，
-     * 仅锚点需合成以免双重 toggle）。
+     * A3 click 弹层键盘绑定（APG menu-button）：Tab 关闭弹层并离开（焦点先还原触发器，
+     * 浏览器默认 Tab 动作随后落到触发器之后的元素，不 trap）；role=menu 内容方向键导航；
+     * 锚点菜单项 Space 合成 click（Enter 由原生 click 覆盖，按钮 Space 亦原生）；
+     * 锚点触发器 Space 合成关闭（仅有关闭态需合成，打开由 click 覆盖）。
      */
     bindPopupKeyboard() {
       const container = document.getElementById('uno-tooltip-content')
       if (!container) return
 
-      this.cleanupTrap = trapFocus(container, { initialFocus: false })
-
       this.onPopupKeydown = (e) => {
+        if (e.key === 'Tab') {
+          this.hide()
+          return
+        }
+        if (e.key === ' ' || e.key === 'Spacebar') {
+          const item = document.activeElement
+          if (item && item.tagName === 'A' && container.contains(item)) {
+            e.preventDefault()
+            item.click()
+          }
+          return
+        }
         if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) return
         if (!container.querySelector('[role="menu"]')) return
         const items = Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR))

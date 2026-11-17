@@ -4,7 +4,7 @@ export const registerTabDirectives = (Alpine) => {
   // ============================================================
   // Tab Directive (x-uno-tab)  // Usage: <button x-uno-tab="{ name: 'tab1' }">
   // B4 APG tabs：role=tab、aria-selected/roving tabindex 响应式同步、
-  // aria-controls 关联面板、←→/Home/End 键盘旋转（激活后焦点跟随）。
+  // aria-controls 关联面板、←→/Home/End 键盘旋转（激活后焦点跟随）、Space 激活焦点 tab。
   // ============================================================
   Alpine.directive('uno-tab', (el, { expression }, { evaluateLater, effect, cleanup }) => {
     if (!expression) {
@@ -69,6 +69,14 @@ export const registerTabDirectives = (Alpine) => {
     // B4 APG 键盘：←→ 循环旋转、Home/End 跳首尾；焦点跟随至目标 tab 并复用
     // click 路径激活（htmx swap 型 tab 的内容装载由锚点 hx-get 承担，裸 activate 会脱节）
     const onKeyDown = (e) => {
+      // APG 要求 Space 激活焦点 tab：锚点无原生 Space 激活（默认动作是滚动页面），
+      // 统一 preventDefault 后合成 click；按钮的原生 Space 在 keyup 触发，被此处接管
+      // 不会双重激活；repeat 拦截避免长按连发
+      if (e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault()
+        if (!e.repeat) el.click()
+        return
+      }
       if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)) return
       if (!lastConfig || !lastConfig.name) return
       e.preventDefault()

@@ -6,6 +6,37 @@ import { log } from '../../utils/log'
 // current title even though each re-render rebuilds the summary from scratch.
 let summarySeq = 0
 
+// Monotonic id source for controls that arrive without an id: a summary link
+// must anchor the real control, so we mint a stable id rather than fall
+// back to the inline `{field}-error` element, which is not focusable.
+let fieldSeq = 0
+
+// Scroll behavior honors prefers-reduced-motion (C1/E6): smooth scrolling is
+// motion, so reduced-motion users get an instant jump. matchMedia is absent in
+// some test/DOM environments, where we keep the smooth default.
+const scrollBehavior = () =>
+  typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? 'auto'
+      : 'smooth'
+    : 'smooth'
+
+// Human-readable field name for a summary link: prefer the associated
+// <label> (native `labels` covers `for`, `closest` covers wrapping labels), then
+// aria-label / aria-labelledby, finally the raw field name as a last resort.
+const getFieldLabel = (field, fieldName) => {
+  const lab = (field.labels && field.labels[0]) || (field.closest && field.closest('label'))
+  if (lab && lab.textContent.trim()) return lab.textContent.trim()
+  const ariaLabel = field.getAttribute && field.getAttribute('aria-label')
+  if (ariaLabel && ariaLabel.trim()) return ariaLabel.trim()
+  const labelledBy = field.getAttribute && field.getAttribute('aria-labelledby')
+  if (labelledBy) {
+    const ref = document.getElementById(labelledBy.trim().split(/\s+/)[0])
+    if (ref && ref.textContent.trim()) return ref.textContent.trim()
+  }
+  return fieldName
+}
+
 export const createValidStore = (Alpine) => ({
   /**
    * Validation error messages keyed by field name.
@@ -368,12 +399,12 @@ export const createValidStore = (Alpine) => ({
       if (failedFields.length >= 2) {
         const summary = this.renderErrorSummary(form, failedFields)
         if (summary && globalConfig.scrollOnError !== false) {
-          summary.scrollIntoView({ behavior: 'smooth', block: 'center' })
           summary.focus({ preventScroll: true })
+          summary.scrollIntoView({ behavior: scrollBehavior(), block: 'center' })
         }
       } else if (globalConfig.scrollOnError !== false) {
-        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' })
         firstErrorField.focus({ preventScroll: true })
+        firstErrorField.scrollIntoView({ behavior: scrollBehavior(), block: 'center' })
       }
     }
 
@@ -383,11 +414,13 @@ export const createValidStore = (Alpine) => ({
   /**
    * Renders the top-of-form error summary for multi-field failures
    * (E4 / WCAG 3.3.1 / 3.3.3, GOV.UK pattern): a focusable `role="alert"`
-   * container labelled by its title, with one link per failed field pointing
-   * at the field (`input.id`, falling back to the `{field}-error` element the
-   * directive generates). Clicking a link focuses the field instead of
-   * navigating. Visual classes (`ui-error-summary*`) are styled by the app
-   * stylesheet (website tailwind.css), mirroring the `is-invalid` pattern.
+   * container labelled by its title, with one link per failed field. Each link
+   * carries the field name plus its error message and anchors the real control
+   * (`input.id`, minting a stable id when the control has none) so clicking
+   * focuses the control itself rather than the non-focusable inline error div.
+   * Focus and scroll are separate steps and scrolling honors
+   * prefers-reduced-motion. Visual classes (`ui-error-summary*`) are styled by
+   * the app stylesheet (website tailwind.css), mirroring the `is-invalid` pattern.
    *
    * @param {HTMLFormElement} form - The form receiving the summary.
    * @param {Array<{input: HTMLElement, fieldName: string}>} failedFields
@@ -415,18 +448,24 @@ export const createValidStore = (Alpine) => ({
     const list = document.createElement('ul')
     list.className = 'ui-error-summary-list'
     failedFields.forEach(({ input: field, fieldName }) => {
-      const anchorId = field.id || `${fieldName}-error`
+      // Anchor the real control: mint an id when missing so the link never
+      // targets the inline `{field}-error` div, which cannot receive focus.
+      if (!field.id) field.id = `valid-field-${++fieldSeq}`
+      const anchorId = field.id
+
+      const message = this.errors[fieldName] || ''
+      const label = getFieldLabel(field, fieldName)
 
       const link = document.createElement('a')
       link.className = 'ui-error-summary-link'
       link.setAttribute('href', `#${anchorId}`)
-      link.textContent = this.errors[fieldName] || ''
+      link.textContent = label && label !== message ? `${label}: ${message}` : message
       link.addEventListener('click', (evt) => {
         evt.preventDefault()
-        const target = document.getElementById(anchorId)
+        const target = document.getElementById(anchorId) || field
         if (!target) return
         target.focus({ preventScroll: true })
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        target.scrollIntoView({ behavior: scrollBehavior(), block: 'center' })
       })
 
       const item = document.createElement('li')

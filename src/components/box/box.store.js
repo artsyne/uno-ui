@@ -12,6 +12,9 @@ export const createBoxStore = (Alpine) => ({
    */
   stack: [],
 
+  // 记录本组件 inert 过的背景节点，关闭时只恢复这些节点，保留应用原有 inert 状态。
+  _backgroundInert: new Set(),
+
   // ============================================================
   // Public API - Convenience Methods
   // ============================================================
@@ -92,15 +95,16 @@ export const createBoxStore = (Alpine) => ({
       const escapedMessage = Uno.dom.sanitize(message)
       const escapedDefaultValue = Uno.dom.sanitize(defaultValue)
 
+      // 可见 label 即提示文案本身（label[for] 关联输入框），读屏与视觉共用同一名称
       const content = `
         <div class="${wrapperClass}">
-          <p class="${textClass}">${escapedMessage}</p>
+          <label for="${id}" class="block ${textClass}">${escapedMessage}</label>
           <input id="${id}" type="text" class="${inputClass}" value="${escapedDefaultValue}">
         </div>
       `
       this.open('confirm', {
-        title: rest.title || 'Prompt',
         ...rest,
+        title: rest.title || Alpine.store('i18n')?.t?.('box.prompt') || 'Prompt',
         content,
         _isTrustedPrompt: true, // Internal flag for prompt content
         onOk: () => {
@@ -178,6 +182,9 @@ export const createBoxStore = (Alpine) => ({
       id,
       type,
       title: config.title || '',
+      // 外部/内容内标题元素 id（aria-labelledby 优先于 title 与通用兜底名），
+      // 供阅读弹窗等「标题在异步内容里」的场景关联真实标题，避免重复展示
+      labelledBy: config.labelledBy || '',
       content: config._isTrustedPrompt
         ? config.content || ''
         : Uno.dom.sanitize(config.content || ''),
@@ -391,19 +398,64 @@ export const createBoxStore = (Alpine) => ({
   },
 
   /**
+   * Esc 只由最顶层打开的实例消费，下层弹窗不随之关闭；
+   * 顶层判定与 syncUnderlayInert 同口径（items 顺序 + isOpen）。
+   */
+  isTopmost(item) {
+    const open = this.items.filter((i) => i.isOpen)
+    return open.length > 0 && open[open.length - 1] === item
+  },
+
+  /**
+   * 存在打开的模态弹窗时遮罩与全屏 wrapper 才拦截背景；
+   * 非模态期间背景保持可点击（模板据此释放 wrapper 的 pointer-events）。
+   */
+  hasModalOpen() {
+    return this.items.some((i) => i.isOpen && i.modal !== false)
+  },
+
+  /**
    * B5 多层弹窗：仅顶层可交互/可感知，下层 inert + aria-hidden，
    * 屏幕阅读器与键盘不穿透底层（不改现有 scheduleAutoFocus 契约）。
+   * 顶层为非模态时背景与下层均保持可交互，不做 inert 隔离。
+   * 模态顶层时另以原生 inert 隔离页面背景，杜绝任何引擎的焦点逃逸。
    */
   syncUnderlayInert() {
     if (typeof document === 'undefined') return
     const openItems = this.items.filter((i) => i.isOpen)
+    const topModal = openItems.length > 0 && openItems[openItems.length - 1].modal !== false
     openItems.forEach((it, idx) => {
       const el = document.getElementById('uno-box-outer-container' + it.id)
       if (!el) return
-      const underlay = idx < openItems.length - 1
+      const underlay = topModal && idx < openItems.length - 1
       el.toggleAttribute('inert', underlay)
       if (underlay) el.setAttribute('aria-hidden', 'true')
       else el.removeAttribute('aria-hidden')
+    })
+    this.syncBackgroundInert(topModal)
+  },
+
+  /**
+   * 模态顶层时用原生 inert 隔离弹窗管理器（#uno-box-manager）之外的 body
+   * 子节点。inert 同时移出焦点序列与无障碍树，背景无法被 Tab 或程序聚焦命中，
+   * 不再依赖手写的 Tab 候选过滤来防逃逸。关闭（顶层非模态或无弹窗）时仅恢复
+   * 本组件 inert 过的节点，应用原本就 inert 的节点保持原状。
+   * @param {boolean} topModal - 当前顶层是否为模态弹窗
+   */
+  syncBackgroundInert(topModal) {
+    if (!document.body) return
+    const tracked = this._backgroundInert
+    if (!topModal) {
+      tracked.forEach((el) => el.removeAttribute('inert'))
+      tracked.clear()
+      return
+    }
+    const manager = document.getElementById('uno-box-manager')
+    Array.from(document.body.children).forEach((el) => {
+      // 管理器承载活动弹窗，不可 inert；已 inert 的节点（含应用自设）跳过以保留原状态
+      if (el === manager || el.hasAttribute('inert')) return
+      el.setAttribute('inert', '')
+      tracked.add(el)
     })
   },
 
@@ -416,6 +468,8 @@ export const createBoxStore = (Alpine) => ({
       if (item.onClose) item.onClose()
     })
     this.items = []
+    // 清空后恢复背景 inert 原状态（closeAll 不走单项 close 的 sync 路径）
+    this.syncUnderlayInert()
   },
 
   /**
@@ -447,6 +501,10 @@ export const createBoxStore = (Alpine) => ({
   scheduleAutoFocus(item, alpine) {
     const containerId = 'uno-box-container' + item.id
     const run = () => {
+      // 延迟初始聚焦可能在弹窗已关闭后才执行（nextTick + 双 rAF）；
+      // 此时若仍聚焦中性目标，会覆盖 close() 已还原的 opener 焦点，
+      // 随后容器被移除导致焦点丢失到 body，故关闭后直接放弃。
+      if (!item.isOpen) return
       const container = document.getElementById(containerId)
       if (!container) return
       // APG initial-focus policy: prefer the first inputable element when

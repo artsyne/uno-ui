@@ -748,4 +748,84 @@ describe('Box Component', () => {
       expect(onClick).toHaveBeenCalledWith(item)
     })
   })
+
+  // 可访问名 / Esc 顶层消费与非模态语义
+  describe('accessible name, topmost Esc and non-modal semantics', () => {
+    const mount = (item) => {
+      const el = document.createElement('div')
+      el.id = 'uno-box-outer-container' + item.id
+      document.body.appendChild(el)
+      return el
+    }
+
+    it('isTopmost 只认最顶层打开实例，关闭后让位', () => {
+      document.body.innerHTML = ''
+      const a = boxStore.open({ boxId: 'A' })
+      const b = boxStore.open({ boxId: 'B' })
+      vi.runAllTimers()
+      expect(boxStore.isTopmost(a)).toBe(false)
+      expect(boxStore.isTopmost(b)).toBe(true)
+      b.isOpen = false
+      expect(boxStore.isTopmost(a)).toBe(true)
+      expect(boxStore.isTopmost(b)).toBe(false)
+    })
+
+    it('hasModalOpen：仅非模态打开为 false，存在模态为 true', () => {
+      boxStore.open({ modal: false })
+      vi.runAllTimers()
+      expect(boxStore.hasModalOpen()).toBe(false)
+      boxStore.open({})
+      vi.runAllTimers()
+      expect(boxStore.hasModalOpen()).toBe(true)
+    })
+
+    it('非模态置顶时下层不做 inert 隔离', () => {
+      document.body.innerHTML = ''
+      const lower = boxStore.open({ boxId: 'LOWER' })
+      vi.runAllTimers()
+      const lowerEl = mount(lower)
+      const top = boxStore.open({ boxId: 'TOP', modal: false })
+      vi.runAllTimers()
+      const topEl = mount(top)
+      boxStore.syncUnderlayInert()
+      expect(lowerEl.hasAttribute('inert')).toBe(false)
+      expect(lowerEl.hasAttribute('aria-hidden')).toBe(false)
+      expect(topEl.hasAttribute('inert')).toBe(false)
+    })
+
+    it('模态置顶时下层仍 inert + aria-hidden（B5 不变）', () => {
+      document.body.innerHTML = ''
+      const lower = boxStore.open({ boxId: 'L2' })
+      vi.runAllTimers()
+      const lowerEl = mount(lower)
+      boxStore.open({ boxId: 'T2' })
+      vi.runAllTimers()
+      boxStore.syncUnderlayInert()
+      expect(lowerEl.hasAttribute('inert')).toBe(true)
+      expect(lowerEl.getAttribute('aria-hidden')).toBe('true')
+    })
+
+    it('prompt 消息即输入框可见 label（label[for] 关联）', () => {
+      boxStore.prompt('Enter name:', 'v')
+      const item = boxStore.items[0]
+      const inputId = item.content.match(/<input id="([^"]+)"/)[1]
+      expect(item.content).toContain(`<label for="${inputId}"`)
+      expect(item.content).toContain('Enter name:')
+      expect(item.content).not.toContain('<p class=')
+    })
+
+    it('prompt 标题走 i18n 词条，自定义 title 优先', () => {
+      Alpine.store('i18n', { t: (key) => (key === 'box.prompt' ? '输入' : key) })
+      boxStore.prompt('Name:')
+      expect(boxStore.items[0].title).toBe('输入')
+      boxStore.prompt('Name:', '', { title: '自定义' })
+      expect(boxStore.items[1].title).toBe('自定义')
+    })
+
+    it('labelledBy 选项透传到实例，缺省为空', () => {
+      const item = boxStore.open({ labelledBy: 'entry-detail-title' })
+      expect(item.labelledBy).toBe('entry-detail-title')
+      expect(boxStore.open({}).labelledBy).toBe('')
+    })
+  })
 })

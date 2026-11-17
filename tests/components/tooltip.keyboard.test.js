@@ -45,11 +45,12 @@ const Alpine = {
   initTree: vi.fn()
 }
 
-// A3（docs/a11y-design.md）：click 触发 = 弹层/披露模式键盘契约（WCAG 2.1.1 / 2.4.3 / 4.1.2）。
-// 打开时焦点移入弹层首个可聚焦元素、Tab 循环于弹层内、关闭时焦点还原触发器；
+// A3（docs/a11y-design.md）：click 触发 = 弹层/披露模式键盘契约（APG menu-button，
+// WCAG 2.1.1 / 2.4.3 / 4.1.2）。打开时焦点移入弹层首个可聚焦元素；Tab 关闭弹层并离开
+// （焦点还原触发器后由浏览器默认动作移出，不 trap）；关闭时焦点还原触发器；
 // 触发器暴露 aria-haspopup/aria-expanded 并与弹层 aria-describedby 关联；
-// 弹层含 role="menu" 时支持方向键导航；锚点触发器补 Space 键合成（Enter 由原生 click 覆盖）。
-// hover/focus 触发的提示不得抢占或还原焦点。
+// 弹层含 role="menu" 时支持方向键导航；锚点菜单项与锚点触发器补 Space 键合成
+// （Enter 由原生 click 覆盖）。hover/focus 触发的提示不得抢占或还原焦点。
 describe('Tooltip keyboard support (A3, click trigger popup)', () => {
   let store
   let trigger
@@ -157,5 +158,46 @@ describe('Tooltip keyboard support (A3, click trigger popup)', () => {
     expect(event.defaultPrevented).toBe(true)
     expect(store.visible).toBe(false)
     expect(document.activeElement).toBe(trigger)
+  })
+
+  it('Tab closes popup without trapping: default action proceeds from restored trigger', () => {
+    openClickPopup('<ul role="menu"><li><a href="#" id="menu-edit">Edit</a></li></ul>')
+
+    const event = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true })
+    document.getElementById('menu-edit').dispatchEvent(event)
+
+    expect(event.defaultPrevented).toBe(false)
+    expect(store.visible).toBe(false)
+    expect(document.activeElement).toBe(trigger)
+    expect(trigger.getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('Shift+Tab also closes popup and leaves', () => {
+    openClickPopup('<ul role="menu"><li><a href="#" id="menu-edit">Edit</a></li></ul>')
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      shiftKey: true,
+      bubbles: true,
+      cancelable: true
+    })
+    document.getElementById('menu-edit').dispatchEvent(event)
+
+    expect(event.defaultPrevented).toBe(false)
+    expect(store.visible).toBe(false)
+    expect(document.activeElement).toBe(trigger)
+  })
+
+  it('Space on anchor menuitem synthesizes click activation', () => {
+    openClickPopup('<ul role="menu"><li><a href="#" id="menu-edit">Edit</a></li></ul>')
+    const item = document.getElementById('menu-edit')
+    const onClick = vi.fn()
+    item.addEventListener('click', onClick)
+
+    const event = new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true })
+    item.dispatchEvent(event)
+
+    expect(event.defaultPrevented).toBe(true)
+    expect(onClick).toHaveBeenCalledTimes(1)
   })
 })

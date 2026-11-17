@@ -3,7 +3,9 @@ export default {
     ok: '确认',
     cancel: '取消',
     loading: '加载中',
-    close: '关闭'
+    close: '关闭',
+    dialog: '对话框',
+    prompt: '输入'
   },
   valid: {
     required: '必填',

@@ -11,8 +11,6 @@ export const getNotifyTemplate = () => {
             Uno.getStyle('notify', 'item'),
             Uno.getStyle('notify', 'types.' + item.type)
           ]"
-          :role="item.type === 'error' || item.type === 'warning' ? 'alert' : 'status'"
-          :aria-live="item.type === 'error' || item.type === 'warning' ? 'assertive' : 'polite'"
           x-show="item.isVisible"
           x-transition:enter="transition ease-out duration-300"
           x-transition:enter-start="opacity-0 transform scale-90"
@@ -22,6 +20,10 @@ export const getNotifyTemplate = () => {
           x-transition:leave-end="opacity-0 transform scale-90"
           :data-id="item.id"
           data-testid="notify-item"
+          @mouseenter="$store.uno.notify.pause(item.id, 'hover')"
+          @mouseleave="$store.uno.notify.resume(item.id, 'hover')"
+          @focusin="$store.uno.notify.pause(item.id, 'focus')"
+          @focusout="!$el.contains($event.relatedTarget) && $store.uno.notify.resume(item.id, 'focus')"
          >
           
           <div :class="Uno.getStyle('notify', 'content')">
@@ -35,7 +37,9 @@ export const getNotifyTemplate = () => {
                  
                  <!-- Content -->
                  <div :class="Uno.getStyle('notify', 'textWrap')">
-                    <p :class="Uno.getStyle('notify', 'text')" x-text="item.message"></p>
+                    <p :class="Uno.getStyle('notify', 'text')" x-text="item.message"
+                       :role="item.type === 'error' || item.type === 'warning' ? 'alert' : 'status'"
+                       :aria-live="item.type === 'error' || item.type === 'warning' ? 'assertive' : 'polite'"></p>
                  </div>
                  
                  <!-- Close Button -->
@@ -69,7 +73,9 @@ export const getNotifyTemplate = () => {
                     @htmx:sendError.stop="$store.uno.notify.onHtmxError($event.detail, item)"
                     @htmx:timeout.stop="$store.uno.notify.onHtmxError($event.detail, item)"
                >
-                  <div x-html="item.content || ''"></div>
+                  <div x-html="item.content || ''"
+                       :role="item.type === 'error' || item.type === 'warning' ? 'alert' : 'status'"
+                       :aria-live="item.type === 'error' || item.type === 'warning' ? 'assertive' : 'polite'"></div>
                </div>
             </template>
           </div>

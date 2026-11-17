@@ -27,4 +27,17 @@ describe('Notify Template', () => {
     )
     expect(template).not.toContain('aria-live="assertive"')
   })
+
+  // hover/focus 暂停自动关闭；live 区域落在消息文本上，关闭按钮不在 live 内，
+  // 避免操作控件随播报重复朗读。
+  it('wires hover/focus pause-resume and keeps the live region on the message text', () => {
+    const template = getNotifyTemplate()
+    expect(template).toContain("@mouseenter=\"$store.uno.notify.pause(item.id, 'hover')\"")
+    expect(template).toContain("@mouseleave=\"$store.uno.notify.resume(item.id, 'hover')\"")
+    expect(template).toContain("@focusin=\"$store.uno.notify.pause(item.id, 'focus')\"")
+    expect(template).toContain('$store.uno.notify.resume(item.id, \'focus\')')
+    // 消息文本携带 live 绑定，关闭按钮位于其外（同级 closeWrap）
+    expect(template).toContain('x-text="item.message"')
+    expect(template).toContain('x-t="box.close"')
+  })
 })

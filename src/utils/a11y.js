@@ -22,10 +22,13 @@ export const FOCUSABLE_SELECTOR = [
  * Trap focus within an element
  * @param {HTMLElement} el - The element to trap focus in
  * @param {Object} options
+ * @param {boolean} [options.initialFocus=true] - Focus first focusable on mount
+ * @param {boolean} [options.enabled=true] - false 时不注册 trap（非模态弹窗允许焦点离开）
  * @returns {Function} cleanup function
  */
 export function trapFocus(el, options = {}) {
-  const { initialFocus = true } = options
+  const { initialFocus = true, enabled = true } = options
+  if (!enabled) return () => {}
   const isVisible = (node) => {
     if (!(node instanceof HTMLElement)) return false
     const style = window.getComputedStyle(node)

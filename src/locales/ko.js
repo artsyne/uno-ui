@@ -3,7 +3,9 @@ export default {
     ok: '확인',
     cancel: '취소',
     loading: '불러오는 중',
-    close: '닫기'
+    close: '닫기',
+    dialog: '대화 상자',
+    prompt: '입력'
   },
   valid: {
     required: '필수 입력 항목이에요',

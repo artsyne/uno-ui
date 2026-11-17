@@ -70,11 +70,13 @@ describe('Valid error summary (E4, WCAG 3.3.1/3.3.3)', () => {
     ValidPlugin(Alpine)
   })
 
-  /** user 必填 / email 格式 / pwd 必填（无 id，测锚点回退） */
+  /** user 必填 / email 格式 / pwd 必填（无 id 无 label，测控件 id 兜底与字段名回退） */
   const setupForm = () => {
     document.body.innerHTML = `
       <form id="testForm">
+        <label for="user">用户名</label>
         <input name="user" id="user" />
+        <label for="email">邮箱</label>
         <input name="email" id="email" />
         <input name="pwd" />
       </form>
@@ -113,7 +115,7 @@ describe('Valid error summary (E4, WCAG 3.3.1/3.3.3)', () => {
     expect(store.uno.valid.errors['pwd']).toBeTruthy()
   })
 
-  it('每条错误一条链接：href 锚点优先 input.id，无 id 回退 {field}-error', async () => {
+  it('每条错误一条链接：href 锚定真实控件（无 id 时补 id），文字带字段名', async () => {
     const form = setupForm()
     document.getElementById('email').value = 'not-an-email'
     addRules()
@@ -124,8 +126,16 @@ describe('Valid error summary (E4, WCAG 3.3.1/3.3.3)', () => {
     expect(links).toHaveLength(3)
     expect(links[0].getAttribute('href')).toBe('#user')
     expect(links[1].getAttribute('href')).toBe('#email')
-    expect(links[2].getAttribute('href')).toBe('#pwd-error') // 无 id 回退错误元素锚点
-    expect(links[0].textContent).toBe(store.uno.valid.errors['user']) // 链接文字即错误消息
+    // 无 id 的 pwd 被补上稳定 id，链接锚定控件本身而非 {field}-error 错误 div
+    const pwd = document.querySelector('[name="pwd"]')
+    expect(pwd.id).toBeTruthy()
+    expect(links[2].getAttribute('href')).toBe(`#${pwd.id}`)
+    expect(document.getElementById(pwd.id)).toBe(pwd)
+    // 链接文字 = 字段名（label）+ 错误消息
+    expect(links[0].textContent).toBe(`用户名: ${store.uno.valid.errors['user']}`)
+    expect(links[1].textContent).toBe(`邮箱: ${store.uno.valid.errors['email']}`)
+    // 无 label 时回退字段名
+    expect(links[2].textContent).toBe(`pwd: ${store.uno.valid.errors['pwd']}`)
   })
 
   it('焦点移至摘要（而非首错字段）', async () => {
@@ -205,5 +215,93 @@ describe('Valid error summary (E4, WCAG 3.3.1/3.3.3)', () => {
     await store.uno.valid.validateForm(form)
 
     expect(titleOf(summaryOf(form)).textContent).toBe('Please fix the following problems')
+  })
+
+  it('点击无 id 字段的链接 → 聚焦真实控件（而非错误 div）', async () => {
+    const form = setupForm()
+    document.getElementById('email').value = 'not-an-email'
+    addRules()
+    await store.uno.valid.validateForm(form)
+
+    const pwd = document.querySelector('[name="pwd"]')
+    const link = summaryOf(form).querySelectorAll('a')[2] // → pwd
+    const evt = new dom.window.MouseEvent('click', { bubbles: true, cancelable: true })
+    link.dispatchEvent(evt)
+
+    expect(evt.defaultPrevented).toBe(true)
+    expect(pwd.dataset.testFocus).toBe('1')
+    expect(pwd.dataset.testScroll).toBe('1')
+  })
+
+  it('字段名取 aria-label（无 <label> 时）', async () => {
+    document.body.innerHTML = `
+      <form id="testForm">
+        <input name="user" id="user" aria-label="账号名称" />
+        <input name="email" id="email" aria-label="电子邮箱" />
+      </form>`
+    const form = document.getElementById('testForm')
+    document.getElementById('email').value = 'bad'
+    store.uno.valid.addRules('user', ['required'])
+    store.uno.valid.addRules('email', ['email'])
+
+    await store.uno.valid.validateForm(form)
+
+    const links = summaryOf(form).querySelectorAll('a')
+    expect(links[0].textContent).toBe(`账号名称: ${store.uno.valid.errors['user']}`)
+    expect(links[1].textContent).toBe(`电子邮箱: ${store.uno.valid.errors['email']}`)
+  })
+
+  it('字段名取包裹 label（无 for/id 关联时）', async () => {
+    document.body.innerHTML = `
+      <form id="testForm">
+        <label>昵称<input name="user" /></label>
+        <label>信箱<input name="email" /></label>
+      </form>`
+    const form = document.getElementById('testForm')
+    form.querySelector('[name="email"]').value = 'bad'
+    store.uno.valid.addRules('user', ['required'])
+    store.uno.valid.addRules('email', ['email'])
+
+    await store.uno.valid.validateForm(form)
+
+    const links = summaryOf(form).querySelectorAll('a')
+    expect(links[0].textContent).toBe(`昵称: ${store.uno.valid.errors['user']}`)
+  })
+
+  it('prefers-reduced-motion → 滚动用 auto 而非 smooth（C1/E6）', async () => {
+    const behaviors = []
+    dom.window.HTMLElement.prototype.scrollIntoView = vi.fn(function (opts) {
+      this.dataset.testScroll = '1'
+      behaviors.push(opts && opts.behavior)
+    })
+    dom.window.matchMedia = vi.fn((query) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query
+    }))
+    const form = setupForm()
+    document.getElementById('email').value = 'not-an-email'
+    addRules()
+
+    await store.uno.valid.validateForm(form)
+
+    expect(dom.window.matchMedia).toHaveBeenCalledWith('(prefers-reduced-motion: reduce)')
+    expect(behaviors.length).toBeGreaterThan(0)
+    expect(behaviors.every((b) => b === 'auto')).toBe(true)
+  })
+
+  it('未开启 reduced-motion → 滚动保持 smooth', async () => {
+    const behaviors = []
+    dom.window.HTMLElement.prototype.scrollIntoView = vi.fn(function (opts) {
+      this.dataset.testScroll = '1'
+      behaviors.push(opts && opts.behavior)
+    })
+    dom.window.matchMedia = vi.fn(() => ({ matches: false }))
+    const form = setupForm()
+    document.getElementById('email').value = 'not-an-email'
+    addRules()
+
+    await store.uno.valid.validateForm(form)
+
+    expect(behaviors.every((b) => b === 'smooth')).toBe(true)
   })
 })

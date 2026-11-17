@@ -66,12 +66,20 @@ describe('Box focus restore & multilayer inert (B5)', () => {
 
   // 模拟渲染层产出 box 容器（真实应用由 Alpine 模板渲染）。
   // ID 必须与 box.template.js 的 :id 绑定（uno-box-outer-container{id}）保持一致；
-  // 与模板漂移会使 store 的选择器查询静默失效。
+  // 与模板漂移会使 store 的选择器查询静默失效。容器挂在 #uno-box-manager 内，
+  // 与生产一致——背景 inert 隔离以管理器为弹窗overlay 根，管理器之外的
+  // body 子节点才是背景。
   const mountBoxContainer = (item, innerHtml = '') => {
+    let manager = document.getElementById('uno-box-manager')
+    if (!manager) {
+      manager = document.createElement('div')
+      manager.id = 'uno-box-manager'
+      document.body.appendChild(manager)
+    }
     const el = document.createElement('div')
     el.id = 'uno-box-outer-container' + item.id
     el.innerHTML = innerHtml
-    document.body.appendChild(el)
+    manager.appendChild(el)
     return el
   }
 
@@ -131,6 +139,34 @@ describe('Box focus restore & multilayer inert (B5)', () => {
 
     expect(elA.getAttribute('aria-hidden')).toBeNull()
     expect(elA.hasAttribute('inert')).toBe(false)
+  })
+
+  it('deferred initial autofocus does not steal focus after the box closed', () => {
+    const opener = document.createElement('button')
+    document.body.appendChild(opener)
+    opener.focus()
+
+    const item = boxStore.open({ content: '<p>body</p>' })
+    // 渲染层产出外层 dialog 与内层 trap 容器（scheduleAutoFocus 定位后者）
+    const outer = mountBoxContainer(item, '<button id="in-box">x</button>')
+    const inner = document.createElement('div')
+    inner.id = 'uno-box-container' + item.id
+    inner.setAttribute('tabindex', '-1')
+    outer.appendChild(inner)
+
+    // 先让 openNow（nextTick）置 isOpen=true，但双 rAF 的初始聚焦尚未执行
+    vi.advanceTimersByTime(1)
+    expect(item.isOpen).toBe(true)
+
+    // 在延迟初始聚焦执行前关闭：焦点已还原到 opener
+    document.getElementById('in-box').focus()
+    item.close()
+    expect(document.activeElement).toBe(opener)
+
+    // 延迟 run 此时才触发；item.isOpen=false 必须放弃，不得把焦点抢回即将移除的容器
+    vi.advanceTimersByTime(50)
+    expect(document.activeElement).toBe(opener)
+    vi.advanceTimersByTime(400)
   })
 
   it('multilayer: closing the top restores focus to its opener inside the underlay', () => {

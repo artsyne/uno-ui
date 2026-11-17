@@ -281,4 +281,69 @@ describe('Notify Component', () => {
     // Testing the directive handler logic would require simulating the Alpine directive callback
     // which is complex to mock perfectly, but we can verify registration.
   })
+
+  // 关键错误默认持久；定时反馈 hover/focus 暂停并保留剩余时长；
+  // 关闭被聚焦的通知时把焦点交接给另一条通知的操作按钮。
+  describe('Dismiss timer & persistence', () => {
+    it('keeps error notifications persistent by default', () => {
+      const id = notifyStore.error('boom')
+      expect(notifyStore.groups['top-right'][0].duration).toBe(0)
+      vi.advanceTimersByTime(10000)
+      expect(notifyStore.groups['top-right'][0].isVisible).toBe(true)
+      expect(notifyStore._findNotificationById(id)).not.toBeNull()
+    })
+
+    it('honors an explicit duration on error', () => {
+      notifyStore.error('boom', { duration: 1000 })
+      vi.advanceTimersByTime(1000)
+      expect(notifyStore.groups['top-right'][0].isVisible).toBe(false)
+    })
+
+    it('pauses on hover and resumes with the remaining time, not a reset', () => {
+      const id = notifyStore.show('read me', { duration: 1000 })
+      vi.advanceTimersByTime(400)
+      notifyStore.pause(id, 'hover')
+      // 暂停期间远超原 duration 也不关闭
+      vi.advanceTimersByTime(5000)
+      expect(notifyStore.groups['top-right'][0].isVisible).toBe(true)
+      notifyStore.resume(id, 'hover')
+      // 剩余 600ms：599ms 仍在，再 1ms 关闭
+      vi.advanceTimersByTime(599)
+      expect(notifyStore.groups['top-right'][0].isVisible).toBe(true)
+      vi.advanceTimersByTime(1)
+      expect(notifyStore.groups['top-right'][0].isVisible).toBe(false)
+    })
+
+    it('resumes only after both hover and focus pauses clear', () => {
+      const id = notifyStore.show('read me', { duration: 1000 })
+      notifyStore.pause(id, 'hover')
+      notifyStore.pause(id, 'focus')
+      notifyStore.resume(id, 'hover')
+      vi.advanceTimersByTime(2000)
+      expect(notifyStore.groups['top-right'][0].isVisible).toBe(true)
+      notifyStore.resume(id, 'focus')
+      vi.advanceTimersByTime(1000)
+      expect(notifyStore.groups['top-right'][0].isVisible).toBe(false)
+    })
+
+    it('hands focus to another notification when closing the focused one', () => {
+      const id1 = notifyStore.show('first', { duration: 0 })
+      notifyStore.show('second', { duration: 0 })
+      const mk = (id) => {
+        const wrap = document.createElement('div')
+        wrap.setAttribute('data-id', String(id))
+        wrap.setAttribute('data-testid', 'notify-item')
+        const btn = document.createElement('button')
+        wrap.appendChild(btn)
+        document.body.appendChild(wrap)
+        return btn
+      }
+      const b1 = mk(id1)
+      const b2 = mk(id1 + 1)
+      b1.focus()
+      notifyStore.remove(id1)
+      expect(document.activeElement).toBe(b2)
+      document.body.innerHTML = ''
+    })
+  })
 })
